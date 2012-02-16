@@ -163,8 +163,8 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
           if (sendWrappedBuffer.capacity() < wrappedDataBytes.length + 4)
           {
             // Resize the send buffer.
-            sendWrappedBuffer = ByteBuffer
-                .allocate(wrappedDataBytes.length + 4);
+            sendWrappedBuffer =
+                ByteBuffer.allocate(wrappedDataBytes.length + 4);
           }
           sendWrappedBuffer.clear();
           sendWrappedBuffer.putInt(wrappedDataBytes.length);
@@ -185,82 +185,85 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
     // Attempt to read and unwrap the next SASL packet.
     private int doRecvAndUnwrap() throws IOException
     {
-      // Read the encoded packet length first.
-      if (recvWrappedLength < 0)
+      // Read SASL packets until some unwrapped data is produced or no more
+      // data is available on the underlying channel.
+      while (true)
       {
-        final int read = channel.read(recvWrappedLengthBuffer);
-        if (read <= 0)
-        {
-          // No data read or end of stream.
-          return read;
-        }
-
-        if (recvWrappedLengthBuffer.hasRemaining())
-        {
-          // Unable to read the length, so no data available yet.
-          return 0;
-        }
-
-        // Decode the length and reset the length buffer.
-        recvWrappedLengthBuffer.flip();
-        recvWrappedLength = recvWrappedLengthBuffer.getInt();
-        recvWrappedLengthBuffer.clear();
-
-        // Check that the length is valid.
-        if (recvWrappedLength > recvWrappedBufferMaximumSize)
-        {
-          throw new IOException(
-              "Client sent a SASL packet specifying a length "
-                  + recvWrappedLength
-                  + " which exceeds the negotiated limit of "
-                  + recvWrappedBufferMaximumSize);
-        }
-
+        // Read the wrapped packet length first.
         if (recvWrappedLength < 0)
         {
-          throw new IOException(
-              "Client sent a SASL packet specifying a negative length "
-                  + recvWrappedLength);
+          // The channel read may only partially fill the buffer due to
+          // buffering in the underlying channel layer (e.g. SSL layer), so
+          // repeatedly read until the length has been read or we are sure
+          // that we are unable to proceed.
+          while (recvWrappedLengthBuffer.hasRemaining())
+          {
+            final int read = channel.read(recvWrappedLengthBuffer);
+            if (read <= 0)
+            {
+              // Not enough data available or end of stream.
+              return read;
+            }
+          }
+
+          // Decode the length and reset the length buffer.
+          recvWrappedLengthBuffer.flip();
+          recvWrappedLength = recvWrappedLengthBuffer.getInt();
+          recvWrappedLengthBuffer.clear();
+
+          // Check that the length is valid.
+          if (recvWrappedLength > recvWrappedBufferMaximumSize)
+          {
+            throw new IOException(
+                "Client sent a SASL packet specifying a length "
+                    + recvWrappedLength
+                    + " which exceeds the negotiated limit of "
+                    + recvWrappedBufferMaximumSize);
+          }
+
+          if (recvWrappedLength < 0)
+          {
+            throw new IOException(
+                "Client sent a SASL packet specifying a negative length "
+                    + recvWrappedLength);
+          }
+
+          // Prepare the recv buffer for reading.
+          recvWrappedBuffer.clear();
+          recvWrappedBuffer.limit(recvWrappedLength);
         }
 
-        // Prepare the recv buffer for reading.
-        recvWrappedBuffer.clear();
-        recvWrappedBuffer.limit(recvWrappedLength);
+        // Read the wrapped packet data.
+
+        // The channel read may only partially fill the buffer due to
+        // buffering in the underlying channel layer (e.g. SSL layer), so
+        // repeatedly read until the data has been read or we are sure
+        // that we are unable to proceed.
+        while (recvWrappedBuffer.hasRemaining())
+        {
+          final int read = channel.read(recvWrappedBuffer);
+          if (read <= 0)
+          {
+            // Not enough data available or end of stream.
+            return read;
+          }
+        }
+
+        // The complete packet has been read, so unwrap it.
+        recvWrappedBuffer.flip();
+        final byte[] unwrappedDataBytes = saslContext.unwrap(
+            recvWrappedBuffer.array(), 0, recvWrappedLength);
+        recvWrappedLength = -1;
+
+        // Only return the unwrapped data if it was non-empty, otherwise try to
+        // read another SASL packet.
+        if (unwrappedDataBytes.length > 0)
+        {
+          recvUnwrappedBuffer = ByteBuffer.wrap(unwrappedDataBytes);
+          return recvUnwrappedBuffer.remaining();
+        }
       }
-
-      // Read wrapped data.
-      final int read = channel.read(recvWrappedBuffer);
-      if (read <= 0)
-      {
-        // No data read or end of stream.
-        return read;
-      }
-
-      if (recvWrappedBuffer.hasRemaining())
-      {
-        // Unable to read the full packet, so no data available yet.
-        return 0;
-      }
-
-      // The complete packet has been read, so unwrap it.
-      recvWrappedBuffer.flip();
-      final byte[] unwrappedDataBytes = saslContext.unwrap(
-          recvWrappedBuffer.array(), 0, recvWrappedLength);
-      recvWrappedLength = -1;
-
-      if (recvUnwrappedBuffer.capacity() < unwrappedDataBytes.length)
-      {
-        // Resize the recv buffer (this shouldn't ever happen).
-        recvUnwrappedBuffer = ByteBuffer.allocate(unwrappedDataBytes.length);
-      }
-
-      recvUnwrappedBuffer.clear();
-      recvUnwrappedBuffer.put(unwrappedDataBytes);
-      recvUnwrappedBuffer.flip();
-
-      return recvUnwrappedBuffer.remaining();
     }
-
   }
 
 
@@ -326,8 +329,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
     sendUnwrappedBufferSize = saslContext.getMaxRawSendBufferSize();
 
     recvWrappedBuffer = ByteBuffer.allocate(recvWrappedBufferMaximumSize);
-    recvUnwrappedBuffer = ByteBuffer.allocate(recvWrappedBufferMaximumSize);
-    recvUnwrappedBuffer.flip(); // Initially nothing has been received.
+    recvUnwrappedBuffer = ByteBuffer.allocate(0);
     sendUnwrappedBytes = new byte[sendUnwrappedBufferSize];
     sendWrappedBuffer = ByteBuffer.allocate(sendUnwrappedBufferSize + 64);
   }

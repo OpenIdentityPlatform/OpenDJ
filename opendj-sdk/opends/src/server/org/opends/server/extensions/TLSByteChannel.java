@@ -245,15 +245,17 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       // Synchronize SSL unwrap with channel reads.
       synchronized (unwrapLock)
       {
-        // Repeat if there is underflow or overflow.
+        // Read SSL packets until some unwrapped data is produced or no more
+        // data is available on the underlying channel.
         boolean needRead = true;
+        int read = 0;
         while (true)
         {
           // Read wrapped data if needed.
           if (needRead)
           {
             recvWrappedBuffer.compact(); // Prepare for append.
-            final int read = channel.read(recvWrappedBuffer);
+            read = channel.read(recvWrappedBuffer);
             recvWrappedBuffer.flip(); // Restore for read.
             if (read < 0)
             {
@@ -288,11 +290,11 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
             break; // Retry unwrap.
           case BUFFER_UNDERFLOW:
             // Not enough data was read. This either means that the inbound
-            // buffer was too small, or not enough data is available.
+            // buffer was too small, or not enough data was read.
             final int newPktSize = sslEngine.getSession().getPacketBufferSize();
             if (newPktSize > recvWrappedBuffer.capacity())
             {
-              // Buffer needs resizing.
+              // Increase the buffer size and reread.
               final ByteBuffer newRecvWrappedBuffer = ByteBuffer
                   .allocate(newPktSize);
               newRecvWrappedBuffer.put(recvWrappedBuffer);
@@ -300,10 +302,17 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
               recvWrappedBuffer = newRecvWrappedBuffer;
               break;
             }
-            else
+            else if (read == 0)
             {
               // Not enough data is available to read a complete SSL packet.
               return 0;
+            }
+            else
+            {
+              // The channel read may only partially fill the buffer due to
+              // buffering in the underlying channel layer, so try reading again
+              // until we are sure that we are unable to proceed.
+              break;
             }
           case CLOSED:
             // Peer sent SSL close notification.
@@ -320,7 +329,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
               // No application data was read, but if we are handshaking then
               // try to continue.
               if (result.getHandshakeStatus() == HandshakeStatus.NEED_UNWRAP
-                  && !recvWrappedBuffer.hasRemaining())
+                  && !recvWrappedBuffer.hasRemaining() && read == 0)
               {
                 // Not enough data is available to continue handshake.
                 return 0;
@@ -331,10 +340,17 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
                 doHandshake(true /* isReading */);
               }
             }
-            else
+            else if (read == 0)
             {
               // No data available and not handshaking.
               return 0;
+            }
+            else
+            {
+              // The channel read may only partially fill the buffer due to
+              // buffering in the underlying channel layer, so try reading again
+              // until we are sure that we are unable to proceed.
+              break;
             }
           }
         }
