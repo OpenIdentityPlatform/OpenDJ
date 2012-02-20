@@ -169,6 +169,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <!--  Required for release:perform: the parent pom specifies a value
+                for "arguments" in the plugin configuration. This prevents
+                command line setting of the option. -->
+          <arguments>-Penforce -Dopendmk.lib.dir=${opendmk.lib.dir}</arguments>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <profiles>
