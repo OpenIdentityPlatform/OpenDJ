@@ -398,11 +398,17 @@
               </preProcess>
 
               <postProcess>
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/html&gt;">
+                  <include name="**/**/**/*.html" />
+                  <replacevalue>
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
+&lt;html &gt;</replacevalue>
+                </replace>
                 <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
                   <include name="**/**/**/*.html" />
                   <replacevalue>
-&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
-&lt;script&gt;
+&lt;script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
@@ -480,11 +486,17 @@ $(".flat").live("dblclick", function() {
               </preProcess>
 
               <postProcess>
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/html&gt;">
+                  <include name="**/**/*.html" />
+                  <replacevalue>
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
+&lt;html &gt;</replacevalue>
+                </replace>
                 <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
                   <include name="**/**/*.html" />
                   <replacevalue>
-&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
-&lt;script&gt;
+&lt;script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
