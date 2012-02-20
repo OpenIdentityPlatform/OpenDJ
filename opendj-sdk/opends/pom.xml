@@ -161,6 +161,10 @@
                   <type>zip</type>
                 </artifact>
                 <artifact>
+                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML.war</file>
+                  <type>war</type>
+                </artifact>
+                <artifact>
                   <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}/lib/OpenDJ.jar</file>
                   <type>jar</type>
                 </artifact>
