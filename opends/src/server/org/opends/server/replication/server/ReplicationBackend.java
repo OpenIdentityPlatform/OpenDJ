@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -871,7 +871,7 @@ public class ReplicationBackend
           AddMsg addMsg = (AddMsg)msg;
           AddOperation addOperation = (AddOperation)msg.createOperation(conn);
 
-          dn = DN.decode("puid=" + addMsg.getParentUid() + "+" +
+          dn = DN.decode("puid=" + addMsg.getParentEntryUUID() + "+" +
               CHANGE_NUMBER + "=" + msg.getChangeNumber().toString() + "+" +
               msg.getDn() + "," + BASE_DN);
 
@@ -922,7 +922,7 @@ public class ReplicationBackend
         {
           DeleteMsg delMsg = (DeleteMsg)msg;
 
-          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
               CHANGE_NUMBER + "=" + delMsg.getChangeNumber().toString()+ "," +
               msg.getDn() +","+ BASE_DN);
 
@@ -945,7 +945,7 @@ public class ReplicationBackend
         {
           ModifyOperation op = (ModifyOperation)msg.createOperation(conn);
 
-          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
               CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
               msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);
@@ -969,7 +969,7 @@ public class ReplicationBackend
         {
           ModifyDNOperation op = (ModifyDNOperation)msg.createOperation(conn);
 
-          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
               CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
               msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);

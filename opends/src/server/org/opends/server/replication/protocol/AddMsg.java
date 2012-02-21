@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -60,7 +60,7 @@ public class AddMsg extends LDAPUpdateMsg
   private byte[] encodedAttributes;
 
   // Parent is managed decoded
-  private String parentUniqueId;
+  private String parentEntryUUID;
 
   /**
    * Creates a new AddMessage.
@@ -74,7 +74,7 @@ public class AddMsg extends LDAPUpdateMsg
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
 
     // Stores parentUniqueID not encoded
-    this.parentUniqueId = ctx.getParentUid();
+    this.parentEntryUUID = ctx.getParentEntryUUID();
 
     // Stores attributes encoded
     this.encodedAttributes = encodeAttributes(op.getObjectClasses(),
@@ -86,8 +86,8 @@ public class AddMsg extends LDAPUpdateMsg
    *
    * @param cn                    ChangeNumber of the add.
    * @param dn                    DN of the added entry.
-   * @param uniqueId              The Unique identifier of the added entry.
-   * @param parentId              The unique Id of the parent of the added
+   * @param entryUUID             The Unique identifier of the added entry.
+   * @param parentEntryUUID       The unique Id of the parent of the added
    *                              entry.
    * @param objectClasses           objectclass of the added entry.
    * @param userAttributes        user attributes of the added entry.
@@ -95,16 +95,16 @@ public class AddMsg extends LDAPUpdateMsg
    */
   public AddMsg(ChangeNumber cn,
                 String dn,
-                String uniqueId,
-                String parentId,
+                String entryUUID,
+                String parentEntryUUID,
                 Map<ObjectClass, String> objectClasses,
                 Map<AttributeType,List<Attribute>> userAttributes,
                 Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    super (cn, uniqueId, dn);
+    super (cn, entryUUID, dn);
 
     // Stores parentUniqueID not encoded
-    this.parentUniqueId = parentId;
+    this.parentEntryUUID = parentEntryUUID;
 
     // Stores attributes encoded
     this.encodedAttributes = encodeAttributes(objectClasses, userAttributes,
@@ -134,7 +134,7 @@ public class AddMsg extends LDAPUpdateMsg
     super (cn, uniqueId, dn);
 
     // Stores parentUniqueID not encoded
-    this.parentUniqueId = parentId;
+    this.parentEntryUUID = parentId;
 
     // Stores attributes encoded
     this.encodedAttributes = encodeAttributes(objectClass, userAttributes,
@@ -183,8 +183,8 @@ public class AddMsg extends LDAPUpdateMsg
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn), attr);
-    AddContext ctx = new AddContext(getChangeNumber(), getUniqueId(),
-        parentUniqueId);
+    AddContext ctx = new AddContext(getChangeNumber(), getEntryUUID(),
+        parentEntryUUID);
     add.setAttachment(SYNCHROCONTEXT, ctx);
     return add;
   }
@@ -201,9 +201,9 @@ public class AddMsg extends LDAPUpdateMsg
   {
     int bodyLength = encodedAttributes.length;
     byte[] byteParentId = null;
-    if (parentUniqueId != null)
+    if (parentEntryUUID != null)
     {
-      byteParentId = parentUniqueId.getBytes("UTF-8");
+      byteParentId = parentEntryUUID.getBytes("UTF-8");
       bodyLength += byteParentId.length + 1;
     }
     else
@@ -240,10 +240,10 @@ public class AddMsg extends LDAPUpdateMsg
 
     // Compute the total length of the body
     byte[] byteParentId = null;
-    if (parentUniqueId != null)
+    if (parentEntryUUID != null)
     {
       // Encode parentID now to get the length of the encoded bytes
-      byteParentId = parentUniqueId.getBytes("UTF-8");
+      byteParentId = parentEntryUUID.getBytes("UTF-8");
       bodyLength += byteParentId.length + 1;
     }
     else
@@ -282,10 +282,10 @@ public class AddMsg extends LDAPUpdateMsg
 
     // Compute the total length of the body
     byte[] byteParentId = null;
-    if (parentUniqueId != null)
+    if (parentEntryUUID != null)
     {
       // Encode parentID now to get the length of the encoded bytes
-      byteParentId = parentUniqueId.getBytes("UTF-8");
+      byteParentId = parentEntryUUID.getBytes("UTF-8");
       bodyLength += byteParentId.length + 1;
     }
     else
@@ -409,12 +409,12 @@ public class AddMsg extends LDAPUpdateMsg
     int length = getNextLength(in, pos);
     if (length != 0)
     {
-      parentUniqueId = new String(in, pos, length, "UTF-8");
+      parentEntryUUID = new String(in, pos, length, "UTF-8");
       pos += length + 1;
     }
     else
     {
-      parentUniqueId = null;
+      parentEntryUUID = null;
       pos += 1;
     }
 
@@ -434,12 +434,12 @@ public class AddMsg extends LDAPUpdateMsg
     int length = getNextLength(in, pos);
     if (length != 0)
     {
-      parentUniqueId = new String(in, pos, length, "UTF-8");
+      parentEntryUUID = new String(in, pos, length, "UTF-8");
       pos += length + 1;
     }
     else
     {
-      parentUniqueId = null;
+      parentEntryUUID = null;
       pos += 1;
     }
 
@@ -499,7 +499,7 @@ public class AddMsg extends LDAPUpdateMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
@@ -508,7 +508,7 @@ public class AddMsg extends LDAPUpdateMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +
         " safeDataLevel: " + safeDataLevel;
@@ -559,20 +559,20 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * Set the parent unique id of this add msg.
    *
-   * @param uid the parent unique id.
+   * @param entryUUID the parent unique id.
    */
-  public void setParentUid(String uid)
+  public void setParentEntryUUID(String entryUUID)
   {
-    parentUniqueId = uid;
+    parentEntryUUID = entryUUID;
   }
 
   /**
    * Get the parent unique id of this add msg.
    * @return the parent unique id.
    */
-  public String getParentUid()
+  public String getParentEntryUUID()
   {
-    return parentUniqueId;
+    return parentEntryUUID;
   }
 
   /**

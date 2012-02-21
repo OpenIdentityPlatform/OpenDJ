@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -34,22 +35,22 @@ import org.opends.server.replication.common.ChangeNumber;
  */
 public class ModifyDnContext extends OperationContext
 {
-  private String newParentId;
+  private String newSuperiorEntryUUID;
 
   /**
    * Creates a new ModifyDN Context with the provided parameters.
    *
    * @param changeNumber The change number of the operation.
-   * @param uid the unique Id of the modified entry.
-   * @param newParentId The unique Identifier of the new parent,
+   * @param entryUUID the unique Id of the modified entry.
+   * @param newSuperiorEntryUUID The unique Identifier of the new parent,
    *                    can be null if the entry is to stay below the same
    *                    parent.
    */
-  public ModifyDnContext(ChangeNumber changeNumber, String uid,
-                         String newParentId)
+  public ModifyDnContext(ChangeNumber changeNumber, String entryUUID,
+                         String newSuperiorEntryUUID)
   {
-    super(changeNumber, uid);
-    this.newParentId = newParentId;
+    super(changeNumber, entryUUID);
+    this.newSuperiorEntryUUID = newSuperiorEntryUUID;
   }
 
   /**
@@ -58,8 +59,8 @@ public class ModifyDnContext extends OperationContext
    *
    * @return Returns the unique Identifier of the new parent..
    */
-  public String getNewParentId()
+  public String getNewSuperiorEntryUUID()
   {
-    return newParentId;
+    return newSuperiorEntryUUID;
   }
 }

@@ -809,7 +809,7 @@ public class ECLSearchOperation
           .getCookie().toString(), DN.decode(addMsg.getDn()),
           addMsg.getChangeNumber(), ldifChanges, // entry as created (in LDIF
                                                  // format)
-          addMsg.getUniqueId(),
+          addMsg.getEntryUUID(),
           eclAttributes, // entry attributes
           eclmsg.getDraftChangeNumber(), "add", changeInitiatorsName);
 
@@ -876,7 +876,7 @@ public class ECLSearchOperation
       clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
           .getCookie().toString(), DN.decode(modifyMsg.getDn()),
           modifyMsg.getChangeNumber(), ldifChanges,
-          modifyMsg.getUniqueId(),
+          modifyMsg.getEntryUUID(),
           modifyMsg.getEclIncludes(), // entry attributes
           eclmsg.getDraftChangeNumber(), changeType,
           changeInitiatorsName);
@@ -909,7 +909,7 @@ public class ECLSearchOperation
           .getCookie().toString(), DN.decode(delMsg.getDn()),
           delMsg.getChangeNumber(),
           null, // no changes
-          delMsg.getUniqueId(),
+          delMsg.getEntryUUID(),
           delMsg.getEclIncludes(), // entry attributes
           eclmsg.getDraftChangeNumber(), "delete",
           delMsg.getInitiatorsName());

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.replication.plugin;
@@ -511,9 +511,9 @@ public class HistoricalTest
         assertTrue(addOp.getChangeNumber() != null);
         AddMsg addmsg = addOp.generateMessage();
         assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
-        assertTrue(addmsg.getUniqueId().equals(EntryHistorical.getEntryUuid(entry)));
-        String parentId = LDAPReplicationDomain.findEntryId(dn1.getParent());
-        assertTrue(addmsg.getParentUid().equals(parentId));
+        assertTrue(addmsg.getEntryUUID().equals(EntryHistorical.getEntryUUID(entry)));
+        String parentId = LDAPReplicationDomain.findEntryUUID(dn1.getParent());
+        assertTrue(addmsg.getParentEntryUUID().equals(parentId));
         addmsg.createOperation(InternalClientConnection.getRootConnection());
       } else
       {

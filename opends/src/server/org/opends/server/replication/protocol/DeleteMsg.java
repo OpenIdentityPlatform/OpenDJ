@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -75,11 +75,11 @@ public class DeleteMsg extends LDAPUpdateMsg
    * @param dn           The dn with which the message must be created.
    * @param changeNumber The change number with which the message must be
    *                     created.
-   * @param uid          The unique id with which the message must be created.
+   * @param entryUUID    The unique id with which the message must be created.
    */
-  public DeleteMsg(String dn, ChangeNumber changeNumber, String uid)
+  public DeleteMsg(String dn, ChangeNumber changeNumber, String entryUUID)
   {
-    super(new DeleteContext(changeNumber, uid), dn);
+    super(new DeleteContext(changeNumber, entryUUID), dn);
   }
 
   /**
@@ -124,7 +124,7 @@ public class DeleteMsg extends LDAPUpdateMsg
     if (isSubtreeDelete)
       del.addRequestControl(new SubtreeDeleteControl(false));
 
-    DeleteContext ctx = new DeleteContext(getChangeNumber(), getUniqueId());
+    DeleteContext ctx = new DeleteContext(getChangeNumber(), getEntryUUID());
     del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;
   }
@@ -256,7 +256,7 @@ public class DeleteMsg extends LDAPUpdateMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
@@ -265,7 +265,7 @@ public class DeleteMsg extends LDAPUpdateMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +
         " safeDataLevel: " + safeDataLevel;

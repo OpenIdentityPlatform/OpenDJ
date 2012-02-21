@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -49,17 +50,17 @@ public abstract class OperationContext
   /**
    * The unique Id of the entry that was modified in the original operation.
    */
-  private String entryUid;
+  private String entryUUID;
 
   /**
    * Create a new OperationContext.
    * @param changeNumber The change number of the operation.
-   * @param uid The unique Identifier of the modified entry.
+   * @param entryUUID The unique Identifier of the modified entry.
    */
-  protected OperationContext(ChangeNumber changeNumber, String uid)
+  protected OperationContext(ChangeNumber changeNumber, String entryUUID)
   {
     this.changeNumber = changeNumber;
-    this.entryUid = uid;
+    this.entryUUID = entryUUID;
   }
 
   /**
@@ -77,9 +78,9 @@ public abstract class OperationContext
    *
    * @return the unique Identifier of the modified entry.
    */
-  public String getEntryUid()
+  public String getEntryUUID()
   {
-    return entryUid;
+    return entryUUID;
   }
 
   /**
@@ -129,7 +130,7 @@ public abstract class OperationContext
     {
       OperationContext ctx = (OperationContext) obj;
       return ((this.changeNumber.equals(ctx.getChangeNumber()) &&
-          (this.entryUid.equals(ctx.getEntryUid()))));
+          (this.entryUUID.equals(ctx.getEntryUUID()))));
     }
     else
       return false;
@@ -141,7 +142,7 @@ public abstract class OperationContext
   @Override
   public int hashCode()
   {
-    return changeNumber.hashCode() + entryUid.hashCode();
+    return changeNumber.hashCode() + entryUUID.hashCode();
   }
 
 

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -71,7 +71,7 @@ public class EntryHistorical
   /**
    * Name of the attribute used to store historical information.
    */
-  public static final String HISTORICALATTRIBUTENAME = "ds-sync-hist";
+  public static final String HISTORICAL_ATTRIBUTE_NAME = "ds-sync-hist";
 
   /**
    * Name used to store attachment of historical information in the
@@ -83,7 +83,7 @@ public class EntryHistorical
   /**
    * Name of the entryuuid attribute.
    */
-  public static final String ENTRYUIDNAME = "entryuuid";
+  public static final String ENTRYUUID_ATTRIBUTE_NAME = "entryuuid";
 
   /* The delay to purge the historical informations
    * This delay indicates the time the domain keeps the historical
@@ -320,7 +320,7 @@ public class EntryHistorical
       PreOperationAddOperation addOperation)
   {
     AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
     // Get the changeNumber from the attached synchronization context
     // Create the attribute (encoded)
@@ -346,7 +346,7 @@ public class EntryHistorical
   private static AttributeValue encodeAddHistorical(ChangeNumber cn)
   {
     AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
     String strValue = "dn:" + cn.toString() +":add";
     AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
@@ -365,7 +365,7 @@ public class EntryHistorical
   private static AttributeValue encodeMODDNHistorical(ChangeNumber cn)
   {
     AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
     String strValue = "dn:" + cn.toString() +":moddn";
     AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
@@ -450,7 +450,7 @@ public class EntryHistorical
       purgeDate = TimeThread.getTime() - purgeDelayInMillisec;
 
     AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
 
     for (Map.Entry<AttributeType, AttrHistoricalWithOptions> entryWithOptions :
@@ -837,7 +837,7 @@ public class EntryHistorical
             }
             else
             {
-              String uuidString = getEntryUuid(entry);
+              String uuidString = getEntryUUID(entry);
               if (uuidString != null)
               {
                 modifyFakeOperation = new FakeModifyOperation(entry.getDN(),
@@ -866,7 +866,7 @@ public class EntryHistorical
    */
   public static List<Attribute> getHistoricalAttr(Entry entry)
   {
-    return entry.getAttribute(HISTORICALATTRIBUTENAME);
+    return entry.getAttribute(HISTORICAL_ATTRIBUTE_NAME);
   }
 
   /**
@@ -876,11 +876,11 @@ public class EntryHistorical
    *
    * @return The Unique Id of the entry if it has one. null, otherwise.
    */
-  public static String getEntryUuid(Entry entry)
+  public static String getEntryUUID(Entry entry)
   {
     String uuidString = null;
     AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
+      DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs =
              entry.getOperationalAttribute(entryuuidAttrType);
     if (uuidAttrs != null)
@@ -903,12 +903,12 @@ public class EntryHistorical
    * @param op The operation
    * @return The Entry Unique Id String form.
    */
-  public static String getEntryUuid(PreOperationAddOperation op)
+  public static String getEntryUUID(PreOperationAddOperation op)
   {
     String uuidString = null;
     Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();
     AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
+      DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = attrs.get(entryuuidAttrType);
 
     if (uuidAttrs != null)
@@ -936,7 +936,7 @@ public class EntryHistorical
   {
     AttributeType attrType = attr.getAttributeType();
     return
-      attrType.getNameOrOID().equals(EntryHistorical.HISTORICALATTRIBUTENAME);
+      attrType.getNameOrOID().equals(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
   }
 
   /**
