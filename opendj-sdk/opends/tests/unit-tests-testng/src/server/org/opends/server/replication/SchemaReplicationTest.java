@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -48,6 +49,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
@@ -229,8 +231,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
 
-      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
-        baseDn, rcvdMods, "cn=schema");
+      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(), baseDn, rcvdMods,
+          EntryHistorical.getEntryUUID(DirectoryServer.getEntry(baseDn)));
       broker.publish(modMsg);
 
       boolean found = checkEntryHasAttribute(baseDn, "attributetypes",
