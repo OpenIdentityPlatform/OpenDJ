@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !
 -->
 <document
@@ -33,6 +33,12 @@
  </properties>
  <body>
   <section name="New Releases">
+   <p>October 14, 2011. OpenDJ 2.4.4 has been released. OpenDJ 2.4.4 is an
+   update release of the OpenDJ project. You can get the release from the
+   <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
+   href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.4+Release+Notes"
+   >Release Notes</a> for the lists of fixes and known issues.</p>
+
    <p>June 17, 2011. We released OpenDJ 2.4.3 today! OpenDJ 2.4.3 is an update
    release of the OpenDJ project and resolves several issues found around
    the External Change Log and the bundled database version. Visit the <a
