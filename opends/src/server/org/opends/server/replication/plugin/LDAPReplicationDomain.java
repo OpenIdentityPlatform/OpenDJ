@@ -2209,8 +2209,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
       ChangeNumber changeNumber = generateChangeNumber(modifyOperation);
       String modifiedEntryUUID = EntryHistorical.getEntryUUID(modifiedEntry);
-      if (modifiedEntryUUID == null)
-        modifiedEntryUUID = modifyOperation.getEntryDN().toString();
       ctx = new ModifyContext(changeNumber, modifiedEntryUUID);
 
       modifyOperation.setAttachment(SYNCHROCONTEXT, ctx);

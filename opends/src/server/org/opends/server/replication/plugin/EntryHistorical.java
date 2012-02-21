@@ -29,18 +29,15 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.getBytes;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.*;
@@ -84,6 +81,13 @@ public class EntryHistorical
    * Name of the entryuuid attribute.
    */
   public static final String ENTRYUUID_ATTRIBUTE_NAME = "entryuuid";
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
 
   /* The delay to purge the historical informations
    * This delay indicates the time the domain keeps the historical
@@ -838,14 +842,10 @@ public class EntryHistorical
             else
             {
               String uuidString = getEntryUUID(entry);
-              if (uuidString != null)
-              {
-                modifyFakeOperation = new FakeModifyOperation(entry.getDN(),
-                    cn, uuidString);
-
-                modifyFakeOperation.addModification(mod);
-                operations.put(histVal.getCn(), modifyFakeOperation);
-              }
+              modifyFakeOperation = new FakeModifyOperation(entry.getDN(), cn,
+                  uuidString);
+              modifyFakeOperation.addModification(mod);
+              operations.put(histVal.getCn(), modifyFakeOperation);
             }
           }
         }
@@ -874,25 +874,15 @@ public class EntryHistorical
    *
    * @param entry The entry for which the unique id should be returned.
    *
-   * @return The Unique Id of the entry if it has one. null, otherwise.
+   * @return The Unique Id of the entry, or a fake one if none is found.
    */
   public static String getEntryUUID(Entry entry)
   {
-    String uuidString = null;
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs =
              entry.getOperationalAttribute(entryuuidAttrType);
-    if (uuidAttrs != null)
-    {
-      Attribute uuid = uuidAttrs.get(0);
-      if (!uuid.isEmpty())
-      {
-        AttributeValue uuidVal = uuid.iterator().next();
-        uuidString =  uuidVal.getValue().toString();
-      }
-    }
-    return uuidString;
+    return extractEntryUUID(uuidAttrs, entry.getDN());
   }
 
   /**
@@ -905,22 +895,11 @@ public class EntryHistorical
    */
   public static String getEntryUUID(PreOperationAddOperation op)
   {
-    String uuidString = null;
     Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = attrs.get(entryuuidAttrType);
-
-    if (uuidAttrs != null)
-    {
-      Attribute uuid = uuidAttrs.get(0);
-      if (!uuid.isEmpty())
-      {
-        AttributeValue uuidVal = uuid.iterator().next();
-        uuidString =  uuidVal.getValue().toString();
-      }
-    }
-    return uuidString;
+    return extractEntryUUID(uuidAttrs, op.getEntryDN());
   }
 
   /**
@@ -968,6 +947,41 @@ public class EntryHistorical
   public ChangeNumber getOldestCN()
   {
     return this.oldestChangeNumber;
+  }
+
+
+
+  // Extracts the entryUUID attribute value from the provided list of
+  // attributes. If the attribute is not present one is generated from the DN
+  // using the same algorithm as the entryUUID virtual attribute provider.
+  private static String extractEntryUUID(List<Attribute> entryUUIDAttributes,
+      DN entryDN)
+  {
+    if (entryUUIDAttributes != null)
+    {
+      Attribute uuid = entryUUIDAttributes.get(0);
+      if (!uuid.isEmpty())
+      {
+        AttributeValue uuidVal = uuid.iterator().next();
+        return uuidVal.getValue().toString();
+      }
+    }
+
+    // Generate a fake entryUUID: see OPENDJ-181. In rare pathological cases
+    // an entryUUID attribute may not be present and this causes severe side
+    // effects for replication which requires the attribute to always be
+    // present.
+    if (debugEnabled())
+    {
+      TRACER.debugWarning(
+          "Replication requires an entryUUID attribute in order "
+              + "to perform conflict resolution, but none was "
+              + "found in entry \"%s\": generating virtual entryUUID instead",
+          entryDN);
+    }
+
+    String normDNString = entryDN.toNormalizedString();
+    return UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
   }
 }
 
