@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -69,13 +69,13 @@ public class ModifyMsg extends ModifyCommonMsg
    * @param changeNumber The ChangeNumber for the operation.
    * @param dn           The baseDN of the operation.
    * @param mods         The mod of the operation.
-   * @param entryuuid    The unique id of the entry on which the modification
+   * @param entryUUID    The unique id of the entry on which the modification
    *                     needs to apply.
    */
   public ModifyMsg(ChangeNumber changeNumber, DN dn, List<Modification> mods,
-                   String entryuuid)
+                   String entryUUID)
   {
-    super(new ModifyContext(changeNumber, entryuuid),
+    super(new ModifyContext(changeNumber, entryUUID),
           dn.toNormalizedString());
     this.encodedMods = encodeMods(mods);
   }
@@ -146,7 +146,7 @@ public class ModifyMsg extends ModifyCommonMsg
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn), ldapmods);
-    ModifyContext ctx = new ModifyContext(getChangeNumber(), getUniqueId());
+    ModifyContext ctx = new ModifyContext(getChangeNumber(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
 
@@ -165,7 +165,7 @@ public class ModifyMsg extends ModifyCommonMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
@@ -191,7 +191,7 @@ public class ModifyMsg extends ModifyCommonMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +
         " safeDataLevel: " + safeDataLevel +

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -144,7 +144,7 @@ public class HistoricalCsnOrderingTest
       long startTime = TimeThread.getTime();
     final DN dn1 = DN.decode("cn=test1," + baseDn.toString());
     final AttributeType histType =
-      DirectoryServer.getAttributeType(EntryHistorical.HISTORICALATTRIBUTENAME);
+      DirectoryServer.getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
     "Starting replication test : changesCmpTest"));

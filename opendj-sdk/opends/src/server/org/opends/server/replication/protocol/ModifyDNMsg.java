@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -54,7 +54,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   private String newRDN;
   private String newSuperior;
   private boolean deleteOldRdn;
-  private String newSuperiorId;
+  private String newSuperiorEntryUUID;
 
   /**
    * construct a new Modify DN message.
@@ -70,7 +70,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
 
     ModifyDnContext ctx =
       (ModifyDnContext) operation.getAttachment(SYNCHROCONTEXT);
-    newSuperiorId = ctx.getNewParentId();
+    newSuperiorEntryUUID = ctx.getNewSuperiorEntryUUID();
 
     deleteOldRdn = operation.deleteOldRDN();
     if (operation.getRawNewSuperior() != null)
@@ -87,22 +87,22 @@ public class ModifyDNMsg extends ModifyCommonMsg
    *
    * @param dn The dn to use for building the message.
    * @param changeNumber The changeNumberto use for building the message.
-   * @param uid          The unique id to use for building the message.
-   * @param newParentUid The new parent unique id to use for building
+   * @param entryUUID          The unique id to use for building the message.
+   * @param newSuperiorEntryUUID The new parent unique id to use for building
    *                     the message.
    * @param deleteOldRdn boolean indicating if old rdn must be deleted to use
    *                     for building the message.
    * @param newSuperior  The new Superior entry to use for building the message.
    * @param newRDN       The new Rdn to use for building the message.
    */
-  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String uid,
-                     String newParentUid, boolean deleteOldRdn,
+  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String entryUUID,
+                     String newSuperiorEntryUUID, boolean deleteOldRdn,
                      String newSuperior, String newRDN)
   {
-    super(new ModifyDnContext(changeNumber, uid, newParentUid), dn);
+    super(new ModifyDnContext(changeNumber, entryUUID, newSuperiorEntryUUID),
+        dn);
 
-    newSuperiorId = newParentUid;
-
+    this.newSuperiorEntryUUID = newSuperiorEntryUUID;
     this.deleteOldRdn = deleteOldRdn;
     this.newSuperior = newSuperior;
     this.newRDN = newRDN;
@@ -113,8 +113,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
    *
    * @param dn The dn to use for building the message.
    * @param changeNumber The changeNumberto use for building the message.
-   * @param uid The unique id to use for building the message.
-   * @param newParentUid The new parent unique id to use for building
+   * @param entryUUID The unique id to use for building the message.
+   * @param newSuperiorEntryUUID The new parent unique id to use for building
    *                     the message.
    * @param deleteOldRdn boolean indicating if old rdn must be deleted to use
    *                     for building the message.
@@ -122,12 +122,12 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * @param newRDN       The new Rdn to use for building the message.
    * @param mods         The mod of the operation.
    */
-  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String uid,
-                     String newParentUid, boolean deleteOldRdn,
-                     String newSuperior, String newRDN, List<Modification> mods)
+  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String entryUUID,
+      String newSuperiorEntryUUID, boolean deleteOldRdn, String newSuperior,
+      String newRDN, List<Modification> mods)
   {
-    this(dn, changeNumber, uid, newParentUid, deleteOldRdn, newSuperior,
-      newRDN);
+    this(dn, changeNumber, entryUUID, newSuperiorEntryUUID, deleteOldRdn,
+        newSuperior, newRDN);
     this.encodedMods = encodeMods(mods);
   }
 
@@ -181,8 +181,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
       moddn.addModification(mod);
     }
 
-    ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),
-        newSuperiorId);
+    ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getEntryUUID(),
+        newSuperiorEntryUUID);
     moddn.setAttachment(SYNCHROCONTEXT, ctx);
     return moddn;
   }
@@ -211,9 +211,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
     else
       bodyLength += 1;
 
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
-      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      byteNewSuperiorId = newSuperiorEntryUUID.getBytes("UTF-8");
       bodyLength += byteNewSuperiorId.length + 1;
     }
     else
@@ -234,7 +234,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       encodedMsg[pos++] = 0;
 
     /* put the newsuperiorId and a terminating 0 */
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
       pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
     }
@@ -273,9 +273,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
     else
       length += 1;
 
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
-      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      byteNewSuperiorId = newSuperiorEntryUUID.getBytes("UTF-8");
       length += byteNewSuperiorId.length + 1;
     }
     else
@@ -300,7 +300,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       encodedMsg[pos++] = 0;
 
     /* put the newsuperiorId and a terminating 0 */
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
       pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
     }
@@ -348,9 +348,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
     else
       bodyLength += 1;
 
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
-      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      byteNewSuperiorId = newSuperiorEntryUUID.getBytes("UTF-8");
       bodyLength += byteNewSuperiorId.length + 1;
     }
     else
@@ -382,7 +382,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     else
       encodedMsg[pos++] = 0;
     /* put the newsuperiorId and a terminating 0 */
-    if (newSuperiorId != null)
+    if (newSuperiorEntryUUID != null)
     {
       pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
     }
@@ -432,9 +432,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
      */
     length = getNextLength(in, pos);
     if (length != 0)
-      newSuperiorId = new String(in, pos, length, "UTF-8");
+      newSuperiorEntryUUID = new String(in, pos, length, "UTF-8");
     else
-      newSuperiorId = null;
+      newSuperiorEntryUUID = null;
     pos += length + 1;
 
     /* get the deleteoldrdn flag */
@@ -495,9 +495,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
      */
     length = getNextLength(in, pos);
     if (length != 0)
-      newSuperiorId = new String(in, pos, length, "UTF-8");
+      newSuperiorEntryUUID = new String(in, pos, length, "UTF-8");
     else
-      newSuperiorId = null;
+      newSuperiorEntryUUID = null;
     pos += length + 1;
 
     /* get the deleteoldrdn flag */
@@ -563,7 +563,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " newRDN: " + newRDN +
         " newSuperior: " + newSuperior +
@@ -575,7 +575,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
         " changeNumber: " + changeNumber +
-        " uniqueId: " + uniqueId +
+        " uniqueId: " + entryUUID +
         " newRDN: " + newRDN +
         " newSuperior: " + newSuperior +
         " deleteOldRdn: " + deleteOldRdn +
@@ -610,9 +610,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
    *
    * @return The new superior id.
    */
-  public String getNewSuperiorId()
+  public String getNewSuperiorEntryUUID()
   {
-    return newSuperiorId;
+    return newSuperiorEntryUUID;
   }
 
   /**
@@ -630,9 +630,9 @@ public class ModifyDNMsg extends ModifyCommonMsg
    *
    * @param newSup The new superior id.
    */
-  public void setNewSuperiorId(String newSup)
+  public void setNewSuperiorEntryUUID(String newSup)
   {
-    newSuperiorId = newSup;
+    newSuperiorEntryUUID = newSup;
   }
 
   /**

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -39,10 +40,10 @@ public class ModifyContext extends OperationContext
    * Creates a new Modify Context with the provided parameters.
    *
    * @param changeNumber The change number of the operation.
-   * @param uid the unique Id of the modified entry.
+   * @param entryUUID the unique Id of the modified entry.
    */
-  public ModifyContext(ChangeNumber changeNumber, String uid)
+  public ModifyContext(ChangeNumber changeNumber, String entryUUID)
   {
-    super(changeNumber, uid);
+    super(changeNumber, entryUUID);
   }
 }

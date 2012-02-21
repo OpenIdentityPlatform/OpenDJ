@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -268,11 +268,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check fields common to both versions
-    assertEquals(newMsg.getUniqueId(), msg.getUniqueId());
+    assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
     assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
     assertEquals(newMsg.isAssured(), msg.isAssured());
-    assertEquals(newMsg.getParentUid(), msg.getParentUid());
+    assertEquals(newMsg.getParentEntryUUID(), msg.getParentEntryUUID());
 
     // Create an add operation from each message to compare attributes (kept encoded in messages)
     Operation op = msg.createOperation(connection, rawDN);
@@ -311,10 +311,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
-    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
     assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
-    assertEquals(msg.getParentUid(), vlastMsg.getParentUid());
+    assertEquals(msg.getParentEntryUUID(), vlastMsg.getParentEntryUUID());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
@@ -420,7 +420,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check fields common to both versions
-    assertEquals(newMsg.getUniqueId(), msg.getUniqueId());
+    assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
     assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
     assertEquals(newMsg.isAssured(), msg.isAssured());
@@ -447,7 +447,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
-    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
     assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
@@ -591,7 +591,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newv1Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check fields common to both versions
-    assertEquals(newv1Msg.getUniqueId(), origVlastMsg.getUniqueId());
+    assertEquals(newv1Msg.getEntryUUID(), origVlastMsg.getEntryUUID());
     assertEquals(newv1Msg.getDn(), origVlastMsg.getDn());
     assertEquals(newv1Msg.getChangeNumber(), origVlastMsg.getChangeNumber());
     assertEquals(newv1Msg.isAssured(), origVlastMsg.isAssured());
@@ -634,7 +634,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(generatedVlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
-    assertEquals(origVlastMsg.getUniqueId(), generatedVlastMsg.getUniqueId());
+    assertEquals(origVlastMsg.getEntryUUID(), generatedVlastMsg.getEntryUUID());
     assertEquals(origVlastMsg.getDn(), generatedVlastMsg.getDn());
     assertEquals(origVlastMsg.getChangeNumber(), generatedVlastMsg.getChangeNumber());
     assertEquals(origVlastMsg.isAssured(), generatedVlastMsg.isAssured());
@@ -783,13 +783,13 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check fields common to both versions
-    assertEquals(newMsg.getUniqueId(), msg.getUniqueId());
+    assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
     assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getNewRDN(), msg.getNewRDN());
     assertEquals(newMsg.getNewSuperior(), msg.getNewSuperior());
-    assertEquals(newMsg.getNewSuperiorId(), msg.getNewSuperiorId());
+    assertEquals(newMsg.getNewSuperiorEntryUUID(), msg.getNewSuperiorEntryUUID());
     assertEquals(newMsg.deleteOldRdn(), msg.deleteOldRdn());
 
     // Create a modDn operation from each message to compare fields)
@@ -829,7 +829,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
-    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
     assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
@@ -837,7 +837,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
     assertEquals(msg.getNewRDN(), vlastMsg.getNewRDN());
     assertEquals(msg.getNewSuperior(), vlastMsg.getNewSuperior());
-    assertEquals(msg.getNewSuperiorId(), vlastMsg.getNewSuperiorId());
+    assertEquals(msg.getNewSuperiorEntryUUID(), vlastMsg.getNewSuperiorEntryUUID());
     assertEquals(msg.deleteOldRdn(), vlastMsg.deleteOldRdn());
 
     // Get ECL entry attributes

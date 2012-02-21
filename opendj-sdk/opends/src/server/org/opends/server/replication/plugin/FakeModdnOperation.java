@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -65,8 +66,8 @@ public class FakeModdnOperation extends FakeOperation
   {
     DN dn = entry.getDN();
     return new ModifyDNMsg(dn.toString(), this.getChangeNumber(),
-        EntryHistorical.getEntryUuid(entry),
-        LDAPReplicationDomain.findEntryId(dn.getParent()),
+        EntryHistorical.getEntryUUID(entry),
+        LDAPReplicationDomain.findEntryUUID(dn.getParent()),
         false, dn.getParent().toString(), dn.getRDN().toString());
   }
 }

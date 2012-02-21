@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 import org.opends.messages.Message;
@@ -421,8 +422,8 @@ public class PersistentServerState
     InternalSearchOperation op;
     ChangeNumber serverStateMaxCn;
     ChangeNumber dbMaxCn;
-    final AttributeType histType =
-      DirectoryServer.getAttributeType(EntryHistorical.HISTORICALATTRIBUTENAME);
+    final AttributeType histType = DirectoryServer.getAttributeType(
+          EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     // Retrieves the entries that have changed since the
     // maxCn stored in the serverState

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -295,7 +295,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getDn(), fakeDN) ;
 
     // Check uuid
-    assertEquals(msg.getUniqueId(), generatedMsg.getUniqueId());
+    assertEquals(msg.getEntryUUID(), generatedMsg.getEntryUUID());
 
     // Check assured flag
     assertEquals(msg.isAssured(), generatedMsg.isAssured());
@@ -595,7 +595,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.toString(), msg.toString());
 
     // Test that generated attributes match original attributes.
-    assertEquals(generatedMsg.getParentUid(), msg.getParentUid());
+    assertEquals(generatedMsg.getParentEntryUUID(), msg.getParentEntryUUID());
     assertEquals(generatedMsg.isAssured(), isAssured);
     assertEquals(generatedMsg.getAssuredMode(), assuredMode);
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);

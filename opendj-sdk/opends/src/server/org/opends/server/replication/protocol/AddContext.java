@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -37,19 +38,20 @@ public class AddContext extends OperationContext
   /**
    * The Unique Id of the parent entry of the added entry.
    */
-  private String parentUid;
+  private String parentEntryUUID;
 
   /**
    * Creates a new AddContext with the provided information.
    *
    * @param changeNumber The change number of the add operation.
-   * @param uid the Unique Id of the added entry.
-   * @param parentUid The unique Id of the parent of the added entry.
+   * @param entryUUID the Unique Id of the added entry.
+   * @param parentEntryUUID The unique Id of the parent of the added entry.
    */
-  public AddContext(ChangeNumber changeNumber, String uid, String parentUid)
+  public AddContext(ChangeNumber changeNumber, String entryUUID,
+      String parentEntryUUID)
   {
-    super(changeNumber, uid);
-    this.parentUid = parentUid;
+    super(changeNumber, entryUUID);
+    this.parentEntryUUID = parentEntryUUID;
   }
 
   /**
@@ -57,8 +59,8 @@ public class AddContext extends OperationContext
    *
    * @return Returns the Unique Id of the parent of the added entry.
    */
-  public String getParentUid()
+  public String getParentEntryUUID()
   {
-    return parentUid;
+    return parentEntryUUID;
   }
 }

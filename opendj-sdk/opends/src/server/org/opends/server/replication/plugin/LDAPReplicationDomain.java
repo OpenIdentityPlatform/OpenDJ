@@ -33,7 +33,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.replication.plugin.EntryHistorical.ENTRYUIDNAME;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.createEntry;
@@ -1829,8 +1829,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * Check that the modified entry has the same entryuuid
        * as it was in the original message.
        */
-      String operationEntryUUID = ctx.getEntryUid();
-      String modifiedEntryUUID = EntryHistorical.getEntryUuid(deletedEntry);
+      String operationEntryUUID = ctx.getEntryUUID();
+      String modifiedEntryUUID = EntryHistorical.getEntryUUID(deletedEntry);
       if (!operationEntryUUID.equals(modifiedEntryUUID))
       {
         /*
@@ -1853,7 +1853,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // There is no replication context attached to the operation
       // so this is not a replication operation.
       ChangeNumber changeNumber = generateChangeNumber(deleteOperation);
-      String modifiedEntryUUID = EntryHistorical.getEntryUuid(deletedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUUID(deletedEntry);
       ctx = new DeleteContext(changeNumber, modifiedEntryUUID);
       deleteOperation.setAttachment(SYNCHROCONTEXT, ctx);
 
@@ -1933,7 +1933,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * If an entry with the same entry uniqueID already exist then
        * this operation has already been replayed in the past.
        */
-      String uuid = ctx.getEntryUid();
+      String uuid = ctx.getEntryUUID();
       if (findEntryDN(uuid) != null)
       {
         return new SynchronizationProviderResult.StopProcessing(
@@ -1945,14 +1945,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * of the parent entry
        */
 
-      String parentUid = ctx.getParentUid();
+      String parentEntryUUID = ctx.getParentEntryUUID();
       // root entry have no parent,
       // there is no need to check for it.
-      if (parentUid != null)
+      if (parentEntryUUID != null)
       {
         // There is a potential of perfs improvement here
         // if we could avoid the following parent entry retrieval
-        DN parentDnFromCtx = findEntryDN(ctx.getParentUid());
+        DN parentDnFromCtx = findEntryDN(ctx.getParentEntryUUID());
 
         if (parentDnFromCtx == null)
         {
@@ -2072,8 +2072,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * as was in the original message.
        */
       String modifiedEntryUUID =
-        EntryHistorical.getEntryUuid(modifyDNOperation.getOriginalEntry());
-      if (!modifiedEntryUUID.equals(ctx.getEntryUid()))
+        EntryHistorical.getEntryUUID(modifyDNOperation.getOriginalEntry());
+      if (!modifiedEntryUUID.equals(ctx.getEntryUUID()))
       {
         /*
          * The modified entry is not the same entry as the one on
@@ -2095,9 +2095,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Also check that the current id of the
          * parent is the same as when the operation was performed.
          */
-        String newParentId = findEntryId(modifyDNOperation.getNewSuperior());
-        if ((newParentId != null) && (ctx.getNewParentId() != null) &&
-            (!newParentId.equals(ctx.getNewParentId())))
+        String newParentId = findEntryUUID(modifyDNOperation.getNewSuperior());
+        if ((newParentId != null) && (ctx.getNewSuperiorEntryUUID() != null) &&
+            (!newParentId.equals(ctx.getNewSuperiorEntryUUID())))
         {
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
@@ -2123,11 +2123,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       String newParentId = null;
       if (modifyDNOperation.getNewSuperior() != null)
       {
-        newParentId = findEntryId(modifyDNOperation.getNewSuperior());
+        newParentId = findEntryUUID(modifyDNOperation.getNewSuperior());
       }
 
       Entry modifiedEntry = modifyDNOperation.getOriginalEntry();
-      String modifiedEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUUID(modifiedEntry);
       ctx = new ModifyDnContext(changeNumber, modifiedEntryUUID, newParentId);
       modifyDNOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
@@ -2208,7 +2208,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // - attach the context to the op
 
       ChangeNumber changeNumber = generateChangeNumber(modifyOperation);
-      String modifiedEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUUID(modifiedEntry);
       if (modifiedEntryUUID == null)
         modifiedEntryUUID = modifyOperation.getEntryDN().toString();
       ctx = new ModifyContext(changeNumber, modifiedEntryUUID);
@@ -2221,8 +2221,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // replayed here, it is necessary to
       // - check if the entry has been renamed
       // - check for conflicts
-      String modifiedEntryUUID = ctx.getEntryUid();
-      String currentEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
+      String modifiedEntryUUID = ctx.getEntryUUID();
+      String currentEntryUUID = EntryHistorical.getEntryUUID(modifiedEntry);
       if ((currentEntryUUID != null) &&
           (!currentEntryUUID.equals(modifiedEntryUUID)))
       {
@@ -2262,7 +2262,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * The preOperation phase for the add Operation.
    * Its job is to generate the replication context associated to the
    * operation. It is necessary to do it in this phase because contrary to
-   * the other operations, the entry uid is not set when the handleConflict
+   * the other operations, the entry UUID is not set when the handleConflict
    * phase is called.
    *
    * @param addOperation The Add Operation.
@@ -2270,8 +2270,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void doPreOperation(PreOperationAddOperation addOperation)
   {
     AddContext ctx = new AddContext(generateChangeNumber(addOperation),
-        EntryHistorical.getEntryUuid(addOperation),
-        findEntryId(addOperation.getEntryDN().getParentDNInSuffix()));
+        EntryHistorical.getEntryUUID(addOperation),
+        findEntryUUID(addOperation.getEntryDN().getParentDNInSuffix()));
 
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
@@ -2412,7 +2412,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * for which an other entry was in conflict.
    * Steps:
    * - get the DN freed by a DELETE or MODRDN op
-   * - search for entries put in the conflict space (dn=entryuid'+'....)
+   * - search for entries put in the conflict space (dn=entryUUID'+'....)
    *   because the expected DN was not available (ds-sync-conflict=expected DN)
    * - retain the entry with the oldest conflict
    * - rename this entry with the freedDN as it was expected originally
@@ -2444,8 +2444,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         ByteString.valueOf(freedDN.toString()));
 
      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-     attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
-     attrs.add(EntryHistorical.ENTRYUIDNAME);
+     attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+     attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
      attrs.add("*");
      InternalSearchOperation searchOp =  conn.processSearch(
        ByteString.valueOf(baseDn.toString()),
@@ -2835,13 +2835,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * Find the Unique Id of the entry with the provided DN by doing a
-   * search of the entry and extracting its uniqueID from its attributes.
+   * search of the entry and extracting its entryUUID from its attributes.
    *
    * @param dn The dn of the entry for which the unique Id is searched.
    *
    * @return The unique Id of the entry with the provided DN.
    */
-  static String findEntryId(DN dn)
+  static String findEntryUUID(DN dn)
   {
     if (dn == null)
       return null;
@@ -2850,7 +2850,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       InternalClientConnection conn =
                 InternalClientConnection.getRootConnection();
       LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-      attrs.add(ENTRYUIDNAME);
+      attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
       InternalSearchOperation search = conn.processSearch(dn,
             SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
             0, 0, false,
@@ -2865,7 +2865,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           SearchResultEntry resultEntry = result.getFirst();
           if (resultEntry != null)
           {
-            return EntryHistorical.getEntryUuid(resultEntry);
+            return EntryHistorical.getEntryUUID(resultEntry);
           }
         }
       }
@@ -2921,7 +2921,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     ResultCode result = op.getResultCode();
     ModifyContext ctx = (ModifyContext) op.getAttachment(SYNCHROCONTEXT);
-    String entryUid = ctx.getEntryUid();
+    String entryUUID = ctx.getEntryUUID();
 
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
@@ -2931,7 +2931,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * search if the entry has been renamed, and return the new dn
        * of the entry.
        */
-      DN newdn = findEntryDN(entryUid);
+      DN newdn = findEntryDN(entryUUID);
       if (newdn != null)
       {
         // There is an entry with the same unique id as this modify operation
@@ -2950,7 +2950,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     else if (result == ResultCode.NOT_ALLOWED_ON_RDN)
     {
-      DN currentDN = findEntryDN(entryUid);
+      DN currentDN = findEntryDN(entryUUID);
       RDN currentRDN;
       if (currentDN != null)
       {
@@ -3023,14 +3023,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
  {
    ResultCode result = op.getResultCode();
    DeleteContext ctx = (DeleteContext) op.getAttachment(SYNCHROCONTEXT);
-   String entryUid = ctx.getEntryUid();
+   String entryUUID = ctx.getEntryUUID();
 
    if (result == ResultCode.NO_SUCH_OBJECT)
    {
      /*
       * Find if the entry is still in the database.
       */
-     DN currentDn = findEntryDN(entryUid);
+     DN currentDn = findEntryDN(entryUUID);
      if (currentDn == null)
      {
        /*
@@ -3065,7 +3065,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       * when we are adding an entry whose parent entry has already been deleted.
       *
       */
-     if (findAndRenameChild(entryUid, op.getEntryDN(), op))
+     if (findAndRenameChild(entryUUID, op.getEntryDN(), op))
        numUnresolvedNamingConflicts.incrementAndGet();
 
      return false;
@@ -3095,8 +3095,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 {
   ResultCode result = op.getResultCode();
   ModifyDnContext ctx = (ModifyDnContext) op.getAttachment(SYNCHROCONTEXT);
-  String entryUid = ctx.getEntryUid();
-  String newSuperiorID = ctx.getNewParentId();
+  String entryUUID = ctx.getEntryUUID();
+  String newSuperiorID = ctx.getNewSuperiorEntryUUID();
 
   /*
    * four possible cases :
@@ -3111,7 +3111,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
 
   // get the current DN of this entry in the database.
-  DN currentDN = findEntryDN(entryUid);
+  DN currentDN = findEntryDN(entryUUID);
 
   // Construct the new DN to use for the entry.
   DN entryDN = op.getEntryDN();
@@ -3185,7 +3185,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      */
     ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
     markConflictEntry(op, op.getEntryDN(), newDN);
-    modifyDnMsg.setNewRDN(generateConflictRDN(entryUid,
+    modifyDnMsg.setNewRDN(generateConflictRDN(entryUUID,
                           modifyDnMsg.getNewRDN()));
     modifyDnMsg.setNewSuperior(newSuperior.toString());
     numUnresolvedNamingConflicts.incrementAndGet();
@@ -3217,8 +3217,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     ResultCode result = op.getResultCode();
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
-    String entryUid = ctx.getEntryUid();
-    String parentUniqueId = ctx.getParentUid();
+    String entryUUID = ctx.getEntryUUID();
+    String parentUniqueId = ctx.getParentEntryUUID();
 
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
@@ -3248,12 +3248,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          */
         addConflict(msg);
 
-        msg.setDn(generateConflictRDN(entryUid,
+        msg.setDn(generateConflictRDN(entryUUID,
                     op.getEntryDN().getRDN().toString()) + ","
                     + baseDn);
-        // reset the parent uid so that the check done is the handleConflict
-        // phase does not fail.
-        msg.setParentUid(null);
+        // reset the parent entryUUID so that the check done is the
+        // handleConflict phase does not fail.
+        msg.setParentEntryUUID(null);
         numUnresolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -3276,7 +3276,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        *        don't do anything
        * if the entry unique id do not exist, generate conflict.
        */
-      if (findEntryDN(entryUid) != null)
+      if (findEntryDN(entryUUID) != null)
       {
         // entry already exist : this is a replay
         return true;
@@ -3284,7 +3284,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       else
       {
         addConflict(msg);
-        msg.setDn(generateConflictRDN(entryUid, msg.getDn()));
+        msg.setDn(generateConflictRDN(entryUUID, msg.getDn()));
         numUnresolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -3306,12 +3306,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * so that they stay below the baseDn of this replicationDomain and
    * use the conflicting name and attribute.
    *
-   * @param entryUid   The unique ID of the entry whose child must be renamed.
+   * @param entryUUID   The unique ID of the entry whose child must be renamed.
    * @param entryDN    The DN of the entry whose child must be renamed.
    * @param conflictOp The Operation that generated the conflict.
    */
   private boolean findAndRenameChild(
-      String entryUid, DN entryDN, Operation conflictOp)
+      String entryUUID, DN entryDN, Operation conflictOp)
   {
     boolean conflict = false;
 
@@ -3319,8 +3319,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     try
     {
       LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-      attrs.add(ENTRYUIDNAME);
-      attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
+      attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
+      attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
       SearchFilter ALLMATCH;
       ALLMATCH = SearchFilter.createFilterFromString("(objectClass=*)");
@@ -3343,7 +3343,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
              */
             conflict = true;
             renameConflictEntry(conflictOp, entry.getDN(),
-                EntryHistorical.getEntryUuid(entry));
+                EntryHistorical.getEntryUUID(entry));
           }
         }
       }
@@ -3382,16 +3382,17 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @param conflictOp The Operation that caused the conflict.
    * @param dn         The DN of the entry to be renamed.
-   * @param uid        The uniqueID of the entry to be renamed.
+   * @param entryUUID        The uniqueID of the entry to be renamed.
    */
-  private void renameConflictEntry(Operation conflictOp, DN dn, String uid)
+  private void renameConflictEntry(Operation conflictOp, DN dn,
+      String entryUUID)
   {
     Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn.toString());
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
     ModifyDNOperation newOp =
-      renameEntry(dn, generateDeleteConflictDn(uid, dn), baseDn, true);
+      renameEntry(dn, generateDeleteConflictDn(entryUUID, dn), baseDn, true);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
@@ -3489,29 +3490,29 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * Generate the Dn to use for a conflicting entry.
    *
-   * @param entryUid The unique identifier of the entry involved in the
+   * @param entryUUID The unique identifier of the entry involved in the
    * conflict.
    * @param rdn Original rdn.
    * @return The generated RDN for a conflicting entry.
    */
-  private String generateConflictRDN(String entryUid, String rdn)
+  private String generateConflictRDN(String entryUUID, String rdn)
   {
-    return "entryuuid=" + entryUid + "+" + rdn;
+    return "entryuuid=" + entryUUID + "+" + rdn;
   }
 
   /**
    * Generate the RDN to use for a conflicting entry whose father was deleted.
    *
-   * @param entryUid The unique identifier of the entry involved in the
+   * @param entryUUID The unique identifier of the entry involved in the
    *                 conflict.
    * @param dn       The original DN of the entry.
    *
    * @return The generated RDN for a conflicting entry.
    * @throws DirectoryException
    */
-  private RDN generateDeleteConflictDn(String entryUid, DN dn)
+  private RDN generateDeleteConflictDn(String entryUUID, DN dn)
   {
-    String newRDN =  "entryuuid=" + entryUid + "+" + dn.getRDN();
+    String newRDN =  "entryuuid=" + entryUUID + "+" + dn.getRDN();
     RDN rdn = null;
     try
     {
@@ -4863,13 +4864,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     LDAPFilter filter = LDAPFilter.decode(
-       "(&(" + EntryHistorical.HISTORICALATTRIBUTENAME + ">=dummy:"
-       + fromChangeNumber + ")(" + EntryHistorical.HISTORICALATTRIBUTENAME +
+       "(&(" + EntryHistorical.HISTORICAL_ATTRIBUTE_NAME + ">=dummy:"
+       + fromChangeNumber + ")(" + EntryHistorical.HISTORICAL_ATTRIBUTE_NAME +
        "<=dummy:" + maxValueForId + "))");
 
     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-    attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
-    attrs.add(EntryHistorical.ENTRYUIDNAME);
+    attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+    attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
     attrs.add("*");
     return conn.processSearch(
       ByteString.valueOf(baseDn.toString()),
@@ -5651,7 +5652,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * for which an other entry was in conflict.
    * Steps:
    * - get the DN freed by a DELETE or MODRDN op
-   * - search for entries put in the conflict space (dn=entryuid'+'....)
+   * - search for entries put in the conflict space (dn=entryUUID'+'....)
    *   because the expected DN was not available (ds-sync-conflict=expected DN)
    * - retain the entry with the oldest conflict
    * - rename this entry with the freedDN as it was expected originally
@@ -5676,7 +5677,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      try
      {
        filter = LDAPFilter.decode(
-         "(" + EntryHistorical.HISTORICALATTRIBUTENAME + ">=dummy:"
+         "(" + EntryHistorical.HISTORICAL_ATTRIBUTE_NAME + ">=dummy:"
          + lastChangeNumberPurgedFromHist + ")");
 
      } catch (LDAPException e)
@@ -5685,8 +5686,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      }
 
      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-     attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
-     attrs.add(EntryHistorical.ENTRYUIDNAME);
+     attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+     attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
      attrs.add("*");
      InternalSearchOperation searchOp =  conn.processSearch(
          ByteString.valueOf(baseDn.toString()),

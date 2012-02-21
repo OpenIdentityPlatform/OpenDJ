@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -37,10 +38,10 @@ public class DeleteContext extends OperationContext
    * Creates a new DeleteContext with the provided information.
    *
    * @param changeNumber The change number of the Delete Operation.
-   * @param uid The unique Id of the deleted entry.
+   * @param entryUUID The unique Id of the deleted entry.
    */
-  public DeleteContext(ChangeNumber changeNumber, String uid)
+  public DeleteContext(ChangeNumber changeNumber, String entryUUID)
   {
-    super(changeNumber, uid);
+    super(changeNumber, entryUUID);
   }
 }

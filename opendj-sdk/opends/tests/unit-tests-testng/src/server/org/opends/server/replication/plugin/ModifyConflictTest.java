@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1205,7 +1205,7 @@ public class ModifyConflictTest
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.ENTRYUIDNAME);
+          EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
 
     /*
      * Objectclass and DN do not have any impact on the modify conflict
@@ -1248,11 +1248,11 @@ public class ModifyConflictTest
       EntryHistorical hist, Entry entry)
   {
     AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(EntryHistorical.ENTRYUIDNAME);
+      DirectoryServer.getSchema().getAttributeType(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = EntryHistorical.getEntryUuid(entry);
+    String uuid = EntryHistorical.getEntryUUID(entry);
 
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry
@@ -1283,7 +1283,7 @@ public class ModifyConflictTest
         if (generatedMsg instanceof LDAPUpdateMsg)
         {
           LDAPUpdateMsg new_name = (LDAPUpdateMsg) generatedMsg;
-          assertEquals(new_name.getUniqueId(),uuid);
+          assertEquals(new_name.getEntryUUID(),uuid);
 
         }
 
@@ -1364,7 +1364,7 @@ public class ModifyConflictTest
   {
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.HISTORICALATTRIBUTENAME);
+          EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     InternalClientConnection aConnection =
       InternalClientConnection.getRootConnection();
@@ -1442,11 +1442,11 @@ public class ModifyConflictTest
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.ENTRYUIDNAME);
+          EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = EntryHistorical.getEntryUuid(addOp);
+    String uuid = EntryHistorical.getEntryUUID(addOp);
 
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(

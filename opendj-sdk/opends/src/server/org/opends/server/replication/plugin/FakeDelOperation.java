@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -42,20 +43,21 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 public class FakeDelOperation extends FakeOperation
 {
   final private String dn;
-  private final String uid;
+  private final String entryUUID;
 
   /**
    * Creates a new FakeDelOperation from the provided information.
    *
    * @param dn             The dn of the entry that was deleted.
    * @param changeNumber   The ChangeNumber of the operation.
-   * @param uid            The Unique ID of the deleted entry.
+   * @param entryUUID      The Unique ID of the deleted entry.
    */
-  public FakeDelOperation(String dn, ChangeNumber changeNumber, String uid)
+  public FakeDelOperation(String dn, ChangeNumber changeNumber,
+      String entryUUID)
   {
     super(changeNumber);
     this.dn = dn;
-    this.uid = uid;
+    this.entryUUID = entryUUID;
   }
 
 
@@ -65,7 +67,7 @@ public class FakeDelOperation extends FakeOperation
   @Override
   public ReplicationMsg generateMessage()
   {
-    return new DeleteMsg(dn, this.getChangeNumber(), uid);
+    return new DeleteMsg(dn, this.getChangeNumber(), entryUUID);
   }
 
   /**
@@ -73,8 +75,8 @@ public class FakeDelOperation extends FakeOperation
    *
    * @return  The Unique ID of the entry that was deleted with this operation.
    */
-  public String getUUID()
+  public String getEntryUUID()
   {
-    return uid;
+    return entryUUID;
   }
 }

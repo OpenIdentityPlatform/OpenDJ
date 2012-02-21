@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -65,9 +65,9 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   protected String dn = null;
 
   /**
-   * The uniqueId of the entry that was updated.
+   * The entryUUID of the entry that was updated.
    */
-  protected String uniqueId;
+  protected String entryUUID;
 
   /**
    * Encoded form of the LDAPUpdateMsg.
@@ -98,7 +98,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.changeNumber = ctx.getChangeNumber();
-    this.uniqueId = ctx.getEntryUid();
+    this.entryUUID = ctx.getEntryUUID();
     this.dn = dn;
   }
 
@@ -116,7 +116,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.changeNumber = cn;
-    this.uniqueId = entryUUID;
+    this.entryUUID = entryUUID;
     this.dn = dn;
   }
 
@@ -171,13 +171,13 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Get the Unique Identifier of the entry on which the operation happened.
+   * Get the entryUUID of the entry on which the operation happened.
    *
-   * @return The Unique Identifier of the entry on which the operation happened.
+   * @return The entryUUID of the entry on which the operation happened.
    */
-  public String getUniqueId()
+  public String getEntryUUID()
   {
-    return uniqueId;
+    return entryUUID;
   }
 
   /**
@@ -251,7 +251,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     byte[] byteDn = dn.getBytes("UTF-8");
     byte[] changeNumberByte =
       this.getChangeNumber().toString().getBytes("UTF-8");
-    byte[] byteEntryuuid = getUniqueId().getBytes("UTF-8");
+    byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
     /* The message header is stored in the form :
      * <operation type><protocol version><changenumber><dn><entryuuid><assured>
@@ -312,7 +312,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     byte[] byteDn = dn.getBytes("UTF-8");
     byte[] changeNumberByte =
       this.getChangeNumber().toString().getBytes("UTF-8");
-    byte[] byteEntryuuid = getUniqueId().getBytes("UTF-8");
+    byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
     /* The message header is stored in the form :
      * <operation type><changenumber><dn><assured><entryuuid><change>
@@ -503,7 +503,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
        /* Read the entryuuid */
        length = getNextLength(encodedMsg, pos);
-       uniqueId = new String(encodedMsg, pos, length, "UTF-8");
+       entryUUID = new String(encodedMsg, pos, length, "UTF-8");
        pos += length + 1;
 
        /* Read the assured information */
@@ -574,7 +574,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
       /* read the entryuuid */
       length = getNextLength(encodedMsg, pos);
-      uniqueId = new String(encodedMsg, pos, length, "UTF-8");
+      entryUUID = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;
 
       return pos;
