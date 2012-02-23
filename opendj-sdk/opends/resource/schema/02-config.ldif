@@ -3306,6 +3306,16 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.56
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.57
+  NAME 'ds-cfg-excluded-attribute'
+  EQUALITY objectIdentifierMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.58
+  NAME 'ds-cfg-checksum-algorithm'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -5103,4 +5113,10 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.7
         ds-cfg-search-response-nentries-less-than $
         ds-cfg-search-response-is-indexed )
   X-ORIGIN 'OpenDJ Directory Server' )
-
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.8
+  NAME 'ds-cfg-entity-tag-virtual-attribute'
+  SUP ds-cfg-virtual-attribute
+  STRUCTURAL
+  MAY ( ds-cfg-checksum-algorithm $
+        ds-cfg-excluded-attribute )
+  X-ORIGIN 'OpenDJ Directory Server' )

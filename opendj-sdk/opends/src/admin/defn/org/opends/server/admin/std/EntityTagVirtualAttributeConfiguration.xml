@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2012 ForgeRock AS
+  ! -->
+<adm:managed-object name="entity-tag-virtual-attribute"
+  plural-name="entity-tag-virtual-attributes"
+  package="org.opends.server.admin.std" extends="virtual-attribute"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The <adm:user-friendly-name /> ensures that all entries contain an
+    "entity tag" or "Etag" as defined in section 3.11 of RFC 2616.
+  </adm:synopsis>
+  <adm:description>
+    The entity tag may be used by clients, in conjunction with the assertion
+    control, for optimistic concurrency control, as a way to help prevent
+    simultaneous updates of an entry from conflicting with each other.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-entity-tag-virtual-attribute</ldap:name>
+      <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.EntityTagVirtualAttributeProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property-override name="conflict-behavior" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>real-overrides-virtual</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property-override name="attribute-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>etag</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="checksum-algorithm">
+    <adm:synopsis>
+      The algorithm which should be used for calculating the entity tag
+      checksum value.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>adler-32</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="adler-32">
+          <adm:synopsis>
+            The Adler-32 checksum algorithm which is almost as reliable as
+            a CRC-32 but can be computed much faster.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="crc-32">
+          <adm:synopsis>
+            The CRC-32 checksum algorithm.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-checksum-algorithm</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="excluded-attribute" multi-valued="true">
+    <adm:synopsis>
+      The list of attributes which should be ignored when calculating the
+      entity tag checksum value.
+    </adm:synopsis>
+    <adm:description>
+      Certain attributes like "ds-sync-hist" may vary between replicas due to
+      different purging schedules and should not be included in the checksum.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>ds-sync-hist</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-excluded-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

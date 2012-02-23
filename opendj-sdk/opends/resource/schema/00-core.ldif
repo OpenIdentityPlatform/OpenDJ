@@ -22,7 +22,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2012 ForgeRock AS
 #
 #
 # This file contains a core set of attribute type and objectlass definitions
@@ -519,6 +519,12 @@ attributeTypes: ( 2.16.840.1.113730.3.1.35 NAME 'changelog'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation
   X-ORIGIN 'draft-good-ldap-changelog' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.59
+  NAME 'etag'
+  EQUALITY caseExactMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+  SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 2.5.6.0 NAME 'top' ABSTRACT MUST objectClass
   X-ORIGIN 'RFC 4512' )
 objectClasses: ( 2.5.6.1 NAME 'alias' SUP top STRUCTURAL MUST aliasedObjectName

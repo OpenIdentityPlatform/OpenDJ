@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -390,7 +390,9 @@ public class Entry
    */
   public List<Attribute> getAttributes()
   {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    // Estimate the size.
+    int size = userAttributes.size() + operationalAttributes.size();
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>(size);
 
     for (List<Attribute> list : userAttributes.values())
     {
