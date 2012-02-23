@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -278,7 +279,14 @@ public final class VirtualAttribute
    */
   public int size()
   {
-    return provider.getValues(entry, rule).size();
+    if (!provider.isMultiValued())
+    {
+      return provider.hasValue(entry, rule) ? 1 : 0;
+    }
+    else
+    {
+      return provider.getValues(entry, rule).size();
+    }
   }
 
 

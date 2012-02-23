@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2011 ForgeRock AS.
+#      Portions Copyright 2010-2012 ForgeRock AS.
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -2487,6 +2487,18 @@ ds-cfg-java-class: org.opends.server.extensions.PasswordPolicySubentryVirtualAtt
 ds-cfg-enabled: true
 ds-cfg-attribute-type: pwdPolicySubentry
 ds-cfg-conflict-behavior: virtual-overrides-real
+
+dn: cn=etag,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-entity-tag-virtual-attribute
+cn: etag
+ds-cfg-java-class: org.opends.server.extensions.EntityTagVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: etag
+ds-cfg-conflict-behavior: real-overrides-virtual
+ds-cfg-checksum-algorithm: adler-32
+ds-cfg-excluded-attribute: ds-sync-hist
 
 dn: cn=Work Queue,cn=config
 objectClass: top
