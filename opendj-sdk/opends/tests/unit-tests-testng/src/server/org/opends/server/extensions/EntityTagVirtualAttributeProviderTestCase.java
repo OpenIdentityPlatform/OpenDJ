@@ -39,15 +39,22 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationWrapper;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -553,6 +560,120 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     provider.processSearch(rule, search);
     assertEquals(search.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
     assertNotNull(search.getErrorMessage());
+  }
+
+
+
+  /**
+   * Simulates the main use case for entity tag support: optimistic concurrency.
+   * <p>
+   * This test reads an entry requesting its etag, then performs an update using
+   * an assertion control to prevent the change from being applied if the etag
+   * has changed since the read was performed.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  public void testOptimisticConcurrency() throws Exception
+  {
+    // Use an internal connection.
+    AttributeType etagType = DirectoryServer.getAttributeType("etag");
+    AttributeType descrType = DirectoryServer.getAttributeType("description");
+    String userDN = "uid=test.user,ou=People,o=test";
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    // Create a test backend containing the user entry to be modified.
+    TestCaseUtils.initializeTestBackend(true);
+
+    // @formatter:off
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: uid=test.user,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password");
+    // @formatter:on
+
+    // Read the user entry and get the etag.
+    Entry e1 = readEntry(conn, userDN);
+    String etag1 = e1
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag1);
+
+    // Apply a change using the assertion control for optimistic concurrency.
+    List<RawModification> mods = Collections
+        .<RawModification> singletonList(new LDAPModification(
+            ModificationType.REPLACE, RawAttribute.create("description",
+                "first modify")));
+    List<Control> ctrls = Collections
+        .<Control> singletonList(new LDAPAssertionRequestControl(true,
+            LDAPFilter.createEqualityFilter("etag", ByteString.valueOf(etag1))));
+    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+    // Reread the entry and check that the description has been added and that
+    // the etag has changed.
+    Entry e2 = readEntry(conn, userDN);
+
+    String etag2 = e2
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag2);
+    assertFalse(etag1.equals(etag2));
+
+    String description2 = e2.getAttributeValue(descrType,
+        DirectoryStringSyntax.DECODER);
+    assertNotNull(description2);
+    assertEquals(description2, "first modify");
+
+    // Simulate a concurrent update: perform another update using the old etag.
+    mods = Collections.<RawModification> singletonList(new LDAPModification(
+        ModificationType.REPLACE, RawAttribute.create("description",
+            "second modify")));
+    modifyOperation = conn.processModify(userDN, mods, ctrls);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.ASSERTION_FAILED);
+
+    // Reread the entry and check that the description and etag have not
+    // changed.
+    Entry e3 = readEntry(conn, userDN);
+
+    String etag3 = e3
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag3);
+    assertEquals(etag2, etag3);
+
+    String description3 = e3.getAttributeValue(descrType,
+        DirectoryStringSyntax.DECODER);
+    assertNotNull(description3);
+    assertEquals(description3, description2);
+  }
+
+
+
+  private Entry readEntry(InternalClientConnection conn, String userDN)
+      throws DirectoryException
+  {
+    LinkedHashSet<String> attrList = new LinkedHashSet<String>(2);
+    attrList.add("*");
+    attrList.add("etag");
+    InternalSearchOperation searchOperation = conn.processSearch(userDN,
+        SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+        false, "(objectClass=*)", attrList);
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getSearchEntries().size(), 1);
+    Entry e = searchOperation.getSearchEntries().get(0);
+    assertNotNull(e);
+    return e;
   }
 
 
