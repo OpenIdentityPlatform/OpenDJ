@@ -487,6 +487,97 @@ $ ldapmodify
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
+
+   <example xml:id="modify-optimistic-concurrency">
+    <title>Modify: Optimistic Concurrency</title>
+
+    <para>Imagine you are writing an application that lets end users update
+    user profiles through a browser. You store user profiles as OpenDJ entries.
+    Your end users can look up user profiles and modify them. Your application
+    assumes that the end users can tell the right information when they see it,
+    and so aims to update profiles exactly as users see them on their
+    screens.</para>
+
+    <para>Consider two users, Alice and Bob, both busy and often interrupted.
+    Alice has Babs Jensen's new phone and room numbers. Bob has Babs's new
+    location and description. Both assume that they have all the information
+    that has changed. What can you do to make sure that your application
+    applies the right changes when Alice and Bob simulaneously update Babs
+    Jensen's profile?</para>
+
+    <para>OpenDJ offers a couple of features to help you in this situation.
+    One of the features is the <link
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:href="admin-guide#assertion-request-control">LDAP Assertion
+    Control</link>, used to tell OpenDJ to perform the modify only if
+    an assertion you make stays true. The other feature is OpenDJ's support
+    for <link xlink:href="http://tools.ietf.org/html/rfc2616#section-3.11"
+    xlink:show="new">entity tag</link> (ETag) attributes, making it easy to
+    check whether the entry in the directory is the same as the entry you
+    read.</para>
+
+    <para>Alice and Bob both get Babs's entry. In LDIF the relevant
+    attributes from the entry look like this. Notice the ETag.</para>
+
+    <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+telephoneNumber: +1 408 555 1862
+roomNumber: 0209
+l: Cupertino
+ETag: 000000007a1999df</programlisting>
+
+    <para>Bob prepares his changes in your application. Bob is almost ready
+    to submit the new location and description when Carol stops by to ask Bob
+    a few questions.</para>
+
+    <para>Alice starts just after Bob, but manages to submit her changes
+    without getting interrupted. Now Babs's entry looks like this.</para>
+
+    <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Updated by Alice
+telephoneNumber: +47 2108 1746
+roomNumber: 1389
+l: Cupertino
+ETag: 00000000aec2c1e9</programlisting>
+
+    <para>In your application, you use the ETag attribute value with the
+    assertion control to prevent Bob's update from going through when the
+    ETag value has changed. Your application tries the equivalent of the
+    following commands with Bob's updates.</para>
+
+    <screen>$ cat /path/to/bobs.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: l
+l: Grenoble
+-
+add: description
+description: Employee of the Month
+
+$ ldapmodify
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --port 1389
+ --filename /path/to/bobs.ldif
+ --assertionFilter "(ETag=000000007a1999df)"
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  122 (Assertion Failed)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com
+ cannot be modified because the request contained an LDAP assertion control
+ and the associated filter did not match the contents of the that entry</screen>
+
+    <para>Your application therefore reloads Babs's entry, also getting the new
+    ETag value, <literal>00000000aec2c1e9</literal>, and lets Bob try again.
+    This time Bob's changes do not collide with other changes. Babs's entry is
+    successfully updated.</para>
+
+    <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Employee of the Month
+telephoneNumber: +47 2108 1746
+roomNumber: 1389
+l: Grenoble
+ETag: 00000000e882c35e</programlisting>
+   </example>
   </section>
 
   <section xml:id="filter-adds-modifies">
