@@ -33,6 +33,13 @@
  </properties>
  <body>
   <section name="New Releases">
+   <p>February 27, 2012. OpenDJ 2.4.5 is now available. OpenDJ 2.4.5 is an
+   update release of the OpenDJ project. You can get the release from the
+   <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
+   href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.5+Release+Notes"
+   >Release Notes</a> for additional information. Note that you must rebuild
+   the ds-sync-hist index after upgrade, but before restarting OpenDJ.</p>
+
    <p>October 14, 2011. OpenDJ 2.4.4 has been released. OpenDJ 2.4.4 is an
    update release of the OpenDJ project. You can get the release from the
    <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a

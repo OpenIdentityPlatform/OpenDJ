@@ -101,7 +101,7 @@
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
     <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
-    <stableServerVersion>2.4.4</stableServerVersion>
+    <stableServerVersion>2.4.5</stableServerVersion>
     <docTargetVersion>2.5.0</docTargetVersion>
     <docbkx-src>${basedir}/src/main/docbkx</docbkx-src>
     <dbstyle-dir>${basedir}/src/main/docbkx-stylesheets</dbstyle-dir>
