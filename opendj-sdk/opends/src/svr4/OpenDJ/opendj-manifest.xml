@@ -26,7 +26,7 @@
 
 
       Copyright 2008 Sun Microsystems, Inc.
-      Portions Copyright 2010-2011 ForgeRock AS.
+      Portions Copyright 2010-2012 ForgeRock AS.
 -->
 <service_bundle type='manifest' name='opendj'>
   <service name='network/ldap/server' type='service' version='1'>
@@ -36,23 +36,23 @@
             and methods within the instance.
         -->
     <instance name='opendj' enabled='false'>
-      	<!--  
-     	Wait for network interfaces to be initialized. 
+      	<!--
+     	Wait for network interfaces to be initialized.
      	-->
       <dependency
-       	   name='network' 
-       	   grouping='require_all' 
-       	   restart_on='error' 
+       	   name='network'
+       	   grouping='require_all'
+       	   restart_on='error'
        	   type='service'>
         <service_fmri value='svc:/milestone/network:default' />
       </dependency>
-     	<!-- 
-       	   Wait for all local filesystems to be mounted. 
+     	<!--
+       	   Wait for all local filesystems to be mounted.
      	-->
       <dependency
-       	   name='filesystem-local' 
-       	   grouping='require_all' 
-       	   restart_on='none' 
+       	   name='filesystem-local'
+       	   grouping='require_all'
+       	   restart_on='none'
        	   type='service'>
         <service_fmri value='svc:/system/filesystem/local:default' />
       </dependency>
@@ -97,8 +97,8 @@ limit_privileges='basic,net_privaddr,sys_resource,!proc_info,!file_link_any'
           </loctext>
         </common_name>
         <documentation>
-          <doc_link name='OpenDJ Documentation Wiki'
-	          uri='https://wikis.forgerock.org/confluence/display/opendj/Home' />
+          <doc_link name='OpenDJ Documentation'
+	          uri='http://opendj.forgerock.org/docs.html' />
         </documentation>
       </template>
     </instance>

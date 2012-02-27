@@ -31,7 +31,7 @@
     This is a build script that extends the OpenDJ build script by adding
     SVR4 packaging functions.
   </description>
-  
+
 
   <target name="pkgversion"
 	     description="Set svr4.version property" >
@@ -46,14 +46,14 @@
   </taskdef>
 
   <getversionnumber property="svr4.fullversion" />
-  <property name="svr4.version" 
+  <property name="svr4.version"
     value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
   </target>
 
   <property name="resource.dir"      location="src/resource" />
 
   <!-- Construct layout -->
-  <target name="layout" if="isSunOS" 
+  <target name="layout" if="isSunOS"
 		description="Create layout based on zip layout" >
     <!-- Get the revision number of the current Subversion workspace -->
     <taskdef name="getsvnrevision"
@@ -68,12 +68,12 @@
       </classpath>
     </taskdef>
 
-    <getsvnrevision property="REVISION_NUMBER" /> 
+    <getsvnrevision property="REVISION_NUMBER" />
 
     <property name="zip.dir"
         location="${package.dir}/${product}-${svr4.fullversion}" />
-    
-	<echo 
+
+	<echo
         message="Building layout for ${svr4.name} pkg based on ${zip.dir}" />
 	<!-- copy ZIP layout.
         Use exec instead of copy task to preserve file permissions -->
@@ -83,6 +83,7 @@
 	    <arg value="${zip.dir}"/>
 	    <arg value="${svr4.layout.pkg.dir}"/>
 	</exec>
+        <chmod dir="${svr4.layout.pkg.dir}" perm="755"/>
 	<!-- Remove Windows specific files -->
 	<delete includeemptydirs="true">
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
