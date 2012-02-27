@@ -148,6 +148,11 @@ $ sh /downloads/opendj_patch4upgrade.sh
     select Indexes &gt; Rebuild Indexes..., and use the Rebuild Indexes dialog
     box to rebuild the <literal>dn2id</literal> index.</para>
    </step>
+
+   <step>
+    <para>If you upgraded from OpenDJ 2.4.4 or earlier, also rebuild the
+    <literal>ds-sync-hist</literal> index before restarting OpenDJ.</para>
+   </step>
   </procedure>
 
   <procedure xml:id="upgrade-cli">
@@ -197,6 +202,11 @@ See /var/....log for a detailed log of this operation.</screen>
 
     <screen>$ ./bin/rebuild-index --index dn2id --baseDN "dc=example,dc=com"
 ...Rebuild complete. Processed 160 entries in 0 seconds (average rate 401.0/sec)</screen>
+   </step>
+
+   <step>
+    <para>If you upgraded from OpenDJ 2.4.4 or earlier, also rebuild the
+    <literal>ds-sync-hist</literal> index before restarting OpenDJ.</para>
    </step>
   </procedure>
 
