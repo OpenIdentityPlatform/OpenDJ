@@ -236,14 +236,10 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
             final ErrorResultException errorResult)
         {
           // Ensure that the connection is closed.
-          try
+          if (connection != null)
           {
             connection.close();
             connection = null;
-          }
-          catch (final Exception e)
-          {
-            // Ignore.
           }
           return errorResult;
         }
