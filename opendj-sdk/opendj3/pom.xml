@@ -411,6 +411,11 @@
 &lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
+  // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=116083
+  if (navigator.userAgent.match(/Firefox/i)) {
+    $(".screen").wrap("&lt;pre /&gt;");
+    $(".programlisting").wrap("&lt;pre /&gt;");
+  }
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
   $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
 });
@@ -499,6 +504,11 @@ $(".flat").live("dblclick", function() {
 &lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
+  // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=116083
+  if (navigator.userAgent.match(/Firefox/i)) {
+    $(".screen").wrap("&lt;pre /&gt;");
+    $(".programlisting").wrap("&lt;pre /&gt;");
+  }
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
   $(".screen").prepend('&lt;img src="./images/minus.png" class="toggle"&gt;');
 });
