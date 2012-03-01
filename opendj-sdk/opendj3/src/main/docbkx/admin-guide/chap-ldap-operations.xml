@@ -263,7 +263,7 @@ dn: uid=bjensen,ou=People,dc=example,dc=com
 description: (A \great\ description*)</screen>
   </example>
 
-  <example xml:id="extensible-match-search">
+  <example xml:id="extensible-match-search"><?dbfo keep-together="auto"?>
    <title>Search: List Active Accounts</title>
 
    <para>OpenDJ supports extensible matching rules, meaning you can pass in
@@ -488,7 +488,7 @@ Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
 
-   <example xml:id="modify-optimistic-concurrency">
+   <example xml:id="modify-optimistic-concurrency"><?dbfo keep-together="auto"?>
     <title>Modify: Optimistic Concurrency</title>
 
     <para>Imagine you are writing an application that lets end users update
