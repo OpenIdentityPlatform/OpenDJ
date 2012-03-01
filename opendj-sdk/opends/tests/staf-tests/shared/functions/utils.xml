@@ -189,14 +189,13 @@
         </script>
 
         <script>
-          try:
-            if issueId.__class__ is PyList:
+            if issueId.__class__ is org.python.core.PyList:
                 for issue in issueId:
-                  if int(issue) not in issuesList:
-                    issuesList.append(int(issue))
+                  if issue not in issuesList:
+                    issuesList.append(issue)
             else:
-              if int(issueId) not in issuesList:
-                issuesList.append(int(issueId))
+              if issueId not in issuesList:
+                issuesList.append(issueId)
           except:
             print 'Issues list undefined. Unable to add issue %s' % issueId
         </script>
@@ -1018,7 +1017,7 @@
             done.setTextContent('%s' % nbDone)
             for issueID in issuesList:
               if issueID not in allbugs:
-                allbugs.append(int(issueID))
+                allbugs.append(issueID)
             bugs.setTextContent('%s' % allbugs)
       </script>
 
