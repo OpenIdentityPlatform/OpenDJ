@@ -125,9 +125,6 @@
             <goals>
               <goal>generate</goal>
             </goals>
-            <configuration>
-              <ansi>true</ansi>
-            </configuration>
           </execution>
         </executions>
       </plugin>
