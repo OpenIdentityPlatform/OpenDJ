@@ -483,7 +483,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               <xsl:value-of select="' '"/>
               <xsl:element name="a">
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat('http://java.net/jira/browse/OPENDS-',@id)"/>
+                  <xsl:choose>
+                    <xsl:when test="starts-with(@id,'OPENDJ')">
+                      <xsl:value-of select="concat('https://bugster.forgerock.org/jira/browse/',@id)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="concat('https://opends.dev.java.net/issues/show_bug.cgi?id=',@id)"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:attribute>
                 <xsl:value-of select="concat('OPENDS-',@id)"/>
               </xsl:element>
