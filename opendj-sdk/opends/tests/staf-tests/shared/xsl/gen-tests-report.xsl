@@ -25,7 +25,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2012 ForgeRock AS
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
