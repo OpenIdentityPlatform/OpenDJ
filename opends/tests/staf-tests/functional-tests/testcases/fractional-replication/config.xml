@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="fractional-replication_config"/>
@@ -598,12 +599,11 @@
             "server"            : server,
             "replicationDomain" : domainMap[ldapServer][0],
             "include"           : [('reset',None)],
-            "exclude"           : [('remove','*:mail,jpegPhoto'),
-                                   ('remove','*:0.9.2342.19200300.100.1.60'),
-                                   ('remove','InetOrgPerson:0.9.2342.19200300.100.1.60')
+            "exclude"           : [('remove','*:mail,jpegPhoto,0.9.2342.19200300.100.1.60'),
+                                   ('remove','2.16.840.1.113730.3.2.2:jpegPhoto,0.9.2342.19200300.100.1.60'),
+                                   ('remove','inetOrgPerson:jpegPhoto,0.9.2342.19200300.100.1.60')
                                   ],
-            "expectedRC"        : 0,
-            "knownIssue"        : '0000',
+            "expectedRC"        : 0
           }
         </call>
         <call function="'get-fractional-replication-attributes'">
