@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="fractional-replication_basic"/>
@@ -100,14 +100,7 @@
                   </sequence>
                 </paralleliterate>
                 <script>
-                  repMasterDomain = '%s %s,cn=o_example,%s' % \
-                                    ("cn=Replication Domain",
-                                      domainMap[ldapPservers[0]][1],
-                                     "cn=replication,cn=monitor")
-                  repClientDomain = '%s %s,cn=o_example,%s' % \
-                                    ("cn=Replication Domain",
-                                      domainMap[ldapPservers[1]][1],
-                                     "cn=replication,cn=monitor")
+                  replDomainSuffix = 'cn=o_example,cn=replication,cn=monitor'
                 </script>
                 <message level="'debug'">'domainMap=%s' % domainMap</message>
                 <script>
@@ -174,8 +167,8 @@
         <sequence>
           <call function="'testCase_Preamble'"/>
           <call function="'replicationStatus'">
-            { "server"            : Pservers[0],
-              "replicationDomain" : repMasterDomain,
+            { "server"                  : Pservers[0],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
           <!-- set fractional-exclude on server 2 -->
@@ -198,8 +191,8 @@
           </script>
           <!-- verify we have Bad Generation ID -->
           <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
+            { "server"                  : Pservers[1],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
           <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
@@ -259,8 +252,8 @@
         <sequence>
           <call function="'testCase_Preamble'"/>
           <call function="'replicationStatus'">
-            { "server"            : Pservers[0],
-              "replicationDomain" : repMasterDomain,
+            { "server"                  : Pservers[0],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
           <!-- set fractional-include on server 2 -->
@@ -281,8 +274,8 @@
           </script>
           <!-- verify we have Bad Generation ID -->
           <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
+            { "server"                  : Pservers[1],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
           <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
@@ -447,8 +440,8 @@
           <call function="'testCase_Preamble'"/>
 
           <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
+            { "server"                  : Pservers[1],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
 
@@ -492,8 +485,8 @@
             }
           </call>
           <call function="'replicationStatus'">
-            { "server"            : Pservers[1],
-              "replicationDomain" : repClientDomain,
+            { "server"                  : Pservers[1],
+              "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
           <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
