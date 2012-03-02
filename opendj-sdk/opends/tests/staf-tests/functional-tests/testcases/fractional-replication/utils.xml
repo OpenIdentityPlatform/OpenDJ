@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
   <function name="get-fractional-replication-attributes" scope="local">
@@ -293,10 +294,12 @@
     </function-prolog>
     <function-map-args>
       <function-required-arg name="server"/>
-      <function-required-arg name="replicationDomain"/>
+      <function-required-arg name="replicationDomainSuffix"/>
       <function-optional-arg name="expectedRC" default="0"/>
     </function-map-args>
     <sequence>
+
+      <!-- Search for the DN of the Replication Domain -->
       <call function="'ldapSearchWithScript'">
         { 'location'            : server.getHostname(),
           'dsPath'              : '%s/%s' \
@@ -305,10 +308,35 @@
           'dsInstancePort'      : server.getPort(),
           'dsInstanceDn'        : server.getRootDn(),
           'dsInstancePswd'      : server.getRootPwd(),
-          'dsBaseDN'            : replicationDomain,
+          'dsBaseDN'            : replicationDomainSuffix,
+          'dsFilter'            : 'objectclass=*',
+          'dsAttributes'        : 'status last-status-change-date',
+          'dsDontWrap'          : 'true',
+        }
+      </call>
+
+      <!-- Get the DN of the Replication Domain -->
+      <script> 
+        replicationDomainDN = replicationDomainSuffix
+        for l in STAXResult[0][1].splitlines():
+          if l.startswith('dn: cn=Replication Domain'):
+            replicationDomainDN = l.replace('dn: ','')
+      </script>
+
+      <!-- Search the Replication Domain for status last-status-change-date -->
+      <call function="'ldapSearchWithScript'">
+        { 'location'            : server.getHostname(),
+          'dsPath'              : '%s/%s' \
+                                  % (server.getDir(),OPENDSNAME),
+          'dsInstanceHost'      : server.getHostname(),
+          'dsInstancePort'      : server.getPort(),
+          'dsInstanceDn'        : server.getRootDn(),
+          'dsInstancePswd'      : server.getRootPwd(),
+          'dsBaseDN'            : replicationDomainDN,
           'dsFilter'            : 'objectclass=*',
           'dsAttributes'        : 'status last-status-change-date',
           'dsScope'             : 'base',
+          'dsDontWrap'          : 'true',
         }
       </call>
       <if expr='RC == 0'>
