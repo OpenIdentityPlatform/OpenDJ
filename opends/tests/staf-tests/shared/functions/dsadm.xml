@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   
@@ -63,6 +63,14 @@
                         default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Hostname of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
@@ -166,6 +174,9 @@
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
           STAFCmdParamsList.append('--cli')    
           STAFCmdParamsList.append('-n')    
+
+        if dsHost:
+          STAFCmdParamsList.append('-h %s' % dsHost)
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
