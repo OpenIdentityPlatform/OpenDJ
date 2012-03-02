@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <function name="checkRC">
@@ -189,6 +189,7 @@
         </script>
 
         <script>
+          try:
             if issueId.__class__ is org.python.core.PyList:
                 for issue in issueId:
                   if issue not in issuesList:
