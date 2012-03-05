@@ -191,7 +191,7 @@
             #@TestIssue           none
             #@TestPurpose         New password with 1 letter change, invalid
             #@TestPreamble        none
-            #@TestStep            user modifying pwd with 1 letter change RC 19
+            #@TestStep            user modifying pwd with 1 letter change RC 53
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -215,7 +215,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'probery' ,
                     'changetype'             : 'replace' , 
-                    'expectedRC'             : 19  }
+                    'expectedRC'             : 53  }
             </call>
             
             <message>
