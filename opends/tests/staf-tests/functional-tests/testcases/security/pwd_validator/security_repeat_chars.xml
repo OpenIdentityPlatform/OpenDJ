@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -86,7 +87,7 @@
             #@TestIssue           none
             #@TestPurpose         Repeat Chars: pwd with 3 repeat chars
             #@TestPreamble        none
-            #@TestStep            user modifying password to abbbcdef RC 53
+            #@TestStep            user modifying password to abbbcdef RC 19
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS
@@ -110,7 +111,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abbbcdef' ,
                     'changetype'             : 'replace' , 
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -340,7 +341,7 @@
             #@TestIssue           none
             #@TestPurpose         Repeat Chars: pwd with 3 repeat chars 3
             #@TestPreamble        none
-            #@TestStep            user modifying password to abcccdef RC 53
+            #@TestStep            user modifying password to abcccdef RC 19
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS
@@ -364,7 +365,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abcccdef' ,
                     'changetype'             : 'replace' , 
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>

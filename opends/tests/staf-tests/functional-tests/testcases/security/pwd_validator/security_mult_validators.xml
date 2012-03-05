@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -175,7 +176,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to sn
           #@TestPreamble     none
-          #@TestStep         user modifying password to sn RC 53
+          #@TestStep         user modifying password to sn RC 19
           #@TestStep         user binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -197,7 +198,7 @@
                     'dsInstancePswd'         : 'hypotenuse' ,
                     'dsAuthzID'              : 'dn:uid=cschmith, %s' % basedn ,
                     'dsNewPassword'          : 'Schmith' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -263,7 +264,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to givenName
           #@TestPreamble     none
-          #@TestStep         user modifying password to givenName RC 53
+          #@TestStep         user modifying password to givenName RC 19
           #@TestStep         user binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -287,7 +288,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'Chris' ,
                     'changetype'             : 'replace' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -318,7 +319,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to aaaaaa
           #@TestPreamble     none
-          #@TestStep         user modifying password to aaaaaa RC 53
+          #@TestStep         user modifying password to aaaaaa RC 19
           #@TestStep         user binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -342,7 +343,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'aaaaaa' ,
                     'changetype'             : 'replace' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>

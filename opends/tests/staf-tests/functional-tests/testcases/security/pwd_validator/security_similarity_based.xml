@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -190,7 +191,7 @@
             #@TestIssue           none
             #@TestPurpose         New password with 1 letter change, invalid
             #@TestPreamble        none
-            #@TestStep            user modifying pwd with 1 letter change RC 53
+            #@TestStep            user modifying pwd with 1 letter change RC 19
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -214,7 +215,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'probery' ,
                     'changetype'             : 'replace' , 
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -243,7 +244,7 @@
             #@TestIssue           none
             #@TestPurpose         New password with 1 letter change, invalid 2
             #@TestPreamble        none
-            #@TestStep            user modifying pwd with 1 letter change RC 53
+            #@TestStep            user modifying pwd with 1 letter change RC 19
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -266,7 +267,7 @@
                     'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
                     'dsNewPassword'          : 'probery' ,
                     'dsCurrentPassword'      : 'brobery' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
             </call>
             
             <message>
@@ -295,7 +296,7 @@
             #@TestIssue           none
             #@TestPurpose         New password with 2 letters change, invalid
             #@TestPreamble        none
-            #@TestStep            user modifying pwd with 2 letter change RC 53
+            #@TestStep            user modifying pwd with 2 letter change RC 19
             #@TestStep            user binding with new password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -318,7 +319,7 @@
                     'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
                     'dsNewPassword'          : 'phobery' ,
                     'dsCurrentPassword'      : 'brobery' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
             </call>
             
             <message>

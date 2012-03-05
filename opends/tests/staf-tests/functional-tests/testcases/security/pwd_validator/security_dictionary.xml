@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -107,7 +107,7 @@
           #@TestPurpose      dictionary string with all letters
           #@TestPreamble     none
           #@TestStep         user modifying password to string with all letters
-                             matching a dictionary word zymochemistry RC 53
+                             matching a dictionary word zymochemistry RC 19
           #@TestStep         user binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -129,7 +129,7 @@
                     'dsInstancePswd'         : 'inflict' ,
                     'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn,
                     'dsNewPassword'          : 'zymochemistry' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -161,7 +161,7 @@
                              (set to true by default)
           #@TestPreamble     none
           #@TestStep         user modifying password to a reverse password 
-                             from inflict to tcilfni RC 53
+                             from inflict to tcilfni RC 19
           #@TestStep         user binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -182,7 +182,7 @@
                     'dsInstancePswd'         : 'inflict' ,
                     'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn ,
                     'dsNewPassword'          : 'tcilfni' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -108,7 +109,7 @@
           #@TestIssue        none
           #@TestPurpose      Pwd Length Setup
           #@TestPreamble     none
-          #@TestStep         Step 1. User Changing with short Password RC 53
+          #@TestStep         Step 1. User Changing with short Password RC 19
           #@TestStep         Step 2. User Search With short Password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -128,7 +129,7 @@
                     'dsInstancePswd'         : 'oranges' ,
                     'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
                     'dsNewPassword'          : 'grape' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <!--- User Search With Password -->
@@ -193,7 +194,7 @@
           #@TestIssue        none
           #@TestPurpose      Pwd Length User Password - Too Short 2
           #@TestPreamble     none
-          #@TestStep         User Change Password - Too Short 2 RC 53
+          #@TestStep         User Change Password - Too Short 2 RC 19
           #@TestStep         User Searching With Password Too Short 2 RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -215,7 +216,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'goo' ,
                     'changetype'             : 'replace' , 
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <!--- User Search With Password -->
@@ -375,7 +376,7 @@
           #@TestIssue        none
           #@TestPurpose      Pwd Length Max User Password - Too Long
           #@TestPreamble     none
-          #@TestStep         User Changing Password over 10 RC 53
+          #@TestStep         User Changing Password over 10 RC 19
           #@TestStep         User Searching Password over 10 RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 tests are PASS
@@ -395,7 +396,7 @@
                     'dsInstancePswd'         : 'grape' ,
                     'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
                     'dsNewPassword'          : 'pomegranates' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <!--- User Search With Password -->

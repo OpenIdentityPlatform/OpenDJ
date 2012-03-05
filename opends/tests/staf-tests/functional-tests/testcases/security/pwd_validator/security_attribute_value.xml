@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -135,7 +136,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to sn
           #@TestPreamble     none
-          #@TestStep         user dmiller modifying password to sn Miller RC 53
+          #@TestStep         user dmiller modifying password to sn Miller RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -157,7 +158,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : 'Miller' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -188,7 +189,7 @@
           #@TestPurpose      user modifying password to lower case sn
           #@TestPreamble     none
           #@TestStep         user dmiller modifying password to lower case sn
-                             miller RC 53
+                             miller RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -209,7 +210,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
                     'dsNewPassword'          : 'miller' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -240,7 +241,7 @@
           #@TestPurpose      user modifying password to upper case sn
           #@TestPreamble     none
           #@TestStep         user dmiller modifying password to upper case sn
-                             MILLER RC 53
+                             MILLER RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -262,7 +263,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : 'MILLER' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -293,7 +294,7 @@
           #@TestPurpose      user modifying password to mixed case sn
           #@TestPreamble     none
           #@TestStep         user dmiller modifying password to mixed case sn
-                             mIlLeR RC 53
+                             mIlLeR RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -315,7 +316,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : 'mIlLeR' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -346,7 +347,7 @@
           #@TestPurpose      user modifying password to reversed upper case sn
           #@TestPreamble     none
           #@TestStep         user dmiller modifying password to reversed upper 
-                             case sn  RELLIM RC 53
+                             case sn  RELLIM RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -368,7 +369,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn,
                     'dsNewPassword'          : 'RELLIM' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -432,7 +433,7 @@
           #@TestPurpose      user modifying password to roomnumber
           #@TestPreamble     none
           #@TestStep         user dmiller modifying password to roomnumber 4135
-                             RC 53
+                             RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -454,7 +455,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : '4135' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -483,7 +484,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to sn 2
           #@TestPreamble     none
-          #@TestStep         user dmiller modifying password to sn Miller RC 53
+          #@TestStep         user dmiller modifying password to sn Miller RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -505,7 +506,7 @@
                     'dsInstancePswd'         : 'gosling' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : 'Miller' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
@@ -619,7 +620,7 @@
           #@TestIssue        none
           #@TestPurpose      user modifying password to sn 3
           #@TestPreamble     none
-          #@TestStep         user dmiller modifying password to sn Miller RC 53
+          #@TestStep         user dmiller modifying password to sn Miller RC 19
           #@TestStep         user dmiller binding with invalid password RC 49
           #@TestPostamble    none
           #@TestResult       Success if the 2 test are PASS
@@ -641,7 +642,7 @@
                     'dsInstancePswd'         : 'rellim' ,
                     'dsAuthzID'              : 'dn:uid=dmiller, %s' % basedn ,
                     'dsNewPassword'          : 'Miller' ,
-                    'expectedRC'             : 53  }
+                    'expectedRC'             : 19  }
             </call>
             
             <message>
