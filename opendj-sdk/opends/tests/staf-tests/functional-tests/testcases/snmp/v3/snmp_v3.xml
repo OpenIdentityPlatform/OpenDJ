@@ -41,8 +41,8 @@
             </script>
 
             <!--- Test Suite information
-            #@TestSuiteName       SNMP v3 with default configuration
-            #@TestSuitePurpose    Check SNMP v3 with default configuration.
+            #@TestSuiteName       SNMP v3 operations
+            #@TestSuitePurpose    Check SNMP v3 operations
             #@TestSuiteGroup      SNMP v3 with default configuration
             #@TestScript          snmp_v3.xml
             #@TestHTMLLink        http://www.forgerock.org/

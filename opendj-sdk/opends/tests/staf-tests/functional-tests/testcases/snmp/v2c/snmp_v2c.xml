@@ -41,8 +41,8 @@
             </script>
 
             <!--- Test Suite information
-            #@TestSuiteName       SNMP default properties test suite
-            #@TestSuitePurpose    Verify SNMP default properties
+            #@TestSuiteName       SNMP v2 operations
+            #@TestSuitePurpose    Verify SNMP v2 operations
             #@TestSuiteID         v2c
             #@TestSuiteGroup      snmp
             #@TestGroup           snmp
