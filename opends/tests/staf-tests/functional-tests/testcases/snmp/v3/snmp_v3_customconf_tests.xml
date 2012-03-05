@@ -1,0 +1,1004 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
+ ! -->
+<stax>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_001" scope="local">
+    <testcase name="getTestCaseName('v3 change the security-agent-file property')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Change the security-agent-file property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-agent-file:%s' \
+                                   % newSecurityFileProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_002" scope="local">
+    <testcase name="getTestCaseName('v3 check the current security level (def)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the lowUser and low security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : lowUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : lowSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'authorizationError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the defUser and def security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the highUser and high security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : highUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : highSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_003" scope="local">
+    <testcase name="getTestCaseName('v3 change the context property')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Change the context property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set community:%s' % newContextProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the old context' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'reqTimeout'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the context' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : otherUser ,
+              'snmpCommunity'     : newContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the context property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set community:%s' % defContextProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_004" scope="local">
+    <testcase name="getTestCaseName('v3 set the allowed-user property to a list')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Set the allowed-user property to a list' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set allowed-user:%s' % defUser
+              }
+            </call>
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--add allowed-user:%s' % otherUser
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser community' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser2 community' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : otherUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the allowed-user property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set allowed-user:%s' % defUserProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_005" scope="local">
+    <testcase name="getTestCaseName('v3 set the allowed-user property to otherUser')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Set the allowed-user property to otherUser' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set allowed-user:%s' % otherUser
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the defUser' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'authorizationError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the otherUser' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : otherUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the security-agent-file property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set allowed-user:%s' % defUserProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_006" scope="local">
+    <testcase name="getTestCaseName('v3 set the security-level property to low')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Set the security-level property to low' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-level:%s' \
+                                   % lowSecurityLevelProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser1 and low security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : lowUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : lowSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser2 and med security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser3 and high security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : highUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : highSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the security-level property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-level:%s' \
+                                   % defSecurityLevelProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_007" scope="local">
+    <testcase name="getTestCaseName('v3 set the security-level property to high')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Set the security-level property to high' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-level:%s' \
+                                   % highSecurityLevelProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser1 and low security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : lowUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : lowSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'authorizationError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser2 and med security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : defUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : defSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'authorizationError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Get with the myUser3 and high security level' }
+            </call>
+
+            <call function="'SNMPGet'">
+              {
+              'snmpVersion'       : '3',
+              'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+              'snmpPort'          : SNMP_PORT ,
+              'snmpUser'          : highUser ,
+              'snmpCommunity'     : defContextProp ,
+              'snmpSecurityLevel' : highSecurityLevelProp ,
+              'snmpSecurityFile'  : mySecurityFile ,
+              'snmpOIDs'          : oid ,
+              'snmpStatus'        : 'noError'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the security-level property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-level:%s' \
+                                   % defSecurityLevelProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_008" scope="local">
+    <testcase name="getTestCaseName('v3 set the security-level property to wrong')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Set the security-level property to wrong' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-level:%s' \
+                                   % wrongSecurityLevelProp ,
+              'expectedRC'       : 1
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg1 = 'The value "%s" is not a valid value for the' \
+                     % wrongSecurityLevelProp
+              msg2 = 'SNMP Connection Handler property "security-level"'
+              msg3 = 'which has the following syntax:'
+              msg4 = 'authnopriv | authpriv | noauthnopriv'
+              msg = '%s %s %s %s' % (msg1, msg2, msg3, msg4)
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          SNMP v3 with custom configuration
+    #@TestName            v3_customconf: TODO
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="snmp_v3_custom_009" scope="local">
+    <testcase name="getTestCaseName('v3 restore the security-agent-file property')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restore the security-agent-file property' }
+            </call>
+
+            <call function="'dsconfig'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'       : 'set-connection-handler-prop' ,
+              'objectType'       : 'handler-name' ,
+              'objectName'       : 'SNMP Connection Handler' ,
+              'optionsString'    : '--set security-agent-file:%s' \
+                                   % defSecurityFileProp
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Restart the SNMP Connection Handler' }
+            </call>
+
+            <call function="'restartSNMPConnectionHandler'">
+              {
+              'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>
