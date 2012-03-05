@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -462,19 +463,19 @@ public final class LDAPURL
     pos = url.indexOf('?', startPos);
     if (pos < 0)
     {
-      baseDNString = url.substring(startPos);
+      baseDNString = urlDecode(url.substring(startPos));
       startPos = length;
     }
     else
     {
-      baseDNString = url.substring(startPos, pos);
+      baseDNString = urlDecode(url.substring(startPos, pos));
       startPos = pos+1;
     }
 
     DN baseDN;
     if (fullyDecode)
     {
-      baseDN = DN.decode(urlDecode(baseDNString));
+      baseDN = DN.decode(baseDNString);
     }
     else
     {
@@ -861,33 +862,6 @@ public final class LDAPURL
       throw new DirectoryException(
                      ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
-  }
-
-
-
-  /**
-   * Encodes the provided string portion for inclusion in an LDAP URL.
-   *
-   * @param  s            The string portion to be encoded.
-   * @param  isExtension  Indicates whether the provided component is
-   *                      an extension and therefore needs to have
-   *                      commas encoded.
-   *
-   * @return  The URL-encoded version of the string portion.
-   */
-  private static String urlEncode(String s, boolean isExtension)
-  {
-    if (s == null)
-    {
-      return "";
-    }
-
-
-    int length = s.length();
-    StringBuilder buffer = new StringBuilder(length);
-    urlEncode(s, isExtension, buffer);
-
-    return buffer.toString();
   }
 
 

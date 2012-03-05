@@ -75,9 +75,8 @@ public class LDAPURLTestCase extends TypesTestCase
         { "ldap:///dc=example,dc=com???(cn=test)", "dc=example,dc=com",
             "(cn=test)", true },
         /* DN encoding: triple back-slash required for Java and DN escaping */
-// Uncomment when OPENDJ-432 fix is committed.
-//        { "ldap:///dc=%5c%22example%5c%22,dc=com???(cn=test)",
-//            "dc=\\\"example\\\",dc=com", "(cn=test)", false },
+        { "ldap:///dc=%5c%22example%5c%22,dc=com???(cn=test)",
+            "dc=\\\"example\\\",dc=com", "(cn=test)", false },
         { "ldap:///dc=%5c%22example%5c%22,dc=com???(cn=test)",
             "dc=\\\"example\\\",dc=com", "(cn=test)", true },
         /* Filter encoding */
