@@ -190,15 +190,16 @@
 
         <script>
           try:
-            if issueId.__class__ is org.python.core.PyList:
+            from org.python.core import PyList
+            if issueId.__class__ is PyList:
                 for issue in issueId:
                   if issue not in issuesList:
                     issuesList.append(issue)
             else:
               if issueId not in issuesList:
                 issuesList.append(issueId)
-          except:
-            print 'Issues list undefined. Unable to add issue %s' % issueId
+          except Exception,e:
+            print 'Issues list undefined. Unable to add issue %s. Reason=%s' % (issueId,e)
         </script>
         <message log="1" level="'Error'">
           'ERROR: HIT **** Known Issue (%s) ****' % issueId
