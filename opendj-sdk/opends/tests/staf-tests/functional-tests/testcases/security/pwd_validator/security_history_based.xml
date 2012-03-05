@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -90,7 +91,7 @@
           #@TestStep         user modify password 1 from sprain to sprainone 
                              RC 0
           #@TestStep         user modify password back to old password sprain 
-                             RC 53
+                             RC 19
           #@TestStep         user binding with password 1 sprainone RC 0
           #@TestPostamble    none
           #@TestResult       Success if the 3 tests are PASS
@@ -124,7 +125,7 @@
                     'dsInstancePswd'         : 'sprainone' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : 'sprain' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
             </call>
             
             <message>
@@ -155,7 +156,7 @@
           #@TestStep         user modify password from sprainone to spraintwo 
                              RC 0
           #@TestStep         user modify password back to old passwords sprain 
-                             and sprainone RC 53
+                             and sprainone RC 19
           #@TestStep         user binding with password 2 spraintwo RC 0
           #@TestStep         Check manage-account get-password-history
           #@TestPostamble    none
@@ -195,7 +196,7 @@
                     'dsInstancePswd'         : 'spraintwo' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
               </call>
             </iterate>
  
@@ -249,7 +250,7 @@
           #@TestStep         user modify password from spraintwo to sprainthree 
                              RC 0
           #@TestStep         user modify password back to old passwords sprain 
-                             sprainone and spraintwo RC 53
+                             sprainone and spraintwo RC 19
           #@TestStep         user binding with password 3 sprainthree RC 0
           #@TestPostamble    none
           #@TestResult       Success if the 3 tests are PASS
@@ -288,7 +289,7 @@
                     'dsInstancePswd'         : 'sprainthree' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
               </call>
             </iterate>
 
@@ -320,7 +321,7 @@
           #@TestStep         user modify password from sprainthree to sprainfour
                              RC 0
           #@TestStep         user modify password back to last 3 passwords 
-                             sprainone spraintwo  and sprainthree RC 53
+                             sprainone spraintwo  and sprainthree RC 19
           #@TestStep         user modify password back to  original password
                              sprain RC 0
           #@TestStep         user binding with original password sprain RC 0
@@ -361,7 +362,7 @@
                     'dsInstancePswd'         : 'sprainfour' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
               </call>
             </iterate>
             

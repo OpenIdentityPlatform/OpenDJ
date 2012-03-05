@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -98,7 +99,7 @@
             #@TestIssue           none
             #@TestPurpose         Root Change Password - Too Short
             #@TestPreamble        none
-            #@TestStep            Root Changing Pwd to grape- Too Short RC 53
+            #@TestStep            Root Changing Pwd to grape- Too Short RC 19
             #@TestStep            Root Searching With Password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -121,7 +122,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'grape' ,
                     'changetype'             : 'replace' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
             </call>
             
             <!--- Root Search With Password -->
@@ -285,7 +286,7 @@
             #@TestIssue           none
             #@TestPurpose         Root User Bypass Valid: Self-Change Pwd
             #@TestPreamble        none
-            #@TestStep            User Self-Change Pwd Too Short RC 53
+            #@TestStep            User Self-Change Pwd Too Short RC 19
             #@TestStep            User Searching With Password RC 49
             #@TestPostamble       none
             #@TestResult          Success if all tests are PASS.
@@ -311,7 +312,7 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'gaa' ,
                     'changetype'             : 'replace' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 19 }
             </call>
             
             <!--- Root Search With Password -->
