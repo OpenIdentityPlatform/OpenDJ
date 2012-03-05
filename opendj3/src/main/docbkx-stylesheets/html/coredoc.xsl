@@ -28,6 +28,7 @@ xmlns:xslthl="http://xslthl.sf.net" exclude-result-prefixes="xslthl"
 version="1.0">
  <xsl:import href="urn:docbkx:stylesheet" />
  <xsl:import href="urn:docbkx:stylesheet/highlight.xsl" />
+ <xsl:output method="html" encoding="UTF-8" indent="no" />
 
  <xsl:param name="make.clean.html" select="1" />
  <xsl:param name="docbook.css.link" select="0" />
