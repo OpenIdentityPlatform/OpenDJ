@@ -347,9 +347,9 @@
             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'dn:uid=abergin,%s' % basedn ,
+                    'dsInstanceDn'           : 'uid=abergin,%s' % basedn ,
                     'dsInstancePswd'         : 'tcilfni' ,
-                    'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn,
+                    'dsAuthzID'              : 'uid=abergin, %s' % basedn,
                     'dsNewPassword'          : 'chemistry'  }
             </call>
             
@@ -361,11 +361,10 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
-                'dsInstancePswd'   : 'zymochemistry' ,
+                'dsInstancePswd'   : 'chemistry' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' ,
-                'knownIssue'       : '2361' }
+                'extraParams'      : '-s base' }
             </call>
             
             <call function="'testCase_Postamble'"/>
