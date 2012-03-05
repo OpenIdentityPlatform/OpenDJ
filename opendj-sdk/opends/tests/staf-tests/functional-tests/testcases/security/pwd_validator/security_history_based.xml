@@ -124,8 +124,7 @@
                     'dsInstancePswd'         : 'sprainone' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : 'sprain' ,
-                    'expectedRC'             : 53 ,
-                    'knownIssue'             : '3270' }
+                    'expectedRC'             : 53 }
             </call>
             
             <message>
@@ -139,8 +138,7 @@
                 'dsInstancePswd'   : 'sprainone' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' ,
-                'knownIssue'       : '3270' }
+                'extraParams'      : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -178,8 +176,7 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainone' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'spraintwo' ,
-                    'knownIssue'             : '3270'  }
+                    'dsNewPassword'          : 'spraintwo' }
             </call>
            
             <message>
@@ -198,8 +195,7 @@
                     'dsInstancePswd'         : 'spraintwo' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 ,
-                    'knownIssue'             : '3270' }
+                    'expectedRC'             : 53 }
               </call>
             </iterate>
  
@@ -214,8 +210,7 @@
                 'dsInstancePswd'   : 'spraintwo' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' ,
-                'knownIssue'       : '3270' }
+                'extraParams'      : '-s base' }
             </call>
 
             
@@ -274,8 +269,7 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'spraintwo' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'sprainthree' ,
-                    'knownIssue'             : '3270'  }
+                    'dsNewPassword'          : 'sprainthree' }
             </call>
 
             <message>
@@ -294,8 +288,7 @@
                     'dsInstancePswd'         : 'sprainthree' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 ,
-                    'knownIssue'             : '3270' }
+                    'expectedRC'             : 53 }
               </call>
             </iterate>
 
@@ -310,8 +303,7 @@
                 'dsInstancePswd'   : 'sprainthree' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' ,
-                'knownIssue'       : '3270' }
+                'extraParams'      : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -350,8 +342,7 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainthree' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn ,
-                    'dsNewPassword'          : 'sprainfour' ,
-                    'knownIssue'             : '3270'   }
+                    'dsNewPassword'          : 'sprainfour' }
             </call>
 
             <message>
@@ -370,8 +361,7 @@
                     'dsInstancePswd'         : 'sprainfour' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 ,
-                    'knownIssue'             : '3270' }
+                    'expectedRC'             : 53 }
               </call>
             </iterate>
             
@@ -385,8 +375,7 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'sprainfour' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'sprain' ,
-                    'knownIssue'             : '3270'   }
+                    'dsNewPassword'          : 'sprain' }
             </call>
  
             <message>
