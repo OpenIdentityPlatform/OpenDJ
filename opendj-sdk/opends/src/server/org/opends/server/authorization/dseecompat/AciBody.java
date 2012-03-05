@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -137,7 +138,7 @@ public class AciBody {
         "\\(" + ZERO_OR_MORE_WHITESPACE + versionToken +
         ZERO_OR_MORE_WHITESPACE + versionRegex +
         ACI_STATEMENT_SEPARATOR + aclToken + ZERO_OR_MORE_WHITESPACE +
-        "\"(.*)\"" + ACI_STATEMENT_SEPARATOR + actionRegex +
+        "\"([^\"]*)\"" + ACI_STATEMENT_SEPARATOR + actionRegex +
         ZERO_OR_MORE_WHITESPACE  + "\\)";
 
     /*
@@ -191,20 +192,31 @@ public class AciBody {
                 throw new AciException(message);
             }
             name = bodyMatcher.group(NAME);
+            input = input.substring(bodyMatcher.end());
         }
-        Pattern bodyPattern1 = Pattern.compile(
-                ACI_STATEMENT_SEPARATOR + actionRegex);
+
+        Pattern bodyPattern1 = Pattern.compile("\\G" + actionRegex);
         Matcher bodyMatcher1 = bodyPattern1.matcher(input);
+
         /*
          * The may be many permission-bind rule pairs.
          */
+        int lastIndex = -1;
         while(bodyMatcher1.find()) {
          String perm=bodyMatcher1.group(PERM);
          String rights=bodyMatcher1.group(RIGHTS);
          String bRule=bodyMatcher1.group(BINDRULE);
          PermBindRulePair pair = PermBindRulePair.decode(perm, rights, bRule);
          permBindRulePairs.add(pair);
+         lastIndex = bodyMatcher1.end();
         }
+
+        if (lastIndex >= 0 && input.charAt(lastIndex) != ')')
+        {
+          Message message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
+          throw new AciException(message);
+        }
+
         return new AciBody(version, name, startPos, permBindRulePairs);
     }
 

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  *
  */
 package org.opends.server.authorization.dseecompat;
@@ -723,6 +723,11 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "invalid", "targetattr", "cn ||", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "not/an/attr", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "cn", "allow (write)", BIND_RULE_INVALID_DAY),
+          /* Test cases for OPENDJ-433 */
+          buildAciValue("name", "invalid", "targetattr", "cn", "garbage allow (read)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "cn", "allow (read)", BIND_RULE_USERDN_SELF, "garbage allow (search)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "cn", "allow (read)", BIND_RULE_USERDN_SELF, "allow (search)", BIND_RULE_USERDN_SELF, "garbage allow (compare)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "cn", "allow (read)", BIND_RULE_USERDN_SELF, "allow (search)", BIND_RULE_USERDN_SELF, "allow (compare)", BIND_RULE_USERDN_SELF, "garbage allow (delete)", BIND_RULE_USERDN_SELF),
           // Add tests with invalid keywords : typos in "targetattr", "targattfilters", "targetfilter"
           buildAciValue("name", "bad_filters", "targattrfilters",TARG_ATTR_FILTERS_INVALID_FILTER, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_op", "targattrfilters",TARG_ATTR_FILTERS_BAD_OP, "allow (write)", BIND_RULE_USERDN_SELF),
