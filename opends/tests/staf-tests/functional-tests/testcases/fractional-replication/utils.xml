@@ -310,7 +310,7 @@
           'dsInstancePswd'      : server.getRootPwd(),
           'dsBaseDN'            : replicationDomainSuffix,
           'dsFilter'            : 'objectclass=*',
-          'dsAttributes'        : 'status last-status-change-date',
+          'dsAttributes'        : 'dn',
           'dsDontWrap'          : 'true',
         }
       </call>
