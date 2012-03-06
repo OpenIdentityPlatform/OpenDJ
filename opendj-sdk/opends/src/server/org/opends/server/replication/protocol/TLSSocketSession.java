@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -445,6 +445,7 @@ public final class TLSSocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unused")
   @Override
   public void stopEncryption()
   {
