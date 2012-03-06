@@ -112,7 +112,7 @@ public class DigestMD5SASLMechanismHandler
          DN identityMapperDN = configuration.getIdentityMapperDN();
          identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
          serverFQDN = getFQDN(configuration);
-         Message msg= INFO_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+         Message msg= NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
          logError(msg);
          String QOP = getQOP(configuration);
          saslProps = new HashMap<String,String>();
@@ -247,7 +247,7 @@ public class DigestMD5SASLMechanismHandler
           DN identityMapperDN = configuration.getIdentityMapperDN();
           identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
           serverFQDN = getFQDN(configuration);
-          Message msg = INFO_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+          Message msg = NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
           logError(msg);
           String QOP = getQOP(configuration);
           saslProps = new HashMap<String,String>();
