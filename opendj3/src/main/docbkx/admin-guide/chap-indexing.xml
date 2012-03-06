@@ -741,5 +741,12 @@ debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
     </tbody>
    </tgroup>
   </table>
+
+  <para>When you create a JE backend using the <command>dsconfig</command>
+  command, OpenDJ creates the <literal>aci</literal> presence,
+  <literal>ds-sync-conflict</literal> equality,
+  <literal>ds-sync-hist</literal> ordering,
+  <literal>entryUUID</literal> equality, and
+  <literal>objectClass</literal> equality indexes automatically.</para>
  </section>
 </chapter>
