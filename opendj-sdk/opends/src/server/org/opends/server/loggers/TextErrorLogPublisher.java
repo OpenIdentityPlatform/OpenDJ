@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -75,9 +76,11 @@ public class TextErrorLogPublisher
   {
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
-
-    startupPublisher.defaultSeverities.addAll(Arrays.asList(Severity.values()));
-
+    startupPublisher.defaultSeverities.addAll(Arrays.asList(
+        Severity.FATAL_ERROR,
+        Severity.SEVERE_ERROR,
+        Severity.SEVERE_WARNING,
+        Severity.NOTICE));
     return startupPublisher;
   }
 

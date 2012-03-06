@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -695,7 +696,7 @@ public final class ClassLoaderProvider {
         // Log build information of extensions in the error log
         String[] information = getBuildInformation(jarFile);
         logError(
-          INFO_LOG_EXTENSION_INFORMATION.
+          NOTE_LOG_EXTENSION_INFORMATION.
             get(jarFile.getName(),
                 information[1],
                 information[2]));
