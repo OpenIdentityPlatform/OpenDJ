@@ -129,7 +129,8 @@
                   testsList.append('snmp_basic_014')
                   testsList.append('snmp_basic_015')
                   testsList.append('snmp_basic_016')
-                  testsList.append('snmp_basic_017')
+                  if get_system_uid() is not "root":
+                    testsList.append('snmp_basic_017')
                 </script>
 
                 <!-- Execute the Tests -->

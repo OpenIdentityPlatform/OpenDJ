@@ -56,7 +56,8 @@ __all__ = [ "format_testcase",
             "count_attr" ,
             "host_is_localhost" ,
             "md5_hash" ,
-            "value_not_string"
+            "value_not_string" ,
+            "get_system_uid"
             ]
 
 class format_testcase:
@@ -875,4 +876,8 @@ def value_not_string(value):
     return 1
   else:
     return 0
+
+def get_system_uid():
+  from java.lang import System
+  return System.getProperty("user.name")
 

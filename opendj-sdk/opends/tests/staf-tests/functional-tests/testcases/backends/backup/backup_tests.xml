@@ -499,7 +499,7 @@
           <call function="'checktestString'">
             {
              'returnString'     : returnString ,
-             'expectedString'   : 'A full backup will be executed'
+             'expectedString'   : 'The backup process completed successfully'
             }
           </call>
 
