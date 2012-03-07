@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -40,15 +41,17 @@
             #@TestScript          security_grace_login.xml
         -->
 
-        <!--- Define default value for basedn -->
+        <!--- Define default values for test -->
           <script>
-          basedn1 = 'ou=people,ou=password tests,'
-          basedn = '%s o=Pwd Policy Tests,dc=example,dc=com' % basedn1
-          basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
-          msg = 'Security: Grace Login:'
-          msg1 = 'Password Policy DN:  %s' % basepwp
-          msg2 = 'Account Is Disabled:  false'
-          msg3 = 'Password History:'
+            basedn1 = 'ou=people,ou=password tests,'
+            basedn = '%s o=Pwd Policy Tests,dc=example,dc=com' % basedn1
+            basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
+            msg = 'Security: Grace Login:'
+            msg1 = 'Password Policy DN:  %s' % basepwp
+            msg2 = 'Account Is Disabled:  false'
+            msg3 = 'Password History:'
+          
+            grace_login_count = 3
           </script>
 
 
@@ -62,28 +65,28 @@
                                 ds-cfg-min-password-age 1 seconds
                                 ds-cfg-max-password-age 3 seconds
                                 ds-cfg-password-expiration-warning-interval 1 s
-                                ds-cfg-grace-login-count 2
+                                ds-cfg-grace-login-count 3
           #@TestPostamble       none
           #@TestResult          Success if modifyAnAttribute returns 0
         -->
         
- <testcase name="getTestCaseName('Preamble, Admin Change Pwd Policy Settings')">
+        <testcase name="getTestCaseName('Preamble, Admin Change Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-       <script>
-       listAttrs=[]
-       listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
-       listAttrs.append("ds-cfg-allow-expired-password-changes:true")
-       listAttrs.append("ds-cfg-min-password-age:1 seconds")
-       listAttrs.append("ds-cfg-max-password-age:3 seconds")
-       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-       listAttrs.append("ds-cfg-grace-login-count:2")
-       </script>
-            
-            <message>
-               'Security: Grace Login: Admin modifying password policy settings'
-            </message>
+            <script>
+              listAttrs=[]
+              listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
+              listAttrs.append("ds-cfg-allow-expired-password-changes:true")
+              listAttrs.append("ds-cfg-min-password-age:1 seconds")
+              listAttrs.append("ds-cfg-max-password-age:3 seconds")
+              listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+              listAttrs.append("ds-cfg-grace-login-count:%s" % grace_login_count)
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin modifying password policy setting.' % msg }
+            </call>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
@@ -95,7 +98,26 @@
                     'changetype'             : 'replace' }
             </call>
 
-            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Get Default Password Policy.' % msg }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+               
+              }
+            </call>     
   
             <call function="'testCase_Postamble'"/>
             
@@ -121,17 +143,17 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-       <script>
-       listAttrs=[]
-       listAttrs.append("ds-cfg-min-password-age:10 seconds")
-       listAttrs.append("ds-cfg-max-password-age:3 seconds")
-       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-       </script>
-            
-            <message>
-               'Security: Grace Login: Admin modifying password policy settings'
-            </message>
+            <script>
+              listAttrs=[]
+              listAttrs.append("ds-cfg-min-password-age:10 seconds")
+              listAttrs.append("ds-cfg-max-password-age:3 seconds")
+              listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+            </script>
 
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin modifying password policy settings.' % msg }
+            </call>
+            
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
@@ -141,9 +163,8 @@
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' ,
                     'expectedRC'             : 53 }
-            </call>
+            </call>           
             
-  
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -163,20 +184,20 @@
           #@TestResult          Success if modifyAnAttribute returns 53
         -->
         
-<testcase name="getTestCaseName('Preamble, Admin Change min pwd age to limit')">
+        <testcase name="getTestCaseName('Preamble, Admin Change min pwd age to limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-       <script>
-       listAttrs=[]
-       listAttrs.append("ds-cfg-min-password-age:2 seconds")
-       listAttrs.append("ds-cfg-max-password-age:3 seconds")
-       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-       </script>
-            
-            <message>
-               'Security: Grace Login: Admin modifying password policy settings'
-            </message>
+            <script>
+              listAttrs=[]
+              listAttrs.append("ds-cfg-min-password-age:2 seconds")
+              listAttrs.append("ds-cfg-max-password-age:3 seconds")
+              listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin modifying password policy settings.' % msg }
+            </call>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
@@ -214,16 +235,16 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-      <script>
-      listAttrs=[]
-      listAttrs.append("ds-cfg-min-password-age:1 seconds")
-      listAttrs.append("ds-cfg-max-password-age:3 seconds")
-      listAttrs.append("ds-cfg-password-expiration-warning-interval:10 seconds")
-      </script>
-            
-            <message>
-               'Security: Grace Login: Admin modifying password policy settings'
-            </message>
+            <script>
+              listAttrs=[]
+              listAttrs.append("ds-cfg-min-password-age:1 seconds")
+              listAttrs.append("ds-cfg-max-password-age:3 seconds")
+              listAttrs.append("ds-cfg-password-expiration-warning-interval:10 seconds")
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin modifying password policy settings.' % msg }
+            </call>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
@@ -267,18 +288,51 @@
         <testcase name="getTestCaseName('Search Bad Pwd 4x')">
           <sequence>
             <call function="'testCase_Preamble'"/>
-            
-            <message>
-               'Security: Grace Login: Pause 2 seconds'
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Get Default Password Policy.' % msg }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+               
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Pause 2 seconds.' % msg }
+            </call>
 
             <call function="'Sleep'">
               { 'sleepForMilliSeconds' : '2000' }
             </call>
-            
-            <message>
-             '%s Verify grace login use times with manage-account ' % msg
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify remaining grace login count with manage-account ' % msg }
+            </call>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-remaining-grace-login-count' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify grace login use times with manage-account ' % msg }
+            </call>
 
             <call function="'manageAccountWithScript'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -296,105 +350,85 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Grace Login Use Times:' }
             </call>
-            
-            <message>
-               'Security: Grace Login:  Search Bind 1'
-            </message>
 
-            <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
-                  'dsInstancePswd'   : 'trident',
-                  'dsBaseDN'         : 'dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' ,
-                  'expectedRC'       : 19 }
-            </call>
-            
-            <message>
-             '%s Verify remaining grace login count with manage-account ' % msg
-            </message>
-
-            <call function="'manageAccountWithScript'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'subcommand'       : 'get-remaining-grace-login-count' ,
-                  'targetDn'         : 'uid=btalbot,%s' % basedn }
-            </call>
-            
-            <script> 
-             returnString = STAXResult[0][1]
+            <!-- The password has expired, entering grace login period -->
+            <script>
+              remaining_grace_login_count = 2
             </script>
-            
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'Remaining Grace Login Count:  2' ,
-                  'issue'              : '3430' }
-            </call>
-            
-            <message>
-             '%s Verify grace login use times with manage-account ' % msg
-            </message>
+            <loop from="1" to="grace_login_count" var="loop">
 
-            <call function="'manageAccountWithScript'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'subcommand'       : 'get-grace-login-use-times' ,
-                  'targetDn'         : 'uid=btalbot,%s' % basedn }
-            </call>
-            
-            <script> 
-             returnString = STAXResult[0][1]
-            </script>
-            
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'Grace Login Use Times:  20' }
-            </call>
-               
-            <message>
-               'Security: Grace Login:  Search Bind 2'
-            </message>
+              <sequence>
 
-            <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
-                  'dsInstancePswd'   : 'trident',
-                  'dsBaseDN'         : 'dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base',
-                  'expectedRC'       : 19 }
-            </call>
-            
-            <message>
-             '%s Verify remaining grace login with manage-account ' % msg
-            </message>
+                <call function="'testStep'">
+                  { 'stepMessage' : '%s Search Bind %s' % (msg,loop) }
+                </call>
+    
+                <call function="'SearchObject'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
+                      'dsInstancePswd'   : 'trident',
+                      'dsBaseDN'         : 'dc=example,dc=com' ,
+                      'dsFilter'         : 'objectclass=*'  ,
+                      'extraParams'      : '-s base' ,
+                      'expectedRC'       : 19 }
+                </call>
+                
+                <call function="'testStep'">
+                  { 'stepMessage' : '%s Verify remaining grace login count.' % msg }
+                </call>
+    
+                <call function="'manageAccountWithScript'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'       : 'get-remaining-grace-login-count' ,
+                      'targetDn'         : 'uid=btalbot,%s' % basedn }
+                </call>
+                
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'Remaining Grace Login Count:  %s' % remaining_grace_login_count }
+                </call>
+    
+                <call function="'testStep'">
+                  { 'stepMessage' : '%s Verify grace login use times.' % msg }
+                </call>
+    
+                <call function="'manageAccountWithScript'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'       : 'get-grace-login-use-times' ,
+                      'targetDn'         : 'uid=btalbot,%s' % basedn }
+                </call>
+                
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script>
+    
+                <!-- TODO: WTF -->            
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'Grace Login Use Times:  20' }
+                </call>
+  
+                <script>
+                  remaining_grace_login_count -= 1
+                </script>
+              
+              </sequence>
+            </loop>
 
-            <call function="'manageAccountWithScript'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'subcommand'       : 'get-remaining-grace-login-count' ,
-                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+
+            <!-- The password has expired, no grace logins remaining -->
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Search Bind 4' % msg }
             </call>
-            
-            <script> 
-             returnString = STAXResult[0][1]
-            </script>
-            
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'Remaining Grace Login Count:  1',
-                  'issue'              : '3430' }
-            </call>
-            
-            <message>
-               'Security: Grace Login:  Search Bind 3'
-            </message>
 
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -407,9 +441,9 @@
                   'expectedRC'       : 49 }
             </call>
             
-            <message>
-             '%s Verify remaining grace login with manage-account ' % msg
-            </message>
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify remaining grace login with manage-account' % msg }
+            </call>
 
             <call function="'manageAccountWithScript'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -427,46 +461,10 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Remaining Grace Login Count:  0' }
             </call>
-                       
-            <message>
-               'Security: Grace Login:  Search Bind 4'
-            </message>
 
-            <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
-                  'dsInstancePswd'   : 'trident',
-                  'dsBaseDN'         : 'dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base',
-                  'expectedRC'       : 49 }
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify manage-account get-all' % msg }
             </call>
-            
-            <message>
-             '%s Verify remaining grace login with manage-account ' % msg
-            </message>
-
-            <call function="'manageAccountWithScript'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'subcommand'       : 'get-remaining-grace-login-count' ,
-                  'targetDn'         : 'uid=btalbot,%s' % basedn }
-            </call>
-            
-            <script> 
-             returnString = STAXResult[0][1]
-            </script>
-            
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'Remaining Grace Login Count:  0' }
-            </call>
-            
-            <message>
-             '%s Verify manage-account get-all' % msg
-            </message>
 
             <call function="'manageAccountWithScript'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -511,10 +509,10 @@
         <testcase name="getTestCaseName('Reset Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
-            
-            <message>
-               'Security: Grace Login: Reset Pwd, Search Bind 1'
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Pwd, Search Bind 1' % msg }
+            </call>
 
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -526,25 +524,24 @@
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 19 }
             </call>
-    
-            <message>
-               'Security: Grace Login: Reset Pwd, User resetting password'
-            </message>
 
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Pwd, User resetting password' % msg }
+            </call>
 
-             <call function="'ldapPasswordModifyWithScript'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kwinters,%s' % basedn ,
-                    'dsInstancePswd'         : 'forsook' ,
-                    'dsAuthzID'              : 'dn:uid=kwinters,%s' % basedn ,
-                    'dsNewPassword'          : 'newforsook' ,
-                    'knownIssue'             : '3249' }
-             </call>
-             
-            <message>
-               'Security: Grace Login: Reset Pwd, Admin reset max password age'
-            </message>
+            <call function="'ldapPasswordModifyWithScript'">
+                { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'           : 'uid=kwinters,%s' % basedn ,
+                  'dsInstancePswd'         : 'forsook' ,
+                  'dsAuthzID'              : 'dn:uid=kwinters,%s' % basedn ,
+                  'dsNewPassword'          : 'newforsook' ,
+                  'knownIssue'             : '3249' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Pwd, Admin reset max password age' % msg }
+            </call>
 
             <call function="'modifyPwdPolicy'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
@@ -555,9 +552,9 @@
                     'attributeValue'         : '24 h' }
             </call>
             
-            <message>
-               'Security: Grace Login: Reset Pwd, Search Bind 2'
-            </message>
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Pwd, Search Bind 2' % msg }
+            </call>
 
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -569,9 +566,9 @@
                   'extraParams'      : '-s base' }
             </call>
             
-            <message>
-               'Security: Grace Login: Reset Pwd, Search Bind 3'
-            </message>
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Pwd, Search Bind 3' % msg }
+            </call>
 
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -603,7 +600,7 @@
           #@TestResult          Success if modifyAnAttribute returns 0
         -->
       
-<testcase name="getTestCaseName('Postamble, Admin Reset Pwd Policy Settings')">
+        <testcase name="getTestCaseName('Postamble, Admin Reset Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -616,10 +613,10 @@
              listAttrs.append("ds-cfg-password-expiration-warning-interval:5 d")
              listAttrs.append("ds-cfg-grace-login-count:0")
             </script>
-            
-            <message>
-               'Security: Grace Login: Admin resetting password policy settings'
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin resetting password policy settings.' % msg }
+            </call>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
@@ -629,6 +626,27 @@
                     'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Get Default Password Policy.' % msg }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+               
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
