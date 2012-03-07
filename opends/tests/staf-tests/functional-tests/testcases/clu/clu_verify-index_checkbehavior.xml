@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
   
@@ -243,50 +244,9 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Checked 1000 records and found 0 error' ,
-                  'issue'          : '6926830'
+                  'expectedString' : 'Checked 1000 records and found 0 error'
                   }
-                </call>
-  
-                <script>
-                  msg = 'Number of records referencing more than one entry: 10' 
-                </script>
-                <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : msg
-                  }
-                </call>
-  
-                <script>
-                  msg = 'Number of records that exceed the entry limit: 0' 
-                </script>              
-                <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : msg
-                  }
-                </call>
-  
-                <script>
-                  msg = 'Average number of entries referenced is 1.04/record' 
-                </script>              
-                <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : msg
-                  }
-                </call>
-  
-                <script>
-                  msg = 'Maximum number of entries referenced by any record is 5' 
-                </script>              
-                <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : msg
-                  }
-                </call>          
+                </call>         
   
                 <call function="'testCase_Postamble'"/>
                 

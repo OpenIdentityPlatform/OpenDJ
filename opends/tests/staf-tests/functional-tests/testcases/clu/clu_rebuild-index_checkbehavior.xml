@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
   
@@ -444,28 +445,6 @@
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
-                  }
-                </call>
-
-                <script>
-                  msg1 = 'Statistics for records that have'
-                  msg2 = 'exceeded the entry limit:'
-                </script>
-                <call function="'checktestString'">
-                  {
-                  'returnString'   : returnString ,
-                  'expectedString' : '%s %s' % (msg1, msg2)
-                  }
-                </call>
-
-                <script>
-                  msg1 = 'File dc_com_st.equality has 51 such record\(s\)'
-                  msg2 = 'min=14 max=31 median=20'
-                </script>
-                <call function="'checktestString'">
-                  {
-                  'returnString'   : returnString ,
-                  'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
 

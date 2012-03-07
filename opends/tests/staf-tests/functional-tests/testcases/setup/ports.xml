@@ -443,7 +443,7 @@
           <!-- This testcase is not relevant on Windows or as root user -->
           <script>
             from java.lang import System
-            if is_windows_platform(STAF_REMOTE_HOSTNAME) or System.getProperty("user.name") == "root":
+            if is_windows_platform(STAF_REMOTE_HOSTNAME) or get_system_uid() == "root":
               skip=1
             else:
               skip=0
