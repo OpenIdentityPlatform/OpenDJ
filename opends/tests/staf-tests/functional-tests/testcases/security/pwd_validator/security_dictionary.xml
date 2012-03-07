@@ -167,7 +167,7 @@
           #@TestResult       Success if the 2 tests are PASS
         -->
         
- <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password')">
+        <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -220,7 +220,7 @@
           #@TestResult       Success if the 3 tests are PASS
         -->
         
-<testcase name="getTestCaseName('Dictionary: Disable Reverse Password')">
+        <testcase name="getTestCaseName('Dictionary: Disable Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -244,7 +244,7 @@
           </sequence>
         </testcase>
 
-<testcase name="getTestCaseName('Dictionary: Using Reverse Password 2')">
+        <testcase name="getTestCaseName('Dictionary: Using Reverse Password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
