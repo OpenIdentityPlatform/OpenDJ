@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -44,11 +44,7 @@ import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -190,21 +186,20 @@ public class ReplicationServerHandler extends ServerHandler
       // Reject bad responses
       if (!(msg instanceof ReplServerStartMsg))
       {
-        Message message;
         if (msg instanceof StopMsg)
         {
-          // Remote replication server is probably shutting down.
-          message = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
-              String.valueOf(getReplicationServerId()),
-              session.getReadableRemoteAddress());
+          // Remote replication server is probably shutting down or simultaneous
+          // cross-connect detected.
+          abortStart(null);
+          return;
         }
         else
         {
-          message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
+          Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
               .getClass().getCanonicalName(), "ReplServerStartMsg");
+          abortStart(message);
+          return;
         }
-        abortStart(message);
-        return;
       }
 
       // Process hello from remote
@@ -213,6 +208,7 @@ public class ReplicationServerHandler extends ServerHandler
       // Duplicate server ?
       if (!replicationServerDomain.checkForDuplicateRS(this))
       {
+        // Simultaneous cross connect.
         abortStart(null);
         return;
       }
@@ -246,6 +242,12 @@ public class ReplicationServerHandler extends ServerHandler
 
         // wait and process Topo from remote RS
         TopologyMsg inTopoMsg = waitAndProcessTopoFromRemoteRS();
+        if (inTopoMsg == null)
+        {
+          // Simultaneous cross connect.
+          abortStart(null);
+          return;
+        }
 
         logTopoHandshakeSNDandRCV(outTopoMsg, inTopoMsg);
 
@@ -269,13 +271,32 @@ public class ReplicationServerHandler extends ServerHandler
 
       super.finalizeStart();
     }
-    catch(IOException ioe)
+    catch (IOException e)
     {
-      // FIXME receive
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+          String.valueOf(getReplicationServerId()),
+          session.getReadableRemoteAddress());
+      abortStart(errMessage);
     }
-    catch(Exception e)
+    catch (DirectoryException e)
     {
-      // FIXME more detailed exceptions
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      abortStart(e.getMessageObject());
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      abortStart(Message.raw(e.getLocalizedMessage()));
     }
     finally
     {
@@ -332,6 +353,12 @@ public class ReplicationServerHandler extends ServerHandler
 
         // wait and process Topo from remote RS
         inTopoMsg = waitAndProcessTopoFromRemoteRS();
+        if (inTopoMsg == null)
+        {
+          // Simultaneous cross connect.
+          abortStart(null);
+          return;
+        }
 
         // send our own TopologyMsg to remote RS
         TopologyMsg outTopoMsg = sendTopoToRemoteRS();
@@ -447,21 +474,33 @@ public class ReplicationServerHandler extends ServerHandler
       logError(message);
 
       super.finalizeStart();
-
     }
-    catch(IOException ioe) {
-      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
-        Integer.toString(inReplServerStartMsg.getServerId()),
-        Integer.toString(replicationServerDomain.getReplicationServer().
-        getServerId()));
+    catch (IOException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(Integer
+          .toString(inReplServerStartMsg.getServerId()), Integer
+          .toString(replicationServerDomain.getReplicationServer()
+              .getServerId()));
       abortStart(errMessage);
     }
-    catch(DirectoryException de)
+    catch (DirectoryException e)
     {
-      abortStart(de.getMessageObject());
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      abortStart(e.getMessageObject());
     }
-    catch(Exception e)
+    catch (Exception e)
     {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
       abortStart(Message.raw(e.getLocalizedMessage()));
     }
     finally
@@ -498,12 +537,11 @@ public class ReplicationServerHandler extends ServerHandler
 
   /**
    * Wait receiving the TopologyMsg from the remote RS and process it.
-   * @return the topologyMsg received.
+   * @return the topologyMsg received or {@code null} if stop was received.
    * @throws DirectoryException
-   * @throws IOException
    */
   private TopologyMsg waitAndProcessTopoFromRemoteRS()
-  throws DirectoryException, IOException
+      throws DirectoryException
   {
     ReplicationMsg msg = null;
     try
@@ -518,21 +556,18 @@ public class ReplicationServerHandler extends ServerHandler
 
     if (!(msg instanceof TopologyMsg))
     {
-      Message message;
       if (msg instanceof StopMsg)
       {
-        // Remote replication server is probably shutting down.
-        message = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
-            String.valueOf(getReplicationServerId()),
-            session.getReadableRemoteAddress());
+        // Remote replication server is probably shutting down, or cross
+        // connection attempt.
+        return null;
       }
       else
       {
-        message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
-            msg.getClass().getCanonicalName(),
-            "TopologyMsg");
+        Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
+            .getClass().getCanonicalName(), "TopologyMsg");
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
-      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     // Remote RS sent his topo msg
