@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!--- Test Case information
+    #@TestMarker          TODO
+    #@TestName            Get Max Password Age Property
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="pwp_max_pwd_age_001" scope="local">
+    <testcase name="getTestCaseName('PWP Get Max Password Age Property')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Age Property.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-age : 0 s'
+               
+              }
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Age Attribute.' }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'ds-cfg-max-password-age:0 seconds',
+                'entryToBeCompared'  : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          TODO
+    #@TestName            Admin Change Max Password Age
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="pwp_max_pwd_age_002" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Change Max Password Age')">                     
+      <sequence> 
+        <try>
+          <sequence>
+      
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Set Max Password Age.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set max-password-age:10d')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Age Property.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-age : 1 w 3 d'
+               
+              }
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          TODO
+    #@TestName            Admin Reset Max Password Age
+    #@TestIssue           none
+    #@TestPurpose         TODO.
+    #@TestPreamble        none
+    #@TestStep            TODO.
+    #@TestPostamble       none
+    #@TestResult          TODO.
+  -->
+  <function name="pwp_max_pwd_age_003" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Reset Max Password Age')">                     
+      <sequence> 
+        <try>
+          <sequence>
+      
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Resetting Max Password Age.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--reset max-password-age')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Age Property.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-age : 0 s'
+               
+              }
+            </call> 
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

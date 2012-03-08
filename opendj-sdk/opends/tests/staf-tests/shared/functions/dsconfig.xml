@@ -193,12 +193,12 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       <call function="'runCommand'">
-        { 'name'      : 'Modify dsconfig object',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
+        { 'name'            : 'Modify dsconfig object',
+          'location'        : location,
+          'command'         : STAFCmd,
+          'arguments'       : STAFCmdParams,
+          'expectedRC'      : expectedRC,
+          'knownIssue'      : knownIssue
         }
       </call>
       
@@ -475,6 +475,13 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
 
+      <function-arg-def name="expectedString" type="optional" default="None">
+        <function-arg-description>
+          Expected return string value.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -504,12 +511,13 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       <call function="'runCommand'">
-        { 'name'      : 'execute dsconfig subcommand',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
+        { 'name'            : 'execute dsconfig subcommand',
+          'location'        : location,
+          'command'         : STAFCmd,
+          'arguments'       : STAFCmdParams,
+          'expectedRC'      : expectedRC,
+          'expectedString'  : expectedString,
+          'knownIssue'      : knownIssue
         }
       </call>
       <return>

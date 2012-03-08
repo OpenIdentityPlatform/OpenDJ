@@ -1,0 +1,1515 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+
+  <!--- Test Case information
+    #@TestMarker         Force Password Change
+    #@TestName           Force Change On Add
+    #@TestIssue          none
+    #@TestPurpose        Force Change On Add
+    #@TestPreamble       none
+    #@TestStep           Step 1. Get Force Change On Add
+    #@TestStep           Step 2. Get Force Change on Add Attribute
+    #@TestStep           Step 3. Set Force Change On Add to True
+    #@TestPostamble      none
+    #@TestResult         Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_001" scope="local">
+    <testcase name="getTestCaseName('PWP Enable Force Change On Add')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change On Add.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-add"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-add : false'
+               
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change on Add Attribute.' }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-add:false',
+                'entryToBeCompared'   : basepwp }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Set Force Change On Add to True.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set force-change-on-add:true')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change On Add.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-add"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-add : true'
+               
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker        Force Password Change
+    #@TestName          Add Single New User
+    #@TestIssue         none
+    #@TestPurpose       Add Single New User
+    #@TestPreamble      none
+    #@TestStep          add_entry1.ldif
+    #@TestStep          User Searching With Password SearchObject RC 19
+    #@TestPostamble     none
+    #@TestResult        Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_002" scope="local">
+    <testcase name="getTestCaseName('PWP Add Single New User')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Add Single New User.' }
+            </call>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/password_policy/add_entry1.ldif' \
+                                     % remote.data }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mcat,%s' % basedn ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 19 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker        Force Password Change
+    #@TestName          Added User changes password
+    #@TestIssue         none
+    #@TestPurpose       Added User changes password
+    #@TestPreamble      none
+    #@TestStep          User Change Password
+    #@TestStep          User Searching With Password SearchObject RC 0
+    #@TestPostamble     none
+    #@TestResult        Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_003" scope="local">
+    <testcase name="getTestCaseName('PWP Added User Change Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Added User Change Password.' }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mcat,%s' % basedn ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'dsAuthzID'              : 'dn:uid=mcat,%s' % basedn ,
+                    'dsNewPassword'          : 'newpizza' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mcat,%s' % basedn ,
+                'dsInstancePswd'   : 'newpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker        Force Password Change
+    #@TestName          Admin Disable Force Change On Add
+    #@TestIssue         none
+    #@TestPurpose       Admin Disable Force Change On Add
+    #@TestPreamble      none
+    #@TestStep          Step 1. Set Force Change On Add to False.
+    #@TestStep          Step 2. Get Force Change On Add
+    #@TestStep          Step 3. Adding Single New User add_entry2.ldif
+    #@TestStep          Step 4. User Searching With Password RC 0
+    #@TestPostamble     none
+    #@TestResult        Success if the 3 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_004" scope="local">
+    <testcase name="getTestCaseName('PWP Disable Force Change On Add')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Set Force Change On Add to True.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set force-change-on-add:false')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change On Add.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-add"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-add : false'
+               
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Adding Single New User.' }
+            </call>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/password_policy/add_entry2.ldif' \
+                                     % remote.data }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Force Change On Reset
+    #@TestIssue        none
+    #@TestPurpose      Force Change On Reset
+    #@TestPreamble     none
+    #@TestStep         Step 1. Get Force Change On Reset
+    #@TestStep         Step 2. Admin Enabling Force Change On Reset
+                       Change ds-cfg-force-change-on-reset to true
+    #@TestPostamble    none
+    #@TestResult       Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_005" scope="local">
+    <testcase name="getTestCaseName('PWP Force Change On Reset')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change On Reset.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-reset"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-reset : false'
+               
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change on Add Attribute.' }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-reset:false',
+                'entryToBeCompared'   : basepwp }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Set Force Change On Add to True.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set force-change-on-reset:true')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change On Reset.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-reset"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-reset : true'
+               
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Reset User Password
+    #@TestIssue        none
+    #@TestPurpose      Admin Reset User Password
+    #@TestPreamble     none
+    #@TestStep         Admin Resetting User Password
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_006" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Reset User Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Reset User Password.' }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'adminpizza' }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Search With Old Password
+    #@TestIssue        none
+    #@TestPurpose      User Search With Old Password
+    #@TestPreamble     none
+    #@TestStep         User Search With Old Password : SearchObject returns 49
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_007" scope="local">
+    <testcase name="getTestCaseName('PWP User Searching With Old Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Old Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'pizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Add With Old Password
+    #@TestIssue        none
+    #@TestPurpose      User Add With Old Password
+    #@TestPreamble     none
+    #@TestStep         User Adding Attr With Old Password RC 49
+    #@TestStep         Checking User-added Attribute Exists RC 16
+    #@TestPostamble    none
+    #@TestResult       Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_008" scope="local">
+    <testcase name="getTestCaseName('PWP User Adding Attr With Old Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Adding Attr With Old Password.' }
+            </call>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,%s' % basedn ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,%s' % basedn ,
+                    'attributeName'          : 'pager' ,
+                    'newAttributeValue'      : '+1 999 555 1212' ,
+                    'changetype'             : 'add'  ,
+                    'expectedRC'             : 49 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Checking For Existence of User-added Attribute.' }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'pager:+1 999 555-1212',
+                'entryToBeCompared'   : 'uid=mdog,%s' % basedn ,
+                'expectedRC'          : 16 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Delete With Old Password
+    #@TestIssue        none
+    #@TestPurpose      User Delete With Old Password
+    #@TestPreamble     none
+    #@TestStep         User Deleting Attr With Old Password RC 49
+    #@TestStep         Checking For Existence of User-deleted Attribute
+    #@TestPostamble    none
+    #@TestResult       Success if the 2 step are PASS
+  -->
+  <function name="pwp_force_pwd_change_009" scope="local">
+    <testcase name="getTestCaseName('PWP User Deleting Attr With Old Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Deleting Attr With Old Password.' }
+            </call>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,%s' % basedn ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,%s' % basedn ,
+                    'attributeName'          : 'roomnumber' ,
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 49  }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Checking For Existence of User-deleted Attribute.' }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'roomnumber:4612',
+                'entryToBeCompared'   : 'uid=mdog,%s' % basedn , }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Old Password - Compare
+    #@TestIssue        none
+    #@TestPurpose      Old Password - Compare
+    #@TestPreamble     none
+    #@TestStep         Checking For Existence of User Attribute RC 49
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_010" scope="local">
+    <testcase name="getTestCaseName('PWP Old Password - Compare')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Checking For Existence of User Attribute.' }
+            </call>     
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'      : 'pizza' ,
+                'attrToBeCompared'    : 'l:Sunnyvale',
+                'entryToBeCompared'   : 'uid=mdog,%s' % basedn ,
+                'expectedRC'          : 49 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Search With Assigned Password
+    #@TestIssue        none
+    #@TestPurpose      User Search With Assigned Password
+    #@TestPreamble     none
+    #@TestStep         User Searching With Assigned Password RC 19
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_011" scope="local">
+    <testcase name="getTestCaseName('PWP Search With Assigned Password')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Assigned Password.' }
+            </call>        
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'adminpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 19 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Change Password
+    #@TestIssue        none
+    #@TestPurpose      User Change Password
+    #@TestPreamble     none
+    #@TestStep         User Changing Password after reset
+    #@TestStep         User Searching With Assigned Password RC 49
+    #@TestStep         User Searching With New Password SearchObject RC 0
+    #@TestPostamble    none
+    #@TestResult       Success if the 3 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_012" scope="local">
+    <testcase name="getTestCaseName('PWP User Change Password After Reset')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Changing Password.' }
+            </call>        
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,%s' % basedn ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'newpizza' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Assigned Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'adminpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With New Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'newpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Enable Maximum Reset Age - Long Reset Time
+    #@TestIssue        none
+    #@TestPurpose      Admin Enable Maximum Reset Age - Long Reset Time
+    #@TestPreamble     none
+    #@TestStep         Admin Enabling Maximum Reset Age - Long Reset Time
+                       set max-password-reset-age to 30 m
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_013" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Enable Max Reset Age Long')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Enabling Maximum Reset Age Long.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set max-password-reset-age:30m')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Reset Age.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-reset-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-reset-age : 30 m'
+               
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Change User Password - Long Reset Time
+    #@TestIssue        none
+    #@TestPurpose      Admin Change User Password - Long Reset Time
+    #@TestPreamble     none
+    #@TestStep         Admin Changing User Password
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_014" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Reset User Password - Long Reset Time')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Changing User Password.' }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'adminlongpizza' }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+        
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Change Password - Long Reset Time
+    #@TestIssue        none
+    #@TestPurpose      User Changing Password - Long Reset Time
+    #@TestPreamble     none
+    #@TestStep         User Changing Password - Long Reset Time
+    #@TestStep         User Searching With Password RC 0
+    #@TestPostamble    none
+    #@TestResult       Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_015" scope="local">
+    <testcase name="getTestCaseName('PWP User Change Password - Long Reset Time')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Changing Password.' }
+            </call>        
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,%s' % basedn ,
+                    'dsInstancePswd'         : 'adminlongpizza' ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'newlongpizza' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'newlongpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Enable Maxmimum Reset Age - Short Reset Time
+    #@TestIssue        none
+    #@TestPurpose      Admin Enable Maxmimum Reset Age - Short Reset Time
+    #@TestPreamble     none
+    #@TestStep         Admin Enable Maxmimum Reset Age Short Reset Time
+                       set max-password-reset-age to 8 s
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_016" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Enable Max Reset Age Short')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Enabling Maximum Reset Age Short.' }
+            </call>        
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set max-password-reset-age:8s')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Reset Age.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-reset-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-reset-age : 8 s'
+               
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Change User Password - Short Reset Time
+    #@TestIssue        none
+    #@TestPurpose      Admin Changing User Password -Short Reset Time
+    #@TestPreamble     none
+    #@TestStep         Admin Changing User Password
+    #@TestPostamble    none
+    #@TestResult       Success if the step is PASS
+  -->
+  <function name="pwp_force_pwd_change_017" scope="local">
+    <testcase name="getTestCaseName('PWP Admin Reset User Password - Short Reset Time')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Changing User Password.' }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'adminshortpizza' }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         User Change Password -Short Reset Time
+    #@TestIssue        none
+    #@TestPurpose      User Change Password -Short Reset Time
+    #@TestPreamble     none
+    #@TestStep         User Change Password sleep 12000
+    #@TestStep         User Changing Password ldapPasswordModifyWithScript
+                        returns 49
+    #@TestStep         User Searching With Password SearchObject return 49
+    #@TestPostamble    none
+    #@TestResult       Success if the 3 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_018" scope="local">
+    <testcase name="getTestCaseName('PWP User Change Password - Short Reset Time')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Change Password - Short Reset Time - Sleeping.' }
+            </call>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '12000' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Changing Password.' }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,%s' % basedn ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'dsAuthzID'              : 'dn:uid=mdog,%s' % basedn ,
+                    'dsNewPassword'          : 'newshortpizza' ,
+                    'expectedRC'             : 49  }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: User Searching With Password.' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,%s' % basedn ,
+                'dsInstancePswd'   : 'newshortpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker       Force Password Change
+    #@TestName         Admin Disable Force Change On Reset
+    #@TestIssue        none
+    #@TestPurpose      Admin Disable Force Change On Reset
+    #@TestPreamble     none
+    #@TestStep         Step 1. Admin Disabling Max Password Age
+                       set max-password-reset-age to 0 s
+    #@TestStep         Step 2. Admin Disabling Force Password On Reset
+                       set force-change-on-reset to false
+    #@TestPostamble    none
+    #@TestResult       Success if the 2 steps are PASS
+  -->
+  <function name="pwp_force_pwd_change_019" scope="local">
+    <testcase name="getTestCaseName('PWP Disable Force Change On Reset')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Disabling Max Password Reset Age.' }
+            </call>        
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set max-password-reset-age:0s')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Max Password Reset Age.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "max-password-reset-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'max-password-reset-age : 0 s'
+               
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Admin Disabling Force Change On Reset.' }
+            </call>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-reset' ,
+                    'attributeValue'         : 'false' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set force-change-on-reset:false')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'PWP: Get Force Change on Reset.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "force-change-on-reset"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'force-change-on-reset : false'
+               
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

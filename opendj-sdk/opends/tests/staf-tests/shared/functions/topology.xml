@@ -2109,13 +2109,19 @@
         </function-arg-description>
         <function-arg-property name="type" value="structure"/>
       </function-arg-def>
+     <function-arg-def name="friendlyName" type="optional" default="'Common'">
+        <function-arg-description>
+          Friendly name for the common setup launcher
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
 
       <block name="'common-setup'">
 
-        <testcase name="getTestCaseName('Common Setup')">
+        <testcase name="getTestCaseName('%s Setup' % friendlyName)">
 
           <try>      
         
@@ -2334,12 +2340,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
      </function-arg-def>
+     <function-arg-def name="friendlyName" type="optional" default="'Common'">
+        <function-arg-description>
+          Friendly name for the common cleanup launcher
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
    </function-map-args>
     <sequence>
 
       <block name="'common-cleanup'">
 
-        <testcase name="getTestCaseName('Common Cleanup')">
+        <testcase name="getTestCaseName('%s Cleanup' % friendlyName)">
 
           <try>
           
