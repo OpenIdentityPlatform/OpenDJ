@@ -154,7 +154,11 @@ ds-rlim-size-limit: 0</screen>
   eventually, you can configure OpenDJ to drop them by setting the
   global configuration property, <literal>idle-time-limit</literal>. By
   default, no idle time limit is set.</para>
-  
+
+  <note>
+   <para>OpenDJ does not enforce idle timeout for persistent searches.</para>
+  </note>
+
   <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
