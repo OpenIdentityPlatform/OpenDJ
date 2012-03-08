@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+  <defaultcall function="main_pwp_force_pwd_change"/>
+  <function name="main_pwp_force_pwd_change" scope="local">
+    <sequence>
+      <block name="'main_pwp_force_pwd_change'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group'] = 'password_policy'        
+              CurrentTestPath['suite'] = 'force_pwd_change'
+              
+              _group=CurrentTestPath['group']
+              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _label = 'PWP Force Pwd Change'
+            </script>
+
+            <!--- Test Suite information
+            #@TestSuiteName       Password policy force_pwd_change test suite
+            #@TestSuitePurpose    Verify password policy force_pwd_change operations
+            #@TestSuiteID         force_pwd_change
+            #@TestSuiteGroup      password_policy
+            #@TestGroup           password_policy
+            #@TestScript          password_policy.xml
+            #@TestHTMLLink        http://www.forgerock.org/
+            -->          
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              <sequence> 
+
+                <call function="'common_setup'">
+                  {
+                    'quickStart'    : False ,
+                    'startServer'   : True  ,
+                    'loadData'      : True  ,
+                    'ldifFile'      : '%s/password_policy/pwp_startup.ldif' % remote.data ,
+                    'stopServer'    : False ,
+                    'friendlyName'  : _label
+                  }
+                </call>
+
+                <!-- List of Import of Test Functions -->
+                <script>
+                  importList=[]
+                  importList.append('force_pwd_change/pwp_force_pwd_change_tests')
+                  importList.append('force_pwd_change/pwp_force_pwd_change_all_users_tests')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="_import" in="importList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (_groupdir,_import)"/>
+                </iterate>                                                                       
+
+                <!-- Specific to force_pwd_change password policy tests -->
+                <script>
+                  basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+                  basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+                  
+                  msg1 = 'get-password-changed-by-required-time'
+                  msg2 = 'get-seconds-until-required-change-time'
+                </script>
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('pwp_force_pwd_change_001')
+                  testsList.append('pwp_force_pwd_change_002')
+                  testsList.append('pwp_force_pwd_change_003')
+                  testsList.append('pwp_force_pwd_change_004')
+                  testsList.append('pwp_force_pwd_change_005')
+                  testsList.append('pwp_force_pwd_change_006')
+                  testsList.append('pwp_force_pwd_change_007')
+                  testsList.append('pwp_force_pwd_change_008')
+                  testsList.append('pwp_force_pwd_change_009')
+                  testsList.append('pwp_force_pwd_change_010')
+                  testsList.append('pwp_force_pwd_change_011')
+                  testsList.append('pwp_force_pwd_change_012')
+                  testsList.append('pwp_force_pwd_change_013')
+                  testsList.append('pwp_force_pwd_change_014')
+                  testsList.append('pwp_force_pwd_change_015')
+                  testsList.append('pwp_force_pwd_change_016')
+                  testsList.append('pwp_force_pwd_change_017')
+                  testsList.append('pwp_force_pwd_change_018')
+                  testsList.append('pwp_force_pwd_change_019')
+                  testsList.append('pwp_force_pwd_change_020')
+                  testsList.append('pwp_force_pwd_change_021')
+                  testsList.append('pwp_force_pwd_change_022')
+                  testsList.append('pwp_force_pwd_change_023')
+                  testsList.append('pwp_force_pwd_change_024')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
+                                
+              </sequence>
+            <catch exception="'STAFException.TestSuite.SetupException'">
+              <sequence>
+                <message log="1" level="'fatal'">
+                  'Setup of test suite failed.'
+                </message>
+                <rethrow/>
+              </sequence>
+            </catch>
+
+            <finally>
+              <message>'Test Cases Completed.'</message>
+            </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Password Policy Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'">
+                  { 'friendlyName' :_label }
+                </call>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+      </block>
+    </sequence>
+  </function>
+</stax>

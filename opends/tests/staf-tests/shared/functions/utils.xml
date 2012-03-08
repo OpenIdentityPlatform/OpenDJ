@@ -1937,6 +1937,11 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedString" type="optional" default="None">
+        <function-arg-description>
+          Expected return string value.
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -2064,6 +2069,13 @@
                 'expected'   : expectedRC,
                 'issue'      : knownIssue
               }
+            </call>
+          </if>
+          
+          <if expr="expectedString">
+            <call function="'checktestString'">
+                { 'returnString'    : cmdOutput ,
+                  'expectedString'  : expectedString }
             </call>
           </if>
         </sequence>
