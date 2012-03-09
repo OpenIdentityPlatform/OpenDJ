@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -209,7 +209,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_BASEDN.toLowerCase(), OPTION_SHORT_BASEDN,
         OPTION_LONG_BASEDN, false, true, true,
         INFO_BASEDN_PLACEHOLDER.get(),
-        "dc=example,dc=com", OPTION_LONG_BASEDN,
+        null, OPTION_LONG_BASEDN,
         INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
     addArgument(baseDNArg);
 
