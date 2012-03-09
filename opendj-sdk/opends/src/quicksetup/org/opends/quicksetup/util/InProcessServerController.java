@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
@@ -571,8 +572,8 @@ public class InProcessServerController {
               TextDebugLogPublisher.getStartupTextDebugPublisher(debugWriter);
       DebugLogger.addDebugLogPublisher(startupDebugPublisher);
 
-      startupErrorPublisher =
-              TextErrorLogPublisher.getStartupTextErrorPublisher(errorWriter);
+      startupErrorPublisher = TextErrorLogPublisher
+          .getServerStartupTextErrorPublisher(errorWriter);
       ErrorLogger.addErrorLogPublisher(startupErrorPublisher);
 
       startupAccessPublisher =
@@ -584,12 +585,6 @@ public class InProcessServerController {
       LOG.log(Level.INFO, "Error installing test log publishers: " +
               e.toString());
     }
-  }
-
-  static private void unregisterListenersForOutput() {
-    DebugLogger.removeDebugLogPublisher(startupDebugPublisher);
-    ErrorLogger.removeErrorLogPublisher(startupErrorPublisher);
-    AccessLogger.removeAccessLogPublisher(startupAccessPublisher);
   }
 
   /**

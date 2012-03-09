@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -539,7 +540,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
-  public Class getTaskClass() {
+  public Class<?> getTaskClass() {
     return BackupTask.class;
   }
 
@@ -714,10 +715,10 @@ public class BackUpDB extends TaskTool
 
       try
       {
-        ErrorLogPublisher errorLogPublisher =
-            TextErrorLogPublisher.getStartupTextErrorPublisher(
+        ErrorLogPublisher<?> errorLogPublisher =
+            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
-        DebugLogPublisher debugLogPublisher =
+        DebugLogPublisher<?> debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
