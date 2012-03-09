@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -865,7 +865,7 @@ public class ImportLDIF extends TaskTool {
         try
         {
           ErrorLogPublisher<?> errorLogPublisher =
-              TextErrorLogPublisher.getStartupTextErrorPublisher(
+              TextErrorLogPublisher.getToolStartupTextErrorPublisher(
                   new TextWriter.STREAM(out));
           ErrorLogger.addErrorLogPublisher(errorLogPublisher);
         }

@@ -62,27 +62,52 @@ public class TextErrorLogPublisher
 
   private FileBasedErrorLogPublisherCfg currentConfig;
 
+
+
   /**
-   * Returns an instance of the text error log publisher that will print
-   * all messages to the provided writer. This is used to print the messages
-   * to the console when the server starts up.
+   * Returns a new text error log publisher which will print all messages to the
+   * provided writer. This publisher should be used by tools.
    *
-   * @param writer The text writer where the message will be written to.
-   * @return The instance of the text error log publisher that will print
-   * all messages to standard out.
+   * @param writer
+   *          The text writer where the message will be written to.
+   * @return A new text error log publisher which will print all messages to the
+   *         provided writer.
    */
-  public static TextErrorLogPublisher
-  getStartupTextErrorPublisher(TextWriter writer)
+  public static TextErrorLogPublisher getToolStartupTextErrorPublisher(
+      TextWriter writer)
+  {
+    TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
+    startupPublisher.writer = writer;
+    startupPublisher.defaultSeverities.addAll(Arrays.asList(Severity.values()));
+    return startupPublisher;
+  }
+
+
+
+  /**
+   * Returns a new text error log publisher which will print only notices,
+   * severe warnings and errors, and fatal errors messages to the provided
+   * writer. This less verbose publisher should be used by the directory server
+   * during startup.
+   *
+   * @param writer
+   *          The text writer where the message will be written to.
+   * @return A new text error log publisher which will print only notices,
+   *         severe warnings and errors, and fatal errors messages to the
+   *         provided writer.
+   */
+  public static TextErrorLogPublisher getServerStartupTextErrorPublisher(
+      TextWriter writer)
   {
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
     startupPublisher.defaultSeverities.addAll(Arrays.asList(
-        Severity.FATAL_ERROR,
-        Severity.SEVERE_ERROR,
-        Severity.SEVERE_WARNING,
+        Severity.FATAL_ERROR, Severity.SEVERE_ERROR, Severity.SEVERE_WARNING,
         Severity.NOTICE));
     return startupPublisher;
   }
+
+
 
   /**
    * {@inheritDoc}

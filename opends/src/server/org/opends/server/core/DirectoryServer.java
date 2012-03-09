@@ -9459,7 +9459,7 @@ public final class DirectoryServer
     // Install the default loggers so the startup messages
     // will be printed.
     TextErrorLogPublisher startupErrorLogPublisher =
-        TextErrorLogPublisher.getStartupTextErrorPublisher(
+        TextErrorLogPublisher.getServerStartupTextErrorPublisher(
             new TextWriter.STDOUT());
     ErrorLogger.addErrorLogPublisher(startupErrorLogPublisher);
 

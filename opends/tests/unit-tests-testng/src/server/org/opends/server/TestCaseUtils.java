@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server;
 
@@ -525,8 +525,9 @@ public final class TestCaseUtils {
           TextAccessLogPublisher.getStartupTextAccessPublisher(
               ACCESS_TEXT_WRITER, false));
 
+      // Use more verbose tool logger.
       ErrorLogger.addErrorLogPublisher(
-         TextErrorLogPublisher.getStartupTextErrorPublisher(
+         TextErrorLogPublisher.getToolStartupTextErrorPublisher(
               ERROR_TEXT_WRITER));
 
       DebugLogger.addDebugLogPublisher(

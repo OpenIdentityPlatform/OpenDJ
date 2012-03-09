@@ -430,7 +430,7 @@ public class RebuildIndex extends TaskTool
       try
       {
         ErrorLogPublisher<?> errorLogPublisher =
-            TextErrorLogPublisher.getStartupTextErrorPublisher(
+            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
         DebugLogPublisher<?> debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
