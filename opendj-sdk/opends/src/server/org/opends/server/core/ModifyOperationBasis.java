@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -584,15 +585,14 @@ public class ModifyOperationBasis
     {
       // Invoke the post response plugins that have been registered by
       // the workflow elements
-      List localOperations =
-        (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
+      @SuppressWarnings("unchecked")
+      List<LocalBackendModifyOperation> localOperations =
+          (List<LocalBackendModifyOperation>) getAttachment(
+              Operation.LOCALBACKENDOPERATIONS);
       if (localOperations != null)
       {
-        for (Object localOp : localOperations)
+        for (LocalBackendModifyOperation localOperation : localOperations)
         {
-          LocalBackendModifyOperation localOperation =
-            (LocalBackendModifyOperation)localOp;
           pluginConfigManager.invokePostResponseModifyPlugins(localOperation);
         }
       }
