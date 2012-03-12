@@ -1384,7 +1384,7 @@
             { 'returncode' : 1 ,
               'expected'   : 0 ,
               'result'     : 'Encrypted LDIF export is not implemented',
-              'issue'      : '839'
+              'issue'      : 'OPENDJ-448'
             }
           </call>
 
@@ -1449,7 +1449,7 @@
             { 'returncode' : 1 ,
               'expected'   : 0 ,
               'result'     : 'Signed Hash import is not implemented',
-              'issue'      : '839'
+              'issue'      : 'OPENDJ-448'
             }
           </call>
   
