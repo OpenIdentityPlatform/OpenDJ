@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-install-cli'
@@ -168,14 +168,19 @@ Server? [cn=Directory Manager]:
 Please provide the password to use for the initial root user:
 Please re-enter the password for confirmation:
 
+Provide the fully-qualified directory server host name that will be used when
+generating self-signed certificates for LDAP SSL/StartTLS, the administration
+connector, and replication [opendj.example.com]:
+
 On which port would you like the Directory Server to accept connections from
-LDAP clients? [1389]:
+LDAP clients? [1389]: 
 
 On which port would you like the Administration Connector to accept
-connections? [4444]:
-Do you want to create base DNs in the server? (yes / no) [yes]:
+connections? [4444]: 
 
-Provide the base DN for the directory data: [dc=example,dc=com]:
+Do you want to create base DNs in the server? (yes / no) [yes]: 
+
+Provide the base DN for the directory data: dc=example,dc=com
 Options for populating the database:
 
     1)  Only create the base entry
@@ -217,7 +222,7 @@ What would you like to do?
 
 Enter choice [1]:
 
-See /var/....log for a detailed log of this operation.
+See /var/.../opendj-setup...log for a detailed log of this operation.
 
 Configuring Directory Server ..... Done.
 Importing LDIF file /path/to/Example.ldif ........... Done.
@@ -248,6 +253,18 @@ To see basic server configuration status and configuration you can launch \
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Fully-qualified directory server host name</term>
+      <listitem>
+        <para>OpenDJ uses fully-qualified host name in self-signed certificates
+        and for identification when you use replication. If you are installing
+        a single server temporarily for evaluation, and are not concerned about
+        replication and whether self-signed certificates can be trusted, then
+        you can use an FQDN such as <literal>localhost.localdomain</literal>.
+        Otherwise, use an FQDN that other hosts can resolve to reach your
+        server.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>LDAP port</term>
       <listitem>
         <para>The default for LDAP is 389. If you are working as a user
@@ -264,7 +281,7 @@ To see basic server configuration status and configuration you can launch \
     <varlistentry>
       <term>Create base DNs</term>
       <listitem>
-        <para>You need a base Distinguished Name, such as the default
+        <para>You need a base Distinguished Name, such as
         <literal>dc=example,dc=com</literal>, to add directory data. If you
         already have LDIF, the base DN you want is the distinguished name
         suffix common to all entries in your LDIF. You can provide more than
