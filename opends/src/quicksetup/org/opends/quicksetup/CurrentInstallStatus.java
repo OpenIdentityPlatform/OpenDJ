@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -87,10 +88,11 @@ public class CurrentInstallStatus
         msgs.add(INFO_INSTALLSTATUS_DBFILEEXIST.get());
       }
 
-      if (isConfigFileModified())
+      if (archivedConfigsExist())
       {
         msgs.add(INFO_INSTALLSTATUS_CONFIGFILEMODIFIED.get());
       }
+
       canOverwriteCurrentInstall = (msgs.size() == 1) && dbFileExists;
       isInstalled = msgs.size() > 0;
       if (canOverwriteCurrentInstall)
@@ -182,43 +184,34 @@ public class CurrentInstallStatus
     return port;
   }
 
+
+
   /**
    * Indicates whether there are database files under this installation.
    *
    * @return <CODE>true</CODE> if there are database files, or
-   * <CODE>false</CODE> if not.
+   *         <CODE>false</CODE> if not.
    */
   private boolean dbFilesExist()
   {
-    boolean dbFilesExist = false;
-
     File dbDir = Installation.getLocal().getDatabasesDirectory();
     File[] children = dbDir.listFiles();
-    if ((children != null) && (children.length > 0))
-    {
-      dbFilesExist = true;
-    }
-    return dbFilesExist;
+    return ((children != null) && (children.length > 0));
   }
 
+
+
   /**
-   * Indicates whether the config.ldif file has been modified (compared to what
-   * we had in the zip file). This is used to know if we have configured the
-   * current binaries or not.
+   * Indicates whether there are archived config files under this installation.
    *
-   * @return <CODE>true</CODE> if the config.ldif file has been modified, or
+   * @return <CODE>true</CODE> if there are archived config files, or
    *         <CODE>false</CODE> if not.
    */
-  private boolean isConfigFileModified()
+  private boolean archivedConfigsExist()
   {
-    boolean mod = false;
-    try {
-      mod = Installation.getLocal().getCurrentConfiguration()
-              .hasBeenModified();
-    } catch (IOException ioe) {
-      LOG.log(Level.INFO, "failed to determine if config modified", ioe);
-    }
-    return mod;
+    File archDir = Installation.getLocal().getArchivedConfigsDirectory();
+    File[] children = archDir.listFiles();
+    return ((children != null) && (children.length > 0));
   }
 
 }

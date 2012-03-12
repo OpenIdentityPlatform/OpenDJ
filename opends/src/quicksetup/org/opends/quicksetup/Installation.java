@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -112,6 +112,12 @@ public final class Installation {
    * The relative path where the config files are.
    */
   public static final String CONFIG_PATH_RELATIVE = "config";
+
+  /**
+   * The relative path where the archived config files are.
+   */
+  public static final String ARCHIVED_CONFIG_PATH_RELATIVE =
+      CONFIG_PATH_RELATIVE + File.separator + "archived-configs";
 
   /**
    * The relative path where the config files are.
@@ -467,7 +473,6 @@ public final class Installation {
 
   /**
    * Indicates if the install and instance are in the same directory.
-   * @return true if the install and instance are in the same directory.
    */
   private boolean instanceAndInstallInSameDir;
 
@@ -881,6 +886,15 @@ public final class Installation {
    */
   public File getBackupDirectory() {
     return new File(getInstanceDirectory(), BACKUPS_PATH_RELATIVE);
+  }
+
+  /**
+   * Returns the path to the archived config files under the install path.
+   *
+   * @return the path to the archived config files under the install path.
+   */
+  public File getArchivedConfigsDirectory() {
+    return new File(getInstanceDirectory(), ARCHIVED_CONFIG_PATH_RELATIVE);
   }
 
   /**

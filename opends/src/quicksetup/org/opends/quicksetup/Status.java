@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -33,7 +34,6 @@ import org.opends.server.core.LockFileManager;
 import org.opends.quicksetup.util.Utils;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * This class represents the current state of a particular installation.
@@ -61,21 +61,6 @@ public class Status {
     File rootDirectory = installation.getRootDirectory();
     return rootDirectory == null || !rootDirectory.exists() ||
             !rootDirectory.isDirectory();
-  }
-
-  /**
-   * Determines whether or not the configuration has been modified for this
-   * installation.
-   * @return boolean where true means the configuration has been modified
-   */
-  public boolean configurationHasBeenModified() {
-    boolean mod = false;
-    try {
-      mod = installation.getCurrentConfiguration().hasBeenModified();
-    } catch (IOException e) {
-      // do nothing for now;
-    }
-    return mod;
   }
 
   /**
