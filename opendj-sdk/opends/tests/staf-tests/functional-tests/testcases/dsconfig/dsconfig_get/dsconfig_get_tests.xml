@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -54,7 +54,7 @@
               dsconfig_component4    = componentList[componentNumber][4].strip()
               # avoid same testName by incrementing the number
               thisTestname = "%s.%s, %s" \
-                % (i,dsconfig_subcommand,dsconfig_component1)
+                % (i,dsconfig_subcommand,dsconfig_component2)
               i+=1
           </script>
           <message>'TRACE %s' % thisTestname</message>
@@ -154,10 +154,12 @@
       <iterate var="dummyIndex" in="componentList">
         <sequence>
           <script>
-              thisTestname = componentList[componentNumber][0].strip()
               dsconfig_subcommand    = componentList[componentNumber][0].strip()
               dsconfig_component1    = componentList[componentNumber][1].strip()
               dsconfig_component2    = componentList[componentNumber][2].strip()
+              thisTestname = "%s.%s, %s" \
+                % (i,dsconfig_subcommand,dsconfig_component1)
+              i+=1
           </script>
           <testcase name="getTestCaseName(thisTestname)" >
             <try>
