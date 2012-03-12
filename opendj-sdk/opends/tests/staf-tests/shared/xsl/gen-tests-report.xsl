@@ -499,7 +499,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                   <xsl:otherwise>
                     <xsl:value-of select="concat('OPENDS-',@id)"/>
                   </xsl:otherwise>
-                </xsl:choose>`
+                </xsl:choose>
               </xsl:element>
             </xsl:for-each>
           </xsl:element>
