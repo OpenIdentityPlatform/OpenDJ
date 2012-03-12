@@ -285,7 +285,7 @@
              returnString = STAXResult[0][1]
             </script> 
       
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'will expire' }
             </call>
@@ -410,7 +410,7 @@
                returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                { 'returnString'       : returnString ,
                  'expectedString'     : 'Password Changed by Required Time:' }
             </call>
@@ -431,7 +431,7 @@
                returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                { 'returnString'       : returnString ,
                  'expectedString'     : 'Seconds Until Required Change Time:' }
             </call>

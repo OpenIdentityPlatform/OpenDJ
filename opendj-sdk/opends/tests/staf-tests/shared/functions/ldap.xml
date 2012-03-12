@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
   <function name="addEntry">
@@ -1387,7 +1387,7 @@
     </sequence>
   </function>
   
-  
+<!-- TO BE DEPRECATED -->  
   <function name="AnonSearchObject">
     <function-prolog>
       This function searches the Directory Server anonymously with optional arguments possible
@@ -1449,10 +1449,15 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapsearch%s' % (dsBinPath,fileExt)
+      </script>
       <call function="'runCommand'" >
         { 'name'      : 'Anonymous Search Base Object',
           'location'  : location,
-          'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
+          'command'   : STAFCmd,
           'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter),
           'expectedRC': expectedRC,
           'knownIssue': knownIssue

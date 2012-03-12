@@ -407,7 +407,7 @@
              returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Grace Login Use Times:' }
             </call>
@@ -451,7 +451,7 @@
                  returnString = STAXResult[0][1]
                 </script>
                 
-                <call function="'checktestString'">
+                <call function="'searchString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'Remaining Grace Login Count:  %s' % remaining_grace_login_count }
                 </call>
@@ -473,7 +473,7 @@
                 </script>
     
                 <!-- TODO: WTF -->            
-                <call function="'checktestString'">
+                <call function="'searchString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'Grace Login Use Times:  20' }
                 </call>
@@ -518,7 +518,7 @@
              returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Remaining Grace Login Count:  0' }
             </call>
@@ -539,7 +539,7 @@
              returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : msg1 ,
                   'expectedString'     : msg2 ,

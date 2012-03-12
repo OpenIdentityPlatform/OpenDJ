@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!---
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Root User Tests
+    #@TestName                  None
+    #@TestIssue                 None
+    #@TestPurpose               None
+    #@TestPreamble              None
+    #@TestStep                  None
+    #@TestPostamble             None
+    #@TestResult                None
+  -->
+  <function name="pwp_root_user_001" scope="local">
+    <testcase name="getTestCaseName('PWP Default Pwd Scheme')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Get Default Password Storage Scheme Property.' % msg1 }
+            </call>
+  
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
+            </call>
+  
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+  
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'cn=Salted SHA-512' }
+            </call>
+          
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!---
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Root User Tests
+    #@TestName                  None
+    #@TestIssue                 None
+    #@TestPurpose               None
+    #@TestPreamble              None
+    #@TestStep                  None
+    #@TestPostamble             None
+    #@TestResult                None
+  -->
+  <function name="pwp_root_user_002" scope="local">
+    <testcase name="getTestCaseName('PWP No Default Pwd Generator')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Checking for ds-cfg-password-generator.' % msg1 }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'ds-cfg-password-generator:cn=anything',
+                'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config',
+                'expectedRC'         : 16 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!---
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Root User Tests
+    #@TestName                  None
+    #@TestIssue                 None
+    #@TestPurpose               None
+    #@TestPreamble              None
+    #@TestStep                  None
+    #@TestPostamble             None
+    #@TestResult                None
+  -->
+  <function name="pwp_root_user_003" scope="local">
+    <testcase name="getTestCaseName('PWP Default Pwd Change Setting')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Checking default value ds-cfg-password-change-requires-current-password.' % msg1 }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'ds-cfg-password-change-requires-current-password' }
+            </call>
+  
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+  
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'true' }
+            </call>
+          
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>
