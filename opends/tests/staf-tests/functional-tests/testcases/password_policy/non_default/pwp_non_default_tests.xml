@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+          
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Create New Password Policy
+      #@TestIssue           None
+      #@TestPurpose         Create a Non Default Password Policy
+      #@TestPreamble        None
+      #@TestStep            Create a new Password Policy called Sales
+      #@TestStep            Set default-password-storage-schemeSalted SHA-1
+      #@TestPostamble       None
+      #@TestResult          Success if dsconfig returns 0
+  -->
+  <function name="pwp_non_default_001" scope="local">
+    <testcase name="getTestCaseName('PWP Create New Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add Sales Password Policy.' % msg1 }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Sales Password Policy"')
+              options.append('--type "password-policy"')
+              options.append('--set "default-password-storage-scheme:Salted SHA-1"')
+              options.append('--set "password-attribute:userPassword"')
+               
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'create-password-policy',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Adding New Entry With Sales Password Policy
+      #@TestIssue           None
+      #@TestPurpose         Adding New Entry With Sales Password Policy
+      #@TestPreamble        None
+      #@TestStep            addEntry add_sales_person.ldif
+                            SearchObject with uid=sguy returns 0
+                            SearchObject with uid=sgal eturns 0
+      #@TestPostamble       None
+      #@TestResult          Success if the test is PASS
+  -->
+  <function name="pwp_non_default_002" scope="local">
+    <testcase name="getTestCaseName('PWP Add New Entry Using Sales Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add New Entry Using Sales Password Policy.' % msg1 }
+            </call>
+
+            <call function="'addEntry'">
+            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'entryToBeAdded'   : '%s/password_policy/add_sales_person.ldif' \
+                                  % remote.data }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=sguy,%s' % basedn ,
+                'dsInstancePswd'   : 'superguy' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=sgal,%s' % basedn ,
+                'dsInstancePswd'   : 'supergal' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Modify Sales Password Policy
+      #@TestIssue           None
+      #@TestPurpose         Admin Changing Sales Lockout Count
+      #@TestPreamble        None
+      #@TestStep            Set lockout-failure-count to 3
+      #@TestPostamble       None
+      #@TestResult          Success if dsconfig returns 0
+  -->
+  <function name="pwp_non_default_003" scope="local">
+    <testcase name="getTestCaseName('PWP Modify Sales Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Set Lockout Failure Count to 3.' % msg1 }
+            </call>        
+
+            <script>
+              options=[]
+              options.append('--policy-name "Sales Password Policy"')
+              options.append('--set "lockout-failure-count:3"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+            
+ <!--- Test Case information
+    #@TestMarker          Non Default Password Policy
+    #@TestName            Test Sales Password Policy
+    #@TestIssue           None
+    #@TestPurpose         Test Sales Password Policy
+    #@TestPreamble        None
+    #@TestStep            Testing Sales Password Policy with Lockout Count
+                          search with bad pwd 3x good pwd 1x
+                          SearchObject returns 49 4x
+    #@TestPostamble       None
+    #@TestResult          Success if the test is PASS
+  -->
+  <function name="pwp_non_default_004" scope="local">
+    <testcase name="getTestCaseName('PWP Test Sales Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Test New Sales Password Policy Lockout Count.' % msg1 }
+            </call>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'superguy']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=sguy,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Testing Default Password Policy with Lockout Count
+      #@TestIssue           None
+      #@TestPurpose         Testing Default Password Policy with Lockout Count
+      #@TestPreamble        None
+      #@TestStep            Testing Default Password Policy with Lockout Count
+                            search with bad pwd 3x good pwd 1x
+                            SearchObject returns 49 3x
+                            SearchObject returns 0 1x
+      #@TestPostamble       None
+      #@TestResult          Success if the test is PASS
+  -->
+  <function name="pwp_non_default_005" scope="local">
+    <testcase name="getTestCaseName('PWP Test Default Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Testing Default Password Policy with Lockout Count.' % msg1 }
+            </call>
+
+            <script>
+                search_pwds = ['bad', 'bad', 'bad']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=tclow,%s' % basedn ,
+                  'dsInstancePswd'   : '%s' % pwds ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
+              </call>
+            </iterate>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=tclow,%s' % basedn ,
+                'dsInstancePswd'   : 'cardreader' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'       : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Delete Sales Password Policy
+      #@TestIssue           None
+      #@TestPurpose         Admin Deleting Sales Lockout Count
+      #@TestPreamble        None
+      #@TestStep            Admin Deleting Sales Lockout Count
+                            dsconfig delete Sales Password Policy
+      #@TestPostamble       None
+      #@TestResult          Success if dsconfig returns 0
+  -->
+  <function name="pwp_non_default_006" scope="local">
+    <testcase name="getTestCaseName('PWP Delete Sales Password Policy')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin Deleting Sales Lockout Count' % msg1 }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Sales Password Policy"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'delete-password-policy',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+            
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+      #@TestMarker          Non Default Password Policy
+      #@TestName            Test Sales Password Policy after Remove
+      #@TestIssue           None
+      #@TestPurpose         Test Sales Password Policy after Remove
+      #@TestPreamble        None
+      #@TestStep            Testing Sales Password Policy after removing it
+      #@TestPostamble       None
+      #@TestResult          Success if SearchObject returns 80 (Other)
+  -->
+  <function name="pwp_non_default_007" scope="local">
+    <testcase name="getTestCaseName('PWP Test Sales Password Policy after Remove')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Test Sales Password Policy after Remove.' % msg1 }
+            </call>
+        
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=sgal,%s' % basedn ,
+                'dsInstancePswd'   : 'supergal' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 80 }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

@@ -345,7 +345,7 @@
     #@TestStep          Check manage-account get-last-login-time
     #@TestStep          Checking for Absence of Last Login Time
     #@TestStep          SearchObject ds-pwp-last-login-time returns 0
-    #@TestStep          checktestString ds-pwp-last-login-time
+    #@TestStep          searchString ds-pwp-last-login-time
     #@TestPostamble     none
     #@TestResult        Success if the 3 steps are PASS
   -->
@@ -435,7 +435,7 @@
              returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Last Login Time:  2' }
             </call>
@@ -458,7 +458,7 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'ds-pwp-last-login-time' }
             </call>
@@ -794,7 +794,7 @@
              returnString = STAXResult[0][1]
             </script>
             
-            <call function="'checktestString'">
+            <call function="'searchString'">
               { 'returnString'       : returnString ,
                 'expectedString'     : 'Seconds Until Idle Account Lockout: ' }
             </call>

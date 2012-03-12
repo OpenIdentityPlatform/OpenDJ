@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
+ ! -->
+<stax>
+
+  <!--- Test Case information
+    #@TestMarker          Minimum Password Age
+    #@TestName            Default Minimum Password Age
+    #@TestIssue           none
+    #@TestPurpose         Checking Minimum Password Age
+    #@TestPreamble        none
+    #@TestStep            Checking existence of ds-cfg-min-password-age
+    #@TestPostamble       none
+    #@TestResult          Success if compareEntry returns 0.
+  -->
+  <function name="pwp_min_pwd_age_001" scope="local">
+    <testcase name="getTestCaseName('PWP Default Minimum Password Age')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Get Min Password Age.' % msg1 }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--property "min-password-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions,
+                'expectedString'      : 'min-password-age : 0 s'
+               
+              }
+            </call>        
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Compare Min Password Age Attribute.' % msg1 }
+            </call>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-min-password-age:0 seconds',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          Minimum Password Age
+    #@TestName            Minimum Password Age
+    #@TestIssue           none
+    #@TestPurpose         Test Minimum Password Age
+    #@TestPreamble        none
+    #@TestStep            Step 1. Admin Enabling Minimum Pwd Age
+                          set min-password-age to 24 h
+    #@TestStep            Step 2. User Changing Password
+                          ldapPasswordModifyWithScript returns 53
+    #@TestStep            Step 3. User Searching With Password
+                          SearchObject returns 49
+    #@TestPostamble       none
+    #@TestResult          Success if the 3 steps are PASS
+  -->
+  <function name="pwp_min_pwd_age_002" scope="local">
+    <testcase name="getTestCaseName('PWP Minimum Password Age')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>         
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Set Lockout Duration to 24h.' % msg1 }
+            </call>        
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--set "min-password-age:24h"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Changing Password.' % msg1 }
+            </call> 
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'newgosling' ,
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Searching With Password.' % msg1 }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
+                'dsInstancePswd'   : 'newgosling' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+        
+  <!--- Test Case information
+    #@TestMarker          Minimum Password Age
+    #@TestName            Reset Minimum Password Age Properties
+    #@TestIssue           none
+    #@TestPurpose         Reseting the password Policy
+    #@TestPreamble        none
+    #@TestStep            Step 1. Admin Disabling Minimum Pwd Age
+                          set min-password-age to 0 s
+    #@TestStep            Step 2. User Changing Password RC 0
+    #@TestStep            Step 3. User Searching With Password RC 0
+    #@TestStep            Step 4. User Changing Password RC 0
+    #@TestStep            Step 5. User Searching With Password RC 0
+    #@TestPostamble       none
+    #@TestResult          Success if  returns 0.
+  -->
+  <function name="pwp_min_pwd_age_003" scope="local">
+    <testcase name="getTestCaseName('PWP Reset Minimum Password Age Properties')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Admin Disabling Minimum Pwd Age.' % msg1 }
+            </call>          
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Reset Lockout Duration.' % msg1 }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "Default Password Policy"')
+              options.append('--reset "min-password-age"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Changing Password.' % msg1 }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'newgosling' }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Searching With Password.' % msg1 }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
+                'dsInstancePswd'   : 'newgosling' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Changing Password.' % msg1 }
+            </call>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
+                    'dsInstancePswd'         : 'newgosling' ,
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'gosling' }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s User Searching With Password.' % msg1 }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
+                'dsInstancePswd'   : 'gosling' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>
