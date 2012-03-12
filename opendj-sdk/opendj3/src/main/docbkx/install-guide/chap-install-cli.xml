@@ -47,8 +47,8 @@ Java(TM) SE Runtime Environment (build 1.6.0_24-b07-334-9M3326)
 Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
 
    <para>If your default Java environment is not appropriate, set
-   <literal>OPENDS_JAVA_HOME</literal> to the path to the correct Java
-   environment, or set <literal>OPENDS_JAVA_BIN</literal> to the absolute path
+   <literal>OPENDJ_JAVA_HOME</literal> to the path to the correct Java
+   environment, or set <literal>OPENDJ_JAVA_BIN</literal> to the absolute path
    of the <command>java</command> command. The latter environment variable is
    useful for example if you have both 32-bit and 64-bit versions of the Java
    environment installed, and want to make sure you use the 64-bit
