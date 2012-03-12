@@ -22,6 +22,7 @@
 #
 #
 #      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2012 ForgeRock AS
 #
 get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:
 get-alert-handler-prop:handler-name:JMX Alert Handler:disabled-alert-type:enabled-alert-type:
@@ -76,7 +77,7 @@ get-backend-prop:backend-name:config:base-dn:
 get-backend-prop:backend-name:monitor:base-dn:
 get-backend-prop:backend-name:schema:base-dn:
 get-backend-prop:backend-name:tasks:base-dn:
-get-backend-prop:backend-name:userroot:base-dn:
+get-backend-prop:backend-name:userRoot:base-dn:
 get-certificate-mapper-prop:mapper-name:Fingerprint Mapper:fingerprint-algorithm:fingerprint-attribute:
 get-certificate-mapper-prop:mapper-name:Subject Attribute to User Attribute:subject-attribute-mapping:user-base-dn:
 get-certificate-mapper-prop:mapper-name:Subject Attribute to User Attribute:subject-attribute:user-base-dn:

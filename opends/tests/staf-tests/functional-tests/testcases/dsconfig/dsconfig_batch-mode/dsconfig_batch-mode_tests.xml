@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 
 <stax>
@@ -222,7 +223,7 @@
 
           <!-- Search for uniqueMember indexes -->
           <call function="'searchString'">
-            { 'expectedString' : 'uniqueMember     : generic : equality',
+            { 'expectedString' : 'uniqueMember     : equality            : 5000              : -',
               'returnString'   : resultString ,
             }
           </call>
