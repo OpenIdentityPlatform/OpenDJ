@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -485,19 +485,20 @@ public class ServerController {
 
             int dig = i % 10;
 
-            if (((dig >= 3) || (dig <= 4)) &&
-            !"localhost".equals(hostName))
+            if (((dig == 3) || (dig == 4)) && !"localhost".equals(hostName))
             {
-              // Try with local host.  This might be necessary in certain
+              // Try with local host. This might be necessary in certain
               // network configurations.
               hostName = "localhost";
             }
-            if (((dig >= 5) || (dig <= 6)))
+
+            if (((dig == 5) || (dig == 6)))
             {
-              // Try with 0.0.0.0.  This might be necessary in certain
+              // Try with 0.0.0.0. This might be necessary in certain
               // network configurations.
               hostName = "0.0.0.0";
             }
+
             hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
             String ldapUrl = "ldaps://"+hostName+":" + port;
             try
