@@ -254,6 +254,7 @@ public class ModifyOperationBasis
                AttributeBuilder builder = new AttributeBuilder(attr);
                builder.setOption("binary");
                attr = builder.toAttribute();
+               mod.setAttribute(attr);
              }
            }
            else

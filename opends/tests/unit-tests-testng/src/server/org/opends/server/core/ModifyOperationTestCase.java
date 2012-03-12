@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -4777,7 +4777,7 @@ responseLoop:
     assertTrue(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
-  
+
     /**
    * Tests a modify operation that attempts change the user password doing
    * a delete of all values followed of an add of a new value.
@@ -4814,7 +4814,7 @@ responseLoop:
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    
+
     String path = TestCaseUtils.createTempFile(
          "dn: uid=testPassword01.user," + baseDN,
          "changetype: modify",
@@ -4822,7 +4822,7 @@ responseLoop:
          "-",
          "add: userPassword",
          "userPassword: aNewPassword");
- 
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -4871,7 +4871,7 @@ responseLoop:
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    
+
     String path = TestCaseUtils.createTempFile(
          "dn: uid=testPassword02.user," + baseDN,
          "changetype: modify",
@@ -4880,7 +4880,7 @@ responseLoop:
          "-",
          "add: userPassword",
          "userPassword: aNewPassword");
- 
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -4944,7 +4944,7 @@ responseLoop:
         passwd = v.toString();
       }
     }
-    
+
     assertNotNull(passwd);
 
     String path = TestCaseUtils.createTempFile(
@@ -4955,7 +4955,7 @@ responseLoop:
          "-",
          "add: userPassword",
          "userPassword: aNewPassword");
- 
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -4966,6 +4966,63 @@ responseLoop:
     };
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests that the binary option is automatically added to modifications if it
+   * is missing and required.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testAddCertificateWithoutBinaryOption(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    TestCaseUtils.addEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password",
+         "mail: foo",
+         "employeeNumber: 1");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("2468"));
+    LDAPAttribute attr = new LDAPAttribute("usercertificate", values);
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.ADD, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
+                            mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    List<Attribute> attrList =
+         e.getAttribute(DirectoryServer.getAttributeType("usercertificate",
+                                                         true));
+    assertNotNull(attrList);
+    assertEquals(attrList.size(), 1);
+    Attribute a = attrList.get(0);
+    assertTrue(a.hasOption("binary"));
+    assertEquals(a.size(), 1);
+    assertEquals(a.iterator().next().getValue().toString(), "2468");
   }
 
 }
