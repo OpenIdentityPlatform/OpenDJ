@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
 
@@ -913,6 +913,8 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-c");
     argList.add(getConfigurationFile());
+    argList.add("-h");
+    argList.add(String.valueOf(getUserData().getHostName()));
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
     argList.add("--adminConnectorPort");
