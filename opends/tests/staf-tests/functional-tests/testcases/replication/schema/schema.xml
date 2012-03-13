@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -69,7 +69,9 @@
             provSchemaFile = '%s/../last-99-user.ldif' % masterPath                    
             
             consumer = consumerList[0]
-            consumerHost = consumer.getHostname()                 
+            consumerHost = consumer.getHostname()
+            
+            msg1 = 'Replication: Schema:'              
           </script>            
               
                                     
@@ -88,10 +90,18 @@
           <testcase name="getTestCaseName('Add objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
+              
               <message>
-                 'Replication: Schema Replication: Add objectclass. \
-                 Check schema replication when a new objectclass is added'
+                 'Test Name = %s' % STAXCurrentTestcase
               </message>
+
+              <message>
+                '%s Add objectclass. Check schema replication when a new objectclass is added' % msg1
+              </message>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Load entries into "master" server.' % msg1 }
+              </call>
                               
               <!-- Load entries into "master" server -->                                
               <call function="'addEntry'">
@@ -105,6 +115,10 @@
                                      clientDataDir
                 }
               </call>                     
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add new object class.' % msg1 }
+              </call>
                                 
               <script>
                 newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
@@ -124,6 +138,10 @@
                 }
               </call>
 
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add entry to "consumer" server using new objectclass.' % msg1 }
+              </call>
+
               <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
                 { 'location'       : clientHost,
@@ -136,12 +154,20 @@
                                      clientDataDir
                 }
               </call>           
-                       
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
+                      
               <!-- Verify the synchronization of the schema among the servers 
                 in the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
@@ -174,15 +200,19 @@
           <testcase name="getTestCaseName('Add attributetype')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
+              
               <message>
-                 'Replication: Schema Replication: Add attributetype Check \
-                 schema replication when a new attributetype is added'
+                '%s Add Attributetype. schema replication when a new Attributetype is added' % msg1
               </message>
                                 
               <script>
                 newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
                 newAttributetype = '( testattribute1-oid NAME \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN \'user defined\' )'
               </script>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add newAttributetype in "master" server.' % msg1 }
+              </call>
                 
               <!-- Modify schema  in "master" server -->
               <call function="'modifyAnAttribute'">
@@ -196,7 +226,12 @@
                   'newAttributeValue' : newAttributetype, 
                   'changetype'        : 'add'
                 }
-              </call>                
+              </call>
+              
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add newObjectclass in "master" server.' % msg1 }
+              </call>
+            
               <call function="'modifyAnAttribute'">
                 { 'dsPath'            : masterPath,
                   'dsInstanceHost'    : masterHost ,
@@ -208,6 +243,10 @@
                   'newAttributeValue' : newObjectclass, 
                   'changetype'        : 'add'
                 }
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
               </call>
 
               <!-- Add entry to "consumer" server -->                       
@@ -222,12 +261,20 @@
                                      clientDataDir
                 }
               </call>           
-                       
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
+
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
@@ -262,14 +309,22 @@
           <testcase name="getTestCaseName('Delete objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
+              
               <message>
-                 'Replication: Schema Replication: Delete objectclass Check \
-                 schema replication when an objectclass is deleted'
+                 'Test Name = %s' % STAXCurrentTestcase
+              </message>
+
+              <message>
+                '%s Delete objectclass. Check schema replication when an objectclass is deleted' % msg1
               </message>
                                 
               <script>
                 newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
               </script>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Delete newObjectclass in "master" server.' % msg1 }
+              </call>
                 
               <!-- Modify schema  in "master" server -->
               <call function="'modifyAnAttribute'">
@@ -285,6 +340,10 @@
                 }
               </call>
 
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Delete previously added entry.' % msg1 }
+              </call>
+
               <!-- Delete previously added entry -->
               <call function="'ldapDeleteWithScript'">
                 { 'location'       : clientHost,
@@ -295,6 +354,10 @@
                   'dsInstancePswd' : master.getRootPwd(),
                   'dsDn'       :  ['cn=testuser-0,ou=People,%s' % synchroSuffix]
                 }
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Attempt to add entry to servers with deleted objectclass.' % msg1 }
               </call>
                                 
               <!-- Try to add entry to servers; should be rejected with error 65
@@ -313,12 +376,20 @@
                   }
                 </call>                             
               </iterate> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
@@ -355,15 +426,23 @@
           <testcase name="getTestCaseName('Modify objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
+              
               <message>
-                 'Replication: Schema Replication: Modify objectclass Check \
-                 schema replication when an objectclass is modified'
+                 'Test Name = %s' % STAXCurrentTestcase
+              </message>
+
+              <message>
+                '%s Modify objectclass. Check schema replication when an objectclass is modified' % msg1
               </message>
                                 
               <script>       
                 oldObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'                             
                 newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MUST ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
               </script>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Delete oldObjectclass in "master" server.' % msg1 }
+              </call>
                 
               <!-- Modify schema  in "master" server -->
               <call function="'modifyAnAttribute'">
@@ -377,7 +456,12 @@
                   'newAttributeValue' : oldObjectclass, 
                   'changetype'        : 'delete'
                 }
-              </call>                
+              </call>
+              
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add newObjectclass in "master" server.' % msg1 }
+              </call>
+       
               <call function="'modifyAnAttribute'">
                 { 'dsPath'            : masterPath,
                   'dsInstanceHost'    : masterHost ,
@@ -389,6 +473,10 @@
                   'newAttributeValue' : newObjectclass, 
                   'changetype'        : 'add'
                 }
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Attempt to add entry to servers with deleted objectclass.' % msg1 }
               </call>
                                 
               <!-- Try to add entry to servers; should be rejected with error 65
@@ -407,12 +495,20 @@
                   }
                 </call>                             
               </iterate> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
@@ -446,15 +542,28 @@
                           ('Add objectclass (edit schema file)')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
+              
               <message>
-                 'Replication: Schema Replication: Add objectclass (edit \
-                 schema file). Check schema replication when a new objectclass \
-                 is added manually'
+                 'Test Name = %s' % STAXCurrentTestcase
               </message>
+
+              <message>
+                '%s Add objectclass. (edit schema file). \
+                 Check schema replication when a new objectclass \
+                 is added manually ' % msg1
+              </message>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+              </call>
 
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
               </call>
                                   
               <!-- Modify schema  in "master" server -->
@@ -465,6 +574,11 @@
                   'destfile'   : provSchemaFile
                 }
               </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Edit schema file.' % msg1 }
+              </call>
+
               <call function="'LdifModifyWithScript'">
                 { 'location'    : masterHost,
                   'dsPath'      : masterPath, 
@@ -474,6 +588,10 @@
                   'targetLdif'  : currentSchemaFile
                 }
               </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+              </call>
                                                               
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
@@ -482,6 +600,10 @@
 
               <call function="'Sleep'">
                 { 'sleepForMilliSeconds'  :  1000 }
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
               </call>
                 
               <!-- Add entry to "consumer" server -->                       
@@ -496,12 +618,20 @@
                                      clientDataDir
                 }
               </call>           
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
@@ -543,11 +673,19 @@
                  attributetype is added manually'
               </message>
 
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+              </call>
+
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
               </call>
-                                  
+ 
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Modify schema  in "master" server .' % msg1 }
+              </call>
+                                 
               <!-- Modify schema  in "master" server -->
               <call function="'copyFile'">
                 { 'location'   : masterHost,
@@ -565,6 +703,10 @@
                   'targetLdif'  : currentSchemaFile
                 }
               </call>
+
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+              </call>
                                                               
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
@@ -573,6 +715,10 @@
 
               <call function="'Sleep'">
                 { 'sleepForMilliSeconds'  :  1000 }
+              </call>
+
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
               </call>
                                 
               <!-- Add entry to "consumer" server -->                       
@@ -587,12 +733,20 @@
                                      clientDataDir
                 }
               </call>           
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
@@ -637,9 +791,17 @@
                  deleted manually'
               </message>
 
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+              </call>
+
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
+              </call>
+
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
               </call>
                                   
               <!-- Modify schema  in "master" server -->
@@ -659,12 +821,19 @@
                   'targetLdif'  : currentSchemaFile
                 }
               </call>
+
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+              </call>
                                                               
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
                 [_topologyServerList]
               </call>                                                     
 
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Delete previously added entry.' % msg1 }
+              </call>
                 
               <!-- Delete previously added entry -->
               <call function="'ldapDeleteWithScript'">
@@ -680,6 +849,10 @@
                                 
               <call function="'Sleep'">
                 { 'sleepForMilliSeconds'  :  1000 }
+              </call>
+
+               <call function="'testStep'">
+                { 'stepMessage' : '%s Try to add entry to servers.' % msg1 }
               </call>
                                 
               <!-- Try to add entry to servers; should be rejected with error 65
@@ -701,12 +874,20 @@
                   }
                 </call>                             
               </iterate> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
@@ -751,11 +932,19 @@
                  modified manually'
               </message>
 
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+              </call>
+
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
               </call>
-                                  
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
+              </call>
+                                
               <!-- Modify schema  in "master" server -->
               <call function="'copyFile'">
                 { 'location'   : masterHost,
@@ -773,6 +962,10 @@
                   'targetLdif'  : currentSchemaFile 
                 }
               </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+              </call>
                                                               
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
@@ -781,6 +974,10 @@
 
               <call function="'Sleep'">
                 { 'sleepForMilliSeconds'  :  1000 }
+              </call>
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Try to add entry to servers.' % msg1 }
               </call>
                                                                                                                                 
               <!-- Try to add entry to servers; should be rejected with error 65
@@ -802,6 +999,10 @@
                   }
                 </call>                             
               </iterate> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+              </call>
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
@@ -812,6 +1013,10 @@
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif',
                   '2355' ]
               </call> 
+
+              <call function="'testStep'">
+                { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+              </call>
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
