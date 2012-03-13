@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-listeners'
@@ -114,6 +114,13 @@
     host name <literal>opendj.example.com</literal>. The Java Key Store (JKS)
     is created in the <filename>config</filename> directory where OpenDJ is
     installed, which is the default value for JKS.</para>
+
+    <note>
+     <para>Notice that the <option>-storepass</option> and
+     <option>-keypass</option> options take identical password arguments.
+     OpenDJ requires that you use the same password to protect both the
+     keystore and also the private key.</para>
+    </note>
    </step>
    <step>
     <para>Self-sign the server certificate.</para>
