@@ -50,7 +50,7 @@
 
     <menu name="OpenDJ Documentation">
       <item name="All Documentation" href="../docs.html"/>
-      <item name="Developer Guide" href="../doc/dev-guide/OpenDJ-Dev-Guide.html"/>
+      <item name="Developer Guide" href="../doc/dev-guide/index.html"/>
       <item name="Javadoc" href="apidocs/index.html" />
       <item name="Source code XREF" href="xref/index.html" />
     </menu>
