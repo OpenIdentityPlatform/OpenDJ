@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
 
 
 
+import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -152,6 +154,11 @@ public class ConfigureDS
    */
   public static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
 
+  /**
+   * The DN of the DIGEST-MD5 SASL mechanism handler.
+   */
+  public static final String DN_DIGEST_MD5_SASL_MECHANISM =
+      "cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config";
 
 
   /**
@@ -189,6 +196,7 @@ public class ConfigureDS
     BooleanArgument   showUsage;
     BooleanArgument   enableStartTLS;
     FileBasedArgument rootPasswordFile;
+    StringArgument    hostName;
     IntegerArgument   ldapPort;
     IntegerArgument   adminConnectorPort;
     IntegerArgument   ldapsPort;
@@ -236,6 +244,25 @@ public class ConfigureDS
                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
+
+      String defaultHostName;
+      try
+      {
+        defaultHostName = InetAddress.getLocalHost().getHostName();
+      }
+      catch (Exception e)
+      {
+        // Not much we can do here.
+        defaultHostName = "localhost";
+      }
+      hostName = new StringArgument(OPTION_LONG_HOST.toLowerCase(),
+                                    OPTION_SHORT_HOST,
+                                    OPTION_LONG_HOST, false, false, true,
+                                    INFO_HOST_PLACEHOLDER.get(),
+                                    defaultHostName,
+                                    null,
+                                    INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get());
+      argParser.addArgument(hostName);
 
       ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
                                     "ldapPort", false, false,
@@ -471,11 +498,11 @@ public class ConfigureDS
     // Initialize the Directory Server configuration handler using the
     // information that was provided.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
+    DirectoryServer.bootstrapClient();
 
     try
     {
-      directoryServer.initializeJMX();
+      DirectoryServer.initializeJMX();
     }
     catch (Exception e)
     {
@@ -593,7 +620,7 @@ public class ConfigureDS
 
       // Get the Directory Server configuration handler and use it to make the
       // appropriate configuration changes.
-      ConfigHandler configHandler = directoryServer.getConfigHandler();
+      ConfigHandler configHandler = DirectoryServer.getConfigHandler();
 
 
       // Check that the key manager provided is valid.
@@ -1202,6 +1229,23 @@ public class ConfigureDS
         }
       }
 
+      // Set the FQDN for the DIGEST-MD5 SASL mechanism.
+      try
+      {
+        DN digestMD5DN = DN.decode(DN_DIGEST_MD5_SASL_MECHANISM);
+        ConfigEntry configEntry = configHandler.getConfigEntry(digestMD5DN);
+        StringConfigAttribute fqdnAttr = new StringConfigAttribute(
+            "ds-cfg-server-fqdn", Message.EMPTY, false, false, false,
+            hostName.getValue());
+        configEntry.putConfigAttribute(fqdnAttr);
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_CONFIGDS_CANNOT_UPDATE_DIGEST_MD5_FQDN.get(String
+            .valueOf(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
       // Check that the cipher specified is supported.  This is intended to
       // fix issues with JVM that do not support the default cipher (see
@@ -1210,11 +1254,11 @@ public class ConfigureDS
       StringPropertyDefinition prop =
         cryptoManager.getKeyWrappingTransformationPropertyDefinition();
       String defaultCipher = null;
-      DefaultBehaviorProvider p = prop.getDefaultBehaviorProvider();
+      DefaultBehaviorProvider<?> p = prop.getDefaultBehaviorProvider();
       if (p instanceof DefinedDefaultBehaviorProvider)
       {
         Collection<?> defaultValues =
-          ((DefinedDefaultBehaviorProvider)p).getDefaultValues();
+          ((DefinedDefaultBehaviorProvider<?>)p).getDefaultValues();
         if (!defaultValues.isEmpty())
         {
           defaultCipher = defaultValues.iterator().next().toString();
