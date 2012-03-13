@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -121,6 +122,7 @@ public class ExportJob
                includeBranch.isAncestorOf(baseDN))
           {
             exportContainers.add(entryContainer);
+            break;
           }
         }
       }
