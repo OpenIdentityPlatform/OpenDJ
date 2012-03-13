@@ -867,7 +867,7 @@ The LDAP password modify operation was successful</screen>
   data.</para>
   
   <para>This section therefore focuses on ACI examples, rather than
-  demonstrating how to directory data for each example. To update ACIs,
+  demonstrating how to update the directory for each example. To update ACIs,
   either change them using the <command>ldapmodify</command> command, or
   using OpenDJ Control Panel.</para>
 
