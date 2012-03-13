@@ -867,8 +867,23 @@ The LDAP password modify operation was successful</screen>
   data.</para>
   
   <para>This section therefore focuses on ACI examples, rather than
-  demonstrating how to directory data for each example.</para>
-  
+  demonstrating how to directory data for each example. To update ACIs,
+  either change them using the <command>ldapmodify</command> command, or
+  using OpenDJ Control Panel.</para>
+
+  <para>If you use OpenDJ Control Panel, find the entry to modify in the Manage
+  Entries window. Then try View &gt; LDIF View to edit the entry. Control Panel
+  checks your syntax and lets you know if you made an error before it saves any
+  changes.</para>
+
+  <para>For hints on updating directory entries with
+  <command>ldapmodify</command>, see the section on <link
+  xlink:role="http://docbook.org/xlink/role/olink"
+  xlink:href="admin-guide#modify-ldap"><citetitle>Modifying Entry
+  Attributes</citetitle></link>, keeping in mind that the name of the ACI
+  attribute is <literal>aci</literal> as shown in the examples that
+  follow.</para>
+
   <example xml:id="access-control-anonymous-reads">
    <title>ACI: Anonymous Reads &amp; Searches</title>
    
