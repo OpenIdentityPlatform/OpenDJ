@@ -24,6 +24,7 @@
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2012 profiq s.r.o.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -153,7 +154,9 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.cli.PointAdder;
+import org.opends.server.util.table.TabSeparatedTablePrinter;
 import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
 
 /**
@@ -1136,7 +1139,6 @@ public class ReplicationCliMain extends ConsoleApplication
     printPurgeProgressMessage(uData);
     ReplicationCliReturnCode returnCode = ReplicationCliReturnCode.SUCCESSFUL;
     boolean taskCreated = false;
-    int i = 0;
     boolean isOver = false;
     String dn = null;
     String taskID = null;
@@ -1163,7 +1165,6 @@ public class ReplicationCliMain extends ConsoleApplication
         throw new ReplicationCliException(
             getThrowableMsg(msg, ne), code, ne);
       }
-      i++;
     }
     // Wait until it is over
     SearchControls searchControls = new SearchControls();
@@ -7254,15 +7255,12 @@ public class ReplicationCliMain extends ConsoleApplication
         new HashSet<ReplicaDescriptor>();
       Set<ServerDescriptor> serversWithNoReplica =
         new HashSet<ServerDescriptor>();
-      for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
-      {
-        printlnProgress();
-        displayStatus(replicas, uData.isScriptFriendly(),
+      displayStatus(orderedReplicaLists, uData.isScriptFriendly(),
             PreferredConnection.getPreferredConnections(ctx),
             cache.getServers(),
             replicasWithNoReplicationServer, serversWithNoReplica);
-        somethingDisplayed = true;
-      }
+      somethingDisplayed = true;
+
       if (oneReplicated && !uData.isScriptFriendly())
       {
         printlnProgress();
@@ -7314,338 +7312,290 @@ public class ReplicationCliMain extends ConsoleApplication
    * all the servers that act as replication server in the topology but have
    * no replica.
    */
-  private void displayStatus(Set<ReplicaDescriptor> replicas,
+  //private void displayStatus(Set<ReplicaDescriptor> replicas,
+  private void displayStatus(
+      LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists,
       boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx,
       Set<ServerDescriptor> servers,
       Set<ReplicaDescriptor> replicasWithNoReplicationServer,
       Set<ServerDescriptor> serversWithNoReplica)
   {
-    boolean isReplicated = false;
     Set<ReplicaDescriptor> orderedReplicas =
       new LinkedHashSet<ReplicaDescriptor>();
     Set<String> hostPorts = new TreeSet<String>();
     Set<ServerDescriptor> notAddedReplicationServers =
       new TreeSet<ServerDescriptor>(new ReplicationServerComparator());
-    for (ReplicaDescriptor replica : replicas)
-    {
-      if (replica.isReplicated())
-      {
-        isReplicated = true;
-      }
-      hostPorts.add(getHostPort(replica.getServer(), cnx));
-    }
-    for (String hostPort : hostPorts)
+    for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
     {
       for (ReplicaDescriptor replica : replicas)
       {
-        if (getHostPort(replica.getServer(), cnx).equals(hostPort))
-        {
-          orderedReplicas.add(replica);
-        }
+        hostPorts.add(getHostPort(replica.getServer(), cnx));
       }
-    }
-    for (ServerDescriptor server : servers)
-    {
-      if (server.isReplicationServer())
+      for (String hostPort : hostPorts)
       {
-        boolean isDomain = false;
-        boolean isRepServer = false;
-        String replicationServer = server.getReplicationServerHostPort();
         for (ReplicaDescriptor replica : replicas)
         {
-          if (!isRepServer)
+          if (getHostPort(replica.getServer(), cnx).equals(hostPort))
           {
-            Set<String> repServers = replica.getReplicationServers();
-            for (String repServer : repServers)
+            orderedReplicas.add(replica);
+          }
+        }
+      }
+      for (ServerDescriptor server : servers)
+      {
+        if (server.isReplicationServer())
+        {
+          boolean isDomain = false;
+          boolean isRepServer = false;
+          String replicationServer = server.getReplicationServerHostPort();
+          for (ReplicaDescriptor replica : replicas)
+          {
+            if (!isRepServer)
             {
-              if (replicationServer.equalsIgnoreCase(repServer))
+              Set<String> repServers = replica.getReplicationServers();
+              for (String repServer : repServers)
               {
-                isRepServer = true;
+                if (replicationServer.equalsIgnoreCase(repServer))
+                {
+                  isRepServer = true;
+                }
               }
             }
+            if (replica.getServer() == server)
+            {
+              isDomain = true;
+            }
+            if (isDomain && isRepServer)
+            {
+              break;
+            }
           }
-          if (replica.getServer() == server)
+          if (!isDomain && isRepServer)
           {
-            isDomain = true;
-          }
-          if (isDomain && isRepServer)
-          {
-            break;
+            notAddedReplicationServers.add(server);
           }
         }
-        if (!isDomain && isRepServer)
-        {
-          notAddedReplicationServers.add(server);
-        }
       }
     }
-    final int SERVERPORT = 0;
-    final int NUMBER_ENTRIES = 1;
-    final int MISSING_CHANGES = 2;
-    final int AGE_OF_OLDEST_MISSING_CHANGE = 3;
-    final int REPLICATION_PORT = 4;
-    final int SECURE = 5;
-    Message[] headers;
-    if (scriptFriendly)
-    {
-      if (isReplicated)
-      {
-        headers = new Message[] {
-            INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
-            INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get(),
-            INFO_REPLICATION_STATUS_LABEL_MISSING_CHANGES.get(),
-            INFO_REPLICATION_STATUS_LABEL_AGE_OF_OLDEST_MISSING_CHANGE.get(),
-            INFO_REPLICATION_STATUS_LABEL_REPLICATION_PORT.get(),
-            INFO_REPLICATION_STATUS_LABEL_SECURE.get()
-        };
-      }
-      else
-      {
-        headers = new Message[] {
-            INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
-            INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get()
-        };
-      }
-    }
-    else
-    {
-      if (isReplicated)
-      {
-        headers = new Message[] {
-            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
-            INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get(),
-            INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get(),
-            INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get(),
-            INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get(),
-            INFO_REPLICATION_STATUS_HEADER_SECURE.get()
-        };
-      }
-      else
-      {
-        headers = new Message[] {
-            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
-            INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get()
-        };
-      }
-    }
-    Message[][] values = new Message[
-     notAddedReplicationServers.size() +orderedReplicas.size()][headers.length];
 
-    int i = 0;
+    /*
+     * The table has the following columns:
+     * - suffix DN;
+     * - server;
+     * - number of entries;
+     * - replication enabled indicator;
+     * - directory server instance ID;
+     * - replication server;
+     * - replication server ID;
+     * - missing changes;
+     * - age of the oldest change, and
+     * - security enabled indicator.
+     */
+    TableBuilder tableBuilder = new TableBuilder();
 
-    for (ServerDescriptor server : notAddedReplicationServers)
-    {
-      serversWithNoReplica.add(server);
-      Message v;
-      for (int j=0; j<headers.length; j++)
-      {
-        switch (j)
-        {
-        case SERVERPORT:
-          v = Message.raw(getHostPort(server, cnx));
-          break;
-        case NUMBER_ENTRIES:
-          if (scriptFriendly)
-          {
-            v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LONG.get();
-          }
-          else
-          {
-            v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_SHORT.get();
-          }
-          break;
-        case MISSING_CHANGES:
-          v = INFO_NOT_APPLICABLE_LABEL.get();
-          break;
-        case AGE_OF_OLDEST_MISSING_CHANGE:
-          v = INFO_NOT_APPLICABLE_LABEL.get();
-          break;
-        case REPLICATION_PORT:
-          int replicationPort = server.getReplicationServerPort();
-          if (replicationPort >= 0)
-          {
-            v = Message.raw(String.valueOf(replicationPort));
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case SECURE:
-          if (server.isReplicationSecure())
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
-          }
-          else
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
-          }
-          break;
-        default:
-          throw new IllegalStateException("Unknown index: "+j);
-        }
-        values[i][j] = v;
-      }
-      i++;
-    }
+    /*
+     * Table headings.
+     */
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_SUFFIX_DN.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_REPLICATION_ENABLED.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_DS_ID.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_RS_ID.get());
+    tableBuilder.appendHeading(
+        INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_SECURE.get());
+
+    /*
+     * Table data.
+     */
 
     for (ReplicaDescriptor replica : orderedReplicas)
     {
-      Message v;
-      for (int j=0; j<headers.length; j++)
+      tableBuilder.startRow();
+      if (replica.isReplicated())
       {
-        switch (j)
-        {
-        case SERVERPORT:
-          v = Message.raw(getHostPort(replica.getServer(), cnx));
-          break;
-        case NUMBER_ENTRIES:
-          int nEntries = replica.getEntries();
-          if (nEntries >= 0)
-          {
-            v = Message.raw(String.valueOf(nEntries));
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case MISSING_CHANGES:
-          int missingChanges = replica.getMissingChanges();
-          if (missingChanges >= 0)
-          {
-            v = Message.raw(String.valueOf(missingChanges));
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case AGE_OF_OLDEST_MISSING_CHANGE:
-          long ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
-          if (ageOfOldestMissingChange > 0)
-          {
-            Date date = new Date(ageOfOldestMissingChange);
-            v = Message.raw(date.toString());
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case REPLICATION_PORT:
-          int replicationPort = replica.getServer().getReplicationServerPort();
-          if (!replica.getServer().isReplicationServer())
-          {
-            if (scriptFriendly)
-            {
-              v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LONG.get();
-            }
-            else
-            {
-              v = INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_SHORT.get();
-            }
-            replicasWithNoReplicationServer.add(replica);
-          }
-          else if (replicationPort >= 0)
-          {
-            v = Message.raw(String.valueOf(replicationPort));
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case SECURE:
-          if (!replica.getServer().isReplicationServer())
-          {
-            v = INFO_NOT_APPLICABLE_LABEL.get();
-          }
-          else if (replica.getServer().isReplicationSecure())
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
-          }
-          else
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
-          }
-          break;
-        default:
-          throw new IllegalStateException("Unknown index: "+j);
-        }
-        values[i][j] = v;
-      }
-      i++;
-    }
+        // Suffix DN
+        tableBuilder.appendCell(Message.raw(replica.getSuffix().getDN()));
 
-    String dn = replicas.iterator().next().getSuffix().getDN();
-    if (scriptFriendly)
-    {
-      Message[] labels = {
-          INFO_REPLICATION_STATUS_BASEDN.get(),
-          INFO_REPLICATION_STATUS_IS_REPLICATED.get()
-      };
-      Message[] vs = {
-          Message.raw(dn),
-          isReplicated ? INFO_BASEDN_REPLICATED_LABEL.get() :
-            INFO_BASEDN_NOT_REPLICATED_LABEL.get()
-      };
-      for (i=0; i<labels.length; i++)
-      {
-        printProgress(Message.raw(labels[i]+" "+vs[i]));
-        printlnProgress();
-      }
+        // Server port
+        tableBuilder.appendCell(
+          Message.raw(getHostPort(replica.getServer(), cnx)));
 
-      for (i=0; i<values.length; i++)
-      {
-        printProgress(Message.raw("-"));
-        printlnProgress();
-        for (int j=0; j<values[i].length; j++)
+        // Number of entries
+        int nEntries = replica.getEntries();
+        if (nEntries >= 0)
         {
-          printProgress(Message.raw(headers[j]+" "+values[i][j]));
-          printlnProgress();
+          tableBuilder.appendCell(Message.raw(String.valueOf(nEntries)));
         }
-      }
-    }
-    else
-    {
-      Message msg;
-      if (isReplicated)
-      {
-        msg = INFO_REPLICATION_STATUS_REPLICATED.get(dn);
+        else
+        {
+          tableBuilder.appendCell(Message.raw(""));
+        }
+
+        // Replication enabled
+        tableBuilder.appendCell(
+          Message.raw(Boolean.toString(replica.isReplicated())));
+
+        // DS instance ID
+        tableBuilder.appendCell(
+            Message.raw(Integer.toString(replica.getReplicationId())));
+
+        // RS ID and port.
+        if (replica.getServer().isReplicationServer())
+        {
+          tableBuilder.appendCell(Integer.toString(replica.getServer()
+              .getReplicationServerId()));
+          tableBuilder.appendCell(Message.raw(String.valueOf(replica
+              .getServer().getReplicationServerPort())));
+        }
+        else
+        {
+          if (scriptFriendly)
+          {
+            tableBuilder.appendCell(Message.raw(""));
+          }
+          else
+          {
+            tableBuilder.appendCell(
+              INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_SHORT.get());
+          }
+          tableBuilder.appendCell(Message.raw(""));
+          replicasWithNoReplicationServer.add(replica);
+        }
+
+        // Missing changes
+        int missingChanges = replica.getMissingChanges();
+        if (missingChanges >= 0)
+        {
+          tableBuilder.appendCell(Message.raw(String.valueOf(missingChanges)));
+        }
+        else
+        {
+          tableBuilder.appendCell(Message.raw(""));
+        }
+
+        // Age of oldest missing change
+        long ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
+        if (ageOfOldestMissingChange > 0)
+        {
+          Date date = new Date(ageOfOldestMissingChange);
+          tableBuilder.appendCell(Message.raw(date.toString()));
+        }
+        else
+        {
+          tableBuilder.appendCell(Message.raw(""));
+        }
+
+        // Secure
+        if (!replica.getServer().isReplicationServer())
+        {
+          tableBuilder.appendCell(Message.raw(""));
+        }
+        else
+        {
+          tableBuilder.appendCell(
+            Message.raw(Boolean.toString(
+              replica.getServer().isReplicationSecure())));
+        }
       }
       else
       {
-        msg = INFO_REPLICATION_STATUS_NOT_REPLICATED.get(dn);
-      }
-      printProgressMessageNoWrap(msg);
-      printlnProgress();
-      int length = msg.length();
-      StringBuilder buf = new StringBuilder();
-      for (i=0; i<length; i++)
-      {
-        buf.append("=");
-      }
-      printProgressMessageNoWrap(Message.raw(buf.toString()));
-      printlnProgress();
-
-      TableBuilder table = new TableBuilder();
-      for (i=0; i< headers.length; i++)
-      {
-        table.appendHeading(headers[i]);
-      }
-      for (i=0; i<values.length; i++)
-      {
-        table.startRow();
-        for (int j=0; j<headers.length; j++)
+        tableBuilder.appendCell(Message.raw(replica.getSuffix().getDN()));
+        tableBuilder.appendCell(
+          Message.raw(getHostPort(replica.getServer(), cnx)));
+        int nEntries = replica.getEntries();
+        if (nEntries >= 0)
         {
-          table.appendCell(values[i][j]);
+          tableBuilder.appendCell(Message.raw(String.valueOf(nEntries)));
         }
+        else
+        {
+          tableBuilder.appendCell(Message.raw(""));
+        }
+        tableBuilder.appendCell(
+          Message.raw(Boolean.toString(replica.isReplicated())));
       }
-      TextTablePrinter printer = new TextTablePrinter(getOutputStream());
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
-      table.print(printer);
     }
+
+    for (ServerDescriptor server : notAddedReplicationServers)
+    {
+      tableBuilder.startRow();
+      serversWithNoReplica.add(server);
+
+      // Suffix DN
+      tableBuilder.appendCell(Message.raw(""));
+
+      // Server port
+      tableBuilder.appendCell(Message.raw(getHostPort(server, cnx)));
+
+      // Number of entries
+      if (scriptFriendly)
+      {
+        tableBuilder.appendCell(Message.raw(""));
+      }
+      else
+      {
+        tableBuilder.appendCell(
+          INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_SHORT.get());
+      }
+
+      // Replication enabled
+      tableBuilder.appendCell(Message.raw(Boolean.toString(true)));
+
+      // DS ID
+      tableBuilder.appendCell(Message.raw(""));
+
+      // RS ID
+      tableBuilder.appendCell(
+        Message.raw(Integer.toString(server.getReplicationServerId())));
+
+      // Replication port
+      int replicationPort = server.getReplicationServerPort();
+      if (replicationPort >= 0)
+      {
+        tableBuilder.appendCell(
+          Message.raw(String.valueOf(replicationPort)));
+      }
+      else
+      {
+        tableBuilder.appendCell(Message.raw(""));
+      }
+
+      // Missing changes
+      tableBuilder.appendCell(Message.raw(""));
+
+      // Age of oldest change
+      tableBuilder.appendCell(Message.raw(""));
+
+      // Secure
+      tableBuilder.appendCell(
+        Message.raw(Boolean.toString(server.isReplicationSecure())));
+    }
+
+    PrintStream out = getOutputStream();
+    TablePrinter printer = null;
+
+    if (scriptFriendly)
+    {
+      printer = new TabSeparatedTablePrinter(out);
+    }
+    else
+    {
+      printer = new TextTablePrinter(out);
+      ((TextTablePrinter)printer).setColumnSeparator(
+        ToolConstants.LIST_TABLE_SEPARATOR);
+    }
+    tableBuilder.print(printer);
   }
 
   /**
@@ -7659,85 +7609,42 @@ public class ReplicationCliMain extends ConsoleApplication
   private void displayStatus(Set<ServerDescriptor> servers,
       boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx)
   {
-    final int SERVERPORT = 0;
-    final int REPLICATION_PORT = 1;
-    final int SECURE = 2;
-    Message[] headers;
-    if (scriptFriendly)
-    {
-      headers = new Message[] {
-          INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
-          INFO_REPLICATION_STATUS_LABEL_REPLICATION_PORT.get(),
-          INFO_REPLICATION_STATUS_LABEL_SECURE.get()
-      };
-    }
-    else
-    {
-      headers = new Message[] {
-            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
-            INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get(),
-            INFO_REPLICATION_STATUS_HEADER_SECURE.get()
-      };
-    }
-    Message[][] values = new Message[servers.size()][headers.length];
-
-    int i = 0;
+    TableBuilder tableBuilder = new TableBuilder();
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
+    tableBuilder.appendHeading(
+      INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SECURE.get());
 
     for (ServerDescriptor server : servers)
     {
-      Message v;
-      for (int j=0; j<headers.length; j++)
+      tableBuilder.startRow();
+      // Server port
+      tableBuilder.appendCell(Message.raw(getHostPort(server, cnx)));
+      // Replication port
+      int replicationPort = server.getReplicationServerPort();
+      if (replicationPort >= 0)
       {
-        switch (j)
-        {
-        case SERVERPORT:
-          v = Message.raw(getHostPort(server, cnx));
-          break;
-        case REPLICATION_PORT:
-          int replicationPort = server.getReplicationServerPort();
-          if (replicationPort >= 0)
-          {
-            v = Message.raw(String.valueOf(replicationPort));
-          }
-          else
-          {
-            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
-          }
-          break;
-        case SECURE:
-          if (server.isReplicationSecure())
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
-          }
-          else
-          {
-            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
-          }
-          break;
-        default:
-          throw new IllegalStateException("Unknown index: "+j);
-        }
-        values[i][j] = v;
+        tableBuilder.appendCell(Message.raw(String.valueOf(replicationPort)));
       }
-      i++;
+      else
+      {
+        tableBuilder.appendCell(Message.raw(""));
+      }
+      // Secure
+      tableBuilder.appendCell(
+        Message.raw(
+          Boolean.toString(server.isReplicationSecure())));
     }
+
+    PrintStream out = getOutputStream();
+    TablePrinter printer = null;
 
     if (scriptFriendly)
     {
       printProgress(
           INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
       printlnProgress();
-
-      for (i=0; i<values.length; i++)
-      {
-        printProgress(Message.raw("-"));
-        printlnProgress();
-        for (int j=0; j<values[i].length; j++)
-        {
-          printProgress(Message.raw(headers[j]+" "+values[i][j]));
-          printlnProgress();
-        }
-      }
+      printer = new TabSeparatedTablePrinter(out);
     }
     else
     {
@@ -7747,30 +7654,18 @@ public class ReplicationCliMain extends ConsoleApplication
       printlnProgress();
       int length = msg.length();
       StringBuilder buf = new StringBuilder();
-      for (i=0; i<length; i++)
+      for (int i=0; i<length; i++)
       {
         buf.append("=");
       }
       printProgressMessageNoWrap(Message.raw(buf.toString()));
       printlnProgress();
 
-      TableBuilder table = new TableBuilder();
-      for (i=0; i< headers.length; i++)
-      {
-        table.appendHeading(headers[i]);
-      }
-      for (i=0; i<values.length; i++)
-      {
-        table.startRow();
-        for (int j=0; j<headers.length; j++)
-        {
-          table.appendCell(values[i][j]);
-        }
-      }
-      TextTablePrinter printer = new TextTablePrinter(getOutputStream());
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
-      table.print(printer);
+      printer = new TextTablePrinter(getOutputStream());
+      ((TextTablePrinter)printer).setColumnSeparator(
+        ToolConstants.LIST_TABLE_SEPARATOR);
     }
+    tableBuilder.print(printer);
   }
 
   /**
