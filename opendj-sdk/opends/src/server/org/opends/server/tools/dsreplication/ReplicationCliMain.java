@@ -7312,7 +7312,6 @@ public class ReplicationCliMain extends ConsoleApplication
    * all the servers that act as replication server in the topology but have
    * no replica.
    */
-  //private void displayStatus(Set<ReplicaDescriptor> replicas,
   private void displayStatus(
       LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists,
       boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx,
