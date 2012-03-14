@@ -2995,7 +2995,7 @@
                     'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'sprain' ,
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry31a.ldif' % (remote.data) ,
-                    'expectedRC'          : 53
+                    'expectedRC'          : 19
                   }
                 </call>
     
@@ -3009,7 +3009,7 @@
                     'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'sprain' ,
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry31b.ldif' % (remote.data) ,
-                    'expectedRC'          : 53
+                    'expectedRC'          : 19
                   }
                 </call>
     
