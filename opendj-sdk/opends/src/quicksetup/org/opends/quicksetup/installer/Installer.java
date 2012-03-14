@@ -1643,7 +1643,7 @@ public abstract class Installer extends GuiApplication {
         ADSContext adsContext = new ADSContext(ctx);
         if (createdRemoteAds)
         {
-          adsContext.removeAdminData();
+          adsContext.removeAdminData(true);
         }
         else
         {

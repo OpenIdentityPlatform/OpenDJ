@@ -7005,18 +7005,7 @@ public class ReplicationCliMain extends ConsoleApplication
         // Delete all contents from ADSContext.
         printProgress(formatter.getFormattedWithPoints(
             INFO_REPLICATION_REMOVE_ADS_CONTENTS.get()));
-        adsCtx.removeAdminData();
-        String adminBackendName = null;
-        for (ReplicaDescriptor replica : server.getReplicas())
-        {
-          if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-              replica.getSuffix().getDN()))
-          {
-            adminBackendName = replica.getBackendName();
-            break;
-          }
-        }
-        adsCtx.createAdminData(adminBackendName);
+        adsCtx.removeAdminData(false /* avoid self-disconnect */);
         printProgress(formatter.getFormattedDone());
         printlnProgress();
       }
