@@ -494,7 +494,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </xsl:attribute>
                 <xsl:choose>
                   <xsl:when test="starts-with(@id,'OPENDJ')">
-                    <xsl:value-of select="concat('OPENDJ-',@id)"/>
+                    <xsl:value-of select="@id"/>
                   </xsl:when>
                   <xsl:otherwise>
                     <xsl:value-of select="concat('OPENDS-',@id)"/>
