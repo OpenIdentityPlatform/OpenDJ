@@ -1187,7 +1187,12 @@ public class ADSContext
   {
     // Add the administration suffix
     createAdministrationSuffix(backendName);
+    createAdminDataContainers();
+  }
 
+  // Create container entries.
+  private void createAdminDataContainers() throws ADSContextException
+  {
     // Create the DIT below the administration suffix
     if (!isExistingEntry(nameFromDN(getAdministrationSuffixDN())))
     {
@@ -1228,16 +1233,26 @@ public class ADSContext
     }
   }
 
+
+
   /**
    * Removes the administration data.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param removeAdministrators
+   *          {@code true} if administrators should be removed. It may not be
+   *          possible to remove administrators if the operation is being
+   *          performed by one of the administrators because it will cause the
+   *          administrator to be disconnected.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void removeAdminData() throws ADSContextException
+  public void removeAdminData(boolean removeAdministrators)
+      throws ADSContextException
   {
     String[] dns = {getServerContainerDN(),
         getServerGroupContainerDN(),
         getInstanceKeysContainerDN(),
-        getAdministratorContainerDN()};
+        removeAdministrators ? getAdministratorContainerDN() : null };
     try
     {
       Control[] controls = new Control[] { new SubtreeDeleteControl() };
@@ -1246,10 +1261,13 @@ public class ADSContext
       {
         for (String dn : dns)
         {
-          LdapName ldapName = nameFromDN(dn);
-          if (isExistingEntry(ldapName))
+          if (dn != null)
           {
-            tmpContext.destroySubcontext(dn);
+            LdapName ldapName = nameFromDN(dn);
+            if (isExistingEntry(ldapName))
+            {
+              tmpContext.destroySubcontext(dn);
+            }
           }
         }
       }
@@ -1267,9 +1285,7 @@ public class ADSContext
         }
       }
       // Recreate the container entries:
-      createContainerEntry(getServerContainerDN());
-      createContainerEntry(getServerGroupContainerDN());
-      createContainerEntry(getInstanceKeysContainerDN());
+      createAdminDataContainers();
     }
     catch(NamingException x)
     {
