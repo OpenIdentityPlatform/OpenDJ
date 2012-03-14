@@ -615,7 +615,8 @@
                   'dsInstanceDn'   : consumer.getRootDn(),
                   'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % \
-                                     clientDataDir
+                                     clientDataDir,
+                  'knownIssue'     : 'OPENDJ-452'
                 }
               </call>           
 
@@ -730,7 +731,8 @@
                   'dsInstanceDn'   : consumer.getRootDn(),
                   'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/newtestuser-1.ldif' % \
-                                     clientDataDir
+                                     clientDataDir,
+                  'knownIssue'     : 'OPENDJ-452'
                 }
               </call>           
 
@@ -843,7 +845,10 @@
                   'dsInstancePort' :  master.getPort(),
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' :  master.getRootPwd(),
-                  'dsDn'    :  ['cn=newtestuser-0,ou=People,%s' % synchroSuffix]
+                  'dsDn'    :  ['cn=newtestuser-0,ou=People,%s' % synchroSuffix],
+                  'knownIssue'     : 'OPENDJ-452'
+                  
+
                 }
               </call>
                                 
@@ -858,7 +863,7 @@
               <!-- Try to add entry to servers; should be rejected with error 65
                 (objectclass violation) -->
               <!-- If the add doesn't return 65, it may mean we came across
-                issue 2355 (Manual schema objectclass delete not replicated) -->
+                issue OPENDJ-453 (Manual schema objectclass delete not replicated) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
                   { 'location'       : clientHost,
@@ -870,7 +875,7 @@
                     'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % \
                                        clientDataDir,
                     'expectedRC'     : 65,
-                    'knownIssue'     : '2355'
+                    'knownIssue'     : 'OPENDJ-453'
                   }
                 </call>                             
               </iterate> 
@@ -983,7 +988,7 @@
               <!-- Try to add entry to servers; should be rejected with error 65
                 (objectclass violation) -->
               <!-- If the add doesn't return 65, it may mean we came across
-                issue 2355 (Manual schema objectclass delete not replicated) -->
+                issue OPENDJ-453 (Manual schema objectclass delete not replicated) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
                   { 'location'       : clientHost,
@@ -995,7 +1000,7 @@
                     'entryToBeAdded' : '%s/replication/newtestuser-2.ldif' % \
                                        clientDataDir,
                     'expectedRC'     : 65,
-                    'knownIssue'     : '2355'
+                    'knownIssue'     : ['OPENDJ-453','OPENDJ-452']
                   }
                 </call>                             
               </iterate> 
@@ -1007,11 +1012,11 @@
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
               <!-- Since this testcase inherits the 99-user.ldif from the one
-                before, as long as 2355 is still present, the schema files will
+                before, as long as OPENDJ-453 is still present, the schema files will
                 differ as the second server will still have newobjectclass-0 -->
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif',
-                  '2355' ]
+                  'OPENDJ-453' ]
               </call> 
 
               <call function="'testStep'">
