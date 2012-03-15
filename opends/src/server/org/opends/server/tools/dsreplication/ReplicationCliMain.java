@@ -7017,22 +7017,6 @@ public class ReplicationCliMain extends ConsoleApplication
             ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
             ERROR_UPDATING_ADS, adce);
       }
-      try
-      {
-        // Delete all contents from truststore.
-        printProgress(formatter.getFormattedWithPoints(
-            INFO_REPLICATION_REMOVE_TRUSTSTORE_CONTENTS.get()));
-        ServerDescriptor.cleanAdsTrustStore(adsCtx.getDirContext());
-        printProgress(formatter.getFormattedDone());
-        printlnProgress();
-      }
-      catch (Throwable t)
-      {
-        LOG.log(Level.SEVERE, "Error removing contents of truststore: "+t, t);
-        throw new ReplicationCliException(
-            ERR_REPLICATION_UPDATING_ADS.get(t.toString()),
-            ERROR_UPDATING_ADS, t);
-      }
     }
     else if (disableAllBaseDns &&
         (disableReplicationServer || !server.isReplicationServer()))

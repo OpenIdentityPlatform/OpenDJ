@@ -563,12 +563,6 @@ public class ADSContext
     LdapName dn = makeDNFromServerProperties(serverProperties);
     try
     {
-      if (serverProperties.containsKey(
-          ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
-      {
-        unregisterInstanceKeyCertificate(serverProperties, dn);
-      }
-
       // Unregister the server from the server groups.
       String member = "cn="
         + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
@@ -1251,7 +1245,6 @@ public class ADSContext
   {
     String[] dns = {getServerContainerDN(),
         getServerGroupContainerDN(),
-        getInstanceKeysContainerDN(),
         removeAdministrators ? getAdministratorContainerDN() : null };
     try
     {
@@ -2511,6 +2504,7 @@ public class ADSContext
   @param serverEntryDn The server's ADS entry DN.
   @throws NamingException In case some JNDI operation fails.
    */
+  @SuppressWarnings("unused")
   private void unregisterInstanceKeyCertificate(
       Map<ServerProperty, Object> serverProperties,
       LdapName serverEntryDn)
