@@ -35,9 +35,9 @@
  <filename>filenames</filename>, <command>commands</command>, and
  <literal>literal values</literal>.</para>
 
- <screen>$ echo Terminal sessions are formatted with line folding for easier reading.
- In the HTML version, double-click to toggle between the folded version and
- the flat, copy-paste version. &gt; /dev/null</screen>
+ <screen>$ echo Terminal sessions are formatted with lines folded for easier reading.
+ In HTML documents click the [-] image for a flat, copy-paste version. Click
+ the [+] image for an expanded, line-wrapped version. &gt; /dev/null</screen>
 
  <para>In many cases, sections pertaining to UNIX, GNU/Linux, Mac OS X, BSD,
  and so forth are marked (UNIX). Sections pertaining to Microsoft Windows
