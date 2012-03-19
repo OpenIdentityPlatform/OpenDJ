@@ -798,11 +798,14 @@
       </loop>
 
       <if expr="checkRC != 48">
-        <message>
-          'Server is not stopped after %sms \
-          (%s/logs/server.pid still exists on %s)' \
-          % (noOfLoops*noOfMilliSeconds,dsPath,location)
-        </message>
+        <sequence>
+          <message>
+            'Server is not stopped after %sms \
+            (%s/logs/server.pid still exists on %s)' \
+            % (noOfLoops*noOfMilliSeconds,dsPath,location)
+          </message>
+          <tcstatus result="'fail'"/>
+        </sequence>
       </if>
     </sequence>
   </function>
