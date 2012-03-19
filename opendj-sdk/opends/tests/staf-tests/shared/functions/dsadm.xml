@@ -657,6 +657,15 @@
           STAFCmdParamsList.append('-H')
  
         STAFCmdParams=' '.join(STAFCmdParamsList)
+
+        from java.util import Date
+        from java.text import SimpleDateFormat
+        import re
+        
+        pattern=re.compile("\[(.*)\]")
+        formatter = SimpleDateFormat("dd/MMM/yy:H:m:s Z")
+
+        stop_current_time = Date()
       </script>
       
       <message>
@@ -700,6 +709,28 @@
           </else>
         </if>
       </if>
+
+      <!-- Get Errors log -->
+      <message>
+        'Getting tail of error log on %s/logs/errors' % dsPath
+      </message>
+      <call function="'getFile'">
+        { 'location'    : location,
+          'filename'    : '%s/logs/errors' % dsPath
+        }
+      </call>
+      <script>
+        for line in STAXResult[1].split('\n'):
+          mymatch = pattern.match(line)
+          if mymatch:
+            timestamp=mymatch.group(1)
+            timestamp_object = formatter.parse(timestamp)
+            if date_compare(stop_current_time,timestamp_object) == 'Less':
+              print line
+      </script>
+      <message>
+        'Result = %s' % STAXResult
+      </message>
     </sequence>
   </function>
 
@@ -1041,7 +1072,7 @@
       </call>
 
       <script>
-         savSTAXResult = STAXResult
+        savSTAXResult = STAXResult
         resultString = STAXResult[0][1]
       </script>
 

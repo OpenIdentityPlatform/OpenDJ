@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2007-2009 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS.
+#      Portions Copyright 2011-2012 ForgeRock AS.
 
 __version__ = "$Revision$"
 # $Source$
@@ -57,7 +57,8 @@ __all__ = [ "format_testcase",
             "host_is_localhost" ,
             "md5_hash" ,
             "value_not_string" ,
-            "get_system_uid"
+            "get_system_uid" ,
+            "date_compare"
             ]
 
 class format_testcase:
@@ -881,3 +882,10 @@ def get_system_uid():
   from java.lang import System
   return System.getProperty("user.name")
 
+def date_compare(date1,date2):
+  if date1.compareTo(date2) > 0:
+    return "Greater"
+  elif date1.compareTo(date2) < 0:
+    return "Less"
+  else:
+    return "Equal"
