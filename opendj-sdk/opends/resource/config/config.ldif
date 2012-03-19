@@ -2500,6 +2500,16 @@ ds-cfg-conflict-behavior: real-overrides-virtual
 ds-cfg-checksum-algorithm: adler-32
 ds-cfg-excluded-attribute: ds-sync-hist
 
+dn: cn=Password Expiration Time,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-password-expiration-time-virtual-attribute
+cn: Password Expiration Time
+ds-cfg-java-class: org.opends.server.extensions.PasswordExpirationTimeVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: ds-pwp-password-expiration-time
+ds-cfg-conflict-behavior: virtual-overrides-real
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue
