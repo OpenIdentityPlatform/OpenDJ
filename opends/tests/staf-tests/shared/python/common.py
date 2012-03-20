@@ -58,7 +58,8 @@ __all__ = [ "format_testcase",
             "md5_hash" ,
             "value_not_string" ,
             "get_system_uid" ,
-            "date_compare"
+            "date_compare" ,
+            "tail_logfile"
             ]
 
 class format_testcase:
@@ -889,3 +890,18 @@ def date_compare(date1,date2):
     return "Less"
   else:
     return "Equal"
+
+def tail_logfile(log_file,from_time):
+  from java.text import SimpleDateFormat
+  import re
+  
+  pattern=re.compile("\[(.*)\]")
+  formatter = SimpleDateFormat("dd/MMM/yy:H:m:s Z")
+          
+  for line in log_file[1].split('\n'):
+    mymatch = pattern.match(line)
+    if mymatch:
+      timestamp=mymatch.group(1)
+      timestamp_object = formatter.parse(timestamp)
+      if date_compare(from_time,timestamp_object) == 'Less':
+        print line
