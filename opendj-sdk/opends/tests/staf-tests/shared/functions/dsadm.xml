@@ -659,12 +659,6 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
 
         from java.util import Date
-        from java.text import SimpleDateFormat
-        import re
-        
-        pattern=re.compile("\[(.*)\]")
-        formatter = SimpleDateFormat("dd/MMM/yy:H:m:s Z")
-
         stop_current_time = Date()
       </script>
       
@@ -720,17 +714,8 @@
         }
       </call>
       <script>
-        for line in STAXResult[1].split('\n'):
-          mymatch = pattern.match(line)
-          if mymatch:
-            timestamp=mymatch.group(1)
-            timestamp_object = formatter.parse(timestamp)
-            if date_compare(stop_current_time,timestamp_object) == 'Less':
-              print line
+        tail_logfile(STAXResult,stop_current_time)
       </script>
-      <message>
-        'Result = %s' % STAXResult
-      </message>
     </sequence>
   </function>
 
