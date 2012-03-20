@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -34,6 +34,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This thread is in charge of periodically determining if the connected
@@ -100,21 +101,25 @@ public class StatusAnalyzer extends DirectoryThread
     boolean interrupted = false;
     while (!shutdown && !interrupted)
     {
-      try
+      synchronized (shutdownLock)
       {
-        synchronized (shutdownLock)
+        if (!shutdown)
         {
-          if (!shutdown)
+          try
           {
             shutdownLock.wait(STATUS_ANALYZER_SLEEP_TIME);
           }
+          catch (InterruptedException e)
+          {
+            // Server shutdown monitor may interrupt slow threads.
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            shutdown = true;
+            break;
+          }
         }
-      } catch (InterruptedException ex)
-      {
-        TRACER.debugInfo("Status analyzer for dn " +
-            replicationServerDomain.getBaseDn().toString() + " in RS " +
-            replicationServerDomain.getReplicationServer().getServerId() +
-            " has been interrupted while sleeping.");
       }
 
       // Go through each connected DS, get the number of pending changes we have

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -38,6 +39,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.CoreMessages.*;
 
@@ -60,8 +62,9 @@ public class IdleTimeLimitThread
 
 
 
-  // Indicates whether a shutdown request has been received.
-  private boolean shutdownRequested;
+  // Shutdown monitor state.
+  private volatile boolean shutdownRequested;
+  private final Object shutdownLock = new Object();
 
 
 
@@ -93,10 +96,26 @@ public class IdleTimeLimitThread
     {
       try
       {
-        try
+        synchronized (shutdownLock)
         {
-          sleep(sleepTime);
-        } catch (InterruptedException ie) {}
+          if (!shutdownRequested)
+          {
+            try
+            {
+              shutdownLock.wait(sleepTime);
+            }
+            catch (InterruptedException e)
+            {
+              // Server shutdown monitor may interrupt slow threads.
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              shutdownRequested = true;
+              break;
+            }
+          }
+        }
 
         sleepTime = 5000L;
         for (ConnectionHandler<?> ch : DirectoryServer.getConnectionHandlers())
@@ -181,7 +200,11 @@ public class IdleTimeLimitThread
    */
   public void processServerShutdown(Message reason)
   {
-    shutdownRequested = true;
+    synchronized (shutdownLock)
+    {
+      shutdownRequested = true;
+      shutdownLock.notifyAll();
+    }
   }
 }
 

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 import static org.opends.messages.ProtocolMessages.*;
@@ -155,7 +155,7 @@ public final class LDAPConnectionHandler extends
 
   // Indicates whether the Directory Server is in the process of
   // shutting down.
-  private boolean shutdownRequested;
+  private volatile boolean shutdownRequested;
 
   /* Internal LDAP connection handler state */
 
