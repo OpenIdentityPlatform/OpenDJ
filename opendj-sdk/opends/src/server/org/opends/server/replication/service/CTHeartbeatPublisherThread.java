@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -35,6 +35,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.TimeThread;
 
 import java.io.IOException;
@@ -111,26 +112,31 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
           session.publish(ctHeartbeatMsg);
         }
 
-        try
+        long sleepTime = session.getLastPublishTime() +
+            heartbeatInterval - now;
+        if (sleepTime <= 0)
         {
-          long sleepTime = session.getLastPublishTime() +
-              heartbeatInterval - now;
-          if (sleepTime <= 0)
-          {
-            sleepTime = heartbeatInterval;
-          }
+          sleepTime = heartbeatInterval;
+        }
 
-          synchronized (shutdownLock)
+        synchronized (shutdownLock)
+        {
+          if (!shutdown)
           {
-            if (!shutdown)
+            try
             {
               shutdownLock.wait(sleepTime);
             }
+            catch (InterruptedException e)
+            {
+              // Server shutdown monitor may interrupt slow threads.
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              shutdown = true;
+            }
           }
-        }
-        catch (InterruptedException e)
-        {
-          // Keep looping.
         }
       }
     }

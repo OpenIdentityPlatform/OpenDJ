@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -43,7 +44,7 @@ public class ServerShutdownMonitor
 {
   // Indicates whether the monitor has completed and the shutdown may be
   // finalized with a call to System.exit;
-  private boolean monitorDone;
+  private volatile boolean monitorDone;
 
   // The list of threads that need to be monitored.
   private LinkedList<Thread> threadList;

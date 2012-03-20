@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -31,10 +31,10 @@ package org.opends.server.replication.service;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.api.DirectoryThread;
 
@@ -70,9 +70,10 @@ final class HeartbeatMonitor extends DirectoryThread
 
 
   /**
-   * Set this to stop the thread.
+   * Thread life-cycle state.
    */
   private volatile boolean shutdown = false;
+  private final Object shutdownLock = new Object();
 
 
 
@@ -110,7 +111,11 @@ final class HeartbeatMonitor extends DirectoryThread
    */
   public void shutdown()
   {
-    shutdown = true;
+    synchronized (shutdownLock)
+    {
+      shutdown = true;
+      shutdownLock.notifyAll();
+    }
   }
 
   /**
@@ -119,27 +124,30 @@ final class HeartbeatMonitor extends DirectoryThread
   @Override
   public void run()
   {
-    boolean gotOneFailure = false;
     if (debugEnabled())
     {
       TRACER.debugInfo(this + " is starting, expected interval is " +
                 heartbeatInterval);
     }
+
     try
     {
+      boolean gotOneFailure = false;
       while (!shutdown)
       {
         long now = System.currentTimeMillis();
         long lastReceiveTime = session.getLastReceiveTime();
         if (now > lastReceiveTime + heartbeatInterval)
         {
-          if (gotOneFailure == true)
+          if (gotOneFailure)
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
             logError(WARN_HEARTBEAT_FAILURE.get(serverID,
-                replicationServerID,
-                session.getReadableRemoteAddress(), baseDN));
-            session.close();
+                replicationServerID, session.getReadableRemoteAddress(),
+                baseDN));
+
+            // Exit monitor and close session.
+            shutdown = true;
             break;
           }
           else
@@ -151,13 +159,26 @@ final class HeartbeatMonitor extends DirectoryThread
         {
           gotOneFailure = false;
         }
-        try
+
+        // Sleep.
+        synchronized (shutdownLock)
         {
-          Thread.sleep(heartbeatInterval);
-        }
-        catch (InterruptedException e)
-        {
-          // That's OK.
+          if (!shutdown)
+          {
+            try
+            {
+              shutdownLock.wait(heartbeatInterval);
+            }
+            catch (InterruptedException e)
+            {
+              // Server shutdown monitor may interrupt slow threads.
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              shutdown = true;
+            }
+          }
         }
       }
     }
@@ -165,9 +186,9 @@ final class HeartbeatMonitor extends DirectoryThread
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo("Heartbeat monitor is exiting." +
-            stackTraceToSingleLineString(new Exception()));
+        TRACER.debugInfo("Heartbeat monitor is exiting");
       }
+      session.close();
     }
   }
 }
