@@ -23,7 +23,7 @@
   !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
-<refentry xml:id='ldappasswordmodify-1'
+<refentry xml:id='ldapmodify-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -32,67 +32,53 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
-  <refentrytitle>ldappasswordmodify</refentrytitle><manvolnum>1</manvolnum>
+  <refentrytitle>ldapmodify</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
-  <refname>ldappasswordmodify</refname>
-  <refpurpose>perform LDAP password modifications</refpurpose>
+  <refname>ldapmodify</refname>
+  <refpurpose>perform LDAP modify, add, delete, mod DN operations</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>ldappasswordmodify</command>
+   <command>ldapmodify</command>
    <arg choice="req">options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>This utility can be used to perform LDAP password modify operations in
-  the directory.</para>
+  <para>This utility can be used to perform LDAP modify, add, delete, and
+  modify DN operations in the directory.</para>
+  <para>When not using a file to specify modifications, end your input with
+  EOF (Ctrl+D on UNIX, Ctrl+Z on Windows).</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-a, --authzID {authzID}</option></term>
+    <term><option>-a, --defaultAdd</option></term>
     <listitem>
-     <para>Authorization ID for the user entry whose password should be changed</para>
-     <para>The authorization ID is a string having either the prefix
-     <literal>dn:</literal> followed by the user's distinguished name, or
-     the prefix <literal>u:</literal> followed by a user identifier that
-     depends on the identity mapping used to match the user identifier to
-     an entry in the directory. Examples include
-     <literal>dn:uid=bjensen,ou=People,dc=example,dc=com</literal>, and, if
-     we assume that <literal>bjensen</literal> is mapped to Barbara Jensen's
-     entry, <literal>u:bjensen</literal>.</para>
+     <para>Treat records with no changetype as add operations</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-A, --provideDNForAuthzID</option></term>
+    <term><option>--assertionFilter {filter}</option></term>
     <listitem>
-     <para>Use the bind DN as the authorization ID for the password modify
-     operation</para>
+     <para>Use the LDAP assertion control with the provided filter</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-c, --currentPassword {currentPassword}</option></term>
+    <term><option>-c, --continueOnError</option></term>
     <listitem>
-     <para>Current password for the target user</para>
+     <para>Continue processing even if there are errors</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-C, --currentPasswordFile {file}</option></term>
+    <term><option>-f, --filename {file}</option></term>
     <listitem>
-     <para>Path to a file containing the current password for the target user</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-F, --newPasswordFile {file}</option></term>
-    <listitem>
-     <para>Path to a file containing the new password to provide for the
-     target user</para>
+     <para>LDIF file containing the changes to apply</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -102,15 +88,42 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-n, --newPassword {newPassword}</option></term>
+    <term><option>-n, --dry-run</option></term>
     <listitem>
-     <para>New password to provide for the target user</para>
+     <para>Show what would be done but do not perform any operation</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--postReadAttributes {attrList}</option></term>
+    <listitem>
+     <para>Use the LDAP ReadEntry post-read control</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--preReadAttributes {attrList}</option></term>
+    <listitem>
+     <para>Use the LDAP ReadEntry pre-read control</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-Y, --proxyAs {authzID}</option></term>
+    <listitem>
+     <para>Use the proxied authorization control with the given authorization
+     ID</para>
     </listitem>
    </varlistentry>
   </variablelist>
   <refsect2>
    <title>LDAP Connection Options</title>
    <variablelist>
+    <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection.  Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
     <varlistentry>
      <term><option>-D, --bindDN {bindDN}</option></term>
      <listitem>
@@ -175,7 +188,13 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <term><option>-r, --useSASLExternal</option></term>
+     <listitem>
+      <para>Use the SASL EXTERNAL authentication mechanism</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--trustStorePassword {trustStorePassword}</option></term>
      <listitem>
       <para>Certificate trust store PIN</para>
      </listitem>
@@ -190,12 +209,6 @@
      <term><option>-U, --trustStorePasswordFile {path}</option></term>
      <listitem>
       <para>Certificate trust store PIN file</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--usePasswordPolicyControl</option></term>
-     <listitem>
-      <para>Use the password policy request control</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -235,6 +248,12 @@
    <title>Utility Input/Output Options</title>
    <variablelist>
     <varlistentry>
+     <term><option>-i, --encoding {encoding}</option></term>
+     <listitem>
+      <para>Use the specified character set for command-line input</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term><option>--noPropertiesFile</option></term>
      <listitem>
       <para>No properties file will be used to get default command line
@@ -246,12 +265,6 @@
      <listitem>
       <para>Path to the file containing default property values used for
       command line arguments</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-?, -H, --help</option></term>
-     <listitem>
-      <para>Display usage information</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -323,13 +336,70 @@ ldapsearch.port=1389</programlisting>
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <para>The following example demonstrates a user changing the password
-  for her entry.</para>
-  <screen>$ cat /tmp/currpwd.txt /tmp/newpwd.txt
-bribery
-secret12
-$ ldappasswordmodify -p 1389 -C /tmp/currpwd.txt -N /tmp/newpwd.txt
--A -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-The LDAP password modify operation was successful</screen>
+  <para>The following example demonstrates use of the command to add an entry
+  to the directory.</para>
+  <screen>$ cat newuser.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+facsimileTelephoneNumber: +1 408 555 1213
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+givenName: New
+cn: New User
+cn: Real Name
+telephoneNumber: +1 408 555 1212
+sn: Jensen
+roomNumber: 1234
+homeDirectory: /home/newuser
+uidNumber: 10389
+mail: newuser@example.com
+l: South Pole
+ou: Product Development
+ou: People
+gidNumber: 10636
+
+$ ldapmodify -p 1389 -a -f newuser.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+
+ <para>The following example demonstrates adding a Description attribute
+ to the new user's entry.</para>
+ <screen>$ cat newdesc.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: description
+description: A new user's entry
+
+$ ldapmodify -p 1389 -f newdesc.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+ 
+ <para>The following example demonstrates changing the Description attribute
+ for the new user's entry.</para>
+ <screen>$ cat moddesc.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: Another description
+
+$ ldapmodify -p 1389 -f moddesc.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+ 
+ <para>The following example demonstrates deleting the new user's entry.</para>
+ <screen>$ cat deluser.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: delete
+
+$ ldapmodify -p 1389 -f deluser.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+Processing DELETE request for uid=newuser,ou=People,dc=example,dc=com
+DELETE operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
  </refsect1>
 </refentry>

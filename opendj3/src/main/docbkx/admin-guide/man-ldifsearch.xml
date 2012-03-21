@@ -34,7 +34,7 @@
  <refmeta>
   <refentrytitle>ldifsearch</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
   <refname>ldifsearch</refname>
@@ -44,7 +44,6 @@
   <cmdsynopsis>
    <command>ldifsearch</command>
    <arg choice="req">options</arg>
-   <arg choice="plain">source</arg>
    <arg choice="opt">filter</arg>
    <arg choice="opt" rep="repeat">attribute</arg>
   </cmdsynopsis>
@@ -59,42 +58,62 @@
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-A, --typesOnly</option></term>
-    <listitem>
-     <para>Only retrieve attribute names but not their values</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
     <term><option>-b, --baseDN {baseDN}</option></term>
     <listitem>
-     <para>Search base DN</para>
+     <para>The base DN for the search.  Multiple base DNs may be specified by
+     providing the option multiple times.  If no base DN is provided, then the
+     root DSE will be used.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><option>-f, --filterFile {filterFile}</option></term>
     <listitem>
-     <para>File containing a list of search filter strings</para>
+     <para>The path to the file containing the search filter(s) to use.  If
+     this is not provided, then the filter must be provided on the command line
+     after all configuration options.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-l, --timeLimit {timeLimit}</option></term>
+    <term><option>-l, --ldifFile {ldifFile}</option></term>
     <listitem>
-     <para>Maximum length of time in seconds to allow for the search</para>
-     <para>Default value: 0</para>
+     <para>LDIF file containing the data to search.  Multiple files may be
+     specified by providing the option multiple times. If no files are provided,
+     the data will be read from standard input.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-o, --outputFile {File}</option></term>
+    <term><option>-o, --outputFile {outputFile}</option></term>
     <listitem>
-     <para>Write search results to {file} instead of stdout</para>
-     <para>Default: stdout</para>
+     <para>The path to the output file to which the matching entries should be
+     written.  If this is not provided, then the data will be written to
+     standard output.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-O, --overwriteExisting</option></term>
+    <listitem>
+     <para>Any existing output file should be overwritten rather than appending
+     to it.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><option>-s, --searchScope {scope}</option></term>
     <listitem>
-     <para>Search scope ('base', 'one', 'sub', or 'subordinate')</para>
-     <para>Default value: sub</para>
+     <para>The scope for the search.  It must be one of 'base', 'one', 'sub',
+     or 'subordinate'.  If it is not provided, then 'sub' will be used.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-t, --timeLimit {timeLimit}</option></term>
+    <listitem>
+     <para>Maximum length of time (in seconds) to spend processing.</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+    <varlistentry>
+    <term><option>-T, --dontWrap</option></term>
+    <listitem>
+     <para>Long lines should not be wrapped.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -106,7 +125,7 @@
    <varlistentry>
     <term><option>-z, --sizeLimit {sizeLimit}</option></term>
     <listitem>
-     <para>Maximum number of matching entries to return from the search</para>
+     <para>Maximum number of matching entries to return.</para>
      <para>Default value: 0</para>
     </listitem>
    </varlistentry>
@@ -138,7 +157,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command.</para>
-  <screen>$ ldifsearch -b dc=example,dc=com /path/to/Example.ldif uid=bjensen
+  <screen>$ ldifsearch -l /path/to/Example.ldif -b dc=example,dc=com uid=bjensen
 dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
