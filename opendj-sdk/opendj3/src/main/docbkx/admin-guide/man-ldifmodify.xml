@@ -23,7 +23,7 @@
   !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
-<refentry xml:id='ldifsearch-1'
+<refentry xml:id='ldifmodify-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -32,82 +32,51 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
-  <refentrytitle>ldifsearch</refentrytitle><manvolnum>1</manvolnum>
+  <refentrytitle>ldifmodify</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
-  <refname>ldifsearch</refname>
-  <refpurpose>search LDIF with LDAP filters</refpurpose>
+  <refname>ldifmodify</refname>
+  <refpurpose>apply LDIF changes to LDIF</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>ldifsearch</command>
+   <command>ldifmodify</command>
    <arg choice="req">options</arg>
-   <arg choice="plain">source</arg>
-   <arg choice="opt">filter</arg>
-   <arg choice="opt" rep="repeat">attribute</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>This utility can be used to perform search operations against data in
-  an LDIF file.</para>
+  <para>This utility can be used to apply a set of modify, add, and delete
+  operations against data in an LDIF file.</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-A, --typesOnly</option></term>
+    <term><option>-m, --changesLDIF {ldifFile}</option></term>
     <listitem>
-     <para>Only retrieve attribute names but not their values</para>
+     <para>LDIF file containing the changes to apply.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-b, --baseDN {baseDN}</option></term>
+    <term><option>-s, --sourceLDIF {ldifFile}</option></term>
     <listitem>
-     <para>Search base DN</para>
+     <para>LDIF file containing the data to be updated.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-f, --filterFile {filterFile}</option></term>
+    <term><option>-t, --targetLDIF {ldifFile}</option></term>
     <listitem>
-     <para>File containing a list of search filter strings</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-l, --timeLimit {timeLimit}</option></term>
-    <listitem>
-     <para>Maximum length of time in seconds to allow for the search</para>
-     <para>Default value: 0</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-o, --outputFile {File}</option></term>
-    <listitem>
-     <para>Write search results to {file} instead of stdout</para>
-     <para>Default: stdout</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-s, --searchScope {scope}</option></term>
-    <listitem>
-     <para>Search scope ('base', 'one', 'sub', or 'subordinate')</para>
-     <para>Default value: sub</para>
+     <para>File to which the updated data should be written.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><option>-V, --version</option></term>
     <listitem>
      <para>Display version information.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-z, --sizeLimit {sizeLimit}</option></term>
-    <listitem>
-     <para>Maximum number of matching entries to return from the search</para>
-     <para>Default value: 0</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -138,29 +107,46 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command.</para>
-  <screen>$ ldifsearch -b dc=example,dc=com /path/to/Example.ldif uid=bjensen
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>$ cat /path/to/newuser.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-objectClass: posixAccount
 objectClass: top
-uid: bjensen
-userpassword: hifalutin
-facsimiletelephonenumber: +1 408 555 1992
-givenname: Barbara
-cn: Barbara Jensen
-cn: Babs Jensen
-telephonenumber: +1 408 555 1862
-sn: Jensen
-roomnumber: 0209
-homeDirectory: /home/bjensen
-mail: bjensen@example.com
-l: Cupertino
-ou: Product Development
+cn: New User
+sn: User
 ou: People
-uidNumber: 1076
-gidNumber: 1000
+mail: newuser@example.com
+userPassword: changeme
+  
+$ cat /path/to/newdiff.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: userPassword
+userPassword: secret12
+-
+delete: userPassword
+userPassword: changeme
+-
+add: description
+description: A new description.
+
+$ ldifmodify -s /path/to/newuser.ldif -m /path/to/newdiff.ldif -t neweruser.ldif
+$ cat neweruser.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+uid: newuser
+description: A new description.
+cn: New User
+sn: User
+userPassword: secret12
+mail: newuser@example.com
+ou: People
+
 </screen>
  </refsect1>
 </refentry>

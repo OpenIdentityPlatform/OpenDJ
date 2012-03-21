@@ -1,13 +1,13 @@
 '\" t
-.\"     Title: ldifdiff
+.\"     Title: ldif-diff
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: January\ \&06,\ \&2012
+.\"      Date: 03/21/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDIFDIFF" "1" "January\ \&06,\ \&2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDIF\-DIFF" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,10 +28,10 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-ldifdiff \- compare small LDIF files
+ldif-diff \- compare small LDIF files
 .SH "SYNOPSIS"
-.HP \w'\fBldifdiff\fR\ 'u
-\fBldifdiff\fR [\fIsource\fR\&.ldif] [\fItarget\fR\&.ldif] [options]
+.HP \w'\fBldif\-diff\fR\ 'u
+\fBldif\-diff\fR {options}
 .SH "DESCRIPTION"
 .PP
 This utility can be used to compare two LDIF files and report the differences in LDIF format\&.
@@ -54,9 +54,29 @@ Takes into account the syntax of the attributes as defined in the schema to make
 File containing a list of entries (DN) to ignore when computing the difference\&.
 .RE
 .PP
+\fB\-o, \-\-outputLDIF {file}\fR
+.RS 4
+File to which the output should be written\&.
+.RE
+.PP
+\fB\-O, \-\-overwriteExisting\fR
+.RS 4
+Any existing output file should be overwritten rather than appending to it\&.
+.RE
+.PP
+\fB\-s, \-\-sourceLDIF {file}\fR
+.RS 4
+LDIF file to use as the source data\&.
+.RE
+.PP
 \fB\-S, \-\-singleValueChanges\fR
 .RS 4
 Each attribute\-level change should be written as a separate modification per attribute value rather than one modification per entry\&.
+.RE
+.PP
+\fB\-t, \-\-targetLDIF {file}\fR
+.RS 4
+LDIF file to use as the target data\&.
 .RE
 .PP
 \fB\-V, \-\-version\fR
@@ -87,7 +107,7 @@ The following example demonstrates use of the command with two small LDIF files\
 .RS 4
 .\}
 .nf
-$ cat /path/to/newuser\&.ldif
+$ cat /path/to/newuser\&.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
@@ -100,7 +120,7 @@ ou: People
 mail: newuser@example\&.com
 userPassword: changeme
 
-$ cat /path/to/neweruser\&.ldif
+$ cat /path/to/neweruser\&.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
@@ -114,7 +134,7 @@ mail: newuser@example\&.com
 userPassword: secret12
 description: A new description\&.
 
-$ ldifdiff /path/to/newuser\&.ldif /path/to/neweruser\&.ldif
+$ ldif\-diff \-s /path/to/newuser\&.ldif \-t /path/to/neweruser\&.ldif
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: userPassword

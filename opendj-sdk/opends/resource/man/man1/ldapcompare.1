@@ -2,12 +2,12 @@
 .\"     Title: ldapcompare
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: November\ \&21,\ \&2011
+.\"      Date: 03/21/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDAPCOMPARE" "1" "November\ \&21,\ \&2011" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDAPCOMPARE" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -63,23 +63,20 @@ Use a request control with the provided information
 .RS 4
 Show what would be done but do not perform any operation
 .RE
-.PP
-\fB\-Y, \-\-proxyAs {authzID}\fR
-.RS 4
-Use the proxied authorization control with the given authorization ID
-.RE
 .SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
 .PP
 \fB\-D, \-\-bindDN {bindDN}\fR
 .RS 4
 DN to use to bind to the server
 .sp
 Default value: cn=Directory Manager
-.RE
-.PP
-\fB\-E, \-\-reportAuthzID\fR
-.RS 4
-Use the authorization identity control
 .RE
 .PP
 \fB\-h, \-\-hostname {host}\fR
@@ -126,7 +123,12 @@ Certificate trust store path
 Use StartTLS to secure communication with the server
 .RE
 .PP
-\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+\fB\-r, \-\-useSASLExternal\fR
+.RS 4
+Use the SASL EXTERNAL authentication mechanism
+.RE
+.PP
+\fB\-\-trustStorePassword {trustStorePassword}\fR
 .RS 4
 Certificate trust store PIN
 .RE
@@ -139,11 +141,6 @@ Certificate key store PIN file
 \fB\-U, \-\-trustStorePasswordFile {path}\fR
 .RS 4
 Certificate trust store PIN file
-.RE
-.PP
-\fB\-\-usePasswordPolicyControl\fR
-.RS 4
-Use the password policy request control
 .RE
 .PP
 \fB\-V, \-\-ldapVersion {version}\fR
@@ -187,6 +184,11 @@ No properties file will be used to get default command line argument values
 \fB\-\-propertiesFilePath {propertiesFilePath}\fR
 .RS 4
 Path to the file containing default property values used for command line arguments
+.RE
+.PP
+\fB\-s, \-\-script\-friendly\fR
+.RS 4
+Use script\-friendly mode
 .RE
 .PP
 \fB\-v, \-\-verbose\fR
@@ -283,5 +285,5 @@ uid=bjensen,ou=people,dc=example,dc=com
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011 ForgeRock AS
+Copyright \(co 2011-2012 ForgeRock AS
 .br

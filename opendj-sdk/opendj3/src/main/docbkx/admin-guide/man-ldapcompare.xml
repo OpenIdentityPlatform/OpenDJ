@@ -23,7 +23,7 @@
   !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
-<refentry xml:id='ldappasswordmodify-1'
+<refentry xml:id='ldapcompare-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -32,67 +32,47 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
-  <refentrytitle>ldappasswordmodify</refentrytitle><manvolnum>1</manvolnum>
+  <refentrytitle>ldapcompare</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
-  <refname>ldappasswordmodify</refname>
-  <refpurpose>perform LDAP password modifications</refpurpose>
+  <refname>ldapcompare</refname>
+  <refpurpose>perform LDAP compare operations</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>ldappasswordmodify</command>
+   <command>ldapcompare</command>
    <arg choice="req">options</arg>
+   <group><arg>attribute</arg><arg>:</arg><arg>value</arg></group>
+   <arg choice="opt" rep="repeat">DN</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>This utility can be used to perform LDAP password modify operations in
-  the directory.</para>
+  <para>This utility can be used to perform LDAP compare operations in the
+  directory.</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-a, --authzID {authzID}</option></term>
+    <term><option>--assertionFilter {filter}</option></term>
     <listitem>
-     <para>Authorization ID for the user entry whose password should be changed</para>
-     <para>The authorization ID is a string having either the prefix
-     <literal>dn:</literal> followed by the user's distinguished name, or
-     the prefix <literal>u:</literal> followed by a user identifier that
-     depends on the identity mapping used to match the user identifier to
-     an entry in the directory. Examples include
-     <literal>dn:uid=bjensen,ou=People,dc=example,dc=com</literal>, and, if
-     we assume that <literal>bjensen</literal> is mapped to Barbara Jensen's
-     entry, <literal>u:bjensen</literal>.</para>
+     <para>Use the LDAP assertion control with the provided filter</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-A, --provideDNForAuthzID</option></term>
+    <term><option>-c, --continueOnError</option></term>
     <listitem>
-     <para>Use the bind DN as the authorization ID for the password modify
-     operation</para>
+     <para>Continue processing even if there are errors</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-c, --currentPassword {currentPassword}</option></term>
+    <term><option>-f, --filename {file}</option></term>
     <listitem>
-     <para>Current password for the target user</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-C, --currentPasswordFile {file}</option></term>
-    <listitem>
-     <para>Path to a file containing the current password for the target user</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-F, --newPasswordFile {file}</option></term>
-    <listitem>
-     <para>Path to a file containing the new password to provide for the
-     target user</para>
+     <para>LDIF file containing one DN per line of entries to compare</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -102,9 +82,9 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-n, --newPassword {newPassword}</option></term>
+    <term><option>-n, --dry-run</option></term>
     <listitem>
-     <para>New password to provide for the target user</para>
+     <para>Show what would be done but do not perform any operation</para>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -112,16 +92,18 @@
    <title>LDAP Connection Options</title>
    <variablelist>
     <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection.  Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term><option>-D, --bindDN {bindDN}</option></term>
      <listitem>
       <para>DN to use to bind to the server</para>
       <para>Default value: cn=Directory Manager</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E, --reportAuthzID</option></term>
-     <listitem>
-      <para>Use the authorization identity control</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -175,7 +157,13 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <term><option>-r, --useSASLExternal</option></term>
+     <listitem>
+      <para>Use the SASL EXTERNAL authentication mechanism</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--trustStorePassword {trustStorePassword}</option></term>
      <listitem>
       <para>Certificate trust store PIN</para>
      </listitem>
@@ -190,12 +178,6 @@
      <term><option>-U, --trustStorePasswordFile {path}</option></term>
      <listitem>
       <para>Certificate trust store PIN file</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--usePasswordPolicyControl</option></term>
-     <listitem>
-      <para>Use the password policy request control</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -235,6 +217,12 @@
    <title>Utility Input/Output Options</title>
    <variablelist>
     <varlistentry>
+     <term><option>-i, --encoding {encoding}</option></term>
+     <listitem>
+      <para>Use the specified character set for command-line input</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term><option>--noPropertiesFile</option></term>
      <listitem>
       <para>No properties file will be used to get default command line
@@ -249,9 +237,9 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-?, -H, --help</option></term>
+     <term><option>-s, --script-friendly</option></term>
      <listitem>
-      <para>Display usage information</para>
+      <para>Use script-friendly mode</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -323,13 +311,18 @@ ldapsearch.port=1389</programlisting>
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <para>The following example demonstrates a user changing the password
-  for her entry.</para>
-  <screen>$ cat /tmp/currpwd.txt /tmp/newpwd.txt
-bribery
-secret12
-$ ldappasswordmodify -p 1389 -C /tmp/currpwd.txt -N /tmp/newpwd.txt
--A -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-The LDAP password modify operation was successful</screen>
+  <para>The following examples demonstrate comparing Babs Jensen's UID.</para>
+  <para>The following example uses a matching UID value.</para>
+  <screen>$ ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com
+Comparing type uid with value bjensen in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned true for entry
+uid=bjensen,ou=people,dc=example,dc=com</screen>
+  <para>The following example uses a UID value that does not match.</para>
+  <screen>$ ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com
+Comparing type uid with value beavis in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned false for entry
+uid=bjensen,ou=people,dc=example,dc=com</screen>
  </refsect1>
 </refentry>

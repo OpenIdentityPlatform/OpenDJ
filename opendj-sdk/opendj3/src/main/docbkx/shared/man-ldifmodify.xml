@@ -34,7 +34,7 @@
  <refmeta>
   <refentrytitle>ldifmodify</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
   <refname>ldifmodify</refname>
@@ -44,6 +44,8 @@
   <cmdsynopsis>
    <command>ldifmodify</command>
    <arg choice="req">options</arg>
+   <arg choice="plain">source</arg>
+   <arg choice="opt">changes</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
@@ -56,21 +58,16 @@
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-m, --changesLDIF {ldifFile}</option></term>
+    <term><option>-c, --continueOnError</option></term>
     <listitem>
-     <para>LDIF file containing the changes to apply.</para>
+     <para>Continue processing even if there are errors</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><option>-s, --sourceLDIF {ldifFile}</option></term>
+    <term><option>-o, --outputLDIF {file}</option></term>
     <listitem>
-     <para>LDIF file containing the data to be updated.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><option>-t, --targetLDIF {ldifFile}</option></term>
-    <listitem>
-     <para>File to which the updated data should be written.</para>
+     <para>Write updated entries to {file} instead of stdout</para>
+     <para>Default value: stdout</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -107,7 +104,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command.</para>
-  <screen>$ cat /path/to/newuser.ldif 
+  <screen>$ cat /path/to/newuser.ldif
 dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
@@ -119,8 +116,8 @@ sn: User
 ou: People
 mail: newuser@example.com
 userPassword: changeme
-  
-$ cat /path/to/newdiff.ldif 
+
+$ cat /path/to/newdiff.ldif
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: userPassword
@@ -132,21 +129,20 @@ userPassword: changeme
 add: description
 description: A new description.
 
-$ ldifmodify -s /path/to/newuser.ldif -m /path/to/newdiff.ldif -t neweruser.ldif
+$ ldifmodify -o neweruser.ldif /path/to/newuser.ldif /path/to/newdiff.ldif
 $ cat neweruser.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
-objectClass: person
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: top
 uid: newuser
-description: A new description.
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
 cn: New User
 sn: User
-userPassword: secret12
-mail: newuser@example.com
 ou: People
-
+mail: newuser@example.com
+userPassword: secret12
+description: A new description.
 </screen>
  </refsect1>
 </refentry>

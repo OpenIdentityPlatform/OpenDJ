@@ -2,12 +2,12 @@
 .\"     Title: ldapsearch
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: November\ \&21,\ \&2011
+.\"      Date: 03/21/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDAPSEARCH" "1" "November\ \&21,\ \&2011" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDAPSEARCH" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -151,6 +151,11 @@ Use the simple paged results control with the given page size
 Default value: 1000
 .RE
 .PP
+\fB\-\-subEntries\fR
+.RS 4
+Use subentries control to specify that subentries are visible and normal entries are not
+.RE
+.PP
 \fB\-Y, \-\-proxyAs {authzID}\fR
 .RS 4
 Use the proxied authorization control with the given authorization ID
@@ -163,6 +168,13 @@ Maximum number of entries to return from the search
 Default value: 0
 .RE
 .SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
 .PP
 \fB\-D, \-\-bindDN {bindDN}\fR
 .RS 4
@@ -220,7 +232,12 @@ Certificate trust store path
 Use StartTLS to secure communication with the server
 .RE
 .PP
-\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+\fB\-r, \-\-useSASLExternal\fR
+.RS 4
+Use the SASL EXTERNAL authentication mechanism
+.RE
+.PP
+\fB\-\-trustStorePassword {trustStorePassword}\fR
 .RS 4
 Certificate trust store PIN
 .RE
@@ -283,7 +300,7 @@ No properties file will be used to get default command line argument values
 Path to the file containing default property values used for command line arguments
 .RE
 .PP
-\fB\-t, \-\-dontWrap\fR
+\fB\-T, \-\-dontWrap\fR
 .RS 4
 Do not wrap long lines
 .RE
@@ -384,5 +401,5 @@ Result Code:  0 (Success)
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011 ForgeRock AS
+Copyright \(co 2011-2012 ForgeRock AS
 .br
