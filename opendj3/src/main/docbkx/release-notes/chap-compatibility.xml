@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -36,12 +36,16 @@
 
  <section xml:id="changed-functionality">
   <title>Major Changes to Existing Functionality</title>
-  
+
+  <para>TODO</para>
+
+<!-- Not yet for OpenDJ 2.5.
   <para>The <command>ldif-diff</command> command has been renamed
-  <command>ldifdiff</command>, and the <option>--outputLDIF</option>,
-  <option>--overwriteExisting</option>, <option>--sourceLDIF</option>,
-  <option>--targetLDIF</option> options have been dropped in favor of a
+  <command>ldifdiff</command>, and the <option>-\-outputLDIF</option>,
+  <option>-\-overwriteExisting</option>, <option>-\-sourceLDIF</option>,
+  <option>-\-targetLDIF</option> options have been dropped in favor of a
   format closer to that of the <command>diff</command> command.</para>
+-->
  </section>
 
  <section xml:id="deprecated-functionality">
