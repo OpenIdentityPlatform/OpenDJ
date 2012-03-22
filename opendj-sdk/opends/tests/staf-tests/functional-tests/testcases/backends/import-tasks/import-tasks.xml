@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="main_import-tasks"/>
@@ -137,7 +138,7 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Global Schema Cleanup.'</message>
+              <message>'Finally: Global Cleanup.'</message>
               <try>
                 <call function="'common_cleanup'" />
               <catch exception="'STAFException'">

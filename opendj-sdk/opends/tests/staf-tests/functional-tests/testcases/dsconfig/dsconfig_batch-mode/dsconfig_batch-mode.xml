@@ -112,7 +112,7 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Global Schema Cleanup.'</message>
+              <message>'Finally: Global Cleanup.'</message>
               <try>
                 <call function="'common_cleanup'">
                   { 'friendlyName'  : __label }

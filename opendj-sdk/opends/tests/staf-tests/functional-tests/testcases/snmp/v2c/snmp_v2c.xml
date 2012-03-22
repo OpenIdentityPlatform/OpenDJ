@@ -127,7 +127,7 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Global Schema Cleanup.'</message>
+              <message>'Finally: Global Cleanup.'</message>
               <try>
                 <message>'No Test Suite Cleanup'</message>
               <catch exception="'STAFException'">
