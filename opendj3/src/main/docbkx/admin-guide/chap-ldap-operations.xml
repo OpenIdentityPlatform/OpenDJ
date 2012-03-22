@@ -35,8 +35,7 @@
  command-line tools for performing LDAP operations. This chapter demonstrates
  how to use the command line tools to script LDAP operations.</para>
  
- <!-- TODO: search, compare, add, modify, modifyDN, delete, but also authrate,
- searchrate, modrate, and ldappasswordmodify, who am I?, cancel -->
+ <!-- TODO: who am I?, cancel -->
  
  <section xml:id="search-ldap">
   <title>Searching the Directory</title>
@@ -905,6 +904,15 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
  --authzID "dn:uid=scarter,ou=people,dc=example,dc=com"
  --newPassword ChangeMe
 The LDAP password modify operation was successful</screen>
+
+   <tip>
+    <para>Whenever one user changes another user's password, OpenDJ considers
+    it a password reset. That often means the user has to change her password
+    again after the reset.</para>
+    <para>If you want your application to change a user's password, rather
+    than reset a user's password, have your application request the password
+    change as the user whose password is changing.</para>
+   </tip>
 
    <para>You could also accomplish password reset with the following command,
    but <command>set-password-is-reset</command> is a hidden option, supported
