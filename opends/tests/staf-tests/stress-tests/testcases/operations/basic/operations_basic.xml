@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011 ForgeRock AS.
+ !      Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="main_operations_basic"/>
@@ -116,7 +116,7 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Global Schema Cleanup.'</message>
+              <message>'Finally: Global Cleanup.'</message>
               <try>
                 <call function="'common_cleanup'" />
               <catch exception="'STAFException'">
