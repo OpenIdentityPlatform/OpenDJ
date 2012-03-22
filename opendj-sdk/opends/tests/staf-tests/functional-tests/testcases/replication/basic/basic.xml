@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -2036,13 +2036,8 @@
                 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue CR 6925675: Removing suffix root entry brings 
-               !   generation ID loss
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '6925675' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
               <call function="'testCase_Postamble'"/>
