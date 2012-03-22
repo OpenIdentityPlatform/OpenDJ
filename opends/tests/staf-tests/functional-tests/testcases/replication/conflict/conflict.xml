@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -3241,12 +3241,12 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
-              <!-- If the trees don't match, we may have come across Issue 3401
+              <!-- If the trees don't match, we may have come across Issue OPENDJ-454
                (RFE: Solve naming conflict of 2 adds with same dn, different
                attr value) -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, server1, [server2], synchroSuffix,
-                  '3401' ]
+                  'OPENDJ-454' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3502,12 +3502,12 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
-              <!-- If the trees don't match, we may have come across Issue 3401
+              <!-- If the trees don't match, we may have come across Issue OPENDJ-454
                (RFE: Solve naming conflict of 2 adds with same dn, different 
                attr value) -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, server1, [server2], synchroSuffix,
-                  '3401' ]
+                  'OPENDJ-454' ]
               </call> 
 
               <!-- Delete added entries -->
