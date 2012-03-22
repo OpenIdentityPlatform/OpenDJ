@@ -911,7 +911,12 @@ The LDAP password modify operation was successful</screen>
     again after the reset.</para>
     <para>If you want your application to change a user's password, rather
     than reset a user's password, have your application request the password
-    change as the user whose password is changing.</para>
+    change as the user whose password is changing. To change the password as
+    the user, either bind as the user or use proxied authorization. For
+    instructions on the latter, see the section on <link
+    xlink:href="admin-guide#proxied-authz"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+    Proxied Authorization</citetitle></link>.</para>
    </tip>
 
    <para>You could also accomplish password reset with the following command,
