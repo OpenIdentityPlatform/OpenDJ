@@ -60,7 +60,9 @@
                                                                         
           <import machine="STAF_LOCAL_HOSTNAME"
            file="'%s/testcases/replication/replication_setup.xml' % TESTS_DIR"/>
-          <call function="'replication_setup'" />
+          <call function="'replication_setup'" >
+            { 'label'    : 'Replication Schema' }
+          </call>
                                     
           <script>
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()    
@@ -1037,7 +1039,9 @@
                                                 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % TESTS_DIR"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'" >
+            { 'label'    : 'Replication Schema' }
+          </call>
                           
           <call function="'testSuite_Postamble'"/>
                   

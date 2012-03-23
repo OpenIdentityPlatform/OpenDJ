@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_resynchronization"/>
@@ -56,7 +56,8 @@
           <call function="'replication_setup'">
             { 'topologyFile' : '%s/3server_topology.txt' \
                                % REPLICATION_CONFIG_DIR,
-              'dataFile'     : 'Example.ldif'
+              'dataFile'     : 'Example.ldif' ,
+              'label'    : 'Replication Resync'
             }
           </call>
           
@@ -830,7 +831,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/replication/replication_cleanup.xml' 
                         % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'" >
+            { 'label'    : 'Replication Resync' }
+          </call>
           
           <call function="'testSuite_Postamble'"/>
         </sequence>
