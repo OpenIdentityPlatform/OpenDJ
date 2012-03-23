@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
@@ -486,7 +487,7 @@ public class FileManager {
     /**
      * Returns the destination file that is the result of copying
      * <code>objectFile</code> to <code>destDir</code>.
-     * @return
+     * @return The destination file.
      */
     public File getDestination() {
       return this.destination;
