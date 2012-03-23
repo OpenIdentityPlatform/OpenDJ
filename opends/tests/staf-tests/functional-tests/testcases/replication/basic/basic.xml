@@ -61,7 +61,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' 
               % (TESTS_DIR)"/>
-          <call function="'replication_setup'" />
+          <call function="'replication_setup'" >
+            { 'label'    : 'Replication Basic' }
+          </call>
     
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/basic/replication_basic_setup.xml'
@@ -2048,7 +2050,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' 
                   % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'">
+            { 'label'    : 'Replication Basic' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
         

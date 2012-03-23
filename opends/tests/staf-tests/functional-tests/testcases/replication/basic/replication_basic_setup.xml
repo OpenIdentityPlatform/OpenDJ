@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -32,97 +32,126 @@
 
   <function name="replication_basic_setup">
 
-    <sequence>
+    <block name="'replication-basic-setup'">
+    
+      <testcase name="getTestCaseName('Basic Preamble')">
 
-      <!--- Setup the client for the Basic test suite -->      
-      <message>
-        'Replication: Basic: Setup. Get client ready for Basic tests.'
-      </message>          
-  
-      <script>
-        synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
-        entryDn = 'uid=scarter,%s' % synchroSuffix
-        grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' \
-                            % synchroSuffix
-        mod_type = 'replace'
-        attr_type = 'roomnumber'
-        attr_value = '1111'        
-      </script>
+        <try>
+        
+          <sequence>
 
-      <script>      
-        filename = 'replication_add_root_suffix.ldif'
-        filePath = '%s/%s' % (local.temp,filename)
-        write_replication_add_root_suffix_ldif_file(filePath, synchroSuffix)
-      </script>
+            <call function="'testCase_Preamble'"/>
 
-      <!-- Copy the replication_add_root_suffix ldif to client host -->
-      <message>
-        'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
-      </message>
-      <call function="'copyFile'">
-        { 'srcfile'    : filePath,
-          'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
-          'remotehost' : client.getHostname() }
-      </call>      
-
-      <script>
-        filename = 'replication_add_single.ldif'
-        filePath = '%s/%s' % (local.temp,filename)
-        write_replication_add_single_ldif_file(filePath, synchroSuffix)               
-      </script>
-
-      <!-- Copy the replication_add_single ldif to client host -->
-      <message>
-        'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
-      </message>
-      <call function="'copyFile'">
-        { 'srcfile'    : filePath,
-          'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
-          'remotehost' : client.getHostname() }
-      </call>
-                  
-      <script>
-        filename = 'replication_add_multiple.ldif'
-        filePath = '%s/%s' % (local.temp,filename)
-        write_replication_add_multiple_ldif_file(filePath, synchroSuffix)               
-      </script>
-
-      <!-- Copy the replication_add_multiple ldif to client host -->
-      <message>
-        'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
-      </message>
-      <call function="'copyFile'">
-        { 'srcfile'    : filePath,
-          'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
-          'remotehost' : client.getHostname() }
-      </call>            
+            <!--- Setup the client for the Basic test suite -->      
+            <message>
+              'Replication: Basic: Setup. Get client ready for Basic tests.'
+            </message>          
+        
+            <script>
+              synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+              entryDn = 'uid=scarter,%s' % synchroSuffix
+              grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' \
+                                  % synchroSuffix
+              mod_type = 'replace'
+              attr_type = 'roomnumber'
+              attr_value = '1111'        
+            </script>
       
-      <script>
-        filename = 'replication_mod.ldif'
-        filePath = '%s/%s' % (local.temp,filename)
-        write_replication_mod_ldif_file(filePath, entryDn, mod_type, attr_type,
-                                        attr_value)
-      </script>
-
-      <!-- Copy the replication_mod ldif to client host -->
-      <message>
-        'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
-      </message>
-      <call function="'copyFile'">
-        { 'srcfile'    : filePath,
-          'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
-          'remotehost' : client.getHostname()
-        }
-      </call>          
-          
-                    
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult
-        }
-      </call>
+            <script>      
+              filename = 'replication_add_root_suffix.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              write_replication_add_root_suffix_ldif_file(filePath, synchroSuffix)
+            </script>
+      
+            <!-- Copy the replication_add_root_suffix ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname() }
+            </call>      
+      
+            <script>
+              filename = 'replication_add_single.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              write_replication_add_single_ldif_file(filePath, synchroSuffix)               
+            </script>
+      
+            <!-- Copy the replication_add_single ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname() }
+            </call>
+                        
+            <script>
+              filename = 'replication_add_multiple.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              write_replication_add_multiple_ldif_file(filePath, synchroSuffix)               
+            </script>
+      
+            <!-- Copy the replication_add_multiple ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname() }
+            </call>            
+            
+            <script>
+              filename = 'replication_mod.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              write_replication_mod_ldif_file(filePath, entryDn, mod_type, attr_type,
+                                              attr_value)
+            </script>
+      
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>          
+                
+                          
+            <call function="'checkRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult
+              }
+            </call>
                                   
-    </sequence>
+              <tcstatus result="'pass'"></tcstatus>                      
+
+            </sequence> 
+  
+            <catch exception="'STAXException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to cleanup. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+            <finally>
+              <!-- Test Case postamble -->
+              <call function="'testCase_Postamble'"/>
+            </finally>
+  
+          </try>        
+
+        </testcase>
+
+      </block>
       
   </function>
 

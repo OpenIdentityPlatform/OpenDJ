@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -63,7 +63,8 @@
             file="'%s/testcases/replication/replication_setup.xml'
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            { 'dataFile' : 'Short_Example.ldif' }
+            { 'dataFile' : 'Short_Example.ldif' ,
+              'label'    : 'Replication ACI' }
           </call>
                                     
           <script>
@@ -1064,11 +1065,12 @@
             </sequence>
           </testcase>
 
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' 
                   % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'" >
+            { 'label'    : 'Replication ACI' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
                   

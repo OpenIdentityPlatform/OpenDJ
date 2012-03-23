@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_binarycopy"/>
@@ -53,7 +53,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/replication/replication_setup.xml' 
                         % (TESTS_DIR)"/>
-          <call function="'replication_setup'" />
+          <call function="'replication_setup'" >
+            { 'label'    : 'Replication Binarycopy' }
+          </call>
 
           
           <!--- Test Case information
@@ -406,7 +408,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/replication/replication_cleanup.xml' 
                         % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
+          <call function="'replication_cleanup'" >
+            { 'label'    : 'Replication Binarycopy' }
+          </call>
           <call function="'testSuite_Postamble'"/>
         </sequence>
       </block>
