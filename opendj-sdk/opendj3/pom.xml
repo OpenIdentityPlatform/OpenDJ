@@ -105,6 +105,7 @@
     <docTargetVersion>2.5.0</docTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
+    <gaId>UA-23412190-8</gaId>
   </properties>
   <build>
     <plugins>
@@ -115,7 +116,7 @@
         <inherited>false</inherited>
         <configuration>
          <projectName>OpenDJ</projectName>
-         <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
+         <googleAnalyticsId>${gaId}</googleAnalyticsId>
         </configuration>
         <executions>
           <execution>
