@@ -28,10 +28,7 @@
 
 package org.opends.quicksetup;
 
-import static org.opends.server.util.ServerConstants.SERVER_LOCK_FILE_NAME;
-import static org.opends.server.util.ServerConstants.LOCK_FILE_SUFFIX;
 import org.opends.server.core.LockFileManager;
-import org.opends.quicksetup.util.Utils;
 
 import java.io.File;
 
