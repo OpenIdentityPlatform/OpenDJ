@@ -95,10 +95,7 @@ public class Status {
    */
   public boolean isServerRunning() {
     boolean isServerRunning;
-    String lockFileName = SERVER_LOCK_FILE_NAME + LOCK_FILE_SUFFIX;
-    String lockFile =
-            Utils.getPath(new File(installation.getLocksDirectory(),
-                                   lockFileName));
+    String lockFile = LockFileManager.getServerLockFileName();
     StringBuilder failureReason = new StringBuilder();
     try {
       if (LockFileManager.acquireExclusiveLock(lockFile,

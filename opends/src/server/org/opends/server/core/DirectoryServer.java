@@ -8337,6 +8337,22 @@ public final class DirectoryServer
       ec.finalizeEntryCache();
     }
 
+    // Release exclusive lock held on server.lock file
+    String serverLockFileName = LockFileManager.getServerLockFileName();
+    StringBuilder failureReason = new StringBuilder();
+
+    try {
+        if (!LockFileManager.releaseLock(serverLockFileName,
+                failureReason)) {
+            message = NOTE_SERVER_SHUTDOWN.get(className, failureReason);
+            logError(message);
+        }
+    } catch (Exception e) {
+        if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+    }
+
     // Deregister all workflows.
     WorkflowImpl.deregisterAllOnShutdown();
 
