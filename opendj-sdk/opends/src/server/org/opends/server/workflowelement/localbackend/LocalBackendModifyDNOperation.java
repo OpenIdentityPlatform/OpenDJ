@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -397,10 +397,6 @@ modifyDNProcessing:
           break modifyDNProcessing;
         }
 
-        if(!handleConflictResolution()) {
-            break modifyDNProcessing;
-        }
-
 
         // Check to see if there are any controls in the request.  If so, then
         // see if there is any special processing required.
@@ -457,6 +453,9 @@ modifyDNProcessing:
         addModification(null);
         List<Modification> modifications = this.getModifications();
 
+        if(!handleConflictResolution()) {
+            break modifyDNProcessing;
+        }
 
         // If the operation is not a synchronization operation,
         //  - Apply the RDN changes.
@@ -670,6 +669,7 @@ modifyDNProcessing:
       registerPostResponseCallback(new Runnable()
       {
 
+        @Override
         public void run()
         {
           // Notify persistent searches.
