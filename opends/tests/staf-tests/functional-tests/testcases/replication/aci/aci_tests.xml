@@ -1,0 +1,1162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
+ ! -->
+<stax>
+                        
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Add entry with ACI
+  #@TestID              Add entry with ACI
+  #@TestPurpose         Check ACI replication over an entry add
+  #@TestPreamble
+  #@TestSteps           Add entry with ACI: deny self description write
+  #@TestSteps           Binding as entry, add givenname to entry
+                        (expect SUCCESS)
+  #@TestSteps           Binding as entry, add description to entry
+                        (expect ERROR 50)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_001" scope="local">
+    <testcase name="getTestCaseName('Add entry with ACI')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+            
+            <message>
+              'Replication: ACI: Add entry with ACI. Check ACI replication \
+              over an entry add.'
+            </message>
+  
+            <script>
+              myAci = "(targetattr=\"description\")(version 3.0; acl \"Deny Self Description Write\"; deny (write) userdn=\"ldap:///self\";)"
+              myUserpassword = 'entryPwd' 
+
+              myEntry = Entry('cn=ACI entry', synchroSuffix)
+              myEntry.addAttr('sn', 'ACI repl tests')
+              myEntry.addAttr('aci', myAci)
+              myEntry.addAttr('userpassword', myUserpassword)
+            </script>
+            
+            <!-- Add entry to "master" server with aci:
+             !   (targetattr="description")(version 3.0; acl 
+             !   "Deny Self Description Write"; deny (write)
+             !   userdn="ldap:///self";)  
+            -->
+            <message>
+              'Add entry %s with ACI: \n%s' % (myEntry.getDn(), myAci)
+            </message>
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : myEntry.getDn(),
+                'listAttributes' : myEntry.getAttrList()
+              }
+            </call>
+            
+            <message>
+              '+++ New ACI +++\nDeny "%s" the access to write its own \
+              description attribute.' % myEntry.getDn() 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  myGivenname   = 'My own GIVENNAME value %s' % i
+                  myDescription = 'My own DESCRIPTION value %s' % i
+                </script>
+                      
+                <message>
+                  'Binding as "%s", add givenname %s to entry %s on server \
+                  %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myGivenname, myEntry.getDn(),
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myEntry.getDn(),
+                    'attributeName'     : 'givenname',
+                    'newAttributeValue' : myGivenname,
+                    'changetype'        : 'add'
+                  }
+                </call>
+                
+                <message>
+                  'Binding as "%s", add description %s to entry %s on \
+                  server %s:%s. -- Expect: ERROR 50 (Insufficient Access \
+                  Rights)' % \
+                  (myEntry.getDn(), myDescription, myEntry.getDn(), 
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myEntry.getDn(),
+                    'attributeName'     : 'description',
+                    'newAttributeValue' : myDescription,
+                    'changetype'        : 'add',
+                    'expectedRC'        : 50
+                  }
+                </call>
+              </sequence>
+            </iterate>
+              
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Modify_add ACI
+  #@TestID              Modify_add ACI
+  #@TestPurpose         Check ACI replication over a modify_add
+  #@TestPreamble        Add a user entry to suffix
+  #@TestSteps           Binding as user, add description to child entry
+                        (expect ERROR 50)
+  #@TestSteps           Add ACI to parent entry: allow user full access
+                        to all description attributes
+  #@TestSteps           Binding as user, add description to child entry
+                        (expect SUCCESS)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_002" scope="local">
+    <testcase name="getTestCaseName('Modify_add ACI')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Modify_add ACI. Check ACI replication \
+              over a modify_add.'
+            </message>
+            
+            <script>
+              myAci = "(targetattr=\"description\")(version 3.0; acl \"Allow ACI-user access to description\"; allow (all) userdn=\"ldap:///cn=ACI user,ou=People,%s\";)" % synchroSuffix
+              mySn = 'ACI repl user'
+              myUserpassword = 'userPwd'
+
+              myEntry = Entry('cn=ACI user', synchroSuffix)
+              myEntry.addAttr('sn', mySn)
+              myEntry.addAttr('userpassword', myUserpassword)
+              
+              myTargetEntryDn = 'uid=sholmes,ou=People,%s' % synchroSuffix
+            </script>
+            
+            <!-- Add user entry to "master" server -->
+            <message>
+              'Add user entry %s' % myEntry.getDn()
+            </message>
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : myEntry.getDn(),
+                'listAttributes' : myEntry.getAttrList()
+              }
+            </call>
+
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  myDescription = 'He was a serious opium adict - %s' % i
+                </script>
+                
+                <message>
+                  'Binding as "%s", add description %s to entry %s on \
+                  server %s:%s. -- Expect: ERROR 50 (Insufficient Access \
+                  Rights)' % \
+                  (myEntry.getDn(), myDescription, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myTargetEntryDn,
+                    'attributeName'     : 'description',
+                    'newAttributeValue' : myDescription,
+                    'changetype'        : 'add',
+                    'expectedRC'        : 50
+                  }
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Add aci to entry ou=People,o=example on "master" server:
+             !   (targetattr="description")(version 3.0; acl 
+             !   "Allow ACI-user access to description"; allow (all)
+             !   userdn="ldap:///cn=ACI user,ou=People,o=example";)  
+            -->
+            <message>
+              'Add ACI to entry ou=People,%s: \n%s' % (synchroSuffix, myAci)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'ou=People,%s' % synchroSuffix,
+                'attributeName'     : 'aci',
+                'newAttributeValue' : myAci,
+                'changetype'        : 'add'
+              }
+            </call>
+                                        
+            <message>
+              '+++ New ACI +++\nAllow "%s" full access to all description \
+              attributes under ou=People,%s.' % \
+              (myEntry.getDn(), synchroSuffix) 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  myDescription = 'He was a serious opium adict - %s' % i
+                </script>
+                
+                <message>
+                  'Binding as "%s", add description %s to entry %s on \
+                  server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myDescription, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myTargetEntryDn,
+                    'attributeName'     : 'description',
+                    'newAttributeValue' : myDescription,
+                    'changetype'        : 'add'
+                  }
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+          
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Modify_replace ACI target
+  #@TestID              Modify_replace ACI target
+  #@TestPurpose         Check ACI replication over a modify_replace of
+                        the ACI target
+  #@TestPreamble
+  #@TestSteps           Binding as user, add telephonenumber to child
+                        entry (expect ERROR 50)
+  #@TestSteps           Replace ACI on parent entry: allow user full
+                        access to all telephonenumber attributes
+  #@TestSteps           Binding as user, add telephonenumber to child
+                        entry (expect SUCCESS)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_003" scope="local">
+    <testcase name="getTestCaseName('Modify_replace ACI target')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Modify_replace ACI target. Check ACI \
+              replication over a modify_replace of the ACI target.'
+            </message>
+            
+            <script>
+              myAci = "(targetattr=\"telephonenumber\")(version 3.0; acl \"Allow ACI-user access to telephonenumber\"; allow (all) userdn=\"ldap:///cn=ACI user,ou=People,%s\";)" % synchroSuffix
+              myUserpassword = 'userPwd'
+
+              myEntry = Entry('cn=ACI user', synchroSuffix)
+              
+              myTargetEntryDn = 'uid=sholmes,ou=People,%s' % synchroSuffix
+            </script>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath        = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  myTelephonenumber = '221-221-221-%s' % i
+                </script>
+                
+                <message>
+                  'Binding as "%s", add telephonenumber %s to entry %s on \
+                  server %s:%s. -- Expect: ERROR 50 (Insufficient Access \
+                  Rights)' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myTargetEntryDn,
+                    'attributeName'     : 'telephonenumber',
+                    'newAttributeValue' : myTelephonenumber,
+                    'changetype'        : 'add',
+                    'expectedRC'        : 50
+                  }
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Replace aci on entry ou=People,o=example on "master" server:
+             !   (targetattr="telephonenumber")(version 3.0; acl 
+             !   "Allow ACI-user access to telephonenumber"; allow (all)
+             !   userdn="ldap:///cn=ACI user,ou=People,o=example";)  
+            -->
+            <message>
+              'Replace ACI on entry ou=People,%s: \n%s' % \
+              (synchroSuffix, myAci)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'ou=People,%s' % synchroSuffix,
+                'attributeName'     : 'aci',
+                'newAttributeValue' : myAci,
+                'changetype'        : 'replace'
+              }
+            </call>
+                                        
+            <message>
+              '+++ New ACI +++\nAllow "%s" full access to all telephonenumber\
+               attributes under ou=People,%s.' % \
+              (myEntry.getDn(), synchroSuffix) 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath        = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  myTelephonenumber = '221-221-221-%s' % i
+                </script>
+                
+                <message>
+                  'Binding as "%s", add description %s to entry %s on \
+                  server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'          : server.getHostname(),
+                    'dsPath'            : serverPath,
+                    'dsInstanceHost'    : server.getHostname(),
+                    'dsInstancePort'    : server.getPort(),
+                    'dsInstanceDn'      : myEntry.getDn(),
+                    'dsInstancePswd'    : myUserpassword,
+                    'DNToModify'        : myTargetEntryDn,
+                    'attributeName'     : 'telephonenumber',
+                    'newAttributeValue' : myTelephonenumber,
+                    'changetype'        : 'add'
+                  }
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+          
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Modify_replace ACI permission
+  #@TestID              Modify_replace ACI permission
+  #@TestPurpose         Check ACI replication over a modify_replace of
+                        the ACI permission
+  #@TestPreamble
+  #@TestSteps           Binding as user, compare telephonenumber value
+                        to child entry (expect SUCCESS)
+  #@TestSteps           Replace ACI on parent entry: deny user access to
+                        telephonenumber attributes
+  #@TestSteps           Binding as user, compare telephonenumber value
+                        to child entry (expect ERROR 50)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_004" scope="local">
+    <testcase name="getTestCaseName('Modify_replace ACI permission')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Modify_replace ACI permission. Check ACI \
+              replication over a modify_replace of the ACI permission.'
+            </message>
+            
+            <script>
+              myAci = "(targetattr=\"telephonenumber\")(version 3.0; acl \"Deny ACI-user access to telephonenumber\"; deny (all) userdn=\"ldap:///cn=ACI user,ou=People,%s\";)" % synchroSuffix
+              myUserpassword = 'userPwd'
+
+              myEntry = Entry('cn=ACI user', synchroSuffix)
+              
+              myTargetEntryDn   = 'uid=sholmes,ou=People,%s' % synchroSuffix
+              myTelephonenumber = '+1 408 555 6789'
+            </script>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 0
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Replace aci on entry ou=People,o=example on "master" server:
+             !   (targetattr="telephonenumber")(version 3.0; acl 
+             !   "Deny ACI-user access to telephonenumber"; deny (all)
+             !   userdn="ldap:///cn=ACI user,ou=People,o=example";)  
+            -->
+            <message>
+              'Replace ACI on entry ou=People,%s: \n%s' % \
+              (synchroSuffix, myAci)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'ou=People,%s' % synchroSuffix,
+                'attributeName'     : 'aci',
+                'newAttributeValue' : myAci,
+                'changetype'        : 'replace'
+              }
+            </call>
+                                        
+            <message>
+              '+++ New ACI +++\nDeny "%s" access to all telephonenumber \
+              attributes under ou=People,%s.' % \
+              (myEntry.getDn(), synchroSuffix) 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: ERROR 50 \
+                  (Insufficient Access Rights)' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 50
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Modify_replace ACI bind rule
+  #@TestID              Modify_replace ACI bind rule
+  #@TestPurpose         Check ACI replication over a modify_replace of
+                        the ACI bind rule
+  #@TestPreamble        Add new user entry
+  #@TestSteps           Binding as new user, compare telephonenumber
+                        value to child entry  (expect SUCCESS)
+  #@TestSteps           Replace ACI on parent entry: deny users with
+                        a given sn access to telephonenumber attributes
+  #@TestSteps           Binding as new user, compare telephonenumber
+                        value to child entry  (expect ERROR 50)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_005" scope="local">
+    <testcase name="getTestCaseName('Modify_replace ACI bind rule')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Modify_replace ACI bind rule. Check ACI \
+              replication over a modify_replace of the ACI bind rule.'
+            </message>
+            
+            <script>
+              mySn  = 'ACI repl user'
+              myAci = "(targetattr=\"telephonenumber\")(version 3.0; acl \"Deny ACI repl users access to telephonenumber\"; deny (all) userdn=\"ldap:///%s??sub?(sn=%s)\";)" % (synchroSuffix, mySn)
+              myUserpassword = 'secondUserPwd'
+
+              myEntry = Entry('cn=Second ACI user', synchroSuffix)
+              myEntry.addAttr('sn', mySn)
+              myEntry.addAttr('userpassword', myUserpassword)
+              
+              myTargetEntryDn   = 'uid=sholmes,ou=People,%s' % synchroSuffix
+              myTelephonenumber = '+1 408 555 6789'
+            </script>
+            
+            <!-- Add user entry to "master" server -->
+            <message>
+              'Add user entry %s' % myEntry.getDn()
+            </message>
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : myEntry.getDn(),
+                'listAttributes' : myEntry.getAttrList()
+              }
+            </call>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 0
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Replace aci on entry ou=People,o=example on "master" server:
+             !   (targetattr="telephonenumber")(version 3.0; acl 
+             !   "Deny ACI repl users access to telephonenumber"; deny (all)
+             !   userdn="ldap:///o=example??sub?(sn=ACI repl user)";)  
+            -->
+            <message>
+              'Replace ACI on entry ou=People,%s: \n%s' % \
+              (synchroSuffix, myAci)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'ou=People,%s' % synchroSuffix,
+                'attributeName'     : 'aci',
+                'newAttributeValue' : myAci,
+                'changetype'        : 'replace'
+              }
+            </call>
+                                        
+            <message>
+              '+++ New ACI +++\nDeny users with (sn=%s) access to all \
+              telephonenumber attributes under ou=People,%s.' % \
+              (mySn, synchroSuffix) 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: ERROR 50 \
+                  (Insufficient Access Rights)' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 50
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Bypass-acl privilege
+  #@TestID              Bypass-acl privilege
+  #@TestPurpose         Check the bypass-acl privilege is replicated and
+                        successfully applied over the topology
+  #@TestPreamble
+  #@TestSteps           Binding as new user, compare telephonenumber
+                        value to child entry  (expect ERROR 50)
+  #@TestSteps           Add ds-privilege-name:bypass-acl to new user
+  #@TestSteps           Binding as new user, compare telephonenumber
+                        value to child entry  (expect SUCCESS)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_006" scope="local">
+    <testcase name="getTestCaseName('Bypass-acl privilege')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Bypass-acl privilege. Check the bypass-acl \
+              privilege is replicated and successfully applied over the \
+              topology'
+            </message>
+            
+            <script>
+              mySn = 'ACI repl user'
+              myAci = "(targetattr=\"telephonenumber\")(version 3.0; acl \"Deny ACI repl users access to telephonenumber\"; deny (all) userdn=\"ldap:///%s??sub?(sn=%s)\";)" % (synchroSuffix, mySn)
+              myUserpassword = 'secondUserPwd'
+              myPrivilege  = 'bypass-acl'
+
+              myEntry = Entry('cn=Second ACI user', synchroSuffix)
+              
+              myTargetEntryDn   = 'uid=sholmes,ou=People,%s' % synchroSuffix
+              myTelephonenumber = '+1 408 555 6789'
+            </script>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: ERROR 50 \
+                  (Insufficient Access Rights)' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 50
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Add bypass-acl privilege to new user entry -->
+            <message>
+              'Add %s privilege to entry %s: \n' % \
+              (myPrivilege, myEntry.getDn())
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : myEntry.getDn(),
+                'attributeName'     : 'ds-privilege-name',
+                'newAttributeValue' : myPrivilege,
+                'changetype'        : 'add'
+              }
+            </call>
+                                        
+            <message>
+              '+++ Active ACI +++\nDeny users with (sn=%s) access to all \
+              telephonenumber attributes under ou=People,%s.' % \
+              (mySn, synchroSuffix) 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 0
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+          
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Modify_delete ACI
+  #@TestID              Modify_delete ACI
+  #@TestPurpose         Check ACI replication over a modify_delete
+  #@TestPreamble
+  #@TestSteps           Binding as user, compare telephonenumber value
+                        to child entry  (expect ERROR 50)
+  #@TestSteps           Delete ACI on parent entry
+  #@TestSteps           Binding as user, compare telephonenumber value
+                        to child entry  (expect SUCCESS)
+  #@TestPostamble
+  #@TestResult          Success if the servers synchronised and the aci
+                        correctly applied after replication
+  -->
+  <function name="replication_aci_007" scope="local">
+    <testcase name="getTestCaseName('Modify_delete ACI')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Modify_delete ACI. Check ACI \
+              replication over a modify_delete.'
+            </message>
+            
+            <script>
+              mySn = 'ACI repl user'
+              myAci = "(targetattr=\"telephonenumber\")(version 3.0; acl \"Deny ACI repl users access to telephonenumber\"; deny (all) userdn=\"ldap:///%s??sub?(sn=%s)\";)" % (synchroSuffix, mySn)
+              myUserpassword = 'userPwd'
+
+              myEntry = Entry('cn=ACI user', synchroSuffix)
+              
+              myTargetEntryDn   = 'uid=sholmes,ou=People,%s' % synchroSuffix
+              myTelephonenumber = '+1 408 555 6789'
+            </script>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: ERROR 50 \
+                  (Insufficient Access Rights)' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 50
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+                
+            <!-- Delete aci on entry ou=People,o=example on "master" server:
+             !   (targetattr="telephonenumber")(version 3.0; acl 
+             !   "Deny ACI repl users access to telephonenumber"; deny (all)
+             !   userdn="ldap:///o=example??sub?(sn=ACI repl user)";)  
+            -->
+            <message>
+              'Delete ACI on entry ou=People,%s: \n%s' % \
+              (synchroSuffix, myAci)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'ou=People,%s' % synchroSuffix,
+                'attributeName'     : 'aci',
+                'newAttributeValue' : myAci,
+                'changetype'        : 'delete'
+              }
+            </call>
+                                        
+            <message>
+              '+++ New ACI +++\nNo aci in ou=People,%s.' % synchroSuffix 
+            </message>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+                
+                <message>
+                  'Binding as "%s", compare telephonenumber:%s value to \
+                  entry %s on server %s:%s. -- Expect: SUCCESS' % \
+                  (myEntry.getDn(), myTelephonenumber, myTargetEntryDn, 
+                   server.getHostname(), server.getPort())
+                </message>
+                    
+                <!-- Compare 'telephonenumber:+1 408 555 6789' value to entry 
+                 !   uid=sholmes,ou=People,o=example -->
+                <call function="'ldapCompareWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : myEntry.getDn(),
+                    'dsInstancePswd' : myUserpassword,
+                    'dsDn'           : ['telephonenumber:%s' % \
+                                        myTelephonenumber, myTargetEntryDn],
+                    'expectedRC'     : 0
+                  }                
+                </call>
+              </sequence>
+            </iterate>
+            
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

@@ -1,0 +1,1131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
+ ! -->
+<stax>
+                                    
+  <!--- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: Add objectclass
+  #@TestID              Add objectclass
+  #@TestPurpose         Check schema replication when a new objectclass 
+                        is added
+  #@TestPreamble        Load entries
+  #@TestSteps           Add new objectclass definition on server1
+  #@TestSteps           Add entry of new objectclass on server2
+  #@TestPostamble
+  #@TestResult          Success if schema add and entry add replicated
+  -->
+  <function name="replication_schema_001" scope="local">
+    <testcase name="getTestCaseName('Add objectclass')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new objectclass is added.' % msg1 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Load entries into "master" server.' % msg1 }
+            </call>
+                            
+            <!-- Load entries into "master" server -->                                
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/Example.ldif' % \
+                                   clientDataDir
+              }
+            </call>                     
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add new object class.' % msg1 }
+            </call>
+                              
+            <script>
+              newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
+            </script>
+              
+            <!-- Modify schema  in "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : newObjectclass, 
+                'changetype'        : 'add'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add entry to "consumer" server using new objectclass.' % msg1 }
+            </call>
+
+            <!-- Add entry to "consumer" server -->                       
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumerHost,
+                'dsInstancePort' : consumer.getPort(), 
+                'dsInstanceDn'   : consumer.getRootDn(),
+                'dsInstancePswd' : consumer.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/testuser-0.ldif' % \
+                                   clientDataDir
+              }
+            </call>           
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                    
+            <!-- Verify the synchronization of the schema among the servers 
+              in the topology -->          
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>           
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                     
+          
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: 
+                        Add attributetype
+  #@TestID              Add attributetype
+  #@TestPurpose         Check schema replication when a new 
+                        attributetype is added
+  #@TestPreamble
+  #@TestSteps           Add new attributeType and new objectclass 
+                        definition on server1
+  #@TestSteps           Add new entry containing new objectclass and
+                        new attributeType on server2 
+  #@TestPostamble
+  #@TestResult          Success if schema add and entry adds replicated
+  -->
+  <function name="replication_schema_002" scope="local">
+    <testcase name="getTestCaseName('Add attributetype')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new Attributetype is added.' % msg1 }
+            </call>
+                                
+            <script>
+              newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
+              newAttributetype = '( testattribute1-oid NAME \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN \'user defined\' )'
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add newAttributetype in "master" server.' % msg1 }
+            </call>
+              
+            <!-- Modify schema  in "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'attributeTypes',
+                'newAttributeValue' : newAttributetype, 
+                'changetype'        : 'add'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add newObjectclass in "master" server.' % msg1 }
+            </call>
+          
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : newObjectclass, 
+                'changetype'        : 'add'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
+            </call>
+
+            <!-- Add entry to "consumer" server -->                       
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumerHost,
+                'dsInstancePort' : consumer.getPort(), 
+                'dsInstanceDn'   : consumer.getRootDn(),
+                'dsInstancePswd' : consumer.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/testuser-1.ldif' % \
+                                   clientDataDir
+              }
+            </call>           
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->          
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>               
+                                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                           
+            
+
+
+  <!-- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: 
+                        Delete objectclass
+  #@TestID              Delete objectclass
+  #@TestPurpose         Check schema replication when an objectclass 
+                        is deleted
+  #@TestPreamble
+  #@TestSteps           Remove user-defined objectclass definition on
+                        server1
+  #@TestSteps           Delete entry on server1
+  #@TestSteps           Add entry containing  removed objectclass on
+                        every server                          
+  #@TestPostamble
+  #@TestResult          Success if schema remove replicated and last
+                        entry add rejected on all servers (error 65:
+                        objectclass violation)
+  -->
+  <function name="replication_schema_003" scope="local">
+    <testcase name="getTestCaseName('Delete objectclass')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when an objectclass is deleted.' % msg1 }
+            </call>
+                                
+            <script>
+              newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Delete newObjectclass in "master" server.' % msg1 }
+            </call>
+              
+            <!-- Modify schema  in "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : newObjectclass, 
+                'changetype'        : 'delete'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Delete previously added entry.' % msg1 }
+            </call>
+
+            <!-- Delete previously added entry -->
+            <call function="'ldapDeleteWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : master.getHostname(),
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsDn'       :  ['cn=testuser-0,ou=People,%s' % synchroSuffix]
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Attempt to add entry to servers with deleted objectclass.' % msg1 }
+            </call>
+                              
+            <!-- Try to add entry to servers; should be rejected with error 65
+              (objectclass violation) -->
+            <iterate var="server" in="_topologyServerList">
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : server.getHostname(),
+                  'dsInstancePort' : server.getPort(), 
+                  'dsInstanceDn'   : server.getRootDn(),
+                  'dsInstancePswd' : server.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/testuser-0.ldif' % \
+                                     clientDataDir,
+                  'expectedRC'     : 65
+                }
+              </call>                             
+            </iterate> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                                                     
+ 
+
+
+  <!-- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: 
+                        Modify objectclass
+  #@TestID              Modify objectclass
+  #@TestPurpose         Check schema replication when an objectclass is
+                        modified
+  #@TestPreamble
+  #@TestSteps           Remove user-defined objectclass definition on
+                        server1
+  #@TestSteps           Add modified version of removed user-defined 
+                        objectclass on server1 (make attributes
+                        MANDATORY)
+  #@TestSteps           Add entry containing newly added objectclass but
+                        without required attributes on every server
+  #@TestPostamble
+  #@TestResult          Success if schema modify replicated and entry
+                        add rejected with error 65 (objectclass 
+                        violation) on all servers
+  -->
+  <function name="replication_schema_004" scope="local">
+    <testcase name="getTestCaseName('Modify objectclass')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when an objectclass is modified.' % msg1 }
+            </call>
+                                
+            <script>       
+              oldObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'                             
+              newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MUST ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Delete oldObjectclass in "master" server.' % msg1 }
+            </call>
+              
+            <!-- Modify schema  in "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : oldObjectclass, 
+                'changetype'        : 'delete'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add newObjectclass in "master" server.' % msg1 }
+            </call>
+     
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : newObjectclass, 
+                'changetype'        : 'add'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Attempt to add entry to servers with deleted objectclass.' % msg1 }
+            </call>
+                              
+            <!-- Try to add entry to servers; should be rejected with error 65
+              (objectclass violation) -->
+            <iterate var="server" in="_topologyServerList">
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : server.getHostname(),
+                  'dsInstancePort' : server.getPort(), 
+                  'dsInstanceDn'   : server.getRootDn(),
+                  'dsInstancePswd' : server.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/testuser-2.ldif' % \
+                                     clientDataDir,
+                  'expectedRC'     : 65
+                }
+              </call>                             
+            </iterate> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                 
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                                                     
+
+
+                                    
+  <!--- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: Add objectclass
+                        (edit schema file)
+  #@TestID              Add objectclass (edit schema file)
+  #@TestPurpose         Check schema replication when a new objectclass
+                        is added manually
+  #@TestPreamble
+  #@TestSteps           Stop servers
+  #@TestSteps           Edit 99-user.ldif to add new objectclass 
+                        definition on server1
+  #@TestSteps           Start servers
+  #@TestSteps           Add entry of new objectclass on server2
+  #@TestPostamble
+  #@TestResult          Success if schema add and entry add replicated
+  -->
+  <function name="replication_schema_005" scope="local">
+    <testcase name="getTestCaseName('Add objectclass (edit schema file)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new objectclass is manually added.' % msg1 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_topologyServerList]
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
+            </call>
+                                
+            <!-- Modify schema  in "master" server -->
+            <call function="'copyFile'">
+              { 'location'   : masterHost,
+                'remotehost' : masterHost,
+                'srcfile'    : currentSchemaFile,
+                'destfile'   : provSchemaFile
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Edit schema file.' % msg1 }
+            </call>
+
+            <call function="'LdifModifyWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath, 
+                'sourceLdif'  : provSchemaFile,
+                'changesLdif' : '%s/replication/schemamods-0.ldif' % \
+                                masterDataDir,
+                'targetLdif'  : currentSchemaFile
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+            </call>
+                                                            
+            <!-- Start the servers in the topology -->
+            <call function="'startServers'">
+              [_topologyServerList]
+            </call>                                                                  
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'  :  1000 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
+            </call>
+              
+            <!-- Add entry to "consumer" server -->                       
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumerHost,
+                'dsInstancePort' : consumer.getPort(), 
+                'dsInstanceDn'   : consumer.getRootDn(),
+                'dsInstancePswd' : consumer.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % \
+                                   clientDataDir,
+                'knownIssue'     : 'OPENDJ-452'
+              }
+            </call>           
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->          
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+             
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                     
+          
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: Add 
+                        attributetype (edit schema file)
+  #@TestID              Add attributetype (edit schema file)
+  #@TestPurpose         Check schema replication when a new 
+                        attributetype is added manually
+  #@TestPreamble
+  #@TestSteps           Stop servers
+  #@TestSteps           Edit 99-user.ldif to add new objectclass and 
+                        new attributeType definition on server1            
+  #@TestSteps           Start servers
+  #@TestSteps           Add new entry containing new objectclass and
+                        new attributeType on server2               
+  #@TestPostamble
+  #@TestResult          Success if schema add and entry adds replicated
+  -->
+  <function name="replication_schema_006" scope="local">
+    <testcase name="getTestCaseName('Add attributetype (edit schema file)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new attributetype is manually added.' % msg1 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_topologyServerList]
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Modify schema  in "master" server .' % msg1 }
+            </call>
+                               
+            <!-- Modify schema  in "master" server -->
+            <call function="'copyFile'">
+              { 'location'   : masterHost,
+                'remotehost' : masterHost,
+                'srcfile'    : currentSchemaFile,
+                'destfile'   : provSchemaFile
+              }
+            </call>
+            <call function="'LdifModifyWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath, 
+                'sourceLdif'  : provSchemaFile,
+                'changesLdif' : '%s/replication/schemamods-1.ldif' % \
+                                masterDataDir,
+                'targetLdif'  : currentSchemaFile
+              }
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+            </call>
+                                                            
+            <!-- Start the servers in the topology -->
+            <call function="'startServers'">
+              [_topologyServerList]
+            </call>                                                                                                     
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'  :  1000 }
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Add entry to "consumer" server.' % msg1 }
+            </call>
+                              
+            <!-- Add entry to "consumer" server -->                       
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumerHost,
+                'dsInstancePort' : consumer.getPort(), 
+                'dsInstanceDn'   : consumer.getRootDn(),
+                'dsInstancePswd' : consumer.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/newtestuser-1.ldif' % \
+                                   clientDataDir,
+                'knownIssue'     : 'OPENDJ-452'
+              }
+            </call>           
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->          
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                 
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                           
+            
+
+
+            
+  <!-- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: Delete 
+                        objectclass (edit schema file)
+  #@TestID              Delete objectclass (edit schema file)
+  #@TestPurpose         Check schema replication when an objectclass is
+                        deleted manually
+  #@TestPreamble
+  #@TestSteps           Stop servers
+  #@TestSteps           Edit 99-user.ldif to remove user-defined 
+                        objectclass definition on server1
+  #@TestSteps           Start servers              
+  #@TestSteps           Delete entry on server1
+  #@TestSteps           Add entry containing  removed objectclass on
+                        every server                          
+  #@TestPostamble
+  #@TestResult          Success if schema remove replicated and last
+                        entry add rejected on all servers (error 65:
+                        objectclass violation)
+  -->
+  <function name="replication_schema_007" scope="local">
+    <testcase name="getTestCaseName('Delete objectclass (edit schema file)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new objectclass is manually deleted.' % msg1 }
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_topologyServerList]
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
+            </call>
+                                
+            <!-- Modify schema  in "master" server -->
+            <call function="'copyFile'">
+              { 'location'   : masterHost,
+                'remotehost' : masterHost,
+                'srcfile'    : currentSchemaFile,
+                'destfile'   : provSchemaFile
+              }
+            </call>
+            <call function="'LdifModifyWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath, 
+                'sourceLdif'  : provSchemaFile,
+                'changesLdif' : '%s/replication/schemamods-2.ldif' % \
+                                masterDataDir,
+                'targetLdif'  : currentSchemaFile
+              }
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+            </call>
+                                                            
+            <!-- Start the servers in the topology -->
+            <call function="'startServers'">
+              [_topologyServerList]
+            </call>                                                     
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Delete previously added entry.' % msg1 }
+            </call>
+              
+            <!-- Delete previously added entry -->
+            <call function="'ldapDeleteWithScript'">
+              { 'location'       :  clientHost,
+                'dsPath'         :  clientPath,
+                'dsInstanceHost' :  master.getHostname(),
+                'dsInstancePort' :  master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' :  master.getRootPwd(),
+                'dsDn'    :  ['cn=newtestuser-0,ou=People,%s' % synchroSuffix],
+                'knownIssue'     : 'OPENDJ-452'
+                
+
+              }
+            </call>
+                              
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'  :  1000 }
+            </call>
+
+             <call function="'testStep'">
+              { 'stepMessage' : '%s Try to add entry to servers.' % msg1 }
+            </call>
+                              
+            <!-- Try to add entry to servers; should be rejected with error 65
+              (objectclass violation) -->
+            <!-- If the add doesn't return 65, it may mean we came across
+              issue OPENDJ-453 (Manual schema objectclass delete not replicated) -->
+            <iterate var="server" in="_topologyServerList">
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : server.getHostname(),
+                  'dsInstancePort' : server.getPort(), 
+                  'dsInstanceDn'   : server.getRootDn(),
+                  'dsInstancePswd' : server.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % \
+                                     clientDataDir,
+                  'expectedRC'     : 65,
+                  'knownIssue'     : 'OPENDJ-453'
+                }
+              </call>                             
+            </iterate> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+
+  <!-- Test Case information
+  #@TestMarker          Replication Schema Replication Tests
+  #@TestName            Replication: Schema Replication: Modify 
+                        objectclass (edit schema file)
+  #@TestID              Modify objectclass (edit schema file)
+  #@TestPurpose         Check schema replication when an objectclass is
+                        modified manually
+  #@TestPreamble
+  #@TestSteps           Stop servers
+  #@TestSteps           Edit 99-user.ldif to modify user-defined 
+                        objectclass (make attributes MANDATORY) on
+                        server1
+  #@TestSteps           Start servers              
+  #@TestSteps           Add entry containing newly added objectclass but
+                        without required attributes on every server
+  #@TestPostamble
+  #@TestResult          Success if schema modify replicated and entry
+                        add rejected with error 65 (objectclass 
+                        violation) on all servers
+  -->
+  <function name="replication_schema_008" scope="local">
+    <testcase name="getTestCaseName('Modify objectclass (edit schema file)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check schema replication when a new objectclass is manually modified.' % msg1 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Stop the servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_topologyServerList]
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Modify schema  in "master" server.' % msg1 }
+            </call>
+                              
+            <!-- Modify schema  in "master" server -->
+            <call function="'copyFile'">
+              { 'location'   : masterHost,
+                'remotehost' : masterHost,
+                'srcfile'    : currentSchemaFile,
+                'destfile'   : provSchemaFile
+              }
+            </call>
+            <call function="'LdifModifyWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath, 
+                'sourceLdif'  : provSchemaFile,
+                'changesLdif' : '%s/replication/schemamods-3.ldif' % \
+                                masterDataDir,
+                'targetLdif'  : currentSchemaFile 
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Start the servers in the topology.' % msg1 }
+            </call>
+                                                            
+            <!-- Start the servers in the topology -->
+            <call function="'startServers'">
+              [_topologyServerList]
+            </call>                     
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'  :  1000 }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Try to add entry to servers.' % msg1 }
+            </call>
+                                                                                                                              
+            <!-- Try to add entry to servers; should be rejected with error 65
+              (objectclass violation) -->
+            <!-- If the add doesn't return 65, it may mean we came across
+              issue OPENDJ-453 (Manual schema objectclass delete not replicated) -->
+            <iterate var="server" in="_topologyServerList">
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : server.getHostname(),
+                  'dsInstancePort' : server.getPort(), 
+                  'dsInstanceDn'   : server.getRootDn(),
+                  'dsInstancePswd' : server.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/newtestuser-2.ldif' % \
+                                     clientDataDir,
+                  'expectedRC'     : 65,
+                  'knownIssue'     : ['OPENDJ-453','OPENDJ-452']
+                }
+              </call>                             
+            </iterate> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the schema on all the servers.' % msg1 }
+            </call>
+                     
+            <!-- Verify the synchronization of the schema among the servers in
+              the topology -->
+            <!-- Since this testcase inherits the 99-user.ldif from the one
+              before, as long as OPENDJ-453 is still present, the schema files will
+              differ as the second server will still have newobjectclass-0 -->
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif',
+                'OPENDJ-453' ]
+            </call> 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify the synchronization of the trees on all the servers.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

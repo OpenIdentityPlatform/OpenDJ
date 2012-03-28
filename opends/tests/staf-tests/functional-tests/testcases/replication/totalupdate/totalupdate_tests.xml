@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+          
+  <!--- Test Case : Total Update -->          
+  <!--- Test Case information
+  #@TestMarker          Replication Total Update Tests
+  #@TestName            Replication: Total Update: Simple LDIF
+  #@TestID              Simple LDIF
+  #@TestPurpose         Initialize server with total update
+  #@TestPreamble
+  #@TestSteps           Stop server A
+  #@TestSteps           Import data into server A
+  #@TestSteps           Start server A
+  #@TestSteps           Initialise (dsreplication initialize)
+                        every other server from server A
+  #@TestSteps           Check suffix has been initialised on every 
+                        server
+  #@TestSteps           Add entry on server A
+  #@TestPostamble
+  #@TestResult          Success if initialisation call succeeds for all
+                        servers and all servers are synchronised
+  -->
+  <function name="replication_totalupdate_001" scope="local">
+    <testcase name="getTestCaseName('Simple LDIF')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Simple LDIF. Initialize server with total update.' % msg1 }
+            </call>                               
+              
+            <!-- Stop "master" Directory Server -->
+            <call function="'StopDsWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath,
+                'dsHost'      : masterHost,
+                'dsAdminPort' : master.getAdminPort(),
+                'dsBindDN'    : master.getRootDn(),
+                'dsBindPwd'   : master.getRootPwd()
+              }
+            </call>
+            
+            <!-- Check that the Directory Server is stopped -->
+            
+            <!-- Import data into "master" Directory Server -->
+            <call function="'ImportLdifWithScript'">
+              { 'location'     : masterHost,
+                'dsPath'       : masterPath,
+                'backEnd'      : DIRECTORY_INSTANCE_BE,
+                'ldifFile'     : '%s/replication/Example.ldif' % masterDataDir
+              }
+            </call>
+            
+            <!-- Start the Directory Server -->
+            <call function="'StartDsWithScript'">
+              { 'location'  : masterHost,
+                'dsPath'    : masterPath
+              }
+            </call>
+            
+            <!-- Wait for DS to start -->
+            <call function="'isAlive'">
+              { 'location'         : masterHost,
+                'dsPath'           : masterPath,
+                'dsInstanceHost'   : masterHost,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000
+              }
+            </call>
+            
+            <!-- Check some data was imported into Directory Server -->
+            <call function="'checkImport'">
+              { 'location'        : masterHost,
+                'dsPath'          : masterPath,
+                'dsHost'          : masterHost,
+                'dsPort'          : master.getPort(),
+                'dsAdminPort'     : master.getAdminPort(),
+                'dsDn'            : master.getRootDn(),
+                'dsPswd'          : master.getRootPwd(),
+                'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                     'uid=dmiller, ou=People, o=example',
+                                     'uid=rhunt, ou=People, o=example'],
+                'startDS'         : 'no'
+              }
+            </call>
+
+
+            <iterate var="server" in="consumerList">
+              <sequence>                                                                            
+                <!-- Perform the total update -->
+                <call function="'initializeReplication'">
+                  { 'location'                :  clientHost,
+                    'dsPath'                  :  clientPath,
+                    'dsInstanceHost'          :  server.getHostname(),
+                    'dsInstanceAdminPort'     :  server.getAdminPort(),
+                    'sourceInstanceHost'      :  masterHost,
+                    'sourceInstanceAdminPort' :  master.getAdminPort(),
+                    'replicationDnList'       :  ['o=example']
+                  }
+                </call>
+                                                          
+                <!-- Verify the total update -->
+                <call function="'checkImport'">
+                  { 'location'    : server.getHostname(),
+                    'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsHost'      : server.getHostname(),
+                    'dsPort'      : server.getPort(),
+                    'dsAdminPort' : server.getAdminPort(),
+                    'dsDn'        : server.getRootDn(),
+                    'dsPswd'      : server.getRootPwd(),
+                    'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                         'uid=dmiller, ou=People, o=example',
+                                         'uid=rhunt, ou=People, o=example'],
+                    'startDS'  : 'no'
+                  }
+                </call>                                                                                
+              </sequence>
+            </iterate>
+              
+            <!-- To make sure replication is working: add entry to "master" 
+              server -->
+            <script>
+              listAttr = []
+              listAttr.append('objectclass:top')
+              listAttr.append('objectclass:organizationalperson')
+              listAttr.append('objectclass:inetorgperson')
+              listAttr.append('objectclass:person')
+              listAttr.append('givenname:Professor Moriarty')
+              listAttr.append('sn:Moriarty')
+              listAttr.append('cn:Professor Moriarty')
+              listAttr.append('l:London')
+            </script>
+    
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : 'uid=pmoriarty, ou=People, o=example',
+                'listAttributes' : listAttr
+              }
+            </call>
+                                             
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, 'o=example' ]
+            </call>
+                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Total Update Tests
+  #@TestName            Replication: Total Update: Schema total update
+  #@TestID              Schema total update
+  #@TestPurpose         Initialize the schema with total update.
+  #@TestPreamble
+  #@TestSteps           Add entry belonging to undefined new schema on
+                        server B
+  #@TestSteps           Disable replication for cn=schema on server A
+  #@TestSteps           Add new objectClass and new attrType definition
+                        to schema in server A
+  #@TestSteps           Enable replication for cn=schema on server A
+                        (which also initialises cn=schema)
+  #@TestSteps           Add entry belonging to new schema on server B
+  #@TestPostamble
+  #@TestResult          Success if first entry add attempt on server B
+                        fails with error 65 (objectclass violation)
+                        whereas second add attempt succeeds.
+  -->
+  <function name="replication_totalupdate_002" scope="local">
+    <testcase name="getTestCaseName('Schema total update')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Initialize schema with total update.' % msg1 }
+            </call>
+
+            <script>
+              consumer = consumerList[0]
+            </script>
+                                     
+            <!-- Try to add entry belonging to new schema to "consumer" 
+              server; should be rejected with error 65 (objectclass violation)
+            -->
+            <call function="'addEntry'">
+              { 'location'        : clientHost,
+                'dsPath'          : clientPath,
+                'dsInstanceHost'  : consumer.getHostname(),
+                'dsInstancePort'  : consumer.getPort(),
+                'dsInstanceDn'    : consumer.getRootDn(),
+                'dsInstancePswd'  : consumer.getRootPwd(),
+                'entryToBeAdded'  : '%s/replication/testuser-1.ldif' \
+                                    % clientDataDir,
+                'expectedRC'      : 65
+              }
+            </call>
+
+
+            <!-- Disable schema replication on "master" server -->       
+            <call function="'disableReplication'">
+              { 'location'            : clientHost,
+                'dsPath'              : clientPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'replicationDnList'   : ['cn=schema']
+              }
+            </call>
+              
+            <script>
+              newObjectclass = '( testobjectclass1-oid NAME \
+              \'testobjectclass-1\' SUP person MAY ( street $ \
+              testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
+              newAttributetype = '( testattribute1-oid NAME \
+              \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 \
+              X-ORIGIN \'user defined\' )'
+            </script>
+              
+            <!-- Modify schema  in "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'attributeTypes',
+                'newAttributeValue' : newAttributetype, 
+                'changetype'        : 'add'
+              }
+            </call>
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'cn=schema',
+                'attributeName'     : 'objectClasses',
+                'newAttributeValue' : newObjectclass,
+                'changetype'        : 'add'
+              }
+            </call>
+              
+            <!-- Re-enable schema replication on "master" server, and 
+              at the same time initialise the schema across the topology -->
+            <script>
+              if master.isOnlyLdapServer():
+                masterReplPort = None
+              else:
+                masterReplPort = masterReplicationServer.getPort()
+              
+              if consumer.isOnlyLdapServer():
+                consumerReplPort = None
+              else:
+                replicationServer = consumer.getChangelogServer()
+                consumerReplPort = replicationServer.getPort() 
+            </script>          
+            <call function="'enableReplication'">
+              { 'location'             : clientHost,
+                'dsPath'               : clientPath,
+                'refInstanceHost'      : masterHost,
+                'refInstanceAdminPort' : master.getAdminPort(),
+                'refInstanceDn'        : master.getRootDn(),
+                'refInstancePswd'      : master.getRootPwd(),
+                'refReplicationPort'   : masterReplPort,
+                'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                'refOnlyReplServer'    : master.isOnlyReplServer(),
+                'dsInstanceHost'       : consumer.getHostname(),
+                'dsInstanceAdminPort'  : consumer.getAdminPort(),
+                'dsInstanceDn'         : consumer.getRootDn(),
+                'dsInstancePswd'       : consumer.getRootPwd(),
+                'dsReplicationPort'    : consumerReplPort,
+                'dsOnlyLdapServer'     : consumer.isOnlyLdapServer(),
+                'dsOnlyReplServer'     : consumer.isOnlyReplServer(),
+                'replicationDnList'    : ['cn=schema']
+              }                      
+            </call>
+              
+            <!-- Add entry to "consumer" server -->    
+            <call function="'addEntry'">
+              { 'location'        : clientHost,
+                'dsPath'          : clientPath,
+                'dsInstanceHost'  : consumer.getHostname(),
+                'dsInstancePort'  : consumer.getPort(),
+                'dsInstanceDn'    : consumer.getRootDn(),
+                'dsInstancePswd'  : consumer.getRootPwd(),
+                'entryToBeAdded'  : '%s/replication/testuser-1.ldif' \
+                                    % clientDataDir
+              }
+            </call>
+
+            <!-- Verify the synchronization of the schema among the servers
+              in the topology -->
+            <!-- If the schema files differ, it could be due to Issue OPENDJ-449
+              (Replication adds modifiersName and modifyTimestamp to schema 
+              updates) -->
+            <call function="'verifySchemas'">
+              [ clientHost, clientPath, master, consumerList, '99-user.ldif',
+                'OPENDJ-449' ]
+            </call> 
+                                              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, 'o=example' ]
+            </call>                
+             
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+                          
+
+  <!--- Test Case information
+  #@TestMarker          Replication Total Update Tests
+  #@TestName            Replication: Total Update: Initialize all
+  #@TestID              Initialize all
+  #@TestPurpose         Initialize all servers with total update
+  #@TestPreamble
+  #@TestSteps           Stop server A
+  #@TestSteps           Import data into server A
+  #@TestSteps           Start server A
+  #@TestSteps           Initialise (dsreplication initialize all) all
+                        the servers from server A
+  #@TestSteps           Check suffix has been initialised on every 
+                        server
+  #@TestSteps           Add entry on server A
+  #@TestPostamble
+  #@TestResult          Success if initialisation call succeeds for all
+                        servers and all servers are synchronised
+  -->
+  <function name="replication_totalupdate_003" scope="local">
+    <testcase name="getTestCaseName('Initialize all')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Initialize all servers with total update.' % msg1 }
+            </call>
+              
+            <!-- Stop "master" Directory Server -->
+            <call function="'StopDsWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath,
+                'dsHost'      : masterHost,
+                'dsAdminPort' : master.getAdminPort(),
+                'dsBindDN'    : master.getRootDn(),
+                'dsBindPwd'   : master.getRootPwd()
+              }
+            </call>
+            
+            <!-- Check that the Directory Server is stopped -->
+            
+            <!-- Import data into "master" Directory Server -->
+            <call function="'ImportLdifWithScript'">
+              { 'location'   : masterHost,
+                'dsPath'     : masterPath,
+                'backEnd'    : DIRECTORY_INSTANCE_BE,
+                'ldifFile'   : '%s/replication/Short_Example.ldif' \
+                               % masterDataDir
+              }
+            </call>
+
+            <!-- Start the Directory Server -->
+            <call function="'StartDsWithScript'">
+              { 'location'  : masterHost,
+                'dsPath'    : masterPath
+              }
+            </call>
+            
+            <!-- Wait for DS to start -->
+            <call function="'isAlive'">
+              { 'location'         : masterHost,
+                'dsPath'           : masterPath,
+                'dsInstanceHost'   : masterHost,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000
+              }
+            </call>
+            
+            <!-- Check some data was imported into Directory Server -->
+            <call function="'checkImport'">
+              { 'location'        : masterHost,
+                'dsPath'          : masterPath,
+                'dsHost'          : masterHost,
+                'dsPort'          : master.getPort(),
+                'dsAdminPort'     : master.getAdminPort(),
+                'dsDn'            : master.getRootDn(),
+                'dsPswd'          : master.getRootPwd(),
+                'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                     'uid=dmiller, ou=People, o=example',
+                                     'uid=sholmes, ou=People, o=example'],
+                'startDS'         : 'no'
+              }
+            </call>
+
+
+            <!-- Perform the total update -->
+            <call function="'initializeReplication'">
+              { 'location'                : clientHost,
+                'dsPath'                  : clientPath,
+                'sourceInstanceHost'      : masterHost,
+                'sourceInstanceAdminPort' : master.getAdminPort(),
+                'replicationDnList'       : ['o=example']
+              }
+            </call>
+
+
+            <iterate var="server" in="consumerList">
+              <sequence>                                               
+                <!-- Verify the total update -->
+                <call function="'checkImport'">
+                  { 'location'    : server.getHostname(),
+                    'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsHost'      : server.getHostname(),
+                    'dsPort'      : server.getPort(),
+                    'dsAdminPort' : server.getAdminPort(),
+                    'dsDn'        : server.getRootDn(),
+                    'dsPswd'      : server.getRootPwd(),
+                    'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                         'uid=dmiller, ou=People, o=example',
+                                         'uid=sholmes, ou=People, o=example'],
+                    'startDS'  : 'no'
+                  }
+                </call>                                                         
+              </sequence>
+            </iterate>
+
+            <!-- To make sure replication is working: add entry to "master"
+              server -->
+            <script>
+              listAttr = []
+              listAttr.append('objectclass:top')
+              listAttr.append('objectclass:organizationalperson')
+              listAttr.append('objectclass:inetorgperson')
+              listAttr.append('objectclass:person')
+              listAttr.append('givenname:Professor Moriarty')
+              listAttr.append('sn:Moriarty')
+              listAttr.append('cn:Professor Moriarty')
+              listAttr.append('l:London')
+            </script>
+    
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : 'uid=pmoriarty, ou=People, o=example',
+                'listAttributes' : listAttr
+              }
+            </call>
+                         
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, 'o=example' ]
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+</stax>
