@@ -368,7 +368,7 @@ Host Name:                opendj.example.com
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/OpenDJ-<?eval ${docTargetVersion}?>
 Version:                  OpenDJ <?eval ${docTargetVersion}?>
-Java Version:             1.6.0_24
+Java Version:             1.6.0_29
 Administration Connector: Port 4444 (LDAPS)
 
           --- Connection Handlers ---
