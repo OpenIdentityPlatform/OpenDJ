@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -222,11 +223,11 @@ public class TargetAttr {
     }
 
     /**
-     * Performs test to see if the specified is applicable to the specified
-     * TargetAttr. First a check if the TargetAttr parsing code saw an
-     * expression like:
+     * Performs test to see if the specified attribute type is applicable
+     * to the specified TargetAttr. First a check if the TargetAttr parsing
+     * code saw an expression like:
      *
-     *  (targetattrs="+ || *), (targetattrs != "* || +)
+     *  (targetattrs="+ || *"), (targetattrs != "* || +")
      *
      * where both shorthand tokens where parsed. IF so then the attribute type
      * matches automatically (or not matches if NOT_EQUALITY).
