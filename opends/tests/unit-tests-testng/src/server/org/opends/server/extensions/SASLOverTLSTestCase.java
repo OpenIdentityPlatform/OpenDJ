@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -259,7 +259,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       objectClass.add("person");
       objectClass.add("organizationalPerson");
       objectClass.add("inetOrgPerson");
-      Attribute pwdPolicy =
+      Attribute aPwdPolicy =
         new BasicAttribute("ds-pwp-password-policy-dn",pwdPolicyDN);
       Attribute cn = new BasicAttribute("cn", "test");
       cn.add("test.User");
@@ -268,7 +268,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       entryAttrs.put(objectClass);
       entryAttrs.put(cn);
       entryAttrs.put(sn);
-      entryAttrs.put(pwdPolicy);
+      entryAttrs.put(aPwdPolicy);
       Hashtable<String, String> env = new Hashtable<String, String>();
       env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
       String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
@@ -277,7 +277,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       env.put(Context.SECURITY_CREDENTIALS, "password");
       env.put(Context.SECURITY_AUTHENTICATION, simple);
       ctx = new InitialDirContext(env);
-      ctx.createSubcontext(testUserDN, entryAttrs);
+      ctx.bind(testUserDN, null, entryAttrs);
       ModificationItem[] mods = new ModificationItem[1];
       Attribute pwd = new BasicAttribute("userPassword", "password");
       mods[0] = new ModificationItem(DirContext.ADD_ATTRIBUTE, pwd);
@@ -331,6 +331,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
    * Returns trues, accepting any host name.
    */
   class SampleVerifier implements HostnameVerifier {
+    @Override
     public boolean verify(String hostname, SSLSession session) {
       return true;
     }
