@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -30,28 +31,28 @@ package org.opends.server.extensions;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import javax.security.auth.x500.X500Principal;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
+import javax.security.auth.x500.X500Principal;
+import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
-import org.opends.server.admin.std.server.
-            SubjectDNToUserAttributeCertificateMapperCfg;
+import org.opends.server.admin.std.server
+    .SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -78,6 +79,8 @@ public class SubjectDNToUserAttributeCertificateMapper
   // The current configuration for this certificate mapper.
   private SubjectDNToUserAttributeCertificateMapperCfg currentConfig;
 
+  // The set of attributes to return in search result entries.
+  private LinkedHashSet<String> requestedAttributes;
 
 
   /**
@@ -95,6 +98,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeCertificateMapper(
                    SubjectDNToUserAttributeCertificateMapperCfg
                         configuration)
@@ -126,6 +130,12 @@ public class SubjectDNToUserAttributeCertificateMapper
         ErrorLogger.logError(message);
       }
     }
+
+    // Create the attribute list to include in search requests.  We want to
+    // include all user and operational attributes.
+    requestedAttributes = new LinkedHashSet<String>(2);
+    requestedAttributes.add("*");
+    requestedAttributes.add("+");
   }
 
 
@@ -133,6 +143,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeCertificateMapper()
   {
     currentConfig.removeSubjectDNToUserAttributeChangeListener(this);
@@ -143,6 +154,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
@@ -205,7 +217,46 @@ public class SubjectDNToUserAttributeCertificateMapper
     for (DN baseDN : baseDNs)
     {
       InternalSearchOperation searchOperation =
-           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE, filter);
+           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
+                              DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
+                              false, filter, requestedAttributes);
+      switch (searchOperation.getResultCode())
+      {
+        case SUCCESS:
+          // This is fine.  No action needed.
+          break;
+
+        case NO_SUCH_OBJECT:
+          // The search base doesn't exist.  Not an ideal situation, but we'll
+          // ignore it.
+          break;
+
+        case SIZE_LIMIT_EXCEEDED:
+          // Multiple entries matched the filter.  This is not acceptable.
+          Message message = ERR_SDTUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
+                        peerName);
+          throw new DirectoryException(
+                  ResultCode.INVALID_CREDENTIALS, message);
+
+
+        case TIME_LIMIT_EXCEEDED:
+        case ADMIN_LIMIT_EXCEEDED:
+          // The search criteria was too inefficient.
+          message = ERR_SDTUACM_INEFFICIENT_SEARCH.get(
+                         peerName,
+                         String.valueOf(searchOperation.getErrorMessage()));
+          throw new DirectoryException(searchOperation.getResultCode(),
+              message);
+
+        default:
+          // Just pass on the failure that was returned for this search.
+          message = ERR_SDTUACM_SEARCH_FAILED.get(
+                         peerName,
+                         String.valueOf(searchOperation.getErrorMessage()));
+          throw new DirectoryException(searchOperation.getResultCode(),
+              message);
+      }
+
       for (SearchResultEntry entry : searchOperation.getSearchEntries())
       {
         if (userEntry == null)
@@ -247,6 +298,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SubjectDNToUserAttributeCertificateMapperCfg
                            configuration,
@@ -261,6 +313,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               SubjectDNToUserAttributeCertificateMapperCfg
                    configuration)

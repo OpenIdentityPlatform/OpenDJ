@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -712,6 +713,66 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Tests a successful mapping using the default configuration, and
+   * verify that user can do a privileged action (read config).
+   * Verification for issue OPENDJ-459.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testPrivilegeWithSuccessfulMappingDefaultConfig()
+         throws Exception
+  {
+    enableMapper();
+
+    try
+    {
+      TestCaseUtils.initializeTestBackend(true);
+      TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "objectClass: ds-certificate-user",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "ds-privilege-name: config-read",
+        "ds-certificate-subject-dn: CN=Test User, O=Test");
+
+
+
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                            "config" + File.separator + "client.keystore";
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                              "config" + File.separator + "client.truststore";
+
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+        "-Z",
+        "-K", keyStorePath,
+        "-W", "password",
+        "-P", trustStorePath,
+        "-r",
+        "-b", "cn=config",
+        "-s", "sub",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    }
+    finally
+    {
+      disableMapper();
+    }
   }
 }
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -31,12 +32,9 @@ package org.opends.server.extensions;
 import java.security.MessageDigest;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.*;
 import javax.security.auth.x500.X500Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
@@ -46,14 +44,14 @@ import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.bytesToColonDelimitedHex;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 
 
@@ -84,6 +82,8 @@ public class FingerprintCertificateMapper
   // The algorithm that will be used to generate the fingerprint.
   private String fingerprintAlgorithm;
 
+  // The set of attributes to return in search result entries.
+  private LinkedHashSet<String> requestedAttributes;
 
 
   /**
@@ -101,6 +101,7 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeCertificateMapper(
                    FingerprintCertificateMapperCfg configuration)
          throws ConfigException, InitializationException
@@ -143,6 +144,12 @@ public class FingerprintCertificateMapper
         ErrorLogger.logError(message);
       }
     }
+
+    // Create the attribute list to include in search requests.  We want to
+    // include all user and operational attributes.
+    requestedAttributes = new LinkedHashSet<String>(2);
+    requestedAttributes.add("*");
+    requestedAttributes.add("+");
   }
 
 
@@ -150,6 +157,7 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeCertificateMapper()
   {
     currentConfig.removeFingerprintChangeListener(this);
@@ -160,12 +168,13 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
     FingerprintCertificateMapperCfg config = currentConfig;
     AttributeType fingerprintAttributeType = config.getFingerprintAttribute();
-    String fingerprintAlgorithm = this.fingerprintAlgorithm;
+    String theFingerprintAlgorithm = this.fingerprintAlgorithm;
 
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
@@ -199,7 +208,7 @@ public class FingerprintCertificateMapper
     String fingerprintString;
     try
     {
-      MessageDigest digest = MessageDigest.getInstance(fingerprintAlgorithm);
+      MessageDigest digest = MessageDigest.getInstance(theFingerprintAlgorithm);
       byte[] fingerprintBytes = digest.digest(peerCertificate.getEncoded());
       fingerprintString = bytesToColonDelimitedHex(fingerprintBytes);
     }
@@ -243,7 +252,47 @@ public class FingerprintCertificateMapper
     for (DN baseDN : baseDNs)
     {
       InternalSearchOperation searchOperation =
-           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE, filter);
+           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
+                              DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
+                              false, filter, requestedAttributes);
+
+      switch (searchOperation.getResultCode())
+      {
+        case SUCCESS:
+          // This is fine.  No action needed.
+          break;
+
+        case NO_SUCH_OBJECT:
+          // The search base doesn't exist.  Not an ideal situation, but we'll
+          // ignore it.
+          break;
+
+        case SIZE_LIMIT_EXCEEDED:
+          // Multiple entries matched the filter.  This is not acceptable.
+          Message message = ERR_FCM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
+                        fingerprintString);
+          throw new DirectoryException(
+                  ResultCode.INVALID_CREDENTIALS, message);
+
+
+        case TIME_LIMIT_EXCEEDED:
+        case ADMIN_LIMIT_EXCEEDED:
+          // The search criteria was too inefficient.
+          message = ERR_FCM_INEFFICIENT_SEARCH.get(
+                         fingerprintString,
+                         String.valueOf(searchOperation.getErrorMessage()));
+          throw new DirectoryException(searchOperation.getResultCode(),
+              message);
+
+        default:
+          // Just pass on the failure that was returned for this search.
+          message = ERR_FCM_SEARCH_FAILED.get(
+                         fingerprintString,
+                         String.valueOf(searchOperation.getErrorMessage()));
+          throw new DirectoryException(searchOperation.getResultCode(),
+              message);
+      }
+
       for (SearchResultEntry entry : searchOperation.getSearchEntries())
       {
         if (userEntry == null)
@@ -285,6 +334,7 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       FingerprintCertificateMapperCfg configuration,
                       List<Message> unacceptableReasons)
@@ -299,6 +349,7 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               FingerprintCertificateMapperCfg configuration)
   {
