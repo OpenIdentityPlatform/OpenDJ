@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-before-you-install'
@@ -45,9 +45,9 @@
   and Apple Mac OS X.</para>
   
   <para>OpenDJ software requires Java 6, specifically at least the Java
-  Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment. For
-  best server performance, use at least version 1.6.0_22, which includes a
-  major security fix for TLS as well.</para>
+  Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment. ForgeRock
+  recommends that you use at least version 1.6.0_27 due to security
+  fixes.</para>
  </section>
 
  <section xml:id="prerequisites-fqdn">

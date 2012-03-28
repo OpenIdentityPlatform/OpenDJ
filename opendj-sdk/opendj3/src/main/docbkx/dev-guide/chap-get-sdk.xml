@@ -69,12 +69,11 @@
 
   <para>Before you either download a build of OpenDJ LDAP SDK, or get the
   source code to build your own SDK, make sure you have a Java Development Kit
-  installed. OpenDJ LDAP SDK relies on Java 6 or later. You can check for
-  Java 6 by running the following command.</para>
+  installed. See the <citetitle>Installation Guide</citetitle> section on
+  <link xlink:href="install-guide#prerequisites-java"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
+  Environment</citetitle></link> requirements.</para>
 
-  <screen>$ java -version
-java version "1.6.0_24"</screen>
- 
   <procedure xml:id="install-stable-sdk">
    <title>To Install the Latest Stable SDK</title>
    <step>

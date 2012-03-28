@@ -34,10 +34,10 @@
  <para>OpenDJ software depends on the Java environment more than it depends
  on the underlying operating systems. OpenDJ directory server relies on Java 6,
  specifically at least the Java Standard Edition 6.0 (Sun version 1.6.0_10)
- runtime environment. For best server performance, use at least version
- 1.6.0_22, which includes a major security fix for TLS as well. To build
- applications with the OpenDJ LDAP SDK, you need the Java SDK as the runtime
- environment has no compiler.</para>
+ runtime environment. ForgeRock recommends that you use at least version
+ 1.6.0_27 due to security fixes. To build applications with the OpenDJ LDAP
+ SDK, you need the Java SDK as the runtime environment has no
+ compiler.</para>
 
  <para>That said, OpenDJ <?eval ${docTargetVersion}?> has been validated on
  the following operating systems.</para>
@@ -59,6 +59,4 @@
 
  <para>OpenDJ <?eval ${docTargetVersion}?> DSML gateway has been validated
  on Apache Tomcat 6.</para>
-
 </chapter>
-
