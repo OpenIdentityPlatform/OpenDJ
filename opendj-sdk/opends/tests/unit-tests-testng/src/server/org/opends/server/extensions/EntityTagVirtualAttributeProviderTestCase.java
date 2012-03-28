@@ -574,6 +574,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
+  @Test
   public void testOptimisticConcurrency() throws Exception
   {
     // Use an internal connection.
