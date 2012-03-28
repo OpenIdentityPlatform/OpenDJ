@@ -7,836 +7,150 @@
  ! Common Development and Distribution License, Version 1.0 only
  ! (the "License").  You may not use this file except in compliance
  ! with the License.
- !
+ ! 
  ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
  ! See the License for the specific language governing permissions
  ! and limitations under the License.
- !
+ ! 
  ! When distributing Covered Code, include this CDDL HEADER in each
  ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
  ! add the following below this CDDL HEADER, with the fields enclosed
  ! by brackets "[]" replaced with your own identifying information:
  !      Portions Copyright [yyyy] [name of copyright owner]
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_resynchronization"/>
-  <function name="replication_resynchronization">
+  <function name="replication_resynchronization" scope="local">
     <sequence>
-      <block name="'resynchronization'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='replication'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'"/>
-          <!--- Test Suite information
-          #@TestSuiteName       Replication Re-Synchronization Tests
-          #@TestSuitePurpose    Verify that the servers in a replicated topology
-                                can be initialised with an old backup and still
-                                re-synchronize.
-          #@TestSuiteID         Re-Synchronization Tests
-          #@TestSuiteGroup      Re-Synchronization
-          #@TestGroup           Replication
-          #@TestScript          replication_resynchronization.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
-          -->
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_setup.xml' 
-                        % (TESTS_DIR)"/>
-          <call function="'replication_setup'">
-            { 'topologyFile' : '%s/3server_topology.txt' \
-                               % REPLICATION_CONFIG_DIR,
-              'dataFile'     : 'Example.ldif' ,
-              'label'    : 'Replication Resync'
-            }
-          </call>
-          
-          <script>
-            server3            = _topologyServerList[2]
-            
-            # Remove 3rd server from replicated servers list until replication
-            # is enabled on the 3rd one
-            _topologyServerList.remove(server3)
-            consumerList.remove(server3)
-          </script>
+      <block name="'replication_resynchronization'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group'] = 'replication'        
+              CurrentTestPath['suite'] = 'resynchronization'
+              
+              _group=CurrentTestPath['group']
+              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _label = 'Replication Resync'
+            </script>
 
-          <!-- Remove 3rd server from replication topology (i.e. disable
-               replication) -->          
-          <call function="'disableReplication'">
-            { 'location'            : clientHost,
-              'dsPath'              : clientPath,
-              'dsInstanceHost'      : server3.getHostname(),
-              'dsInstanceAdminPort' : server3.getAdminPort(),
-              'disableAll'          : True
-            }
-          </call>
-          
-                    
-          <!--- Test Case information
-          #@TestMarker          Replication Re-Synchronization Tests
-          #@TestName            Replication: Re-Synchronization: Off-line
-                                initialisation
-          #@TestID              Off-line initialisation
-          #@TestPurpose         Initialise replicated servers using off-line
-                                backup/restore
-          #@TestPreamble        Back-up server A
-          #@TestSteps           Add entry on server A
-          #@TestSteps           Stop servers
-          #@TestSteps           Restore back-up on other servers
-          #@TestSteps           Start servers
-          #@TestPostamble
-          #@TestResult          Success if trees synchronized
-          -->
-          <testcase name="getTestCaseName('Off-line initialisation')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <script>
-                m = md5_hash()
-                m.update(STAXCurrentTestcase)
-              </script>
-              <message>
-                'Replication: Re-Synchronization: Off-line initialisation. \
-                Initialise replicated servers using off-line backup/restore'
-              </message>
+            <!--- Test Suite information
+            #@TestSuiteName       Replication LDIFImport Tests
+            #@TestSuitePurpose    Verify that the total-update operations are replicated
+                                  correctly between two servers.
+            #@TestSuiteID         LDIFImport Tests
+            #@TestSuiteGroup      LDIFImport
+            #@TestGroup           Replication
+            #@TestScript          replication_resynchronization.xml
+            #@TestHTMLLink        http://www.forgerock.org/
+              -->
+                  
+            <call function="'testSuite_Preamble'"/>
 
-              <!-- Backup "master" server -->
-              <message>
-                '+++++ binary copy off-line: back-up server %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'backup'">
-                { 'location'  : masterHost,
-                  'dsPath'    : masterPath,
-                  'backupDir' : '%s/replication/master_backup_%s' \
-                                  % (masterBackupDir,m.hexdigest())
-                }
-              </call>
-                             
-              <!-- Add entry to "master" server -->
-              <message>
-                '+++++ resynchronization off-line: add entry to %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'addEntry'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
-                                     % clientDataDir
-                }
-              </call>
-                
-              <!-- Stop the "consumer" servers -->
-              <call function="'stopServers'">
-                [consumerList]
-              </call>                
-              
-              <!-- Copy master backup to "consumer" servers and restore it -->
-              <paralleliterate var="consumer" in="consumerList">
-                <sequence>
-                  <script>
-                    consumerBackupDir = '%s' % consumer.getTmpDir()
-                  </script>
-                  <call function="'CopyFolderByExtension'">
-                    { 'location'   : masterHost,
-                      'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_%s' \
-                                     % (masterBackupDir,m.hexdigest()),
-                      'destfolder' : '%s/replication/master_backup_%s' \
-                                     % (consumerBackupDir,m.hexdigest()),
-                      'extension'  : '*'
-                    }
-                  </call>
+            <try>
 
-                  <message>
-                    '+++++ resynchronization off-line: restore backup on %s:%s'\
-                    % (consumer.getHostname(), consumer.getPort())
-                  </message>
-                  <call function="'restore'">
-                    { 'location'  :  consumer.getHostname(),
-                      'dsPath'    :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' :  '%s/replication/master_backup_%s' \
-                                     % (consumerBackupDir,m.hexdigest())
-                    }
-                  </call>
-                </sequence>
-              </paralleliterate>
-              
-              <!-- Start the "consumer" servers -->
-              <call function="'startServers'">
-                [consumerList]
-              </call>
-              
-              <!-- Verify the synchronization of the trees among the servers in
-                the topology -->          
-              <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          Replication Re-Synchronization Tests
-          #@TestName            Replication: Re-Synchronization: On-line 
-                                initialisation
-          #@TestID              On-line initialisation
-          #@TestPurpose         Initialise replicated servers using on-line
-                                backup/restore
-          #@TestPreamble
-          #@TestSteps           Call dsreplication pre-external-initialization
-          #@TestSteps           Import data on server A
-          #@TestSteps           Back-up server A
-          #@TestSteps           Call dsreplication post-external-initialization            
-          #@TestSteps           Add entry on server A
-          #@TestSteps           Restore back-up on other servers
-          #@TestPostamble
-          #@TestResult          Success if trees synchronized
-          -->
-          <testcase name="getTestCaseName('On-line initialisation')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <script>
-                m = md5_hash()
-                m.update(STAXCurrentTestcase)
-              </script>
-              <message>
-                'Replication: Re-Synchronization: On-line initialisation. \
-                Initialise replicated servers using on-line backup/restore'
-              </message>
+              <sequence> 
 
-              <!-- Pre-initialise the servers in the topology -->
-              <message>
-                '+++++ resynchronization on-line: prepare servers for external \
-                initialization'
-              </message>                
-              <call function="'preInitializeReplication'">
-                { 'location'            : clientHost,
-                  'dsPath'              : clientPath,
-                  'dsInstanceHost'      : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'localOnly'           : False,
-                  'replicationDnList'   : [synchroSuffix],
-                  'adminUID'            : adminUID,
-                  'adminPswd'           : adminPswd
-                }
-              </call>
-                
-              <!-- Import data into "master" server -->
-              <message>
-                '+++++ resynchronization on-line: import data on %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'ImportLdifWithScript'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'ldifFile'       : '%s/replication/Example.ldif' \
-                                     % masterDataDir
-                }
-              </call>
-              
-              <!-- Check some data was imported into "master" server -->
-              <call function="'checkImport'">
-                { 'location'        : clientHost,
-                  'dsPath'          : clientPath,
-                  'dsHost'          : masterHost,
-                  'dsPort'          : master.getPort(),
-                  'dsAdminPort'     : master.getAdminPort(),
-                  'dsDn'            : master.getRootDn(),
-                  'dsPswd'          : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'],
-                  'startDS'         :  'no'
-                }
-              </call>
-                
-              <!-- Backup "master" server -->
-              <message>
-                '+++++ resynchronization on-line: back-up server %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'backupTask'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'taskID'         : 'backup task - tc2',
-                  'backupDir'      : '%s/replication/master_backup_%s' \
-                                     % (masterBackupDir,m.hexdigest())
-                }
-              </call>
-              
-              <!-- Post-initialise the servers in the topology -->
-              <message>
-                '+++++ resynchronization on-line: end external server \
-                initialization'
-              </message>                       
-              <call function="'postInitializeReplication'">
-                { 'location'            : clientHost,
-                  'dsPath'              : clientPath,
-                  'dsInstanceHost'      : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'replicationDnList'   : [synchroSuffix],
-                  'adminUID'            : adminUID,
-                  'adminPswd'           : adminPswd
-                }
-              </call>
-                            
-              <!-- Add entry to "master" server -->
-              <message>
-                '+++++ resynchronization on-line: add entry to %s:%s' \
-                % (masterHost, master.getPort())
-              </message>                        
-              <call function="'addEntry'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
-                                     % clientDataDir
-                }
-              </call>
-              
-              <!-- Copy backup to "consumer" servers and restore it -->
-              <paralleliterate var="consumer" in="consumerList">
-                <sequence>
-                  <script>
-                    consumerBackupDir = '%s' % consumer.getTmpDir()
-                  </script>
-                  <call function="'CopyFolderByExtension'">
-                    { 'location'   : masterHost,
-                      'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_%s' \
-                                     % (masterBackupDir,m.hexdigest()),
-                      'destfolder' : '%s/replication/master_backup_%s' \
-                                     % (consumerBackupDir,m.hexdigest()),
-                      'extension'  : '*'
-                    }
-                  </call>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/replication/replication_setup.xml' 
+                              % (TESTS_DIR)"/>
+                <call function="'replication_setup'">
+                  { 'topologyFile' : '%s/3server_topology.txt' \
+                                     % REPLICATION_CONFIG_DIR,
+                    'dataFile'     : 'Example.ldif' ,
+                    'label'    : _label
+                  }
+                </call>
 
-                  <message>
-                    '+++++ resynchronization on-line: restore back-up on %s:%s'\
-                    % (consumer.getHostname(), consumer.getPort())
-                  </message>
-                  <call function="'restoreTask'">
-                    { 'location'       : clientHost,
-                      'dsPath'         : clientPath,
-                      'dsInstanceHost' : consumer.getHostname(),
-                      'dsInstancePort' : consumer.getPort(),
-                      'dsInstanceDn'   : consumer.getRootDn(),
-                      'dsInstancePswd' : consumer.getRootPwd(),
-                      'taskID'         : 'restore task - tc2',
-                      'backupDir'   : '%s/replication/master_backup_%s' \
-                                      % (consumerBackupDir,m.hexdigest())
-                    }
-                  </call>
-                </sequence>
-              </paralleliterate>              
+                <!-- List of Import of Test Functions -->
+                <script>
+                  importList=[]
+                  importList.append('resynchronization/resynchronization_tests')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="_import" in="importList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (_groupdir,_import)"/>
+                </iterate>                                                                       
+
+                <!-- Specific to replication tests -->
+                <script>
+                  msg1 = 'Replication: Resync:'
+                  server3 = _topologyServerList[2]
+
+                  _topologyServerList.remove(server3)
+                  consumerList.remove(server3)
+                </script>
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('replication_resync_001')
+                  testsList.append('replication_resync_002')
+                  testsList.append('replication_resync_003')
+                  testsList.append('replication_resync_004')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
                                 
-              <!-- Verify the synchronization of the trees among the servers in
-                the topology -->
-              <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase>
+              </sequence>
 
-          
-          <!--- Test Case information
-          #@TestMarker          Replication Re-Synchronization Tests
-          #@TestName            Replication: Re-Synchronization: Add new server
-          #@TestID              Add new server
-          #@TestPurpose         Initialise newly added replicated server 
-                                using on-line backup/restore
-          #@TestPreamble
-          #@TestSteps           Call dsreplication pre-external-initialization
-          #@TestSteps           Import data on server A
-          #@TestSteps           Back-up server A
-          #@TestSteps           Initialise other servers from server A            
-          #@TestSteps           Add entry on server A
-          #@TestSteps           Add server: enable replication
-          #@TestSteps           Restore back-up on new server
-          #@TestPostamble
-          #@TestResult          Success if trees synchronized
-          -->
-          <testcase name="getTestCaseName('Add new Server')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <script>
-                m = md5_hash()
-                m.update(STAXCurrentTestcase)
-              </script>
-              <message>
-                'Replication: Re-Synchronization: Add new server. \
-                Initialise newly added server using on-line backup/restore'
-              </message>
-
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
+              <catch exception="'STAFException.TestSuite.SetupException'">
                 <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
+                  <message log="1" level="'fatal'">
+                    'Setup of test suite failed.'
                   </message>
+                  <rethrow/>
                 </sequence>
-              </paralleliterate>
-                            
-              <!-- Pre-initialise the servers in the topology -->
-              <message>
-                '+++++ resynchronization add server: prepare servers for \
-                external initialization'
-              </message>                
-              <call function="'preInitializeReplication'">
-                { 'location'            : clientHost,
-                  'dsPath'              : clientPath,
-                  'dsInstanceHost'      : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'localOnly'           : False,
-                  'replicationDnList'   : [synchroSuffix],
-                  'adminUID'            : adminUID,
-                  'adminPswd'           : adminPswd
-                }
-              </call>
-              
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-              
-              <!-- Import data into "master" server -->
-              <message>
-                '+++++ resynchronization add server: import data on %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'ImportLdifWithScript'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'ldifFile'       : '%s/replication/Example.ldif' \
-                                     % masterDataDir
-                }
-              </call>
-              
-              <!-- Check some data was imported into "master" server -->
-              <call function="'checkImport'">
-                { 'location'        : clientHost,
-                  'dsPath'          : clientPath,
-                  'dsHost'          : masterHost,
-                  'dsPort'          : master.getPort(),
-                  'dsAdminPort'     : master.getAdminPort(),
-                  'dsDn'            : master.getRootDn(),
-                  'dsPswd'          : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'],
-                  'startDS'         :  'no'
-                }
-              </call>
-                
-              <!-- Backup "master" server -->
-              <message>
-                '+++++ resynchronization add server: back-up server %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-              <call function="'backupTask'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'taskID'         : 'backup task - tc3',
-                  'backupDir'      : '%s/replication/master_backup_%s' \
-                                     % (masterBackupDir,m.hexdigest())
-                }
-              </call>
-
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-              
-              <message>
-                '+++++ resynchronization add server: Initialise topology from \
-                %s:%s' % (masterHost, master.getPort())
-              </message>
-              <!-- Initialise the servers in the topology -->
-              <call function="'initializeReplication'">
-                { 'location'                : clientHost,
-                  'dsPath'                  : clientPath,
-                  'sourceInstanceHost'      : masterHost,
-                  'sourceInstanceAdminPort' : master.getAdminPort(),
-                  'replicationDnList'       : [synchroSuffix]
-                }
-              </call>
-              
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-              
-              <!-- Add entry to "master" server -->
-              <message>
-                '+++++ resynchronization add server: add entry to %s:%s' \
-                % (masterHost, master.getPort())
-              </message>                        
-              <call function="'addEntry'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
-                                     % clientDataDir
-                }
-              </call>
-              
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-              
-              <!-- Add new server to topology -->
-              <script>
-                if master.isOnlyLdapServer():
-                  masterReplPort = None
-                else:
-                  masterReplPort = masterReplicationServer.getPort()
-                
-                if server3.isOnlyLdapServer():
-                  server3ReplPort = None
-                else:
-                  replicationServer3 = server3.getChangelogServer()
-                  server3ReplPort = replicationServer3.getPort() 
-              </script>
-
-              <message>
-                '+++++ resynchronization add server: Enable replication for \
-                server:\nHost: %s\nLdap port: %s\nReplication port: %s\n\
-                Replicated DN list: %s' \
-                % (server3.getHostname(), server3.getPort(), 
-                   server3ReplPort, [synchroSuffix])
-              </message>
-          
-              <call function="'enableReplication'">
-                { 'location'             : clientHost,
-                  'dsPath'               : clientPath,
-                  'refInstanceHost'      : masterHost,
-                  'refInstanceAdminPort' : master.getAdminPort(),
-                  'refInstanceDn'        : master.getRootDn(),
-                  'refInstancePswd'      : master.getRootPwd(),
-                  'refReplicationPort'   : masterReplPort,
-                  'refOnlyLdapServer'    : master.isOnlyLdapServer(),
-                  'refOnlyReplServer'    : master.isOnlyReplServer(),
-                  'dsInstanceHost'       : server3.getHostname(),
-                  'dsInstanceAdminPort'  : server3.getAdminPort(),
-                  'dsInstanceDn'         : server3.getRootDn(),
-                  'dsInstancePswd'       : server3.getRootPwd(),
-                  'dsReplicationPort'    : server3ReplPort,
-                  'dsOnlyLdapServer'     : server3.isOnlyLdapServer(),
-                  'dsOnlyReplServer'     : server3.isOnlyReplServer(),
-                  'replicationDnList'    : [synchroSuffix]
-                }                      
-              </call>
+              </catch>
   
+              <finally>
+                <message>'Test Cases Completed.'</message>
+              </finally>
 
-              <script>
-                # Add 3rd server to replicated servers list now that replication
-                # has been enabled on the 3rd one
-                _topologyServerList = _topologyServerList + [server3]
-                _splitServerList = _splitServerList + [server3]
-                consumerList = consumerList + [server3]
-              </script>                            
-              
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-              
-              <!-- Copy backup to new server and restore it -->
-              <script>
-                server3BackupDir = '%s' % server3.getTmpDir()
-              </script>
-              <call function="'CopyFolderByExtension'">
-                { 'location'   : masterHost,
-                  'remotehost' : server3.getHostname(),
-                  'srcfolder'  : '%s/replication/master_backup_%s' \
-                                 % (masterBackupDir,m.hexdigest()),
-                  'destfolder' : '%s/replication/master_backup_%s' \
-                                 % (server3BackupDir,m.hexdigest()),
-                  'extension'  : '*'
-                }
-              </call>
+            </try>
 
-              <message>
-                '+++++ resynchronization add server: restore back-up on %s:%s'\
-                % (server3.getHostname(), server3.getPort())
-              </message>
-              <call function="'restoreTask'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : server3.getHostname(),
-                  'dsInstancePort' : server3.getPort(),
-                  'dsInstanceDn'   : server3.getRootDn(),
-                  'dsInstancePswd' : server3.getRootPwd(),
-                  'taskID'         : 'restore task - tc3',
-                  'backupDir'      : '%s/replication/master_backup_%s' \
-                                     % (server3BackupDir,m.hexdigest())
-                }
-              </call>
-              
-              <paralleliterate var="server" 
-                               in="_topologyServerList" 
-                               indexvar="i">
-                <sequence>
-                  <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[i]
-                    else:
-                      replServer = server
-                  </script>
-                  <!-- Search for entry add -->
-                  <call function="'ldapSearchWithScript'">
-                    { 'location'         : clientHost,
-                      'dsPath'           : clientPath,
-                      'dsInstanceHost'   : replServer.getHostname(),
-                      'dsInstancePort'   : replServer.getPort(),
-                      'dsInstanceDn'     : replServer.getRootDn(),
-                      'dsInstancePswd'   : replServer.getRootPwd(),
-                      'dsBaseDN'         : 'dc=replicationChanges',
-                      'dsFilter'         : 'uid=*'
-                    }                
-                  </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <message>
-                    '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (replServer.getHostname(), replServer.getPort(), searchResult)
-                  </message>
-                </sequence>
-              </paralleliterate>
-                                
-              <!-- Verify the synchronization of the trees among the servers in
-                the topology -->
-              <!-- If the trees don't match, we may have come across Issue 4052
-               (Ghost adds in Replication Server) -->              
-              <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase>          
-                    
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_cleanup.xml' 
-                        % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" >
-            { 'label'    : 'Replication Resync' }
-          </call>
+          </sequence>
           
-          <call function="'testSuite_Postamble'"/>
-        </sequence>
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Replication Cleanup.'</message>
+              <try>
+                <sequence>
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/replication/replication_cleanup.xml' 
+                          % (TESTS_DIR)"/>
+                  <call function="'replication_cleanup'">
+                    { 'label'    : _label }
+                  </call>
+              </sequence>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
       </block>
     </sequence>
   </function>

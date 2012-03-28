@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!--- Test Case information
+  #@TestMarker          Replication Failover Tests
+  #@TestName            Replication: Failover: Preamble
+  #@TestID              Preamble
+  #@TestPurpose         Initialize the replication topology
+  #@TestPreamble
+  #@TestSteps
+  #@TestPostamble
+  #@TestResult
+  -->
+  <function name="replication_failover_001" scope="local">
+    <testcase name="getTestCaseName('Failover Preamble')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Initialize the replication topology.' % msg1 }
+            </call>            
+                                                                                                            
+            <script>
+              synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()      
+            </script>            
+    
+              
+            <!-- Load entries into "master" server -->                                
+            <!-- Stop "master" Directory Server -->
+            <call function="'StopDsWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath,
+                'dsHost'      : masterHost,
+                'dsAdminPort' : master.getAdminPort(),
+                'dsBindDN'    : master.getRootDn(),
+                'dsBindPwd'   : master.getRootPwd(),
+                'noOfLoops'   : 30
+              }
+            </call>
+                
+            <!-- Import data into "master" Directory Server -->
+            <call function="'ImportLdifWithScript'">
+              { 'location'     : masterHost,
+                'dsPath'       : masterPath,
+                'backEnd'      : DIRECTORY_INSTANCE_BE,
+                'ldifFile'     : '%s/replication/Example.ldif' % masterDataDir
+              }
+            </call>
+    
+            <!-- Start the Directory Server -->
+            <call function="'StartDsWithScript'">
+              { 'location'  : masterHost,
+                'dsPath'    : masterPath
+              }
+            </call>
+                
+            <!-- Wait for DS to start -->
+            <call function="'isAlive'">
+              { 'location'         : masterHost,
+                'dsPath'           : masterPath,
+                'dsInstanceHost'   : masterHost,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000
+              }
+            </call>                                                                                
+              
+            <iterate var="server" in="consumerList">                                    
+              <!-- Perform the total update -->
+              <call function="'initializeReplication'">
+                { 'location'                :  clientHost,
+                  'dsPath'                  :  clientPath,
+                  'dsInstanceHost'          :  server.getHostname(),
+                  'dsInstanceAdminPort'     :  server.getAdminPort(),
+                  'sourceInstanceHost'      :  masterHost,
+                  'sourceInstanceAdminPort' :  master.getAdminPort(),
+                  'replicationDnList'       :  ['o=example']
+                }
+              </call>
+            </iterate>            
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>            
+                        
+  <!--- Test Case information
+  #@TestMarker          Replication Failover Tests
+  #@TestName            Replication: Failover: One server down (stopped)
+  #@TestID                  One server down (stopped)
+  #@TestPurpose        Check replication when one server is off-line
+  #@TestPreamble
+  #@TestSteps
+  #@TestPostamble
+  #@TestResult
+  -->
+  <function name="replication_failover_002" scope="local">
+    <testcase name="getTestCaseName('One server down (stopped)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check replication when one server is off-line.' % msg1 }
+            </call>
+                             
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                  
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  nbOfServers = len(_topologyServerList)
+                  nextServer = _topologyServerList[(i + 1) % nbOfServers]
+                  nextServerPath = '%s/%s' % (nextServer.getDir(), OPENDSNAME)
+                  userDn = 'uid=iabizen-%s, ou=People, %s' % (i, synchroSuffix)
+                  
+                  if globalSplitServers:
+                    replServer = _topologyReplServerList[i]
+                  else:
+                    replServer = server
+
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+                  
+                <!-- Stop server (simulate failover?) -->
+                <call function="'StopDsWithScript'">
+                  { 'location'    :  server.getHostname(),
+                    'dsPath'      :  serverPath,
+                    'dsHost'      :  server.getHostname(),
+                    'dsAdminPort' :  server.getAdminPort(),
+                    'dsBindDN'    :  server.getRootDn(),
+                    'dsBindPwd'   :  server.getRootPwd(),
+                    'noOfLoops'   : 30
+                  }
+                </call>
+                <if expr="globalSplitServers">
+                  <call function="'StopDsWithScript'">
+                    { 'location'    :  replServer.getHostname(),
+                      'dsPath'      :  replServerPath,
+                      'dsHost'      :  replServer.getHostname(),
+                      'dsAdminPort' :  replServer.getAdminPort(),
+                      'dsBindDN'    :  replServer.getRootDn(),
+                      'dsBindPwd'   :  replServer.getRootPwd(),
+                      'noOfLoops'   : 30
+                    }
+                  </call>
+                </if>
+                  
+                <!-- Add entry to one of the other servers -->
+                <script>
+                  listAttr = []
+                  listAttr.append('objectclass:top')
+                  listAttr.append('objectclass:organizationalperson')
+                  listAttr.append('objectclass:inetorgperson')
+                  listAttr.append('objectclass:person')
+                  listAttr.append('givenname:Izen-%s' % i)
+                  listAttr.append('sn:Abizen-%s' % i)
+                  listAttr.append('cn:Izen-%s Abizen-%s' % (i, i))
+                </script>
+        
+                <call function="'addAnEntry'">
+                  { 'location'       :  nextServer.getHostname(),
+                    'dsPath'         :  nextServerPath,
+                    'dsInstanceHost' :  nextServer.getHostname(),
+                    'dsInstancePort' :  nextServer.getPort(),
+                    'dsInstanceDn'   :  nextServer.getRootDn(),
+                    'dsInstancePswd' :  nextServer.getRootPwd(),
+                    'DNToAdd'        :  userDn,
+                    'listAttributes' : listAttr,
+                    'expectedRC'     :  0
+                  }
+                </call>
+                                                                              
+                <!-- Start the server again -->
+                <call function="'StartDsWithScript'">
+                  { 'location'  :  server.getHostname(),
+                    'dsPath'    :  serverPath
+                  }
+                </call>
+                <if expr="globalSplitServers">
+                  <call function="'StartDsWithScript'">
+                    { 'location'    :  replServer.getHostname(),
+                      'dsPath'      :  replServerPath
+                    }
+                  </call>
+                </if>
+              </sequence>                  
+            </iterate>
+                                      
+              
+            <!-- Verify the synchronization of the trees among the servers in the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                     
+          
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Failover Tests
+  #@TestName            Replication: Failover: All but one servers down (stopped)
+  #@TestID                  All but one servers down (stopped)
+  #@TestPurpose        Check replication when all but one servers are off-line
+  #@TestPreamble
+  #@TestSteps
+  #@TestPostamble
+  #@TestResult
+  -->
+  <function name="replication_failover_003" scope="local">
+    <testcase name="getTestCaseName('All but one servers down (stopped)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check replication when all but one servers are off-line.' % msg1 }
+            </call>
+
+            <!-- Stop the "consumer" servers -->
+            <call function="'stopServers'">
+              [consumerList, 30]
+            </call>
+            <if expr="globalSplitServers">
+              <call function="'stopServers'">
+                [_topologyReplServerList[1:], 30]
+              </call>
+            </if>
+
+                  
+            <!-- Add entry to master servers -->
+            <script>
+              userDn = 'uid=iabizen-berri, ou=People, %s' % synchroSuffix
+                
+              listAttr = []
+              listAttr.append('objectclass:top')
+              listAttr.append('objectclass:organizationalperson')
+              listAttr.append('objectclass:inetorgperson')
+              listAttr.append('objectclass:person')
+              listAttr.append('givenname:Izen-berri')
+              listAttr.append('sn:Abizen-berri')
+              listAttr.append('cn:Izen-berri Abizen-berri')
+            </script>
+        
+            <call function="'addAnEntry'">
+              { 'location'       :  masterHost,
+                'dsPath'         :  masterPath,
+                'dsInstanceHost' :  masterHost,
+                'dsInstancePort' :  master.getPort(),
+                'dsInstanceDn'   :  master.getRootDn(),
+                'dsInstancePswd' :  master.getRootPwd(),
+                'DNToAdd'        :  userDn,
+                'listAttributes' :  listAttr,
+                'expectedRC'     :  0
+              }
+            </call>
+
+            <!-- Start the "consumer" servers -->
+            <call function="'startServers'">
+              [consumerList]
+            </call>
+            <if expr="globalSplitServers">
+              <call function="'startServers'">
+                [_topologyReplServerList[1:]]
+              </call>
+            </if>
+                                
+              
+            <!-- Verify the synchronization of the trees among the servers in the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+                                                
+
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Failover Tests
+  #@TestName            Replication: Failover: One server down (killed)
+  #@TestID              One server down (killed)
+  #@TestPurpose         Check replication when one server fails
+  #@TestPreamble
+  #@TestSteps
+  #@TestPostamble
+  #@TestResult
+  -->
+  <function name="replication_failover_004" scope="local">
+    <testcase name="getTestCaseName('One server down (killed)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check replication when one server fails.' % msg1 }
+            </call>
+                                      
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                  
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  nbOfServers = len(_topologyServerList)
+                  nextServer = _topologyServerList[(i + 1) % nbOfServers]
+                  nextServerPath = '%s/%s' % (nextServer.getDir(), OPENDSNAME)
+                  userDn = 'uid=ideiturak-%s, ou=People, %s' % (i, synchroSuffix)
+                  
+                  if globalSplitServers:
+                    replServer = _topologyReplServerList[i]
+                  else:
+                    replServer = server
+
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+                  
+                <!-- Kill server (simulate failover?) -->
+                <call function="'killDs'">
+                  { 'location'  :  server.getHostname(),
+                    'dsPath'    :  serverPath
+                  }
+                </call>
+                <if expr="globalSplitServers">
+                  <call function="'killDs'">
+                    { 'location'  :  replServer.getHostname(),
+                      'dsPath'    :  replServerPath
+                    }
+                  </call>
+                </if>
+                  
+                <!-- Add entry to one of the other servers -->
+                <script>
+                  listAttr = []
+                  listAttr.append('objectclass:top')
+                  listAttr.append('objectclass:organizationalperson')
+                  listAttr.append('objectclass:inetorgperson')
+                  listAttr.append('objectclass:person')
+                  listAttr.append('givenname:Izen-%s' % i)
+                  listAttr.append('sn:Deiturak-%s' % i)
+                  listAttr.append('cn:Izen-%s Deiturak-%s' % (i, i))
+                </script>
+        
+                <call function="'addAnEntry'">
+                  { 'location'       :  nextServer.getHostname(),
+                    'dsPath'         :  nextServerPath,
+                    'dsInstanceHost' :  nextServer.getHostname(),
+                    'dsInstancePort' :  nextServer.getPort(),
+                    'dsInstanceDn'   :  nextServer.getRootDn(),
+                    'dsInstancePswd' :  nextServer.getRootPwd(),
+                    'DNToAdd'        :  userDn,
+                    'listAttributes' : listAttr,
+                    'expectedRC'     :  0
+                  }
+                </call>
+                                                                              
+                <!-- Start the server again -->
+                <call function="'StartDsWithScript'">
+                  { 'location'  :  server.getHostname(),
+                    'dsPath'    :  serverPath
+                  }
+                </call>
+                <if expr="globalSplitServers">
+                  <call function="'StartDsWithScript'">
+                    { 'location'    :  replServer.getHostname(),
+                      'dsPath'      :  replServerPath
+                    }
+                  </call>
+                </if>
+                
+              </sequence>                  
+            </iterate>
+                                      
+              
+            <!-- Verify the synchronization of the trees among the servers in the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Failover Tests
+  #@TestName            Replication: Failover: All but one servers down (killed)
+  #@TestID                  One server down (killed)
+  #@TestPurpose        Check replication when all but one servers fail
+  #@TestPreamble
+  #@TestSteps
+  #@TestPostamble
+  #@TestResult
+  -->
+  <function name="replication_failover_005" scope="local">
+    <testcase name="getTestCaseName('All but one servers down (killed)')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check replication when all but one servers fails.' % msg1 }
+            </call>
+                 
+            <paralleliterate var="server" in="consumerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  
+                  if globalSplitServers:
+                    replServer = _topologyReplServerList[i+1]
+                  else:
+                    replServer = server
+
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+                  
+                <!-- Kill server (simulate failover?) -->
+                <call function="'killDs'">
+                  { 'location'  :  server.getHostname(),
+                    'dsPath'    :  serverPath
+                  }
+                </call>
+                <if expr="globalSplitServers">
+                  <call function="'killDs'">
+                    { 'location'  :  replServer.getHostname(),
+                      'dsPath'    :  replServerPath
+                    }
+                  </call>
+                </if>
+              </sequence>
+            </paralleliterate>
+
+                  
+            <!-- Add entry to master servers -->
+            <script>
+              userDn = 'uid=ideitura-berriak, ou=People, %s' % synchroSuffix
+                
+              listAttr = []
+              listAttr.append('objectclass:top')
+              listAttr.append('objectclass:organizationalperson')
+              listAttr.append('objectclass:inetorgperson')
+              listAttr.append('objectclass:person')
+              listAttr.append('givenname:Izen-berri')
+              listAttr.append('sn:Deitura-berriak')
+              listAttr.append('cn:Izen-berri Deitura-berriak')
+            </script>
+        
+            <call function="'addAnEntry'">
+              { 'location'       :  masterHost,
+                'dsPath'         :  masterPath,
+                'dsInstanceHost' :  masterHost,
+                'dsInstancePort' :  master.getPort(),
+                'dsInstanceDn'   :  master.getRootDn(),
+                'dsInstancePswd' :  master.getRootPwd(),
+                'DNToAdd'        :  userDn,
+                'listAttributes' : listAttr,
+                'expectedRC'     :  0
+              }
+            </call>
+
+            <!-- Start the "consumer" servers -->
+            <call function="'startServers'">
+              [consumerList]
+            </call>
+            <if expr="globalSplitServers">
+              <call function="'startServers'">
+                [_topologyReplServerList[1:]]
+              </call>
+            </if>
+                                      
+              
+            <!-- Verify the synchronization of the trees among the servers in the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

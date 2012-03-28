@@ -1,0 +1,2482 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
+ ! -->
+<stax>
+                                          
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Add Entry
+  #@TestID              Add Entry
+  #@TestPurpose         Check that an entry add is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add root suffix entry
+  #@TestPostamble
+  #@TestResult          Success if trees synchronised over the topology
+  -->
+  <function name="replication_basic_001" scope="local">
+    <testcase name="getTestCaseName('Add Entry')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that an add of an entry is replicated.' % msg1 }
+            </call>
+ 
+            <!-- Modify "master" server -->   
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication_add_root_suffix.ldif' \
+                                   % client.getTmpDir()
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+                                                   
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+    
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry
+  #@TestID              Modify Entry
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add entry on server
+  #@TestSteps           Modify entry
+  #@TestSteps           Check modify worked on server
+  #@TestPostamble
+  #@TestResult          Success if modify worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_002" scope="local">
+    <testcase name="getTestCaseName('Modify Entry')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify of an entry is replicated.' % msg1 }
+            </call>
+ 
+
+            <!-- Modify "master" server -->   
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication_add_single.ldif' \
+                                   % client.getTmpDir()
+              }
+            </call>
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/replication_mod.ldif' \
+                                   % client.getTmpDir()
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : entryDn,
+                'dsFilter'       : '%s=%s' % (attr_type,attr_value)
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength ,
+                'result'     : searchResult ,
+                'expected'   : 1
+              }
+            </call>                       
+
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+              
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>                         
+                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+            
+    
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Delete Entry
+  #@TestID              Delete Entry
+  #@TestPurpose         Check that an entry delete is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete entry
+  #@TestSteps           Check delete worked on server
+  #@TestPostamble
+  #@TestResult          Success if delete worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_003" scope="local">
+    <testcase name="getTestCaseName('Delete Entry')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a delete of an entry is replicated.' % msg1 }
+            </call>
+
+            <!-- Modify "master" server -->    
+            <call function="'DeleteEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : entryDn
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'         : clientHost,
+                'dsPath'           : clientPath,
+                'dsInstanceHost'   : masterHost,
+                'dsInstancePort'   : master.getPort(),
+                'dsInstanceDn'     : master.getRootDn(),
+                'dsInstancePswd'   : master.getRootPwd(),
+                'dsBaseDN'         : entryDn,
+                'dsFilter'         : 'objectclass=*',
+                'expectedRC'       : 32
+              }                  
+            </call>                      
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+    
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+      
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Add Multiple Entries
+  #@TestID              Add Multiple Entries
+  #@TestPurpose         Check that a multiple-entry add is well
+                        propagated by replication.
+  #@TestPreamble        Delete root suffix entry
+  #@TestSteps           Add multiple entries
+  #@TestPostamble
+  #@TestResult          Success if trees synchronised over the topology
+  -->
+  <function name="replication_basic_004" scope="local">
+    <testcase name="getTestCaseName('Add Multiple Entries')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that multiple adds of an entry are replicated.' % msg1 }
+            </call>
+
+            <!-- Delete the root entry, as it is already present in 
+              Example.ldif file -->
+            <call function="'DeleteEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : synchroSuffix
+              }
+            </call>
+
+            <!-- Modify "master" server -->
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/Example.ldif' \
+                                   % master.getDataDir()
+              }
+            </call>             
+
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+                                      
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+    
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - add single 
+                        attribute
+  #@TestID              Modify Entry - add single attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add description attribute to entry
+  #@TestSteps           Check modify worked
+  #@TestPostamble
+  #@TestResult          Success if modify worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_005" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - add single attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (add single attribute) is replicated.' % msg1 }
+            </call>
+
+             <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=tmorris, ou=People,%s' \
+                                      % synchroSuffix,
+                'attributeName'     : 'description',
+                'newAttributeValue' : ' ',
+                'changetype'        : 'add'
+              }
+            </call>       
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort() ,
+                'dsInstanceDn'   : master.getRootDn() ,
+                'dsInstancePswd' : master.getRootPwd() ,
+                'dsBaseDN'       : 'uid=tmorris, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'description=*'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength ,
+                'result'     : searchResult ,
+                'expected'   : 1
+              }
+            </call>                       
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                                                   
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - add single 
+                        value
+  #@TestID              Modify Entry - add single value
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add single-valued attribute to entry
+  #@TestSteps           Check modify worked
+  #@TestPostamble
+  #@TestResult          Success if modify worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_006" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - add single value')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (add single value) is replicated.' % msg1 }
+            </call>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=tmorris, ou=People,%s' \
+                                      % synchroSuffix,
+                'attributeName'     : 'departmentnumber',
+                'newAttributeValue' : '5203214400',
+                'changetype'        : 'add'
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=tmorris, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'departmentnumber=5203214400'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>                       
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                                
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                   
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - delete single
+                        attribute
+  #@TestID              Modify Entry - delete single attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete attribute in entry
+  #@TestSteps           Check delete worked
+  #@TestPostamble
+  #@TestResult          Success if delete worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_007" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - delete single attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (delete single attribute) is replicated.' % msg1 }
+            </call>
+
+            <script>
+              filename = 'replication_mod_delete.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              dn = 'uid=smason, ou=People,%s' % synchroSuffix
+              modif = 'delete'
+              attrType = 'roomNumber'
+              attrValue = None
+              write_replication_mod_ldif_file(filePath, dn, modif, attrType,
+                                              attrValue)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->                                
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>
+                              
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=smason, ou=People,%s' % synchroSuffix,
+                'dsFilter'       : 'roomNumber=*'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 0
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+            
+            
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - delete single
+                        value
+  #@TestID              Modify Entry - delete single value
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete single attribute value in entry
+  #@TestSteps           Check delete worked
+  #@TestPostamble
+  #@TestResult          Success if delete worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_008" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - delete single value')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (delete single value) is replicated.' % msg1 }
+            </call>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost ,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=jwalker, ou=People,%s' \
+                                      % synchroSuffix,
+                'attributeName'     : 'roomNumber',
+                'newAttributeValue' : '3915',
+                'changetype'        : 'delete'
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwalker, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'roomNumber=3915'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 0
+              }
+            </call>       
+                
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                    
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function> 
+        
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - add multiple
+                        values
+  #@TestID              Modify Entry - add multiple values
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add multiple-valued attribute to entry
+  #@TestSteps           Check add worked
+  #@TestPostamble
+  #@TestResult          Success if add worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_009" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - add multiple values')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (add multiple values) is replicated.' % msg1 }
+            </call>
+                
+            <script>
+              valuesToAdd = []
+              valuesToAdd.append('postaladdress:Residence Parc Europe')
+              valuesToAdd.append('postaladdress:Appartement #6')
+              valuesToAdd.append('postaladdress:31 Rue General Mangin')
+              valuesToAdd.append('postaladdress:38100 Grenoble')
+            </script>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToAdd,
+                'changetype'     : 'add'
+              }
+            </call>
+
+            <script>
+              filter1 = '(postaladdress=Residence Parc Europe)'
+              filter2 = '(postaladdress=Appartement #6)'
+              filter3 = '(postaladdress=31 Rue General Mangin)'
+              filter4 = '(postaladdress=38100 Grenoble)'
+            </script>
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : '&amp;%s%s%s%s' \
+                                   % (filter1, filter2, filter3, filter4)
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>                       
+    
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+               
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                                   
+         
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - delete
+                        multiple values
+  #@TestID              Modify Entry - delete multiple values
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete multiple values in same attribute
+  #@TestSteps           Check delete worked
+  #@TestPostamble
+  #@TestResult          Success if delete worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_010" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - delete multiple values')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (delete multiple values) is replicated.' % msg1 }
+            </call>
+                
+            <script>
+              valuesToDelete = []
+              valuesToDelete.append('postaladdress:Appartement #6')
+              valuesToDelete.append('postaladdress:38100 Grenoble')
+            </script>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToDelete,
+                'changetype'     : 'delete'
+              }
+            </call>
+
+            <script>
+              filter1 = '(postaladdress=Appartement #6)'
+              filter2 = '(postaladdress=38100 Grenoble)'
+            </script>
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : '|%s%s' % (filter1, filter2)
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 0
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+            
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - replace
+                        multiple values
+  #@TestID              Modify Entry - replace multiple values
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Replace multiple values in same attribute
+  #@TestSteps           Check replace worked
+  #@TestPostamble
+  #@TestResult          Success if replace worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_011" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - replace multiple values')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (replace multiple values) is replicated.' % msg1 }
+            </call>
+                
+            <script>
+              valuesToReplace = []
+              valuesToReplace.append('postaladdress: Residence Letilleuil')
+              valuesToReplace.append('postaladdress: 18 rue Nicolas Chorier')
+            </script>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToReplace,
+                'changetype'     : 'replace'
+              }
+            </call>
+
+            <script>
+              filter1 = '(postaladdress=Residence Letilleuil)'
+              filter2 = '(postaladdress=18 rue Nicolas Chorier)'
+            </script>                
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : '&amp;%s%s' % (filter1, filter2)
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength ,
+                'result'     : searchResult ,
+                'expected'   : 1
+              }
+            </call>                 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>     
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - add single
+                        value to multiple valued attribute
+  #@TestID              Modify Entry - add single value to multiple
+                        valued attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add single value to multiple-valued attribute
+  #@TestSteps           Check value add worked
+  #@TestPostamble
+  #@TestResult          Success if value add worked and trees 
+                        synchronised over the topology
+  -->
+  <function name="replication_basic_012" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - add single value to multiple valued attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (add single value to multiple valued attribute) is replicated.' % msg1 }
+            </call>
+                
+            <script>
+              valuesToAdd = []
+              valuesToAdd.append('postaladdress:38000 Grenoble')
+            </script>
+
+            <!-- Modify "master" server -->
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToAdd,
+                'changetype'     : 'add'
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'postaladdress=38000 Grenoble'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>                 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>     
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - delete single
+                        value from multiple valued attribute
+  #@TestID              Modify Entry - delete single value from multiple
+                        valued attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete single value from multiple-valued
+                        attribute
+  #@TestSteps           Check value delete worked
+  #@TestPostamble
+  #@TestResult          Success if value delete worked and trees 
+                        synchronised over the topology
+  -->
+  <function name="replication_basic_013" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - delete single value from multiple valued attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (delete single value from multiple valued attribute) is replicated.' % msg1 }
+            </call>
+                      
+            <script>
+              valuesToDelete = []
+              valuesToDelete.append('postaladdress: Residence Letilleuil')
+            </script>
+
+            <!-- Modify "master" server -->                
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToDelete,
+                'changetype'     : 'delete'
+              }
+            </call>
+
+            <!-- Check modify worked on "master" server -->        
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'postaladdress=Residence Letilleuil'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 0
+              }
+            </call>                 
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>     
+
+                                                          
+
+            
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - replace case
+                        sensitive attribute
+  #@TestID              Modify Entry - replace case sensitive attribute
+  #@TestPurpose         Check that case sensitive attribute
+                        modifications are replicated.
+  #@TestPreamble        
+  #@TestSteps           Add entry 
+  #@TestSteps           Replace description attribute in entry
+  #@TestSteps           Check replace worked
+  #@TestPostamble
+  #@TestResult          Success if replace worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_014" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - replace case sensitive attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (replace case sensitive attribute) is replicated.' % msg1 }
+            </call>
+                                
+            <!-- Modify "master" server -->
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                   % master.getDataDir()
+              }
+            </call>                         
+          
+            <script>
+              value = 'Profession Tap Fitter and Plumber'
+              valuesToReplace = []
+              valuesToReplace.append('description: %s' % value)
+            </script>
+              
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToModify'     : 'uid=tfitter, ou=People,%s' \
+                                   % synchroSuffix,
+                'listAttributes' : valuesToReplace,
+                'changetype'     : 'replace'
+              }
+            </call>
+
+            <script>
+              filter = 'description=%s' % value
+            </script>
+            <!-- Check modify worked on "master" server -->        
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=tfitter, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : filter
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call> 
+                                
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>     
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - replace
+                        userpassword
+  #@TestID              Modify Entry - replace userpassword
+  #@TestPurpose         Check replaced userpasswords are replicated.
+  #@TestPreamble        
+  #@TestSteps           Add user entry on server A
+  #@TestSteps           Bind as user with userpassword to server A
+  #@TestSteps           Replace user's userpassword
+  #@TestSteps           Bind as user with old userpassword to server B
+  #@TestSteps           Bind as user with new userpassword to server B
+  #@TestPostamble
+  #@TestResult          Success if bind with old userpassword fails with
+                        LDAP_INVALID_CREDENTIALS error and bind with new
+                        user password suceeds and trees are synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_015" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - replace userpassword')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (replace userpassword) is replicated.' % msg1 }
+            </call>
+
+            <!-- Add entry to "master" server -->
+            <script>
+              userDn = 'uid=pmoriarty, ou=People, %s' % synchroSuffix
+              oldPassword = 'jajejijoju'
+              newPassword = 'JUAJUAJUA'
+                
+              listAttr = []
+              listAttr.append('objectclass:top')
+              listAttr.append('objectclass:organizationalperson')
+              listAttr.append('objectclass:inetorgperson')
+              listAttr.append('objectclass:person')
+              listAttr.append('givenname:Professor')
+              listAttr.append('sn:Moriarty')
+              listAttr.append('cn:Professor Moriarty')
+              listAttr.append('l:London')
+              listAttr.append('userpassword:%s' % oldPassword)
+            </script>
+            <message>
+              'replace userpassword: add user entry %s' % userDn
+            </message>
+            <call function="'addAnEntry'">
+              { 'location'       : masterHost,
+                'dsPath'         : masterPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'DNToAdd'        : userDn,
+                'listAttributes' : listAttr
+              }
+            </call>
+              
+            <!-- Check userDn can bind with oldPassword on "master" server -->
+            <message>
+              'replace userpassword: bind on master using password %s' \
+              % oldPassword
+            </message>
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : userDn,
+                'dsInstancePswd' : oldPassword,
+                'dsBaseDN'       : synchroSuffix,
+                'dsFilter'       : 'objectclass=*'
+              }
+            </call>                
+
+            <!-- Replace userDn's oldPassword with newPassword on "master" 
+              server -->
+            <message>
+              'replace userpassword: replace user password %s with %s' \
+              % (oldPassword, newPassword)
+            </message>
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : userDn,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'JUAJUAJUA',
+                'changetype'        : 'replace'
+              }
+            </call>
+              
+            <script>
+              consumer = consumerList[0]
+            </script>
+            <!-- Try binding as userDn with oldPassword on "consumer" server:
+              ==> should fail with LDAP_INVALID_CREDENTIALS (49) error -->
+            <message>
+              'replace userpassword: bind on consumer using old password %s :\
+              should fail with error LDAP_INVALID_CREDENTIALS (49)' \
+              % oldPassword
+            </message>
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumer.getHostname(),
+                'dsInstancePort' : consumer.getPort(),
+                'dsInstanceDn'   : userDn,
+                'dsInstancePswd' : oldPassword,
+                'dsBaseDN'       : synchroSuffix,
+                'dsFilter'       : 'objectclass=*',
+                'expectedRC'     : 49
+              }
+            </call>
+              
+            <!-- Check userDn can bind with newPassword on "consumer"
+              server -->
+            <message>
+              'replace userpassword: bind on consumer using new password %s :\
+              should pass' % newPassword
+            </message>
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : consumer.getHostname(),
+                'dsInstancePort' : consumer.getPort(),
+                'dsInstanceDn'   : userDn,
+                'dsInstancePswd' : newPassword,
+                'dsBaseDN'       : synchroSuffix,
+                'dsFilter'       : 'objectclass=*'
+              }
+            </call>
+              
+            <!-- Delete added entry as clean-up measure -->
+            <message>
+              'replace userpassword: delete user entry %s on master' \
+              % userDn
+            </message>
+            <call function="'DeleteEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : userDn
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>     
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - add binary
+                        attribute
+  #@TestID              Modify Entry - add binary attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Add jpegPhoto attribute to entry with binary
+                        value
+  #@TestSteps           Check add worked
+  #@TestPostamble
+  #@TestResult          Success if add worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_016" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - add binary attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (add binary attribute) is replicated.' % msg1 }
+            </call>
+               
+            <script>
+              filename = 'replication_mod_add_binary.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              binaryFilePath = '%s/replication/photo1.uu' % source.data
+              dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
+              modif = 'add'
+              attrType = 'jpegPhoto'
+              write_replication_mod_binary_ldif_file(filePath, dn, modif, 
+                                                     attrType, binaryFilePath)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort() ,
+                'dsInstanceDn'   : master.getRootDn() ,
+                'dsInstancePswd' : master.getRootPwd() ,
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>                            
+      
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort() ,
+                'dsInstanceDn'   : master.getRootDn() ,
+                'dsInstancePswd' : master.getRootPwd() ,
+                'dsBaseDN'       : 'uid=hmiller, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'jpegPhoto=*'
+              }                  
+            </call>                
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>    
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>               
+                                                                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>    
+                                                            
+
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - replace 
+                        binary attribute
+  #@TestID              Modify Entry - replace binary attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Replace jpegPhoto (binary) attribute value
+  #@TestSteps           Check replace worked
+  #@TestPostamble
+  #@TestResult          Success if replace worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_017" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - replace binary attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (replace binary attribute) is replicated.' % msg1 }
+            </call>
+               
+            <script>
+              filename = 'replication_mod_replace_binary.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              binaryFilePath = '%s/replication/photo2.uu' % source.data
+              dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
+              modif = 'replace'
+              attrType = 'jpegPhoto'
+              write_replication_mod_binary_ldif_file(filePath, dn, modif,
+                                                     attrType, binaryFilePath)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>                            
+      
+
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=hmiller, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'jpegPhoto=*'
+              }
+            </call>                
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>    
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call>
+                                                                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Modify Entry - delete binary
+                        attribute
+  #@TestID              Modify Entry - delete binary attribute
+  #@TestPurpose         Check that an entry modify is well propagated by
+                        replication.
+  #@TestPreamble
+  #@TestSteps           Delete binary attribute jpegPhoto
+  #@TestSteps           Check delete worked
+  #@TestPostamble
+  #@TestResult          Success if delete worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_018" scope="local">
+    <testcase name="getTestCaseName('Modify Entry - delete binary attribute')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a modify (delete binary attribute) is replicated.' % msg1 }
+            </call>
+                    
+            <script>
+              filename = 'replication_mod_delete_binary.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
+              modif = 'delete'
+              attrType = 'jpegPhoto'
+              attrValue = None
+              write_replication_mod_ldif_file(filePath, dn, modif, attrType,
+                                              attrValue)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>        
+              
+            <!-- Check modify worked on "master" server -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=hmiller, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'jpegPhoto=*'
+              }
+            </call>                
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 0
+              }
+            </call>    
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+                                                                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+                                                                                                                     
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Rename Entry
+  #@TestID              Rename Entry
+  #@TestPurpose         Check that a rename (modrdn) operation is well
+                        propagated by replication.
+  #@TestPreamble
+  #@TestSteps           Rename entry
+  #@TestSteps           Check old dn entry no longer exists
+  #@TestSteps           Check new dn entry exists
+  #@TestPostamble
+  #@TestResult          Success if rename worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_019" scope="local">
+    <testcase name="getTestCaseName('Rename Entry')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a rename (modrdn) is replicated.' % msg1 }
+            </call>
+               
+            <script>
+              filename = 'replication_modrdn.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              dn = 'uid=kvaughan, ou=People,%s' % synchroSuffix
+              newrdn = 'uid=kvaughan2'
+              newsuperior = None
+              deleteoldrdn = 1
+              write_replication_moddn_ldif_file(filePath, dn, newrdn, 
+                                                newsuperior, deleteoldrdn)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost ,
+                'dsInstancePort' : master.getPort() ,
+                'dsInstanceDn'   : master.getRootDn() ,
+                'dsInstancePswd' : master.getRootPwd() ,
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>                            
+      
+
+            <!-- Check modify worked on "master" server -->                
+            <!-- check that "uid=kvaughan, ou=People, ${DIRECTORY_BASE}" does 
+              NOT exist anymore -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=kvaughan, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'objectclass=*',
+                'expectedRC'     : 32
+              }
+            </call>                
+              
+            <!-- check that new entry 
+              "uid=kvaughan2, ou=People, ${DIRECTORY_BASE}" exists -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=kvaughan2, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'objectclass=*'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>               
+                                                                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>      
+             
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Rename Entry (keep old rdn)
+  #@TestID              Rename Entry (keep old rdn)
+  #@TestPurpose         Check that a rename (modrdn) operation is well
+                        propagated by replication.
+  #@TestPreamble
+  #@TestSteps           Rename entry
+  #@TestSteps           Check old dn entry no longer exists
+  #@TestSteps           Check new dn entry exists and contains old rdn
+  #@TestPostamble
+  #@TestResult          Success if rename worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_020" scope="local">
+    <testcase name="getTestCaseName('Rename Entry - keep old rdn')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a rename (keep old rdn) is replicated.' % msg1 }
+            </call>
+               
+            <script>
+              filename = 'replication_modrdn_preserve.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              dn = 'uid=jwallace, ou=People,%s' % synchroSuffix
+              newrdn = 'uid=igueye'
+              newsuperior = None
+              deleteoldrdn = 0
+              write_replication_moddn_ldif_file(filePath, dn, newrdn, 
+                                                newsuperior, deleteoldrdn)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call> 
+      
+
+            <!-- Check modify worked on "master" server -->
+            <!-- check that "uid=jwallace, ou=People, ${DIRECTORY_BASE}" does
+              NOT exist anymore -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'objectclass=*',
+                'expectedRC'     : 32
+              }                  
+            </call>
+              
+            <!-- check that new entry 
+              "uid=igueye, ou=People, ${DIRECTORY_BASE}" exists -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=igueye, ou=People,%s' % synchroSuffix,
+                'dsFilter'       : 'uid=jwallace'
+              }
+            </call>
+            <script>
+              searchRC = STAXResult[0][0]
+              searchResult = STAXResult[0][1]
+              resultLength = len(searchResult) > 0
+            </script>
+            <call function="'checktestRC'">
+              { 'returncode' : resultLength,
+                'result'     : searchResult,
+                'expected'   : 1
+              }
+            </call>       
+                            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>               
+                                                                           
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Rename Subtree
+  #@TestID              Rename Subtree
+  #@TestPurpose         Check that a subtree rename (moddn) operation is
+                        well propagated by replication.
+  #@TestPreamble
+  #@TestSteps           Rename subtree
+  #@TestSteps           Check old subtree no longer exists
+  #@TestSteps           Check new subree exists
+  #@TestPostamble
+  #@TestResult          Success if rename worked and trees synchronised
+                        over the topology
+  -->
+  <function name="replication_basic_021" scope="local">
+    <testcase name="getTestCaseName('Rename Subtree')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check that a subtree rename (moddn) is replicated.' % msg1 }
+            </call>
+        
+            <script>
+              filename = 'replication_moddn.ldif'
+              filePath = '%s/%s' % (local.temp,filename)
+              dn = 'ou=People,%s' % synchroSuffix
+              newrdn = 'ou=Special People'
+              newsuperior = 'ou=Special Users,%s' % synchroSuffix
+              deleteoldrdn = 0
+              write_replication_moddn_ldif_file(filePath, dn, newrdn, 
+                                                newsuperior, deleteoldrdn)
+            </script>
+
+            <!-- Copy the replication_mod ldif to client host -->
+            <message>
+              'Copy %s file from %s to %s' \
+              % (filename,local.temp,client.getTmpDir())
+            </message>
+            <call function="'copyFile'">
+              { 'srcfile'    : filePath,
+                'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
+                'remotehost' : client.getHostname()
+              }
+            </call>                    
+
+            <!-- Modify "master" server -->
+            <call function="'ldapModifyWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
+              }
+            </call>                            
+      
+
+            <!-- Check modify worked on "master" server -->
+            <!-- check that "uid=gfarmer, ou=People, ${DIRECTORY_BASE}" does
+              NOT exist anymore -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : 'uid=gfarmer, ou=People,%s' \
+                                   % synchroSuffix,
+                'dsFilter'       : 'objectclass=*',
+                'expectedRC'     : 32
+              }  
+            </call>                
+              
+            <script>
+              base = 'uid=gfarmer, ou=Special People, ou=Special Users,%s' \
+                     % synchroSuffix
+            </script>
+            <!-- check that new entry 
+              "uid=gfarmer, ou=Special People, ou=Special Users,
+              ${DIRECTORY_BASE}" exists -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'dsBaseDN'       : base,
+                'dsFilter'       : 'objectclass=*'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>               
+
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>                  
+    
+
+  <!--- Test Case information
+  #@TestMarker          Replication Basic Tests
+  #@TestName            Replication: Basic: Add entry after restart
+  #@TestID              Add entry after restart
+  #@TestPurpose         Check entry add over secured replication after
+                        server restart
+  #@TestPreamble
+  #@TestSteps           Restart servers
+  #@TestSteps           Add entry
+  #@TestPostamble
+  #@TestResult          Success if trees synchronised over the topology
+  -->
+  <function name="replication_basic_022" scope="local">
+    <testcase name="getTestCaseName('Add entry after restart')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Check entry add over secured replication after server restart.' % msg1 }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_splitServerList]
+            </call>
+            
+            <!-- Start the servers in the topology -->  
+            <call function="'startServers'">
+              [_splitServerList]
+            </call>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  userDn = 'uid=RESTART-iabizen-%s, %s' % \
+                           (i,synchroSuffix)
+                </script>
+                  
+                <!-- Add entry to one of the other servers -->
+                <script>
+                  listAttr = []
+                  listAttr.append('objectclass:top')
+                  listAttr.append('objectclass:organizationalperson')
+                  listAttr.append('objectclass:inetorgperson')
+                  listAttr.append('objectclass:person')
+                  listAttr.append('givenname:Izen-%s' % i)
+                  listAttr.append('sn:Abizen-%s' % i)
+                  listAttr.append('cn:Izen-%s Abizen-%s' % (i, i))
+                  listAttr.append('l:ICNC')
+                </script>
+        
+                <call function="'addAnEntry'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : serverPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'DNToAdd'        : userDn,
+                    'listAttributes' : listAttr
+                  }
+                </call>
+            
+              </sequence>
+            </iterate>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Verify synchronization of servers in the topology.' % msg1 }
+            </call>
+                
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->          
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

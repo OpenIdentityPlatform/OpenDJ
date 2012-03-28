@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
+ ! -->
+<stax>
+          
+  <!--- Test Case information
+  #@TestMarker          Replication Binary Copy Tests
+  #@TestName            Replication: Binary Copy: Off-line
+                        initialisation
+  #@TestID              Off-line initialisation
+  #@TestPurpose         Initialise replicated servers using off-line 
+                        backup/restore
+  #@TestPreamble
+  #@TestSteps           Call dsreplication pre-external-initialization
+  #@TestSteps           Stop servers
+  #@TestSteps           Import data on server A
+  #@TestSteps           Back-up server A
+  #@TestSteps           Restore back-up on other servers
+  #@TestSteps           Start servers
+  #@TestSteps           Call dsreplication post-external-initialization
+  #@TestSteps           Add entry on server A
+  #@TestPostamble
+  #@TestResult          Success if trees synchronized
+  -->
+  <function name="replication_binarycopy_001" scope="local">
+    <testcase name="getTestCaseName('Off-line initialisation')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              m = md5_hash()
+              m.update(STAXCurrentTestcase)
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Initialise replicated servers using off-line backup/restore.' % msg1 }
+            </call>                
+                
+            <!-- Pre-initialise the servers in the topology -->
+            <message>
+              '+++++ binary copy off-line: prepare servers for external \
+              initialization'
+            </message>
+            <call function="'preInitializeReplication'">
+              { 'location'            : clientHost,
+                'dsPath'              : clientPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'localOnly'           : False,
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>
+
+            <!-- Stop the servers in the topology -->
+            <call function="'stopServers'">
+              [_topologyServerList]
+            </call>
+            
+            <!-- Import data into "master" server -->
+            <message>
+              '+++++ binary copy off-line: import data on %s:%s' \
+              % (masterHost, master.getPort())
+            </message>
+            <call function="'ImportLdifWithScript'">
+              { 'location'   : masterHost,
+                'dsPath'     : masterPath,
+                'backEnd'    : DIRECTORY_INSTANCE_BE,
+                'ldifFile'   : '%s/replication/Example.ldif' % masterDataDir
+              }
+            </call>
+                          
+            <!-- Backup "master" server -->
+            <message>
+              '+++++ binary copy off-line: back-up server %s:%s' \
+              % (masterHost, master.getPort())
+            </message>
+            <call function="'backup'">
+              { 'location'  : masterHost,
+                'dsPath'    : masterPath,
+                'backupDir' : '%s/replication/master_backup_%s' \
+                                % (masterBackupDir,m.hexdigest())
+              }
+            </call>
+
+            <!-- Copy backup to "consumer" servers and restore it -->
+            <paralleliterate var="consumer" in="consumerList">
+              <sequence>
+                <script>
+                  consumerBackupDir = '%s' % consumer.getTmpDir()
+                </script>
+                <call function="'CopyFolderByExtension'">
+                  { 'location'   : masterHost,
+                    'remotehost' : consumer.getHostname(),
+                    'srcfolder'  : '%s/replication/master_backup_%s' \
+                                   % (masterBackupDir,m.hexdigest()),
+                    'destfolder' : '%s/replication/master_backup_%s' \
+                                   % (consumerBackupDir,m.hexdigest()),
+                    'extension'  : '*'
+                  }
+                </call>
+
+                <message>
+                  '+++++ binary copy off-line: restore back-up on %s:%s' \
+                  % (consumer.getHostname(), consumer.getPort())
+                </message>
+                <call function="'restore'">
+                  { 'location'  : consumer.getHostname(),
+                    'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
+                    'backupDir' : '%s/replication/master_backup_%s' \
+                                  % (consumerBackupDir,m.hexdigest())
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+            
+            <!-- Start the servers in the topology -->  
+            <call function="'startServers'">
+              [_topologyServerList]
+            </call>
+              
+            <!-- Check some data was imported into "master" server -->
+            <call function="'checkImport'">
+              { 'location'        : clientHost,
+                'dsPath'          : clientPath,
+                'dsHost'          : masterHost,
+                'dsPort'          : master.getPort(),
+                'dsAdminPort'     : master.getAdminPort(),
+                'dsDn'            : master.getRootDn(),
+                'dsPswd'          : master.getRootPwd(),
+                'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                     'uid=dmiller, ou=People, o=example',
+                                     'uid=rhunt, ou=People, o=example'],
+                'startDS'         : 'no' 
+             }
+            </call>
+
+            <!-- Post-initialise the servers in the topology -->
+            <message>
+              '+++++ binary copy off-line: end external server initialization'
+            </message>
+            <call function="'postInitializeReplication'">
+              { 'location'            : clientHost,
+                'dsPath'              : clientPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>                                    
+    
+            <!-- Add entry to "master" server -->
+            <message>
+              '+++++ binary copy off-line: add entry to %s:%s' \
+              % (masterHost, master.getPort())
+            </message>
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                   % clientDataDir
+              }
+            </call>
+            
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+          
+  <!--- Test Case information
+  #@TestMarker          Replication Binary Copy Tests
+  #@TestName            Replication: Binary Copy: On-line initialisation
+  #@TestID              On-line initialisation
+  #@TestPurpose         Initialise replicated servers using on-line
+                        backup/restore
+  #@TestPreamble
+  #@TestSteps           Call dsreplication pre-external-initialization
+  #@TestSteps           Import data on server A
+  #@TestSteps           Back-up server A
+  #@TestSteps           Restore back-up on other servers
+  #@TestSteps           Call dsreplication post-external-initialization
+  #@TestSteps           Add entry on server A
+  #@TestPostamble
+  #@TestResult          Success if trees synchronized
+  -->
+  <function name="replication_binarycopy_002" scope="local">
+    <testcase name="getTestCaseName('On-line initialisation')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              m = md5_hash()
+              m.update(STAXCurrentTestcase)
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : '%s Initialise replicated servers using on-line backup/restore.' % msg1 }
+            </call>
+
+            <!-- Pre-initialise the servers in the topology -->
+            <message>
+              '+++++ binary copy on-line: prepare servers for external \
+              initialization'
+            </message>                
+            <call function="'preInitializeReplication'">
+              { 'location'            : clientHost,
+                'dsPath'              : clientPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'localOnly'           : False,
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>           
+                                            
+            <!-- Import data into "master" server -->
+            <message>
+              '+++++ binary copy on-line: import data on %s:%s' \
+              % (masterHost, master.getPort())
+            </message>                
+            <call function="'ImportLdifWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'ldifFile'       : '%s/replication/Example.ldif' \
+                                   % masterDataDir
+              }
+            </call>
+            
+            <!-- Check some data was imported into "master" server -->    
+            <call function="'checkImport'">
+              { 'location'        : clientHost,
+                'dsPath'          : clientPath,
+                'dsHost'          : masterHost,
+                'dsPort'          : master.getPort(),
+                'dsAdminPort'     : master.getAdminPort(),
+                'dsDn'            : master.getRootDn(),
+                'dsPswd'          : master.getRootPwd(),
+                'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                     'uid=dmiller, ou=People, o=example',
+                                     'uid=rhunt, ou=People, o=example'], 
+                'startDS'         : 'no'
+              }
+            </call>
+            
+            <!-- Backup "master" server -->
+            <message>
+              '+++++ binary copy on-line: back-up server %s:%s' \
+              % (masterHost, master.getPort())
+            </message>              
+            <call function="'backupTask'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(),
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'taskID'         : 'backup task',
+                'backupDir'      : '%s/replication/master_backup_%s' \
+                                   % (masterBackupDir,m.hexdigest()) 
+              }
+            </call>
+            
+            <!-- Copy backup to "consumer" servers and restore it -->
+            <paralleliterate var="consumer" in="consumerList">
+              <sequence>
+                <script>
+                  consumerBackupDir = '%s' % consumer.getTmpDir()
+                </script>
+
+                <call function="'CopyFolderByExtension'">
+                  { 'location'   : masterHost,
+                    'remotehost' : consumer.getHostname(),
+                    'srcfolder'  : '%s/replication/master_backup_%s' \
+                                   % (masterBackupDir,m.hexdigest()),
+                    'destfolder' : '%s/replication/master_backup_%s' \
+                                   % (consumerBackupDir,m.hexdigest()),
+                    'extension'  : '*'
+                  }
+                </call>
+                
+                <message>
+                  '+++++ binary copy on-line: restore back-up on %s:%s' \
+                  % (consumer.getHostname(), consumer.getPort())
+                </message>
+                <call function="'restoreTask'">
+                  { 'location'       : clientHost,
+                    'dsPath'         : clientPath,
+                    'dsInstanceHost' : consumer.getHostname(),
+                    'dsInstancePort' : consumer.getPort(),
+                    'dsInstanceDn'   : consumer.getRootDn(),
+                    'dsInstancePswd' : consumer.getRootPwd(),
+                    'taskID'         : 'restore task',
+                    'backupDir'   : '%s/replication/master_backup_%s' \
+                                    % (consumerBackupDir,m.hexdigest())
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+            
+            <!-- Post-initialise the servers in the topology -->
+            <message>
+              '+++++ binary copy on-line: end external server initialization'
+            </message>                       
+            <call function="'postInitializeReplication'">
+              { 'location'            : clientHost,
+                'dsPath'              : clientPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>
+              
+            <!-- Add entry to "master" server -->
+            <message>
+              '+++++ binary copy on-line: add entry to %s:%s' \
+              % (masterHost, master.getPort())
+            </message>
+            <call function="'addEntry'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : masterHost,
+                'dsInstancePort' : master.getPort(), 
+                'dsInstanceDn'   : master.getRootDn(),
+                'dsInstancePswd' : master.getRootPwd(),
+                'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                   % clientDataDir
+              }
+            </call>
+            
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+</stax>
