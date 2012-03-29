@@ -33,8 +33,9 @@
 
  <para>This guide shows you how to install, upgrade, and remove OpenDJ
  software. Unless you are planning a throwaway evaluation or test
- installation, read the <citetitle>Release Notes</citetitle> before
- you get started.</para>
+ installation, read the <link xlink:href="release-notes#release-notes"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Release
+ Notes</citetitle></link> before you get started.</para>
 
  <para>If you want only to try OpenDJ server software, and you
  do not plan to store any real or important data that you want to keep,
