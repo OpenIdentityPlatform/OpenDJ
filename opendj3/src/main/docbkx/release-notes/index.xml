@@ -54,10 +54,7 @@
  
  <preface>
   <title>About OpenDJ</title>
-  <!--  
-  <para>Test link to <citetitle xlink:role="http://docbook.org/xlink/role/olink"
-  xlink:href="admin-guide#admin-guide">Admin Guide</citetitle>.</para>
-  -->
+
   <para>OpenDJ is an LDAPv3 compliant directory service, developed for
   the Java platform, providing a high performance, highly available,
   and secure store for the identities managed by your organization. Its
@@ -79,9 +76,11 @@
   Finally, these notes list both issues fixed since the previous
   release and known issues open at the time of release.</para>
    
-  <para>See the <citetitle>Installation Guide</citetitle> for more after you
-  read these release notes. The installation guide covers installation and
-  upgrade for OpenDJ directory server and OpenDJ DSML gateway.</para>
+  <para>See the <link xlink:role="http://docbook.org/xlink/role/olink"
+  xlink:href="install-guide#install-guide"><citetitle>Installation
+  Guide</citetitle></link> for more after you read these release notes. The
+  installation guide covers installation and upgrade for OpenDJ directory
+  server and OpenDJ DSML gateway.</para>
  </preface>
 
  <xinclude:include href='chap-whats-new.xml' />
