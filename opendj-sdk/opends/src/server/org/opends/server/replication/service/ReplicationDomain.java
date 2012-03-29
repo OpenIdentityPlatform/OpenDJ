@@ -3080,20 +3080,20 @@ public abstract class ReplicationDomain
   {
     synchronized (sessionLock)
     {
-      // Stop the listener thread
-      if (listenerThread != null)
-      {
-        listenerThread.shutdown();
-      }
-
+      // Stop the broker first in order to prevent the listener from
+      // reconnecting - see OPENDJ-457.
       if (broker != null)
       {
         broker.stop();
       }
 
-      // Wait for the listener thread to stop
+      // Stop the listener thread
       if (listenerThread != null)
+      {
+        listenerThread.shutdown();
         listenerThread.waitForShutdown();
+        listenerThread = null;
+      }
     }
   }
 

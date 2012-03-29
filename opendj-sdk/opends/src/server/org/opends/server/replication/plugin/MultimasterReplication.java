@@ -31,10 +31,10 @@ import java.util.ArrayList;
 import static org.opends.server.replication.plugin.
 ReplicationRepairRequestControl.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -98,7 +98,7 @@ public class MultimasterReplication
 {
   private ReplicationServerListener replicationServerListener = null;
   private static Map<DN, LDAPReplicationDomain> domains =
-    new HashMap<DN, LDAPReplicationDomain>() ;
+    new ConcurrentHashMap<DN, LDAPReplicationDomain>(4) ;
 
   /**
    * The queue of received update messages, to be treated by the ReplayThread
