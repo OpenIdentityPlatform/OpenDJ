@@ -69,8 +69,8 @@
 
   <para>Before you either download a build of OpenDJ LDAP SDK, or get the
   source code to build your own SDK, make sure you have a Java Development Kit
-  installed. See the <citetitle>Installation Guide</citetitle> section on
-  <link xlink:href="install-guide#prerequisites-java"
+  installed. See the <citetitle>Release Notes</citetitle> section on
+  <link xlink:href="release-notes#prerequisites-java"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
   Environment</citetitle></link> requirements.</para>
 

@@ -39,8 +39,8 @@
 
   <step xml:id="check-for-java">
    <para>Make sure you have the correct Java environment installed, as
-   described in the section on <link
-   xlink:href="install-guide#prerequisites-java"
+   described in the <citetitle>Release Notes</citetitle> section on <link
+   xlink:href="release-notes#prerequisites-java"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
    Environment</citetitle></link> requirements.</para>
 
