@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2012 profiq s.r.o.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -94,7 +95,6 @@ public class PasswordExpirationTimeVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     // Do not process LDAP operational entries.
-
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
       long expirationTime = getPasswordExpirationTime(entry);
@@ -145,7 +145,9 @@ public class PasswordExpirationTimeVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    if (getPasswordExpirationTime(entry) == -1)
+    // Do not process LDAP operational entries.
+    if (entry.isSubentry() || entry.isLDAPSubentry()
+        || (getPasswordExpirationTime(entry) == -1))
     {
       return false;
     }
