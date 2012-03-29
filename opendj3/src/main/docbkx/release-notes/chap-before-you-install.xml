@@ -29,14 +29,21 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Before You Run OpenDJ in Production</title>
+ <title>Before You Install OpenDJ Software</title>
 
- <para>This chapter covers what you need to consider before you run OpenDJ in
- your production environment.</para>
- 
+ <para>This chapter covers requirements to consider before you run OpenDJ,
+ especially before you run OpenDJ in your production environment.</para>
+
+ <para>If you have a special request to support a combination not listed here,
+ contact ForgeRock at <link xlink:href='mailto:info@forgerock.com'
+ >info@forgerock.com</link>.</para>
+
  <section xml:id="prerequisites-java">
   <title>Java Environment</title>
-  <indexterm><primary>Java</primary><secondary>Requirements</secondary></indexterm>
+  <indexterm>
+   <primary>Java</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
   
   <para>OpenDJ software consists of pure Java applications. OpenDJ servers
   and clients therefore should run on any system with full Java support.
@@ -48,6 +55,51 @@
   Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment. ForgeRock
   recommends that you use at least version 1.6.0_27 due to security
   fixes.</para>
+
+  <para>To build applications with the OpenDJ LDAP SDK, you need the
+  corresponding Java SDK.</para>
+ </section>
+
+ <section xml:id="prerequisites-operating-systems">
+  <title>Operating System</title>
+  <indexterm>
+   <primary>Operating systems</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ software depends on the Java environment more than it depends
+  on the underlying operating system. That said, OpenDJ
+  <?eval ${docTargetVersion}?> has been validated on the following operating
+  systems.</para>
+
+ <itemizedlist>
+  <listitem>
+   <para>Apple Mac OS X 10.7</para>
+  </listitem>
+  <listitem>
+   <para>Linux 2.6</para>
+  </listitem>
+  <listitem>
+   <para>Microsoft Windows Server 2008</para>
+  </listitem>
+  <listitem>
+   <para>Oracle Solaris 10</para>
+  </listitem>
+ </itemizedlist>
+ </section>
+
+ <section xml:id="prerequisites-application-servers">
+  <title>Application Servers</title>
+  <indexterm>
+   <primary>Application servers</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ directory server runs as a standalone Java service, and
+  does not depend on an application server.</para>
+
+  <para>OpenDJ <?eval ${docTargetVersion}?> DSML gateway has been validated
+  on Apache Tomcat 6.</para>
  </section>
 
  <section xml:id="prerequisites-fqdn">
@@ -67,12 +119,12 @@
 
  <section xml:id="prerequisites-hardware">
   <title>Hardware</title>
-  
+
   <para>Thanks to the underlying Java platform, OpenDJ software runs well
   on a variety of processor architectures. Many directory service
   deployments meet their service-level agreements without the very latest
   or very fastest hardware.</para>
-   
+
   <indexterm><primary>Memory requirements</primary></indexterm>
   <para>For a server evaluation installation, you need 256 MB memory (32-bit)
   or 1 GB memory (64-bit) available to OpenDJ, with 100 MB free disk space for
@@ -98,7 +150,7 @@
   tests based on the estimated rates of change and growth in directory data,
   and then use the actual space used in the test environment to estimate how
   much disk space you need in production.</para>
-   
+
   <para>OpenDJ directory servers almost always benefit from having enough
   system memory to cache all directory database files used. The reason
   is that reading from and writing to memory is typically much faster
@@ -108,7 +160,7 @@
   sufficient memory to cache everything. To improve performance in such
   cases, one approach is to add solid state drives as an intermediate
   cache between memory and disk storage.</para>
-   
+
   <para>Processor architectures that provide fast single thread execution
   tend to help OpenDJ software deliver the lowest response times. For top end
   performance in terms both of sub-millisecond response times and also
@@ -120,7 +172,7 @@
   to absorb hundreds or thousands of write operations per second. Their
   slower threads get blocked waiting on resources, and thus are not optimal
   for topologies with high write throughput requirements.</para>
-   
+
   <indexterm><primary>Network requirements</primary></indexterm>
   <para>On systems with fast processors and enough memory to cache directory
   data completely, the network can become a bottleneck. Even if a single
@@ -134,7 +186,7 @@
   entry, you need a network that can handle 800 MB/sec (3.2 Gbit/sec)
   throughput, not counting any other operations such as writes that
   result in replication traffic.</para>
-   
+
   <indexterm><primary>Storage requirements</primary></indexterm>
   <para>The storage hardware you choose must allow you to house not only
   directory data including historical data for replication, but also
@@ -150,13 +202,11 @@
   historical information in order to resolve potential replication
   conflicts. You base your network throughput needs on peak loads. Also
   base your storage throughput needs on peak loads.</para>
-   
+
   <note>
    <para>OpenDJ servers do not currently support network file systems such
    as NFS for database storage. Provide sufficient disk space on local storage
    such as internal disk or an attached disk array.</para>
   </note>
  </section>
- 
 </chapter>
-

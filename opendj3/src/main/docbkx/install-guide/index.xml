@@ -54,7 +54,6 @@
  <xinclude:include href="preface.xml" />
 
  <xinclude:include href='chap-install-gui.xml' />
- <xinclude:include href='chap-before-you-install.xml' />
  <xinclude:include href='chap-install-cli.xml' />
  <xinclude:include href='chap-jvm-opts.xml' />
  <xinclude:include href='chap-upgrade.xml' />

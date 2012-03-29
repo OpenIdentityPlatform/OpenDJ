@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <book xml:id='release-notes'
@@ -37,7 +37,7 @@
    in Java.</para>
   </abstract>
   <copyright>
-   <year>2011</year>
+   <year>2011-2012</year>
    <holder>ForgeRock AS</holder>
   </copyright>
   <authorgroup>
@@ -85,9 +85,9 @@
  </preface>
 
  <xinclude:include href='chap-whats-new.xml' />
+ <xinclude:include href='chap-before-you-install.xml' />
  <xinclude:include href='chap-compatibility.xml' />
  <xinclude:include href='chap-issues.xml' />
- <xinclude:include href='chap-testing.xml' />
  <xinclude:include href='chap-feedback.xml' />
  <xinclude:include href='chap-support.xml' />
 </book>
