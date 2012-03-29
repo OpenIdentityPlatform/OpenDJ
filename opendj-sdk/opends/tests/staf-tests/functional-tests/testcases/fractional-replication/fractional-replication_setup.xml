@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
 
@@ -81,369 +81,347 @@
 
     <sequence>
 
-      <block name="'replication-setup'">
+      <block name="'fractional-replication-startup'">
 
-        <sequence>
+        <testcase name="getTestCaseName('Fractional Repl Setup')">
 
-          <message>
-             'Create DS topology as described in %s' % topologyFile
-          </message>
-
-          <call function="'createTopology'">
-            { 'topologyDescFile'        : topologyFile,
-              'sharedDataFolder'        : 'fractional-replication',
-              'splitReplicationServers' : globalSplitServers,
-              'fileExtensions'          : ['template'],
-            }
-          </call>
-
-          <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult
-            }
-          </call>
-
-          <!-- Setup variables -->
-          <script>
-            client = _topologyServerList[0]
-            clientHost = client.getHostname()
-            clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
-            clientDataDir = '%s' % client.getDataDir()
-
-            server1 = _topologyServerList[0]
-            server2 = _topologyServerList[1]
-
-            master = _topologyServerList[0]
-            masterHost = master.getHostname()
-            masterReplicationServer = master.getChangelogServer()
-            masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
-            masterDataDir = master.getDataDir()
-            masterTempDir = master.getTmpDir()
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
-            masterBackupDir = '%s/fractional-replication/master_backup' % masterTempDir
-
-            consumerList = _topologyServerList[1:]
-
-            domainMap = STAXGlobal({})
-            schemaMap = STAXGlobal({})
-          </script>
-
-          <if expr="dataFile">
+          <try>
+          
             <sequence>
-              <script>
-                importDataFile = '%s/fractional-replication/%s' % (masterDataDir, dataFile)
-              </script>
+              <call function="'testCase_Preamble'"/>
 
               <message>
-                'Import data from %s into server %s:%s' \
-                % (importDataFile, masterHost, master.getPort())
+                 'Create DS topology as described in %s' % topologyFile
               </message>
-
-              <!-- Import data into "master" Directory Server -->
-              <call function="'ImportLdifWithScript'">
-                { 'location'     : masterHost,
-                  'dsPath'       : masterPath,
-                  'backEnd'      : DIRECTORY_INSTANCE_BE,
-                  'ldifFile'     : importDataFile
+    
+              <call function="'createTopology'">
+                { 'topologyDescFile'        : topologyFile,
+                  'sharedDataFolder'        : 'fractional-replication',
+                  'splitReplicationServers' : globalSplitServers,
+                  'fileExtensions'          : ['template'],
                 }
               </call>
-
-              <!-- Backup "master" server -->
-              <call function="'backup'">
-                { 'location'  : masterHost,
-                  'dsPath'    : masterPath,
-                  'backupDir' : masterBackupDir
+    
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
                 }
               </call>
-            </sequence>
-          </if>
-
-
-          <!-- Start the servers in the topology -->
-          <call function="'startServers'">
-            [_splitServerList]
-          </call>
-
-          <paralleliterate var="s" in="_splitServerList">
-            <sequence>
+    
+              <!-- Setup variables -->
               <script>
-                ls = '%s:%s' % (s.getHostname(), s.getPort())
+                client = _topologyServerList[0]
+                clientHost = client.getHostname()
+                clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
+                clientDataDir = '%s' % client.getDataDir()
+    
+                server1 = _topologyServerList[0]
+                server2 = _topologyServerList[1]
+    
+                master = _topologyServerList[0]
+                masterHost = master.getHostname()
+                masterReplicationServer = master.getChangelogServer()
+                masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
+                masterDataDir = master.getDataDir()
+                masterTempDir = master.getTmpDir()
+                synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+                masterBackupDir = '%s/fractional-replication/master_backup' % masterTempDir
+    
+                consumerList = _topologyServerList[1:]
+    
+                domainMap = STAXGlobal({})
+                schemaMap = STAXGlobal({})
               </script>
-
-              <call function="'getSchemaDict'">
-                { 'location' : s.getHostname(),
-                  'dsPath'   : '%s/%s' % (s.getDir(),OPENDSNAME),
-                  'server'   : s,
-                }
-              </call>
-              <if expr="STAXResult">
-                <script>
-                  schemaMap[ls] = STAXResult
-                </script>
-                <else>
-                  <sequence>
-                    <message>'Failed getting the schema for ' % ls</message>
-                    <break/>
-                  </sequence>
-                </else>
-              </if>
-            </sequence>
-          </paralleliterate>
-
-          <if expr="len(_topologyReplServerList) != 0">
-            <paralleliterate var="replServer" in="_topologyReplServerList">
-              <!-- Remove userRoot backend from replication servers -->
-              <sequence>
-                <message>
-                  'Remove userRoot backend from replication server %s:%s' % \
-                  (replServer.getHostname(), replServer.getPort())
-                </message>
-
-                <call function="'dsconfig'">
-                  { 'location'            : replServer.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (replServer.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : replServer.getHostname(),
-                    'dsInstanceAdminPort' : replServer.getAdminPort(),
-                    'dsInstanceDn'        : replServer.getRootDn(),
-                    'dsInstancePswd'      : replServer.getRootPwd(),
-                    'subcommand'          : 'delete-backend',
-                    'objectType'          : 'backend-name',
-                    'objectName'          : 'userRoot'
-                  }
-                </call>
-              </sequence>
-            </paralleliterate>
-          </if>
-
-          <iterate var="server" in="_splitServerList[1:]">
-            <sequence>
-              <!-- Configure replication if required so by the server
-               !  (i.e. server is a changelog server and/or has synchronized
-               !  suffixes)
-              -->
-              <if expr="server.requiresSynchronization()">
+    
+              <if expr="dataFile">
                 <sequence>
-                  <message>
-                    'Instance requires REPLICATION configuration.'
-                  </message>
-
                   <script>
-                    if master.isOnlyLdapServer():
-                      masterReplPort = None
-                    else:
-                      masterReplPort = masterReplicationServer.getPort()
-
-                    if server.isOnlyLdapServer():
-                      serverReplPort = None
-                    else:
-                      replicationServer = server.getChangelogServer()
-                      serverReplPort = replicationServer.getPort()
-
-                    if server.isOnlyReplServer():
-                      suffixServer = master
-                    else:
-                      suffixServer = server
-
-                    replicatedSuffixList = suffixServer.getSynchronizedSuffixList()
-                    replicatedDnList = []
-                    for suffix in replicatedSuffixList:
-                      replicatedDnList.append(suffix.getSuffixDn())
+                    importDataFile = '%s/fractional-replication/%s' % (masterDataDir, dataFile)
                   </script>
-
+    
                   <message>
-                    'Enable replication for server:\nHost: %s\nLdap port: %s\n\
-                    Replication port: %s\nReplicated DN list: %s' \
-                      % (server.getHostname(), server.getPort(),
-                         serverReplPort, replicatedDnList)
+                    'Import data from %s into server %s:%s' \
+                    % (importDataFile, masterHost, master.getPort())
                   </message>
-
-                  <call function="'enableReplication'">
-                    { 'location'             : clientHost,
-                      'dsPath'               : clientPath,
-                      'refInstanceHost'      : masterHost,
-                      'refInstanceAdminPort' : master.getAdminPort(),
-                      'refInstanceDn'        : master.getRootDn(),
-                      'refInstancePswd'      : master.getRootPwd(),
-                      'refReplicationPort'   : masterReplPort,
-                      'refSecureReplication' : secureReplication,
-                      'refOnlyLdapServer'    : master.isOnlyLdapServer(),
-                      'refOnlyReplServer'    : master.isOnlyReplServer(),
-                      'dsInstanceHost'       : server.getHostname(),
-                      'dsInstanceAdminPort'  : server.getAdminPort(),
-                      'dsInstanceDn'         : server.getRootDn(),
-                      'dsInstancePswd'       : server.getRootPwd(),
-                      'dsReplicationPort'    : serverReplPort,
-                      'dsSecureReplication'  : secureReplication,
-                      'dsOnlyLdapServer'     : server.isOnlyLdapServer(),
-                      'dsOnlyReplServer'     : server.isOnlyReplServer(),
-                      'replicationDnList'    : replicatedDnList
+    
+                  <!-- Import data into "master" Directory Server -->
+                  <call function="'ImportLdifWithScript'">
+                    { 'location'     : masterHost,
+                      'dsPath'       : masterPath,
+                      'backEnd'      : DIRECTORY_INSTANCE_BE,
+                      'ldifFile'     : importDataFile
+                    }
+                  </call>
+    
+                  <!-- Backup "master" server -->
+                  <call function="'backup'">
+                    { 'location'  : masterHost,
+                      'dsPath'    : masterPath,
+                      'backupDir' : masterBackupDir
                     }
                   </call>
                 </sequence>
               </if>
-
-            </sequence>
-          </iterate>
-
-
-          <if expr="isolateLdapServers">
-            <!-- Make each Ldap Server point only to its own Replication
-             !   Server.
-             !   This is used by the Conflict testsuite, in order to be able
-             !   to simulate conflict scenarios -->
-            <paralleliterate var="server" in="_topologyServerList" indexvar="i">
-              <sequence>
-                <script>
-                  ldapServer = '%s:%s' % (server.getHostname(),
-                                          server.getPort())
-                </script>
-
-                <!-- Retrieve replication-domain name -->
-                <call function="'dsconfig'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'subcommand'          : 'list-replication-domains',
-                    'objectType'          : 'provider-name',
-                    'objectName'          : 'Multimaster Synchronization',
-                    'optionsString'       : '--script-friendly'
-                  }
-                </call>
-                <if expr='RC == 0'>
+    
+    
+              <!-- Start the servers in the topology -->
+              <call function="'startServers'">
+                [_splitServerList]
+              </call>
+    
+              <paralleliterate var="s" in="_splitServerList">
+                <sequence>
                   <script>
-                    replicationDomains = STAXResult[0][1]
-                    for line in replicationDomains.splitlines():
-                      if line.find(synchroSuffix) != -1:
-                        domain = line
-                        domainMap[ldapServer] = domain
-                        break
+                    ls = '%s:%s' % (s.getHostname(), s.getPort())
                   </script>
-                </if>
-
-                <script>
-                  if globalSplitServers:
-                    splitServer = _topologyReplServerList[i]
-                    replicationServer = splitServer.getChangelogServer()
-                    replServer = '%s:%s' % (splitServer.getHostname(),
-                                            replicationServer.getPort())
-                  else:
-                    replicationServer = server.getChangelogServer()
-                    replServer = '%s:%s' % (server.getHostname(),
-                                            replicationServer.getPort())
-
-                  options = '--domain-name "%s" --set replication-server:%s' \
-                            % (domainMap[ldapServer], replServer)
-                </script>
-                <message>
-                  'Removing references to other replication servers \nfor \
-                  domain: %s \nfrom server: %s \nkeep replication server: %s' \
-                  % (domain, ldapServer, replServer)
-                </message>
-                <!-- Remove peer RS from replicated domain -->
-                <call function="'dsconfig'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'subcommand'          : 'set-replication-domain-prop',
-                    'objectType'          : 'provider-name',
-                    'objectName'          : 'Multimaster Synchronization',
-                    'optionsString'       : options
-                  }
-                </call>
-              </sequence>
-            </paralleliterate>
-          </if>
-
-
-          <script>
-            assuredReplication = globalAssuredReplication
-          </script>
-          <if expr="assuredReplication">
-            <paralleliterate var="server" in="_topologyServerList">
-              <sequence>
-                <script>
-                  ldapServer = '%s:%s' % (server.getHostname(),
-                                          server.getPort())
-                </script>
-
-                <if expr="isolateLdapServers">
-                  <!-- this means the domainMap has already been filled up -->
-                  <script>
-                    domain = domainMap[ldapServer]
-                  </script>
-                  <else>
+    
+                  <call function="'getSchemaDict'">
+                    { 'location' : s.getHostname(),
+                      'dsPath'   : '%s/%s' % (s.getDir(),OPENDSNAME),
+                      'server'   : s,
+                    }
+                  </call>
+                  <if expr="STAXResult">
+                    <script>
+                      schemaMap[ls] = STAXResult
+                    </script>
+                    <else>
+                      <sequence>
+                        <message>'Failed getting the schema for ' % ls</message>
+                        <break/>
+                      </sequence>
+                    </else>
+                  </if>
+                </sequence>
+              </paralleliterate>
+    
+              <if expr="len(_topologyReplServerList) != 0">
+                <paralleliterate var="replServer" in="_topologyReplServerList">
+                  <!-- Remove userRoot backend from replication servers -->
+                  <sequence>
+                    <message>
+                      'Remove userRoot backend from replication server %s:%s' % \
+                      (replServer.getHostname(), replServer.getPort())
+                    </message>
+    
+                    <call function="'dsconfig'">
+                      { 'location'            : replServer.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (replServer.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : replServer.getHostname(),
+                        'dsInstanceAdminPort' : replServer.getAdminPort(),
+                        'dsInstanceDn'        : replServer.getRootDn(),
+                        'dsInstancePswd'      : replServer.getRootPwd(),
+                        'subcommand'          : 'delete-backend',
+                        'objectType'          : 'backend-name',
+                        'objectName'          : 'userRoot'
+                      }
+                    </call>
+                  </sequence>
+                </paralleliterate>
+              </if>
+    
+              <iterate var="server" in="_splitServerList[1:]">
+                <sequence>
+                  <!-- Configure replication if required so by the server
+                   !  (i.e. server is a changelog server and/or has synchronized
+                   !  suffixes)
+                  -->
+                  <if expr="server.requiresSynchronization()">
                     <sequence>
-                      <!-- Retrieve replication-domain name -->
-                      <call function="'dsconfig'">
-                        { 'location'            : server.getHostname(),
-                          'dsPath'              : '%s/%s' \
-                                                  % (server.getDir(),OPENDSNAME),
-                          'dsInstanceHost'      : server.getHostname(),
-                          'dsInstanceAdminPort' : server.getAdminPort(),
-                          'dsInstanceDn'        : server.getRootDn(),
-                          'dsInstancePswd'      : server.getRootPwd(),
-                          'subcommand'          : 'list-replication-domains',
-                          'objectType'          : 'provider-name',
-                          'objectName'          : 'Multimaster Synchronization',
-                          'optionsString'       : '--script-friendly'
+                      <message>
+                        'Instance requires REPLICATION configuration.'
+                      </message>
+    
+                      <script>
+                        if master.isOnlyLdapServer():
+                          masterReplPort = None
+                        else:
+                          masterReplPort = masterReplicationServer.getPort()
+    
+                        if server.isOnlyLdapServer():
+                          serverReplPort = None
+                        else:
+                          replicationServer = server.getChangelogServer()
+                          serverReplPort = replicationServer.getPort()
+    
+                        if server.isOnlyReplServer():
+                          suffixServer = master
+                        else:
+                          suffixServer = server
+    
+                        replicatedSuffixList = suffixServer.getSynchronizedSuffixList()
+                        replicatedDnList = []
+                        for suffix in replicatedSuffixList:
+                          replicatedDnList.append(suffix.getSuffixDn())
+                      </script>
+    
+                      <message>
+                        'Enable replication for server:\nHost: %s\nLdap port: %s\n\
+                        Replication port: %s\nReplicated DN list: %s' \
+                          % (server.getHostname(), server.getPort(),
+                             serverReplPort, replicatedDnList)
+                      </message>
+    
+                      <call function="'enableReplication'">
+                        { 'location'             : clientHost,
+                          'dsPath'               : clientPath,
+                          'refInstanceHost'      : masterHost,
+                          'refInstanceAdminPort' : master.getAdminPort(),
+                          'refInstanceDn'        : master.getRootDn(),
+                          'refInstancePswd'      : master.getRootPwd(),
+                          'refReplicationPort'   : masterReplPort,
+                          'refSecureReplication' : secureReplication,
+                          'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                          'refOnlyReplServer'    : master.isOnlyReplServer(),
+                          'dsInstanceHost'       : server.getHostname(),
+                          'dsInstanceAdminPort'  : server.getAdminPort(),
+                          'dsInstanceDn'         : server.getRootDn(),
+                          'dsInstancePswd'       : server.getRootPwd(),
+                          'dsReplicationPort'    : serverReplPort,
+                          'dsSecureReplication'  : secureReplication,
+                          'dsOnlyLdapServer'     : server.isOnlyLdapServer(),
+                          'dsOnlyReplServer'     : server.isOnlyReplServer(),
+                          'replicationDnList'    : replicatedDnList
                         }
                       </call>
-                      <if expr='RC == 0'>
-                        <script>
-                          replicationDomains = STAXResult[0][1]
-                          for line in replicationDomains.splitlines():
-                            if line.find(synchroSuffix) != -1:
-                              domain = line
-                              domainMap[ldapServer] = domain
-                              break
-                        </script>
-                      </if>
                     </sequence>
-                  </else>
-                </if>
-                <script>
-                  options = '--domain-name "%s" --set assured-type:%s' \
-                            % (domain, assuredReplication)
-                </script>
-                <message>
-                  'Setting replication assured-type to: %s  for server: %s \
-                  domain: %s' % (assuredReplication, ldapServer, domain)
-                </message>
-                <!-- Set assured -->
-                <call function="'dsconfig'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'subcommand'          : 'set-replication-domain-prop',
-                    'objectType'          : 'provider-name',
-                    'objectName'          : 'Multimaster Synchronization',
-                    'optionsString'       : options
-                  }
-                </call>
-
-                <if expr="assuredReplication == 'safe-data'">
+                  </if>
+    
+                </sequence>
+              </iterate>
+    
+    
+              <if expr="isolateLdapServers">
+                <!-- Make each Ldap Server point only to its own Replication
+                 !   Server.
+                 !   This is used by the Conflict testsuite, in order to be able
+                 !   to simulate conflict scenarios -->
+                <paralleliterate var="server" in="_topologyServerList" indexvar="i">
                   <sequence>
                     <script>
-                      assuredDataLevel = len(_topologyServerList)
-                      options = '--domain-name "%s" --set assured-sd-level:%s' \
-                                % (domain, assuredDataLevel)
+                      ldapServer = '%s:%s' % (server.getHostname(),
+                                              server.getPort())
+                    </script>
+    
+                    <!-- Retrieve replication-domain name -->
+                    <call function="'dsconfig'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'subcommand'          : 'list-replication-domains',
+                        'objectType'          : 'provider-name',
+                        'objectName'          : 'Multimaster Synchronization',
+                        'optionsString'       : '--script-friendly'
+                      }
+                    </call>
+                    <if expr='RC == 0'>
+                      <script>
+                        replicationDomains = STAXResult[0][1]
+                        for line in replicationDomains.splitlines():
+                          if line.find(synchroSuffix) != -1:
+                            domain = line
+                            domainMap[ldapServer] = domain
+                            break
+                      </script>
+                    </if>
+    
+                    <script>
+                      if globalSplitServers:
+                        splitServer = _topologyReplServerList[i]
+                        replicationServer = splitServer.getChangelogServer()
+                        replServer = '%s:%s' % (splitServer.getHostname(),
+                                                replicationServer.getPort())
+                      else:
+                        replicationServer = server.getChangelogServer()
+                        replServer = '%s:%s' % (server.getHostname(),
+                                                replicationServer.getPort())
+    
+                      options = '--domain-name "%s" --set replication-server:%s' \
+                                % (domainMap[ldapServer], replServer)
                     </script>
                     <message>
-                      'Setting safe-data level to: %s  for server: %s \
-                      domain: %s' % (assuredDataLevel, ldapServer, domain)
+                      'Removing references to other replication servers \nfor \
+                      domain: %s \nfrom server: %s \nkeep replication server: %s' \
+                      % (domain, ldapServer, replServer)
+                    </message>
+                    <!-- Remove peer RS from replicated domain -->
+                    <call function="'dsconfig'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'subcommand'          : 'set-replication-domain-prop',
+                        'objectType'          : 'provider-name',
+                        'objectName'          : 'Multimaster Synchronization',
+                        'optionsString'       : options
+                      }
+                    </call>
+                  </sequence>
+                </paralleliterate>
+              </if>
+    
+    
+              <script>
+                assuredReplication = globalAssuredReplication
+              </script>
+              <if expr="assuredReplication">
+                <paralleliterate var="server" in="_topologyServerList">
+                  <sequence>
+                    <script>
+                      ldapServer = '%s:%s' % (server.getHostname(),
+                                              server.getPort())
+                    </script>
+    
+                    <if expr="isolateLdapServers">
+                      <!-- this means the domainMap has already been filled up -->
+                      <script>
+                        domain = domainMap[ldapServer]
+                      </script>
+                      <else>
+                        <sequence>
+                          <!-- Retrieve replication-domain name -->
+                          <call function="'dsconfig'">
+                            { 'location'            : server.getHostname(),
+                              'dsPath'              : '%s/%s' \
+                                                      % (server.getDir(),OPENDSNAME),
+                              'dsInstanceHost'      : server.getHostname(),
+                              'dsInstanceAdminPort' : server.getAdminPort(),
+                              'dsInstanceDn'        : server.getRootDn(),
+                              'dsInstancePswd'      : server.getRootPwd(),
+                              'subcommand'          : 'list-replication-domains',
+                              'objectType'          : 'provider-name',
+                              'objectName'          : 'Multimaster Synchronization',
+                              'optionsString'       : '--script-friendly'
+                            }
+                          </call>
+                          <if expr='RC == 0'>
+                            <script>
+                              replicationDomains = STAXResult[0][1]
+                              for line in replicationDomains.splitlines():
+                                if line.find(synchroSuffix) != -1:
+                                  domain = line
+                                  domainMap[ldapServer] = domain
+                                  break
+                            </script>
+                          </if>
+                        </sequence>
+                      </else>
+                    </if>
+                    <script>
+                      options = '--domain-name "%s" --set assured-type:%s' \
+                                % (domain, assuredReplication)
+                    </script>
+                    <message>
+                      'Setting replication assured-type to: %s  for server: %s \
+                      domain: %s' % (assuredReplication, ldapServer, domain)
                     </message>
                     <!-- Set assured -->
                     <call function="'dsconfig'">
@@ -460,133 +438,179 @@
                         'optionsString'       : options
                       }
                     </call>
+    
+                    <if expr="assuredReplication == 'safe-data'">
+                      <sequence>
+                        <script>
+                          assuredDataLevel = len(_topologyServerList)
+                          options = '--domain-name "%s" --set assured-sd-level:%s' \
+                                    % (domain, assuredDataLevel)
+                        </script>
+                        <message>
+                          'Setting safe-data level to: %s  for server: %s \
+                          domain: %s' % (assuredDataLevel, ldapServer, domain)
+                        </message>
+                        <!-- Set assured -->
+                        <call function="'dsconfig'">
+                          { 'location'            : server.getHostname(),
+                            'dsPath'              : '%s/%s' \
+                                                    % (server.getDir(),OPENDSNAME),
+                            'dsInstanceHost'      : server.getHostname(),
+                            'dsInstanceAdminPort' : server.getAdminPort(),
+                            'dsInstanceDn'        : server.getRootDn(),
+                            'dsInstancePswd'      : server.getRootPwd(),
+                            'subcommand'          : 'set-replication-domain-prop',
+                            'objectType'          : 'provider-name',
+                            'objectName'          : 'Multimaster Synchronization',
+                            'optionsString'       : options
+                          }
+                        </call>
+                      </sequence>
+                    </if>
                   </sequence>
-                </if>
-              </sequence>
-            </paralleliterate>
-          </if>
-
-          <if expr="dataFile">
-            <sequence>
-              <message>
-                'Initialise topology from %s:%s' \
-                % (masterHost, master.getPort())
-              </message>
-
-              <!-- Initialise the servers in the topology -->
-              <call function="'initializeReplication'">
-                { 'location'                : clientHost,
-                  'dsPath'                  : clientPath,
-                  'sourceInstanceHost'      : masterHost,
-                  'sourceInstanceAdminPort' : master.getAdminPort(),
-                  'replicationDnList'       : [synchroSuffix]
-                }
-              </call>
-              <if expr="0">
-              <iterate var="server" in="consumerList">
+                </paralleliterate>
+              </if>
+    
+              <if expr="dataFile">
                 <sequence>
-<!--                  <call function="'initializeReplication'">
+                  <message>
+                    'Initialise topology from %s:%s' \
+                    % (masterHost, master.getPort())
+                  </message>
+    
+                  <!-- Initialise the servers in the topology -->
+                  <call function="'initializeReplication'">
                     { 'location'                : clientHost,
                       'dsPath'                  : clientPath,
-                      'dsInstanceHost'          : server.getHostname(),
-                      'dsInstanceAdminPort'     : server.getAdminPort(),
                       'sourceInstanceHost'      : masterHost,
                       'sourceInstanceAdminPort' : master.getAdminPort(),
                       'replicationDnList'       : [synchroSuffix]
                     }
-                  </call> -->
-
-                  <!-- Search initialisation task to check its status -->
-                  <call function="'ldapSearchWithScript'">
-                    {
-                      'location'       : server.getHostname(),
-                      'dsPath'         : '%s/%s' \
-                                         % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : 'cn=Tasks',
-                      'dsFilter'       : 'ds-task-initialize-domain-dn=%s' \
-                                         % synchroSuffix
-                    }
                   </call>
-                  <script>
-                    searchRC = STAXResult[0][0]
-                    searchResult = STAXResult[0][1]
-                    resultLength = len(searchResult) > 0
-                  </script>
-                  <if expr="resultLength != 0">
+                  <if expr="0">
+                  <iterate var="server" in="consumerList">
                     <sequence>
-                      <message>
-                        '++++++++ INITIALISATION TASK for %s:%s ++++++++\n%s' \
-                        % (server.getHostname(), server.getPort(), searchResult)
-                      </message>
+    <!--                  <call function="'initializeReplication'">
+                        { 'location'                : clientHost,
+                          'dsPath'                  : clientPath,
+                          'dsInstanceHost'          : server.getHostname(),
+                          'dsInstanceAdminPort'     : server.getAdminPort(),
+                          'sourceInstanceHost'      : masterHost,
+                          'sourceInstanceAdminPort' : master.getAdminPort(),
+                          'replicationDnList'       : [synchroSuffix]
+                        }
+                      </call> -->
+    
+                      <!-- Search initialisation task to check its status -->
+                      <call function="'ldapSearchWithScript'">
+                        {
+                          'location'       : server.getHostname(),
+                          'dsPath'         : '%s/%s' \
+                                             % (server.getDir(), OPENDSNAME),
+                          'dsInstanceHost' : server.getHostname(),
+                          'dsInstancePort' : server.getPort(),
+                          'dsInstanceDn'   : server.getRootDn(),
+                          'dsInstancePswd' : server.getRootPwd(),
+                          'dsBaseDN'       : 'cn=Tasks',
+                          'dsFilter'       : 'ds-task-initialize-domain-dn=%s' \
+                                             % synchroSuffix
+                        }
+                      </call>
+                      <script>
+                        searchRC = STAXResult[0][0]
+                        searchResult = STAXResult[0][1]
+                        resultLength = len(searchResult) > 0
+                      </script>
+                      <if expr="resultLength != 0">
+                        <sequence>
+                          <message>
+                            '++++++++ INITIALISATION TASK for %s:%s ++++++++\n%s' \
+                            % (server.getHostname(), server.getPort(), searchResult)
+                          </message>
+                        </sequence>
+                      </if>
                     </sequence>
+                  </iterate>
                   </if>
+    
                 </sequence>
-              </iterate>
+              </if>
+    
+              <if expr="enableDebugLogs">
+                <paralleliterate var="server" in="_topologyServerList">
+                  <sequence>
+                    <!-- Set the debug logger to "enabled" -->
+                    <call function="'dsconfigSet'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'objectName'          : 'log-publisher',
+                        'propertyType'        : 'publisher',
+                        'propertyName'        : 'File-based Debug Logger',
+                        'attributeName'       : 'enabled',
+                        'attributeValue'      : 'true'
+                      }
+                    </call>
+                    <!-- Set the debug level to "info" -->
+                    <call function="'dsconfigSet'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'objectName'          : 'log-publisher',
+                        'propertyType'        : 'publisher',
+                        'propertyName'        : 'File-based Debug Logger',
+                        'attributeName'       : 'default-debug-level',
+                        'attributeValue'      : 'info'
+                      }
+                    </call>
+                    <!-- Set the debug logger log file to "logs/errors" -->
+                    <call function="'dsconfigSet'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'objectName'          : 'log-publisher',
+                        'propertyType'        : 'publisher',
+                        'propertyName'        : 'File-based Debug Logger',
+                        'attributeName'       : 'log-file',
+                        'attributeValue'      : 'logs/errors'
+                      }
+                    </call>
+                  </sequence>
+                </paralleliterate>
               </if>
 
-            </sequence>
-          </if>
+              <tcstatus result="'pass'"></tcstatus>                      
 
-          <if expr="enableDebugLogs">
-            <paralleliterate var="server" in="_topologyServerList">
+            </sequence> 
+  
+            <catch exception="'STAXException'" typevar="eType" var="eInfo">
               <sequence>
-                <!-- Set the debug logger to "enabled" -->
-                <call function="'dsconfigSet'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'objectName'          : 'log-publisher',
-                    'propertyType'        : 'publisher',
-                    'propertyName'        : 'File-based Debug Logger',
-                    'attributeName'       : 'enabled',
-                    'attributeValue'      : 'true'
-                  }
-                </call>
-                <!-- Set the debug level to "info" -->
-                <call function="'dsconfigSet'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'objectName'          : 'log-publisher',
-                    'propertyType'        : 'publisher',
-                    'propertyName'        : 'File-based Debug Logger',
-                    'attributeName'       : 'default-debug-level',
-                    'attributeValue'      : 'info'
-                  }
-                </call>
-                <!-- Set the debug logger log file to "logs/errors" -->
-                <call function="'dsconfigSet'">
-                  { 'location'            : server.getHostname(),
-                    'dsPath'              : '%s/%s' \
-                                            % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'      : server.getHostname(),
-                    'dsInstanceAdminPort' : server.getAdminPort(),
-                    'dsInstanceDn'        : server.getRootDn(),
-                    'dsInstancePswd'      : server.getRootPwd(),
-                    'objectName'          : 'log-publisher',
-                    'propertyType'        : 'publisher',
-                    'propertyName'        : 'File-based Debug Logger',
-                    'attributeName'       : 'log-file',
-                    'attributeValue'      : 'logs/errors'
-                  }
-                </call>
+              <message log="1" level="'fatal'">
+                '%s: Failed to cleanup. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
               </sequence>
-            </paralleliterate>
-          </if>
+            </catch>
+            <finally>
+              <!-- Test Case postamble -->
+              <call function="'testCase_Postamble'"/>
+            </finally>
+  
+          </try>        
 
-        </sequence>
+        </testcase>
 
       </block>
 
