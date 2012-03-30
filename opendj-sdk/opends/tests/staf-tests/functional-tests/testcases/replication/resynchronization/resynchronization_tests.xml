@@ -150,11 +150,11 @@
               
             <!-- Stop the "consumer" servers -->
             <call function="'stopServers'">
-              [consumerList]
+              [resyncConsumerList]
             </call>                
             
             <!-- Copy master backup to "consumer" servers and restore it -->
-            <paralleliterate var="consumer" in="consumerList">
+            <paralleliterate var="consumer" in="resyncConsumerList">
               <sequence>
                 <script>
                   consumerBackupDir = '%s' % consumer.getTmpDir()
@@ -186,13 +186,13 @@
             
             <!-- Start the "consumer" servers -->
             <call function="'startServers'">
-              [consumerList]
+              [resyncConsumerList]
             </call>
             
             <!-- Verify the synchronization of the trees among the servers in
               the topology -->          
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix ]
             </call>
 
           </sequence>
@@ -352,7 +352,7 @@
             </call>
             
             <!-- Copy backup to "consumer" servers and restore it -->
-            <paralleliterate var="consumer" in="consumerList">
+            <paralleliterate var="consumer" in="resyncConsumerList">
               <sequence>
                 <script>
                   consumerBackupDir = '%s' % consumer.getTmpDir()
@@ -390,7 +390,7 @@
             <!-- Verify the synchronization of the trees among the servers in
               the topology -->
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix ]
             </call>
               
           </sequence>
@@ -450,7 +450,7 @@
             </script>
 
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -501,7 +501,7 @@
             </call>
             
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -586,7 +586,7 @@
             </call>
 
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -634,7 +634,7 @@
             </call>
             
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -685,7 +685,7 @@
             </call>
             
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -765,13 +765,13 @@
             <script>
               # Add 3rd server to replicated servers list now that replication
               # has been enabled on the 3rd one
-              _topologyServerList = _topologyServerList + [server3]
+              resyncServerList = resyncServerList + [server3]
               _splitServerList = _splitServerList + [server3]
-              consumerList = consumerList + [server3]
+              resyncConsumerList = resyncConsumerList + [server3]
             </script>                            
             
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -837,7 +837,7 @@
             </call>
             
             <paralleliterate var="server" 
-                             in="_topologyServerList" 
+                             in="resyncServerList" 
                              indexvar="i">
               <sequence>
                 <script>
@@ -875,7 +875,7 @@
             <!-- If the trees don't match, we may have come across Issue 4052
              (Ghost adds in Replication Server) -->              
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix ]
             </call>
               
           </sequence>
