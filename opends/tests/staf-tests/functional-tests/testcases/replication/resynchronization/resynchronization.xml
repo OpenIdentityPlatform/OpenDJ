@@ -86,8 +86,10 @@
                   msg1 = 'Replication: Resync:'
                   server3 = _topologyServerList[2]
 
-                  _topologyServerList.remove(server3)
-                  consumerList.remove(server3)
+                  resyncServerList = _topologyServerList[:]
+                  resyncServerList.remove(server3)
+                  resyncConsumerList = consumerList[:]
+                  resyncConsumerList.remove(server3)
                 </script>
                                                     
                 <!-- List of Test Cases -->
