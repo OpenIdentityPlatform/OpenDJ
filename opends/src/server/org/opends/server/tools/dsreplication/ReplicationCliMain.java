@@ -7555,7 +7555,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     PrintStream out = getOutputStream();
-    TablePrinter printer = null;
+    TablePrinter printer;
 
     if (scriptFriendly)
     {
@@ -9325,7 +9325,7 @@ public class ReplicationCliMain extends ConsoleApplication
       String id2 = server2.getSchemaReplicationID();
       if (id1 != null)
       {
-        mustInitializeSchema = id1.equals(id2);
+        mustInitializeSchema = !id1.equals(id2);
       }
       else
       {
