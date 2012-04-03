@@ -64,6 +64,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 
 import static org.testng.Assert.*;
 
+import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 
@@ -4778,7 +4779,7 @@ responseLoop:
     retrieveSuccessfulOperationElements(modifyOperation);
   }
 
-    /**
+  /**
    * Tests a modify operation that attempts change the user password doing
    * a delete of all values followed of an add of a new value.
    *
@@ -4968,7 +4969,168 @@ responseLoop:
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
   }
 
+  /**
+   * Tests that it is possible to delete userPassword attributes which have
+   * options. Options are not allowed for passwords, but we should allow users
+   * to clean them up, for example, after an import of legacy data.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testModifyDelPasswordAttributeWithOption()
+      throws Exception
+  {
+    // @formatter:off
+    TestCaseUtils.initializeTestBackend(true);
+    Entry e = TestCaseUtils.makeEntry(
+        "dn: cn=Test User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "userPassword;deleted: oldpassword");
+    Backend backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    backend.addEntry(e, null); // Don't use add operation.
 
+    // Constraint violation.
+    assertEquals(TestCaseUtils.applyModifications(false,
+        "dn: cn=Test User,o=test",
+        "changetype: modify",
+        "delete: userPassword;deleted",
+        "-"
+    ), 0);
+    // @formatter:on
+
+    e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    List<Attribute> attrList = e.getAttribute("userpassword");
+    assertNotNull(attrList);
+    assertEquals(attrList.size(), 1);
+    assertFalse(attrList.get(0).hasOptions());
+    assertEquals(attrList.get(0).size(), 1);
+  }
+
+  /**
+   * Tests that it is possible to delete userPassword attributes using an empty
+   * replace which have options. Options are not allowed for passwords, but we
+   * should allow users to clean them up, for example, after an import of legacy
+   * data.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testModifyReplaceEmptyPasswordAttributeWithOption()
+      throws Exception
+  {
+    // @formatter:off
+    TestCaseUtils.initializeTestBackend(true);
+    Entry e = TestCaseUtils.makeEntry(
+        "dn: cn=Test User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "userPassword;deleted: oldpassword");
+    Backend backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    backend.addEntry(e, null); // Don't use add operation.
+
+    // Constraint violation.
+    assertEquals(TestCaseUtils.applyModifications(false,
+        "dn: cn=Test User,o=test",
+        "changetype: modify",
+        "replace: userPassword;deleted",
+        "-"
+    ), 0);
+    // @formatter:on
+
+    e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    List<Attribute> attrList = e.getAttribute("userpassword");
+    assertNotNull(attrList);
+    assertEquals(attrList.size(), 1);
+    assertFalse(attrList.get(0).hasOptions());
+    assertEquals(attrList.get(0).size(), 1);
+  }
+
+  /**
+   * Tests that it is not possible to add userPassword attributes which have
+   * options. Options are not allowed for passwords.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testModifyAddPasswordAttributeWithOption()
+      throws Exception
+  {
+    // @formatter:off
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+        "dn: cn=Test User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password");
+
+    // Constraint violation.
+    assertEquals(TestCaseUtils.applyModifications(false,
+        "dn: cn=Test User,o=test",
+        "changetype: modify",
+        "add: userPassword;added",
+        "userPassword;added: newpassword",
+        "-"
+    ), 19);
+    // @formatter:on
+
+    Entry e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    List<Attribute> attrList = e.getAttribute("userpassword");
+    assertNotNull(attrList);
+    assertEquals(attrList.size(), 1);
+    assertFalse(attrList.get(0).hasOptions());
+    assertEquals(attrList.get(0).size(), 1);
+  }
+
+  /**
+   * Tests that it is not possible to add userPassword attributes which have
+   * options. Options are not allowed for passwords.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testModifyReplaceWithValuesPasswordAttributeWithOption()
+      throws Exception
+  {
+    // @formatter:off
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+        "dn: cn=Test User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password");
+
+    // Constraint violation.
+    assertEquals(TestCaseUtils.applyModifications(false,
+        "dn: cn=Test User,o=test",
+        "changetype: modify",
+        "replace: userPassword;added",
+        "userPassword;added: newpassword",
+        "-"
+    ), 19);
+    // @formatter:on
+
+    Entry e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    List<Attribute> attrList = e.getAttribute("userpassword");
+    assertNotNull(attrList);
+    assertEquals(attrList.size(), 1);
+    assertFalse(attrList.get(0).hasOptions());
+    assertEquals(attrList.get(0).size(), 1);
+  }
 
   /**
    * Tests that the binary option is automatically added to modifications if it

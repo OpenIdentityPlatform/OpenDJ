@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -1098,17 +1098,31 @@ modifyProcessing:
       {
         if (!isSynchronizationOperation())
         {
-          // If the attribute contains any options, then reject it.  Passwords
-          // will not be allowed to have options.
-          // Skipped for internal operations.
+          // If the attribute contains any options and new values are going to
+          // be added, then reject it. Passwords will not be allowed to have
+          // options. Skipped for internal operations.
           if (!isInternalOperation())
           {
             if (a.hasOptions())
             {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+              switch (m.getModificationType())
+              {
+              case REPLACE:
+                if (!a.isEmpty())
+                {
+                  throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                      ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+                }
+                // Allow delete operations to clean up after import.
+                break;
+              case ADD:
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                    ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+              default:
+                // Allow delete operations to clean up after import.
+                break;
+              }
             }
-
 
             // If it's a self change, then see if that's allowed.
             if (selfChange
