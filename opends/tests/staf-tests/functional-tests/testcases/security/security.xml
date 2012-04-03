@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2012 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="main_security" />
@@ -57,8 +57,6 @@
               suiteList.append(['pkcs12','security_pkcs12'])
               suiteList.append(['startTLS','security_startTLS'])
               suiteList.append(['sasl','security_sasl'])
-              suiteList.append(['pwd_policy','security_pwd_policy'])
-              suiteList.append(['pwd_policy_root','security_pwd_policy_root'])
               suiteList.append(['auth_pwd_syntax','security_auth_pwd_syntax'])
               suiteList.append(['pwd_validator','security_pwd_validator'])
               suiteList.append(['pwd_storage','security_pwd_storage'])
