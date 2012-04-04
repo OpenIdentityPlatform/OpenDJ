@@ -56,12 +56,12 @@
             <!-- List of ACI test suites to run -->
             <script>
               suiteList=[]
-#              suiteList.append('global_acis')
-#              suiteList.append('target')
-#              suiteList.append('targetattr')
-#              suiteList.append('targetfilter')
-#              suiteList.append('targattrfilter')
-#              suiteList.append('targetscope')
+              suiteList.append('global_acis')
+              suiteList.append('target')
+              suiteList.append('targetattr')
+              suiteList.append('targetfilter')
+              suiteList.append('targattrfilter')
+              suiteList.append('targetscope')
               suiteList.append('targetcontrol')
               suiteList.append('delete_entry')
               suiteList.append('add_entry')

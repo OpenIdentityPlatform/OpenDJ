@@ -89,6 +89,10 @@
                   testsList.append('aci_targetscope_003')
                   testsList.append('aci_targetscope_004')
                   testsList.append('aci_targetscope_005')
+                  testsList.append('aci_targetscope_006')
+                  testsList.append('aci_targetscope_007')
+                  testsList.append('aci_targetscope_008')
+                  testsList.append('aci_targetscope_009')
                 </script>
 
                 <!-- Execute the Tests -->
