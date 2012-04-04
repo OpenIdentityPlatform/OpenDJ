@@ -100,6 +100,8 @@
                   testsList.append('aci_effective_rights_014')
                   testsList.append('aci_effective_rights_015')
                   testsList.append('aci_effective_rights_016')
+                  testsList.append('aci_effective_rights_017')
+                  testsList.append('aci_effective_rights_018')
                 </script>
 
                 <!-- Execute the Tests -->

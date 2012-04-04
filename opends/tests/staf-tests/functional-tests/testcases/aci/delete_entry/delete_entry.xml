@@ -89,6 +89,21 @@
                   testsList.append('aci_delete_entry_003')
                   testsList.append('aci_delete_entry_004')
                   testsList.append('aci_delete_entry_005')
+                  testsList.append('aci_delete_entry_006')
+                  testsList.append('aci_delete_entry_007')
+                  testsList.append('aci_delete_entry_008')
+                  testsList.append('aci_delete_entry_009')
+                  testsList.append('aci_delete_entry_010')
+                  testsList.append('aci_delete_entry_011')
+                  testsList.append('aci_delete_entry_012')
+                  testsList.append('aci_delete_entry_013')
+                  testsList.append('aci_delete_entry_014')
+                  testsList.append('aci_delete_entry_015')
+                  testsList.append('aci_delete_entry_016')
+                  testsList.append('aci_delete_entry_017')
+                  testsList.append('aci_delete_entry_018')
+                  testsList.append('aci_delete_entry_019')
+                  testsList.append('aci_delete_entry_020')
                 </script>
 
                 <!-- Execute the Tests -->
