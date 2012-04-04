@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+  <defaultcall function="aci_bindtypes"/>
+  <function name="aci_bindtypes" scope="local">
+    <sequence>
+      <block name="'aci_bindtypes'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group'] = 'aci'        
+              CurrentTestPath['suite'] = 'bindtypes'
+              
+              _group=CurrentTestPath['group']
+              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _label = 'ACI Bindtypes'
+            </script>
+
+            <!--- Test Suite information
+            #@TestSuiteName       ACI Bindtypes Tests
+            #@TestSuitePurpose    Verify that ACI bindtypess are functioning correctly
+            #@TestSuiteID         ACI Bindtypes Tests
+            #@TestSuiteGroup      ACI Bindtypes
+            #@TestGroup           ACI
+            #@TestScript          bindtypes.xml
+            #@TestHTMLLink        http://www.forgerock.org/
+              -->
+                  
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              <sequence> 
+
+                <call function="'common_setup'">
+                  {
+                    'stopServer'     : False,
+                    'ldifFile'       : '%s/aci/aci_startup.ldif' % remote.data,
+                    'friendlyName'   : _label
+                  }
+                </call>
+
+                <!-- List of Import of Test Functions -->
+                <script>
+                  importList=[]
+                  importList.append('bindtypes/bindtypes_tests')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="_import" in="importList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (_groupdir,_import)"/>
+                </iterate>                                                                       
+
+                <!-- Specific to aci tests -->
+                <script>
+                  msg1 = 'ACI: Bindtypes:'
+                </script>
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('aci_bindtypes_001')
+                  testsList.append('aci_bindtypes_002')
+                  testsList.append('aci_bindtypes_003')
+                  testsList.append('aci_bindtypes_004')
+                  testsList.append('aci_bindtypes_005')
+                  testsList.append('aci_bindtypes_006')
+                  testsList.append('aci_bindtypes_007')
+                  testsList.append('aci_bindtypes_008')
+                  testsList.append('aci_bindtypes_009')
+                  testsList.append('aci_bindtypes_010')
+                  testsList.append('aci_bindtypes_011')
+                  testsList.append('aci_bindtypes_012')
+                  testsList.append('aci_bindtypes_013')
+                  testsList.append('aci_bindtypes_014')
+                  testsList.append('aci_bindtypes_015')
+                  testsList.append('aci_bindtypes_016')
+                  testsList.append('aci_bindtypes_017')
+                  testsList.append('aci_bindtypes_018')
+                  testsList.append('aci_bindtypes_019')
+                  testsList.append('aci_bindtypes_020')
+                  testsList.append('aci_bindtypes_021')
+                  testsList.append('aci_bindtypes_022')
+                  testsList.append('aci_bindtypes_023')
+                  testsList.append('aci_bindtypes_024')
+                  testsList.append('aci_bindtypes_025')
+                  testsList.append('aci_bindtypes_026')
+                  testsList.append('aci_bindtypes_027')
+                  testsList.append('aci_bindtypes_028')
+                  testsList.append('aci_bindtypes_029')
+                  testsList.append('aci_bindtypes_030')
+                  testsList.append('aci_bindtypes_031')
+                  testsList.append('aci_bindtypes_032')
+                  testsList.append('aci_bindtypes_033')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
+                                
+              </sequence>
+
+              <catch exception="'STAFException.TestSuite.SetupException'">
+                <sequence>
+                  <message log="1" level="'fatal'">
+                    'Setup of test suite failed.'
+                  </message>
+                  <rethrow/>
+                </sequence>
+              </catch>
+  
+              <finally>
+                <message>'Test Cases Completed.'</message>
+              </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: ACI Cleanup.'</message>
+              <try>
+                <sequence>
+                  <call function="'common_cleanup'">
+                    { 'friendlyName'  : _label }
+                  </call>
+              </sequence>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+      </block>
+    </sequence>
+  </function>
+</stax>
