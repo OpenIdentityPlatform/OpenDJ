@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -60,7 +60,7 @@ public class ProxiedAuthV2Control
        extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private static final class Decoder
       implements ControlDecoder<ProxiedAuthV2Control>
@@ -68,6 +68,7 @@ public class ProxiedAuthV2Control
     /**
      * {@inheritDoc}
      */
+    @Override
     public ProxiedAuthV2Control decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -114,6 +115,7 @@ public class ProxiedAuthV2Control
       return new ProxiedAuthV2Control(isCritical, authorizationID);
     }
 
+    @Override
     public String getOID()
     {
       return OID_PROXIED_AUTH_V2;
@@ -363,8 +365,8 @@ public class ProxiedAuthV2Control
 
 
   /**
-   * Appends a string representation of this proxied auth v2 control to the
-   * provided buffer.
+   * Appends a string representation of this proxied authorization v2 control
+   * to the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
