@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -43,8 +43,10 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ExtensionMessages
+    .ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -60,6 +62,8 @@ public class WhoAmIExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
+  // The default set of supported control OIDs for this extended
+  private Set<String> supportedControlOIDs = new HashSet<String>(0);
 
 
   /**
@@ -94,7 +98,9 @@ public class WhoAmIExtendedOperation
                    WhoAmIExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // No special configuration is required.
+    supportedControlOIDs = new HashSet<String>(2);
+    supportedControlOIDs.add(OID_PROXIED_AUTH_V1);
+    supportedControlOIDs.add(OID_PROXIED_AUTH_V2);
 
     DirectoryServer.registerSupportedExtension(OID_WHO_AM_I_REQUEST, this);
 
@@ -123,12 +129,7 @@ public class WhoAmIExtendedOperation
   @Override()
   public Set<String> getSupportedControls()
   {
-    HashSet<String> supportedControls = new HashSet<String>(2);
-
-    supportedControls.add(OID_PROXIED_AUTH_V1);
-    supportedControls.add(OID_PROXIED_AUTH_V2);
-
-    return supportedControls;
+    return supportedControlOIDs;
   }
 
 
