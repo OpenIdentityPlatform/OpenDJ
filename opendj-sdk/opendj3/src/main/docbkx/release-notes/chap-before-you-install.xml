@@ -60,6 +60,34 @@
   corresponding Java SDK.</para>
  </section>
 
+ <section xml:id="prerequisites-file-descriptors">
+  <title>Maximum Open Files</title>
+  <indexterm>
+   <primary>File descriptors</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ needs to be able to open many files, especially when handling
+  many client connections. Linux systems in particular often set a limit of
+  1024 per user, which is too low for OpenDJ.</para>
+
+  <para>When setting up OpenDJ for production use, make sure OpenDJ can use
+  at least use at least 64K (65536) file descriptors. For example when running
+  OpenDJ as user <literal>opendj</literal> on a Linux system that uses
+  <filename>/etc/security/limits.conf</filename> to set user level limits,
+  you can set soft and hard limits by adding these lines to the file.</para>
+
+  <programlisting language="none">opendj soft nofile 65536
+opendj hard nofile 131072</programlisting>
+
+  <para>The example above assumes the system has enough file descriptors
+  available overall. You can check the Linux system overall maximum as
+  follows.</para>
+
+  <screen>$ cat /proc/sys/fs/file-max
+204252</screen>
+ </section>
+
  <section xml:id="prerequisites-operating-systems">
   <title>Operating System</title>
   <indexterm>

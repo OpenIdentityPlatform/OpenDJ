@@ -81,20 +81,6 @@
    </variablelist>
   </step>
 
-  <step xml:id="enough-file-descriptors">
-   <indexterm><primary>File descriptor requirements</primary></indexterm>
-   
-   <para>Allow OpenDJ software to use at least 64K (65536) file descriptors
-   to operate properly.</para>
-
-   <para>How you set the maximum number of file descriptors per process
-   depends on your system. Read your system documentation for
-   instructions.</para>
-
-   <para>Typically you use the <command>ulimit -a</command> command to list
-   current settings.</para>
-  </step>
-
   <step xml:id="app-server-needed-for-dsml">
    <indexterm><primary>DSML gateway</primary></indexterm>
    
