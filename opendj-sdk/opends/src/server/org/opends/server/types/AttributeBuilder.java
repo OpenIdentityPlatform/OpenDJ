@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS«
  */
 package org.opends.server.types;
 
 
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.AbstractSet;
@@ -158,6 +159,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ConditionResult approximatelyEqualTo(
         AttributeValue value)
     {
@@ -219,6 +221,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean contains(AttributeValue value)
     {
       return values.contains(value);
@@ -241,6 +244,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final AttributeType getAttributeType()
     {
       return attributeType;
@@ -262,6 +266,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ConditionResult greaterThanOrEqualTo(
         AttributeValue value)
     {
@@ -326,6 +331,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean isVirtual()
     {
       return false;
@@ -336,6 +342,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final Iterator<AttributeValue> iterator()
     {
       return values.iterator();
@@ -346,6 +353,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ConditionResult lessThanOrEqualTo(
         AttributeValue value)
     {
@@ -409,6 +417,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ConditionResult matchesSubstring(
         ByteString subInitial,
         List<ByteString> subAny, ByteString subFinal)
@@ -535,6 +544,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final int size()
     {
       return values.size();
@@ -545,6 +555,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public final void toString(StringBuilder buffer)
     {
       buffer.append("Attribute(");
@@ -616,6 +627,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getOptions()
     {
       return options;
@@ -689,6 +701,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getOptions()
     {
       return Collections.emptySet();
@@ -785,6 +798,7 @@ public final class AttributeBuilder
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getOptions()
     {
       return option;
@@ -848,35 +862,6 @@ public final class AttributeBuilder
     {
       // No implementation required.
     }
-
-
-
-    /**
-     * Creates a new small set using the content of the provided
-     * collection.
-     *
-     * @param c
-     *          The collection whose elements are to be placed into
-     *          this set.
-     */
-    public SmallSet(Collection<T> c)
-    {
-      addAll(c);
-    }
-
-
-
-    /**
-     * Creates a new small set with the specified initial capacity.
-     *
-     * @param initialCapacity
-     *          The initial capacity for this set.
-     */
-    public SmallSet(int initialCapacity)
-    {
-      setInitialCapacity(initialCapacity);
-    }
-
 
 
     /**
@@ -980,6 +965,7 @@ public final class AttributeBuilder
 
 
 
+          @Override
           public boolean hasNext()
           {
             return hasNext;
@@ -987,6 +973,7 @@ public final class AttributeBuilder
 
 
 
+          @Override
           public T next()
           {
             if (!hasNext)
@@ -1000,6 +987,7 @@ public final class AttributeBuilder
 
 
 
+          @Override
           public void remove()
           {
             if (hasNext || firstElement == null)
@@ -1044,6 +1032,23 @@ public final class AttributeBuilder
       return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean contains(Object o)
+    {
+      if (elements != null)
+      {
+        // Note: if there is one or zero values left we could stop
+        // using the set. However, lets assume that if the set
+        // was multi-valued before then it may become multi-valued
+        // again.
+        return elements.contains(o);
+      }
+
+      return (firstElement != null && firstElement.equals(o));
+    }
 
 
     /**
@@ -1426,6 +1431,7 @@ public final class AttributeBuilder
    * @return An iterator over the attribute values in this attribute
    *         builder.
    */
+  @Override
   public Iterator<AttributeValue> iterator()
   {
     return values.iterator();
