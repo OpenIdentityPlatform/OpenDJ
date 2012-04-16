@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -347,18 +347,38 @@ public class FIFOEntryCache
       long usedMemory = runtime.totalMemory() - runtime.freeMemory();
       if (usedMemory > maxAllowedMemory)
       {
-        Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        if (iterator.hasNext())
+        CacheEntry cachedEntry = dnMap.remove(entry.getDN());
+        if (cachedEntry == null)
         {
-          CacheEntry ce = iterator.next();
-          iterator.remove();
-
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
-          if (m != null)
+          // The current entry wasn't there, let's remove an existing entry.
+          Iterator<CacheEntry> iterator = dnMap.values().iterator();
+          if (iterator.hasNext())
           {
-            m.remove(ce.getEntryID());
+            CacheEntry ce = iterator.next();
+            iterator.remove();
+
+            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            if (m != null)
+            {
+              m.remove(ce.getEntryID());
+            }
           }
         }
+        else
+        {
+          // Try to remove the entry from the ID list as well.
+          Map<Long,CacheEntry> map = idMap.get(backend);
+          if (map != null)
+          {
+            map.remove(cacheEntry.getEntryID());
+            // If this backend becomes empty now remove it from the idMap map.
+            if (map.isEmpty())
+            {
+              idMap.remove(backend);
+            }
+          }
+        }
+
       }
       else
       {
