@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !
 -->
 <appendix xml:id='appendix-standards'
@@ -358,6 +358,18 @@
     </indexterm>
     <para>Describes a file format suitable for describing directory
     information or modifications made to directory information.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry xml:id="rfc2891">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc2891'>RFC 2891:
+   LDAP Control Extension for Server Side Sorting of Search Results</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 2891</secondary>
+    </indexterm>
+    <para>Describes two LDAPv3 control extensions for server side
+   sorting of search results.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="rfc2926">
