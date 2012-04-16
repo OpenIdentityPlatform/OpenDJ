@@ -1040,10 +1040,6 @@ public final class AttributeBuilder
     {
       if (elements != null)
       {
-        // Note: if there is one or zero values left we could stop
-        // using the set. However, lets assume that if the set
-        // was multi-valued before then it may become multi-valued
-        // again.
         return elements.contains(o);
       }
 
