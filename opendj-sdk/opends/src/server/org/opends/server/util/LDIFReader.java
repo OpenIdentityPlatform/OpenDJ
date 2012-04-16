@@ -23,43 +23,36 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.backends.jeb.EntryID;
+import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.importLDIF.Importer;
+import org.opends.server.backends.jeb.importLDIF.Suffix;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-
-
 import org.opends.server.types.*;
-import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.backends.jeb.RootContainer;
-import org.opends.server.backends.jeb.EntryID;
-import org.opends.server.backends.jeb.importLDIF.Suffix;
-import org.opends.server.backends.jeb.importLDIF.Importer;
+import static org.opends.server.util.StaticUtils.addSuperiorObjectClasses;
+import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.Validator.ensureNotNull;
 
 
 /**
@@ -310,35 +303,68 @@ public final class LDIFReader
       }
       // Read the set of attributes from the entry.
       HashMap<ObjectClass,String> objectClasses =
-              new HashMap<ObjectClass,String>();
-      HashMap<AttributeType,List<Attribute>> userAttributes =
-              new HashMap<AttributeType,List<Attribute>>();
-      HashMap<AttributeType,List<Attribute>> operationalAttributes =
-              new HashMap<AttributeType,List<Attribute>>();
+           new HashMap<ObjectClass,String>();
+      HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders =
+           new HashMap<AttributeType,List<AttributeBuilder>>();
+      HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
+           new HashMap<AttributeType,List<AttributeBuilder>>();
       try
       {
         for (StringBuilder line : lines)
         {
-          readAttribute(lines, line, entryDN, objectClasses, userAttributes,
-                        operationalAttributes, checkSchema);
+          readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
+                        operationalAttrBuilders, checkSchema);
         }
       }
       catch (LDIFException e)
       {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Skipping entry %s because the it reading" +
-                    "its attributes failed.", entryDN);
-          }
-          Message message =
-                           ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Skipping entry %s because the it reading" +
+                  "its attributes failed.", entryDN);
+        }
+        Message message = ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
                                                        e.getMessage());
-          logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
-          suffix.removePending(entryDN);
-          continue;
+        logToSkipWriter(lines, message);
+        entriesIgnored.incrementAndGet();
+        suffix.removePending(entryDN);
+        continue;
       }
 
+      // Create the entry and see if it is one that should be included in the
+      // import.
+      HashMap<AttributeType,List<Attribute>> userAttributes =
+        new HashMap<AttributeType,List<Attribute>>(
+        userAttrBuilders.size());
+      HashMap<AttributeType,List<Attribute>> operationalAttributes =
+        new HashMap<AttributeType,List<Attribute>>(
+        operationalAttrBuilders.size());
+      for (Map.Entry<AttributeType, List<AttributeBuilder>>
+           attrTypeEntry : userAttrBuilders.entrySet())
+      {
+        AttributeType attrType = attrTypeEntry.getKey();
+        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
+        List<Attribute> attrList =
+          new ArrayList<Attribute>(attrBuilderList.size());
+        for (AttributeBuilder builder : attrBuilderList)
+        {
+          attrList.add(builder.toAttribute());
+        }
+        userAttributes.put(attrType, attrList);
+      }
+      for (Map.Entry<AttributeType, List<AttributeBuilder>>
+           attrTypeEntry : operationalAttrBuilders.entrySet())
+      {
+        AttributeType attrType = attrTypeEntry.getKey();
+        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
+        List<Attribute> attrList =
+          new ArrayList<Attribute>(attrBuilderList.size());
+        for (AttributeBuilder builder : attrBuilderList)
+        {
+          attrList.add(builder.toAttribute());
+        }
+        operationalAttributes.put(attrType, attrList);
+      }
       // Create the entry and see if it is one that should be included in the
       // import.
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
@@ -2160,211 +2186,6 @@ public final class LDIFReader
       }
     }
   }
-
-
-  private void readAttribute(LinkedList<StringBuilder> lines,
-       StringBuilder line, DN entryDN, Map<ObjectClass,String> objectClasses,
-       Map<AttributeType,List<Attribute>> userAttributes,
-       Map<AttributeType,List<Attribute>> operationalAttributes,
-       boolean checkSchema) throws LDIFException
-  {
-    // Parse the attribute type description.
-    int colonPos = parseColonPosition(lines, line);
-    String attrDescr = line.substring(0, colonPos);
-    final Attribute attribute = parseAttrDescription(attrDescr);
-    final String attrName = attribute.getName();
-    final String lowerName = toLowerCase(attrName);
-
-    // Now parse the attribute value.
-    ByteString value = parseSingleValue(lines, line, entryDN,
-        colonPos, attrName);
-
-    // See if this is an objectclass or an attribute.  Then get the
-    // corresponding definition and add the value to the appropriate hash.
-    if (lowerName.equals("objectclass"))
-    {
-      if (! importConfig.includeObjectClasses())
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose("Skipping objectclass %s for entry %s due to " +
-              "the import configuration.", value, entryDN);
-        }
-        return;
-      }
-
-      String ocName      = value.toString();
-      String lowerOCName = toLowerCase(ocName);
-
-      ObjectClass objectClass = DirectoryServer.getObjectClass(lowerOCName);
-      if (objectClass == null)
-      {
-        objectClass = DirectoryServer.getDefaultObjectClass(ocName);
-      }
-
-      if (objectClasses.containsKey(objectClass))
-      {
-        logError(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
-            String.valueOf(entryDN), lastEntryLineNumber, ocName));
-      }
-      else
-      {
-        objectClasses.put(objectClass, ocName);
-      }
-    }
-    else
-    {
-      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-
-
-      if (! importConfig.includeAttribute(attrType))
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose("Skipping attribute %s for entry %s due to the " +
-              "import configuration.", attrName, entryDN);
-        }
-        return;
-      }
-
-       //The attribute is not being ignored so check for binary option.
-      if(checkSchema && !attrType.isBinary())
-      {
-       if(attribute.hasOption("binary"))
-        {
-          Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(
-            String.valueOf(entryDN),lastEntryLineNumber, attrName);
-          logToRejectWriter(lines, message);
-          throw new LDIFException(message, lastEntryLineNumber,true);
-        }
-      }
-      if (checkSchema &&
-          (DirectoryServer.getSyntaxEnforcementPolicy() !=
-               AcceptRejectWarn.ACCEPT))
-      {
-        MessageBuilder invalidReason = new MessageBuilder();
-        if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
-        {
-          Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
-                  String.valueOf(entryDN),
-                  lastEntryLineNumber, value.toString(),
-                  attrName, invalidReason.toString());
-          if (DirectoryServer.getSyntaxEnforcementPolicy() ==
-                   AcceptRejectWarn.WARN)
-          {
-            logError(message);
-          }
-          else
-          {
-            logToRejectWriter(lines, message);
-            throw new LDIFException(message, lastEntryLineNumber,
-                                    true);
-          }
-        }
-      }
-
-      AttributeValue attributeValue =
-          AttributeValues.create(attrType, value);
-      List<Attribute> attrList;
-      if (attrType.isOperational())
-      {
-        attrList = operationalAttributes.get(attrType);
-        if (attrList == null)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attribute, true);
-          builder.add(attributeValue);
-          attrList = new ArrayList<Attribute>();
-          attrList.add(builder.toAttribute());
-          operationalAttributes.put(attrType, attrList);
-          return;
-        }
-      }
-      else
-      {
-        attrList = userAttributes.get(attrType);
-        if (attrList == null)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attribute, true);
-          builder.add(attributeValue);
-          attrList = new ArrayList<Attribute>();
-          attrList.add(builder.toAttribute());
-          userAttributes.put(attrType, attrList);
-          return;
-        }
-      }
-
-
-      // Check to see if any of the attributes in the list have the same set of
-      // options.  If so, then try to add a value to that attribute.
-      for (int i = 0; i < attrList.size(); i++) {
-        Attribute a = attrList.get(i);
-
-        if (a.optionsEqual(attribute.getOptions()))
-        {
-          if (a.contains(attributeValue))
-          {
-            if (! checkSchema)
-            {
-              // If we're not doing schema checking, then it is possible that
-              // the attribute type should use case-sensitive matching and the
-              // values differ in capitalization.  Only reject the proposed
-              // value if we find another value that is exactly the same as the
-              // one that was provided.
-              for (AttributeValue v : a)
-              {
-                if (v.getValue().equals(attributeValue.getValue()))
-                {
-                  Message message = WARN_LDIF_DUPLICATE_ATTR.get(
-                          String.valueOf(entryDN),
-                          lastEntryLineNumber, attrName,
-                          value.toString());
-                  logToRejectWriter(lines, message);
-                  throw new LDIFException(message, lastEntryLineNumber,
-                                          true);
-                }
-              }
-            }
-            else
-            {
-              Message message = WARN_LDIF_DUPLICATE_ATTR.get(
-                      String.valueOf(entryDN),
-                      lastEntryLineNumber, attrName,
-                      value.toString());
-              logToRejectWriter(lines, message);
-              throw new LDIFException(message, lastEntryLineNumber,
-                                      true);
-            }
-          }
-
-          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema)
-          {
-            Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
-                    .get(String.valueOf(entryDN),
-                         lastEntryLineNumber, attrName);
-            logToRejectWriter(lines, message);
-            throw new LDIFException(message, lastEntryLineNumber, true);
-          }
-
-          AttributeBuilder builder = new AttributeBuilder(a);
-          builder.add(attributeValue);
-          attrList.set(i, builder.toAttribute());
-          return;
-        }
-      }
-
-
-      // No set of matching options was found, so create a new one and
-      // add it to the list.
-      AttributeBuilder builder = new AttributeBuilder(attribute, true);
-      builder.add(attributeValue);
-      attrList.add(builder.toAttribute());
-    }
-  }
-
 
 
   /**
