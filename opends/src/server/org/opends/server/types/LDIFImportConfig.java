@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -274,6 +275,7 @@ public final class LDIFImportConfig extends OperationConfig
     invokeImportPlugins    = false;
     isCompressed           = false;
     isEncrypted            = false;
+    validateSchema         = true;
     reader                 = null;
     rejectWriter           = null;
     skipWriter             = null;
@@ -310,6 +312,7 @@ public final class LDIFImportConfig extends OperationConfig
     invokeImportPlugins    = false;
     isCompressed           = false;
     isEncrypted            = false;
+    validateSchema         = true;
     reader                 = getBufferedReader(ldifInputReader);
     rejectWriter           = null;
     skipWriter             = null;
