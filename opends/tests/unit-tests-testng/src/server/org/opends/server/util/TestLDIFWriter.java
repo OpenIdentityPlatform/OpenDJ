@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -300,7 +301,7 @@ public final class TestLDIFWriter extends UtilTestCase {
         {
           "",
           "objectclass", "top",
-          "description", "root DSE"
+          "objectClass", "ds-root-dse",
         },
     };
 
