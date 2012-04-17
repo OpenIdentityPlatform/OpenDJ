@@ -1491,6 +1491,9 @@ public class ReplicationBackend
       ldif = ldif.replace("\n-\n", "\n");
       ByteArrayInputStream istream = new ByteArrayInputStream(ldif.getBytes());
       LDIFImportConfig newConfig = new LDIFImportConfig(istream);
+      // ReplicationBackend may contain entries that are not schema
+      // compliant. Let's ignore them for now.
+      newConfig.setValidateSchema(false);
       return new LDIFReader(newConfig);
     }
   }
