@@ -1134,6 +1134,7 @@ public final class TestCaseUtils {
    */
   public static List<Entry> entriesFromLdifString(String ldif) throws Exception {
     LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+    ldifImportConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifImportConfig);
 
     List<Entry> entries = new ArrayList<Entry>();
