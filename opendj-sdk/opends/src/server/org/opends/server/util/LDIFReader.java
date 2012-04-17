@@ -1312,27 +1312,12 @@ public final class LDIFReader
 
       // Check to see if any of the attributes in the list have the same set of
       // options.  If so, then try to add a value to that attribute.
-      for (AttributeBuilder a : attrList) {
-        if (a.optionsEqual(attribute.getOptions())) {
-          if (a.contains(attributeValue)) {
-            if (!checkSchema) {
-              // If we're not doing schema checking, then it is possible that
-              // the attribute type should use case-sensitive matching and the
-              // values differ in capitalization.  Only reject the proposed
-              // value if we find another value that is exactly the same as the
-              // one that was provided.
-              for (AttributeValue v : a) {
-                if (v.getValue().equals(attributeValue.getValue())) {
-                  Message message = WARN_LDIF_DUPLICATE_ATTR.get(
-                          String.valueOf(entryDN),
-                          lastEntryLineNumber, attrName,
-                          value.toString());
-                  logToRejectWriter(lines, message);
-                  throw new LDIFException(message, lastEntryLineNumber,
-                          true);
-                }
-              }
-            } else {
+      for (AttributeBuilder a : attrList)
+      {
+        if (a.optionsEqual(attribute.getOptions()))
+        {
+          if (!a.add(attributeValue) && checkSchema)
+          {
               Message message = WARN_LDIF_DUPLICATE_ATTR.get(
                       String.valueOf(entryDN),
                       lastEntryLineNumber, attrName,
@@ -1340,10 +1325,9 @@ public final class LDIFReader
               logToRejectWriter(lines, message);
               throw new LDIFException(message, lastEntryLineNumber,
                       true);
-            }
           }
-
-          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema) {
+          if (attrType.isSingleValue() && (a.size() > 1)  && checkSchema)
+          {
             Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
                     .get(String.valueOf(entryDN),
                             lastEntryLineNumber, attrName);
@@ -1351,7 +1335,6 @@ public final class LDIFReader
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
 
-          a.add(attributeValue);
           return;
         }
       }
