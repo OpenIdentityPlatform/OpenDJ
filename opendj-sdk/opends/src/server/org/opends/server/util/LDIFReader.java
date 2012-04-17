@@ -258,7 +258,6 @@ public final class LDIFReader
         {
           entryDN = readDN(lines);
         } catch (LDIFException le) {
-          entriesIgnored.incrementAndGet();
           continue;
         }
         if (entryDN == null)
@@ -279,7 +278,6 @@ public final class LDIFReader
           entriesRead.incrementAndGet();
           Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
           continue;
         }
         entryID = rootContainer.getNextEntryID();
@@ -295,7 +293,6 @@ public final class LDIFReader
           entriesRead.incrementAndGet();
           Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
           continue;
         }
         entriesRead.incrementAndGet();
@@ -325,8 +322,6 @@ public final class LDIFReader
         }
         Message message = ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
                                                        e.getMessage());
-        logToSkipWriter(lines, message);
-        entriesIgnored.incrementAndGet();
         suffix.removePending(entryDN);
         continue;
       }
@@ -383,7 +378,6 @@ public final class LDIFReader
           }
           Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
           suffix.removePending(entryDN);
           continue;
         }
@@ -398,10 +392,9 @@ public final class LDIFReader
         Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
             get(String.valueOf(entry.getDN()), lastEntryLineNumber,
                 String.valueOf(e));
-                 logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
-          suffix.removePending(entryDN);
-          continue;
+        logToSkipWriter(lines, message);
+        suffix.removePending(entryDN);
+        continue;
       }
 
 
@@ -426,7 +419,6 @@ public final class LDIFReader
           }
 
           logToRejectWriter(lines, m);
-          entriesRejected.incrementAndGet();
           suffix.removePending(entryDN);
           continue;
         }
@@ -451,7 +443,6 @@ public final class LDIFReader
                   lastEntryLineNumber,
                   invalidReason.toString());
           logToRejectWriter(lines, message);
-          entriesRejected.incrementAndGet();
           suffix.removePending(entryDN);
           continue;
         }
@@ -519,7 +510,6 @@ public final class LDIFReader
         entriesRead.incrementAndGet();
         Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
         logToSkipWriter(lines, message);
-        entriesIgnored.incrementAndGet();
         continue;
       }
       else
@@ -544,7 +534,6 @@ public final class LDIFReader
       }
       catch (LDIFException e)
       {
-        entriesRejected.incrementAndGet();
         throw e;
       }
 
@@ -598,7 +587,6 @@ public final class LDIFReader
           }
           Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
-          entriesIgnored.incrementAndGet();
           continue;
         }
       }
@@ -637,7 +625,6 @@ public final class LDIFReader
           }
 
           logToRejectWriter(lines, m);
-          entriesRejected.incrementAndGet();
           continue;
         }
       }
@@ -655,7 +642,6 @@ public final class LDIFReader
                   lastEntryLineNumber,
                   invalidReason.toString());
           logToRejectWriter(lines, message);
-          entriesRejected.incrementAndGet();
           throw new LDIFException(message, lastEntryLineNumber, true);
         }
         //Add any superior objectclass(s) missing in an entries
@@ -898,7 +884,6 @@ public final class LDIFReader
               ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line.toString());
 
       logToRejectWriter(lines, message);
-
       throw new LDIFException(message, lastEntryLineNumber, true);
     }
 
@@ -914,7 +899,6 @@ public final class LDIFReader
               ERR_LDIF_NO_DN.get(lastEntryLineNumber, line.toString());
 
       logToRejectWriter(lines, message);
-
       throw new LDIFException(message, lastEntryLineNumber, true);
     }
 
@@ -960,7 +944,6 @@ public final class LDIFReader
                         String.valueOf(e));
 
         logToRejectWriter(lines, message);
-
         throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
 
@@ -980,7 +963,6 @@ public final class LDIFReader
                 de.getMessageObject());
 
         logToRejectWriter(lines, message);
-
         throw new LDIFException(message, lastEntryLineNumber, true, de);
       }
       catch (Exception e)
@@ -994,7 +976,6 @@ public final class LDIFReader
                 String.valueOf(e));
 
         logToRejectWriter(lines, message);
-
         throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
     }
@@ -1024,7 +1005,6 @@ public final class LDIFReader
                 lastEntryLineNumber, line.toString(), de.getMessageObject());
 
         logToRejectWriter(lines, message);
-
         throw new LDIFException(message, lastEntryLineNumber, true, de);
       }
       catch (Exception e)
@@ -1039,7 +1019,6 @@ public final class LDIFReader
                 String.valueOf(e));
 
         logToRejectWriter(lines, message);
-
         throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
     }
@@ -2106,6 +2085,7 @@ public final class LDIFReader
   private void logToRejectWriter(LinkedList<StringBuilder> lines,
       Message message) {
 
+    entriesRejected.incrementAndGet();
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
     {
@@ -2123,7 +2103,7 @@ public final class LDIFReader
    */
   private void logToSkipWriter(LinkedList<StringBuilder> lines,
       Message message) {
-
+    entriesIgnored.incrementAndGet();
     BufferedWriter skipWriter = importConfig.getSkipWriter();
     if (skipWriter != null)
     {
