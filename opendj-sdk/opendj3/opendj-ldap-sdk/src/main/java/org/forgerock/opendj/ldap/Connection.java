@@ -65,7 +65,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * <p>
  * <h4>Performing operations asynchronously</h4>
  * <p>
- * Asynchronous methods, identified by their {code Async} suffix, are
+ * Asynchronous methods, identified by their {@code Async} suffix, are
  * non-blocking, returning a {@link FutureResult} or sub-type thereof which can
  * be used for retrieving the result using the {@link FutureResult#get} method.
  * Operation failures, for whatever reason, are signalled by the
