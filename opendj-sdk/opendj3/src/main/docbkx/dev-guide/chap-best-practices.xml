@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-best-practices'
@@ -34,11 +34,6 @@
  <para>Follow the advice in this chapter to write effective, maintainable,
  high performance directory client applications.</para>
 
- <section xml:id="specify-ldapv3">
-  <title>Specify LDAPv3</title>
-  <para>TODO</para>
- </section>
- 
  <section xml:id="authenticate-correctly">
   <title>Authenticate Correctly</title>
   <para>TODO</para>
