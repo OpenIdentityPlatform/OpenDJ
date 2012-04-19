@@ -36,31 +36,90 @@
 
  <section xml:id="authenticate-correctly">
   <title>Authenticate Correctly</title>
-  <para>TODO</para>
+
+  <para>Unless your application performs only read operations, you should
+  authenticate to the directory server. Some directory administrators require
+  authentication even to read directory data.</para>
+
+  <para>Once you authenticate (bind), directory servers like OpenDJ make
+  authorization decisions based on your identity. With servers like OpenDJ
+  that support proxied authorization, once authenticated your application can
+  also request an operation on behalf of another identity, for example the
+  identity of the end user.</para>
+
+  <para>Your application therefore should have an account used to authenticate
+  such as <literal>cn=My Killer App,ou=Apps,dc=example,dc=com</literal>. The
+  directory administrator can then authorize appropriate access for your
+  application, and also monitor your application's requests to help you
+  troubleshoot problems if they arise.</para>
+
+  <para>Your application can use simple, password-based authentication. When
+  you opt for password-based authentication, also use Start TLS for example to
+  avoid sending the password as clear text over the network. If you prefer to
+  manage certificates rather than passwords, directory servers like OpenDJ can
+  do client authentication as well.</para>
  </section>
  
- <section xml:id="limit-connection-overhead">
-  <title>Limit Connection Overhead</title>
-  <para>TODO</para>
+ <section xml:id="reuse-connections">
+  <title>Reuse Connections</title>
+
+  <para>LDAP is a stateful protocol. You authenticate (bind), you do stuff,
+  you unbind. The server maintains a context that lets it make authorization
+  decisions concerning your requests. You should therefore reuse
+  connections when possible.</para>
+
+  <para>You can make multiple requests without having to set up a new
+  connection and authenticate for every request. You can issue a request and
+  get results asynchronously, while you issue another request. You can even
+  share connections in a pool, avoiding the overhead of setting up and tearing
+  down connections if you use them often.</para>
  </section>
  
- <section xml:id="handle-inactivity-timeouts">
-  <title>Handle Potential Inactivity Timeouts</title>
-  <para>TODO</para>
+ <section xml:id="health-check-connections">
+  <title>Health Check Connections</title>
+
+  <para>In a network built for HTTP applications, your long-lived LDAP
+  connections can get cut by network equipment configured to treat idle and
+  even just old connections as stale resources to reclaim.</para>
+
+  <para>When you maintain a particularly long-lived connection such as a
+  connection for a persistent search, periodically perform a health check to
+  make sure nothing on the network quietly decided to drop your connection
+  without notification. A health check might involve reading an attribute
+  on a well-known entry in the directory.</para>
  </section>
  
- <section xml:id="retrieve-entries-intelligently">
-  <title>Retrieve Entries Intelligently</title>
-  <para>TODO</para>
+ <section xml:id="request-what-you-need-all-at-once">
+  <title>Request Exactly What You Need All At Once</title>
+
+  <para>By the time your application makes it to production, you should know
+  what attributes you want, so request them explicitly and request all
+  the attributes you need in the same search. For example, if all you need
+  is <literal>mail</literal> and <literal>cn</literal>, then specify both
+  attributes in your <literal>SearchRequest</literal>.</para>
  </section>
  
- <section xml:id="write-simple-conforming-filters">
-  <title>Write Simple, Conforming LDAP Filters</title>
-  <para>TODO</para>
+ <section xml:id="use-specific-filters">
+  <title>Use Specific LDAP Filters</title>
+
+  <para>The difference between a general filter
+  <literal>(mail=*@example.com)</literal> and a good, specific filter like
+  <literal>(mail=user@example.com)</literal> can be huge numbers of entries
+  and enormous amounts of processing time, both for the directory server
+  that has to return search results, and also for your application that has
+  to sort through the results. Many use cases can be handled with short,
+  specific filters. As a rule, prefer equality filters over substring
+  filters.</para>
+
+  <para>Furthermore, always use <literal>&amp;</literal> with
+  <literal>!</literal> to restrict the potential result set before returning
+  all entries that do not match part of the filter. For example, <literal
+  >(&amp;(location=Oslo)(!(mail=birthday.girl@example.com)))</literal>.</para>
  </section>
  
  <section xml:id="make-modifications-specific">
   <title>Make Modifications Specific</title>
+
   <para>TODO</para>
  </section>
  
