@@ -112,7 +112,6 @@
     <gaId>UA-23412190-8</gaId>
   </properties>
   <build>
-  <!--
     <plugins>
       <plugin>
         <groupId>org.forgerock.commons</groupId>
@@ -141,7 +140,6 @@
         </executions>
       </plugin>
     </plugins>
-  -->
     <pluginManagement>
       <plugins>
         <plugin>
