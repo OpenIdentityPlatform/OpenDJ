@@ -99,12 +99,49 @@
    </listitem>
   </itemizedlist>
   
-  <para>TODO: Explain how to do this, either with code from
-  http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/search/Main.html
-  or writing some more directly relevant sample code. The other sections
-  in this chapter can expand more on filters, building search requests,
-  iterating through results, potentially abandoning, but this section should
-  stay focused on the basic example to make the idea clear.</para>
+  <para>The following code excerpt demonstrates how this might be done in a
+  minimal command-line program.</para>
+
+  <programlisting language="java">// Prompt for mail and password.
+Console c = System.console();
+if (c == null) {
+    System.err.println("No console.");
+    System.exit(1);
+}
+
+String mail = c.readLine("Email address: ");
+char[] password = c.readPassword("Password: ");
+
+// Search using mail address, and then bind with the DN and password.
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
+        port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    SearchResultEntry entry = connection.searchSingleEntry(baseDN,
+            SearchScope.WHOLE_SUBTREE, "(mail=" + mail + ")", "cn");
+    DN bindDN = entry.getName();
+    BindResult result = connection.bind(bindDN.toString(), password);
+
+    if (result.isSuccess()) {
+        String cn = entry.getAttribute("cn").firstValueAsString();
+        System.out.println("Hello, " + cn + "!");
+    } else {
+        System.err.println("Failed to bind.");
+    }
+} catch (final ErrorResultException e) {
+    System.err.println("Failed to bind.");
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} catch (final InterruptedException e) {
+    System.err.println(e.getMessage());
+    System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
  </section>
  
  <section xml:id="about-filters">
