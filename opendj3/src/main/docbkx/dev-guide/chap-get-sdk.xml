@@ -40,10 +40,11 @@
   <para>OpenDJ LDAP SDK provides a set of modern, developer-friendly Java APIs
   as part of the OpenDJ product suite. The product suite includes the client
   SDK alongside command-line tools and sample code, a 100% pure Java directory
-  server, and more. You can use OpenDJ LDAP SDK to create client applications for
-  use with any server that complies with the <citetitle>Lightweight Directory
-  Access Protocol (LDAP): Technical Specification Road Map</citetitle>,
-  <link xlink:href='http://tools.ietf.org/html/rfc4510'>RFC 4510</link>.</para>
+  server, and more. You can use OpenDJ LDAP SDK to create client applications
+  for use with any server that complies with the <citetitle>Lightweight
+  Directory Access Protocol (LDAP): Technical Specification Road
+  Map</citetitle>, <link xlink:href='http://tools.ietf.org/html/rfc4510'
+  >RFC 4510</link>.</para>
 
   <para>OpenDJ LDAP SDK brings you easy-to-use connection management, connection
   pooling, load balancing, and all the standard LDAP operations to read and
@@ -58,8 +59,8 @@
   <para>Install an LDAP server such as OpenDJ directory server that you can
   use to test the applications you develop. Also, load sample data into your
   server. The sample data used in this guide are available in LDIF form at
-  <link xlink:href='http://mcraig.org/ldif/Example.ldif'
-  >http://mcraig.org/ldif/Example.ldif</link>.</para>
+  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+  >http://opendj.forgerock.org/Example.ldif</link>.</para>
  </section>
 
  <section xml:id="getting-the-ldap-sdk">
