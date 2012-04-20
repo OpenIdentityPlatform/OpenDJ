@@ -17,7 +17,7 @@
  * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
  * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
- *      Portions Copyright [yyyy] [name of copyright owner]
+ *      Portions Copyright [yyyy] [name of copyright owner]xxx
  *
  * CDDL HEADER END
  *
