@@ -46,9 +46,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-build-tools</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.forgerock</groupId>
+      <artifactId>forgerock-build-tools</artifactId>
+      <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -78,10 +78,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

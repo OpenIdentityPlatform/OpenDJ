@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 200-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -34,7 +35,6 @@ import java.util.Iterator;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
  * Test {@code AttributeDescription}.
  */
 @SuppressWarnings("javadoc")
-public final class AttributeDescriptionTestCase extends OpenDJTestCase
+public final class AttributeDescriptionTestCase extends SdkTestCase
 {
   @DataProvider(name = "dataForCompareCoreSchema")
   public Object[][] dataForCompareCoreSchema()

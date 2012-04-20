@@ -25,12 +25,14 @@
   !      Copyright 2011-2012 ForgeRock AS
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock</groupId>
     <artifactId>forgerock-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
@@ -91,11 +93,12 @@
     </site>
   </distributionManagement>
   <modules>
-    <module>opendj-build-tools</module>
     <module>opendj-ldap-sdk</module>
     <module>opendj-ldap-toolkit</module>
+    <!--
     <module>opendj-ldap-sync</module>
     <module>opendj-rest2ldap</module>
+    -->
     <module>opendj-ldap-sdk-examples</module>
   </modules>
   <properties>
@@ -109,6 +112,7 @@
     <gaId>UA-23412190-8</gaId>
   </properties>
   <build>
+  <!--
     <plugins>
       <plugin>
         <groupId>org.forgerock.commons</groupId>
@@ -137,6 +141,7 @@
         </executions>
       </plugin>
     </plugins>
+  -->
     <pluginManagement>
       <plugins>
         <plugin>
@@ -159,7 +164,7 @@
               </property>
               <property>
                 <name>listener</name>
-                <value>org.forgerock.opendj.maven.testng.OpenDJTestListener</value>
+                <value>org.forgerock.testng.ForgeRockTestListener</value>
               </property>
             </properties>
           </configuration>
@@ -168,17 +173,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <configuration>
-            <show>protected</show>
-            <quiet>true</quiet>
-            <excludePackageNames>com.*</excludePackageNames>
+            <links>
+             <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+            </links>
           </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -187,49 +185,6 @@
             <execution>
               <goals>
                 <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.8</version>
-          <dependencies>
-            <dependency>
-              <groupId>org.forgerock.opendj</groupId>
-              <artifactId>opendj-build-tools</artifactId>
-              <version>${project.version}</version>
-            </dependency>
-          </dependencies>
-          <executions>
-            <execution>
-              <id>process-classes</id>
-              <configuration>
-                <configLocation>org/forgerock/opendj/maven/checkstyle/check-src.xml</configLocation>
-                <headerLocation>org/forgerock/opendj/maven/checkstyle/opendj.sourceheader</headerLocation>
-                <consoleOutput>true</consoleOutput>
-                <failsOnError>true</failsOnError>
-                <linkXRef>false</linkXRef>
-              </configuration>
-              <phase>process-classes</phase>
-              <goals>
-                <goal>checkstyle</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>process-test-classes</id>
-              <configuration>
-                <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
-                <configLocation>org/forgerock/opendj/maven/checkstyle/check-unit-tests.xml</configLocation>
-                <headerLocation>org/forgerock/opendj/maven/checkstyle/opendj.sourceheader</headerLocation>
-                <consoleOutput>true</consoleOutput>
-                <failsOnError>true</failsOnError>
-                <linkXRef>false</linkXRef>
-              </configuration>
-              <phase>process-test-classes</phase>
-              <goals>
-                <goal>checkstyle</goal>
               </goals>
             </execution>
           </executions>

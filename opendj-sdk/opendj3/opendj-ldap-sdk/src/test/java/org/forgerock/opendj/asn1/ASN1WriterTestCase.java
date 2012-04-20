@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.asn1;
 
@@ -40,7 +41,7 @@ import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -53,7 +54,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 @Test(groups = { "precommit", "asn1", "sdk" })
 @SuppressWarnings("javadoc")
-public abstract class ASN1WriterTestCase extends OpenDJTestCase
+public abstract class ASN1WriterTestCase extends ForgeRockTestCase
 {
 
   // Create an array with all of the valid single-byte types. We don't

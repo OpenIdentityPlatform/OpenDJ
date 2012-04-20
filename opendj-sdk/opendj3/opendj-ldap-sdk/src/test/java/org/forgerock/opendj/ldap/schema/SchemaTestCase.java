@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 
 
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
 
@@ -37,6 +38,6 @@ import org.testng.annotations.Test;
  * An abstract class that all schema unit test should extend.
  */
 @Test(groups = { "precommit", "schema", "sdk" })
-public abstract class SchemaTestCase extends OpenDJTestCase
+public abstract class SchemaTestCase extends ForgeRockTestCase
 {
 }
