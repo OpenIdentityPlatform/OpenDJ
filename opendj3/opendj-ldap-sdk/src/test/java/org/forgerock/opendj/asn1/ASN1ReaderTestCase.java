@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.asn1;
 
@@ -39,7 +40,7 @@ import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -49,7 +50,7 @@ import org.testng.annotations.Test;
  * An abstract base class for all ASN1Reader test cases.
  */
 @Test(groups = { "precommit", "asn1", "sdk" })
-public abstract class ASN1ReaderTestCase extends OpenDJTestCase
+public abstract class ASN1ReaderTestCase extends ForgeRockTestCase
 {
 
   /**

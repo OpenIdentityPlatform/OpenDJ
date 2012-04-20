@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -30,7 +31,7 @@ package org.forgerock.opendj.ldap.controls;
 
 
 import org.forgerock.opendj.ldap.TestCaseUtils;
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -43,7 +44,7 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "controls", "sdk" })
-public abstract class ControlsTestCase extends OpenDJTestCase
+public abstract class ControlsTestCase extends ForgeRockTestCase
 {
   /**
    * Set up the environment for performing the tests in this suite.

@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
 
 
 
-import org.forgerock.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
 
@@ -39,6 +40,6 @@ import org.testng.annotations.Test;
  * classes found directly under the package org.forgerock.opendj.ldap.util.
  */
 @Test(groups = { "precommit", "util", "sdk" })
-public abstract class UtilTestCase extends OpenDJTestCase
+public abstract class UtilTestCase extends ForgeRockTestCase
 {
 }
