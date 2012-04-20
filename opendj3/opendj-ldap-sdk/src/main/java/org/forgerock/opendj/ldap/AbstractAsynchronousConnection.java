@@ -17,7 +17,7 @@
  * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
  * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
- *      Portions Copyright [yyyy] [name of copyright owner]xxx
+ *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import java.util.concurrent.*;
 
 
 
