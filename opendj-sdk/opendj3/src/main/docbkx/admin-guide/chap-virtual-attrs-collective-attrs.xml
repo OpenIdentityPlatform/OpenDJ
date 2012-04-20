@@ -172,7 +172,8 @@ description: Served by OpenDJ.Example.com
    <note>
     <para>The following example depends on the <literal>cos</literal> object
     class, and the <literal>classOfService</literal> attribute type defined but
-    commented out in the <link xlink:href="http://mcraig.org/ldif/Example.ldif"
+    commented out in the <link xlink:show="new"
+    xlink:href="http://opendj.forgerock.org/Example.ldif"
     >Example.ldif</link> file imported as sample data. To try this example
     for yourself, add the attribute type and object class definitions
     in comments near the top of the file, and then uncomment the
