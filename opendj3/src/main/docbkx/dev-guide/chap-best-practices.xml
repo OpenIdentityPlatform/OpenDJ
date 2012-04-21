@@ -165,7 +165,7 @@
   that identifies the groups to which an account belongs.</para>
  </section>
 
- <section xml:id="as-directory-what-it-supports">
+ <section xml:id="ask-directory-what-it-supports">
   <title>Ask the Directory Server What It Supports</title>
 
   <para>Directory servers expose their capabilities, suffixes they support,
