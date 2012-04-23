@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -68,8 +68,6 @@ import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -175,6 +173,7 @@ public class InitOnLineTest extends ReplicationTestCase
    *           If the environment could not be set up.
    */
   @BeforeClass
+  @Override
   public void setUp() throws Exception
   {
     super.setUp();
@@ -358,7 +357,7 @@ public class InitOnLineTest extends ReplicationTestCase
           DirectoryStringSyntax.DECODER,
           logMessages);
       if (taskState != TaskState.COMPLETED_SUCCESSFULLY &&
-          logMessages.size() == 0)
+          logMessages.isEmpty())
       {
         fail("No log messages were written to the task entry on a failed task");
       }
@@ -458,39 +457,36 @@ public class InitOnLineTest extends ReplicationTestCase
     String[] entries = new String[entriesCnt + 2];
     String filler = "000000000000000000000000000000000000";
 
-    entries[0] = new String(
-        "dn: " + EXAMPLE_DN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: domain\n"
-        + "dc: example\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
-        + "\n");
-    entries[1] = new String(
-          "dn: ou=People," + EXAMPLE_DN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "ou: People\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
-        + "\n");
+    entries[0] = "dn: " + EXAMPLE_DN + "\n"
+                 + "objectClass: top\n"
+                 + "objectClass: domain\n"
+                 + "dc: example\n"
+                 + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
+                 + "\n";
+    entries[1] = "dn: ou=People," + EXAMPLE_DN + "\n"
+               + "objectClass: top\n"
+               + "objectClass: organizationalUnit\n"
+               + "ou: People\n"
+               + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
+               + "\n";
 
     for (int i=0; i<entriesCnt; i++)
     {
       String useri="0000"+i;
-      entries[i+2] = new String(
-          "dn: cn="+useri+",ou=people," + EXAMPLE_DN + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: "+useri+"_cn"+"\n"
-        + "sn: "+useri+"_sn"+"\n"
-        + "uid: "+useri+"_uid"+"\n"
-        + "telephonenumber:: "+ Base64.encode(
-            new String(bigAttributeValue).getBytes())+"\n"
-        + "entryUUID: 21111111-1111-1111-1111-"+useri+
-        filler.substring(0, 12-useri.length())+"\n"
-        + "\n");
-    };
+      entries[i+2] = "dn: cn="+useri+",ou=people," + EXAMPLE_DN + "\n"
+                   + "objectclass: top\n"
+                   + "objectclass: person\n"
+                   + "objectclass: organizationalPerson\n"
+                   + "objectclass: inetOrgPerson\n"
+                   + "cn: "+useri+"_cn"+"\n"
+                   + "sn: "+useri+"_sn"+"\n"
+                   + "uid: "+useri+"_uid"+"\n"
+                   + "telephonenumber:: "+ Base64.encode(
+                       new String(bigAttributeValue).getBytes())+"\n"
+                   + "entryUUID: 21111111-1111-1111-1111-"+useri+
+                   filler.substring(0, 12-useri.length())+"\n"
+                   + "\n";
+    }
 
     return entries;
   }
@@ -510,20 +506,19 @@ public class InitOnLineTest extends ReplicationTestCase
 
     String useri="0000"+entryCnt;
 
-    return  new String(
-        "dn: cn="+useri+",ou=people," + EXAMPLE_DN + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: "+useri+"_cn"+"\n"
-        + "sn: "+useri+"_sn"+"\n"
-        + "uid: "+useri+"_uid"+"\n"
-        + "telephonenumber:: "+ Base64.encode(
-            new String(bigAttributeValue).getBytes())+"\n"
-            + "entryUUID: 21111111-1111-1111-1111-"+useri+
-            filler.substring(0, 12-useri.length())+"\n"
-            + "\n");
+    return  "dn: cn="+useri+",ou=people," + EXAMPLE_DN + "\n"
+            + "objectclass: top\n"
+            + "objectclass: person\n"
+            + "objectclass: organizationalPerson\n"
+            + "objectclass: inetOrgPerson\n"
+            + "cn: "+useri+"_cn"+"\n"
+            + "sn: "+useri+"_sn"+"\n"
+            + "uid: "+useri+"_uid"+"\n"
+            + "telephonenumber:: "+ Base64.encode(
+                new String(bigAttributeValue).getBytes())+"\n"
+                + "entryUUID: 21111111-1111-1111-1111-"+useri+
+                filler.substring(0, 12-useri.length())+"\n"
+                + "\n";
 
   }
 
@@ -629,7 +624,7 @@ public class InitOnLineTest extends ReplicationTestCase
         ") == Expected entries("+updatedEntries.length+")");
 
     broker.setGenerationID(EMPTY_DN_GENID);
-    broker.reStart(true);    
+    broker.reStart(true);
     try { Thread.sleep(500); } catch(Exception e) {}
 
   }
@@ -665,8 +660,7 @@ public class InitOnLineTest extends ReplicationTestCase
    */
   private ReplicationServer createChangelogServer(int changelogId, String testCase)
   {
-    SortedSet<String> servers = null;
-    servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<String>();
     try
     {
       if (changelogId != changelog1ID)
@@ -772,13 +766,13 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Tests the import side of the Initialize task
-   * Test steps : 
+   * Test steps :
    * - create a task 'InitFromS2' in S1
    * - make S2 export its entries
    * - test that S1 has succesfully imported the entries and completed the task.
-   * 
-   * TODO: Error case: make S2 crash/disconnect in the middle of the export 
-   * and test that, on S1 side, the task ends with an error. 
+   *
+   * TODO: Error case: make S2 crash/disconnect in the middle of the export
+   * and test that, on S1 side, the task ends with an error.
    * State of the backend on S1 partially initialized: ?
    */
   @Test(enabled=true, groups="slow")
@@ -837,7 +831,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Tests the export side of the Initialize task
-   * Test steps : 
+   * Test steps :
    * - add entries in S1, make S2 publish InitRequest
    * - test that S1 has succesfully exported the entries (by receiving them
    *   on S2 side).
@@ -884,7 +878,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Tests the import side of the InitializeTarget task
-   * Test steps : 
+   * Test steps :
    * - add entries in S1 and create a task 'InitTargetS2' in S1
    * - wait task completed
    * - test that S2 has succesfully received the entries
@@ -935,11 +929,11 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Tests the import side of the InitializeTarget task
-   * Test steps : 
+   * Test steps :
    * - addEntries in S1, create a task 'InitAll' in S1
    * - wait task completed on S1
    * - test that S2 and S3 have succesfully imported the entries.
-   * 
+   *
    * TODO: Error case: make S1 crash in the middle of the export and test that
    * the task ends with an error. State of the backend on both S2 and S3: ?
    *
@@ -1036,7 +1030,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       if (readGenerationId != EXPECTED_GENERATION_ID)
       {
-        fail(testCase + " Import success waited longer than expected \n" + 
+        fail(testCase + " Import success waited longer than expected \n" +
             TestCaseUtils.threadStacksToString());
       }
 
@@ -1164,7 +1158,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: " + baseDn,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
-          ERR_INVALID_IMPORT_SOURCE.get(baseDn.toNormalizedString(), 
+          ERR_INVALID_IMPORT_SOURCE.get(baseDn.toNormalizedString(),
               Integer.toString(server1ID),"-3",""));
 
       // Scope containing a serverID absent from the domain
@@ -1341,7 +1335,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
     catch(Exception e)
     {
-      log(testCase + e.getLocalizedMessage());      
+      log(testCase + e.getLocalizedMessage());
     }
     finally
     {
@@ -1472,7 +1466,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + server1ID);
 
       addTask(taskInit, ResultCode.OTHER, ERR_INVALID_IMPORT_SOURCE.get(
-          baseDn.toNormalizedString(), 
+          baseDn.toNormalizedString(),
           Integer.toString(server1ID),"20",""));
 
       if (replDomain != null)

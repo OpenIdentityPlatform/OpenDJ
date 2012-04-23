@@ -2618,7 +2618,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void replay(LDAPUpdateMsg msg)
   {
     Operation op = null;
-    boolean done = false;
+    boolean replayDone = false;
     boolean dependency = false;
     ChangeNumber changeNumber = null;
     int retryCount = 10;
@@ -2633,7 +2633,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
 
-        while ((!dependency) && (!done) && (retryCount-- > 0))
+        while ((!dependency) && (!replayDone) && (retryCount-- > 0))
         {
           // Try replay the operation
           op.setInternalOperation(true);
@@ -2656,7 +2656,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               // was a no-op. For example, an add which has already been
               // replayed, or a modify DN operation on an entry which has been
               // renamed by a more recent modify DN.
-              done = true;
+              replayDone = true;
             }
             else if (op instanceof ModifyOperation)
             {
@@ -2664,14 +2664,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               dependency = remotePendingChanges
                   .checkDependencies(newOp);
               ModifyMsg modifyMsg = (ModifyMsg) msg;
-              done = solveNamingConflict(newOp, modifyMsg);
+              replayDone = solveNamingConflict(newOp, modifyMsg);
             }
             else if (op instanceof DeleteOperation)
             {
               DeleteOperation newOp = (DeleteOperation) op;
               dependency = remotePendingChanges
                   .checkDependencies(newOp);
-              done = solveNamingConflict(newOp, msg);
+              replayDone = solveNamingConflict(newOp, msg);
             }
             else if (op instanceof AddOperation)
             {
@@ -2679,19 +2679,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               AddMsg addMsg = (AddMsg) msg;
               dependency = remotePendingChanges
                   .checkDependencies(newOp);
-              done = solveNamingConflict(newOp, addMsg);
+              replayDone = solveNamingConflict(newOp, addMsg);
             }
             else if (op instanceof ModifyDNOperationBasis)
             {
               ModifyDNOperationBasis newOp = (ModifyDNOperationBasis) op;
-              done = solveNamingConflict(newOp, msg);
+              replayDone = solveNamingConflict(newOp, msg);
             }
             else
             {
-              done = true; // unknown type of operation ?!
+              replayDone = true; // unknown type of operation ?!
             }
 
-            if (done)
+            if (replayDone)
             {
               // the update became a dummy update and the result
               // of the conflict resolution phase is to do nothing.
@@ -2711,11 +2711,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           }
           else
           {
-            done = true;
+            replayDone = true;
           }
         }
 
-        if (!done && !dependency)
+        if (!replayDone && !dependency)
         {
           // Continue with the next change but the servers could now become
           // inconsistent.
@@ -2781,7 +2781,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       msg = remotePendingChanges.getNextUpdate();
 
       // Prepare restart of loop
-      done = false;
+      replayDone = false;
       dependency = false;
       changeNumber = null;
       retryCount = 10;
@@ -4178,6 +4178,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         importConfig.setIncludeBranches(includeBranches);
         importConfig.setAppendToExistingData(false);
         importConfig.setSkipDNValidation(true);
+        // We should not validate schema for replication
+        importConfig.setValidateSchema(false);
         // Allow fractional replication ldif import plugin to be called
         importConfig.setInvokeImportPlugins(true);
         // Reset the follow import flag and message before starting the import
@@ -4590,6 +4592,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
                 "ds-cfg-enabled: " + (!getBackend().isPrivateBackend()));
             LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
                 new StringReader(ldif));
+            // No need to validate schema in replication
+            ldifImportConfig.setValidateSchema(false);
             LDIFReader reader = new LDIFReader(ldifImportConfig);
             Entry eclEntry = reader.readEntry();
             DirectoryServer.getConfigHandler().addEntry(eclEntry, null);
