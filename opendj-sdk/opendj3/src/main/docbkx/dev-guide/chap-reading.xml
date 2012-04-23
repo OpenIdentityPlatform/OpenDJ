@@ -264,7 +264,7 @@ try {
    <varlistentry>
     <term>&lt;=</term>
     <listitem>
-     <para>Greater than or equal to comparison, which works
+     <para>Less than or equal to comparison, which works
      alphanumerically.</para>
     </listitem>
    </varlistentry>
@@ -299,6 +299,34 @@ try {
      a component of the entry DN.
      <literal>(lastLoginTime:1.3.6.1.4.1.26027.1.4.5:=-13w)</literal> matches
      entries with a last login time more recent than 13 weeks.</para>
+     <para>You also use extensible match filters with localized values.
+     Directory servers like OpenDJ support a variety of internationalized
+     locales, each of which has an OID for collation order, such as
+     <literal>1.3.6.1.4.1.42.2.27.9.4.76.1</literal> for French. OpenDJ also
+     lets you use the language subtype, such as <literal>fr</literal>, instead
+     of the OID.</para>
+     <itemizedlist>
+      <para>At the end of the OID or language subtype, you further specify the
+      matching rule as follows:</para>
+      <listitem>
+       <para>Add <literal>.1</literal> for less than</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.2</literal> for less than or equal to</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.3</literal> for equal to (default)</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.4</literal> for greater than or equal to</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.5</literal> for greater than</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.6</literal> for substring</para>
+      </listitem>
+     </itemizedlist>
     </listitem>
    </varlistentry>
   </variablelist>
