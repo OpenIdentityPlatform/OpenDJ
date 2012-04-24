@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,13 +26,9 @@
 
 package org.forgerock.opendj.ldap;
 
-
-
 import java.util.Collection;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-
 
 /**
  * A fail-over load balancing algorithm provides fault tolerance across multiple
@@ -64,90 +59,72 @@ import java.util.concurrent.TimeUnit;
  * @see RoundRobinLoadBalancingAlgorithm
  * @see Connections#newLoadBalancer(LoadBalancingAlgorithm)
  */
-public final class FailoverLoadBalancingAlgorithm extends
-    AbstractLoadBalancingAlgorithm
-{
+public final class FailoverLoadBalancingAlgorithm extends AbstractLoadBalancingAlgorithm {
 
-  /**
-   * Creates a new fail-over load balancing algorithm which will monitor offline
-   * connection factories every 1 second using the default scheduler.
-   *
-   * @param factories
-   *          The ordered collection of connection factories.
-   */
-  public FailoverLoadBalancingAlgorithm(
-      final Collection<ConnectionFactory> factories)
-  {
-    super(factories);
-  }
+    /**
+     * Creates a new fail-over load balancing algorithm which will monitor
+     * offline connection factories every 1 second using the default scheduler.
+     *
+     * @param factories
+     *            The ordered collection of connection factories.
+     */
+    public FailoverLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories) {
+        super(factories);
+    }
 
+    /**
+     * Creates a new fail-over load balancing algorithm which will monitor
+     * offline connection factories using the specified frequency using the
+     * default scheduler.
+     *
+     * @param factories
+     *            The connection factories.
+     * @param interval
+     *            The interval between attempts to poll offline factories.
+     * @param unit
+     *            The time unit for the interval between attempts to poll
+     *            offline factories.
+     */
+    public FailoverLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+            final long interval, final TimeUnit unit) {
+        super(factories, interval, unit);
+    }
 
+    /**
+     * Creates a new fail-over load balancing algorithm which will monitor
+     * offline connection factories using the specified frequency and scheduler.
+     *
+     * @param factories
+     *            The connection factories.
+     * @param interval
+     *            The interval between attempts to poll offline factories.
+     * @param unit
+     *            The time unit for the interval between attempts to poll
+     *            offline factories.
+     * @param scheduler
+     *            The scheduler which should for periodically monitoring dead
+     *            connection factories to see if they are usable again.
+     */
+    public FailoverLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+            final long interval, final TimeUnit unit, final ScheduledExecutorService scheduler) {
+        super(factories, interval, unit, scheduler);
+    }
 
-  /**
-   * Creates a new fail-over load balancing algorithm which will monitor offline
-   * connection factories using the specified frequency using the default
-   * scheduler.
-   *
-   * @param factories
-   *          The connection factories.
-   * @param interval
-   *          The interval between attempts to poll offline factories.
-   * @param unit
-   *          The time unit for the interval between attempts to poll offline
-   *          factories.
-   */
-  public FailoverLoadBalancingAlgorithm(
-      final Collection<ConnectionFactory> factories, final long interval,
-      final TimeUnit unit)
-  {
-    super(factories, interval, unit);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    String getAlgorithmName() {
+        return "Failover";
+    }
 
-
-
-  /**
-   * Creates a new fail-over load balancing algorithm which will monitor offline
-   * connection factories using the specified frequency and scheduler.
-   *
-   * @param factories
-   *          The connection factories.
-   * @param interval
-   *          The interval between attempts to poll offline factories.
-   * @param unit
-   *          The time unit for the interval between attempts to poll offline
-   *          factories.
-   * @param scheduler
-   *          The scheduler which should for periodically monitoring dead
-   *          connection factories to see if they are usable again.
-   */
-  public FailoverLoadBalancingAlgorithm(
-      final Collection<ConnectionFactory> factories, final long interval,
-      final TimeUnit unit, final ScheduledExecutorService scheduler)
-  {
-    super(factories, interval, unit, scheduler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  String getAlgorithmName()
-  {
-    return "Failover";
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  int getInitialConnectionFactoryIndex()
-  {
-    // Always start with the first connection factory.
-    return 0;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getInitialConnectionFactoryIndex() {
+        // Always start with the first connection factory.
+        return 0;
+    }
 
 }

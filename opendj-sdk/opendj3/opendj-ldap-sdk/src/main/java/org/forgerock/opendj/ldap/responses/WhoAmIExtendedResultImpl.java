@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,8 +27,6 @@
 
 package org.forgerock.opendj.ldap.responses;
 
-
-
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_WHOAMI_INVALID_AUTHZID_TYPE;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -37,133 +34,102 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 
-
-
 /**
  * Who Am I extended result implementation.
  */
-final class WhoAmIExtendedResultImpl extends
-    AbstractExtendedResult<WhoAmIExtendedResult> implements
-    WhoAmIExtendedResult
-{
+final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtendedResult> implements
+        WhoAmIExtendedResult {
 
-  // The authorization ID.
-  private String authorizationID = null;
+    // The authorization ID.
+    private String authorizationID = null;
 
-
-
-  // Instantiation via factory.
-  WhoAmIExtendedResultImpl(final ResultCode resultCode)
-  {
-    super(resultCode);
-  }
-
-
-
-  /**
-   * Creates a new who am I extended result that is an exact copy of the
-   * provided result.
-   *
-   * @param whoAmIExtendedResult
-   *          The who am I extended result to be copied.
-   * @throws NullPointerException
-   *           If {@code whoAmIExtendedResult} was {@code null} .
-   */
-  WhoAmIExtendedResultImpl(final WhoAmIExtendedResult whoAmIExtendedResult)
-  {
-    super(whoAmIExtendedResult);
-    this.authorizationID = whoAmIExtendedResult.getAuthorizationID();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getAuthorizationID()
-  {
-    return authorizationID;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getOID()
-  {
-    // No response name defined.
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ByteString getValue()
-  {
-    return (authorizationID != null) ? ByteString.valueOf(authorizationID)
-        : null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasValue()
-  {
-    return (authorizationID != null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public WhoAmIExtendedResult setAuthorizationID(final String authorizationID)
-  {
-    if (authorizationID != null && authorizationID.length() != 0)
-    {
-      final int colonIndex = authorizationID.indexOf(':');
-      if (colonIndex < 0)
-      {
-        final LocalizableMessage message = ERR_WHOAMI_INVALID_AUTHZID_TYPE
-            .get(authorizationID);
-        throw new LocalizedIllegalArgumentException(message);
-      }
+    // Instantiation via factory.
+    WhoAmIExtendedResultImpl(final ResultCode resultCode) {
+        super(resultCode);
     }
 
-    this.authorizationID = authorizationID;
-    return this;
-  }
+    /**
+     * Creates a new who am I extended result that is an exact copy of the
+     * provided result.
+     *
+     * @param whoAmIExtendedResult
+     *            The who am I extended result to be copied.
+     * @throws NullPointerException
+     *             If {@code whoAmIExtendedResult} was {@code null} .
+     */
+    WhoAmIExtendedResultImpl(final WhoAmIExtendedResult whoAmIExtendedResult) {
+        super(whoAmIExtendedResult);
+        this.authorizationID = whoAmIExtendedResult.getAuthorizationID();
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public String getAuthorizationID() {
+        return authorizationID;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getOID() {
+        // No response name defined.
+        return null;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString()
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("WhoAmIExtendedResponse(resultCode=");
-    builder.append(getResultCode());
-    builder.append(", matchedDN=");
-    builder.append(getMatchedDN());
-    builder.append(", diagnosticMessage=");
-    builder.append(getDiagnosticMessage());
-    builder.append(", referrals=");
-    builder.append(getReferralURIs());
-    builder.append(", authzId=");
-    builder.append(authorizationID);
-    builder.append(", controls=");
-    builder.append(getControls());
-    builder.append(")");
-    return builder.toString();
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ByteString getValue() {
+        return (authorizationID != null) ? ByteString.valueOf(authorizationID) : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValue() {
+        return (authorizationID != null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public WhoAmIExtendedResult setAuthorizationID(final String authorizationID) {
+        if (authorizationID != null && authorizationID.length() != 0) {
+            final int colonIndex = authorizationID.indexOf(':');
+            if (colonIndex < 0) {
+                final LocalizableMessage message =
+                        ERR_WHOAMI_INVALID_AUTHZID_TYPE.get(authorizationID);
+                throw new LocalizedIllegalArgumentException(message);
+            }
+        }
+
+        this.authorizationID = authorizationID;
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("WhoAmIExtendedResponse(resultCode=");
+        builder.append(getResultCode());
+        builder.append(", matchedDN=");
+        builder.append(getMatchedDN());
+        builder.append(", diagnosticMessage=");
+        builder.append(getDiagnosticMessage());
+        builder.append(", referrals=");
+        builder.append(getReferralURIs());
+        builder.append(", authzId=");
+        builder.append(authorizationID);
+        builder.append(", controls=");
+        builder.append(getControls());
+        builder.append(")");
+        return builder.toString();
+    }
 }

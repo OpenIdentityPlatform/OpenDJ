@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,11 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-
-
 import org.forgerock.opendj.ldap.schema.Schema;
-
-
 
 /**
  * Schema resolvers are included with a set of {@code DecodeOptions} in order to
@@ -46,33 +41,30 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * @see Schema
  * @see DecodeOptions
  */
-public interface SchemaResolver
-{
-  /**
-   * A schema resolver which always returns the current default schema as
-   * returned by {@link Schema#getDefaultSchema()}.
-   */
-  public static final SchemaResolver DEFAULT = new SchemaResolver()
-  {
+public interface SchemaResolver {
+    /**
+     * A schema resolver which always returns the current default schema as
+     * returned by {@link Schema#getDefaultSchema()}.
+     */
+    public static final SchemaResolver DEFAULT = new SchemaResolver() {
 
-    public Schema resolveSchema(String dn)
-    {
-      return Schema.getDefaultSchema();
-    }
-  };
+        public Schema resolveSchema(String dn) {
+            return Schema.getDefaultSchema();
+        }
+    };
 
-
-
-  /**
-   * Finds the appropriate schema for use with the provided distinguished name.
-   * <p>
-   * Schema resolution must always succeed regardless of any errors that occur.
-   *
-   * @param dn
-   *          The string representation of a distinguished name associated with
-   *          an entry whose schema is to be located.
-   * @return The appropriate schema for use with the provided distinguished
-   *         name.
-   */
-  public abstract Schema resolveSchema(String dn);
+    /**
+     * Finds the appropriate schema for use with the provided distinguished
+     * name.
+     * <p>
+     * Schema resolution must always succeed regardless of any errors that
+     * occur.
+     *
+     * @param dn
+     *            The string representation of a distinguished name associated
+     *            with an entry whose schema is to be located.
+     * @return The appropriate schema for use with the provided distinguished
+     *         name.
+     */
+    public abstract Schema resolveSchema(String dn);
 }

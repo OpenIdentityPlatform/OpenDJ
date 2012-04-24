@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,8 +26,6 @@
  */
 
 package com.forgerock.opendj.ldap;
-
-
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
@@ -44,9 +41,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import org.forgerock.opendj.ldap.*;
-import org.forgerock.opendj.ldap.requests.*;
-import org.forgerock.opendj.ldap.responses.*;
+import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionEventListener;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.requests.AbandonRequest;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.BindClient;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequest;
+import org.forgerock.opendj.ldap.requests.GenericBindRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
@@ -58,1041 +81,807 @@ import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
-
-
 /**
  * LDAP connection implementation.
  * <p>
  * TODO: handle illegal state exceptions.
  */
-final class LDAPConnection extends AbstractAsynchronousConnection implements
-    Connection
-{
-  private final org.glassfish.grizzly.Connection<?> connection;
-  private Result connectionInvalidReason;
-  private boolean isClosed = false;
-  private final List<ConnectionEventListener> listeners =
-      new CopyOnWriteArrayList<ConnectionEventListener>();
-  private final AtomicInteger nextMsgID = new AtomicInteger(1);
-  private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(
-      false);
-  private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
-      new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
-  private final Object stateLock = new Object();
-  private final LDAPWriter ldapWriter = new LDAPWriter();
-  private final LDAPOptions options;
+final class LDAPConnection extends AbstractAsynchronousConnection implements Connection {
+    private final org.glassfish.grizzly.Connection<?> connection;
+    private Result connectionInvalidReason;
+    private boolean isClosed = false;
+    private final List<ConnectionEventListener> listeners =
+            new CopyOnWriteArrayList<ConnectionEventListener>();
+    private final AtomicInteger nextMsgID = new AtomicInteger(1);
+    private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(false);
+    private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
+            new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
+    private final Object stateLock = new Object();
+    private final LDAPWriter ldapWriter = new LDAPWriter();
+    private final LDAPOptions options;
 
-
-
-  /**
-   * Creates a new LDAP connection.
-   *
-   * @param connection
-   *          The Grizzly connection.
-   * @param options
-   *          The LDAP client options.
-   */
-  LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
-      final LDAPOptions options)
-  {
-    this.connection = connection;
-    this.options = options;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Void> abandonAsync(final AbandonRequest request)
-  {
-    final AbstractLDAPFutureResultImpl<?> pendingRequest;
-    final int messageID = nextMsgID.getAndIncrement();
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        return new CompletedFutureResult<Void>(
-            newErrorResult(connectionInvalidReason), messageID);
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        final Result errorResult = Responses.newResult(
-            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-            "Bind or Start TLS operation in progress");
-        return new CompletedFutureResult<Void>(newErrorResult(errorResult),
-            messageID);
-      }
-
-      // First remove the future associated with the request to be abandoned.
-      pendingRequest = pendingRequests.remove(request.getRequestID());
+    /**
+     * Creates a new LDAP connection.
+     *
+     * @param connection
+     *            The Grizzly connection.
+     * @param options
+     *            The LDAP client options.
+     */
+    LDAPConnection(final org.glassfish.grizzly.Connection<?> connection, final LDAPOptions options) {
+        this.connection = connection;
+        this.options = options;
     }
 
-    if (pendingRequest == null)
-    {
-      // There has never been a request with the specified message ID or the
-      // response has already been received and handled. We can ignore this
-      // abandon request.
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Void> abandonAsync(final AbandonRequest request) {
+        final AbstractLDAPFutureResultImpl<?> pendingRequest;
+        final int messageID = nextMsgID.getAndIncrement();
 
-      // Message ID will be -1 since no request was sent.
-      return new CompletedFutureResult<Void>((Void) null);
-    }
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                return new CompletedFutureResult<Void>(newErrorResult(connectionInvalidReason),
+                        messageID);
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                final Result errorResult =
+                        Responses.newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+                                "Bind or Start TLS operation in progress");
+                return new CompletedFutureResult<Void>(newErrorResult(errorResult), messageID);
+            }
 
-    pendingRequest.cancel(false);
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.abandonRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-        return new CompletedFutureResult<Void>((Void) null, messageID);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      return new CompletedFutureResult<Void>(newErrorResult(errorResult),
-          messageID);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> addAsync(final AddRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super Result> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
-        request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses
-            .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.addRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addConnectionEventListener(final ConnectionEventListener listener)
-  {
-    Validator.ensureNotNull(listener);
-    listeners.add(listener);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<BindResult> bindAsync(final BindRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super BindResult> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-
-    BindClient context;
-    try
-    {
-      context = request
-          .createBindClient(connection.getPeerAddress() instanceof InetSocketAddress ?
-              ((InetSocketAddress) connection.getPeerAddress()).getHostName()
-              : connection.getPeerAddress().toString());
-    }
-    catch (final Exception e)
-    {
-      // FIXME: I18N need to have a better error message.
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses
-          .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-          .setDiagnosticMessage(
-              "An error occurred while creating a bind context").setCause(e);
-      final ErrorResultException error = ErrorResultException
-          .newErrorResult(errorResult);
-      if (resultHandler != null)
-      {
-        resultHandler.handleErrorResult(error);
-      }
-      return new CompletedFutureResult<BindResult>(error, messageID);
-    }
-
-    final LDAPBindFutureResultImpl future = new LDAPBindFutureResultImpl(
-        messageID, context, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (!pendingRequests.isEmpty())
-      {
-        future.setResultOrError(Responses.newBindResult(
-            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-            "There are other operations pending on this connection"));
-        return future;
-      }
-
-      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
-      {
-        future.setResultOrError(Responses.newBindResult(
-            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-            "Bind or Start TLS operation in progress"));
-        return future;
-      }
-
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        // Use the bind client to get the initial request instead of using the
-        // bind request passed to this method.
-        final GenericBindRequest initialRequest = context.nextBindRequest();
-        ldapWriter.bindRequest(asn1Writer, messageID, 3, initialRequest);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      bindOrStartTLSInProgress.set(false);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void close(final UnbindRequest request, final String reason)
-  {
-    // FIXME: I18N need to internationalize this message.
-    Validator.ensureNotNull(request);
-
-    close(
-        request,
-        false,
-        Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-            .setDiagnosticMessage(
-                "Connection closed by client"
-                    + (reason != null ? ": " + reason : "")));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super CompareResult> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPCompareFutureResultImpl future = new LDAPCompareFutureResultImpl(
-        messageID, request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses.newCompareResult(
-            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-            "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.compareRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> deleteAsync(final DeleteRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super Result> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
-        request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses
-            .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.deleteRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-      final ExtendedRequest<R> request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super R> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPExtendedFutureResultImpl<R> future = new LDAPExtendedFutureResultImpl<R>(
-        messageID, request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (request.getOID().equals(StartTLSExtendedRequest.OID))
-      {
-        if (!pendingRequests.isEmpty())
-        {
-          future.setResultOrError(request.getResultDecoder()
-              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                  "There are pending operations on this connection"));
-          return future;
+            // First remove the future associated with the request to be
+            // abandoned.
+            pendingRequest = pendingRequests.remove(request.getRequestID());
         }
-        if (isTLSEnabled())
-        {
-          future.setResultOrError(request.getResultDecoder()
-              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                  "This connection is already TLS enabled"));
-          return future;
+
+        if (pendingRequest == null) {
+            // There has never been a request with the specified message ID or
+            // the
+            // response has already been received and handled. We can ignore
+            // this
+            // abandon request.
+
+            // Message ID will be -1 since no request was sent.
+            return new CompletedFutureResult<Void>((Void) null);
         }
-        if (!bindOrStartTLSInProgress.compareAndSet(false, true))
-        {
-          future.setResultOrError(request.getResultDecoder()
-              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                  "Bind or Start TLS operation in progress"));
-          return future;
+
+        pendingRequest.cancel(false);
+
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.abandonRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+                return new CompletedFutureResult<Void>((Void) null, messageID);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            return new CompletedFutureResult<Void>(newErrorResult(errorResult), messageID);
         }
-      }
-      else
-      {
-        if (bindOrStartTLSInProgress.get())
-        {
-          future.setResultOrError(request.getResultDecoder()
-              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                  "Bind or Start TLS operation in progress"));
-          return future;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Result> addAsync(final AddRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPFutureResultImpl future =
+                new LDAPFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
+
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
         }
-      }
-      pendingRequests.put(messageID, future);
-    }
 
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.extendedRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-      bindOrStartTLSInProgress.set(false);
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.addRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
 
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
 
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isClosed()
-  {
-    synchronized (stateLock)
-    {
-      return isClosed;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isValid()
-  {
-    synchronized (stateLock)
-    {
-      return connectionInvalidReason == null && !isClosed;
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> modifyAsync(final ModifyRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super Result> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
-        request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
         return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses
-            .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
     }
 
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.modifyRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
+    /**
+     * {@inheritDoc}
+     */
+    public void addConnectionEventListener(final ConnectionEventListener listener) {
+        Validator.ensureNotNull(listener);
+        listeners.add(listener);
     }
 
-    return future;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<BindResult> bindAsync(final BindRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super BindResult> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final ResultHandler<? super Result> resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
-        request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses
-            .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.modifyDNRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeConnectionEventListener(
-      final ConnectionEventListener listener)
-  {
-    Validator.ensureNotNull(listener);
-    listeners.remove(listener);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> searchAsync(final SearchRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final SearchResultHandler resultHandler)
-  {
-    final int messageID = nextMsgID.getAndIncrement();
-    final LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(
-        messageID, request, resultHandler, intermediateResponseHandler, this);
-
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-        return future;
-      }
-      if (bindOrStartTLSInProgress.get())
-      {
-        future.setResultOrError(Responses
-            .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
-      pendingRequests.put(messageID, future);
-    }
-
-    try
-    {
-      final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-      try
-      {
-        ldapWriter.searchRequest(asn1Writer, messageID, request);
-        connection.write(asn1Writer.getBuffer(), null);
-      }
-      finally
-      {
-        asn1Writer.recycle();
-      }
-    }
-    catch (final IOException e)
-    {
-      pendingRequests.remove(messageID);
-
-      // FIXME: what other sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
-      connectionErrorOccurred(errorResult);
-      future.adaptErrorResult(errorResult);
-    }
-
-    return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String toString()
-  {
-    StringBuilder builder = new StringBuilder();
-    builder.append("LDAPConnection(");
-    builder.append(connection.getLocalAddress());
-    builder.append(',');
-    builder.append(connection.getPeerAddress());
-    builder.append(')');
-    return builder.toString();
-  }
-
-
-
-  int continuePendingBindRequest(final LDAPBindFutureResultImpl future)
-      throws ErrorResultException
-  {
-    final int newMsgID = nextMsgID.getAndIncrement();
-    synchronized (stateLock)
-    {
-      if (connectionInvalidReason != null)
-      {
-        throw newErrorResult(connectionInvalidReason);
-      }
-      pendingRequests.put(newMsgID, future);
-    }
-    return newMsgID;
-  }
-
-
-
-  long cancelExpiredRequests(final long currentTime)
-  {
-    final long timeout = options.getTimeout(TimeUnit.MILLISECONDS);
-    long delay = timeout;
-    if (timeout > 0)
-    {
-      for (int requestID : pendingRequests.keySet())
-      {
-        final AbstractLDAPFutureResultImpl<?> future = pendingRequests
-            .get(requestID);
-        if (future != null)
-        {
-          final long diff = (future.getTimestamp() + timeout) - currentTime;
-          if (diff <= 0 && pendingRequests.remove(requestID) != null)
-          {
-            StaticUtils.DEBUG_LOG.fine("Cancelling expired future result: "
-                + future);
-            final Result result = Responses
-                .newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
-            future.adaptErrorResult(result);
-
-            abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
-          }
-          else
-          {
-            delay = Math.min(delay, diff);
-          }
+        BindClient context;
+        try {
+            context =
+                    request.createBindClient(
+                            connection.getPeerAddress() instanceof InetSocketAddress
+                            ? ((InetSocketAddress) connection.getPeerAddress()).getHostName()
+                            : connection.getPeerAddress().toString());
+        } catch (final Exception e) {
+            // FIXME: I18N need to have a better error message.
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+                            "An error occurred while creating a bind context").setCause(e);
+            final ErrorResultException error = ErrorResultException.newErrorResult(errorResult);
+            if (resultHandler != null) {
+                resultHandler.handleErrorResult(error);
+            }
+            return new CompletedFutureResult<BindResult>(error, messageID);
         }
-      }
-    }
-    return delay;
-  }
 
+        final LDAPBindFutureResultImpl future =
+                new LDAPBindFutureResultImpl(messageID, context, resultHandler,
+                        intermediateResponseHandler, this);
 
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (!pendingRequests.isEmpty()) {
+                future.setResultOrError(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage(
+                                "There are other operations pending on this connection"));
+                return future;
+            }
 
-  void close(final UnbindRequest unbindRequest,
-      final boolean isDisconnectNotification, final Result reason)
-  {
-    boolean notifyClose = false;
-    boolean notifyErrorOccurred = false;
+            if (!bindOrStartTLSInProgress.compareAndSet(false, true)) {
+                future.setResultOrError(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
 
-    synchronized (stateLock)
-    {
-      if (isClosed)
-      {
-        // Already closed.
-        return;
-      }
-
-      if (connectionInvalidReason != null)
-      {
-        // Already closed.
-        isClosed = true;
-        return;
-      }
-
-      if (unbindRequest != null)
-      {
-        // User closed.
-        isClosed = true;
-        notifyClose = true;
-      }
-      else
-      {
-        notifyErrorOccurred = true;
-      }
-
-      // Mark the connection as invalid.
-      if (!isDisconnectNotification)
-      {
-        // Connection termination was detected locally, so use the provided
-        // reason for all subsequent requests.
-        connectionInvalidReason = reason;
-      }
-      else
-      {
-        // Connection termination was triggered remotely. We don't want to
-        // blindly pass on the result code to requests since it could be
-        // confused for a genuine response. For example, if the disconnect
-        // contained the invalidCredentials result code then this could be
-        // misinterpreted as a genuine authentication failure for subsequent
-        // bind requests.
-        connectionInvalidReason = Responses.newResult(
-            ResultCode.CLIENT_SIDE_SERVER_DOWN).setDiagnosticMessage(
-            "Connection closed by server");
-      }
-    }
-
-    // First abort all outstanding requests.
-    for (int requestID : pendingRequests.keySet())
-    {
-      final AbstractLDAPFutureResultImpl<?> future = pendingRequests
-          .remove(requestID);
-      if (future != null)
-      {
-        future.adaptErrorResult(connectionInvalidReason);
-      }
-    }
-
-    // Now try cleanly closing the connection if possible.
-    // Only send unbind if specified.
-    if (unbindRequest != null && !isDisconnectNotification)
-    {
-      try
-      {
-        final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-        try
-        {
-          ldapWriter.unbindRequest(asn1Writer, nextMsgID.getAndIncrement(),
-              unbindRequest);
-          connection.write(asn1Writer.getBuffer(), null);
+            pendingRequests.put(messageID, future);
         }
-        finally
-        {
-          asn1Writer.recycle();
+
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                // Use the bind client to get the initial request instead of
+                // using the
+                // bind request passed to this method.
+                final GenericBindRequest initialRequest = context.nextBindRequest();
+                ldapWriter.bindRequest(asn1Writer, messageID, 3, initialRequest);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
+
+            bindOrStartTLSInProgress.set(false);
+
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
         }
-      }
-      catch (final IOException e)
-      {
-        // Underlying channel prob blown up. Just ignore.
-      }
+
+        return future;
     }
 
-    try
-    {
-      connection.close();
-    }
-    catch (final IOException e)
-    {
-      // Ignore.
-    }
+    /**
+     * {@inheritDoc}
+     */
+    public void close(final UnbindRequest request, final String reason) {
+        // FIXME: I18N need to internationalize this message.
+        Validator.ensureNotNull(request);
 
-    // Notify listeners.
-    if (notifyClose)
-    {
-      for (final ConnectionEventListener listener : listeners)
-      {
-        listener.handleConnectionClosed();
-      }
+        close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+                .setDiagnosticMessage(
+                        "Connection closed by client" + (reason != null ? ": " + reason : "")));
     }
 
-    if (notifyErrorOccurred)
-    {
-      for (final ConnectionEventListener listener : listeners)
-      {
-        // Use the reason provided in the disconnect notification.
-        listener.handleConnectionError(isDisconnectNotification,
-            newErrorResult(reason));
-      }
-    }
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super CompareResult> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPCompareFutureResultImpl future =
+                new LDAPCompareFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
 
-
-
-  LDAPOptions getLDAPOptions()
-  {
-    return options;
-  }
-
-
-
-  AbstractLDAPFutureResultImpl<?> getPendingRequest(final Integer messageID)
-  {
-    return pendingRequests.get(messageID);
-  }
-
-
-
-  void handleUnsolicitedNotification(final ExtendedResult result)
-  {
-    if (isClosed())
-    {
-      // Don't notify after connection is closed.
-      return;
-    }
-
-    for (final ConnectionEventListener listener : listeners)
-    {
-      listener.handleUnsolicitedNotification(result);
-    }
-  }
-
-
-
-  /**
-   * Installs a new Grizzly filter (e.g. SSL/SASL) beneath the top-level LDAP
-   * filter.
-   *
-   * @param filter
-   *          The filter to be installed.
-   */
-  void installFilter(final Filter filter)
-  {
-    synchronized (stateLock)
-    {
-      // Determine the index where the filter should be added.
-      FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
-      int filterIndex = oldFilterChain.size() - 1;
-      if (filter instanceof SSLFilter)
-      {
-        // Beneath any ConnectionSecurityLayerFilters if present, otherwise
-        // beneath the LDAP filter.
-        for (int i = oldFilterChain.size() - 2; i >= 0; i--)
-        {
-          if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter))
-          {
-            filterIndex = i + 1;
-            break;
-          }
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newCompareResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
         }
-      }
 
-      // Create the new filter chain.
-      FilterChain newFilterChain = FilterChainBuilder.stateless()
-          .addAll(oldFilterChain)
-          .add(filterIndex, filter)
-          .build();
-      connection.setProcessor(newFilterChain);
-    }
-  }
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.compareRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
 
-
-
-  /**
-   * Indicates whether or not TLS is enabled on this connection.
-   *
-   * @return {@code true} if TLS is enabled on this connection, otherwise
-   *         {@code false}.
-   */
-  boolean isTLSEnabled()
-  {
-    synchronized (stateLock)
-    {
-      final FilterChain currentFilterChain = (FilterChain) connection
-          .getProcessor();
-      for (Filter filter : currentFilterChain)
-      {
-        if (filter instanceof SSLFilter)
-        {
-          return true;
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
         }
-      }
-      return false;
+
+        return future;
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Result> deleteAsync(final DeleteRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPFutureResultImpl future =
+                new LDAPFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
 
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
+        }
 
-  AbstractLDAPFutureResultImpl<?> removePendingRequest(final Integer messageID)
-  {
-    return pendingRequests.remove(messageID);
-  }
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.deleteRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
 
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
 
-
-  void setBindOrStartTLSInProgress(final boolean state)
-  {
-    bindOrStartTLSInProgress.set(state);
-  }
-
-
-
-  void startTLS(final SSLContext sslContext,
-      final List<String> protocols, final List<String> cipherSuites,
-      final CompletionHandler<SSLEngine> completionHandler) throws IOException
-  {
-    synchronized (stateLock)
-    {
-      if (isTLSEnabled())
-      {
-        throw new IllegalStateException("TLS already enabled");
-      }
-
-      SSLEngineConfigurator sslEngineConfigurator = new SSLEngineConfigurator(
-          sslContext, true, false, false);
-      sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null
-          : protocols.toArray(new String[protocols.size()]));
-      sslEngineConfigurator
-          .setEnabledCipherSuites(cipherSuites.isEmpty() ? null : cipherSuites
-              .toArray(new String[cipherSuites.size()]));
-      SSLFilter sslFilter = new SSLFilter(null, sslEngineConfigurator);
-      installFilter(sslFilter);
-      sslFilter.handshake(connection, completionHandler);
+        return future;
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
+            final ExtendedRequest<R> request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super R> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPExtendedFutureResultImpl<R> future =
+                new LDAPExtendedFutureResultImpl<R>(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
 
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
+                if (!pendingRequests.isEmpty()) {
+                    future.setResultOrError(request.getResultDecoder().newExtendedErrorResult(
+                            ResultCode.OPERATIONS_ERROR, "",
+                            "There are pending operations on this connection"));
+                    return future;
+                }
+                if (isTLSEnabled()) {
+                    future.setResultOrError(request.getResultDecoder().newExtendedErrorResult(
+                            ResultCode.OPERATIONS_ERROR, "",
+                            "This connection is already TLS enabled"));
+                    return future;
+                }
+                if (!bindOrStartTLSInProgress.compareAndSet(false, true)) {
+                    future.setResultOrError(request.getResultDecoder().newExtendedErrorResult(
+                            ResultCode.OPERATIONS_ERROR, "",
+                            "Bind or Start TLS operation in progress"));
+                    return future;
+                }
+            } else {
+                if (bindOrStartTLSInProgress.get()) {
+                    future.setResultOrError(request.getResultDecoder().newExtendedErrorResult(
+                            ResultCode.OPERATIONS_ERROR, "",
+                            "Bind or Start TLS operation in progress"));
+                    return future;
+                }
+            }
+            pendingRequests.put(messageID, future);
+        }
 
-  private void connectionErrorOccurred(final Result reason)
-  {
-    close(null, false, reason);
-  }
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.extendedRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
+            bindOrStartTLSInProgress.set(false);
+
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
+
+        return future;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed() {
+        synchronized (stateLock) {
+            return isClosed;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isValid() {
+        synchronized (stateLock) {
+            return connectionInvalidReason == null && !isClosed;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Result> modifyAsync(final ModifyRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPFutureResultImpl future =
+                new LDAPFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
+
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
+        }
+
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.modifyRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
+
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
+
+        return future;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPFutureResultImpl future =
+                new LDAPFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
+
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
+        }
+
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.modifyDNRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
+
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
+
+        return future;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeConnectionEventListener(final ConnectionEventListener listener) {
+        Validator.ensureNotNull(listener);
+        listeners.remove(listener);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Result> searchAsync(final SearchRequest request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final SearchResultHandler resultHandler) {
+        final int messageID = nextMsgID.getAndIncrement();
+        final LDAPSearchFutureResultImpl future =
+                new LDAPSearchFutureResultImpl(messageID, request, resultHandler,
+                        intermediateResponseHandler, this);
+
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+                return future;
+            }
+            if (bindOrStartTLSInProgress.get()) {
+                future.setResultOrError(Responses.newResult(ResultCode.OPERATIONS_ERROR)
+                        .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+                return future;
+            }
+            pendingRequests.put(messageID, future);
+        }
+
+        try {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            try {
+                ldapWriter.searchRequest(asn1Writer, messageID, request);
+                connection.write(asn1Writer.getBuffer(), null);
+            } finally {
+                asn1Writer.recycle();
+            }
+        } catch (final IOException e) {
+            pendingRequests.remove(messageID);
+
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            final Result errorResult =
+                    Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+            connectionErrorOccurred(errorResult);
+            future.adaptErrorResult(errorResult);
+        }
+
+        return future;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("LDAPConnection(");
+        builder.append(connection.getLocalAddress());
+        builder.append(',');
+        builder.append(connection.getPeerAddress());
+        builder.append(')');
+        return builder.toString();
+    }
+
+    int continuePendingBindRequest(final LDAPBindFutureResultImpl future)
+            throws ErrorResultException {
+        final int newMsgID = nextMsgID.getAndIncrement();
+        synchronized (stateLock) {
+            if (connectionInvalidReason != null) {
+                throw newErrorResult(connectionInvalidReason);
+            }
+            pendingRequests.put(newMsgID, future);
+        }
+        return newMsgID;
+    }
+
+    long cancelExpiredRequests(final long currentTime) {
+        final long timeout = options.getTimeout(TimeUnit.MILLISECONDS);
+        long delay = timeout;
+        if (timeout > 0) {
+            for (int requestID : pendingRequests.keySet()) {
+                final AbstractLDAPFutureResultImpl<?> future = pendingRequests.get(requestID);
+                if (future != null) {
+                    final long diff = (future.getTimestamp() + timeout) - currentTime;
+                    if (diff <= 0 && pendingRequests.remove(requestID) != null) {
+                        StaticUtils.DEBUG_LOG.fine("Cancelling expired future result: " + future);
+                        final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
+                        future.adaptErrorResult(result);
+
+                        abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
+                    } else {
+                        delay = Math.min(delay, diff);
+                    }
+                }
+            }
+        }
+        return delay;
+    }
+
+    void close(final UnbindRequest unbindRequest, final boolean isDisconnectNotification,
+            final Result reason) {
+        boolean notifyClose = false;
+        boolean notifyErrorOccurred = false;
+
+        synchronized (stateLock) {
+            if (isClosed) {
+                // Already closed.
+                return;
+            }
+
+            if (connectionInvalidReason != null) {
+                // Already closed.
+                isClosed = true;
+                return;
+            }
+
+            if (unbindRequest != null) {
+                // User closed.
+                isClosed = true;
+                notifyClose = true;
+            } else {
+                notifyErrorOccurred = true;
+            }
+
+            // Mark the connection as invalid.
+            if (!isDisconnectNotification) {
+                // Connection termination was detected locally, so use the
+                // provided
+                // reason for all subsequent requests.
+                connectionInvalidReason = reason;
+            } else {
+                // Connection termination was triggered remotely. We don't want
+                // to
+                // blindly pass on the result code to requests since it could be
+                // confused for a genuine response. For example, if the
+                // disconnect
+                // contained the invalidCredentials result code then this could
+                // be
+                // misinterpreted as a genuine authentication failure for
+                // subsequent
+                // bind requests.
+                connectionInvalidReason =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN)
+                                .setDiagnosticMessage("Connection closed by server");
+            }
+        }
+
+        // First abort all outstanding requests.
+        for (int requestID : pendingRequests.keySet()) {
+            final AbstractLDAPFutureResultImpl<?> future = pendingRequests.remove(requestID);
+            if (future != null) {
+                future.adaptErrorResult(connectionInvalidReason);
+            }
+        }
+
+        // Now try cleanly closing the connection if possible.
+        // Only send unbind if specified.
+        if (unbindRequest != null && !isDisconnectNotification) {
+            try {
+                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                try {
+                    ldapWriter
+                            .unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
+                    connection.write(asn1Writer.getBuffer(), null);
+                } finally {
+                    asn1Writer.recycle();
+                }
+            } catch (final IOException e) {
+                // Underlying channel prob blown up. Just ignore.
+            }
+        }
+
+        try {
+            connection.close();
+        } catch (final IOException e) {
+            // Ignore.
+        }
+
+        // Notify listeners.
+        if (notifyClose) {
+            for (final ConnectionEventListener listener : listeners) {
+                listener.handleConnectionClosed();
+            }
+        }
+
+        if (notifyErrorOccurred) {
+            for (final ConnectionEventListener listener : listeners) {
+                // Use the reason provided in the disconnect notification.
+                listener.handleConnectionError(isDisconnectNotification, newErrorResult(reason));
+            }
+        }
+    }
+
+    LDAPOptions getLDAPOptions() {
+        return options;
+    }
+
+    AbstractLDAPFutureResultImpl<?> getPendingRequest(final Integer messageID) {
+        return pendingRequests.get(messageID);
+    }
+
+    void handleUnsolicitedNotification(final ExtendedResult result) {
+        if (isClosed()) {
+            // Don't notify after connection is closed.
+            return;
+        }
+
+        for (final ConnectionEventListener listener : listeners) {
+            listener.handleUnsolicitedNotification(result);
+        }
+    }
+
+    /**
+     * Installs a new Grizzly filter (e.g. SSL/SASL) beneath the top-level LDAP
+     * filter.
+     *
+     * @param filter
+     *            The filter to be installed.
+     */
+    void installFilter(final Filter filter) {
+        synchronized (stateLock) {
+            // Determine the index where the filter should be added.
+            FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
+            int filterIndex = oldFilterChain.size() - 1;
+            if (filter instanceof SSLFilter) {
+                // Beneath any ConnectionSecurityLayerFilters if present,
+                // otherwise
+                // beneath the LDAP filter.
+                for (int i = oldFilterChain.size() - 2; i >= 0; i--) {
+                    if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter)) {
+                        filterIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+
+            // Create the new filter chain.
+            FilterChain newFilterChain =
+                    FilterChainBuilder.stateless().addAll(oldFilterChain).add(filterIndex, filter)
+                            .build();
+            connection.setProcessor(newFilterChain);
+        }
+    }
+
+    /**
+     * Indicates whether or not TLS is enabled on this connection.
+     *
+     * @return {@code true} if TLS is enabled on this connection, otherwise
+     *         {@code false}.
+     */
+    boolean isTLSEnabled() {
+        synchronized (stateLock) {
+            final FilterChain currentFilterChain = (FilterChain) connection.getProcessor();
+            for (Filter filter : currentFilterChain) {
+                if (filter instanceof SSLFilter) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    AbstractLDAPFutureResultImpl<?> removePendingRequest(final Integer messageID) {
+        return pendingRequests.remove(messageID);
+    }
+
+    void setBindOrStartTLSInProgress(final boolean state) {
+        bindOrStartTLSInProgress.set(state);
+    }
+
+    void startTLS(final SSLContext sslContext, final List<String> protocols,
+            final List<String> cipherSuites, final CompletionHandler<SSLEngine> completionHandler)
+            throws IOException {
+        synchronized (stateLock) {
+            if (isTLSEnabled()) {
+                throw new IllegalStateException("TLS already enabled");
+            }
+
+            SSLEngineConfigurator sslEngineConfigurator =
+                    new SSLEngineConfigurator(sslContext, true, false, false);
+            sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null : protocols
+                    .toArray(new String[protocols.size()]));
+            sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null
+                    : cipherSuites.toArray(new String[cipherSuites.size()]));
+            SSLFilter sslFilter = new SSLFilter(null, sslEngineConfigurator);
+            installFilter(sslFilter);
+            sslFilter.handshake(connection, completionHandler);
+        }
+    }
+
+    private void connectionErrorOccurred(final Result reason) {
+        close(null, false, reason);
+    }
 }

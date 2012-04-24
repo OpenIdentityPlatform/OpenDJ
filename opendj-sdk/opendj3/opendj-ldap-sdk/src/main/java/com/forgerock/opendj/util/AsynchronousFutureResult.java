@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,17 +26,17 @@
 
 package com.forgerock.opendj.util;
 
-
-
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-import org.forgerock.opendj.ldap.*;
-
-
+import org.forgerock.opendj.ldap.CancelledResultException;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 
 /**
  * This class provides a skeletal implementation of the {@code FutureResult}
@@ -64,418 +63,315 @@ import org.forgerock.opendj.ldap.*;
  * </ul>
  *
  * @param <M>
- *          The type of result returned by this completion future.
+ *            The type of result returned by this completion future.
  */
-public class AsynchronousFutureResult<M> implements FutureResult<M>,
-    ResultHandler<M>
-{
-  @SuppressWarnings("serial")
-  private final class Sync extends AbstractQueuedSynchronizer
-  {
-    // State value representing the initial state before a result has
-    // been received.
-    private static final int WAITING = 0;
+public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandler<M> {
+    @SuppressWarnings("serial")
+    private final class Sync extends AbstractQueuedSynchronizer {
+        // State value representing the initial state before a result has
+        // been received.
+        private static final int WAITING = 0;
 
-    // State value representing that a result has been received and is
-    // being processed.
-    private static final int PENDING = 1;
+        // State value representing that a result has been received and is
+        // being processed.
+        private static final int PENDING = 1;
 
-    // State value representing that the request was cancelled.
-    private static final int CANCELLED = 2;
+        // State value representing that the request was cancelled.
+        private static final int CANCELLED = 2;
 
-    // State value representing that the request has failed.
-    private static final int FAIL = 3;
+        // State value representing that the request has failed.
+        private static final int FAIL = 3;
 
-    // State value representing that the request has succeeded.
-    private static final int SUCCESS = 4;
+        // State value representing that the request has succeeded.
+        private static final int SUCCESS = 4;
 
-    // These do not need to be volatile since their values are published
-    // by updating the state after they are set and reading the state
-    // immediately before they are read.
-    private ErrorResultException errorResult = null;
+        // These do not need to be volatile since their values are published
+        // by updating the state after they are set and reading the state
+        // immediately before they are read.
+        private ErrorResultException errorResult = null;
 
-    private M result = null;
+        private M result = null;
 
+        /**
+         * Allow all threads to acquire if future has completed.
+         */
+        @Override
+        protected int tryAcquireShared(final int ignore) {
+            return innerIsDone() ? 1 : -1;
+        }
 
+        /**
+         * Signal that the future has completed and threads waiting on get() can
+         * be released.
+         */
+        @Override
+        protected boolean tryReleaseShared(final int finalState) {
+            // Ensures that errorResult/result is published.
+            setState(finalState);
+            return true;
+        }
+
+        boolean innerCancel(final boolean mayInterruptIfRunning) {
+            if (!isCancelable() || !setStatePending()) {
+                return false;
+            }
+
+            // Perform implementation defined cancellation.
+            ErrorResultException errorResult = handleCancelRequest(mayInterruptIfRunning);
+            if (errorResult == null) {
+                errorResult = newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+            }
+            this.errorResult = errorResult;
+
+            try {
+                // Invoke error result completion handler.
+                if (handler != null) {
+                    handler.handleErrorResult(errorResult);
+                }
+            } finally {
+                releaseShared(CANCELLED); // Publishes errorResult.
+            }
+
+            return true;
+        }
+
+        M innerGet() throws ErrorResultException, InterruptedException {
+            acquireSharedInterruptibly(0);
+            return get0();
+        }
+
+        M innerGet(final long nanosTimeout) throws ErrorResultException, TimeoutException,
+                InterruptedException {
+            if (!tryAcquireSharedNanos(0, nanosTimeout)) {
+                throw new TimeoutException();
+            } else {
+                return get0();
+            }
+        }
+
+        boolean innerIsCancelled() {
+            return getState() == CANCELLED;
+        }
+
+        boolean innerIsDone() {
+            return getState() > 1;
+        }
+
+        void innerSetErrorResult(final ErrorResultException errorResult) {
+            if (setStatePending()) {
+                this.errorResult = errorResult;
+
+                try {
+                    // Invoke error result completion handler.
+                    if (handler != null) {
+                        handler.handleErrorResult(errorResult);
+                    }
+                } finally {
+                    releaseShared(FAIL); // Publishes errorResult.
+                }
+            }
+        }
+
+        void innerSetResult(final M result) {
+            if (setStatePending()) {
+                this.result = result;
+
+                try {
+                    // Invoke result completion handler.
+                    if (handler != null) {
+                        handler.handleResult(result);
+                    }
+                } finally {
+                    releaseShared(SUCCESS); // Publishes result.
+                }
+            }
+        }
+
+        private M get0() throws ErrorResultException {
+            if (errorResult != null) {
+                // State must be FAILED or CANCELLED.
+                throw errorResult;
+            } else {
+                // State must be SUCCESS.
+                return result;
+            }
+        }
+
+        private boolean setStatePending() {
+            for (;;) {
+                final int s = getState();
+                if (s != WAITING) {
+                    return false;
+                }
+                if (compareAndSetState(s, PENDING)) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    private final Sync sync = new Sync();
+
+    private final ResultHandler<? super M> handler;
+
+    private final int requestID;
 
     /**
-     * Allow all threads to acquire if future has completed.
+     * Creates a new asynchronous future result with the provided result handler
+     * and a request ID of -1.
+     *
+     * @param handler
+     *            A result handler which will be forwarded the result or error
+     *            when it arrives, may be {@code null}.
      */
-    @Override
-    protected int tryAcquireShared(final int ignore)
-    {
-      return innerIsDone() ? 1 : -1;
+    public AsynchronousFutureResult(final ResultHandler<? super M> handler) {
+        this(handler, -1);
     }
-
-
 
     /**
-     * Signal that the future has completed and threads waiting on get() can be
-     * released.
+     * Creates a new asynchronous future result with the provided result handler
+     * and request ID.
+     *
+     * @param handler
+     *            A result handler which will be forwarded the result or error
+     *            when it arrives, may be {@code null}.
+     * @param requestID
+     *            The request ID which will be returned by the default
+     *            implementation of {@link #getRequestID}.
+     */
+    public AsynchronousFutureResult(final ResultHandler<? super M> handler, final int requestID) {
+        this.handler = handler;
+        this.requestID = requestID;
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
-    protected boolean tryReleaseShared(final int finalState)
-    {
-      // Ensures that errorResult/result is published.
-      setState(finalState);
-      return true;
+    public final boolean cancel(final boolean mayInterruptIfRunning) {
+        return sync.innerCancel(mayInterruptIfRunning);
     }
 
-
-
-    boolean innerCancel(final boolean mayInterruptIfRunning)
-    {
-      if (!isCancelable() || !setStatePending())
-      {
-        return false;
-      }
-
-      // Perform implementation defined cancellation.
-      ErrorResultException errorResult = handleCancelRequest(mayInterruptIfRunning);
-      if (errorResult == null)
-      {
-        errorResult = newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
-      }
-      this.errorResult = errorResult;
-
-      try
-      {
-        // Invoke error result completion handler.
-        if (handler != null)
-        {
-          handler.handleErrorResult(errorResult);
-        }
-      }
-      finally
-      {
-        releaseShared(CANCELLED); // Publishes errorResult.
-      }
-
-      return true;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final M get() throws ErrorResultException, InterruptedException {
+        return sync.innerGet();
     }
 
-
-
-    M innerGet() throws ErrorResultException, InterruptedException
-    {
-      acquireSharedInterruptibly(0);
-      return get0();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final M get(final long timeout, final TimeUnit unit) throws ErrorResultException,
+            TimeoutException, InterruptedException {
+        return sync.innerGet(unit.toNanos(timeout));
     }
 
-
-
-    M innerGet(final long nanosTimeout) throws ErrorResultException,
-        TimeoutException, InterruptedException
-    {
-      if (!tryAcquireSharedNanos(0, nanosTimeout))
-      {
-        throw new TimeoutException();
-      }
-      else
-      {
-        return get0();
-      }
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default implementation returns the request ID passed in during
+     * construction, or -1 if none was provided.
+     */
+    @Override
+    public int getRequestID() {
+        return requestID;
     }
 
-
-
-    boolean innerIsCancelled()
-    {
-      return getState() == CANCELLED;
+    /**
+     * Sets the error result associated with this future. If ({@code isDone() ==
+     * true}) then the error result will be ignored, otherwise the result
+     * handler will be invoked if one was provided and, on return, any threads
+     * waiting on {@link #get} will be released and the provided error result
+     * will be thrown.
+     *
+     * @param errorResult
+     *            The error result.
+     */
+    @Override
+    public final void handleErrorResult(final ErrorResultException errorResult) {
+        sync.innerSetErrorResult(errorResult);
     }
 
-
-
-    boolean innerIsDone()
-    {
-      return getState() > 1;
+    /**
+     * Sets the result associated with this future. If ({@code isDone() == true}
+     * ) then the result will be ignored, otherwise the result handler will be
+     * invoked if one was provided and, on return, any threads waiting on
+     * {@link #get} will be released and the provided result will be returned.
+     *
+     * @param result
+     *            The result.
+     */
+    @Override
+    public final void handleResult(final M result) {
+        sync.innerSetResult(result);
     }
 
-
-
-    void innerSetErrorResult(final ErrorResultException errorResult)
-    {
-      if (setStatePending())
-      {
-        this.errorResult = errorResult;
-
-        try
-        {
-          // Invoke error result completion handler.
-          if (handler != null)
-          {
-            handler.handleErrorResult(errorResult);
-          }
-        }
-        finally
-        {
-          releaseShared(FAIL); // Publishes errorResult.
-        }
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final boolean isCancelled() {
+        return sync.innerIsCancelled();
     }
 
-
-
-    void innerSetResult(final M result)
-    {
-      if (setStatePending())
-      {
-        this.result = result;
-
-        try
-        {
-          // Invoke result completion handler.
-          if (handler != null)
-          {
-            handler.handleResult(result);
-          }
-        }
-        finally
-        {
-          releaseShared(SUCCESS); // Publishes result.
-        }
-      }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final boolean isDone() {
+        return sync.innerIsDone();
     }
 
-
-
-    private M get0() throws ErrorResultException
-    {
-      if (errorResult != null)
-      {
-        // State must be FAILED or CANCELLED.
-        throw errorResult;
-      }
-      else
-      {
-        // State must be SUCCESS.
-        return result;
-      }
+    /**
+     * Invoked when {@link #cancel} is called and {@code isDone() == false} and
+     * immediately before any threads waiting on {@link #get} are released.
+     * Implementations may choose to return a custom error result if needed or
+     * return {@code null} if the following default error result is acceptable:
+     *
+     * <pre>
+     * Result result = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+     * </pre>
+     *
+     * In addition, implementations may perform other cleanup, for example, by
+     * issuing an LDAP abandon request. The default implementation is to do
+     * nothing.
+     *
+     * @param mayInterruptIfRunning
+     *            {@code true} if the thread executing executing the response
+     *            handler should be interrupted; otherwise, in-progress response
+     *            handlers are allowed to complete.
+     * @return The custom error result, or {@code null} if the default is
+     *         acceptable.
+     */
+    protected ErrorResultException handleCancelRequest(final boolean mayInterruptIfRunning) {
+        // Do nothing by default.
+        return null;
     }
 
-
-
-    private boolean setStatePending()
-    {
-      for (;;)
-      {
-        final int s = getState();
-        if (s != WAITING)
-        {
-          return false;
-        }
-        if (compareAndSetState(s, PENDING))
-        {
-          return true;
-        }
-      }
+    /**
+     * Indicates whether this future result can be canceled.
+     *
+     * @return {@code true} if this future result is cancelable or {@code false}
+     *         otherwise.
+     */
+    protected boolean isCancelable() {
+        // Return true by default.
+        return true;
     }
-  }
 
-
-
-  private final Sync sync = new Sync();
-
-  private final ResultHandler<? super M> handler;
-
-  private final int requestID;
-
-
-
-  /**
-   * Creates a new asynchronous future result with the provided result handler
-   * and a request ID of -1.
-   *
-   * @param handler
-   *          A result handler which will be forwarded the result or error when
-   *          it arrives, may be {@code null}.
-   */
-  public AsynchronousFutureResult(final ResultHandler<? super M> handler)
-  {
-    this(handler, -1);
-  }
-
-
-
-  /**
-   * Creates a new asynchronous future result with the provided result handler
-   * and request ID.
-   *
-   * @param handler
-   *          A result handler which will be forwarded the result or error when
-   *          it arrives, may be {@code null}.
-   * @param requestID
-   *          The request ID which will be returned by the default
-   *          implementation of {@link #getRequestID}.
-   */
-  public AsynchronousFutureResult(final ResultHandler<? super M> handler,
-      final int requestID)
-  {
-    this.handler = handler;
-    this.requestID = requestID;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final boolean cancel(final boolean mayInterruptIfRunning)
-  {
-    return sync.innerCancel(mayInterruptIfRunning);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final M get() throws ErrorResultException, InterruptedException
-  {
-    return sync.innerGet();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final M get(final long timeout, final TimeUnit unit)
-      throws ErrorResultException, TimeoutException, InterruptedException
-  {
-    return sync.innerGet(unit.toNanos(timeout));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * The default implementation returns the request ID passed in during
-   * construction, or -1 if none was provided.
-   */
-  @Override
-  public int getRequestID()
-  {
-    return requestID;
-  }
-
-
-
-  /**
-   * Sets the error result associated with this future. If ({@code isDone() ==
-   * true}) then the error result will be ignored, otherwise the result handler
-   * will be invoked if one was provided and, on return, any threads waiting on
-   * {@link #get} will be released and the provided error result will be thrown.
-   *
-   * @param errorResult
-   *          The error result.
-   */
-  @Override
-  public final void handleErrorResult(final ErrorResultException errorResult)
-  {
-    sync.innerSetErrorResult(errorResult);
-  }
-
-
-
-  /**
-   * Sets the result associated with this future. If ({@code isDone() == true})
-   * then the result will be ignored, otherwise the result handler will be
-   * invoked if one was provided and, on return, any threads waiting on
-   * {@link #get} will be released and the provided result will be returned.
-   *
-   * @param result
-   *          The result.
-   */
-  @Override
-  public final void handleResult(final M result)
-  {
-    sync.innerSetResult(result);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final boolean isCancelled()
-  {
-    return sync.innerIsCancelled();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final boolean isDone()
-  {
-    return sync.innerIsDone();
-  }
-
-
-
-  /**
-   * Invoked when {@link #cancel} is called and {@code isDone() == false} and
-   * immediately before any threads waiting on {@link #get} are released.
-   * Implementations may choose to return a custom error result if needed or
-   * return {@code null} if the following default error result is acceptable:
-   *
-   * <pre>
-   * Result result = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
-   * </pre>
-   *
-   * In addition, implementations may perform other cleanup, for example, by
-   * issuing an LDAP abandon request. The default implementation is to do
-   * nothing.
-   *
-   * @param mayInterruptIfRunning
-   *          {@code true} if the thread executing executing the response
-   *          handler should be interrupted; otherwise, in-progress response
-   *          handlers are allowed to complete.
-   * @return The custom error result, or {@code null} if the default is
-   *         acceptable.
-   */
-  protected ErrorResultException handleCancelRequest(
-      final boolean mayInterruptIfRunning)
-  {
-    // Do nothing by default.
-    return null;
-  }
-
-
-
-  /**
-   * Indicates whether this future result can be canceled.
-   *
-   * @return {@code true} if this future result is cancelable or {@code false}
-   *         otherwise.
-   */
-  protected boolean isCancelable()
-  {
-    // Return true by default.
-    return true;
-  }
-
-
-
-  /**
-   * Appends a string representation of this future's state to the provided
-   * builder.
-   *
-   * @param sb
-   *          The string builder.
-   */
-  protected void toString(final StringBuilder sb)
-  {
-    sb.append(" state = ");
-    sb.append(sync);
-  }
+    /**
+     * Appends a string representation of this future's state to the provided
+     * builder.
+     *
+     * @param sb
+     *            The string builder.
+     */
+    protected void toString(final StringBuilder sb) {
+        sb.append(" state = ");
+        sb.append(sync);
+    }
 
 }

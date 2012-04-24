@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,60 +26,48 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-
-
 /**
  * An abstract Bind request which can be used as the basis for implementing new
  * authentication methods.
  *
  * @param <R>
- *          The type of Bind request.
+ *            The type of Bind request.
  */
-abstract class AbstractBindRequest<R extends BindRequest> extends
-    AbstractRequestImpl<R> implements BindRequest
-{
+abstract class AbstractBindRequest<R extends BindRequest> extends AbstractRequestImpl<R> implements
+        BindRequest {
 
-  /**
-   * Creates a new abstract bind request.
-   */
-  protected AbstractBindRequest()
-  {
-    // Nothing to do.
-  }
+    /**
+     * Creates a new abstract bind request.
+     */
+    protected AbstractBindRequest() {
+        // Nothing to do.
+    }
 
+    /**
+     * Creates a new abstract bind request that is an exact copy of the provided
+     * request.
+     *
+     * @param bindRequest
+     *            The bind request to be copied.
+     * @throws NullPointerException
+     *             If {@code bindRequest} was {@code null} .
+     */
+    protected AbstractBindRequest(BindRequest bindRequest) {
+        super(bindRequest);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public abstract String getName();
 
-  /**
-   * Creates a new abstract bind request that is an exact copy of the provided
-   * request.
-   *
-   * @param bindRequest
-   *          The bind request to be copied.
-   * @throws NullPointerException
-   *           If {@code bindRequest} was {@code null} .
-   */
-  protected AbstractBindRequest(BindRequest bindRequest)
-  {
-    super(bindRequest);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public abstract String getName();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  final R getThis()
-  {
-    return (R) this;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    final R getThis() {
+        return (R) this;
+    }
 
 }

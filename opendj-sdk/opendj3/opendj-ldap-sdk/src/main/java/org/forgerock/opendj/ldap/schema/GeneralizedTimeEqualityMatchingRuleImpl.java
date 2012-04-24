@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -26,25 +25,17 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-
-
 
 /**
  * This class defines the generalizedTimeMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-final class GeneralizedTimeEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
-{
-  public ByteString normalizeAttributeValue(final Schema schema,
-      final ByteSequence value) throws DecodeException
-  {
-    return ByteString.valueOf(GeneralizedTimeSyntaxImpl
-        .decodeGeneralizedTimeValue(value));
-  }
+final class GeneralizedTimeEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
+            throws DecodeException {
+        return ByteString.valueOf(GeneralizedTimeSyntaxImpl.decodeGeneralizedTimeValue(value));
+    }
 }

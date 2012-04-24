@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,172 +27,124 @@
 
 package org.forgerock.opendj.ldap;
 
-
-
 import java.util.Collection;
 import java.util.Map;
 
 import com.forgerock.opendj.util.Validator;
 
-
-
 /**
  * Abstract implementation for {@code Map} based entries.
  */
-abstract class AbstractMapEntry extends AbstractEntry
-{
-  private final Map<AttributeDescription, Attribute> attributes;
+abstract class AbstractMapEntry extends AbstractEntry {
+    private final Map<AttributeDescription, Attribute> attributes;
 
-  private DN name;
+    private DN name;
 
-
-
-  /**
-   * Creates an empty entry using the provided distinguished name and {@code
-   * Map}.
-   *
-   * @param name
-   *          The distinguished name of this entry.
-   * @param attributes
-   *          The attribute map.
-   */
-  AbstractMapEntry(final DN name,
-      final Map<AttributeDescription, Attribute> attributes)
-  {
-    this.name = name;
-    this.attributes = attributes;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean addAttribute(final Attribute attribute,
-      final Collection<ByteString> duplicateValues)
-  {
-    Validator.ensureNotNull(attribute);
-
-    final AttributeDescription attributeDescription = attribute
-        .getAttributeDescription();
-    final Attribute oldAttribute = attributes.get(attributeDescription);
-    if (oldAttribute != null)
-    {
-      return oldAttribute.addAll(attribute, duplicateValues);
+    /**
+     * Creates an empty entry using the provided distinguished name and
+     * {@code Map}.
+     *
+     * @param name
+     *            The distinguished name of this entry.
+     * @param attributes
+     *            The attribute map.
+     */
+    AbstractMapEntry(final DN name, final Map<AttributeDescription, Attribute> attributes) {
+        this.name = name;
+        this.attributes = attributes;
     }
-    else
-    {
-      attributes.put(attributeDescription, attribute);
-      return true;
-    }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public final boolean addAttribute(final Attribute attribute,
+            final Collection<ByteString> duplicateValues) {
+        Validator.ensureNotNull(attribute);
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Entry clearAttributes()
-  {
-    attributes.clear();
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Iterable<Attribute> getAllAttributes()
-  {
-    return attributes.values();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Attribute getAttribute(
-      final AttributeDescription attributeDescription)
-  {
-    Validator.ensureNotNull(attributeDescription);
-
-    return attributes.get(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final int getAttributeCount()
-  {
-    return attributes.size();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final DN getName()
-  {
-    return name;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean removeAttribute(final Attribute attribute,
-      final Collection<ByteString> missingValues)
-  {
-    Validator.ensureNotNull(attribute);
-
-    final AttributeDescription attributeDescription = attribute
-        .getAttributeDescription();
-
-    if (attribute.isEmpty())
-    {
-      return attributes.remove(attributeDescription) != null;
-    }
-    else
-    {
-      final Attribute oldAttribute = attributes.get(attributeDescription);
-      if (oldAttribute != null)
-      {
-        final boolean modified = oldAttribute.removeAll(attribute,
-            missingValues);
-        if (oldAttribute.isEmpty())
-        {
-          attributes.remove(attributeDescription);
-          return true;
+        final AttributeDescription attributeDescription = attribute.getAttributeDescription();
+        final Attribute oldAttribute = attributes.get(attributeDescription);
+        if (oldAttribute != null) {
+            return oldAttribute.addAll(attribute, duplicateValues);
+        } else {
+            attributes.put(attributeDescription, attribute);
+            return true;
         }
-        return modified;
-      }
-      else
-      {
-        if (missingValues != null)
-        {
-          missingValues.addAll(attribute);
-        }
-        return false;
-      }
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public final Entry clearAttributes() {
+        attributes.clear();
+        return this;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public final Iterable<Attribute> getAllAttributes() {
+        return attributes.values();
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  public final Entry setName(final DN dn)
-  {
-    Validator.ensureNotNull(dn);
-    this.name = dn;
-    return this;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public final Attribute getAttribute(final AttributeDescription attributeDescription) {
+        Validator.ensureNotNull(attributeDescription);
+
+        return attributes.get(attributeDescription);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final int getAttributeCount() {
+        return attributes.size();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final DN getName() {
+        return name;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final boolean removeAttribute(final Attribute attribute,
+            final Collection<ByteString> missingValues) {
+        Validator.ensureNotNull(attribute);
+
+        final AttributeDescription attributeDescription = attribute.getAttributeDescription();
+
+        if (attribute.isEmpty()) {
+            return attributes.remove(attributeDescription) != null;
+        } else {
+            final Attribute oldAttribute = attributes.get(attributeDescription);
+            if (oldAttribute != null) {
+                final boolean modified = oldAttribute.removeAll(attribute, missingValues);
+                if (oldAttribute.isEmpty()) {
+                    attributes.remove(attributeDescription);
+                    return true;
+                }
+                return modified;
+            } else {
+                if (missingValues != null) {
+                    missingValues.addAll(attribute);
+                }
+                return false;
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final Entry setName(final DN dn) {
+        Validator.ensureNotNull(dn);
+        this.name = dn;
+        return this;
+    }
 
 }

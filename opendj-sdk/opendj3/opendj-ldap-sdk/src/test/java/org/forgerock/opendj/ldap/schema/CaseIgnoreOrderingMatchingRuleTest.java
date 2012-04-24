@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -26,65 +25,46 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-
-
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
 
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
-
-
 
 /**
  * Test the CaseIgnoreOrderingMatchingRule.
  */
-public class CaseIgnoreOrderingMatchingRuleTest extends
-    OrderingMatchingRuleTest
-{
+public class CaseIgnoreOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @DataProvider(name = "OrderingMatchingRuleInvalidValues")
-  public Object[][] createOrderingMatchingRuleInvalidValues()
-  {
-    return new Object[][] {};
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @DataProvider(name = "OrderingMatchingRuleInvalidValues")
+    public Object[][] createOrderingMatchingRuleInvalidValues() {
+        return new Object[][] {};
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @DataProvider(name = "Orderingmatchingrules")
+    public Object[][] createOrderingMatchingRuleTestData() {
+        return new Object[][] { { "12345678", "02345678", 1 }, { "abcdef", "bcdefa", -1 },
+            { "abcdef", "abcdef", 0 }, { "abcdef", "ABCDEF", 0 }, { "abcdef", "aCcdef", -1 },
+            { "aCcdef", "abcdef", 1 }, { "foo\u0020bar\u0020\u0020", "foo bar", 0 },
+            { "test\u00AD\u200D", "test", 0 }, { "foo\u070Fbar", "foobar", 0 },
+            // Case-folding data below.
+            { "foo\u0149bar", "foo\u02BC\u006Ebar", 0 }, { "foo\u017Bbar", "foo\u017Cbar", 0 },
+            { "foo\u017Bbar", "goo\u017Cbar", -1 },
+            // issue# 3583
+            { "a", "\u00f8", -1 }, };
+    }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @DataProvider(name = "Orderingmatchingrules")
-  public Object[][] createOrderingMatchingRuleTestData()
-  {
-    return new Object[][] { { "12345678", "02345678", 1 },
-        { "abcdef", "bcdefa", -1 }, { "abcdef", "abcdef", 0 },
-        { "abcdef", "ABCDEF", 0 }, { "abcdef", "aCcdef", -1 },
-        { "aCcdef", "abcdef", 1 },
-        { "foo\u0020bar\u0020\u0020", "foo bar", 0 },
-        { "test\u00AD\u200D", "test", 0 },
-        { "foo\u070Fbar", "foobar", 0 },
-        // Case-folding data below.
-        { "foo\u0149bar", "foo\u02BC\u006Ebar", 0 },
-        { "foo\u017Bbar", "foo\u017Cbar", 0 },
-        { "foo\u017Bbar", "goo\u017Cbar", -1 },
-        // issue# 3583
-        { "a", "\u00f8", -1 }, };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected MatchingRule getRule()
-  {
-    return Schema.getCoreSchema().getMatchingRule(OMR_CASE_IGNORE_OID);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected MatchingRule getRule() {
+        return Schema.getCoreSchema().getMatchingRule(OMR_CASE_IGNORE_OID);
+    }
 }

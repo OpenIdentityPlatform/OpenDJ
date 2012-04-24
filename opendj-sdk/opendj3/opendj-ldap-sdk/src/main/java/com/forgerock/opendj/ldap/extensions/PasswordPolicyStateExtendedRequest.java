@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,8 +26,6 @@
  */
 
 package com.forgerock.opendj.ldap.extensions;
-
-
 
 import static com.forgerock.opendj.util.StaticUtils.formatAsGeneralizedTime;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
@@ -46,7 +43,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.asn1.ASN1Writer;
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.AbstractExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
@@ -56,8 +58,6 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 
 import com.forgerock.opendj.util.Validator;
-
-
 
 /**
  * This class implements an LDAP extended operation that can be used to query
@@ -125,1018 +125,741 @@ import com.forgerock.opendj.util.Validator;
  * set*, add*, remove*, or clear* operation).
  */
 public final class PasswordPolicyStateExtendedRequest
-    extends
-    AbstractExtendedRequest<PasswordPolicyStateExtendedRequest, PasswordPolicyStateExtendedResult>
-    implements PasswordPolicyStateOperationContainer
-{
-  private static final class MultiValueOperation implements
-      PasswordPolicyStateOperation
-  {
-    private final PasswordPolicyStateOperationType property;
+        extends
+        AbstractExtendedRequest<PasswordPolicyStateExtendedRequest, PasswordPolicyStateExtendedResult>
+        implements PasswordPolicyStateOperationContainer {
+    private static final class MultiValueOperation implements PasswordPolicyStateOperation {
+        private final PasswordPolicyStateOperationType property;
 
-    private final List<ByteString> values;
+        private final List<ByteString> values;
 
+        private MultiValueOperation(final PasswordPolicyStateOperationType property,
+                final ByteString value) {
+            this.property = property;
+            this.values = Collections.singletonList(value);
+        }
 
+        private MultiValueOperation(final PasswordPolicyStateOperationType property,
+                final List<ByteString> values) {
+            this.property = property;
+            this.values = values;
+        }
 
-    private MultiValueOperation(
-        final PasswordPolicyStateOperationType property, final ByteString value)
-    {
-      this.property = property;
-      this.values = Collections.singletonList(value);
+        public PasswordPolicyStateOperationType getOperationType() {
+            return property;
+        }
+
+        public Iterable<ByteString> getValues() {
+            return values;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return property.toString() + ": " + values;
+        }
     }
 
+    private static final class RequestDecoder
+            implements
+            ExtendedRequestDecoder<PasswordPolicyStateExtendedRequest, PasswordPolicyStateExtendedResult> {
 
+        public PasswordPolicyStateExtendedRequest decodeExtendedRequest(
+                final ExtendedRequest<?> request, final DecodeOptions options)
+                throws DecodeException {
+            final ByteString requestValue = request.getValue();
 
-    private MultiValueOperation(
-        final PasswordPolicyStateOperationType property,
-        final List<ByteString> values)
-    {
-      this.property = property;
-      this.values = values;
+            if ((requestValue == null) || (requestValue.length() <= 0)) {
+                throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
+            }
+
+            try {
+                final ASN1Reader reader = ASN1.getReader(requestValue);
+                reader.readStartSequence();
+
+                // Read the target user DN
+                final PasswordPolicyStateExtendedRequest newRequest =
+                        new PasswordPolicyStateExtendedRequest(reader.readOctetStringAsString());
+
+                decodeOperations(reader, newRequest);
+                reader.readEndSequence();
+
+                for (final Control control : request.getControls()) {
+                    newRequest.addControl(control);
+                }
+
+                return newRequest;
+            } catch (final IOException ioe) {
+                final LocalizableMessage message =
+                        ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(ioe));
+                throw DecodeException.error(message, ioe);
+            }
+        }
     }
 
+    private static final class ResultDecoder extends
+            AbstractExtendedResultDecoder<PasswordPolicyStateExtendedResult> {
 
+        /**
+         * {@inheritDoc}
+         */
+        public PasswordPolicyStateExtendedResult newExtendedErrorResult(
+                final ResultCode resultCode, final String matchedDN, final String diagnosticMessage) {
+            if (!resultCode.isExceptional()) {
+                // A successful response must contain a response name and
+                // value.
+                throw new IllegalArgumentException("No response name and value for result code "
+                        + resultCode.intValue());
+            }
 
-    public PasswordPolicyStateOperationType getOperationType()
-    {
-      return property;
+            return new PasswordPolicyStateExtendedResult(resultCode, (String) null).setMatchedDN(
+                    matchedDN).setDiagnosticMessage(diagnosticMessage);
+        }
+
+        public PasswordPolicyStateExtendedResult decodeExtendedResult(final ExtendedResult result,
+                final DecodeOptions options) throws DecodeException {
+            final ResultCode resultCode = result.getResultCode();
+            final ByteString responseValue = result.getValue();
+
+            if (!resultCode.isExceptional()
+                    && ((responseValue == null) || (responseValue.length() <= 0))) {
+                throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
+            }
+
+            try {
+                final ASN1Reader reader = ASN1.getReader(responseValue);
+                reader.readStartSequence();
+
+                // Read the target user DN
+                final PasswordPolicyStateExtendedResult newResult =
+                        new PasswordPolicyStateExtendedResult(resultCode, reader
+                                .readOctetStringAsString()).setMatchedDN(result.getMatchedDN())
+                                .setDiagnosticMessage(result.getDiagnosticMessage());
+
+                decodeOperations(reader, newResult);
+                reader.readEndSequence();
+
+                for (final Control control : result.getControls()) {
+                    newResult.addControl(control);
+                }
+
+                return newResult;
+            } catch (final IOException ioe) {
+                final LocalizableMessage message =
+                        ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(ioe));
+                throw DecodeException.error(message, ioe);
+            }
+        }
     }
 
+    /**
+     * The OID for the password policy state extended operation (both the
+     * request and response types).
+     */
+    public static final String OID = "1.3.6.1.4.1.26027.1.6.1";
 
+    private final String targetUser;
 
-    public Iterable<ByteString> getValues()
-    {
-      return values;
+    private final List<PasswordPolicyStateOperation> operations =
+            new ArrayList<PasswordPolicyStateOperation>();
+
+    static final String PASSWORD_POLICY_DN_NAME = "Password Policy DN";
+
+    static final String ACCOUNT_DISABLED_STATE_NAME = "Account Disabled State";
+
+    static final String ACCOUNT_EXPIRATION_TIME_NAME = "Account Expiration Time";
+
+    static final String SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME = "Seconds Until Account Expiration";
+
+    static final String PASSWORD_CHANGED_TIME_NAME = "Password Changed Time";
+
+    static final String PASSWORD_EXPIRATION_WARNED_TIME_NAME = "Password Expiration Warned Time";
+
+    static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_NAME =
+            "Seconds Until Password Expiration";
+
+    static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME =
+            "Seconds Until Password Expiration Warning";
+
+    static final String AUTHENTICATION_FAILURE_TIMES_NAME = "Authentication Failure Times";
+
+    static final String SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK_NAME =
+            "Seconds Until Authentication Failure Unlock";
+
+    static final String REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME =
+            "Remaining Authentication Failure Count";
+
+    static final String LAST_LOGIN_TIME_NAME = "Last Login Time";
+
+    static final String SECONDS_UNTIL_IDLE_LOCKOUT_NAME = "Seconds Until Idle Lockout";
+
+    static final String PASSWORD_RESET_STATE_NAME = "Password Reset State";
+
+    static final String SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME =
+            "Seconds Until Password Reset Lockout";
+
+    static final String GRACE_LOGIN_USE_TIMES_NAME = "Grace Login Use Times";
+
+    static final String REMAINING_GRACE_LOGIN_COUNT_NAME = "Remaining Grace Login Count";
+
+    static final String PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME =
+            "Password Changed By Required Time";
+
+    static final String SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME =
+            "Seconds Until Required Change Time";
+
+    static final String PASSWORD_HISTORY_NAME = "Password History";
+
+    /**
+     * A decoder which can be used to decode password policy state extended
+     * operation requests.
+     */
+    public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
+
+    // No need to expose this.
+    private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
+
+    static ByteString encode(final String targetUser,
+            final List<PasswordPolicyStateOperation> operations) {
+        final ByteStringBuilder buffer = new ByteStringBuilder(6);
+        final ASN1Writer writer = ASN1.getWriter(buffer);
+
+        try {
+            writer.writeStartSequence();
+            writer.writeOctetString(targetUser);
+            if (!operations.isEmpty()) {
+                writer.writeStartSequence();
+                for (final PasswordPolicyStateOperation operation : operations) {
+                    writer.writeStartSequence();
+                    writer.writeEnumerated(operation.getOperationType().ordinal());
+                    if (operation.getValues() != null) {
+                        writer.writeStartSequence();
+                        for (final ByteString value : operation.getValues()) {
+                            writer.writeOctetString(value);
+                        }
+                        writer.writeEndSequence();
+                    }
+                    writer.writeEndSequence();
+                }
+                writer.writeEndSequence();
+            }
+            writer.writeEndSequence();
+        } catch (final IOException ioe) {
+            // This should never happen unless there is a bug somewhere.
+            throw new RuntimeException(ioe);
+        }
+
+        return buffer.toByteString();
     }
 
+    private static void decodeOperations(final ASN1Reader reader,
+            final PasswordPolicyStateOperationContainer container) throws IOException,
+            DecodeException {
+        // See if we have operations
+        if (reader.hasNextElement()) {
+            reader.readStartSequence();
+            int opType;
+            PasswordPolicyStateOperationType type;
+            while (reader.hasNextElement()) {
+                reader.readStartSequence();
+                // Read the opType
+                opType = reader.readEnumerated();
+                try {
+                    type = PasswordPolicyStateOperationType.values()[opType];
+                } catch (final IndexOutOfBoundsException iobe) {
+                    throw DecodeException.error(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(String
+                            .valueOf(opType)), iobe);
+                }
 
+                // See if we have any values
+                if (reader.hasNextElement()) {
+                    reader.readStartSequence();
+                    final ArrayList<ByteString> values = new ArrayList<ByteString>();
+                    while (reader.hasNextElement()) {
+                        values.add(reader.readOctetString());
+                    }
+                    reader.readEndSequence();
+                    container.addOperation(new MultiValueOperation(type, values));
+                } else {
+                    container.addOperation(type);
+                }
+                reader.readEndSequence();
+            }
+            reader.readEndSequence();
+        }
+    }
+
+    /**
+     * Creates a new password policy state extended request using the provided
+     * user name.
+     *
+     * @param targetUser
+     *            The name of the user.
+     */
+    public PasswordPolicyStateExtendedRequest(final DN targetUser) {
+        Validator.ensureNotNull(targetUser);
+        this.targetUser = targetUser.toString();
+    }
+
+    /**
+     * Creates a new password policy state extended request using the provided
+     * user name.
+     *
+     * @param targetUser
+     *            The name of the user.
+     */
+    public PasswordPolicyStateExtendedRequest(final String targetUser) {
+        Validator.ensureNotNull(targetUser);
+        this.targetUser = targetUser;
+    }
+
+    /**
+     * Adds the provided authentication failure time to this request.
+     *
+     * @param date
+     *            The authentication failure time.
+     */
+    public void addAuthenticationFailureTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES);
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES, ByteString
+                            .valueOf(formatAsGeneralizedTime(date))));
+        }
+    }
+
+    /**
+     * Adds the provided grace login use time to this request.
+     *
+     * @param date
+     *            The grace login use time.
+     */
+    public void addGraceLoginUseTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME);
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME, ByteString
+                            .valueOf(formatAsGeneralizedTime(date))));
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addOperation(final PasswordPolicyStateOperation operation) {
+        operations.add(operation);
+    }
+
+    /**
+     * Clears the account disabled state.
+     */
+    public void clearAccountDisabledState() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_ACCOUNT_DISABLED_STATE);
+    }
+
+    /**
+     * Clears the account expiration time.
+     */
+    public void clearAccountExpirationTime() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_ACCOUNT_EXPIRATION_TIME);
+    }
+
+    /**
+     * Clears the authentication failure times.
+     */
+    public void clearAuthenticationFailureTimes() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_AUTHENTICATION_FAILURE_TIMES);
+    }
+
+    /**
+     * Clears the grace login use times.
+     */
+    public void clearGraceLoginUseTimes() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_GRACE_LOGIN_USE_TIMES);
+    }
+
+    /**
+     * Clears the last login time.
+     */
+    public void clearLastLoginTime() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_LAST_LOGIN_TIME);
+    }
+
+    /**
+     * Clears the password changed by required time.
+     */
+    public void clearPasswordChangedByRequiredTime() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME);
+    }
+
+    /**
+     * Clears the password changed time.
+     */
+    public void clearPasswordChangedTime() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_CHANGED_TIME);
+    }
+
+    /**
+     * Clears the password expiration warned time.
+     */
+    public void clearPasswordExpirationWarnedTime() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_EXPIRATION_WARNED_TIME);
+    }
+
+    /**
+     * Clears the password history.
+     */
+    public void clearPasswordHistory() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_HISTORY);
+    }
+
+    /**
+     * Clears the password reset state.
+     */
+    public void clearPasswordResetState() {
+        operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_RESET_STATE);
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String toString()
-    {
-      return property.toString() + ": " + values;
+    public String getOID() {
+        return OID;
     }
-  }
-
-
-
-  private static final class RequestDecoder
-      implements
-      ExtendedRequestDecoder<PasswordPolicyStateExtendedRequest, PasswordPolicyStateExtendedResult>
-  {
-
-    public PasswordPolicyStateExtendedRequest decodeExtendedRequest(
-        final ExtendedRequest<?> request, final DecodeOptions options)
-        throws DecodeException
-    {
-      final ByteString requestValue = request.getValue();
-
-      if ((requestValue == null) || (requestValue.length() <= 0))
-      {
-        throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
-      }
-
-      try
-      {
-        final ASN1Reader reader = ASN1.getReader(requestValue);
-        reader.readStartSequence();
-
-        // Read the target user DN
-        final PasswordPolicyStateExtendedRequest newRequest =
-          new PasswordPolicyStateExtendedRequest(
-              reader.readOctetStringAsString());
-
-        decodeOperations(reader, newRequest);
-        reader.readEndSequence();
-
-        for (final Control control : request.getControls())
-        {
-          newRequest.addControl(control);
-        }
-
-        return newRequest;
-      }
-      catch (final IOException ioe)
-      {
-        final LocalizableMessage message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
-            .get(getExceptionMessage(ioe));
-        throw DecodeException.error(message, ioe);
-      }
-    }
-  }
-
-
-
-  private static final class ResultDecoder extends
-      AbstractExtendedResultDecoder<PasswordPolicyStateExtendedResult>
-  {
 
     /**
      * {@inheritDoc}
      */
-    public PasswordPolicyStateExtendedResult newExtendedErrorResult(
-        final ResultCode resultCode, final String matchedDN,
-        final String diagnosticMessage)
-    {
-      if (!resultCode.isExceptional())
-      {
-        // A successful response must contain a response name and
-        // value.
-        throw new IllegalArgumentException(
-            "No response name and value for result code "
-                + resultCode.intValue());
-      }
-
-      return new PasswordPolicyStateExtendedResult(resultCode, (String) null)
-          .setMatchedDN(matchedDN).setDiagnosticMessage(diagnosticMessage);
+    public Iterable<PasswordPolicyStateOperation> getOperations() {
+        return operations;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExtendedResultDecoder<PasswordPolicyStateExtendedResult> getResultDecoder() {
+        return RESULT_DECODER;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ByteString getValue() {
+        return encode(targetUser, operations);
+    }
 
-    public PasswordPolicyStateExtendedResult decodeExtendedResult(
-        final ExtendedResult result, final DecodeOptions options)
-        throws DecodeException
-    {
-      final ResultCode resultCode = result.getResultCode();
-      final ByteString responseValue = result.getValue();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValue() {
+        return true;
+    }
 
-      if (!resultCode.isExceptional()
-          && ((responseValue == null) || (responseValue.length() <= 0)))
-      {
-        throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
-      }
+    /**
+     * Returns the account disabled state.
+     */
+    public void requestAccountDisabledState() {
+        operations.add(PasswordPolicyStateOperationType.GET_ACCOUNT_DISABLED_STATE);
+    }
 
-      try
-      {
-        final ASN1Reader reader = ASN1.getReader(responseValue);
-        reader.readStartSequence();
+    /**
+     * Returns the account expiration time.
+     */
+    public void requestAccountExpirationTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_ACCOUNT_EXPIRATION_TIME);
+    }
 
-        // Read the target user DN
-        final PasswordPolicyStateExtendedResult newResult = new PasswordPolicyStateExtendedResult(
-            resultCode, reader.readOctetStringAsString()).setMatchedDN(
-            result.getMatchedDN()).setDiagnosticMessage(
-            result.getDiagnosticMessage());
+    /**
+     * Returns the authentication failure times.
+     */
+    public void requestAuthenticationFailureTimes() {
+        operations.add(PasswordPolicyStateOperationType.GET_AUTHENTICATION_FAILURE_TIMES);
+    }
 
-        decodeOperations(reader, newResult);
-        reader.readEndSequence();
+    /**
+     * Returns the grace login use times.
+     */
+    public void requestGraceLoginUseTimes() {
+        operations.add(PasswordPolicyStateOperationType.GET_GRACE_LOGIN_USE_TIMES);
+    }
 
-        for (final Control control : result.getControls())
-        {
-          newResult.addControl(control);
+    /**
+     * Returns the last login time.
+     */
+    public void requestLastLoginTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_LAST_LOGIN_TIME);
+    }
+
+    /**
+     * Returns the password changed by required time.
+     */
+    public void requestPasswordChangedByRequiredTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
+    }
+
+    /**
+     * Returns the password changed time.
+     */
+    public void requestPasswordChangedTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_CHANGED_TIME);
+    }
+
+    /**
+     * Returns the password expiration warned time.
+     */
+    public void requestPasswordExpirationWarnedTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_EXPIRATION_WARNED_TIME);
+    }
+
+    /**
+     * Returns the password history.
+     */
+    public void requestPasswordHistory() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_HISTORY);
+    }
+
+    /**
+     * Returns the password policy DN.
+     */
+    public void requestPasswordPolicyDN() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_POLICY_DN);
+    }
+
+    /**
+     * Returns the password reset state.
+     */
+    public void requestPasswordResetState() {
+        operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_RESET_STATE);
+    }
+
+    /**
+     * Returns the remaining authentication failure count.
+     */
+    public void requestRemainingAuthenticationFailureCount() {
+        operations.add(PasswordPolicyStateOperationType.GET_REMAINING_AUTHENTICATION_FAILURE_COUNT);
+    }
+
+    /**
+     * Returns the remaining grace login count.
+     */
+    public void requestRemainingGraceLoginCount() {
+        operations.add(PasswordPolicyStateOperationType.GET_REMAINING_GRACE_LOGIN_COUNT);
+    }
+
+    /**
+     * Returns the seconds until account expiration.
+     */
+    public void requestSecondsUntilAccountExpiration() {
+        operations.add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION);
+    }
+
+    /**
+     * Returns the seconds until authentication failure unlock.
+     */
+    public void requestSecondsUntilAuthenticationFailureUnlock() {
+        operations
+                .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK);
+    }
+
+    /**
+     * Returns the seconds until idle lockout.
+     */
+    public void requestSecondsUntilIdleLockout() {
+        operations.add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_IDLE_LOCKOUT);
+    }
+
+    /**
+     * Returns the seconds until password expiration.
+     */
+    public void requestSecondsUntilPasswordExpiration() {
+        operations.add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_EXPIRATION);
+    }
+
+    /**
+     * Returns the seconds until password expiration warning.
+     */
+    public void requestSecondsUntilPasswordExpirationWarning() {
+        operations
+                .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING);
+    }
+
+    /**
+     * Returns the seconds until password reset lockout.
+     */
+    public void requestSecondsUntilPasswordResetLockout() {
+        operations.add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT);
+    }
+
+    /**
+     * Returns the seconds until required change time.
+     */
+    public void requestSecondsUntilRequiredChangeTime() {
+        operations.add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME);
+    }
+
+    /**
+     * Sets the account disabled state.
+     *
+     * @param state
+     *            The account disabled state.
+     */
+    public void setAccountDisabledState(final boolean state) {
+        operations.add(new MultiValueOperation(
+                PasswordPolicyStateOperationType.SET_ACCOUNT_DISABLED_STATE, ByteString
+                        .valueOf(String.valueOf(state))));
+    }
+
+    /**
+     * Sets the account expiration time.
+     *
+     * @param date
+     *            The account expiration time.
+     */
+    public void setAccountExpirationTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME);
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME, ByteString
+                            .valueOf(formatAsGeneralizedTime(date))));
         }
-
-        return newResult;
-      }
-      catch (final IOException ioe)
-      {
-        final LocalizableMessage message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
-            .get(getExceptionMessage(ioe));
-        throw DecodeException.error(message, ioe);
-      }
     }
-  }
 
-
-
-  /**
-   * The OID for the password policy state extended operation (both the request
-   * and response types).
-   */
-  public static final String OID = "1.3.6.1.4.1.26027.1.6.1";
-
-  private final String targetUser;
-
-  private final List<PasswordPolicyStateOperation> operations =
-    new ArrayList<PasswordPolicyStateOperation>();
-
-  static final String PASSWORD_POLICY_DN_NAME = "Password Policy DN";
-
-  static final String ACCOUNT_DISABLED_STATE_NAME = "Account Disabled State";
-
-  static final String ACCOUNT_EXPIRATION_TIME_NAME = "Account Expiration Time";
-
-  static final String SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME =
-    "Seconds Until Account Expiration";
-
-  static final String PASSWORD_CHANGED_TIME_NAME = "Password Changed Time";
-
-  static final String PASSWORD_EXPIRATION_WARNED_TIME_NAME =
-    "Password Expiration Warned Time";
-
-  static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_NAME =
-    "Seconds Until Password Expiration";
-
-  static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME =
-    "Seconds Until Password Expiration Warning";
-
-  static final String AUTHENTICATION_FAILURE_TIMES_NAME =
-    "Authentication Failure Times";
-
-  static final String SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK_NAME =
-    "Seconds Until Authentication Failure Unlock";
-
-  static final String REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME =
-    "Remaining Authentication Failure Count";
-
-  static final String LAST_LOGIN_TIME_NAME = "Last Login Time";
-
-  static final String SECONDS_UNTIL_IDLE_LOCKOUT_NAME =
-    "Seconds Until Idle Lockout";
-
-  static final String PASSWORD_RESET_STATE_NAME = "Password Reset State";
-
-  static final String SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME =
-    "Seconds Until Password Reset Lockout";
-
-  static final String GRACE_LOGIN_USE_TIMES_NAME = "Grace Login Use Times";
-
-  static final String REMAINING_GRACE_LOGIN_COUNT_NAME =
-    "Remaining Grace Login Count";
-
-  static final String PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME =
-    "Password Changed By Required Time";
-
-  static final String SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME =
-    "Seconds Until Required Change Time";
-
-  static final String PASSWORD_HISTORY_NAME = "Password History";
-
-  /**
-   * A decoder which can be used to decode password policy state extended
-   * operation requests.
-   */
-  public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
-
-  // No need to expose this.
-  private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
-
-
-
-  static ByteString encode(final String targetUser,
-      final List<PasswordPolicyStateOperation> operations)
-  {
-    final ByteStringBuilder buffer = new ByteStringBuilder(6);
-    final ASN1Writer writer = ASN1.getWriter(buffer);
-
-    try
-    {
-      writer.writeStartSequence();
-      writer.writeOctetString(targetUser);
-      if (!operations.isEmpty())
-      {
-        writer.writeStartSequence();
-        for (final PasswordPolicyStateOperation operation : operations)
-        {
-          writer.writeStartSequence();
-          writer.writeEnumerated(operation.getOperationType().ordinal());
-          if (operation.getValues() != null)
-          {
-            writer.writeStartSequence();
-            for (final ByteString value : operation.getValues())
-            {
-              writer.writeOctetString(value);
+    /**
+     * Sets the authentication failure times.
+     *
+     * @param dates
+     *            The authentication failure times.
+     */
+    public void setAuthenticationFailureTimes(final Date... dates) {
+        if (dates == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES);
+        } else {
+            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
+            for (final Date date : dates) {
+                times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
             }
-            writer.writeEndSequence();
-          }
-          writer.writeEndSequence();
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES, times));
         }
-        writer.writeEndSequence();
-      }
-      writer.writeEndSequence();
-    }
-    catch (final IOException ioe)
-    {
-      // This should never happen unless there is a bug somewhere.
-      throw new RuntimeException(ioe);
     }
 
-    return buffer.toByteString();
-  }
-
-
-
-  private static void decodeOperations(final ASN1Reader reader,
-      final PasswordPolicyStateOperationContainer container)
-      throws IOException, DecodeException
-  {
-    // See if we have operations
-    if (reader.hasNextElement())
-    {
-      reader.readStartSequence();
-      int opType;
-      PasswordPolicyStateOperationType type;
-      while (reader.hasNextElement())
-      {
-        reader.readStartSequence();
-        // Read the opType
-        opType = reader.readEnumerated();
-        try
-        {
-          type = PasswordPolicyStateOperationType.values()[opType];
+    /**
+     * Sets the grace login use times.
+     *
+     * @param dates
+     *            The grace login use times.
+     */
+    public void setGraceLoginUseTimes(final Date... dates) {
+        if (dates == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES);
+        } else {
+            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
+            for (final Date date : dates) {
+                times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
+            }
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES, times));
         }
-        catch (final IndexOutOfBoundsException iobe)
-        {
-          throw DecodeException.error(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE
-              .get(String.valueOf(opType)), iobe);
+    }
+
+    /**
+     * Sets the last login time.
+     *
+     * @param date
+     *            The last login time.
+     */
+    public void setLastLoginTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME);
+
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME, ByteString
+                            .valueOf(formatAsGeneralizedTime(date))));
         }
+    }
 
-        // See if we have any values
-        if (reader.hasNextElement())
-        {
-          reader.readStartSequence();
-          final ArrayList<ByteString> values = new ArrayList<ByteString>();
-          while (reader.hasNextElement())
-          {
-            values.add(reader.readOctetString());
-          }
-          reader.readEndSequence();
-          container.addOperation(new MultiValueOperation(type, values));
+    /**
+     * Sets the password changed by required time.
+     *
+     * @param state
+     *            The password changed by required time.
+     */
+    public void setPasswordChangedByRequiredTime(final boolean state) {
+        operations.add(new MultiValueOperation(
+                PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_BY_REQUIRED_TIME, ByteString
+                        .valueOf(String.valueOf(state))));
+    }
+
+    /**
+     * Sets the password changed time.
+     *
+     * @param date
+     *            The password changed time.
+     */
+    public void setPasswordChangedTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME);
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME, ByteString
+                            .valueOf(formatAsGeneralizedTime(date))));
         }
-        else
-        {
-          container.addOperation(type);
+    }
+
+    /**
+     * Sets the password expiration warned time.
+     *
+     * @param date
+     *            The password expiration warned time.
+     */
+    public void setPasswordExpirationWarnedTime(final Date date) {
+        if (date == null) {
+            operations.add(PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME);
+
+        } else {
+            operations.add(new MultiValueOperation(
+                    PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME,
+                    ByteString.valueOf(formatAsGeneralizedTime(date))));
         }
-        reader.readEndSequence();
-      }
-      reader.readEndSequence();
     }
-  }
 
-
-
-  /**
-   * Creates a new password policy state extended request using the provided
-   * user name.
-   *
-   * @param targetUser
-   *          The name of the user.
-   */
-  public PasswordPolicyStateExtendedRequest(final DN targetUser)
-  {
-    Validator.ensureNotNull(targetUser);
-    this.targetUser = targetUser.toString();
-  }
-
-
-
-  /**
-   * Creates a new password policy state extended request using the provided
-   * user name.
-   *
-   * @param targetUser
-   *          The name of the user.
-   */
-  public PasswordPolicyStateExtendedRequest(final String targetUser)
-  {
-    Validator.ensureNotNull(targetUser);
-    this.targetUser = targetUser;
-  }
-
-
-
-  /**
-   * Adds the provided authentication failure time to this request.
-   *
-   * @param date
-   *          The authentication failure time.
-   */
-  public void addAuthenticationFailureTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES);
+    /**
+     * Sets the password reset state.
+     *
+     * @param state
+     *            The password reset state.
+     */
+    public void setPasswordResetState(final boolean state) {
+        operations.add(new MultiValueOperation(
+                PasswordPolicyStateOperationType.SET_PASSWORD_RESET_STATE, ByteString
+                        .valueOf(String.valueOf(state))));
     }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES,
-          ByteString.valueOf(formatAsGeneralizedTime(date))));
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("PasswordPolicyStateExtendedRequest(requestName=");
+        builder.append(getOID());
+        builder.append(", targetUser=");
+        builder.append(targetUser);
+        builder.append(", operations=");
+        builder.append(operations);
+        builder.append(", controls=");
+        builder.append(getControls());
+        builder.append(")");
+        return builder.toString();
     }
-  }
-
-
-
-  /**
-   * Adds the provided grace login use time to this request.
-   *
-   * @param date
-   *          The grace login use time.
-   */
-  public void addGraceLoginUseTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations.add(PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME);
-    }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME, ByteString
-              .valueOf(formatAsGeneralizedTime(date))));
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addOperation(final PasswordPolicyStateOperation operation)
-  {
-    operations.add(operation);
-  }
-
-
-
-  /**
-   * Clears the account disabled state.
-   */
-  public void clearAccountDisabledState()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_ACCOUNT_DISABLED_STATE);
-  }
-
-
-
-  /**
-   * Clears the account expiration time.
-   */
-  public void clearAccountExpirationTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_ACCOUNT_EXPIRATION_TIME);
-  }
-
-
-
-  /**
-   * Clears the authentication failure times.
-   */
-  public void clearAuthenticationFailureTimes()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_AUTHENTICATION_FAILURE_TIMES);
-  }
-
-
-
-  /**
-   * Clears the grace login use times.
-   */
-  public void clearGraceLoginUseTimes()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_GRACE_LOGIN_USE_TIMES);
-  }
-
-
-
-  /**
-   * Clears the last login time.
-   */
-  public void clearLastLoginTime()
-  {
-    operations.add(PasswordPolicyStateOperationType.CLEAR_LAST_LOGIN_TIME);
-  }
-
-
-
-  /**
-   * Clears the password changed by required time.
-   */
-  public void clearPasswordChangedByRequiredTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME);
-  }
-
-
-
-  /**
-   * Clears the password changed time.
-   */
-  public void clearPasswordChangedTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_CHANGED_TIME);
-  }
-
-
-
-  /**
-   * Clears the password expiration warned time.
-   */
-  public void clearPasswordExpirationWarnedTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_EXPIRATION_WARNED_TIME);
-  }
-
-
-
-  /**
-   * Clears the password history.
-   */
-  public void clearPasswordHistory()
-  {
-    operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_HISTORY);
-  }
-
-
-
-  /**
-   * Clears the password reset state.
-   */
-  public void clearPasswordResetState()
-  {
-    operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_RESET_STATE);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getOID()
-  {
-    return OID;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<PasswordPolicyStateOperation> getOperations()
-  {
-    return operations;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ExtendedResultDecoder<PasswordPolicyStateExtendedResult> getResultDecoder()
-  {
-    return RESULT_DECODER;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ByteString getValue()
-  {
-    return encode(targetUser, operations);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasValue()
-  {
-    return true;
-  }
-
-
-
-  /**
-   * Returns the account disabled state.
-   */
-  public void requestAccountDisabledState()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_ACCOUNT_DISABLED_STATE);
-  }
-
-
-
-  /**
-   * Returns the account expiration time.
-   */
-  public void requestAccountExpirationTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_ACCOUNT_EXPIRATION_TIME);
-  }
-
-
-
-  /**
-   * Returns the authentication failure times.
-   */
-  public void requestAuthenticationFailureTimes()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_AUTHENTICATION_FAILURE_TIMES);
-  }
-
-
-
-  /**
-   * Returns the grace login use times.
-   */
-  public void requestGraceLoginUseTimes()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_GRACE_LOGIN_USE_TIMES);
-  }
-
-
-
-  /**
-   * Returns the last login time.
-   */
-  public void requestLastLoginTime()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_LAST_LOGIN_TIME);
-  }
-
-
-
-  /**
-   * Returns the password changed by required time.
-   */
-  public void requestPasswordChangedByRequiredTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
-  }
-
-
-
-  /**
-   * Returns the password changed time.
-   */
-  public void requestPasswordChangedTime()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_CHANGED_TIME);
-  }
-
-
-
-  /**
-   * Returns the password expiration warned time.
-   */
-  public void requestPasswordExpirationWarnedTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_PASSWORD_EXPIRATION_WARNED_TIME);
-  }
-
-
-
-  /**
-   * Returns the password history.
-   */
-  public void requestPasswordHistory()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_HISTORY);
-  }
-
-
-
-  /**
-   * Returns the password policy DN.
-   */
-  public void requestPasswordPolicyDN()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_POLICY_DN);
-  }
-
-
-
-  /**
-   * Returns the password reset state.
-   */
-  public void requestPasswordResetState()
-  {
-    operations.add(PasswordPolicyStateOperationType.GET_PASSWORD_RESET_STATE);
-  }
-
-
-
-  /**
-   * Returns the remaining authentication failure count.
-   */
-  public void requestRemainingAuthenticationFailureCount()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_REMAINING_AUTHENTICATION_FAILURE_COUNT);
-  }
-
-
-
-  /**
-   * Returns the remaining grace login count.
-   */
-  public void requestRemainingGraceLoginCount()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_REMAINING_GRACE_LOGIN_COUNT);
-  }
-
-
-
-  /**
-   * Returns the seconds until account expiration.
-   */
-  public void requestSecondsUntilAccountExpiration()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION);
-  }
-
-
-
-  /**
-   * Returns the seconds until authentication failure unlock.
-   */
-  public void requestSecondsUntilAuthenticationFailureUnlock()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK);
-  }
-
-
-
-  /**
-   * Returns the seconds until idle lockout.
-   */
-  public void requestSecondsUntilIdleLockout()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_IDLE_LOCKOUT);
-  }
-
-
-
-  /**
-   * Returns the seconds until password expiration.
-   */
-  public void requestSecondsUntilPasswordExpiration()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_EXPIRATION);
-  }
-
-
-
-  /**
-   * Returns the seconds until password expiration warning.
-   */
-  public void requestSecondsUntilPasswordExpirationWarning()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING);
-  }
-
-
-
-  /**
-   * Returns the seconds until password reset lockout.
-   */
-  public void requestSecondsUntilPasswordResetLockout()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT);
-  }
-
-
-
-  /**
-   * Returns the seconds until required change time.
-   */
-  public void requestSecondsUntilRequiredChangeTime()
-  {
-    operations
-        .add(PasswordPolicyStateOperationType.GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME);
-  }
-
-
-
-  /**
-   * Sets the account disabled state.
-   *
-   * @param state
-   *          The account disabled state.
-   */
-  public void setAccountDisabledState(final boolean state)
-  {
-    operations.add(new MultiValueOperation(
-        PasswordPolicyStateOperationType.SET_ACCOUNT_DISABLED_STATE, ByteString
-            .valueOf(String.valueOf(state))));
-  }
-
-
-
-  /**
-   * Sets the account expiration time.
-   *
-   * @param date
-   *          The account expiration time.
-   */
-  public void setAccountExpirationTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME);
-    }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME,
-          ByteString.valueOf(formatAsGeneralizedTime(date))));
-    }
-  }
-
-
-
-  /**
-   * Sets the authentication failure times.
-   *
-   * @param dates
-   *          The authentication failure times.
-   */
-  public void setAuthenticationFailureTimes(final Date... dates)
-  {
-    if (dates == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES);
-    }
-    else
-    {
-      final ArrayList<ByteString> times = new ArrayList<ByteString>(
-          dates.length);
-      for (final Date date : dates)
-      {
-        times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
-      }
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES,
-          times));
-    }
-  }
-
-
-
-  /**
-   * Sets the grace login use times.
-   *
-   * @param dates
-   *          The grace login use times.
-   */
-  public void setGraceLoginUseTimes(final Date... dates)
-  {
-    if (dates == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES);
-    }
-    else
-    {
-      final ArrayList<ByteString> times = new ArrayList<ByteString>(
-          dates.length);
-      for (final Date date : dates)
-      {
-        times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
-      }
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES, times));
-    }
-  }
-
-
-
-  /**
-   * Sets the last login time.
-   *
-   * @param date
-   *          The last login time.
-   */
-  public void setLastLoginTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations.add(PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME);
-
-    }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME, ByteString
-              .valueOf(formatAsGeneralizedTime(date))));
-    }
-  }
-
-
-
-  /**
-   * Sets the password changed by required time.
-   *
-   * @param state
-   *          The password changed by required time.
-   */
-  public void setPasswordChangedByRequiredTime(final boolean state)
-  {
-    operations.add(new MultiValueOperation(
-        PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-        ByteString.valueOf(String.valueOf(state))));
-  }
-
-
-
-  /**
-   * Sets the password changed time.
-   *
-   * @param date
-   *          The password changed time.
-   */
-  public void setPasswordChangedTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME);
-    }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME,
-          ByteString.valueOf(formatAsGeneralizedTime(date))));
-    }
-  }
-
-
-
-  /**
-   * Sets the password expiration warned time.
-   *
-   * @param date
-   *          The password expiration warned time.
-   */
-  public void setPasswordExpirationWarnedTime(final Date date)
-  {
-    if (date == null)
-    {
-      operations
-          .add(PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME);
-
-    }
-    else
-    {
-      operations.add(new MultiValueOperation(
-          PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME,
-          ByteString.valueOf(formatAsGeneralizedTime(date))));
-    }
-  }
-
-
-
-  /**
-   * Sets the password reset state.
-   *
-   * @param state
-   *          The password reset state.
-   */
-  public void setPasswordResetState(final boolean state)
-  {
-    operations.add(new MultiValueOperation(
-        PasswordPolicyStateOperationType.SET_PASSWORD_RESET_STATE, ByteString
-            .valueOf(String.valueOf(state))));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString()
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("PasswordPolicyStateExtendedRequest(requestName=");
-    builder.append(getOID());
-    builder.append(", targetUser=");
-    builder.append(targetUser);
-    builder.append(", operations=");
-    builder.append(operations);
-    builder.append(", controls=");
-    builder.append(getControls());
-    builder.append(")");
-    return builder.toString();
-  }
 }

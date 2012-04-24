@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,8 +27,6 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-
-
 import java.util.List;
 
 import org.forgerock.opendj.ldap.DecodeException;
@@ -37,8 +34,6 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
-
-
 
 /**
  * The anonymous SASL bind request as defined in RFC 4505. This SASL mechanism
@@ -58,97 +53,79 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * @see <a href="http://tools.ietf.org/html/rfc4505">RFC 4505 - Anonymous Simple
  *      Authentication and Security Layer (SASL) Mechanism </a>
  */
-public interface AnonymousSASLBindRequest extends SASLBindRequest
-{
+public interface AnonymousSASLBindRequest extends SASLBindRequest {
 
-  /**
-   * The name of the SASL mechanism that does not provide any authentication but
-   * rather uses anonymous access.
-   */
-  public static final String SASL_MECHANISM_NAME = "ANONYMOUS";
+    /**
+     * The name of the SASL mechanism that does not provide any authentication
+     * but rather uses anonymous access.
+     */
+    public static final String SASL_MECHANISM_NAME = "ANONYMOUS";
 
+    /**
+     * {@inheritDoc}
+     */
+    AnonymousSASLBindRequest addControl(Control control);
 
+    /**
+     * {@inheritDoc}
+     */
+    BindClient createBindClient(String serverName) throws ErrorResultException;
 
-  /**
-   * {@inheritDoc}
-   */
-  AnonymousSASLBindRequest addControl(Control control);
+    /**
+     * Returns the authentication mechanism identifier for this SASL bind
+     * request as defined by the LDAP protocol, which is always {@code 0xA3}.
+     *
+     * @return The authentication mechanism identifier.
+     */
+    byte getAuthenticationType();
 
+    /**
+     * {@inheritDoc}
+     */
+    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+            throws DecodeException;
 
+    /**
+     * {@inheritDoc}
+     */
+    List<Control> getControls();
 
-  /**
-   * {@inheritDoc}
-   */
-  BindClient createBindClient(String serverName) throws ErrorResultException;
+    /**
+     * Returns the name of the Directory object that the client wishes to bind
+     * as, which is always the empty string for SASL authentication.
+     *
+     * @return The name of the Directory object that the client wishes to bind
+     *         as.
+     */
+    String getName();
 
+    /**
+     * {@inheritDoc}
+     */
+    String getSASLMechanism();
 
+    /**
+     * Returns the trace information, which has no semantic value, and can be
+     * used by administrators in order to identify the user.
+     *
+     * @return The trace information, which has no semantic value, and can be
+     *         used by administrators in order to identify the user.
+     */
+    String getTraceString();
 
-  /**
-   * Returns the authentication mechanism identifier for this SASL bind request
-   * as defined by the LDAP protocol, which is always {@code 0xA3}.
-   *
-   * @return The authentication mechanism identifier.
-   */
-  byte getAuthenticationType();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws DecodeException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  List<Control> getControls();
-
-
-
-  /**
-   * Returns the name of the Directory object that the client wishes to bind as,
-   * which is always the empty string for SASL authentication.
-   *
-   * @return The name of the Directory object that the client wishes to bind as.
-   */
-  String getName();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String getSASLMechanism();
-
-
-
-  /**
-   * Returns the trace information, which has no semantic value, and can be used
-   * by administrators in order to identify the user.
-   *
-   * @return The trace information, which has no semantic value, and can be used
-   *         by administrators in order to identify the user.
-   */
-  String getTraceString();
-
-
-
-  /**
-   * Sets the trace information, which has no semantic value, and can be used by
-   * administrators in order to identify the user.
-   *
-   * @param traceString
-   *          The trace information, which has no semantic value, and can be
-   *          used by administrators in order to identify the user.
-   * @return This bind request.
-   * @throws UnsupportedOperationException
-   *           If this anonymous SASL request does not permit the trace
-   *           information to be set.
-   * @throws NullPointerException
-   *           If {@code traceString} was {@code null}.
-   */
-  AnonymousSASLBindRequest setTraceString(String traceString);
+    /**
+     * Sets the trace information, which has no semantic value, and can be used
+     * by administrators in order to identify the user.
+     *
+     * @param traceString
+     *            The trace information, which has no semantic value, and can be
+     *            used by administrators in order to identify the user.
+     * @return This bind request.
+     * @throws UnsupportedOperationException
+     *             If this anonymous SASL request does not permit the trace
+     *             information to be set.
+     * @throws NullPointerException
+     *             If {@code traceString} was {@code null}.
+     */
+    AnonymousSASLBindRequest setTraceString(String traceString);
 }

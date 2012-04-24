@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -26,10 +25,10 @@
  */
 package org.forgerock.opendj.ldap.controls;
 
-
-
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CONTROL_BAD_OID;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,8 +37,6 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
-
-
 
 /**
  * The Netscape password expiring response control as defined in
@@ -52,173 +49,136 @@ import com.forgerock.opendj.util.Validator;
  *      href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy">draft-vchu-ldap-pwd-policy
  *      - Password Policy for LDAP Directories </a>
  */
-public final class PasswordExpiringResponseControl implements Control
-{
-  /**
-   * The OID for the Netscape password expiring response control.
-   */
-  public static final String OID = "2.16.840.1.113730.3.4.5";
+public final class PasswordExpiringResponseControl implements Control {
+    /**
+     * The OID for the Netscape password expiring response control.
+     */
+    public static final String OID = "2.16.840.1.113730.3.4.5";
 
-  /**
-   * A decoder which can be used for decoding the password expiring response
-   * control.
-   */
-  public static final ControlDecoder<PasswordExpiringResponseControl> DECODER =
-    new ControlDecoder<PasswordExpiringResponseControl>()
-  {
+    /**
+     * A decoder which can be used for decoding the password expiring response
+     * control.
+     */
+    public static final ControlDecoder<PasswordExpiringResponseControl> DECODER =
+            new ControlDecoder<PasswordExpiringResponseControl>() {
 
-    public PasswordExpiringResponseControl decodeControl(final Control control,
-        final DecodeOptions options) throws DecodeException
-    {
-      Validator.ensureNotNull(control);
+                public PasswordExpiringResponseControl decodeControl(final Control control,
+                        final DecodeOptions options) throws DecodeException {
+                    Validator.ensureNotNull(control);
 
-      if (control instanceof PasswordExpiringResponseControl)
-      {
-        return (PasswordExpiringResponseControl) control;
-      }
+                    if (control instanceof PasswordExpiringResponseControl) {
+                        return (PasswordExpiringResponseControl) control;
+                    }
 
-      if (!control.getOID().equals(OID))
-      {
-        final LocalizableMessage message = ERR_PWEXPIRING_CONTROL_BAD_OID.get(
-            control.getOID(), OID);
-        throw DecodeException.error(message);
-      }
+                    if (!control.getOID().equals(OID)) {
+                        final LocalizableMessage message =
+                                ERR_PWEXPIRING_CONTROL_BAD_OID.get(control.getOID(), OID);
+                        throw DecodeException.error(message);
+                    }
 
-      if (!control.hasValue())
-      {
-        final LocalizableMessage message = ERR_PWEXPIRING_NO_CONTROL_VALUE
-            .get();
-        throw DecodeException.error(message);
-      }
+                    if (!control.hasValue()) {
+                        final LocalizableMessage message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
+                        throw DecodeException.error(message);
+                    }
 
-      int secondsUntilExpiration;
-      try
-      {
-        secondsUntilExpiration = Integer
-            .parseInt(control.getValue().toString());
-      }
-      catch (final Exception e)
-      {
-        StaticUtils.DEBUG_LOG.throwing("PasswordExpiringControl.Decoder",
-            "decode", e);
+                    int secondsUntilExpiration;
+                    try {
+                        secondsUntilExpiration = Integer.parseInt(control.getValue().toString());
+                    } catch (final Exception e) {
+                        StaticUtils.DEBUG_LOG.throwing("PasswordExpiringControl.Decoder", "decode",
+                                e);
 
-        final LocalizableMessage message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
-            .get(getExceptionMessage(e));
-        throw DecodeException.error(message);
-      }
+                        final LocalizableMessage message =
+                                ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
+                                        .get(getExceptionMessage(e));
+                        throw DecodeException.error(message);
+                    }
 
-      return new PasswordExpiringResponseControl(control.isCritical(),
-          secondsUntilExpiration);
+                    return new PasswordExpiringResponseControl(control.isCritical(),
+                            secondsUntilExpiration);
+                }
+
+                public String getOID() {
+                    return OID;
+                }
+            };
+
+    /**
+     * Creates a new Netscape password expiring response control with the
+     * provided amount of time until expiration.
+     *
+     * @param secondsUntilExpiration
+     *            The length of time in seconds until the password actually
+     *            expires.
+     * @return The new control.
+     */
+    public static PasswordExpiringResponseControl newControl(final int secondsUntilExpiration) {
+        return new PasswordExpiringResponseControl(false, secondsUntilExpiration);
     }
 
+    // The length of time in seconds until the password actually expires.
+    private final int secondsUntilExpiration;
 
+    private final boolean isCritical;
 
-    public String getOID()
-    {
-      return OID;
+    private PasswordExpiringResponseControl(final boolean isCritical,
+            final int secondsUntilExpiration) {
+        this.isCritical = isCritical;
+        this.secondsUntilExpiration = secondsUntilExpiration;
     }
-  };
 
+    /**
+     * {@inheritDoc}
+     */
+    public String getOID() {
+        return OID;
+    }
 
+    /**
+     * Returns the length of time in seconds until the password actually
+     * expires.
+     *
+     * @return The length of time in seconds until the password actually
+     *         expires.
+     */
+    public int getSecondsUntilExpiration() {
+        return secondsUntilExpiration;
+    }
 
-  /**
-   * Creates a new Netscape password expiring response control with the provided
-   * amount of time until expiration.
-   *
-   * @param secondsUntilExpiration
-   *          The length of time in seconds until the password actually expires.
-   * @return The new control.
-   */
-  public static PasswordExpiringResponseControl newControl(
-      final int secondsUntilExpiration)
-  {
-    return new PasswordExpiringResponseControl(false, secondsUntilExpiration);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString getValue() {
+        return ByteString.valueOf(String.valueOf(secondsUntilExpiration));
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasValue() {
+        return true;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isCritical() {
+        return isCritical;
+    }
 
-  // The length of time in seconds until the password actually expires.
-  private final int secondsUntilExpiration;
-
-  private final boolean isCritical;
-
-
-
-  private PasswordExpiringResponseControl(final boolean isCritical,
-      final int secondsUntilExpiration)
-  {
-    this.isCritical = isCritical;
-    this.secondsUntilExpiration = secondsUntilExpiration;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getOID()
-  {
-    return OID;
-  }
-
-
-
-  /**
-   * Returns the length of time in seconds until the password actually expires.
-   *
-   * @return The length of time in seconds until the password actually expires.
-   */
-  public int getSecondsUntilExpiration()
-  {
-    return secondsUntilExpiration;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ByteString getValue()
-  {
-    return ByteString.valueOf(String.valueOf(secondsUntilExpiration));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasValue()
-  {
-    return true;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isCritical()
-  {
-    return isCritical;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString()
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("PasswordExpiringResponseControl(oid=");
-    builder.append(getOID());
-    builder.append(", criticality=");
-    builder.append(isCritical());
-    builder.append(", secondsUntilExpiration=");
-    builder.append(secondsUntilExpiration);
-    builder.append(")");
-    return builder.toString();
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("PasswordExpiringResponseControl(oid=");
+        builder.append(getOID());
+        builder.append(", criticality=");
+        builder.append(isCritical());
+        builder.append(", secondsUntilExpiration=");
+        builder.append(secondsUntilExpiration);
+        builder.append(")");
+        return builder.toString();
+    }
 }
