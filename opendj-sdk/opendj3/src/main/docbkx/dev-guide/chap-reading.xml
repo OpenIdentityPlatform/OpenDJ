@@ -118,6 +118,8 @@ final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
 Connection connection = null;
 try {
     connection = factory.getConnection();
+
+    // No explicit bind yet so we remain anonymous for now.
     SearchResultEntry entry = connection.searchSingleEntry(baseDN,
             SearchScope.WHOLE_SUBTREE, "(mail=" + mail + ")", "cn");
     DN bindDN = entry.getName();
@@ -366,31 +368,157 @@ try {
 
  <section xml:id="send-search-request">
   <title>Sending a Search Request</title>
-  <para>TODO</para>
+
+  <para>As shown in the following excerpt with a synchronous connection, you
+  get a <literal>Connection</literal> to the directory server from an
+  <literal>LDAPConnectionFactory</literal>.</para>
+
+  <programlisting language="java"
+>final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
+        port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    // Do something with the connection...
+} catch (Exception e) {
+    // Handle exceptions...
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>The <literal>Connection</literal> gives you <literal>search()</literal>
+  methods that either take parameters in the style of the
+  <command>ldapsearch</command> command, or that take a
+  <literal>SearchRequest</literal> object. If you are sure that the search only
+  returns a single entry, you can read the entry with the
+  <literal>searchSingleEntry()</literal> methods. If you have the distinguished
+  name, you can use <literal>readEntry()</literal> directly.</para>
  </section>
 
  <section xml:id="get-search-results">
   <title>Getting Search Results</title>
-  <para>TODO</para>
- </section>
 
- <section xml:id="abandon-search">
-  <title>Abandoning an Incomplete Search</title>
-  <para>TODO</para>
+  <para>Depending on the method you use to search, you handle results in
+  different ways.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>You can get a <literal>ConnectionEntryReader</literal>, and iterate
+    over the reader to access individual search results.</para>
+
+    <programlisting language="java">Connection connection = ...;
+ConnectionEntryReader reader = connection.search("dc=example,dc=com",
+    SearchScope.WHOLE_SUBTREE, "(objectClass=person)");
+try
+{
+  while (reader.hasNext())
+  {
+    if (reader.isEntry())
+    {
+      SearchResultEntry entry = reader.readEntry();
+
+      // Handle entry...
+    }
+    else
+    {
+      SearchResultReference ref = reader.readReference();
+
+      // Handle continuation reference...
+    }
+  }
+}
+catch (IOException e)
+{
+  // Handle exceptions...
+}
+finally
+{
+  results.close();
+}</programlisting>
+   </listitem>
+
+   <listitem>
+    <para>You can pass in a collection of <literal>SearchResultEntry</literal>s
+    (and optionally a collection of <literal>SearchResultReference</literal>s)
+    to which the SDK adds the results. For this to work, you need enough
+    memory to hold everything the search returns.</para>
+   </listitem>
+
+   <listitem>
+    <para>You can pass in a <literal>SearchResultHandler</literal> to manage
+    results.</para>
+   </listitem>
+
+   <listitem>
+    <para>With <literal>searchSingleEntry()</literal> and
+    <literal>readEntry()</literal>, you can get a single
+    <literal>SearchResultEntry</literal> with methods to access the entry
+    content.</para>
+   </listitem>
+  </itemizedlist>
  </section>
 
  <section xml:id="handle-ldap-urls">
   <title>Working With LDAP URLs</title>
-  <para>TODO</para>
+
+  <para>LDAP URLs express search requests in URL form. In the directory data
+  you can find them used as <literal>memberURL</literal>
+  attribute values for dynamic groups, for example. The following URL from the
+  configuration for the administrative backend lets the directory server build
+  a dynamic group of administrator entries that are children of
+  <literal>cn=Administrators,cn=admin data</literal>.</para>
+
+  <literallayout class="monospaced"
+  >ldap:///cn=Administrators,cn=admin data??one?(objectclass=*)</literallayout>
+
+  <para>The static method <literal>LDAPUrl.valueOf()</literal> takes an LDAP
+  URL string and returns an <literal>LDAPUrl</literal> object. You can then use
+  the <literal>LDAPUrl.asSearchRequest()</literal> method to get the
+  <literal>SearchRequest</literal> that you pass to one of the search methods
+  for the connection.</para>
  </section>
 
  <section xml:id="sort-search-results">
   <title>Sorting Search Results</title>
-  <para>TODO</para>
+
+  <para>If you want to sort search results in your client application, then
+  make sure you have enough memory in the JVM to hold the results of the search,
+  and use one of the search methods that lets you pass in a collection of
+  <literal>SearchResultEntry</literal>s. After the collection is populated with
+  the results, you can sort them.</para>
+
+  <para>If you are on good terms with your directory administrator, you can
+  perhaps use a server-side sort control. The server-side sort request control
+  asks the server to sort the results before returning them, and so is a
+  memory intensive operation on the directory server. You set up the control
+  using <literal>ServerSideSortRequestControl.newControl()</literal>. You get
+  the control into your search by building a search request to pass to the
+  search method, using <literal>SearchRequest.addControl()</literal> to attach
+  the control before passing in the request.</para>
+
+  <para>If your application needs to scroll through search results a page at
+  a time, work with your directory administrator to set up the virtual list
+  view indexes that facilitate scrolling through results.</para>
  </section>
 
  <section xml:id="about-comparisons">
   <title>About Comparing</title>
-  <para>TODO</para>
+
+  <para>You use the LDAP compare operation to make an assertion about an
+  attribute value on an entry. Unlike the search operation, you must know
+  the distinguished name of the entry in advance to request a compare operation.
+  You also specify the attribute type name and the value to compare to the
+  values stored on the entry.</para>
+
+  <para><literal>Connection</literal> has a choice of compare methods,
+  depending on how you set up the operation.</para>
+
+  <para>Check the <literal>ResultCode</literal> from
+  <literal>CompareResult.getResultCode()</literal> for
+  <literal>ResultCode.COMPARE_TRUE</literal> or
+  <literal>ResultCode.COMPARE_FALSE</literal>.</para>
  </section>
 </chapter>
