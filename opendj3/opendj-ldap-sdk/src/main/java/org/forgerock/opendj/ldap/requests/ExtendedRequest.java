@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -26,8 +25,6 @@
  */
 
 package org.forgerock.opendj.ldap.requests;
-
-
 
 import java.util.List;
 
@@ -39,8 +36,6 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 
-
-
 /**
  * The Extended operation allows additional operations to be defined for
  * services not already available in the protocol; for example, to implement an
@@ -48,72 +43,59 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  * {@link StartTLSExtendedRequest}).
  *
  * @param <S>
- *          The type of result.
+ *            The type of result.
  */
-public interface ExtendedRequest<S extends ExtendedResult> extends Request
-{
-  /**
-   * {@inheritDoc}
-   */
-  ExtendedRequest<S> addControl(Control control);
+public interface ExtendedRequest<S extends ExtendedResult> extends Request {
+    /**
+     * {@inheritDoc}
+     */
+    ExtendedRequest<S> addControl(Control control);
 
+    /**
+     * {@inheritDoc}
+     */
+    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+            throws DecodeException;
 
+    /**
+     * {@inheritDoc}
+     */
+    List<Control> getControls();
 
-  /**
-   * {@inheritDoc}
-   */
-  <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws DecodeException;
+    /**
+     * Returns the numeric OID associated with this extended request.
+     *
+     * @return The numeric OID associated with this extended request.
+     */
+    String getOID();
 
+    /**
+     * Returns a decoder which can be used to decoded responses to this extended
+     * request.
+     *
+     * @return A decoder which can be used to decoded responses to this extended
+     *         request.
+     */
+    ExtendedResultDecoder<S> getResultDecoder();
 
+    /**
+     * Returns the value, if any, associated with this extended request. Its
+     * format is defined by the specification of this extended request.
+     *
+     * @return The value associated with this extended request, or {@code null}
+     *         if there is no value.
+     */
+    ByteString getValue();
 
-  /**
-   * {@inheritDoc}
-   */
-  List<Control> getControls();
-
-
-
-  /**
-   * Returns the numeric OID associated with this extended request.
-   *
-   * @return The numeric OID associated with this extended request.
-   */
-  String getOID();
-
-
-
-  /**
-   * Returns a decoder which can be used to decoded responses to this extended
-   * request.
-   *
-   * @return A decoder which can be used to decoded responses to this extended
-   *         request.
-   */
-  ExtendedResultDecoder<S> getResultDecoder();
-
-
-
-  /**
-   * Returns the value, if any, associated with this extended request. Its
-   * format is defined by the specification of this extended request.
-   *
-   * @return The value associated with this extended request, or {@code null} if
-   *         there is no value.
-   */
-  ByteString getValue();
-
-
-
-  /**
-   * Returns {@code true} if this extended request has a value. In some
-   * circumstances it may be useful to determine if a extended request has a
-   * value, without actually calculating the value and incurring any performance
-   * costs.
-   *
-   * @return {@code true} if this extended request has a value, or {@code false}
-   *         if there is no value.
-   */
-  boolean hasValue();
+    /**
+     * Returns {@code true} if this extended request has a value. In some
+     * circumstances it may be useful to determine if a extended request has a
+     * value, without actually calculating the value and incurring any
+     * performance costs.
+     *
+     * @return {@code true} if this extended request has a value, or
+     *         {@code false} if there is no value.
+     */
+    boolean hasValue();
 
 }

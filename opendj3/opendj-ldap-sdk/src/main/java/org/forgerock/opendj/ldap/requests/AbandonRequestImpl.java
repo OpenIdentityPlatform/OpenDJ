@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,88 +27,67 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-
-
 /**
  * Abandon request implementation.
  */
-final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
-    implements AbandonRequest
-{
+final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest> implements
+        AbandonRequest {
 
-  private int requestID;
+    private int requestID;
 
+    /**
+     * Creates a new abandon request using the provided message ID.
+     *
+     * @param requestID
+     *            The message ID of the request to be abandoned.
+     */
+    AbandonRequestImpl(final int requestID) {
+        this.requestID = requestID;
+    }
 
+    /**
+     * Creates a new abandon request that is an exact copy of the provided
+     * request.
+     *
+     * @param abandonRequest
+     *            The abandon request to be copied.
+     * @throws NullPointerException
+     *             If {@code abandonRequest} was {@code null} .
+     */
+    AbandonRequestImpl(final AbandonRequest abandonRequest) {
+        super(abandonRequest);
+        this.requestID = abandonRequest.getRequestID();
+    }
 
-  /**
-   * Creates a new abandon request using the provided message ID.
-   *
-   * @param requestID
-   *          The message ID of the request to be abandoned.
-   */
-  AbandonRequestImpl(final int requestID)
-  {
-    this.requestID = requestID;
-  }
+    public int getRequestID() {
+        return requestID;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public AbandonRequest setRequestID(final int id) {
+        this.requestID = id;
+        return this;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("AbandonRequest(requestID=");
+        builder.append(getRequestID());
+        builder.append(", controls=");
+        builder.append(getControls());
+        builder.append(")");
+        return builder.toString();
+    }
 
-  /**
-   * Creates a new abandon request that is an exact copy of the provided
-   * request.
-   *
-   * @param abandonRequest
-   *          The abandon request to be copied.
-   * @throws NullPointerException
-   *           If {@code abandonRequest} was {@code null} .
-   */
-  AbandonRequestImpl(final AbandonRequest abandonRequest)
-  {
-    super(abandonRequest);
-    this.requestID = abandonRequest.getRequestID();
-  }
-
-
-
-  public int getRequestID()
-  {
-    return requestID;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public AbandonRequest setRequestID(final int id)
-  {
-    this.requestID = id;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString()
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("AbandonRequest(requestID=");
-    builder.append(getRequestID());
-    builder.append(", controls=");
-    builder.append(getControls());
-    builder.append(")");
-    return builder.toString();
-  }
-
-
-
-  @Override
-  AbandonRequest getThis()
-  {
-    return this;
-  }
+    @Override
+    AbandonRequest getThis() {
+        return this;
+    }
 
 }

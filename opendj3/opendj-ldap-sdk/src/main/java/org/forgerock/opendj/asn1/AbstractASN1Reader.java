@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -26,8 +25,6 @@
  */
 
 package org.forgerock.opendj.asn1;
-
-
 
 import static org.forgerock.opendj.asn1.ASN1Constants.*;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
@@ -39,172 +36,128 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 
-
-
 /**
  * An abstract {@code ASN1Reader} which can be used as the basis for
  * implementing new ASN1 reader implementations.
  */
-public abstract class AbstractASN1Reader implements ASN1Reader
-{
-  /**
-   * Creates a new abstract ASN.1 reader.
-   */
-  protected AbstractASN1Reader()
-  {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean readBoolean(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_BOOLEAN_TYPE;
+public abstract class AbstractASN1Reader implements ASN1Reader {
+    /**
+     * Creates a new abstract ASN.1 reader.
+     */
+    protected AbstractASN1Reader() {
+        // No implementation required.
     }
-    checkType(type);
-    return readBoolean();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int readEnumerated(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_ENUMERATED_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public boolean readBoolean(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_BOOLEAN_TYPE;
+        }
+        checkType(type);
+        return readBoolean();
     }
-    checkType(type);
-    return readEnumerated();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public long readInteger(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_INTEGER_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public int readEnumerated(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_ENUMERATED_TYPE;
+        }
+        checkType(type);
+        return readEnumerated();
     }
-    checkType(type);
-    return readInteger();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readNull(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_NULL_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public long readInteger(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_INTEGER_TYPE;
+        }
+        checkType(type);
+        return readInteger();
     }
-    checkType(type);
-    readNull();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ByteString readOctetString(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_OCTET_STRING_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public void readNull(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_NULL_TYPE;
+        }
+        checkType(type);
+        readNull();
     }
-    checkType(type);
-    return readOctetString();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ByteStringBuilder readOctetString(byte type,
-      final ByteStringBuilder builder) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_OCTET_STRING_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString readOctetString(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_OCTET_STRING_TYPE;
+        }
+        checkType(type);
+        return readOctetString();
     }
-    checkType(type);
-    readOctetString(builder);
-    return builder;
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String readOctetStringAsString(byte type) throws IOException
-  {
-    // We could cache the UTF-8 CharSet if performance proves to be an
-    // issue.
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_OCTET_STRING_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public ByteStringBuilder readOctetString(byte type, final ByteStringBuilder builder)
+            throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_OCTET_STRING_TYPE;
+        }
+        checkType(type);
+        readOctetString(builder);
+        return builder;
     }
-    checkType(type);
-    return readOctetStringAsString();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readStartSequence(byte type) throws IOException
-  {
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_SEQUENCE_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public String readOctetStringAsString(byte type) throws IOException {
+        // We could cache the UTF-8 CharSet if performance proves to be an
+        // issue.
+        if (type == 0x00) {
+            type = UNIVERSAL_OCTET_STRING_TYPE;
+        }
+        checkType(type);
+        return readOctetStringAsString();
     }
-    checkType(type);
-    readStartSequence();
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void readStartSet(byte type) throws IOException
-  {
-    // From an implementation point of view, a set is equivalent to a
-    // sequence.
-    if (type == 0x00)
-    {
-      type = UNIVERSAL_SET_TYPE;
+    /**
+     * {@inheritDoc}
+     */
+    public void readStartSequence(byte type) throws IOException {
+        if (type == 0x00) {
+            type = UNIVERSAL_SEQUENCE_TYPE;
+        }
+        checkType(type);
+        readStartSequence();
     }
-    checkType(type);
-    readStartSet();
-  }
 
-
-
-  private void checkType(final byte expectedType) throws IOException
-  {
-    if (peekType() != expectedType)
-    {
-      final LocalizableMessage message = ERR_ASN1_UNEXPECTED_TAG.get(
-          expectedType, peekType());
-      throw DecodeException.fatalError(message);
+    /**
+     * {@inheritDoc}
+     */
+    public void readStartSet(byte type) throws IOException {
+        // From an implementation point of view, a set is equivalent to a
+        // sequence.
+        if (type == 0x00) {
+            type = UNIVERSAL_SET_TYPE;
+        }
+        checkType(type);
+        readStartSet();
     }
-  }
+
+    private void checkType(final byte expectedType) throws IOException {
+        if (peekType() != expectedType) {
+            final LocalizableMessage message =
+                    ERR_ASN1_UNEXPECTED_TAG.get(expectedType, peekType());
+            throw DecodeException.fatalError(message);
+        }
+    }
 }

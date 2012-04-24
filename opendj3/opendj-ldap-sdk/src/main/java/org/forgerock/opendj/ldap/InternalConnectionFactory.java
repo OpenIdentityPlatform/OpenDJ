@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,12 +27,8 @@
 
 package org.forgerock.opendj.ldap;
 
-
-
 import com.forgerock.opendj.ldap.InternalConnection;
 import com.forgerock.opendj.util.CompletedFutureResult;
-
-
 
 /**
  * A special {@code ConnectionFactory} which waits for internal connection
@@ -52,81 +47,60 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  * threads may block indefinitely waiting for results.
  *
  * @param <C>
- *          The type of client context.
+ *            The type of client context.
  */
-final class InternalConnectionFactory<C> implements ConnectionFactory
-{
+final class InternalConnectionFactory<C> implements ConnectionFactory {
 
-  private final ServerConnectionFactory<C, Integer> factory;
+    private final ServerConnectionFactory<C, Integer> factory;
 
-  private final C clientContext;
+    private final C clientContext;
 
-
-
-  InternalConnectionFactory(final ServerConnectionFactory<C, Integer> factory,
-      final C clientContext)
-  {
-    this.factory = factory;
-    this.clientContext = clientContext;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Connection getConnection() throws ErrorResultException,
-      InterruptedException
-  {
-    final ServerConnection<Integer> serverConnection = factory
-        .handleAccept(clientContext);
-    return new InternalConnection(serverConnection);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Connection> getConnectionAsync(
-      final ResultHandler<? super Connection> handler)
-  {
-    final ServerConnection<Integer> serverConnection;
-    try
-    {
-      serverConnection = factory.handleAccept(clientContext);
-    }
-    catch (final ErrorResultException e)
-    {
-      if (handler != null)
-      {
-        handler.handleErrorResult(e);
-      }
-      return new CompletedFutureResult<Connection>(e);
+    InternalConnectionFactory(final ServerConnectionFactory<C, Integer> factory,
+            final C clientContext) {
+        this.factory = factory;
+        this.clientContext = clientContext;
     }
 
-    final InternalConnection connection = new InternalConnection(
-        serverConnection);
-    if (handler != null)
-    {
-      handler.handleResult(connection);
+    /**
+     * {@inheritDoc}
+     */
+    public Connection getConnection() throws ErrorResultException, InterruptedException {
+        final ServerConnection<Integer> serverConnection = factory.handleAccept(clientContext);
+        return new InternalConnection(serverConnection);
     }
-    return new CompletedFutureResult<Connection>(connection);
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Connection> getConnectionAsync(
+            final ResultHandler<? super Connection> handler) {
+        final ServerConnection<Integer> serverConnection;
+        try {
+            serverConnection = factory.handleAccept(clientContext);
+        } catch (final ErrorResultException e) {
+            if (handler != null) {
+                handler.handleErrorResult(e);
+            }
+            return new CompletedFutureResult<Connection>(e);
+        }
 
+        final InternalConnection connection = new InternalConnection(serverConnection);
+        if (handler != null) {
+            handler.handleResult(connection);
+        }
+        return new CompletedFutureResult<Connection>(connection);
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  public String toString()
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("InternalConnectionFactory(");
-    builder.append(String.valueOf(clientContext));
-    builder.append(',');
-    builder.append(String.valueOf(factory));
-    builder.append(')');
-    return builder.toString();
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("InternalConnectionFactory(");
+        builder.append(String.valueOf(clientContext));
+        builder.append(',');
+        builder.append(String.valueOf(factory));
+        builder.append(')');
+        return builder.toString();
+    }
 }

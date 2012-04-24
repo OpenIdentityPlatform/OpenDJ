@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,8 +27,6 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-
-
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -39,8 +36,6 @@ import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
-
-
 
 /**
  * The cancel extended request as defined in RFC 3909. This operation is similar
@@ -53,90 +48,71 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  * @see <a href="http://tools.ietf.org/html/rfc3909">RFC 3909 - Lightweight
  *      Directory Access Protocol (LDAP) Cancel Operation </a>
  */
-public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
-{
+public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult> {
 
-  /**
-   * The OID for the cancel extended operation request.
-   */
-  public static final String OID = "1.3.6.1.1.8";
+    /**
+     * The OID for the cancel extended operation request.
+     */
+    public static final String OID = "1.3.6.1.1.8";
 
-  /**
-   * A decoder which can be used to decode cancel extended operation requests.
-   */
-  public static final ExtendedRequestDecoder<CancelExtendedRequest,
-                                             ExtendedResult> DECODER =
-    new CancelExtendedRequestImpl.RequestDecoder();
+    /**
+     * A decoder which can be used to decode cancel extended operation requests.
+     */
+    public static final ExtendedRequestDecoder<CancelExtendedRequest, ExtendedResult> DECODER =
+            new CancelExtendedRequestImpl.RequestDecoder();
 
+    /**
+     * {@inheritDoc}
+     */
+    CancelExtendedRequest addControl(Control control);
 
+    /**
+     * {@inheritDoc}
+     */
+    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+            throws DecodeException;
 
-  /**
-   * {@inheritDoc}
-   */
-  CancelExtendedRequest addControl(Control control);
+    /**
+     * {@inheritDoc}
+     */
+    List<Control> getControls();
 
+    /**
+     * {@inheritDoc}
+     */
+    String getOID();
 
+    /**
+     * Returns the request ID of the request to be abandoned.
+     *
+     * @return The request ID of the request to be abandoned.
+     */
+    int getRequestID();
 
-  /**
-   * {@inheritDoc}
-   */
-  <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws DecodeException;
+    /**
+     * {@inheritDoc}
+     */
+    ExtendedResultDecoder<ExtendedResult> getResultDecoder();
 
+    /**
+     * {@inheritDoc}
+     */
+    ByteString getValue();
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean hasValue();
 
-  /**
-   * {@inheritDoc}
-   */
-  List<Control> getControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  String getOID();
-
-
-
-  /**
-   * Returns the request ID of the request to be abandoned.
-   *
-   * @return The request ID of the request to be abandoned.
-   */
-  int getRequestID();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  ExtendedResultDecoder<ExtendedResult> getResultDecoder();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  ByteString getValue();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasValue();
-
-
-
-  /**
-   * Sets the request ID of the request to be abandoned.
-   *
-   * @param id
-   *          The request ID of the request to be abandoned.
-   * @return This abandon request.
-   * @throws UnsupportedOperationException
-   *           If this abandon request does not permit the request ID to be set.
-   */
-  CancelExtendedRequest setRequestID(int id);
+    /**
+     * Sets the request ID of the request to be abandoned.
+     *
+     * @param id
+     *            The request ID of the request to be abandoned.
+     * @return This abandon request.
+     * @throws UnsupportedOperationException
+     *             If this abandon request does not permit the request ID to be
+     *             set.
+     */
+    CancelExtendedRequest setRequestID(int id);
 }

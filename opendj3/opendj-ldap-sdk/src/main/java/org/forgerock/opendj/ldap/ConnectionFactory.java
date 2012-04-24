@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,8 +26,6 @@
  */
 
 package org.forgerock.opendj.ldap;
-
-
 
 /**
  * A connection factory provides an interface for obtaining a connection to a
@@ -52,36 +49,32 @@ package org.forgerock.opendj.ldap;
  * should aim to close connections as soon as possible in order to avoid
  * resource contention.
  */
-public interface ConnectionFactory
-{
-  /**
-   * Asynchronously obtains a connection to the Directory Server associated with
-   * this connection factory. The returned {@code FutureResult} can be used to
-   * retrieve the completed connection. Alternatively, if a
-   * {@code ResultHandler} is provided, the handler will be notified when the
-   * connection is available and ready for use.
-   *
-   * @param handler
-   *          The completion handler, or {@code null} if no handler is to be
-   *          used.
-   * @return A future which can be used to retrieve the connection.
-   */
-  FutureResult<Connection> getConnectionAsync(
-      ResultHandler<? super Connection> handler);
+public interface ConnectionFactory {
+    /**
+     * Asynchronously obtains a connection to the Directory Server associated
+     * with this connection factory. The returned {@code FutureResult} can be
+     * used to retrieve the completed connection. Alternatively, if a
+     * {@code ResultHandler} is provided, the handler will be notified when the
+     * connection is available and ready for use.
+     *
+     * @param handler
+     *            The completion handler, or {@code null} if no handler is to be
+     *            used.
+     * @return A future which can be used to retrieve the connection.
+     */
+    FutureResult<Connection> getConnectionAsync(ResultHandler<? super Connection> handler);
 
-
-
-  /**
-   * Returns a connection to the Directory Server associated with this
-   * connection factory. The connection returned by this method can be used
-   * immediately.
-   *
-   * @return A connection to the Directory Server associated with this
-   *         connection factory.
-   * @throws ErrorResultException
-   *           If the connection request failed for some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   */
-  Connection getConnection() throws ErrorResultException, InterruptedException;
+    /**
+     * Returns a connection to the Directory Server associated with this
+     * connection factory. The connection returned by this method can be used
+     * immediately.
+     *
+     * @return A connection to the Directory Server associated with this
+     *         connection factory.
+     * @throws ErrorResultException
+     *             If the connection request failed for some reason.
+     * @throws InterruptedException
+     *             If the current thread was interrupted while waiting.
+     */
+    Connection getConnection() throws ErrorResultException, InterruptedException;
 }

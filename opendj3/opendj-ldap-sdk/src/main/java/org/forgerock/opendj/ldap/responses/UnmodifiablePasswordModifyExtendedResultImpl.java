@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -28,45 +27,30 @@
 
 package org.forgerock.opendj.ldap.responses;
 
-
-
 import org.forgerock.opendj.ldap.ByteString;
-
-
 
 /**
  * Unmodifiable Password modify extended result implementation.
  */
 class UnmodifiablePasswordModifyExtendedResultImpl extends
-    AbstractUnmodifiableExtendedResultImpl<PasswordModifyExtendedResult>
-    implements PasswordModifyExtendedResult
-{
-  UnmodifiablePasswordModifyExtendedResultImpl(PasswordModifyExtendedResult impl)
-  {
-    super(impl);
-  }
+        AbstractUnmodifiableExtendedResultImpl<PasswordModifyExtendedResult> implements
+        PasswordModifyExtendedResult {
+    UnmodifiablePasswordModifyExtendedResultImpl(PasswordModifyExtendedResult impl) {
+        super(impl);
+    }
 
+    @Override
+    public ByteString getGeneratedPassword() {
+        return impl.getGeneratedPassword();
+    }
 
+    @Override
+    public PasswordModifyExtendedResult setGeneratedPassword(ByteString password) {
+        throw new UnsupportedOperationException();
+    }
 
-  @Override
-  public ByteString getGeneratedPassword()
-  {
-    return impl.getGeneratedPassword();
-  }
-
-
-
-  @Override
-  public PasswordModifyExtendedResult setGeneratedPassword(ByteString password)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  @Override
-  public PasswordModifyExtendedResult setGeneratedPassword(char[] password)
-  {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    public PasswordModifyExtendedResult setGeneratedPassword(char[] password) {
+        throw new UnsupportedOperationException();
+    }
 }

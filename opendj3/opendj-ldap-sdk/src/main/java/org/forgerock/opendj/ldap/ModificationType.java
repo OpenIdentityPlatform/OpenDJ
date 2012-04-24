@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,13 +26,9 @@
 
 package org.forgerock.opendj.ldap;
 
-
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-
 
 /**
  * A Modify operation change type as defined in RFC 4511 section 4.6 is used to
@@ -44,165 +39,133 @@ import java.util.List;
  * @see <a href="http://tools.ietf.org/html/rfc4525">RFC 4525 - Lightweight
  *      Directory Access Protocol (LDAP) Modify-Increment Extension </a>
  */
-public final class ModificationType
-{
-  private static final ModificationType[] ELEMENTS = new ModificationType[4];
+public final class ModificationType {
+    private static final ModificationType[] ELEMENTS = new ModificationType[4];
 
-  private static final List<ModificationType> IMMUTABLE_ELEMENTS = Collections
-      .unmodifiableList(Arrays.asList(ELEMENTS));
+    private static final List<ModificationType> IMMUTABLE_ELEMENTS = Collections
+            .unmodifiableList(Arrays.asList(ELEMENTS));
 
-  /**
-   * Add the values listed in the modification to the attribute, creating the
-   * attribute if necessary.
-   */
-  public static final ModificationType ADD = register(0, "add");
+    /**
+     * Add the values listed in the modification to the attribute, creating the
+     * attribute if necessary.
+     */
+    public static final ModificationType ADD = register(0, "add");
 
-  /**
-   * Delete the values listed in the modification from the attribute. If no
-   * values are listed, or if all current values of the attribute are listed,
-   * the entire attribute is removed.
-   */
-  public static final ModificationType DELETE = register(1, "delete");
+    /**
+     * Delete the values listed in the modification from the attribute. If no
+     * values are listed, or if all current values of the attribute are listed,
+     * the entire attribute is removed.
+     */
+    public static final ModificationType DELETE = register(1, "delete");
 
-  /**
-   * Replace all existing values of the attribute with the new values listed in
-   * the modification, creating the attribute if it did not already exist. A
-   * replace with no listed values will delete the entire attribute if it
-   * exists, and it is ignored if the attribute does not exist.
-   */
-  public static final ModificationType REPLACE = register(2, "replace");
+    /**
+     * Replace all existing values of the attribute with the new values listed
+     * in the modification, creating the attribute if it did not already exist.
+     * A replace with no listed values will delete the entire attribute if it
+     * exists, and it is ignored if the attribute does not exist.
+     */
+    public static final ModificationType REPLACE = register(2, "replace");
 
-  /**
-   * Increment all existing values of the attribute by the amount specified in
-   * the modification value.
-   */
-  public static final ModificationType INCREMENT = register(3, "increment");
+    /**
+     * Increment all existing values of the attribute by the amount specified in
+     * the modification value.
+     */
+    public static final ModificationType INCREMENT = register(3, "increment");
 
-
-
-  /**
-   * Returns the modification change type having the specified integer value as
-   * defined in RFC 4511 section 4.6.
-   *
-   * @param intValue
-   *          The integer value of the modification change type.
-   * @return The modification change type, or {@code null} if there was no
-   *         modification change type associated with {@code intValue}.
-   */
-  public static ModificationType valueOf(final int intValue)
-  {
-    if (intValue < 0 || intValue >= ELEMENTS.length)
-    {
-      return null;
+    /**
+     * Returns the modification change type having the specified integer value
+     * as defined in RFC 4511 section 4.6.
+     *
+     * @param intValue
+     *            The integer value of the modification change type.
+     * @return The modification change type, or {@code null} if there was no
+     *         modification change type associated with {@code intValue}.
+     */
+    public static ModificationType valueOf(final int intValue) {
+        if (intValue < 0 || intValue >= ELEMENTS.length) {
+            return null;
+        }
+        return ELEMENTS[intValue];
     }
-    return ELEMENTS[intValue];
-  }
 
-
-
-  /**
-   * Returns an unmodifiable list containing the set of available modification
-   * change types indexed on their integer value as defined in RFC 4511 section
-   * 4.6.
-   *
-   * @return An unmodifiable list containing the set of available modification
-   *         change types.
-   */
-  public static List<ModificationType> values()
-  {
-    return IMMUTABLE_ELEMENTS;
-  }
-
-
-
-  /**
-   * Creates and registers a new modification change type with the application.
-   *
-   * @param intValue
-   *          The integer value of the modification change type as defined in
-   *          RFC 4511 section 4.6.
-   * @param name
-   *          The name of the modification change type.
-   * @return The new modification change type.
-   */
-  private static ModificationType register(final int intValue, final String name)
-  {
-    final ModificationType t = new ModificationType(intValue, name);
-    ELEMENTS[intValue] = t;
-    return t;
-  }
-
-
-
-  private final int intValue;
-
-  private final String name;
-
-
-
-  // Prevent direct instantiation.
-  private ModificationType(final int intValue, final String name)
-  {
-    this.intValue = intValue;
-    this.name = name;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(final Object obj)
-  {
-    if (this == obj)
-    {
-      return true;
+    /**
+     * Returns an unmodifiable list containing the set of available modification
+     * change types indexed on their integer value as defined in RFC 4511
+     * section 4.6.
+     *
+     * @return An unmodifiable list containing the set of available modification
+     *         change types.
+     */
+    public static List<ModificationType> values() {
+        return IMMUTABLE_ELEMENTS;
     }
-    else if (obj instanceof ModificationType)
-    {
-      return this.intValue == ((ModificationType) obj).intValue;
+
+    /**
+     * Creates and registers a new modification change type with the
+     * application.
+     *
+     * @param intValue
+     *            The integer value of the modification change type as defined
+     *            in RFC 4511 section 4.6.
+     * @param name
+     *            The name of the modification change type.
+     * @return The new modification change type.
+     */
+    private static ModificationType register(final int intValue, final String name) {
+        final ModificationType t = new ModificationType(intValue, name);
+        ELEMENTS[intValue] = t;
+        return t;
     }
-    else
-    {
-      return false;
+
+    private final int intValue;
+
+    private final String name;
+
+    // Prevent direct instantiation.
+    private ModificationType(final int intValue, final String name) {
+        this.intValue = intValue;
+        this.name = name;
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj instanceof ModificationType) {
+            return this.intValue == ((ModificationType) obj).intValue;
+        } else {
+            return false;
+        }
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        return intValue;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode()
-  {
-    return intValue;
-  }
+    /**
+     * Returns the integer value of this modification change type as defined in
+     * RFC 4511 section 4.6.
+     *
+     * @return The integer value of this modification change type.
+     */
+    public int intValue() {
+        return intValue;
+    }
 
-
-
-  /**
-   * Returns the integer value of this modification change type as defined in
-   * RFC 4511 section 4.6.
-   *
-   * @return The integer value of this modification change type.
-   */
-  public int intValue()
-  {
-    return intValue;
-  }
-
-
-
-  /**
-   * Returns the string representation of this modification change type.
-   *
-   * @return The string representation of this modification change type.
-   */
-  @Override
-  public String toString()
-  {
-    return name;
-  }
+    /**
+     * Returns the string representation of this modification change type.
+     *
+     * @return The string representation of this modification change type.
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
 }

@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,8 +26,6 @@
  */
 
 package org.forgerock.opendj.ldap.schema;
-
-
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
@@ -42,143 +39,109 @@ import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
 
-
-
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
  * to provide criteria for generating search filters for entries of a given
  * objectclass.
  */
-final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
-{
-  @Override
-  public String getEqualityMatchingRule()
-  {
-    return EMR_OCTET_STRING_OID;
-  }
-
-
-
-  public String getName()
-  {
-    return SYNTAX_ENHANCED_GUIDE_NAME;
-  }
-
-
-
-  @Override
-  public String getOrderingMatchingRule()
-  {
-    return OMR_OCTET_STRING_OID;
-  }
-
-
-
-  public boolean isHumanReadable()
-  {
-    return true;
-  }
-
-
-
-  /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax. If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param schema
-   *          The schema in which this syntax is defined.
-   * @param value
-   *          The value for which to make the determination.
-   * @param invalidReason
-   *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for use with
-   *         this syntax, or <CODE>false</CODE> if not.
-   */
-  public boolean valueIsAcceptable(final Schema schema,
-      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
-  {
-    // Get a lowercase string version of the provided value.
-    final String valueStr = toLowerCase(value.toString());
-
-    // Find the position of the first octothorpe. It should denote the
-    // end of the objectclass.
-    final int sharpPos = valueStr.indexOf('#');
-    if (sharpPos < 0)
-    {
-
-      invalidReason
-          .append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP1.get(valueStr));
-      return false;
+final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
+    @Override
+    public String getEqualityMatchingRule() {
+        return EMR_OCTET_STRING_OID;
     }
 
-    // Get the objectclass and see if it is a valid name or OID.
-    final String ocName = valueStr.substring(0, sharpPos).trim();
-    final int ocLength = ocName.length();
-    if (ocLength == 0)
-    {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC1.get(valueStr));
-      return false;
+    public String getName() {
+        return SYNTAX_ENHANCED_GUIDE_NAME;
     }
 
-    try
-    {
-      SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)),
-          schema.allowMalformedNamesAndOptions());
-    }
-    catch (final DecodeException de)
-    {
-      invalidReason.append(de.getMessageObject());
-      return false;
+    @Override
+    public String getOrderingMatchingRule() {
+        return OMR_OCTET_STRING_OID;
     }
 
-    // Find the last octothorpe and make sure it is followed by a valid
-    // scope.
-    final int lastSharpPos = valueStr.lastIndexOf('#');
-    if (lastSharpPos == sharpPos)
-    {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP
-          .get(valueStr));
-      return false;
+    public boolean isHumanReadable() {
+        return true;
     }
 
-    final String scopeStr = valueStr.substring(lastSharpPos + 1).trim();
-    if (!(scopeStr.equals("baseobject") || scopeStr.equals("onelevel")
-        || scopeStr.equals("wholesubtree") || scopeStr
-        .equals("subordinatesubtree")))
-    {
-      if (scopeStr.length() == 0)
-      {
+    /**
+     * Indicates whether the provided value is acceptable for use in an
+     * attribute with this syntax. If it is not, then the reason may be appended
+     * to the provided buffer.
+     *
+     * @param schema
+     *            The schema in which this syntax is defined.
+     * @param value
+     *            The value for which to make the determination.
+     * @param invalidReason
+     *            The buffer to which the invalid reason should be appended.
+     * @return <CODE>true</CODE> if the provided value is acceptable for use
+     *         with this syntax, or <CODE>false</CODE> if not.
+     */
+    public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
+            final LocalizableMessageBuilder invalidReason) {
+        // Get a lowercase string version of the provided value.
+        final String valueStr = toLowerCase(value.toString());
 
-        invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE
-            .get(valueStr));
-      }
-      else
-      {
+        // Find the position of the first octothorpe. It should denote the
+        // end of the objectclass.
+        final int sharpPos = valueStr.indexOf('#');
+        if (sharpPos < 0) {
 
-        invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(
-            valueStr, scopeStr));
-      }
+            invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP1.get(valueStr));
+            return false;
+        }
 
-      return false;
+        // Get the objectclass and see if it is a valid name or OID.
+        final String ocName = valueStr.substring(0, sharpPos).trim();
+        final int ocLength = ocName.length();
+        if (ocLength == 0) {
+
+            invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC1.get(valueStr));
+            return false;
+        }
+
+        try {
+            SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)), schema
+                    .allowMalformedNamesAndOptions());
+        } catch (final DecodeException de) {
+            invalidReason.append(de.getMessageObject());
+            return false;
+        }
+
+        // Find the last octothorpe and make sure it is followed by a valid
+        // scope.
+        final int lastSharpPos = valueStr.lastIndexOf('#');
+        if (lastSharpPos == sharpPos) {
+
+            invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP.get(valueStr));
+            return false;
+        }
+
+        final String scopeStr = valueStr.substring(lastSharpPos + 1).trim();
+        if (!(scopeStr.equals("baseobject") || scopeStr.equals("onelevel")
+                || scopeStr.equals("wholesubtree") || scopeStr.equals("subordinatesubtree"))) {
+            if (scopeStr.length() == 0) {
+
+                invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
+            } else {
+
+                invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(valueStr,
+                        scopeStr));
+            }
+
+            return false;
+        }
+
+        // Everything between the two octothorpes must be the criteria. Make
+        // sure it is valid.
+        final String criteria = valueStr.substring(sharpPos + 1, lastSharpPos).trim();
+        final int criteriaLength = criteria.length();
+        if (criteriaLength == 0) {
+
+            invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA.get(valueStr));
+            return false;
+        }
+
+        return GuideSyntaxImpl.criteriaIsValid(schema, criteria, valueStr, invalidReason);
     }
-
-    // Everything between the two octothorpes must be the criteria. Make
-    // sure it is valid.
-    final String criteria = valueStr.substring(sharpPos + 1, lastSharpPos)
-        .trim();
-    final int criteriaLength = criteria.length();
-    if (criteriaLength == 0)
-    {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA
-          .get(valueStr));
-      return false;
-    }
-
-    return GuideSyntaxImpl.criteriaIsValid(schema, criteria,
-        valueStr, invalidReason);
-  }
 }

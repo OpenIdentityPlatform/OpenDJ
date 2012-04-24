@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,94 +26,57 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-
-
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
-
-
 
 /**
  * Unmodifiable password modify extended request implementation.
  */
 final class UnmodifiablePasswordModifyExtendedRequestImpl
-    extends
-    AbstractUnmodifiableExtendedRequest<PasswordModifyExtendedRequest, PasswordModifyExtendedResult>
-    implements PasswordModifyExtendedRequest
-{
-  UnmodifiablePasswordModifyExtendedRequestImpl(
-      PasswordModifyExtendedRequest impl)
-  {
-    super(impl);
-  }
+        extends
+        AbstractUnmodifiableExtendedRequest<PasswordModifyExtendedRequest, PasswordModifyExtendedResult>
+        implements PasswordModifyExtendedRequest {
+    UnmodifiablePasswordModifyExtendedRequestImpl(PasswordModifyExtendedRequest impl) {
+        super(impl);
+    }
 
+    public ByteString getNewPassword() {
+        return impl.getNewPassword();
+    }
 
+    public ByteString getOldPassword() {
+        return impl.getOldPassword();
+    }
 
-  public ByteString getNewPassword()
-  {
-    return impl.getNewPassword();
-  }
+    public ByteString getUserIdentity() {
+        return impl.getUserIdentity();
+    }
 
+    public String getUserIdentityAsString() {
+        return impl.getUserIdentityAsString();
+    }
 
+    public PasswordModifyExtendedRequest setNewPassword(ByteString newPassword) {
+        throw new UnsupportedOperationException();
+    }
 
-  public ByteString getOldPassword()
-  {
-    return impl.getOldPassword();
-  }
+    public PasswordModifyExtendedRequest setNewPassword(char[] newPassword) {
+        throw new UnsupportedOperationException();
+    }
 
+    public PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword) {
+        throw new UnsupportedOperationException();
+    }
 
+    public PasswordModifyExtendedRequest setOldPassword(char[] oldPassword) {
+        throw new UnsupportedOperationException();
+    }
 
-  public ByteString getUserIdentity()
-  {
-    return impl.getUserIdentity();
-  }
+    public PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity) {
+        throw new UnsupportedOperationException();
+    }
 
-
-
-  public String getUserIdentityAsString()
-  {
-    return impl.getUserIdentityAsString();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setNewPassword(ByteString newPassword)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setNewPassword(char[] newPassword)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setOldPassword(char[] oldPassword)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity)
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public PasswordModifyExtendedRequest setUserIdentity(String userIdentity)
-  {
-    throw new UnsupportedOperationException();
-  }
+    public PasswordModifyExtendedRequest setUserIdentity(String userIdentity) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -6,17 +6,16 @@
  * (the "License").  You may not use this file except in compliance
  * with the License.
  *
- * You can obtain a copy of the license at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
  * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at
- * trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
- * add the following below this CDDL HEADER, with the fields enclosed
- * by brackets "[]" replaced with your own identifying information:
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
@@ -27,11 +26,7 @@
 
 package org.forgerock.opendj.ldif;
 
-
-
 import org.forgerock.opendj.ldap.DN;
-
-
 
 /**
  * A request to modify the content of the Directory in some way. A change record
@@ -43,30 +38,28 @@ import org.forgerock.opendj.ldap.DN;
  * <li>An {@code ModifyDN} operation.
  * </ul>
  */
-public interface ChangeRecord
-{
-  /**
-   * Applies a {@code ChangeRecordVisitor} to this {@code ChangeRecord}.
-   *
-   * @param <R>
-   *          The return type of the visitor's methods.
-   * @param <P>
-   *          The type of the additional parameters to the visitor's methods.
-   * @param v
-   *          The change record visitor.
-   * @param p
-   *          Optional additional visitor parameter.
-   * @return A result as specified by the visitor.
-   */
-  <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
+public interface ChangeRecord {
+    /**
+     * Applies a {@code ChangeRecordVisitor} to this {@code ChangeRecord}.
+     *
+     * @param <R>
+     *            The return type of the visitor's methods.
+     * @param <P>
+     *            The type of the additional parameters to the visitor's
+     *            methods.
+     * @param v
+     *            The change record visitor.
+     * @param p
+     *            Optional additional visitor parameter.
+     * @return A result as specified by the visitor.
+     */
+    <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 
-
-
-  /**
-   * Returns the distinguished name of the entry being modified by this {@code
-   * ChangeRecord}.
-   *
-   * @return The distinguished name of the entry being modified.
-   */
-  DN getName();
+    /**
+     * Returns the distinguished name of the entry being modified by this
+     * {@code ChangeRecord}.
+     *
+     * @return The distinguished name of the entry being modified.
+     */
+    DN getName();
 }
