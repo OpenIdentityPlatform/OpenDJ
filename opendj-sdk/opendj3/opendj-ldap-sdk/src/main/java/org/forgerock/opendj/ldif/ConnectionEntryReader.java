@@ -64,7 +64,7 @@ import com.forgerock.opendj.util.Validator;
  *
  * <pre>
  * Connection connection = ...;
- * ConnectionEntryReader results = connection.search(&quot;dc=example,dc=com&quot;,
+ * ConnectionEntryReader reader = connection.search(&quot;dc=example,dc=com&quot;,
  *     SearchScope.WHOLE_SUBTREE, &quot;(objectClass=person)&quot;);
  * try
  * {
