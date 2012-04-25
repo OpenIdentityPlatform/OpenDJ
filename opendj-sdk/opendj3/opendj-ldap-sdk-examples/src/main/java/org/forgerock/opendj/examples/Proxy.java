@@ -95,7 +95,8 @@ public final class Proxy {
             this.bindFactory = bindFactory;
         }
 
-        private abstract class AbstractRequestCompletionHandler<R extends Result, H extends ResultHandler<? super R>>
+        private abstract class AbstractRequestCompletionHandler
+                <R extends Result, H extends ResultHandler<? super R>>
                 implements ResultHandler<R> {
             final H resultHandler;
             final Connection connection;
