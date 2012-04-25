@@ -77,12 +77,8 @@ public final class GetInfo {
                 attributeList = "+"; // All operational attributes
             }
 
-            final SearchResultEntry entry = connection.searchSingleEntry("", // DN
-                                                                             // is
-                                                                             // ""
-                                                                             // for
-                                                                             // root
-                                                                             // DSE.
+            final SearchResultEntry entry = connection.searchSingleEntry(
+                    "", // DN is "" for root DSE.
                     SearchScope.BASE_OBJECT, // Read only the root DSE.
                     "objectclass=*", // Every object matches this filter.
                     attributeList); // Return these requested attributes.
@@ -127,8 +123,9 @@ public final class GetInfo {
         host = args[0];
         port = Integer.parseInt(args[1]);
         infoType = args[2]; // all, controls, or extops
-        if (!(infoType.toLowerCase().equals("all") || infoType.toLowerCase().equals("controls") || infoType
-                .toLowerCase().equals("extops"))) {
+        if (!(infoType.toLowerCase().equals("all")
+                || infoType.toLowerCase().equals("controls")
+                || infoType.toLowerCase().equals("extops"))) {
             giveUp();
         }
     }
