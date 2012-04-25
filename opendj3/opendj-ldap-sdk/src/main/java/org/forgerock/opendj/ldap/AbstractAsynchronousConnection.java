@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
@@ -57,10 +59,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public Result add(final AddRequest request) throws ErrorResultException, InterruptedException {
+    public Result add(final AddRequest request) throws ErrorResultException {
         final FutureResult<Result> future = addAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -71,11 +75,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public BindResult bind(final BindRequest request) throws ErrorResultException,
-            InterruptedException {
+    public BindResult bind(final BindRequest request) throws ErrorResultException {
         final FutureResult<BindResult> future = bindAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -86,11 +91,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public CompareResult compare(final CompareRequest request) throws ErrorResultException,
-            InterruptedException {
+    public CompareResult compare(final CompareRequest request) throws ErrorResultException {
         final FutureResult<CompareResult> future = compareAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -101,11 +107,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public Result delete(final DeleteRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result delete(final DeleteRequest request) throws ErrorResultException {
         final FutureResult<Result> future = deleteAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -117,11 +124,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-            final IntermediateResponseHandler handler) throws ErrorResultException,
-            InterruptedException {
+            final IntermediateResponseHandler handler) throws ErrorResultException {
         final FutureResult<R> future = extendedRequestAsync(request, handler, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -132,11 +140,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public Result modify(final ModifyRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result modify(final ModifyRequest request) throws ErrorResultException {
         final FutureResult<Result> future = modifyAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -147,11 +156,12 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      * {@inheritDoc}
      */
     @Override
-    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
         final FutureResult<Result> future = modifyDNAsync(request, null, null);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
@@ -163,14 +173,20 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
      */
     @Override
     public Result search(final SearchRequest request, final SearchResultHandler handler)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         final FutureResult<Result> future = searchAsync(request, null, handler);
         try {
             return future.get();
+        } catch (InterruptedException e) {
+            throw interrupted(e);
         } finally {
             // Cancel the request if it hasn't completed.
             future.cancel(false);
         }
     }
 
+    // Handle thread interruption.
+    private ErrorResultException interrupted(InterruptedException e) {
+        return newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+    }
 }

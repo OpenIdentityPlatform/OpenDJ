@@ -97,10 +97,6 @@ public final class GetInfo {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
-            return;
         } catch (final IOException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());

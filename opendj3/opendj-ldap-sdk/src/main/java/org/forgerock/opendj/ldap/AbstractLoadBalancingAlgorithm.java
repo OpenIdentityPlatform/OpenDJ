@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -70,7 +70,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         /**
          * {@inheritDoc}
          */
-        public Connection getConnection() throws ErrorResultException, InterruptedException {
+        public Connection getConnection() throws ErrorResultException {
             final Connection connection;
             try {
                 connection = factory.getConnection();

@@ -75,16 +75,14 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         /**
          * {@inheritDoc}
          */
-        public BindResult bind(BindRequest request) throws ErrorResultException,
-                InterruptedException {
+        public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
         /**
          * {@inheritDoc}
          */
-        public BindResult bind(String name, char[] password) throws ErrorResultException,
-                InterruptedException {
+        public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
@@ -175,7 +173,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
     /**
      * {@inheritDoc}
      */
-    public Connection getConnection() throws ErrorResultException, InterruptedException {
+    public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         boolean bindSucceeded = false;
         try {
@@ -187,8 +185,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
             }
         }
         // If the bind didn't succeed then an exception will have been thrown
-        // and
-        // this line will not be reached.
+        // and this line will not be reached.
         return new AuthenticatedConnection(connection);
     }
 

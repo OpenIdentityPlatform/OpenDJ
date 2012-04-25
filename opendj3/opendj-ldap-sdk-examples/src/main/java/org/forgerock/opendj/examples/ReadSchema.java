@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -112,10 +111,6 @@ public final class ReadSchema {
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
             return;
         } finally {
             if (connection != null) {

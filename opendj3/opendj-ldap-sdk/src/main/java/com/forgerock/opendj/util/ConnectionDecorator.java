@@ -97,7 +97,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final AddRequest request) throws ErrorResultException, InterruptedException {
+    public Result add(final AddRequest request) throws ErrorResultException {
         return connection.add(request);
     }
 
@@ -107,7 +107,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final Entry entry) throws ErrorResultException, InterruptedException {
+    public Result add(final Entry entry) throws ErrorResultException {
         return connection.add(entry);
     }
 
@@ -117,7 +117,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final String... ldifLines) throws ErrorResultException, InterruptedException {
+    public Result add(final String... ldifLines) throws ErrorResultException {
         return connection.add(ldifLines);
     }
 
@@ -149,8 +149,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public BindResult bind(final BindRequest request) throws ErrorResultException,
-            InterruptedException {
+    public BindResult bind(final BindRequest request) throws ErrorResultException {
         return connection.bind(request);
     }
 
@@ -160,8 +159,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public BindResult bind(final String name, final char[] password) throws ErrorResultException,
-            InterruptedException {
+    public BindResult bind(final String name, final char[] password) throws ErrorResultException {
         return connection.bind(name, password);
     }
 
@@ -203,8 +201,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public CompareResult compare(final CompareRequest request) throws ErrorResultException,
-            InterruptedException {
+    public CompareResult compare(final CompareRequest request) throws ErrorResultException {
         return connection.compare(request);
     }
 
@@ -215,7 +212,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public CompareResult compare(final String name, final String attributeDescription,
-            final String assertionValue) throws ErrorResultException, InterruptedException {
+            final String assertionValue) throws ErrorResultException {
         return connection.compare(name, attributeDescription, assertionValue);
     }
 
@@ -237,8 +234,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result delete(final DeleteRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result delete(final DeleteRequest request) throws ErrorResultException {
         return connection.delete(request);
     }
 
@@ -248,7 +244,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result delete(final String name) throws ErrorResultException, InterruptedException {
+    public Result delete(final String name) throws ErrorResultException {
         return connection.delete(name);
     }
 
@@ -271,7 +267,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return connection.extendedRequest(request);
     }
 
@@ -282,8 +278,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-            final IntermediateResponseHandler handler) throws ErrorResultException,
-            InterruptedException {
+            final IntermediateResponseHandler handler) throws ErrorResultException {
         return connection.extendedRequest(request, handler);
     }
 
@@ -294,7 +289,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public GenericExtendedResult extendedRequest(final String requestName,
-            final ByteString requestValue) throws ErrorResultException, InterruptedException {
+            final ByteString requestValue) throws ErrorResultException {
         return connection.extendedRequest(requestName, requestValue);
     }
 
@@ -337,8 +332,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result modify(final ModifyRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result modify(final ModifyRequest request) throws ErrorResultException {
         return connection.modify(request);
     }
 
@@ -348,8 +342,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result modify(final String... ldifLines) throws ErrorResultException,
-            InterruptedException {
+    public Result modify(final String... ldifLines) throws ErrorResultException {
         return connection.modify(ldifLines);
     }
 
@@ -371,8 +364,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException,
-            InterruptedException {
+    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
         return connection.modifyDN(request);
     }
 
@@ -382,8 +374,7 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result modifyDN(final String name, final String newRDN) throws ErrorResultException,
-            InterruptedException {
+    public Result modifyDN(final String name, final String newRDN) throws ErrorResultException {
         return connection.modifyDN(name, newRDN);
     }
 
@@ -406,7 +397,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public SearchResultEntry readEntry(final DN name, final String... attributeDescriptions)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return connection.readEntry(name, attributeDescriptions);
     }
 
@@ -417,7 +408,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public SearchResultEntry readEntry(final String name, final String... attributeDescriptions)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return connection.readEntry(name, attributeDescriptions);
     }
 
@@ -460,8 +451,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public Result search(final SearchRequest request,
-            final Collection<? super SearchResultEntry> entries) throws ErrorResultException,
-            InterruptedException {
+            final Collection<? super SearchResultEntry> entries) throws ErrorResultException {
         return connection.search(request, entries);
     }
 
@@ -473,8 +463,7 @@ public abstract class ConnectionDecorator implements Connection {
     @Override
     public Result search(final SearchRequest request,
             final Collection<? super SearchResultEntry> entries,
-            final Collection<? super SearchResultReference> references)
-            throws ErrorResultException, InterruptedException {
+            final Collection<? super SearchResultReference> references) throws ErrorResultException {
         return connection.search(request, entries, references);
     }
 
@@ -485,7 +474,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public Result search(final SearchRequest request, final SearchResultHandler handler)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return connection.search(request, handler);
     }
 
@@ -519,7 +508,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public SearchResultEntry searchSingleEntry(final SearchRequest request)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return connection.searchSingleEntry(request);
     }
 
@@ -530,8 +519,7 @@ public abstract class ConnectionDecorator implements Connection {
      */
     @Override
     public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope,
-            final String filter, final String... attributeDescriptions)
-            throws ErrorResultException, InterruptedException {
+            final String filter, final String... attributeDescriptions) throws ErrorResultException {
         return connection.searchSingleEntry(baseObject, scope, filter, attributeDescriptions);
     }
 

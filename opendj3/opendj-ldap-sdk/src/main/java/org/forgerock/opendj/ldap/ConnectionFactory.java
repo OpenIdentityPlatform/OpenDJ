@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -68,13 +68,16 @@ public interface ConnectionFactory {
      * Returns a connection to the Directory Server associated with this
      * connection factory. The connection returned by this method can be used
      * immediately.
+     * <p>
+     * If the calling thread is interrupted while waiting for the connection
+     * attempt to complete then the calling thread unblock and throw a
+     * {@link CancelledResultException} whose cause is the underlying
+     * {@link InterruptedException}.
      *
      * @return A connection to the Directory Server associated with this
      *         connection factory.
      * @throws ErrorResultException
      *             If the connection request failed for some reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      */
-    Connection getConnection() throws ErrorResultException, InterruptedException;
+    Connection getConnection() throws ErrorResultException;
 }

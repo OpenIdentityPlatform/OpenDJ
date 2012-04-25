@@ -181,8 +181,6 @@ public final class RootDSE {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -191,8 +189,7 @@ public final class RootDSE {
      * @throws NullPointerException
      *             If the {@code connection} was {@code null}.
      */
-    public static RootDSE readRootDSE(final Connection connection) throws ErrorResultException,
-            InterruptedException {
+    public static RootDSE readRootDSE(final Connection connection) throws ErrorResultException {
         final Entry entry = connection.searchSingleEntry(SEARCH_REQUEST);
         return valueOf(entry);
     }

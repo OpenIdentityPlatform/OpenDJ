@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.ldif;
 
-import java.io.InterruptedIOException;
-
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -109,20 +107,15 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * @throws ErrorResultIOException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedIOException
-     *             If the current thread was interrupted while waiting.
      * @throws NullPointerException
      *             If {@code entry} was {@code null}.
      */
-    public ConnectionEntryWriter writeEntry(final Entry entry) throws ErrorResultIOException,
-            InterruptedIOException {
+    public ConnectionEntryWriter writeEntry(final Entry entry) throws ErrorResultIOException {
         Validator.ensureNotNull(entry);
         try {
             connection.add(entry);
         } catch (final ErrorResultException e) {
             throw new ErrorResultIOException(e);
-        } catch (final InterruptedException e) {
-            throw new InterruptedIOException(e.getMessage());
         }
         return this;
     }

@@ -29,7 +29,6 @@ package org.forgerock.opendj.ldif;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
-import java.io.InterruptedIOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -121,7 +120,6 @@ public final class ConnectionEntryReader implements EntryReader {
                 // Prevent the reader from waiting for a result that will never
                 // arrive.
                 isInterrupted = true;
-
                 Thread.currentThread().interrupt();
                 return false;
             }
@@ -135,7 +133,6 @@ public final class ConnectionEntryReader implements EntryReader {
                 // Prevent the reader from waiting for a result that will never
                 // arrive.
                 isInterrupted = true;
-
                 Thread.currentThread().interrupt();
             }
         }
@@ -149,7 +146,6 @@ public final class ConnectionEntryReader implements EntryReader {
                 // Prevent the reader from waiting for a result that will never
                 // arrive.
                 isInterrupted = true;
-
                 Thread.currentThread().interrupt();
                 return false;
             }
@@ -163,7 +159,6 @@ public final class ConnectionEntryReader implements EntryReader {
                 // Prevent the reader from waiting for a result that will never
                 // arrive.
                 isInterrupted = true;
-
                 Thread.currentThread().interrupt();
             }
         }
@@ -210,7 +205,7 @@ public final class ConnectionEntryReader implements EntryReader {
     }
 
     /**
-     * Closes this connection entry reader, cancelling the search request if it
+     * Closes this connection entry reader, canceling the search request if it
      * is still active.
      */
     @Override
@@ -223,7 +218,7 @@ public final class ConnectionEntryReader implements EntryReader {
      * {@inheritDoc}
      */
     @Override
-    public boolean hasNext() throws ErrorResultIOException, InterruptedIOException {
+    public boolean hasNext() throws ErrorResultIOException {
         // Poll for the next response if needed.
         final Response r = getNextResponse();
         if (!(r instanceof Result)) {
@@ -251,14 +246,12 @@ public final class ConnectionEntryReader implements EntryReader {
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
-     * @throws InterruptedIOException
-     *             If the current thread was interrupted while waiting.
      * @throws NoSuchElementException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public boolean isEntry() throws ErrorResultIOException, InterruptedIOException {
+    public boolean isEntry() throws ErrorResultIOException {
         // Throws ErrorResultIOException if search returned error.
         if (!hasNext()) {
             // Search has completed successfully.
@@ -287,14 +280,12 @@ public final class ConnectionEntryReader implements EntryReader {
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
-     * @throws InterruptedIOException
-     *             If the current thread was interrupted while waiting.
      * @throws NoSuchElementException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public boolean isReference() throws ErrorResultIOException, InterruptedIOException {
+    public boolean isReference() throws ErrorResultIOException {
         return !isEntry();
     }
 
@@ -314,8 +305,6 @@ public final class ConnectionEntryReader implements EntryReader {
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
-     * @throws InterruptedIOException
-     *             If the current thread was interrupted while waiting.
      * @throws NoSuchElementException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
@@ -323,7 +312,7 @@ public final class ConnectionEntryReader implements EntryReader {
      */
     @Override
     public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
-            ErrorResultIOException, InterruptedIOException {
+            ErrorResultIOException {
         if (isEntry()) {
             final SearchResultEntry entry = (SearchResultEntry) nextResponse;
             nextResponse = null;
@@ -347,15 +336,12 @@ public final class ConnectionEntryReader implements EntryReader {
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
-     * @throws InterruptedIOException
-     *             If the current thread was interrupted while waiting.
      * @throws NoSuchElementException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public SearchResultReference readReference() throws ErrorResultIOException,
-            InterruptedIOException {
+    public SearchResultReference readReference() throws ErrorResultIOException {
         if (isReference()) {
             final SearchResultReference reference = (SearchResultReference) nextResponse;
             nextResponse = null;
@@ -365,12 +351,14 @@ public final class ConnectionEntryReader implements EntryReader {
         }
     }
 
-    private Response getNextResponse() throws InterruptedIOException {
+    private Response getNextResponse() throws ErrorResultIOException {
         while (nextResponse == null) {
             try {
                 nextResponse = buffer.responses.poll(50, TimeUnit.MILLISECONDS);
             } catch (final InterruptedException e) {
-                throw new InterruptedIOException(e.getMessage());
+                final ErrorResultException ere =
+                        newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+                throw new ErrorResultIOException(ere);
             }
 
             if (nextResponse == null && buffer.isInterrupted) {

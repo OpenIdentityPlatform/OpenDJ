@@ -1184,8 +1184,6 @@ public final class Schema {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1195,7 +1193,7 @@ public final class Schema {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public static Schema readSchema(final Connection connection, final DN name)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return new SchemaBuilder().addSchema(connection, name, true).toSchema();
     }
 
@@ -1276,8 +1274,6 @@ public final class Schema {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1287,7 +1283,7 @@ public final class Schema {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public static Schema readSchemaForEntry(final Connection connection, final DN name)
-            throws ErrorResultException, InterruptedException {
+            throws ErrorResultException {
         return new SchemaBuilder().addSchemaForEntry(connection, name, true).toSchema();
     }
 

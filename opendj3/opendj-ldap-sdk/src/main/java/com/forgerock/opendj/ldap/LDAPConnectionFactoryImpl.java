@@ -220,8 +220,12 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      * {@inheritDoc}
      */
     @Override
-    public Connection getConnection() throws ErrorResultException, InterruptedException {
-        return getConnectionAsync(null).get();
+    public Connection getConnection() throws ErrorResultException {
+        try {
+            return getConnectionAsync(null).get();
+        } catch (InterruptedException e) {
+            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+        }
     }
 
     /**
