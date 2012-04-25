@@ -135,10 +135,6 @@ try {
     System.err.println("Failed to bind.");
     System.exit(e.getResult().getResultCode().intValue());
     return;
-} catch (final InterruptedException e) {
-    System.err.println(e.getMessage());
-    System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
-    return;
 } finally {
     if (connection != null) {
         connection.close();

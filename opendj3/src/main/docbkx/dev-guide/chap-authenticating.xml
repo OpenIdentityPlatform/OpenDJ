@@ -89,12 +89,6 @@ private static void connect()
     System.exit(e.getResult().getResultCode().intValue());
     return;
   }
-  catch (final InterruptedException e)
-  {
-    System.err.println(e.getMessage());
-    System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
-    return;
-  }
   finally
   {
     if (connection != null) connection.close();
@@ -169,12 +163,6 @@ private static void trustAllConnect()
   {
     System.err.println(e.getMessage());
     System.exit(e.getResult().getResultCode().intValue());
-    return;
-  }
-  catch (final InterruptedException e)
-  {
-    System.err.println(e.getMessage());
-    System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
     return;
   }
   catch (final GeneralSecurityException e)
