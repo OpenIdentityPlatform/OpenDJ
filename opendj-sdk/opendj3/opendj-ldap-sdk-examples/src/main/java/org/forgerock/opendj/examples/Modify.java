@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -107,10 +107,6 @@ public final class Modify {
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
             return;
         } catch (final IOException e) {
             System.err.println(e.getMessage());

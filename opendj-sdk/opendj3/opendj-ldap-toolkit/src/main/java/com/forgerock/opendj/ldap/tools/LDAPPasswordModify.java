@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -249,11 +248,6 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             connection = connectionFactory.getConnection();
         } catch (final ErrorResultException ere) {
             return Utils.printErrorMessage(this, ere);
-        } catch (final InterruptedException e) {
-            // This shouldn't happen because there are no other threads to
-            // interrupt this one.
-            println(LocalizableMessage.raw(e.getLocalizedMessage()));
-            return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
         }
 
         if (proxyAuthzID.isPresent()) {
@@ -274,14 +268,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
 
         PasswordModifyExtendedResult result;
         try {
-            try {
-                result = connection.extendedRequest(request);
-            } catch (final InterruptedException e) {
-                // This shouldn't happen because there are no other threads to
-                // interrupt this one.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
-                        e.getLocalizedMessage(), e);
-            }
+            result = connection.extendedRequest(request);
         } catch (final ErrorResultException e) {
             LocalizableMessage message =
                     ERR_LDAPPWMOD_FAILED.get(e.getResult().getResultCode().intValue(), e

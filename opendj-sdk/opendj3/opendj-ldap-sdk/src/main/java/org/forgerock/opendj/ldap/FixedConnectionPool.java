@@ -28,6 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -122,9 +123,8 @@ final class FixedConnectionPool implements ConnectionPool {
      * connections are not actually stored in the internal queue.
      */
     private final class PooledConnection implements Connection {
-        // Connection event listeners registed against this pooled connection
-        // should
-        // have the same life time as the pooled connection.
+        // Connection event listeners registered against this pooled connection
+        // should have the same life time as the pooled connection.
         private final List<ConnectionEventListener> listeners =
                 new CopyOnWriteArrayList<ConnectionEventListener>();
 
@@ -142,19 +142,17 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result add(final AddRequest request) throws ErrorResultException,
-                InterruptedException {
+        public Result add(final AddRequest request) throws ErrorResultException {
             return checkState().add(request);
         }
 
         @Override
-        public Result add(final Entry entry) throws ErrorResultException, InterruptedException {
+        public Result add(final Entry entry) throws ErrorResultException {
             return checkState().add(entry);
         }
 
         @Override
-        public Result add(final String... ldifLines) throws ErrorResultException,
-                InterruptedException {
+        public Result add(final String... ldifLines) throws ErrorResultException {
             return checkState().add(ldifLines);
         }
 
@@ -176,14 +174,13 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public BindResult bind(final BindRequest request) throws ErrorResultException,
-                InterruptedException {
+        public BindResult bind(final BindRequest request) throws ErrorResultException {
             return checkState().bind(request);
         }
 
         @Override
         public BindResult bind(final String name, final char[] password)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().bind(name, password);
         }
 
@@ -209,11 +206,9 @@ final class FixedConnectionPool implements ConnectionPool {
                 publishConnection(connection);
             } else {
                 // The connection may have been disconnected by the remote
-                // server, but
-                // the server may still be available. In order to avoid leaving
-                // pending
-                // futures hanging indefinitely, we should try to reconnect
-                // immediately.
+                // server, but the server may still be available. In order to
+                // avoid leaving pending futures hanging indefinitely, we should
+                // try to reconnect immediately.
 
                 // Close the dead connection.
                 connection.close();
@@ -238,14 +233,13 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public CompareResult compare(final CompareRequest request) throws ErrorResultException,
-                InterruptedException {
+        public CompareResult compare(final CompareRequest request) throws ErrorResultException {
             return checkState().compare(request);
         }
 
         @Override
         public CompareResult compare(final String name, final String attributeDescription,
-                final String assertionValue) throws ErrorResultException, InterruptedException {
+                final String assertionValue) throws ErrorResultException {
             return checkState().compare(name, attributeDescription, assertionValue);
         }
 
@@ -257,13 +251,12 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result delete(final DeleteRequest request) throws ErrorResultException,
-                InterruptedException {
+        public Result delete(final DeleteRequest request) throws ErrorResultException {
             return checkState().delete(request);
         }
 
         @Override
-        public Result delete(final String name) throws ErrorResultException, InterruptedException {
+        public Result delete(final String name) throws ErrorResultException {
             return checkState().delete(name);
         }
 
@@ -276,20 +269,19 @@ final class FixedConnectionPool implements ConnectionPool {
 
         @Override
         public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().extendedRequest(request);
         }
 
         @Override
         public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-                final IntermediateResponseHandler handler) throws ErrorResultException,
-                InterruptedException {
+                final IntermediateResponseHandler handler) throws ErrorResultException {
             return checkState().extendedRequest(request, handler);
         }
 
         @Override
         public GenericExtendedResult extendedRequest(final String requestName,
-                final ByteString requestValue) throws ErrorResultException, InterruptedException {
+                final ByteString requestValue) throws ErrorResultException {
             return checkState().extendedRequest(requestName, requestValue);
         }
 
@@ -319,14 +311,12 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result modify(final ModifyRequest request) throws ErrorResultException,
-                InterruptedException {
+        public Result modify(final ModifyRequest request) throws ErrorResultException {
             return checkState().modify(request);
         }
 
         @Override
-        public Result modify(final String... ldifLines) throws ErrorResultException,
-                InterruptedException {
+        public Result modify(final String... ldifLines) throws ErrorResultException {
             return checkState().modify(ldifLines);
         }
 
@@ -338,14 +328,12 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException,
-                InterruptedException {
+        public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
             return checkState().modifyDN(request);
         }
 
         @Override
-        public Result modifyDN(final String name, final String newRDN) throws ErrorResultException,
-                InterruptedException {
+        public Result modifyDN(final String name, final String newRDN) throws ErrorResultException {
             return checkState().modifyDN(name, newRDN);
         }
 
@@ -358,13 +346,13 @@ final class FixedConnectionPool implements ConnectionPool {
 
         @Override
         public SearchResultEntry readEntry(final DN name, final String... attributeDescriptions)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().readEntry(name, attributeDescriptions);
         }
 
         @Override
         public SearchResultEntry readEntry(final String name, final String... attributeDescriptions)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().readEntry(name, attributeDescriptions);
         }
 
@@ -392,8 +380,7 @@ final class FixedConnectionPool implements ConnectionPool {
 
         @Override
         public Result search(final SearchRequest request,
-                final Collection<? super SearchResultEntry> entries) throws ErrorResultException,
-                InterruptedException {
+                final Collection<? super SearchResultEntry> entries) throws ErrorResultException {
             return checkState().search(request, entries);
         }
 
@@ -401,13 +388,13 @@ final class FixedConnectionPool implements ConnectionPool {
         public Result search(final SearchRequest request,
                 final Collection<? super SearchResultEntry> entries,
                 final Collection<? super SearchResultReference> references)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().search(request, entries, references);
         }
 
         @Override
         public Result search(final SearchRequest request, final SearchResultHandler handler)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().search(request, handler);
         }
 
@@ -426,14 +413,14 @@ final class FixedConnectionPool implements ConnectionPool {
 
         @Override
         public SearchResultEntry searchSingleEntry(final SearchRequest request)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().searchSingleEntry(request);
         }
 
         @Override
         public SearchResultEntry searchSingleEntry(final String baseObject,
                 final SearchScope scope, final String filter, final String... attributeDescriptions)
-                throws ErrorResultException, InterruptedException {
+                throws ErrorResultException {
             return checkState().searchSingleEntry(baseObject, scope, filter, attributeDescriptions);
         }
 
@@ -550,8 +537,7 @@ final class FixedConnectionPool implements ConnectionPool {
             isClosed = true;
 
             // Remove any connections which are waiting in the queue as these
-            // can be
-            // closed immediately.
+            // can be closed immediately.
             idleConnections = new LinkedList<Connection>();
             while (!queue.isEmpty() && !queue.getFirst().isWaitingFuture()) {
                 final QueueElement holder = queue.removeFirst();
@@ -575,8 +561,12 @@ final class FixedConnectionPool implements ConnectionPool {
      * {@inheritDoc}
      */
     @Override
-    public Connection getConnection() throws ErrorResultException, InterruptedException {
-        return getConnectionAsync(null).get();
+    public Connection getConnection() throws ErrorResultException {
+        try {
+            return getConnectionAsync(null).get();
+        } catch (InterruptedException e) {
+            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+        }
     }
 
     /**

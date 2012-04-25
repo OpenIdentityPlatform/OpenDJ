@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 /**
@@ -99,10 +99,6 @@ public final class SASLAuth {
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
             return;
         } catch (final GeneralSecurityException e) {
             System.err.println(e.getMessage());

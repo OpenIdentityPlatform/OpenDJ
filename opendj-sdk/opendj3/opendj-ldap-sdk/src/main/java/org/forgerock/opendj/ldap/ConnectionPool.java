@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -86,10 +86,8 @@ public interface ConnectionPool extends ConnectionFactory, Closeable {
      * @return A pooled connection.
      * @throws ErrorResultException
      *             If the connection request failed for some reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws IllegalStateException
      *             If this connection pool has already been closed.
      */
-    Connection getConnection() throws ErrorResultException, InterruptedException;
+    Connection getConnection() throws ErrorResultException;
 }

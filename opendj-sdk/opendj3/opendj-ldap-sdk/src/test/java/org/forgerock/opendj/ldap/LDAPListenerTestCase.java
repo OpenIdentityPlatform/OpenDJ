@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -504,15 +504,9 @@ public class LDAPListenerTestCase extends SdkTestCase {
                         public ServerConnection<Integer> handleAccept(
                                 final LDAPClientContext clientContext) throws ErrorResultException {
                             // Get connection from load balancer, this should
-                            // fail over twice
-                            // before getting connection to online server.
-                            try {
-                                loadBalancer.getConnection().close();
-                            } catch (final InterruptedException e) {
-                                // Unexpected.
-                                throw ErrorResultException.newErrorResult(ResultCode.OTHER,
-                                        "Unexpected exception when connecting to online server", e);
-                            }
+                            // fail over twice before getting connection to
+                            // online server.
+                            loadBalancer.getConnection().close();
                             return super.handleAccept(clientContext);
                         }
 

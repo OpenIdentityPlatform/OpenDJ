@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -92,17 +91,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 request.getAssertionValueAsString(), request.getName().toString()));
         if (connection != null) {
             try {
-                Result result;
-                try {
-                    result = connection.compare(request);
-                } catch (final InterruptedException e) {
-                    // This shouldn't happen because there are no other threads
-                    // to
-                    // interrupt this one.
-                    throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                            .getLocalizedMessage(), e);
-                }
-
+                Result result = connection.compare(request);
                 if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
                     println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(request.getName().toString()));
                 } else {
@@ -391,11 +380,6 @@ public final class LDAPCompare extends ConsoleApplication {
             } catch (final ErrorResultException ere) {
                 println(LocalizableMessage.raw(ere.getMessage()));
                 return ere.getResult().getResultCode().intValue();
-            } catch (final InterruptedException e) {
-                // This shouldn't happen because there are no other threads to
-                // interrupt this one.
-                println(LocalizableMessage.raw(e.getLocalizedMessage()));
-                return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
             }
         }
 

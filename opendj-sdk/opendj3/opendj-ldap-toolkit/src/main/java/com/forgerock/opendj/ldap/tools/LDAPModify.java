@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -81,16 +80,7 @@ public final class LDAPModify extends ConsoleApplication {
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
             if (connection != null) {
                 try {
-                    Result r;
-                    try {
-                        r = connection.add(change);
-                    } catch (final InterruptedException e) {
-                        // This shouldn't happen because there are no other
-                        // threads
-                        // to interrupt this one.
-                        throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                                .getLocalizedMessage(), e);
-                    }
+                    Result r = connection.add(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final ErrorResultException ere) {
@@ -108,16 +98,7 @@ public final class LDAPModify extends ConsoleApplication {
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
             if (connection != null) {
                 try {
-                    Result r;
-                    try {
-                        r = connection.delete(change);
-                    } catch (final InterruptedException e) {
-                        // This shouldn't happen because there are no other
-                        // threads
-                        // to interrupt this one.
-                        throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                                .getLocalizedMessage(), e);
-                    }
+                    Result r = connection.delete(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final ErrorResultException ere) {
@@ -135,16 +116,7 @@ public final class LDAPModify extends ConsoleApplication {
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
             if (connection != null) {
                 try {
-                    Result r;
-                    try {
-                        r = connection.modifyDN(change);
-                    } catch (final InterruptedException e) {
-                        // This shouldn't happen because there are no other
-                        // threads
-                        // to interrupt this one.
-                        throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                                .getLocalizedMessage(), e);
-                    }
+                    Result r = connection.modifyDN(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final ErrorResultException ere) {
@@ -162,16 +134,7 @@ public final class LDAPModify extends ConsoleApplication {
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
             if (connection != null) {
                 try {
-                    Result r;
-                    try {
-                        r = connection.modify(change);
-                    } catch (final InterruptedException e) {
-                        // This shouldn't happen because there are no other
-                        // threads
-                        // to interrupt this one.
-                        throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                                .getLocalizedMessage(), e);
-                    }
+                    Result r = connection.modify(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final ErrorResultException ere) {
@@ -501,11 +464,6 @@ public final class LDAPModify extends ConsoleApplication {
                 connection = connectionFactory.getConnection();
             } catch (final ErrorResultException ere) {
                 return Utils.printErrorMessage(this, ere);
-            } catch (final InterruptedException e) {
-                // This shouldn't happen because there are no other threads to
-                // interrupt this one.
-                println(LocalizableMessage.raw(e.getLocalizedMessage()));
-                return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
             }
         }
 

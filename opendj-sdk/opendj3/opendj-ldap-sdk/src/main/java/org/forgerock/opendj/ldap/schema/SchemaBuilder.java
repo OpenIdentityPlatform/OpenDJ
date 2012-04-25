@@ -1779,8 +1779,6 @@ public final class SchemaBuilder {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1790,7 +1788,7 @@ public final class SchemaBuilder {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public SchemaBuilder addSchema(final Connection connection, final DN name,
-            final boolean overwrite) throws ErrorResultException, InterruptedException {
+            final boolean overwrite) throws ErrorResultException {
         // The call to addSchema will perform copyOnWrite.
         final SearchRequest request = getReadSchemaSearchRequest(name);
         final Entry entry = connection.searchSingleEntry(request);
@@ -2018,8 +2016,6 @@ public final class SchemaBuilder {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -2029,7 +2025,7 @@ public final class SchemaBuilder {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public SchemaBuilder addSchemaForEntry(final Connection connection, final DN name,
-            final boolean overwrite) throws ErrorResultException, InterruptedException {
+            final boolean overwrite) throws ErrorResultException {
         // The call to addSchema will perform copyOnWrite.
         final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
         final Entry entry = connection.searchSingleEntry(request);

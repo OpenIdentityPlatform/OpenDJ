@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -846,11 +845,6 @@ public final class LDAPSearch extends ConsoleApplication {
             connection = connectionFactory.getConnection();
         } catch (final ErrorResultException ere) {
             return Utils.printErrorMessage(this, ere);
-        } catch (final InterruptedException e) {
-            // This shouldn't happen because there are no other threads to
-            // interrupt this one.
-            println(LocalizableMessage.raw(e.getLocalizedMessage()));
-            return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
         }
 
         Utils.printPasswordPolicyResults(this, connection);
@@ -860,17 +854,7 @@ public final class LDAPSearch extends ConsoleApplication {
             ldifWriter = new LDIFEntryWriter(getOutputStream()).setWrapColumn(wrapColumn);
             final LDAPSearchResultHandler resultHandler = new LDAPSearchResultHandler();
             while (true) {
-                Result result;
-                try {
-                    result = connection.search(search, resultHandler);
-                } catch (final InterruptedException e) {
-                    // This shouldn't happen because there are no other threads
-                    // to
-                    // interrupt this one.
-                    throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e
-                            .getLocalizedMessage(), e);
-                }
-
+                Result result = connection.search(search, resultHandler);
                 try {
                     final ServerSideSortResponseControl control =
                             result.getControl(ServerSideSortResponseControl.DECODER,

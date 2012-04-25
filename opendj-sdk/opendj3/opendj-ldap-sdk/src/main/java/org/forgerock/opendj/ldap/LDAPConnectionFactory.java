@@ -40,8 +40,7 @@ import com.forgerock.opendj.util.Validator;
  */
 public final class LDAPConnectionFactory implements ConnectionFactory {
     // We implement the factory using the pimpl idiom in order to avoid making
-    // too
-    // many implementation classes public.
+    // too many implementation classes public.
 
     private final LDAPConnectionFactoryImpl impl;
 
@@ -139,7 +138,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * {@inheritDoc}
      */
     @Override
-    public Connection getConnection() throws ErrorResultException, InterruptedException {
+    public Connection getConnection() throws ErrorResultException {
         return impl.getConnection();
     }
 

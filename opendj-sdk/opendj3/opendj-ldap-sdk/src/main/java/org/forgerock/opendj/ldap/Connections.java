@@ -262,7 +262,7 @@ public final class Connections {
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException, InterruptedException {
+            public Connection getConnection() throws ErrorResultException {
                 return factory.getConnection();
             }
 

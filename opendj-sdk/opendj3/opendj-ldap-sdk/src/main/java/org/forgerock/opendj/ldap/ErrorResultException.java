@@ -193,7 +193,7 @@ public class ErrorResultException extends ExecutionException {
      *            The error result.
      */
     protected ErrorResultException(final Result result) {
-        super(result.getResultCode() + ": " + result.getDiagnosticMessage());
+        super(result.getResultCode() + ": " + result.getDiagnosticMessage(), result.getCause());
         this.result = result;
     }
 

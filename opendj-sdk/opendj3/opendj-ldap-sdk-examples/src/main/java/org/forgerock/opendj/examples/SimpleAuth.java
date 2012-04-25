@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -88,10 +88,6 @@ public final class SimpleAuth {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
-            return;
         } finally {
             if (connection != null) {
                 connection.close();
@@ -134,10 +130,6 @@ public final class SimpleAuth {
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
-        } catch (final InterruptedException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
             return;
         } catch (final GeneralSecurityException e) {
             System.err.println(e.getMessage());

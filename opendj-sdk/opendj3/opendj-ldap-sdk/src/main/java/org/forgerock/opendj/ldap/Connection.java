@@ -70,7 +70,8 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * <p>
  * Since synchronous operations block the calling thread, the only way to
  * abandon a long running operation is to interrupt the calling thread from
- * another thread. This will cause the calling thread unblock and throw an
+ * another thread. This will cause the calling thread unblock and throw a
+ * {@link CancelledResultException} whose cause is the underlying
  * {@link InterruptedException}.
  * <p>
  * <h4>Performing operations asynchronously</h4>
@@ -184,8 +185,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
      * @throws IllegalStateException
@@ -194,7 +193,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result add(AddRequest request) throws ErrorResultException, InterruptedException;
+    Result add(AddRequest request) throws ErrorResultException;
 
     /**
      * Adds the provided entry to the Directory Server.
@@ -212,8 +211,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
      * @throws IllegalStateException
@@ -222,7 +219,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code entry} was {@code null} .
      */
-    Result add(Entry entry) throws ErrorResultException, InterruptedException;
+    Result add(Entry entry) throws ErrorResultException;
 
     /**
      * Adds an entry to the Directory Server using the provided lines of LDIF.
@@ -241,8 +238,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
      * @throws LocalizedIllegalArgumentException
@@ -254,7 +249,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null} .
      */
-    Result add(String... ldifLines) throws ErrorResultException, InterruptedException;
+    Result add(String... ldifLines) throws ErrorResultException;
 
     /**
      * Asynchronously adds an entry to the Directory Server using the provided
@@ -307,8 +302,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support bind operations.
      * @throws IllegalStateException
@@ -317,7 +310,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    BindResult bind(BindRequest request) throws ErrorResultException, InterruptedException;
+    BindResult bind(BindRequest request) throws ErrorResultException;
 
     /**
      * Authenticates to the Directory Server using simple authentication and the
@@ -340,8 +333,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code name} could not be decoded using the default
      *             schema.
@@ -353,7 +344,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} or {@code password} was {@code null}.
      */
-    BindResult bind(String name, char[] password) throws ErrorResultException, InterruptedException;
+    BindResult bind(String name, char[] password) throws ErrorResultException;
 
     /**
      * Asynchronously authenticates to the Directory Server using the provided
@@ -436,8 +427,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support compare operations.
      * @throws IllegalStateException
@@ -446,7 +435,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    CompareResult compare(CompareRequest request) throws ErrorResultException, InterruptedException;
+    CompareResult compare(CompareRequest request) throws ErrorResultException;
 
     /**
      * Compares the named entry in the Directory Server against the provided
@@ -469,8 +458,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code name} or {@code AttributeDescription} could not be
      *             decoded using the default schema.
@@ -484,7 +471,7 @@ public interface Connection extends Closeable {
      *             {@code assertionValue} was {@code null}.
      */
     CompareResult compare(String name, String attributeDescription, String assertionValue)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Asynchronously compares an entry in the Directory Server using the
@@ -522,8 +509,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support delete operations.
      * @throws IllegalStateException
@@ -532,7 +517,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result delete(DeleteRequest request) throws ErrorResultException, InterruptedException;
+    Result delete(DeleteRequest request) throws ErrorResultException;
 
     /**
      * Deletes the named entry from the Directory Server.
@@ -550,8 +535,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code name} could not be decoded using the default
      *             schema.
@@ -563,7 +546,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} was {@code null}.
      */
-    Result delete(String name) throws ErrorResultException, InterruptedException;
+    Result delete(String name) throws ErrorResultException;
 
     /**
      * Asynchronously deletes an entry from the Directory Server using the
@@ -603,8 +586,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
      * @throws IllegalStateException
@@ -614,7 +595,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -632,8 +613,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
      * @throws IllegalStateException
@@ -643,7 +622,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request,
-            IntermediateResponseHandler handler) throws ErrorResultException, InterruptedException;
+            IntermediateResponseHandler handler) throws ErrorResultException;
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -666,8 +645,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
      * @throws IllegalStateException
@@ -677,7 +654,7 @@ public interface Connection extends Closeable {
      *             If {@code requestName} was {@code null}.
      */
     GenericExtendedResult extendedRequest(String requestName, ByteString requestValue)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Asynchronously performs the provided extended request in the Directory
@@ -739,8 +716,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify operations.
      * @throws IllegalStateException
@@ -749,7 +724,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result modify(ModifyRequest request) throws ErrorResultException, InterruptedException;
+    Result modify(ModifyRequest request) throws ErrorResultException;
 
     /**
      * Modifies an entry in the Directory Server using the provided lines of
@@ -769,8 +744,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify operations.
      * @throws LocalizedIllegalArgumentException
@@ -782,7 +755,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null} .
      */
-    Result modify(String... ldifLines) throws ErrorResultException, InterruptedException;
+    Result modify(String... ldifLines) throws ErrorResultException;
 
     /**
      * Asynchronously modifies an entry in the Directory Server using the
@@ -820,8 +793,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify DN operations.
      * @throws IllegalStateException
@@ -830,7 +801,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result modifyDN(ModifyDNRequest request) throws ErrorResultException, InterruptedException;
+    Result modifyDN(ModifyDNRequest request) throws ErrorResultException;
 
     /**
      * Renames the named entry in the Directory Server using the provided new
@@ -851,8 +822,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code name} or {@code newRDN} could not be decoded using
      *             the default schema.
@@ -864,7 +833,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} or {@code newRDN} was {@code null}.
      */
-    Result modifyDN(String name, String newRDN) throws ErrorResultException, InterruptedException;
+    Result modifyDN(String name, String newRDN) throws ErrorResultException;
 
     /**
      * Asynchronously renames an entry in the Directory Server using the
@@ -917,8 +886,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -928,7 +895,7 @@ public interface Connection extends Closeable {
      *             If the {@code name} was {@code null}.
      */
     SearchResultEntry readEntry(DN name, String... attributeDescriptions)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Reads the named entry from the Directory Server.
@@ -953,8 +920,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code baseObject} could not be decoded using the default
      *             schema.
@@ -967,7 +932,7 @@ public interface Connection extends Closeable {
      *             If the {@code name} was {@code null}.
      */
     SearchResultEntry readEntry(String name, String... attributeDescriptions)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Asynchronously reads the named entry from the Directory Server.
@@ -1069,8 +1034,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1080,7 +1043,7 @@ public interface Connection extends Closeable {
      *             If {@code request} or {@code entries} was {@code null}.
      */
     Result search(SearchRequest request, Collection<? super SearchResultEntry> entries)
-            throws ErrorResultException, InterruptedException;
+            throws ErrorResultException;
 
     /**
      * Searches the Directory Server using the provided search request. Any
@@ -1105,8 +1068,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1116,8 +1077,7 @@ public interface Connection extends Closeable {
      *             If {@code request} or {@code entries} was {@code null}.
      */
     Result search(SearchRequest request, Collection<? super SearchResultEntry> entries,
-            Collection<? super SearchResultReference> references) throws ErrorResultException,
-            InterruptedException;
+            Collection<? super SearchResultReference> references) throws ErrorResultException;
 
     /**
      * Searches the Directory Server using the provided search request. Any
@@ -1134,8 +1094,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1144,8 +1102,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException,
-            InterruptedException;
+    Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException;
 
     /**
      * Searches the Directory Server using the provided search parameters. Any
@@ -1229,8 +1186,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1239,8 +1194,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code request} was {@code null}.
      */
-    SearchResultEntry searchSingleEntry(SearchRequest request) throws ErrorResultException,
-            InterruptedException;
+    SearchResultEntry searchSingleEntry(SearchRequest request) throws ErrorResultException;
 
     /**
      * Searches the Directory Server for a single entry using the provided
@@ -1273,8 +1227,6 @@ public interface Connection extends Closeable {
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
-     * @throws InterruptedException
-     *             If the current thread was interrupted while waiting.
      * @throws LocalizedIllegalArgumentException
      *             If {@code baseObject} could not be decoded using the default
      *             schema or if {@code filter} is not a valid LDAP string
@@ -1289,7 +1241,7 @@ public interface Connection extends Closeable {
      *             were {@code null}.
      */
     SearchResultEntry searchSingleEntry(String baseObject, SearchScope scope, String filter,
-            String... attributeDescriptions) throws ErrorResultException, InterruptedException;
+            String... attributeDescriptions) throws ErrorResultException;
 
     /**
      * Asynchronously searches the Directory Server for a single entry using the
