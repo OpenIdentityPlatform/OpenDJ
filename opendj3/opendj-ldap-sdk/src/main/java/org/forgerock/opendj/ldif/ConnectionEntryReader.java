@@ -95,7 +95,7 @@ import com.forgerock.opendj.util.Validator;
  * }
  * finally
  * {
- *   results.close();
+ *   reader.close();
  * }
  * </pre>
  */

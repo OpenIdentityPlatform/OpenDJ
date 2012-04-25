@@ -436,7 +436,7 @@ catch (IOException e)
 }
 finally
 {
-  results.close();
+  reader.close();
 }</programlisting>
    </listitem>
 
