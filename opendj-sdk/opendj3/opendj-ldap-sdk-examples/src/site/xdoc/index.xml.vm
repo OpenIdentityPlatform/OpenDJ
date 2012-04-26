@@ -73,6 +73,10 @@
           <a href="xref/org/forgerock/opendj/examples/GetInfo.html">Read Root DSE</a>
           - illustrates how to read an LDAP server's capabilities and schema
         </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SearchBind.html">Search &amp; bind</a>
+          - illustrates how to authenticate given a mail address and a password
+        </li>
       </ul>
     </section>
     <section name="Get the OpenDJ LDAP SDK Examples">
