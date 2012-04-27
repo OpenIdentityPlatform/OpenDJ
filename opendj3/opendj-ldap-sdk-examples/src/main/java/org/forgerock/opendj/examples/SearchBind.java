@@ -20,8 +20,8 @@
  *
  * CDDL HEADER END
  *
- *
  *      Copyright 2012 ForgeRock AS
+ *
  */
 
 package org.forgerock.opendj.examples;
@@ -54,7 +54,7 @@ public final class SearchBind {
      * Prompt for email and password, search and bind, then display message.
      *
      * @param args
-     *            The command line arguments: host, post, base-dn.
+     *            The command line arguments: host, port, base-dn.
      */
     public static void main(final String[] args) {
         if (args.length != 3) {
