@@ -77,6 +77,10 @@
           <a href="xref/org/forgerock/opendj/examples/SearchBind.html">Search &amp; bind</a>
           - illustrates how to authenticate given a mail address and a password
         </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ShortLife.html">Short life</a>
+          - illustrates how to create, update, rename, and delete an entry
+        </li>
       </ul>
     </section>
     <section name="Get the OpenDJ LDAP SDK Examples">
