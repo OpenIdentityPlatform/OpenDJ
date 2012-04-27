@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-writing'
@@ -31,30 +31,218 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Updating Directory Data</title>
 
- <para>TODO</para>
+ <para>Modern directory servers like OpenDJ can handle a high load of write
+ requests, replicating changes quickly both on the LAN and over the WAN.</para>
 
  <section xml:id="about-writes">
-  <title>Objects &amp; Methods For Updating Directory Data</title>
-  <para>TODO</para>
+  <title>About Add, Modify, Rename, &amp; Delete</title>
+
+  <para>The four basic CRUD operations &#8212; create, read, update, and delete
+  &#8212; correspond to the LDAP operations add, search, modify (or modify DN),
+  and delete.<footnote><para>The LDAP bind operation can potentially result in
+  an update. Some directory servers can be configured to write time stamps in
+  order to track successful or failed binds for password policy reasons.</para>
+  </footnote></para>
+
+  <itemizedlist>
+   <listitem>
+    <para>An add request is used to create a new entry in an LDAP directory.
+    The entry must have a unique distinguished name that belongs under a base
+    DN served by the directory. The entry must have a list of attributes that
+    are valid according to the directory schema.</para>
+   </listitem>
+
+   <listitem>
+    <para>Search requests are described in the chapter on <link
+    xlink:href="dev-guide#chap-reading"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Searching &amp;
+    Comparing Directory Data</citetitle></link>.</para>
+   </listitem>
+
+   <listitem>
+    <para>A modify request is used to add, delete, or replace attribute values
+    on an entry in an LDAP directory. The resulting entry must be valid
+    according to the directory schema.</para>
+
+    <para>A modify DN request is used to rename or move a directory entry.
+    In both cases the distinguished name changes. Renaming involves changing
+    the relative distinguished name, for example from
+    <literal>cn=Bob,ou=People,dc=example,dc=com</literal> to
+    <literal>cn=Ted,ou=People,dc=example,dc=com</literal>. Moving
+    involves changing the container where the entry is found, for example from
+    <literal>cn=Barbara Jensen,ou=People,dc=Old Company,dc=com</literal> to
+    <literal>cn=Barbara Jensen,ou=People,dc=New Company,dc=com</literal>.</para>
+
+    <para>Although they are both considered modify DN operations, renaming a
+    leaf entry is generally much simpler than moving a container entry that has
+    child entries. Not all modify DN operations mobilize equivalent resources
+    on the directory server.</para>
+   </listitem>
+
+   <listitem>
+    <para>A delete request is used to remove an entry from an LDAP
+    directory.</para>
+
+    <para>Directory servers can restrict deletes to leaf entries, so that you
+    cannot remove an entry that has other child entries. For example, you have
+    to delete <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> and
+    other peer entries before you delete
+    <literal>ou=People,dc=example,dc=com</literal> unless you send a subtree
+    delete request control.</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>As a rule, your client application must be authorized to create,
+  update, and delete directory data. Therefore to prepare to change directory
+  data, you first get a connection, and then bind on that connection as a
+  user who is authorized to make the changes you plan to request.</para>
  </section>
- 
+
  <section xml:id="adding-entries">
   <title>Adding Directory Entries</title>
-  <para>TODO</para>
+
+  <para>The <literal>Connection.add()</literal> methods let you provide the
+  entry to add as an <literal>AddRequest</literal>, an <literal>Entry</literal>,
+  or as LDIF. If the changes to make are already expressed in LDIF, then
+  you can also use <literal>ChangeRecordReader</literal>s,
+  <literal>ChangeRecord</literal>s, and <literal>ChangeRecordWriter</literal>s
+  to handle the changes.</para>
+
+  <para>The following excerpt demonstrates how to add a simple user entry under
+  <literal>ou=People,dc=example,dc=com</literal>.</para>
+
+  <programlisting language="java">// An entry to add to the directory
+DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
+Entry entry = new TreeMapEntry(entryDN);
+entry.addAttribute("cn", "Bob");
+entry.addAttribute("objectclass", "top");
+entry.addAttribute("objectclass", "person");
+entry.addAttribute("objectclass", "organizationalPerson");
+entry.addAttribute("objectclass", "inetOrgPerson");
+entry.addAttribute("mail", "subgenius@example.com");
+entry.addAttribute("sn", "Dobbs");
+
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to add entries.
+    connection.bind(adminDN, adminPwd);
+
+    connection.add(entry);
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
  </section>
- 
+
  <section xml:id="modifying-attr-values">
-   <title>Modifying Directory Entry Attribute Values</title>
-   <para>TODO</para>
+  <title>Modifying Directory Entry Attribute Values</title>
+
+  <para>The <literal>Connection.modify()</literal> methods let you add, replace,
+  and delete attributes values on an entry. Either the modifications are
+  expressed in LDIF, or you build a <literal>ModifyRequest</literal> to
+  express the changes.</para>
+
+  <para>The following excerpt demonstrates how to replace one attribute value
+  and to add another.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to modify entries.
+    connection.bind(adminDN, adminPwd);
+
+    // Here, entry is a user entry with DN cn=Bob,ou=People,dc=example,dc=com.
+    Entry old = TreeMapEntry.deepCopyOfEntry(entry);
+    entry = entry.replaceAttribute("mail", "spammer@example.com");
+    entry = entry.addAttribute("description", "I see the fnords.");
+    ModifyRequest request = Entries.diffEntries(old, entry);
+
+    connection.modify(request);
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
  </section>
  
  <section xml:id="renaming-entries">
-   <title>Renaming Directory Entries</title>
-   <para>TODO</para>
+  <title>Renaming Directory Entries</title>
+
+  <para>The <literal>Connection.modifyDN()</literal> methods serve to rename
+  entries and to move them around.</para>
+
+  <para>The following excerpt demonstrates how to rename an entry.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to rename entries.
+    connection.bind(adminDN, adminPwd);
+
+    // Here, entryDN contains cn=Bob,ou=People,dc=example,dc=com.
+    // The second argument is the new relative distinguished name.
+    connection.modifyDN(entryDN.toString(), "cn=Ted");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>If you must move rather than rename entries, have a look at the methods
+  for <literal>ModifyDNRequest</literal>. You can get a new request by using
+  <literal>Requests</literal> static methods.</para>
  </section>
- 
+
  <section xml:id="deleting-entries">
-   <title>Deleting Directory Entries</title>
-   <para>TODO</para>
+  <title>Deleting Directory Entries</title>
+
+  <para>The following excerpt demonstrates how to delete an entry with DN
+  <literal>cn=Ted,ou=People,dc=example,dc=com</literal>.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to delete entries.
+    connection.bind(adminDN, adminPwd);
+
+    connection.delete("cn=Ted,ou=People,dc=example,dc=com");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>If you must delete an entire branch of entries instead of a single
+  leaf entry, build a <literal>DeleteRequest</literal> that includes the
+  <literal>SubtreeDeleteRequestControl</literal>.</para>
  </section>
 </chapter>
