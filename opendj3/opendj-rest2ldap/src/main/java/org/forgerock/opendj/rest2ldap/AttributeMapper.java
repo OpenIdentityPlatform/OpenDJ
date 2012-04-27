@@ -24,43 +24,13 @@ import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.resource.provider.Context;
 
 /**
  *
  */
 public interface AttributeMapper {
-
-    /**
-     * Transforms attributes contained in the provided LDAP entry to JSON
-     * content, invoking a completion handler once the transformation has
-     * completed.
-     * <p>
-     * This method is invoked whenever an LDAP entry is converted to a REST
-     * resource, i.e. when responding to read, query, create, put, or patch
-     * requests.
-     *
-     * @param c
-     * @param e
-     * @param v
-     * @param h
-     */
-    void toJson(Context c, Entry e, JsonValue v, CompletionHandler<JsonValue> h);
-
-    /**
-     * Transforms JSON content in the provided JSON value to LDAP attributes,
-     * invoking a completion handler once the transformation has completed.
-     * <p>
-     * This method is invoked whenever a REST resource is converted to an LDAP
-     * entry or LDAP modification, i.e. when performing create, put, or patch
-     * requests.
-     *
-     * @param c
-     * @param v
-     * @param a
-     * @param h
-     */
-    void toLDAP(Context c, JsonValue v, List<Attribute> a,
-            CompletionHandler<Entry> h);
 
     /**
      * Returns an unmodifiable set containing the names of the LDAP attributes
@@ -87,6 +57,37 @@ public interface AttributeMapper {
      *         associated with the provided resource attribute.
      */
     Collection<String> getLDAPAttributesFor(JsonPointer resourceAttribute);
+
+    /**
+     * Transforms attributes contained in the provided LDAP entry to JSON
+     * content, invoking a completion handler once the transformation has
+     * completed.
+     * <p>
+     * This method is invoked whenever an LDAP entry is converted to a REST
+     * resource, i.e. when responding to read, query, create, put, or patch
+     * requests.
+     *
+     * @param c
+     * @param e
+     * @param v
+     * @param h
+     */
+    void toJson(Context c, Entry e, JsonValue v, ResultHandler<JsonValue> h);
+
+    /**
+     * Transforms JSON content in the provided JSON value to LDAP attributes,
+     * invoking a completion handler once the transformation has completed.
+     * <p>
+     * This method is invoked whenever a REST resource is converted to an LDAP
+     * entry or LDAP modification, i.e. when performing create, put, or patch
+     * requests.
+     *
+     * @param c
+     * @param v
+     * @param a
+     * @param h
+     */
+    void toLDAP(Context c, JsonValue v, List<Attribute> a, ResultHandler<Entry> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).

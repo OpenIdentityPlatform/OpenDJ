@@ -21,21 +21,21 @@ package org.forgerock.opendj.rest2ldap;
  */
 final class Validator {
 
-    private Validator() {
-        // Prevent instantiation.
-    }
-
-    static <T> T ensureNotNull(T object) {
+    static <T> T ensureNotNull(final T object) {
         if (object == null) {
             throw new NullPointerException();
         }
         return object;
     }
 
-    static <T> T ensureNotNull(T object, String message) {
+    static <T> T ensureNotNull(final T object, final String message) {
         if (object == null) {
             throw new NullPointerException(message);
         }
         return object;
+    }
+
+    private Validator() {
+        // Prevent instantiation.
     }
 }

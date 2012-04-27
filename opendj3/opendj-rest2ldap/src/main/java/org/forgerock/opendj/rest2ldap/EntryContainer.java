@@ -18,7 +18,10 @@ package org.forgerock.opendj.rest2ldap;
 
 import java.util.Set;
 
-import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.resource.provider.Context;
 
 /**
  *
@@ -26,8 +29,26 @@ import org.forgerock.opendj.ldap.Entry;
 public final class EntryContainer {
 
     /**
+     * @param entry
+     * @return
+     */
+    public String getIDFromEntry(final SearchResultEntry entry) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @param context
+     * @param handler
+     */
+    public void listEntries(final Context context, final SearchResultHandler handler) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
      * Reads the entry having the specified resource ID.
-     *
+     * 
      * @param c
      *            The request context.
      * @param id
@@ -37,8 +58,8 @@ public final class EntryContainer {
      * @param h
      *            The result handler.
      */
-    public void readEntry(Context c, String id, Set<String> attributes,
-            CompletionHandler<Entry> h) {
+    public void readEntry(final Context c, final String id, final Set<String> attributes,
+            final ResultHandler<SearchResultEntry> h) {
         // TODO Auto-generated method stub
 
     }

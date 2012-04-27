@@ -29,5 +29,3 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-
-
