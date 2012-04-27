@@ -58,7 +58,7 @@ public final class ShortLife {
 
     /**
      * Connect to directory server as a user with rights to add, modify, and
-     * delete entries, and the proceed to carry out the operations.
+     * delete entries, and then proceed to carry out the operations.
      *
      * @param args
      *            The command line arguments: host, port
@@ -83,15 +83,15 @@ public final class ShortLife {
         char[] adminPwd = "bribery".toCharArray();
 
         // An entry to add to the directory
-        DN entryDN = DN.valueOf("cn=User,ou=People,dc=example,dc=com");
+        DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
         Entry entry = new TreeMapEntry(entryDN);
-        entry.addAttribute("cn", "User");
+        entry.addAttribute("cn", "Bob");
         entry.addAttribute("objectclass", "top");
         entry.addAttribute("objectclass", "person");
         entry.addAttribute("objectclass", "organizationalPerson");
         entry.addAttribute("objectclass", "inetOrgPerson");
-        entry.addAttribute("mail", "user@example.com");
-        entry.addAttribute("sn", "Surname");
+        entry.addAttribute("mail", "subgenius@example.com");
+        entry.addAttribute("sn", "Dobbs");
 
         LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
@@ -108,8 +108,7 @@ public final class ShortLife {
             }
 
             System.out.println("Creating an entry...");
-            writer.writeEntry(entry);
-            writer.flush();
+            writeToConsole(writer, entry);
             result = connection.add(entry);
             if (!result.isSuccess()) {
                 System.out.println("Add result: "
@@ -123,8 +122,7 @@ public final class ShortLife {
             Entry old = TreeMapEntry.deepCopyOfEntry(entry);
             entry = entry.replaceAttribute("mail", "spammer@example.com");
             entry = entry.addAttribute("description", "Good user gone bad");
-            writer.writeEntry(entry);
-            writer.flush();
+            writeToConsole(writer, entry);
             ModifyRequest request = Entries.diffEntries(old, entry);
             result = connection.modify(request);
             if (!result.isSuccess()) {
@@ -136,11 +134,10 @@ public final class ShortLife {
             System.out.println("...done.");
 
             System.out.println("Renaming the entry...");
-            DN newDN = DN.valueOf("cn=Abuser,ou=People,dc=example,dc=com");
+            DN newDN = DN.valueOf("cn=Ted,ou=People,dc=example,dc=com");
             entry = entry.setName(newDN);
-            writer.writeEntry(entry);
-            writer.flush();
-            result = connection.modifyDN(entryDN.toString(), "cn=Abuser");
+            writeToConsole(writer, entry);
+            result = connection.modifyDN(entryDN.toString(), "cn=Ted");
             if (!result.isSuccess()) {
                 System.out.println("Rename result: "
                         + result.getResultCode().toString() + " "
@@ -150,8 +147,7 @@ public final class ShortLife {
             System.out.println("...done.");
 
             System.out.println("Deleting the entry...");
-            writer.writeEntry(entry);
-            writer.flush();
+            writeToConsole(writer, entry);
             result = connection.delete(newDN.toString());
             if (!result.isSuccess()) {
                 System.out.println("Delete result: "
@@ -181,9 +177,20 @@ public final class ShortLife {
     }
 
     /**
+     * Write the entry in LDIF form to System.out.
+     *
+     * @param entry
+     *            The entry to write to the console.
+     */
+    private static void writeToConsole(LDIFEntryWriter writer, Entry entry) throws IOException {
+        writer.writeEntry(entry);
+        writer.flush();
+    }
+
+    /**
      * Constructor not used.
      */
     private ShortLife() {
-        // Not used
+        // Not used.
     }
 }
