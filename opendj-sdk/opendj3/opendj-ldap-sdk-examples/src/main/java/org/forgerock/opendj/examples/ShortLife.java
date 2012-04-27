@@ -37,7 +37,6 @@ import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TreeMapEntry;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
 /**
@@ -84,14 +83,14 @@ public final class ShortLife {
 
         // An entry to add to the directory
         DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-        Entry entry = new TreeMapEntry(entryDN);
-        entry.addAttribute("cn", "Bob");
-        entry.addAttribute("objectclass", "top");
-        entry.addAttribute("objectclass", "person");
-        entry.addAttribute("objectclass", "organizationalPerson");
-        entry.addAttribute("objectclass", "inetOrgPerson");
-        entry.addAttribute("mail", "subgenius@example.com");
-        entry.addAttribute("sn", "Dobbs");
+        Entry entry = new TreeMapEntry(entryDN.toString())
+            .addAttribute("cn", "Bob")
+            .addAttribute("objectclass", "top")
+            .addAttribute("objectclass", "person")
+            .addAttribute("objectclass", "organizationalPerson")
+            .addAttribute("objectclass", "inetOrgPerson")
+            .addAttribute("mail", "subgenius@example.com")
+            .addAttribute("sn", "Dobbs");
 
         LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
@@ -99,62 +98,32 @@ public final class ShortLife {
         Connection connection = null;
         try {
             connection = factory.getConnection();
-            Result result = connection.bind(adminDN, adminPwd);
-            if (!result.isSuccess()) {
-                System.out.println("Bind result: "
-                        + result.getResultCode().toString() + " "
-                        + result.getDiagnosticMessage());
-                System.exit(result.getResultCode().intValue());
-            }
+            connection.bind(adminDN, adminPwd);
 
             System.out.println("Creating an entry...");
             writeToConsole(writer, entry);
-            result = connection.add(entry);
-            if (!result.isSuccess()) {
-                System.out.println("Add result: "
-                        + result.getResultCode().toString() + " "
-                        + result.getDiagnosticMessage());
-                System.exit(result.getResultCode().intValue());
-            }
+            connection.add(entry);
             System.out.println("...done.");
 
             System.out.println("Updating mail address, adding description...");
             Entry old = TreeMapEntry.deepCopyOfEntry(entry);
-            entry = entry.replaceAttribute("mail", "spammer@example.com");
-            entry = entry.addAttribute("description", "Good user gone bad");
+            entry = entry.replaceAttribute("mail", "spammer@example.com")
+                    .addAttribute("description", "Good user gone bad");
             writeToConsole(writer, entry);
             ModifyRequest request = Entries.diffEntries(old, entry);
-            result = connection.modify(request);
-            if (!result.isSuccess()) {
-                System.out.println("Modify result: "
-                        + result.getResultCode().toString() + " "
-                        + result.getDiagnosticMessage());
-                System.exit(result.getResultCode().intValue());
-            }
+            connection.modify(request);
             System.out.println("...done.");
 
             System.out.println("Renaming the entry...");
             DN newDN = DN.valueOf("cn=Ted,ou=People,dc=example,dc=com");
             entry = entry.setName(newDN);
             writeToConsole(writer, entry);
-            result = connection.modifyDN(entryDN.toString(), "cn=Ted");
-            if (!result.isSuccess()) {
-                System.out.println("Rename result: "
-                        + result.getResultCode().toString() + " "
-                        + result.getDiagnosticMessage());
-                System.exit(result.getResultCode().intValue());
-            }
+            connection.modifyDN(entryDN.toString(), "cn=Ted");
             System.out.println("...done.");
 
             System.out.println("Deleting the entry...");
             writeToConsole(writer, entry);
-            result = connection.delete(newDN.toString());
-            if (!result.isSuccess()) {
-                System.out.println("Delete result: "
-                        + result.getResultCode().toString() + " "
-                        + result.getDiagnosticMessage());
-                System.exit(result.getResultCode().intValue());
-            }
+            connection.delete(newDN.toString());
             System.out.println("...done.");
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());

@@ -113,14 +113,14 @@
 
   <programlisting language="java">// An entry to add to the directory
 DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-Entry entry = new TreeMapEntry(entryDN);
-entry.addAttribute("cn", "Bob");
-entry.addAttribute("objectclass", "top");
-entry.addAttribute("objectclass", "person");
-entry.addAttribute("objectclass", "organizationalPerson");
-entry.addAttribute("objectclass", "inetOrgPerson");
-entry.addAttribute("mail", "subgenius@example.com");
-entry.addAttribute("sn", "Dobbs");
+Entry entry = new TreeMapEntry(entryDN.toString())
+    .addAttribute("cn", "Bob")
+    .addAttribute("objectclass", "top")
+    .addAttribute("objectclass", "person")
+    .addAttribute("objectclass", "organizationalPerson")
+    .addAttribute("objectclass", "inetOrgPerson")
+    .addAttribute("mail", "subgenius@example.com")
+    .addAttribute("sn", "Dobbs");
 
 final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
 Connection connection = null;
@@ -163,8 +163,8 @@ try {
 
     // Here, entry is a user entry with DN cn=Bob,ou=People,dc=example,dc=com.
     Entry old = TreeMapEntry.deepCopyOfEntry(entry);
-    entry = entry.replaceAttribute("mail", "spammer@example.com");
-    entry = entry.addAttribute("description", "I see the fnords.");
+    entry = entry.replaceAttribute("mail", "spammer@example.com")
+            .addAttribute("description", "I see the fnords.");
     ModifyRequest request = Entries.diffEntries(old, entry);
 
     connection.modify(request);
