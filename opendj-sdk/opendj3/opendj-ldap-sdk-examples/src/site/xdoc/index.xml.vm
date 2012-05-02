@@ -81,6 +81,10 @@
           <a href="xref/org/forgerock/opendj/examples/ShortLife.html">Short life</a>
           - illustrates how to create, update, rename, and delete an entry
         </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Controls.html">Use LDAP Controls</a>
+          - illustrates how to use supported LDAP controls
+        </li>
       </ul>
     </section>
     <section name="Get the OpenDJ LDAP SDK Examples">

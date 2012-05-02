@@ -114,7 +114,37 @@ try
  
  <section xml:id="use-assertion-request-control">
   <title>Assertion Request Control</title>
-  <para>TODO</para>
+
+  <para>The <link xlink:href="http://tools.ietf.org/html/rfc4528"
+  xlink:show="new" >LDAP assertion control</link> lets you specify a condition
+  that must be true in order for the operation you request to be processed
+  normally. The following excerpt shows, for example, how you might check
+  that no description exists on the entry before adding your description.</para>
+
+  <programlisting language="java">
+if (isSupported(AssertionRequestControl.OID)) {
+    // Modify Babs Jensen's description if her entry does not have
+    // a description, yet.
+    String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+    ModifyRequest request = Requests.newModifyRequest(dn);
+    request.addControl(AssertionRequestControl.newControl(true,
+            Filter.valueOf("!(description=*)")));
+    request.addModification(ModificationType.ADD, "description",
+            "Created with the help of the LDAP assertion control");
+
+    connection.modify(request);
+
+    LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        writer.writeEntry(connection.readEntry(dn, "description"));
+        writer.close();
+    } catch (final IOException e) {
+        // Ignore.
+    }
+}</programlisting>
+
+  <para>OpenDJ directory server supports the LDAP assertion control.</para>
  </section>
  
  <section xml:id="use-authorization-identity-control">
