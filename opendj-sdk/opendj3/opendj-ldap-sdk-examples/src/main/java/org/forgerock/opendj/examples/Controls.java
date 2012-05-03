@@ -30,14 +30,30 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RootDSE;
+import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
+import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
+import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
+import org.forgerock.opendj.ldap.controls.EntryChangeNotificationResponseControl;
+import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
+import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
+import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
 /**
@@ -52,6 +68,7 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  * to use the LDAP controls needed.
  */
 public final class Controls {
+
     /**
      * Connect to the server, and then try to use some LDAP controls.
      *
@@ -64,8 +81,8 @@ public final class Controls {
             System.err.println("For example: localhost 1389");
             System.exit(1);
         }
-        String host = args[0];
-        int port = Integer.parseInt(args[1]);
+        final String host = args[0];
+        final int port = Integer.parseInt(args[1]);
 
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;
@@ -73,11 +90,18 @@ public final class Controls {
             connection = factory.getConnection();
             checkSupportedControls(connection);
 
-            String user = "cn=Directory Manager";
-            char[] password = "password".toCharArray();
+            final String user = "cn=Directory Manager";
+            final char[] password = "password".toCharArray();
             connection.bind(user, password);
 
-            useAssertionControl(connection);
+            // Uncomment one of the methods:
+
+            //useAssertionControl(connection);
+            useAuthorizationIdentityRequestControl(connection);
+            // For the EntryChangeNotificationResponseControl see
+            // usePersistentSearchRequestControl()
+            //useGetEffectiveRightsRequestControl(connection);
+            //usePersistentSearchRequestControl(connection);
             // TODO: The rest of the supported controls
 
         } catch (final ErrorResultException e) {
@@ -98,16 +122,18 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
      */
     static void useAssertionControl(Connection connection) throws ErrorResultException {
         if (isSupported(AssertionRequestControl.OID)) {
             // Modify Babs Jensen's description if her entry does not have
             // a description, yet.
-            String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
             ModifyRequest request = Requests.newModifyRequest(dn);
-            request.addControl(AssertionRequestControl.newControl(true,
-                    Filter.valueOf("!(description=*)")));
+            request.addControl(AssertionRequestControl.newControl(true, Filter
+                    .valueOf("!(description=*)")));
             request.addModification(ModificationType.ADD, "description",
                     "Created with the help of the LDAP assertion control");
 
@@ -118,7 +144,145 @@ public final class Controls {
                 writer.writeEntry(connection.readEntry(dn, "description"));
                 writer.close();
             } catch (final IOException e) {
-                // Ignore.
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Use the LDAP Authorization Identity Controls to get the authorization ID.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useAuthorizationIdentityRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(AuthorizationIdentityRequestControl.OID)) {
+            final String name = "uid=bjensen,ou=People,dc=example,dc=com";
+            final char[] password = "hifalutin".toCharArray();
+
+            System.out.println("Binding as " + name);
+            BindRequest request = Requests.newSimpleBindRequest(name, password);
+            request.addControl(AuthorizationIdentityRequestControl.newControl(true));
+
+            final BindResult result = connection.bind(request);
+            try {
+                final AuthorizationIdentityResponseControl control =
+                        result.getControl(AuthorizationIdentityResponseControl.DECODER,
+                                new DecodeOptions());
+                System.out.println("Authorization ID returned: "
+                                + control.getAuthorizationID());
+            } catch (final DecodeException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Use the GetEffectiveRights Request Control to determine what sort of
+     * access a user has to particular attributes on an entry.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useGetEffectiveRightsRequestControl(Connection connection)
+            throws ErrorResultException {
+        if (isSupported(GetEffectiveRightsRequestControl.OID)) {
+            final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
+
+            SearchRequest request =
+                    Requests.newSearchRequest(
+                            "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                            "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo");
+            request.addControl(
+                    GetEffectiveRightsRequestControl.newControl(true, authDN, "cn"));
+
+            final ConnectionEntryReader reader = connection.search(request);
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                while (reader.hasNext()) {
+                    if (!reader.isReference()) {
+                        final SearchResultEntry entry = reader.readEntry();
+                        writer.writeEntry(entry);
+                    }
+                }
+                writer.close();
+            } catch (final ErrorResultIOException e) {
+                e.printStackTrace();
+            } catch (final SearchResultReferenceIOException e) {
+                e.printStackTrace();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Use the LDAP PersistentSearchRequestControl to set up a persistent
+     * search. Also use the Entry Change Notification Response Control to get
+     * details about why an entry was returned for a persistent search.
+     *
+     * After you set this up, use another application to make changes to user
+     * entries under dc=example,dc=com.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void usePersistentSearchRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(PersistentSearchRequestControl.OID)) {
+            SearchRequest request =
+                    Requests.newSearchRequest(
+                            "dc=example,dc=com",
+                            SearchScope.WHOLE_SUBTREE,
+                            "(objectclass=inetOrgPerson)",
+                            "cn");
+            request.addControl(PersistentSearchRequestControl.newControl(
+                    true, true, true, // isCritical, changesOnly, returnECs
+                    PersistentSearchChangeType.ADD,
+                    PersistentSearchChangeType.DELETE,
+                    PersistentSearchChangeType.MODIFY,
+                    PersistentSearchChangeType.MODIFY_DN));
+
+            final ConnectionEntryReader reader = connection.search(request);
+
+            try {
+                while (reader.hasNext()) {
+                    if (!reader.isReference()) {
+                        final SearchResultEntry entry = reader.readEntry();
+                        System.out.println("Entry changed: " + entry.getName().toString());
+
+                        final EntryChangeNotificationResponseControl control =
+                                entry.getControl(
+                                        EntryChangeNotificationResponseControl.DECODER,
+                                        new DecodeOptions());
+
+                        final PersistentSearchChangeType type = control.getChangeType();
+                        System.out.println("Change type: " + type.toString());
+                        if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
+                            System.out.println("Previous DN: "
+                                    + control.getPreviousName().toString());
+                        }
+                        System.out.println("Change number: " + control.getChangeNumber());
+                        System.out.println(); // Add a blank line.
+                    }
+                }
+            } catch (final DecodeException e) {
+                e.printStackTrace();
+            } catch (final ErrorResultIOException e) {
+                e.printStackTrace();
+            } catch (final SearchResultReferenceIOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -134,10 +298,10 @@ public final class Controls {
      * @param connection
      *            Active connection to the LDAP server.
      * @throws ErrorResultException
+     *             Failed to get list of controls.
      */
     static void checkSupportedControls(Connection connection) throws ErrorResultException {
-        RootDSE dse = RootDSE.readRootDSE(connection);
-        controls = dse.getSupportedControls();
+        controls = RootDSE.readRootDSE(connection).getSupportedControls();
     }
 
     /**
@@ -148,7 +312,7 @@ public final class Controls {
      *            Check support for this control, provided by OID.
      * @return True if the control is supported.
      */
-    static boolean isSupported(String control) {
+    static boolean isSupported(final String control) {
         if (controls != null && !controls.isEmpty()) {
             return controls.contains(control);
         }
