@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
 import org.forgerock.opendj.ldap.controls.EntryChangeNotificationResponseControl;
 import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
+import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
 import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -53,6 +54,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
@@ -97,11 +99,12 @@ public final class Controls {
             // Uncomment one of the methods:
 
             //useAssertionControl(connection);
-            useAuthorizationIdentityRequestControl(connection);
+            //useAuthorizationIdentityRequestControl(connection);
             // For the EntryChangeNotificationResponseControl see
             // usePersistentSearchRequestControl()
             //useGetEffectiveRightsRequestControl(connection);
             //usePersistentSearchRequestControl(connection);
+            useManageDsaITRequestControl(connection);
             // TODO: The rest of the supported controls
 
         } catch (final ErrorResultException e) {
@@ -224,6 +227,49 @@ public final class Controls {
         }
     }
 
+    /**
+     * Use the ManageDsaIT Request Control to show the difference between a
+     * referral accessed with and without use of the control.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useManageDsaITRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(ManageDsaITRequestControl.OID)) {
+            // This entry is a referral object:
+            final String dn = "dc=references,dc=example,dc=com";
+
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                System.out.println("Referral without the ManageDsaIT control.");
+                SearchRequest request = Requests.newSearchRequest(dn,
+                        SearchScope.BASE_OBJECT, "(objectclass=*)", "");
+                final ConnectionEntryReader reader = connection.search(request);
+                while (reader.hasNext()) {
+                    if (reader.isReference()) {
+                        final SearchResultReference ref = reader.readReference();
+                        System.out.println("Reference: " + ref.getURIs().toString());
+                    }
+                }
+
+                System.out.println("Referral with the ManageDsaIT control.");
+                request.addControl(ManageDsaITRequestControl.newControl(true));
+                final SearchResultEntry entry = connection.searchSingleEntry(request);
+                writer.writeEntry(entry);
+                writer.close();
+            } catch (final ErrorResultIOException e) {
+                e.printStackTrace();
+            } catch (final SearchResultReferenceIOException e) {
+                e.printStackTrace();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     /**
      * Use the LDAP PersistentSearchRequestControl to set up a persistent
      * search. Also use the Entry Change Notification Response Control to get
