@@ -3749,3 +3749,10 @@ objectClass: top
 description: Special Administrative Accounts
 ou: Special Users
 
+dn: dc=references,dc=example,dc=com
+dc: references
+objectClass: extensibleObject
+objectClass: referral
+objectClass: top
+ref: ldap:///ou=People,dc=example,dc=com
+

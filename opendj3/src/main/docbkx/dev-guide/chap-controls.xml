@@ -372,9 +372,50 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(
 </programlisting>
  </section>
  
- <section xml:id="use-manage-dsait-control-control">
-  <title>Manage DSAIT Request Control</title>
-  <para>TODO</para>
+ <section xml:id="use-managedsait-control">
+  <title>ManageDsaIT Request Control</title>
+
+  <para>The ManageDsaIT control, described in <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/rfc3296">RFC 3296, <citetitle>Named
+  Subordinate References in LDAP Directories</citetitle></link>, lets your
+  application handle references and other special entries as normal entries.
+  Use it when you want to read from or write to reference or special
+  entry.</para>
+
+  <programlisting language="java">
+if (isSupported(ManageDsaITRequestControl.OID)) {
+    // This entry is a referral object:
+    final String dn = "dc=references,dc=example,dc=com";
+
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        System.out.println("Referral without the ManageDsaIT control.");
+        SearchRequest request = Requests.newSearchRequest(dn,
+                SearchScope.BASE_OBJECT, "(objectclass=*)", "");
+        final ConnectionEntryReader reader = connection.search(request);
+        while (reader.hasNext()) {
+            if (reader.isReference()) {
+                final SearchResultReference ref = reader.readReference();
+                System.out.println("Reference: " + ref.getURIs().toString());
+            }
+        }
+
+        System.out.println("Referral with the ManageDsaIT control.");
+        request.addControl(ManageDsaITRequestControl.newControl(true));
+        final SearchResultEntry entry = connection.searchSingleEntry(request);
+        writer.writeEntry(entry)
+        writer.close();
+    } catch (final ErrorResultIOException e) {
+        e.printStackTrace();
+    } catch (final SearchResultReferenceIOException e) {
+        e.printStackTrace();
+    } catch (final IOException e) {
+        e.printStackTrace();
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the ManageDsaIT Request Control.</para>
  </section>
  
  <section xml:id="use-matched-values-request-control">
