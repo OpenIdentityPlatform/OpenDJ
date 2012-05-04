@@ -420,7 +420,46 @@ if (isSupported(ManageDsaITRequestControl.OID)) {
  
  <section xml:id="use-matched-values-request-control">
   <title>Matched Values Request Control</title>
-  <para>TODO</para>
+
+  <para>RFC 3876, <link xlink:href="http://tools.ietf.org/html/rfc3876"
+  xlink:show="new"><citetitle>Returning Matched Values with the
+  LDAPv3</citetitle></link>, describes a control that lets your application
+  pass a filter in a search request getting a multivalued attribute such that
+  the directory server only returns attribute values that match the
+  filter.</para>
+
+  <para>Barbara Jensen's entry contains two common name values,
+  <literal>Barbara Jensen</literal> and <literal>Babs Jensen</literal>. The
+  following excerpt retrieves only the latter.</para>
+
+  <programlisting language="java">
+if (isSupported(MatchedValuesRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    SearchRequest request =
+            Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+                    "(objectclass=*)", "cn");
+    final String filter = "cn=Babs Jensen";
+    request.addControl(MatchedValuesRequestControl.newControl(true, filter));
+
+    final SearchResultEntry entry = connection.searchSingleEntry(request);
+    System.out.println("Reading entry with matched values request.");
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final IOException e) {
+        e.printStackTrace();
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the matched values request
+  control.</para>
+
+  <programlisting language="ldif">Reading entry with matched values request.
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Babs Jensen
+</programlisting>
  </section>
  
  <section xml:id="use-password-expired-control">

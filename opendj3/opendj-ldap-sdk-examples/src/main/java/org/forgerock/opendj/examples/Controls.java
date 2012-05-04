@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
 import org.forgerock.opendj.ldap.controls.EntryChangeNotificationResponseControl;
 import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
 import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
+import org.forgerock.opendj.ldap.controls.MatchedValuesRequestControl;
 import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -104,7 +105,8 @@ public final class Controls {
             // usePersistentSearchRequestControl()
             //useGetEffectiveRightsRequestControl(connection);
             //usePersistentSearchRequestControl(connection);
-            useManageDsaITRequestControl(connection);
+            //useManageDsaITRequestControl(connection);
+            useMatchedValuesRequestControl(connection);
             // TODO: The rest of the supported controls
 
         } catch (final ErrorResultException e) {
@@ -270,6 +272,39 @@ public final class Controls {
             }
         }
     }
+
+    /**
+     * Use the Matched Values Request Control to show read only one attribute
+     * value.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useMatchedValuesRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(MatchedValuesRequestControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            SearchRequest request =
+                    Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+                            "(objectclass=*)", "cn");
+            final String filter = "cn=Babs Jensen";
+            request.addControl(MatchedValuesRequestControl.newControl(true, filter));
+
+            final SearchResultEntry entry = connection.searchSingleEntry(request);
+            System.out.println("Reading entry with matched values request.");
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                writer.writeEntry(entry);
+                writer.close();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Use the LDAP PersistentSearchRequestControl to set up a persistent
      * search. Also use the Entry Change Notification Response Control to get
