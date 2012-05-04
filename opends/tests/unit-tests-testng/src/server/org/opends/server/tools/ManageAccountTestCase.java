@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -237,12 +238,14 @@ public class ManageAccountTestCase
   @Test()
   public void testHelpNoSubCommand()
   {
-    assertEquals(ManageAccount.main(new String[] { "-H" }, null, System.err),
+    assertEquals(ManageAccount.main(new String[] { "-H" },
+                                    false, null, System.err),
                  0);
-    assertEquals(ManageAccount.main(new String[] { "--help" }, null,
+    assertEquals(ManageAccount.main(new String[] { "--help" }, false, null,
                                     System.err),
                  0);
-    assertEquals(ManageAccount.main(new String[] { "-?" }, null, System.err),
+    assertEquals(ManageAccount.main(new String[] { "-?" }, false,
+                                    null, System.err),
                  0);
   }
 
@@ -263,7 +266,7 @@ public class ManageAccountTestCase
       "--help"
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -284,7 +287,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, null, null) == 0);
+    assertFalse(ManageAccount.main(args, false, null, null) == 0);
   }
 
 
@@ -306,7 +309,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, null, null) == 0);
+    assertFalse(ManageAccount.main(args, false, null, null) == 0);
   }
 
 
@@ -345,7 +348,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, null, System.err) == 0);
+    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
   }
 
 
@@ -384,7 +387,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, null, System.err) == 0);
+    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
   }
 
 
@@ -425,7 +428,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -467,7 +470,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test",
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -510,7 +513,7 @@ public class ManageAccountTestCase
       "-O", "not-appropriate-for-this-subcommand"
     };
 
-    assertFalse(ManageAccount.main(args, null, System.err) == 0);
+    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
   }
 
 
@@ -553,7 +556,7 @@ public class ManageAccountTestCase
       "-O", "true"
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -596,7 +599,7 @@ public class ManageAccountTestCase
       "-O", "false"
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -639,7 +642,7 @@ public class ManageAccountTestCase
       "-O", "nonboolean"
     };
 
-    assertFalse(ManageAccount.main(args, null, System.err) == 0);
+    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
   }
 
 
@@ -681,7 +684,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -724,7 +727,7 @@ public class ManageAccountTestCase
       "-O", GeneralizedTimeSyntax.format(System.currentTimeMillis())
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 
 
@@ -767,7 +770,7 @@ public class ManageAccountTestCase
       "-O", "invalid"
     };
 
-    assertFalse(ManageAccount.main(args, null, System.err) == 0);
+    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
   }
 
 
@@ -809,7 +812,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test",
     };
 
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
+    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
   }
 }
 
