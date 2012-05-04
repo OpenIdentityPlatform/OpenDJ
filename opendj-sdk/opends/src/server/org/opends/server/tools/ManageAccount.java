@@ -512,7 +512,7 @@ public class ManageAccount
    */
   public static void main(String[] args)
   {
-    int returnCode = main(args, System.out, System.err);
+    int returnCode = main(args, true, System.out, System.err);
     if (returnCode != 0)
     {
       System.exit(filterExitCode(returnCode));
@@ -526,6 +526,7 @@ public class ManageAccount
    * appropriate processing.
    *
    * @param  args       The command-line arguments provided to this program.
+   * @param  initServer Indicates whether to initialize the server.
    * @param  outStream  The output stream to use for standard output, or
    *                    {@code null} if standard output is not needed.
    * @param  errStream  The output stream to use for standard error, or
@@ -533,9 +534,10 @@ public class ManageAccount
    *
    * @return  A result code indicating whether the processing was successful.
    */
-  public static int main(String[] args, OutputStream outStream,
-                         OutputStream errStream)
+  public static int main(String[] args, Boolean initServer,
+                         OutputStream outStream, OutputStream errStream)
   {
+
     if (outStream == null)
     {
       out = NullOutputStream.printStream();
@@ -558,7 +560,7 @@ public class ManageAccount
 
 
     // Parse the command-line arguments provided to the program.
-    int result = parseArgsAndConnect(args);
+    int result = parseArgsAndConnect(args, initServer);
     if (result < 0)
     {
       // This should only happen if we're only displaying usage information or
@@ -832,12 +834,14 @@ public class ManageAccount
    * Initializes the argument parser for this tool, parses the provided
    * arguments, and establishes a connection to the server.
    *
+   * @param args       Command arguments to parse.
+   * @param initServer Indicates whether to initialize the server.
    * @return  A result code that indicates the result of the processing.  A
    *          value of zero indicates that all processing completed
    *          successfully.  A value of -1 indicates that only the usage
    *          information was displayed and no further action is required.
    */
-  private static int parseArgsAndConnect(String[] args)
+  private static int parseArgsAndConnect(String[] args, Boolean initServer)
   {
     argParser = new SubCommandArgumentParser(
             CLASS_NAME, INFO_PWPSTATE_TOOL_DESCRIPTION.get(),
@@ -1248,8 +1252,10 @@ public class ManageAccount
     targetDNString = targetDN.getValue();
 
     // Bootstrap and initialize directory data structures.
-    EmbeddedUtils.initializeForClientUse();
-
+    if (initServer)
+    {
+      EmbeddedUtils.initializeForClientUse();
+    }
     // Create the LDAP connection options object, which will be used to
     // customize the way that we connect to the server and specify a set of
     // basic defaults.
