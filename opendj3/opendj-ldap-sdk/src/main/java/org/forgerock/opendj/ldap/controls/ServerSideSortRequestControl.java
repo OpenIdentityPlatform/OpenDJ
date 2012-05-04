@@ -27,7 +27,11 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_SORTREQ_CONTROL_BAD_OID;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_SORT_KEY_NO_SORT_KEYS;
+import static org.forgerock.opendj.ldap.CoreMessages.INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE;
+import static org.forgerock.opendj.ldap.CoreMessages.INFO_SORTREQ_CONTROL_NO_SORT_KEYS;
+import static org.forgerock.opendj.ldap.CoreMessages.INFO_SORTREQ_CONTROL_NO_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,7 +64,7 @@ import com.forgerock.opendj.util.Validator;
  * some other reason cannot sort the results but still needs them sorted. In
  * cases where the client can sort the results client-side sorting is
  * recommended in order to reduce load on the server. See {@link SortKey} for
- * more an example of client-side sorting.
+ * an example of client-side sorting.
  *
  * @see ServerSideSortResponseControl
  * @see SortKey
@@ -90,6 +94,7 @@ public final class ServerSideSortRequestControl implements Control {
     public static final ControlDecoder<ServerSideSortRequestControl> DECODER =
             new ControlDecoder<ServerSideSortRequestControl>() {
 
+                @Override
                 public ServerSideSortRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Validator.ensureNotNull(control);
@@ -150,6 +155,7 @@ public final class ServerSideSortRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -257,6 +263,7 @@ public final class ServerSideSortRequestControl implements Control {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -276,6 +283,7 @@ public final class ServerSideSortRequestControl implements Control {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -307,6 +315,7 @@ public final class ServerSideSortRequestControl implements Control {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasValue() {
         return true;
     }
@@ -314,6 +323,7 @@ public final class ServerSideSortRequestControl implements Control {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
