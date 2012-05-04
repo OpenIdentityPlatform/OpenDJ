@@ -24,7 +24,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -64,6 +64,7 @@ import static org.opends.server.extensions.
                    PasswordPolicyStateExtendedOperation.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.util.EmbeddedUtils;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -858,6 +859,7 @@ public class ManageAccount
     StringArgument    targetDN;
     StringArgument    trustStoreFile;
     StringArgument    trustStorePW;
+    BooleanArgument   verbose;
 
     try
     {
@@ -974,6 +976,11 @@ public class ManageAccount
                                   null, null,
                                   INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get());
       argParser.addGlobalArgument(trustStorePWFile);
+
+      verbose = new BooleanArgument("verbose", 'v', "verbose",
+                                    INFO_DESCRIPTION_VERBOSE.get());
+      verbose.setPropertyName("verbose");
+      argParser.addGlobalArgument(verbose);
 
       showUsage = new BooleanArgument(
               "showusage", OPTION_SHORT_HELP,
@@ -1240,13 +1247,15 @@ public class ManageAccount
     // Get the target DN as a string for later use.
     targetDNString = targetDN.getValue();
 
+    // Bootstrap and initialize directory data structures.
+    EmbeddedUtils.initializeForClientUse();
 
     // Create the LDAP connection options object, which will be used to
     // customize the way that we connect to the server and specify a set of
     // basic defaults.
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     connectionOptions.setVersionNumber(3);
-
+    connectionOptions.setVerbose(verbose.isPresent());
 
     //  If both a bind password and bind password file were provided, then
     // return an error.
@@ -1376,7 +1385,7 @@ public class ManageAccount
     }
     catch (LDAPConnectionException lce)
     {
-      Message message = null;
+      Message message;
       if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
         lce.getCause().getCause() instanceof SSLException) {
         message = ERR_PWPSTATE_CANNOT_CONNECT_SSL.get(host.getValue(),
