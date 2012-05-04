@@ -29,17 +29,22 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RootDSE;
+import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
@@ -47,13 +52,27 @@ import org.forgerock.opendj.ldap.controls.EntryChangeNotificationResponseControl
 import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
 import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
 import org.forgerock.opendj.ldap.controls.MatchedValuesRequestControl;
+import org.forgerock.opendj.ldap.controls.PasswordExpiredResponseControl;
+import org.forgerock.opendj.ldap.controls.PasswordExpiringResponseControl;
+import org.forgerock.opendj.ldap.controls.PasswordPolicyRequestControl;
+import org.forgerock.opendj.ldap.controls.PasswordPolicyResponseControl;
+import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
 import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
+import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
+import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
+import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -104,9 +123,18 @@ public final class Controls {
             // For the EntryChangeNotificationResponseControl see
             // usePersistentSearchRequestControl()
             //useGetEffectiveRightsRequestControl(connection);
-            //usePersistentSearchRequestControl(connection);
             //useManageDsaITRequestControl(connection);
-            useMatchedValuesRequestControl(connection);
+            //useMatchedValuesRequestControl(connection);
+            //usePasswordExpiredResponseControl(connection);
+            //usePasswordExpiringResponseControl(connection);
+            //usePasswordPolicyRequestControl(connection);
+            //usePermissiveModifyRequestControl(connection);
+            //usePersistentSearchRequestControl(connection);
+            //usePostReadRequestControl(connection);
+            //usePreReadRequestControl(connection);
+            //useProxiedAuthV2RequestControl(connection);
+            //useServerSideSortRequestControl(connection);
+            useSimplePagedResultsControl(connection);
             // TODO: The rest of the supported controls
 
         } catch (final ErrorResultException e) {
@@ -121,7 +149,8 @@ public final class Controls {
     }
 
     /**
-     * Use the LDAP assertion control to perform a trivial modification.
+     * Use the LDAP assertion control to modify Babs Jensen's description if
+     * her entry does not have a description, yet.
      *
      * @param connection
      *            Active connection to LDAP server containing <a
@@ -132,25 +161,26 @@ public final class Controls {
      */
     static void useAssertionControl(Connection connection) throws ErrorResultException {
         if (isSupported(AssertionRequestControl.OID)) {
-            // Modify Babs Jensen's description if her entry does not have
-            // a description, yet.
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
-            ModifyRequest request = Requests.newModifyRequest(dn);
-            request.addControl(AssertionRequestControl.newControl(true, Filter
-                    .valueOf("!(description=*)")));
-            request.addModification(ModificationType.ADD, "description",
-                    "Created with the help of the LDAP assertion control");
+            final ModifyRequest request =
+                    Requests.newModifyRequest(dn)
+                        .addControl(AssertionRequestControl.newControl(
+                                true, Filter.valueOf("!(description=*)")))
+                        .addModification(ModificationType.ADD, "description",
+                                "Created using LDAP assertion control");
 
             connection.modify(request);
 
-            LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
             try {
                 writer.writeEntry(connection.readEntry(dn, "description"));
                 writer.close();
             } catch (final IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("AssertionRequestControl not supported.");
         }
     }
 
@@ -166,12 +196,13 @@ public final class Controls {
      */
     static void useAuthorizationIdentityRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(AuthorizationIdentityRequestControl.OID)) {
-            final String name = "uid=bjensen,ou=People,dc=example,dc=com";
-            final char[] password = "hifalutin".toCharArray();
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final char[] pwd = "hifalutin".toCharArray();
 
-            System.out.println("Binding as " + name);
-            BindRequest request = Requests.newSimpleBindRequest(name, password);
-            request.addControl(AuthorizationIdentityRequestControl.newControl(true));
+            System.out.println("Binding as " + dn);
+            final BindRequest request =
+                    Requests.newSimpleBindRequest(dn, pwd)
+                        .addControl(AuthorizationIdentityRequestControl.newControl(true));
 
             final BindResult result = connection.bind(request);
             try {
@@ -183,6 +214,8 @@ public final class Controls {
             } catch (final DecodeException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("AuthorizationIdentityRequestControl not supported.");
         }
     }
 
@@ -202,12 +235,12 @@ public final class Controls {
         if (isSupported(GetEffectiveRightsRequestControl.OID)) {
             final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
 
-            SearchRequest request =
+            final SearchRequest request =
                     Requests.newSearchRequest(
                             "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
-                            "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo");
-            request.addControl(
-                    GetEffectiveRightsRequestControl.newControl(true, authDN, "cn"));
+                            "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo")
+                            .addControl(GetEffectiveRightsRequestControl.newControl(
+                                    true, authDN, "cn"));
 
             final ConnectionEntryReader reader = connection.search(request);
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
@@ -226,6 +259,8 @@ public final class Controls {
             } catch (final IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("GetEffectiveRightsRequestControl not supported.");
         }
     }
 
@@ -270,6 +305,8 @@ public final class Controls {
             } catch (final IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("ManageDsaITRequestControl not supported.");
         }
     }
 
@@ -287,11 +324,11 @@ public final class Controls {
     static void useMatchedValuesRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(MatchedValuesRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-            SearchRequest request =
+            final SearchRequest request =
                     Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-                            "(objectclass=*)", "cn");
-            final String filter = "cn=Babs Jensen";
-            request.addControl(MatchedValuesRequestControl.newControl(true, filter));
+                            "(objectclass=*)", "cn")
+                            .addControl(MatchedValuesRequestControl.newControl(
+                                    true, "(cn=Babs Jensen)"));
 
             final SearchResultEntry entry = connection.searchSingleEntry(request);
             System.out.println("Reading entry with matched values request.");
@@ -302,6 +339,159 @@ public final class Controls {
             } catch (final IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("MatchedValuesRequestControl not supported.");
+        }
+    }
+
+    /**
+     * Check the Password Expired Response Control. To get this code to output
+     * something, you must first set up an appropriate password policy and wait
+     * for Barbara Jensen's password to expire.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     */
+    static void usePasswordExpiredResponseControl(Connection connection) {
+        if (isSupported(PasswordExpiredResponseControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final char[] pwd = "hifalutin".toCharArray();
+
+            try {
+                connection.bind(dn, pwd);
+            } catch (ErrorResultException e) {
+                final Result result = e.getResult();
+                try {
+                    final PasswordExpiredResponseControl control =
+                            result.getControl(PasswordExpiredResponseControl.DECODER,
+                                    new DecodeOptions());
+                    if (!(control == null) && control.hasValue()) {
+                        System.out.println("Password expired for " + dn);
+                    }
+                } catch (DecodeException de) {
+                    de.printStackTrace();
+                }
+            }
+        } else {
+            System.out.println("PasswordExpiredResponseControl not supported.");
+        }
+    }
+
+    /**
+     * Check the Password Expiring Response Control. To get this code to output
+     * something, you must first set up an appropriate password policy and wait
+     * for Barbara Jensen's password to get old enough that the server starts
+     * warning about expiration.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void usePasswordExpiringResponseControl(Connection connection)
+            throws ErrorResultException {
+        if (isSupported(PasswordExpiringResponseControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final char[] pwd = "hifalutin".toCharArray();
+
+            final BindResult result = connection.bind(dn, pwd);
+            try {
+                final PasswordExpiringResponseControl control =
+                        result.getControl(PasswordExpiringResponseControl.DECODER,
+                                new DecodeOptions());
+                if (!(control == null) && control.hasValue()) {
+                    System.out.println("Password for " + dn + " expires in "
+                            + control.getSecondsUntilExpiration() + " seconds.");
+                }
+            } catch (DecodeException de) {
+                de.printStackTrace();
+            }
+        } else {
+            System.out.println("PasswordExpiringResponseControl not supported");
+        }
+    }
+
+    /**
+     * Use the Password Policy Request and Response Controls. To get this code
+     * to output something, you must first set up an appropriate password policy
+     * and wait for Barbara Jensen's password to get old enough that the server
+     * starts warning about expiration, or for the password to expire.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     */
+    static void usePasswordPolicyRequestControl(Connection connection) {
+        if (isSupported(PasswordPolicyRequestControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final char[] pwd = "hifalutin".toCharArray();
+
+            try {
+                final BindRequest request = Requests.newSimpleBindRequest(dn, pwd)
+                        .addControl(PasswordPolicyRequestControl.newControl(true));
+
+                final BindResult result = connection.bind(request);
+
+                final PasswordPolicyResponseControl control =
+                        result.getControl(PasswordPolicyResponseControl.DECODER,
+                                new DecodeOptions());
+                if (!(control == null) && !(control.getWarningType() == null)) {
+                    System.out.println("Password policy warning "
+                            + control.getWarningType().toString() + ", value "
+                            + control.getWarningValue() + " for " + dn);
+                }
+            } catch (ErrorResultException e) {
+                final Result result = e.getResult();
+                try {
+                    final PasswordPolicyResponseControl control =
+                            result.getControl(PasswordPolicyResponseControl.DECODER,
+                                    new DecodeOptions());
+                    if (!(control == null)) {
+                        System.out.println("Password policy error "
+                                + control.getErrorType().toString() + " for " + dn);
+                    }
+                } catch (DecodeException de) {
+                    de.printStackTrace();
+                }
+            } catch (DecodeException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("PasswordPolicyRequestControl not supported");
+        }
+    }
+
+    /**
+     * Use Permissive Modify Request Control to try to add an attribute that
+     * already exists.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void usePermissiveModifyRequestControl(Connection connection)
+            throws ErrorResultException {
+        if (isSupported(PermissiveModifyRequestControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+            final ModifyRequest request =
+                    Requests.newModifyRequest(dn)
+                        .addControl(PermissiveModifyRequestControl.newControl(true))
+                        .addModification(ModificationType.ADD, "uid", "bjensen");
+
+            connection.modify(request);
+            System.out.println("Permissive modify did not complain about "
+                    + "attempt to add uid: bjensen to " + dn + ".");
+        } else {
+            System.out.println("PermissiveModifyRequestControl not supported");
         }
     }
 
@@ -322,18 +512,16 @@ public final class Controls {
      */
     static void usePersistentSearchRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(PersistentSearchRequestControl.OID)) {
-            SearchRequest request =
+            final SearchRequest request =
                     Requests.newSearchRequest(
-                            "dc=example,dc=com",
-                            SearchScope.WHOLE_SUBTREE,
-                            "(objectclass=inetOrgPerson)",
-                            "cn");
-            request.addControl(PersistentSearchRequestControl.newControl(
-                    true, true, true, // isCritical, changesOnly, returnECs
-                    PersistentSearchChangeType.ADD,
-                    PersistentSearchChangeType.DELETE,
-                    PersistentSearchChangeType.MODIFY,
-                    PersistentSearchChangeType.MODIFY_DN));
+                            "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                            "(objectclass=inetOrgPerson)", "cn")
+                            .addControl(PersistentSearchRequestControl.newControl(
+                                    true, true, true, // isCritical, changesOnly, returnECs
+                                    PersistentSearchChangeType.ADD,
+                                    PersistentSearchChangeType.DELETE,
+                                    PersistentSearchChangeType.MODIFY,
+                                    PersistentSearchChangeType.MODIFY_DN));
 
             final ConnectionEntryReader reader = connection.search(request);
 
@@ -365,6 +553,241 @@ public final class Controls {
             } catch (final SearchResultReferenceIOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("PersistentSearchRequestControl not supported.");
+        }
+    }
+
+
+    /**
+     * Use Post Read Controls to get entry content after a modification.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void usePostReadRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(PostReadRequestControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+            final ModifyRequest request =
+                    Requests.newModifyRequest(dn)
+                    .addControl(PostReadRequestControl.newControl(true, "description"))
+                    .addModification(ModificationType.REPLACE,
+                            "description", "Using the PostReadRequestControl");
+
+            final Result result = connection.modify(request);
+            try {
+                final PostReadResponseControl control =
+                        result.getControl(PostReadResponseControl.DECODER,
+                                new DecodeOptions());
+                final Entry entry = control.getEntry();
+
+                final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+                writer.writeEntry(entry);
+                writer.close();
+            } catch (DecodeException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("PostReadRequestControl not supported");
+        }
+    }
+
+    /**
+     * Use Pre Read Controls to get entry content before a modification.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void usePreReadRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(PreReadRequestControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+            final ModifyRequest request =
+                    Requests.newModifyRequest(dn)
+                    .addControl(PreReadRequestControl.newControl(true, "mail"))
+                    .addModification(
+                            ModificationType.REPLACE, "mail", "modified@example.com");
+
+            final Result result = connection.modify(request);
+            try {
+                final PreReadResponseControl control =
+                        result.getControl(PreReadResponseControl.DECODER,
+                                new DecodeOptions());
+                final Entry entry = control.getEntry();
+
+                final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+                writer.writeEntry(entry);
+                writer.close();
+            } catch (DecodeException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("PreReadRequestControl not supported");
+        }
+    }
+
+    /**
+     * Use proxied authorization to modify an identity as another user.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useProxiedAuthV2RequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(ProxiedAuthV2RequestControl.OID)) {
+            final String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";
+            final String targetDn = "uid=bjensen,ou=People,dc=example,dc=com";
+            final String authzId = "dn:uid=kvaughan,ou=People,dc=example,dc=com";
+
+            final ModifyRequest request =
+                    Requests.newModifyRequest(targetDn)
+                    .addControl(ProxiedAuthV2RequestControl.newControl(authzId))
+                    .addModification(ModificationType.REPLACE, "description",
+                            "Done with proxied authz");
+
+            connection.bind(bindDN, "password".toCharArray());
+            connection.modify(request);
+            final Entry entry = connection.readEntry(targetDn, "description");
+
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                writer.writeEntry(entry);
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("ProxiedAuthV2RequestControl not supported");
+        }
+    }
+
+    /**
+     * Use the server-side sort controls.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useServerSideSortRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(ServerSideSortRequestControl.OID)) {
+            final SearchRequest request =
+                    Requests.newSearchRequest("dc=example,dc=com",
+                            SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+                            .addControl(ServerSideSortRequestControl.newControl(
+                                            true, new SortKey("cn")));
+
+            final SearchResultHandler resultHandler = new MySearchResultHandler();
+            final Result result = connection.search(request, resultHandler);
+
+            try {
+                final ServerSideSortResponseControl control =
+                        result.getControl(ServerSideSortResponseControl.DECODER,
+                                new DecodeOptions());
+                if (control != null && control.getResult() == ResultCode.SUCCESS) {
+                    System.out.println("# Entries are sorted.");
+                    // FIXME: But the order is backwards!
+                } else {
+                    System.out.println("# Entries not necessarily sorted");
+                }
+            } catch (DecodeException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("ServerSideSortRequestControl not supported");
+        }
+    }
+
+    private static class MySearchResultHandler implements SearchResultHandler {
+
+        @Override
+        public void handleErrorResult(ErrorResultException error) {
+            // Ignore.
+        }
+
+        @Override
+        public void handleResult(Result result) {
+            // Ignore.
+        }
+
+        @Override
+        public boolean handleEntry(SearchResultEntry entry) {
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                writer.writeEntry(entry);
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
+        public boolean handleReference(SearchResultReference reference) {
+            System.out.println("Got a reference: " + reference.toString());
+            return false;
+        }
+    }
+
+    /**
+     * Use the simple paged results mechanism.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useSimplePagedResultsControl(Connection connection) throws ErrorResultException {
+        if (isSupported(SimplePagedResultsControl.OID)) {
+            ByteString cookie = ByteString.empty();
+            SearchRequest request;
+            final SearchResultHandler resultHandler = new MySearchResultHandler();
+            Result result;
+
+            int page = 1;
+            do {
+                System.out.println("# Simple paged results: Page " + page);
+
+                request =
+                        Requests.newSearchRequest("dc=example,dc=com",
+                                SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+                                .addControl(SimplePagedResultsControl.newControl(
+                                        true, 3, cookie));
+
+                result = connection.search(request, resultHandler);
+                try {
+                    SimplePagedResultsControl control =
+                            result.getControl(SimplePagedResultsControl.DECODER,
+                                    new DecodeOptions());
+                    cookie = control.getCookie();
+                } catch (DecodeException e) {
+                    e.printStackTrace();
+                }
+
+                ++page;
+            } while (cookie.length() != 0);
+        } else {
+            System.out.println("SimplePagedResultsControl not supported");
         }
     }
 

@@ -61,6 +61,9 @@ aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
 aci: (target="ldap:///dc=example,dc=com") (targetattr =
  "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+aci: (target="ldap:///dc=example,dc=com") (targetattr ="*
+ ")(version 3.0; acl "Allow apps proxied auth"; allow(all, proxy
+ )(userdn = "ldap:///cn=*,ou=Apps,dc=example,dc=com");)
 
 dn: ou=Company Servers,dc=example,dc=com
 objectClass: organizationalUnit
@@ -3755,4 +3758,19 @@ objectClass: extensibleObject
 objectClass: referral
 objectClass: top
 ref: ldap:///ou=People,dc=example,dc=com
+
+dn: ou=Apps,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Apps
+
+dn: cn=My App,ou=Apps,dc=example,dc=com
+cn: My App
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+sn: App
+userPassword: password
+ds-privilege-name: proxied-auth
 
