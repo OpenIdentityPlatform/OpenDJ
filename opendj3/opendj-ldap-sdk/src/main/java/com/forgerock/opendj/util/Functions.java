@@ -22,13 +22,18 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
 
+import java.util.Calendar;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
@@ -64,6 +69,14 @@ public final class Functions {
                 }
             };
 
+    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
+            new Function<ByteString, String, Void>() {
+
+                public String apply(final ByteString value, final Void p) {
+                    return Base64.encode(value);
+                }
+            };
+
     private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN =
             new Function<ByteString, Boolean, Void>() {
 
@@ -79,6 +92,18 @@ public final class Functions {
                     } else {
                         throw new NumberFormatException("Invalid boolean value \"" + valueString
                                 + "\"");
+                    }
+                }
+            };
+
+    private static final Function<ByteString, Calendar, Void> BYTESTRING_TO_CALENDAR =
+            new Function<ByteString, Calendar, Void>() {
+
+                public Calendar apply(final ByteString value, final Void p) {
+                    try {
+                        return GeneralizedTime.decode(value);
+                    } catch (DecodeException e) {
+                        throw new LocalizedIllegalArgumentException(e.getMessageObject(), e);
                     }
                 }
             };
@@ -236,6 +261,15 @@ public final class Functions {
     }
 
     /**
+     * Returns a function which encodes a {@code ByteString} as {@code Base64}.
+     *
+     * @return A function which encodes a {@code ByteString} as {@code Base64}.
+     */
+    public static Function<ByteString, String, Void> valueToBase64() {
+        return BYTESTRING_TO_BASE64;
+    }
+
+    /**
      * Returns a function which parses the string representation of a
      * {@code ByteString} to a {@code Boolean}. The function will accept the
      * values {@code 0}, {@code false}, {@code no}, {@code off}, {@code 1},
@@ -247,6 +281,18 @@ public final class Functions {
      */
     public static Function<ByteString, Boolean, Void> valueToBoolean() {
         return BYTESTRING_TO_BOOLEAN;
+    }
+
+    /**
+     * Returns a function which parses the string representation of a
+     * {@code ByteString} as a generalized time syntax. Invalid values will
+     * result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses the string representation of a
+     *         {@code ByteString} as generalized time syntax.
+     */
+    public static Function<ByteString, Calendar, Void> valueToCalendar() {
+        return BYTESTRING_TO_CALENDAR;
     }
 
     /**

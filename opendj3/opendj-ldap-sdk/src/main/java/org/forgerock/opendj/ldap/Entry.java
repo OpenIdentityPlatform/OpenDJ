@@ -323,6 +323,34 @@ public interface Entry {
     int hashCode();
 
     /**
+     * Returns a parser for the named attribute contained in this entry.
+     *
+     * @param attributeDescription
+     *            The name of the attribute to be parsed.
+     * @return A parser for the named attribute.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} was {@code null}.
+     */
+    AttributeParser parseAttribute(AttributeDescription attributeDescription);
+
+    /**
+     * Returns a parser for the named attribute contained in this entry.
+     * <p>
+     * The attribute description will be decoded using the schema associated
+     * with this entry (usually the default schema).
+     *
+     * @param attributeDescription
+     *            The name of the attribute to be parsed.
+     * @return A parser for the named attribute.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code attributeDescription} could not be decoded using
+     *             the schema associated with this entry.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} was {@code null}.
+     */
+    AttributeParser parseAttribute(String attributeDescription);
+
+    /**
      * Removes all of the attribute values contained in {@code attribute} from
      * this entry if it is present (optional operation). If {@code attribute} is
      * empty then the entire attribute will be removed if it is present.

@@ -163,6 +163,10 @@ public final class Attributes {
             return AbstractAttribute.hashCode(this);
         }
 
+        public AttributeParser parse() {
+            return attribute.parse();
+        }
+
         public boolean isEmpty() {
             return attribute.isEmpty();
         }
@@ -284,6 +288,10 @@ public final class Attributes {
 
         public Iterator<ByteString> iterator() {
             return Iterators.unmodifiableIterator(attribute.iterator());
+        }
+
+        public AttributeParser parse() {
+            return attribute.parse();
         }
 
         public boolean remove(final Object value) {

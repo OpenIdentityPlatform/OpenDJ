@@ -256,6 +256,14 @@ public interface Attribute extends Set<ByteString> {
     Iterator<ByteString> iterator();
 
     /**
+     * Returns a parser for this attribute which can be used for decoding values
+     * as different types of object.
+     *
+     * @return A parser for this attribute.
+     */
+    AttributeParser parse();
+
+    /**
      * Removes {@code value} from this attribute if it is present (optional
      * operation). If this attribute does not contain {@code value}, the call
      * leaves the attribute unchanged and returns {@code false}.
