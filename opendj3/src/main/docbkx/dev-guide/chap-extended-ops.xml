@@ -64,54 +64,152 @@ supportedExtension: 1.3.6.1.4.1.4203.1.11.1
 supportedExtension: 1.3.6.1.4.1.4203.1.11.3
 supportedExtension: 1.3.6.1.4.1.1466.20037</screen>
 
-  <para>The following excerpt shows the Java equivalent of the preceding
-  command.</para>
+  <para>The following excerpt shows code to check for supported extended
+  operations.</para>
 
   <programlisting language="java">
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-  host, port);
-Connection connection = null;
+/**
+ * Controls supported by the LDAP server.
+ */
+private static Collection&lt;String&gt; extendedOperations;
 
-try
-{
-  connection = factory.getConnection();
+/**
+ * Populate the list of supported LDAP extended operation OIDs.
+ * 
+ * @param connection
+ *            Active connection to the LDAP server.
+ * @throws ErrorResultException
+ *             Failed to get list of extended operations.
+ */
+static void checkSupportedExtendedOperations(Connection connection)
+        throws ErrorResultException {
+    extendedOperations = RootDSE.readRootDSE(connection)
+            .getSupportedExtendedOperations();
+}
 
-  // Perform an anonymous search on the root DSE.
-  final SearchResultEntry entry = connection.searchSingleEntry(
-      "",                         // DN is "" for root DSE.
-      SearchScope.BASE_OBJECT,    // Read only the root DSE.
-      "objectclass=*",            // Every object matches this filter.
-      "supportedExtension");      // Check supported extended operations.
-
-  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-  writer.writeComment("Supported extended ops for server " + host + ":" + port);
-  if (entry != null) writer.writeEntry(entry);
-  writer.flush();
-}</programlisting>
+/**
+ * Check whether an extended operation is supported. Call
+ * {@code checkSupportedExtendedOperations} first.
+ * 
+ * @param extendedOperation
+ *            Check support for this extended operation, provided by OID.
+ * @return True if the control is supported.
+ */
+static boolean isSupported(final String extendedOperation) {
+    if (extendedOperations != null &amp;&amp; !extendedOperations.isEmpty()) {
+        return extendedOperations.contains(extendedOperation);
+    }
+    return false;
+}
+</programlisting>
  </section>
  
  <section xml:id="use-cancel-extended-operation">
   <title>Cancel Extended Operation</title>
-  <para>TODO</para>
+
+  <para>RFC 3909, <link xlink:href="http://tools.ietf.org/html/rfc3909"
+  xlink:show="new"><citetitle>LDAP Cancel Operation</citetitle></link>, defines
+  an extended operation that lets you cancel an operation in progress and get
+  an indication of the outcome.</para>
+
+  <para>This cancel extended requests uses the request ID of operation you
+  want to cancel, and so therefore works with asynchronous searches and
+  updates.</para>
+
+  <programlisting language="java">
+TODO
+</programlisting>
+
+  <para>OpenDJ directory server supports the cancel operation.</para>
+
+  <programlisting>TODO</programlisting>
  </section>
- 
+
  <section xml:id="use-password-modify-extended-operation">
   <title>Password Modify Extended Operation</title>
-  <para>TODO</para>
+
+  <para>RFC 3062, <link xlink:href="http://tools.ietf.org/html/rfc3062"
+  xlink:show="new"><citetitle>LDAP Password Modify Extended
+  Operation</citetitle></link>, defines an extended operation for modifying
+  user passwords that does not depend on the authentication identity, nor on
+  the way passwords are stored.</para>
+
+  <programlisting language="java">
+if (isSupported(PasswordModifyExtendedRequest.OID)) {
+    final String userIdentity = "u:scarter";
+    final char[] oldPassword = "sprain".toCharArray();
+    final char[] newPassword = "secret12".toCharArray();
+
+    final PasswordModifyExtendedRequest request =
+            Requests.newPasswordModifyExtendedRequest()
+                .setUserIdentity(userIdentity)
+                .setOldPassword(oldPassword)
+                .setNewPassword(newPassword);
+
+    final PasswordModifyExtendedResult result =
+            connection.extendedRequest(request);
+    if (result.isSuccess()) {
+        System.out.println("Changed password for " + userIdentity);
+    } else {
+        System.err.println(result.getDiagnosticMessage());
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the password modify operation.</para>
+
+  <programlisting>Changed password for u:scarter</programlisting>
  </section>
- 
+
  <section xml:id="use-starttls-extended-operation">
   <title>Start TLS Extended Operation</title>
-  <para>TODO</para>
+
+  <para>Use Start TLS when setting up your connection to protect what your
+  application sends to and receives from the directory server. For an example,
+  read the section on <link
+  xlink:href="dev-guide#simple-auth-with-starttls-or-ssl"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Start TLS &amp;
+  SSL Authentication</citetitle></link>.</para>
  </section>
- 
+
  <section xml:id="use-who-am-i-extended-operation">
   <title>Who am I? Extended Operation</title>
-  <para>TODO</para>
+
+  <para>RFC 4532, <link xlink:href="http://tools.ietf.org/html/rfc4532"
+  xlink:show="new"><citetitle>LDAP "Who am I?" Operation</citetitle></link>,
+  defines an extended operation that lets your application determine the
+  current authorization ID.</para>
+
+  <programlisting language="java">
+if (isSupported(WhoAmIExtendedRequest.OID)) {
+
+    final String name = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] password = "hifalutin".toCharArray();
+
+    final Result result = connection.bind(name, password);
+    if (result.isSuccess()) {
+
+        final WhoAmIExtendedRequest request =
+                Requests.newWhoAmIExtendedRequest();
+        final WhoAmIExtendedResult extResult =
+                connection.extendedRequest(request);
+
+        if (extResult.isSuccess()) {
+            System.out.println("Authz ID: "  + extResult.getAuthorizationID());
+        }
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the "Who am I?" operation.</para>
+
+  <programlisting
+  >Authz ID: dn:uid=bjensen,ou=People,dc=example,dc=com</programlisting>
  </section>
- 
+
  <section xml:id="custom-extended-operation">
   <title>Custom Extended Operations</title>
+
   <para>TODO</para>
  </section>
 </chapter>

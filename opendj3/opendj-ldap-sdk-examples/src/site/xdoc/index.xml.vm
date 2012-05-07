@@ -85,6 +85,11 @@
           <a href="xref/org/forgerock/opendj/examples/Controls.html">Use LDAP Controls</a>
           - illustrates how to use supported LDAP controls
         </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ExtendedOperations.html">Use
+          LDAP Extended Operations</a> - illustrates how to use supported LDAP extended
+          operations
+        </li>
       </ul>
     </section>
     <section name="Get the OpenDJ LDAP SDK Examples">
