@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -36,7 +36,9 @@ import java.io.IOException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
@@ -159,7 +161,15 @@ public final class SubentriesRequestControl implements Control {
      * {@inheritDoc}
      */
     public ByteString getValue() {
-        return null;
+        final ByteStringBuilder buffer = new ByteStringBuilder();
+        final ASN1Writer writer = ASN1.getWriter(buffer);
+        try {
+            writer.writeBoolean(visibility);
+            return buffer.toByteString();
+        } catch (final IOException ioe) {
+            // This should never happen unless there is a bug somewhere.
+            throw new RuntimeException(ioe);
+        }
     }
 
     /**
