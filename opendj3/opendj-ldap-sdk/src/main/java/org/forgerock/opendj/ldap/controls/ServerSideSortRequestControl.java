@@ -290,7 +290,7 @@ public final class ServerSideSortRequestControl implements Control {
                             .getOrderingMatchingRule());
                 }
 
-                if (!sortKey.isReverseOrder()) {
+                if (sortKey.isReverseOrder()) {
                     writer.writeBoolean(TYPE_REVERSE_ORDER, true);
                 }
 
