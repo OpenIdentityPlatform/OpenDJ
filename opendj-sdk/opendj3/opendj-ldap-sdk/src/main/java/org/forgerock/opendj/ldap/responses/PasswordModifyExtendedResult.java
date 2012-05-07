@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * succeeded.
  *
  * @see org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest
- * @see <a href="http://tools.ietf.org/html/rfc3909">RFC 3062 - LDAP Password
+ * @see <a href="tools.ietf.org/html/rfc3062">RFC 3062 - LDAP Password
  *      Modify Extended Operation </a>
  */
 public interface PasswordModifyExtendedResult extends ExtendedResult {
