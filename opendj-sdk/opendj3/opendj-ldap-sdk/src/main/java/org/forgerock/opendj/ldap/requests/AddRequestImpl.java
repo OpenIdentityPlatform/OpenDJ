@@ -31,6 +31,7 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -258,6 +259,20 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements Ad
     @Override
     public int hashCode() {
         return entry.hashCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+        return entry.parseAttribute(attributeDescription);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeParser parseAttribute(String attributeDescription) {
+        return entry.parseAttribute(attributeDescription);
     }
 
     /**

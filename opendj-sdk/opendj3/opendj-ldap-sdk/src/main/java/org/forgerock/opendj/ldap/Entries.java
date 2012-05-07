@@ -180,6 +180,20 @@ public final class Entries {
         /**
          * {@inheritDoc}
          */
+        public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+            return entry.parseAttribute(attributeDescription);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public AttributeParser parseAttribute(String attributeDescription) {
+            return entry.parseAttribute(attributeDescription);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public boolean removeAttribute(final Attribute attribute,
                 final Collection<ByteString> missingValues) {

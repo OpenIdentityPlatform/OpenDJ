@@ -234,6 +234,20 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+        return AttributeParser.parseAttribute(getAttribute(attributeDescription));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeParser parseAttribute(String attributeDescription) {
+        return AttributeParser.parseAttribute(getAttribute(attributeDescription));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public boolean removeAttribute(final AttributeDescription attributeDescription) {
         return removeAttribute(Attributes.emptyAttribute(attributeDescription), null);
     }

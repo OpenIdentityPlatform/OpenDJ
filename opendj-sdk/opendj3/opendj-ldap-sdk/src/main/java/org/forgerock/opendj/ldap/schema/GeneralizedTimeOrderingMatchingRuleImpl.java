@@ -22,12 +22,15 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+
+import com.forgerock.opendj.util.GeneralizedTime;
 
 /**
  * This class defines the generalizedTimeOrderingMatch matching rule defined in
@@ -36,6 +39,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 final class GeneralizedTimeOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
-        return ByteString.valueOf(GeneralizedTimeSyntaxImpl.decodeGeneralizedTimeValue(value));
+        return ByteString.valueOf(GeneralizedTime.decode(value).getTimeInMillis());
     }
 }

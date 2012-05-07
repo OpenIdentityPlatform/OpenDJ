@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -30,6 +31,7 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -123,6 +125,14 @@ final class UnmodifiableAddRequestImpl extends AbstractUnmodifiableRequest<AddRe
 
     public DN getName() {
         return impl.getName();
+    }
+
+    public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+        return impl.parseAttribute(attributeDescription);
+    }
+
+    public AttributeParser parseAttribute(String attributeDescription) {
+        return impl.parseAttribute(attributeDescription);
     }
 
     public boolean removeAttribute(Attribute attribute, Collection<ByteString> missingValues) {

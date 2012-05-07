@@ -265,6 +265,13 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
     /**
      * {@inheritDoc}
      */
+    public AttributeParser parse() {
+        return AttributeParser.parseAttribute(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public abstract Iterator<ByteString> iterator();
 
