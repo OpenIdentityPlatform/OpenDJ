@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -641,24 +642,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
         case 'Z':
             // This is fine only if we are at the end of the value.
             if (length == 11) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = TIME_ZONE_UTC_OBJ;
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -673,25 +658,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
             if (length == 13 || length == 15) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(getTimeZoneForOffset(valueString, 10));
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = getTimeZoneForOffset(valueString, 10);
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -819,25 +787,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
         case 'Z':
             // This is fine only if we are at the end of the value.
             if (length == 13) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = TIME_ZONE_UTC_OBJ;
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -852,25 +803,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
             if (length == 15 || length == 17) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(getTimeZoneForOffset(valueString, 12));
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = getTimeZoneForOffset(valueString, 12);
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -907,24 +841,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
         case 'Z':
             // This is fine only if we are at the end of the value.
             if (length == 15) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = TIME_ZONE_UTC_OBJ;
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -939,24 +857,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
             if (length == 17 || length == 19) {
-                try {
-                    final GregorianCalendar calendar = new GregorianCalendar();
-                    calendar.setLenient(false);
-                    calendar.setTimeZone(getTimeZoneForOffset(valueString, 14));
-                    calendar.set(year, month, day, hour, minute, second);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    return calendar.getTimeInMillis();
-                } catch (final Exception e) {
-                    // This should only happen if the provided date wasn't legal
-                    // (e.g., September 31).
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, String
-                                    .valueOf(e));
-                    final DecodeException de = DecodeException.error(message, e);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-                    throw de;
-                }
+                final TimeZone tz = getTimeZoneForOffset(valueString, 14);
+                return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
@@ -973,6 +875,28 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
             final DecodeException e = DecodeException.error(message);
             StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
             throw e;
+        }
+    }
+
+    private static long createTime(final String value, int year, int month, int day, int hour,
+            int minute, int second, final TimeZone tz) throws DecodeException {
+        try {
+            final GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setLenient(false);
+            calendar.setTimeZone(tz);
+            calendar.set(year, month, day, hour, minute, second);
+            calendar.set(Calendar.MILLISECOND, 0);
+            return calendar.getTimeInMillis();
+        } catch (final Exception e) {
+            // This should only happen if the provided date wasn't legal
+            // (e.g., September 31).
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, String
+                            .valueOf(e));
+            final DecodeException de = DecodeException.error(message, e);
+            StaticUtils.DEBUG_LOG
+                    .throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
+            throw de;
         }
     }
 
