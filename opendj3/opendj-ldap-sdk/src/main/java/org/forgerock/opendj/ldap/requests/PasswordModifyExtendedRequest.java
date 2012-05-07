@@ -46,7 +46,7 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
  * well as for generating a new password if none was provided.
  *
  * @see PasswordModifyExtendedResult
- * @see <a href="http://tools.ietf.org/html/rfc3909">RFC 3062 - LDAP Password
+ * @see <a href="tools.ietf.org/html/rfc3062">RFC 3062 - LDAP Password
  *      Modify Extended Operation </a>
  */
 public interface PasswordModifyExtendedRequest extends
