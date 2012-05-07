@@ -64,8 +64,7 @@ public final class LinkedAttribute extends AbstractAttribute {
 
         boolean containsAll(final LinkedAttribute attribute, final Collection<?> values) {
             // TODO: could optimize if objects is a LinkedAttribute having the
-            // same
-            // equality matching rule.
+            // same equality matching rule.
             for (final Object value : values) {
                 if (!contains(attribute, ByteString.valueOf(value))) {
                     return false;
@@ -171,8 +170,7 @@ public final class LinkedAttribute extends AbstractAttribute {
         <T> boolean retainAll(final LinkedAttribute attribute, final Collection<T> values,
                 final Collection<? super T> missingValues) {
             // TODO: could optimize if objects is a LinkedAttribute having the
-            // same
-            // equality matching rule.
+            // same equality matching rule.
             if (values.isEmpty()) {
                 clear(attribute);
                 return true;
@@ -324,8 +322,7 @@ public final class LinkedAttribute extends AbstractAttribute {
         <T> boolean retainAll(final LinkedAttribute attribute, final Collection<T> values,
                 final Collection<? super T> missingValues) {
             // TODO: could optimize if objects is a LinkedAttribute having the
-            // same
-            // equality matching rule.
+            // same equality matching rule.
             if (values.isEmpty()) {
                 clear(attribute);
                 return true;
