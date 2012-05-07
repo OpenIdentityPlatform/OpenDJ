@@ -100,23 +100,24 @@ public final class MatchingRule extends SchemaElement {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns {@code true} if the provided object is a matching rule having the
+     * same numeric OID as this matching rule.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a matching rule having the
+     *         same numeric OID as this matching rule.
      */
     @Override
     public boolean equals(final Object o) {
-        if (o == null) {
-            return false;
-        }
-
         if (this == o) {
             return true;
-        }
-
-        if (!(o instanceof MatchingRule)) {
+        } else if (o instanceof MatchingRule) {
+            final MatchingRule other = (MatchingRule) o;
+            return oid.equals(other.oid);
+        } else {
             return false;
         }
-
-        return getOID().equals(((MatchingRule) o).getOID());
     }
 
     /**
@@ -238,7 +239,10 @@ public final class MatchingRule extends SchemaElement {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the hash code for this matching rule. It will be calculated as
+     * the hash code of the numeric OID.
+     *
+     * @return The hash code for this matching rule.
      */
     @Override
     public int hashCode() {

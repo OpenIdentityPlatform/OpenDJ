@@ -98,6 +98,27 @@ public final class NameForm extends SchemaElement {
     }
 
     /**
+     * Returns {@code true} if the provided object is a name form having the
+     * same numeric OID as this name form.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a name form having the
+     *         same numeric OID as this name form.
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof NameForm) {
+            final NameForm other = (NameForm) o;
+            return oid.equals(other.oid);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Returns the name or OID for this schema definition. If it has one or more
      * names, then the primary name will be returned. If it does not have any
      * names, then the OID will be returned.
@@ -163,6 +184,12 @@ public final class NameForm extends SchemaElement {
         return structuralClass;
     }
 
+    /**
+     * Returns the hash code for this name form. It will be calculated as the
+     * hash code of the numeric OID.
+     *
+     * @return The hash code for this name form.
+     */
     @Override
     public int hashCode() {
         return oid.hashCode();

@@ -105,6 +105,27 @@ public final class DITContentRule extends SchemaElement {
     }
 
     /**
+     * Returns {@code true} if the provided object is a DIT content rule having
+     * the same structural object class OID as this DIT content rule.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a DIT content rule having
+     *         the same numeric OID as this DIT content rule.
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof DITContentRule) {
+            final DITContentRule other = (DITContentRule) o;
+            return structuralClassOID.equals(other.structuralClassOID);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Returns an unmodifiable set containing the auxiliary objectclasses that
      * may be used for entries associated with this DIT content rule.
      *
@@ -191,6 +212,12 @@ public final class DITContentRule extends SchemaElement {
         return structuralClassOID;
     }
 
+    /**
+     * Returns the hash code for this DIT content rule. It will be calculated as
+     * the hash code of the structural object class OID.
+     *
+     * @return The hash code for this DIT content rule.
+     */
     @Override
     public int hashCode() {
         return structuralClassOID.hashCode();

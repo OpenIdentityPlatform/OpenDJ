@@ -46,74 +46,6 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
     /**
-     * {@inheritDoc}
-     */
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        try {
-            DN dn = DN.valueOf(value.toString(), schema.asNonStrictSchema());
-            StringBuilder builder = new StringBuilder(value.length());
-            return ByteString.valueOf(normalizeDN(builder, dn));
-        } catch (final LocalizedIllegalArgumentException e) {
-            throw DecodeException.error(e.getMessageObject());
-        }
-    }
-
-    /**
-     * Returns the normalized string representation of a DN.
-     *
-     * @param builder
-     *            The StringBuilder to use to construct the normalized string.
-     * @param dn
-     *            The DN.
-     * @return The normalized string representation of the provided DN.
-     */
-    private static StringBuilder normalizeDN(final StringBuilder builder, final DN dn) {
-        if (dn.rdn() == null) {
-            return builder;
-        }
-
-        int i = dn.size() - 1;
-        normalizeRDN(builder, dn.parent(i).rdn());
-        for (i--; i >= 0; i--) {
-            builder.append('\u0000');
-            normalizeRDN(builder, dn.parent(i).rdn());
-        }
-        return builder;
-    }
-
-    /**
-     * Returns the normalized string representation of a RDN.
-     *
-     * @param builder
-     *            The StringBuilder to use to construct the normalized string.
-     * @param rdn
-     *            The RDN.
-     * @return The normalized string representation of the provided RDN.
-     */
-    private static StringBuilder normalizeRDN(final StringBuilder builder, final RDN rdn) {
-        final int sz = rdn.size();
-        if (sz == 1) {
-            return normalizeAVA(builder, rdn.getFirstAVA());
-        } else {
-            // Need to sort the AVAs before comparing.
-            TreeSet<AVA> a = new TreeSet<AVA>();
-            for (AVA ava : rdn) {
-                a.add(ava);
-            }
-            Iterator<AVA> i = a.iterator();
-            // Normalize the first AVA.
-            normalizeAVA(builder, i.next());
-            while (i.hasNext()) {
-                builder.append('\u0001');
-                normalizeAVA(builder, i.next());
-            }
-
-            return builder;
-        }
-    }
-
-    /**
      * Returns the normalized string representation of an AVA.
      *
      * @param builder
@@ -180,5 +112,73 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractMatchingRu
             }
         }
         return builder;
+    }
+
+    /**
+     * Returns the normalized string representation of a DN.
+     *
+     * @param builder
+     *            The StringBuilder to use to construct the normalized string.
+     * @param dn
+     *            The DN.
+     * @return The normalized string representation of the provided DN.
+     */
+    private static StringBuilder normalizeDN(final StringBuilder builder, final DN dn) {
+        if (dn.rdn() == null) {
+            return builder;
+        }
+
+        int i = dn.size() - 1;
+        normalizeRDN(builder, dn.parent(i).rdn());
+        for (i--; i >= 0; i--) {
+            builder.append('\u0000');
+            normalizeRDN(builder, dn.parent(i).rdn());
+        }
+        return builder;
+    }
+
+    /**
+     * Returns the normalized string representation of a RDN.
+     *
+     * @param builder
+     *            The StringBuilder to use to construct the normalized string.
+     * @param rdn
+     *            The RDN.
+     * @return The normalized string representation of the provided RDN.
+     */
+    private static StringBuilder normalizeRDN(final StringBuilder builder, final RDN rdn) {
+        final int sz = rdn.size();
+        if (sz == 1) {
+            return normalizeAVA(builder, rdn.getFirstAVA());
+        } else {
+            // Need to sort the AVAs before comparing.
+            TreeSet<AVA> a = new TreeSet<AVA>();
+            for (AVA ava : rdn) {
+                a.add(ava);
+            }
+            Iterator<AVA> i = a.iterator();
+            // Normalize the first AVA.
+            normalizeAVA(builder, i.next());
+            while (i.hasNext()) {
+                builder.append('\u0001');
+                normalizeAVA(builder, i.next());
+            }
+
+            return builder;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
+            throws DecodeException {
+        try {
+            DN dn = DN.valueOf(value.toString(), schema.asNonStrictSchema());
+            StringBuilder builder = new StringBuilder(value.length());
+            return ByteString.valueOf(normalizeDN(builder, dn));
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw DecodeException.error(e.getMessageObject());
+        }
     }
 }
