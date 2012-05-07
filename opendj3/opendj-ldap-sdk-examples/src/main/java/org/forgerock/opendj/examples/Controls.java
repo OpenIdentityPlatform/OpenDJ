@@ -67,7 +67,12 @@ import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
 import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
+import org.forgerock.opendj.ldap.controls.SubentriesRequestControl;
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
+import org.forgerock.opendj.ldap.controls.VirtualListViewRequestControl;
+import org.forgerock.opendj.ldap.controls.VirtualListViewResponseControl;
 import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -116,10 +121,10 @@ public final class Controls {
             final char[] password = "password".toCharArray();
             connection.bind(user, password);
 
-            // Uncomment one of the methods:
+            // Uncomment a method to run one of the examples.
 
             //useAssertionControl(connection);
-            //useAuthorizationIdentityRequestControl(connection);
+            useAuthorizationIdentityRequestControl(connection);
             // For the EntryChangeNotificationResponseControl see
             // usePersistentSearchRequestControl()
             //useGetEffectiveRightsRequestControl(connection);
@@ -134,8 +139,10 @@ public final class Controls {
             //usePreReadRequestControl(connection);
             //useProxiedAuthV2RequestControl(connection);
             //useServerSideSortRequestControl(connection);
-            useSimplePagedResultsControl(connection);
-            // TODO: The rest of the supported controls
+            //useSimplePagedResultsControl(connection);
+            //useSubentriesRequestControl(connection);
+            //useSubtreeDeleteRequestControl(connection);
+            //useVirtualListViewRequestControl(connection);
 
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
@@ -277,14 +284,13 @@ public final class Controls {
      */
     static void useManageDsaITRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(ManageDsaITRequestControl.OID)) {
-            // This entry is a referral object:
-            final String dn = "dc=references,dc=example,dc=com";
+            final String dn = "dc=ref,dc=com";
 
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
             try {
                 System.out.println("Referral without the ManageDsaIT control.");
                 SearchRequest request = Requests.newSearchRequest(dn,
-                        SearchScope.BASE_OBJECT, "(objectclass=*)", "");
+                        SearchScope.SUBORDINATES, "(objectclass=*)", "");
                 final ConnectionEntryReader reader = connection.search(request);
                 while (reader.hasNext()) {
                     if (reader.isReference()) {
@@ -690,7 +696,7 @@ public final class Controls {
     static void useServerSideSortRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(ServerSideSortRequestControl.OID)) {
             final SearchRequest request =
-                    Requests.newSearchRequest("dc=example,dc=com",
+                    Requests.newSearchRequest("ou=People,dc=example,dc=com",
                             SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
                             .addControl(ServerSideSortRequestControl.newControl(
                                             true, new SortKey("cn")));
@@ -704,7 +710,6 @@ public final class Controls {
                                 new DecodeOptions());
                 if (control != null && control.getResult() == ResultCode.SUCCESS) {
                     System.out.println("# Entries are sorted.");
-                    // FIXME: But the order is backwards!
                 } else {
                     System.out.println("# Entries not necessarily sorted");
                 }
@@ -788,6 +793,135 @@ public final class Controls {
             } while (cookie.length() != 0);
         } else {
             System.out.println("SimplePagedResultsControl not supported");
+        }
+    }
+
+    /**
+     * Use the subentries request control.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useSubentriesRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(SubentriesRequestControl.OID)) {
+            final SearchRequest request =
+                    Requests.newSearchRequest("dc=example,dc=com",
+                                SearchScope.WHOLE_SUBTREE,
+                                "cn=*Class of Service", "*", "+")
+                            .addControl(SubentriesRequestControl.newControl(
+                                true, true));
+
+            final ConnectionEntryReader reader = connection.search(request);
+            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+            try {
+                while (reader.hasNext()) {
+                    if (reader.isEntry()) {
+                        final SearchResultEntry entry = reader.readEntry();
+                        writer.writeEntry(entry);
+                    }
+                }
+                writer.close();
+            } catch (ErrorResultIOException e) {
+                e.printStackTrace();
+            } catch (SearchResultReferenceIOException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("SubentriesRequestControl not supported");
+        }
+    }
+
+    /**
+     * Use the subtree delete control.
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useSubtreeDeleteRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(SubtreeDeleteRequestControl.OID)) {
+
+            final String dn = "ou=Apps,dc=example,dc=com";
+            final DeleteRequest request =
+                    Requests.newDeleteRequest(dn)
+                            .addControl(SubtreeDeleteRequestControl.newControl(true));
+
+            final Result result = connection.delete(request);
+            if (result.isSuccess()) {
+                System.out.println("Successfully deleted " + dn
+                        + " and all entries below.");
+            } else {
+                System.out.println("Result: " + result.getDiagnosticMessage());
+            }
+        } else {
+            System.out.println("SubtreeDeleteRequestControl not supported");
+        }
+    }
+
+    /**
+     * Use the virtual list view controls. In order to set up OpenDJ directory
+     * server to produce the following output with the example code, use OpenDJ
+     * Control Panel &gt; Manage Indexes &gt; New VLV Index... to set up a
+     * virtual list view index for people by last name, using the filter
+     * {@code (|(givenName=*)(sn=*))}, and sorting first by surname, {@code sn},
+     * in ascending order, then by given name also in ascending order
+     *
+     * @param connection
+     *            Active connection to LDAP server containing <a
+     *            href="http://opendj.forgerock.org/Example.ldif"
+     *            >Example.ldif</a> content.
+     * @throws ErrorResultException
+     *             Operation failed.
+     */
+    static void useVirtualListViewRequestControl(Connection connection) throws ErrorResultException {
+        if (isSupported(VirtualListViewRequestControl.OID)) {
+            ByteString contextID = ByteString.empty();
+
+            // Add a window of 2 entries on either side of the first sn=Jensen entry.
+            final SearchRequest request =
+                    Requests.newSearchRequest("ou=People,dc=example,dc=com",
+                            SearchScope.WHOLE_SUBTREE, "(sn=*)", "sn", "givenName")
+                            .addControl(ServerSideSortRequestControl.newControl(
+                                    true, new SortKey("sn")))
+                            .addControl(
+                                    VirtualListViewRequestControl.newAssertionControl(
+                                            true,
+                                            ByteString.valueOf("Jensen"),
+                                            2, 2, contextID));
+
+            final SearchResultHandler resultHandler = new MySearchResultHandler();
+            final Result result = connection.search(request, resultHandler);
+
+            try {
+                final ServerSideSortResponseControl sssControl =
+                        result.getControl(ServerSideSortResponseControl.DECODER,
+                                new DecodeOptions());
+                if (sssControl != null && sssControl.getResult() == ResultCode.SUCCESS) {
+                    System.out.println("# Entries are sorted.");
+                } else {
+                    System.out.println("# Entries not necessarily sorted");
+                }
+
+                final VirtualListViewResponseControl vlvControl =
+                        result.getControl(VirtualListViewResponseControl.DECODER,
+                                new DecodeOptions());
+                System.out.println("# Position in list: "
+                        + vlvControl.getTargetPosition() + "/"
+                        + vlvControl.getContentCount());
+            } catch (DecodeException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("VirtualListViewRequestControl not supported");
         }
     }
 

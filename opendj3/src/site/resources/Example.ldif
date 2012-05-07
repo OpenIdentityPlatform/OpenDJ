@@ -25,13 +25,6 @@
 #
 # dc=com sample LDIF file
 #
-# Notes:
-#   161 total entries.
-#     2 (objectclass=domain) entries (dc=example,dc=com).
-#     4 (objectclass=organizationalunit) entries.
-#     5 (objectclass=groupofuniquenames) entries.
-#   150 (objectclass=person) entries (all under ou=people,dc=example,dc=com).
-#
 # Schema definition for use with Class of Service collective attributes:
 #
 #dn: cn=schema
@@ -42,10 +35,24 @@
 # SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE USAGE user
 # Applications X-ORIGIN 'OpenDJ Documentation Examples' )
 #-
+#add: attributeTypes
+#attributeTypes: ( example-class-of-service-disk-quota NAME 'diskQuota
+# ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+# IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+# Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+#-
+#add: attributeTypes
+#attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
+# ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+# IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+# Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+#-
 #add: objectClasses
 #objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
-# ILIARY MAY classOfService X-ORIGIN 'OpenDJ Documentation Examples' )
+# ILIARY MAY classOfService $ diskQuota $ mailQuota X-ORIGIN 'OpenDJ Doc
+# umentation Examples' )
 #
+
 dn: dc=com
 objectClass: domain
 objectClass: top
@@ -3746,18 +3753,45 @@ ou: People
 uidNumber: 1109
 gidNumber: 1000
 
+# Quotas by class of service
+dn: cn=Bronze Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Bronze Class of Service
+diskQuota;collective: 10 GB
+mailQuota;collective: 1 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Silver Class of Service
+diskQuota;collective: 50 GB
+mailQuota;collective: 5 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Gold Class of Service
+diskQuota;collective: 100 GB
+mailQuota;collective: 10 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+
 dn: ou=Special Users,dc=example,dc=com
 objectClass: organizationalUnit
 objectClass: top
 description: Special Administrative Accounts
 ou: Special Users
-
-dn: dc=references,dc=example,dc=com
-dc: references
-objectClass: extensibleObject
-objectClass: referral
-objectClass: top
-ref: ldap:///ou=People,dc=example,dc=com
 
 dn: ou=Apps,dc=example,dc=com
 objectClass: organizationalUnit
@@ -3773,4 +3807,17 @@ objectClass: top
 sn: App
 userPassword: password
 ds-privilege-name: proxied-auth
+
+# Create a new base DN, dc=ref,dc=com, before importing these entries:
+dn: dc=ref,dc=com
+objectClass: domain
+objectClass: top
+dc: ref
+
+dn: dc=references,dc=ref,dc=com
+dc: references
+objectClass: extensibleObject
+objectClass: referral
+objectClass: top
+ref: ldap:///dc=example,dc=com
 
