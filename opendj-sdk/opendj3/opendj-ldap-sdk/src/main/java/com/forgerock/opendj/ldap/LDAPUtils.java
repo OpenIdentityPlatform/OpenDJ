@@ -267,13 +267,13 @@ public final class LDAPUtils {
             return decodeSubstringsFilter(reader);
 
         case TYPE_FILTER_PRESENCE:
-            return Filter.newPresentFilter(reader.readOctetStringAsString(type));
+            return Filter.present(reader.readOctetStringAsString(type));
 
         case TYPE_FILTER_EXTENSIBLE_MATCH:
             return decodeExtensibleMatchFilter(reader);
 
         default:
-            return Filter.newUnrecognizedFilter(type, reader.readOctetString(type));
+            return Filter.unrecognized(type, reader.readOctetString(type));
         }
     }
 
@@ -349,10 +349,10 @@ public final class LDAPUtils {
                 do {
                     subFilters.add(decodeFilter(reader));
                 } while (reader.hasNextElement());
-                filter = Filter.newAndFilter(subFilters);
+                filter = Filter.and(subFilters);
             } else {
                 // No sub-filters - this is an RFC 4526 absolute true filter.
-                filter = Filter.getAbsoluteTrueFilter();
+                filter = Filter.alwaysTrue();
             }
         } finally {
             reader.readEndSequence();
@@ -374,7 +374,7 @@ public final class LDAPUtils {
             reader.readEndSequence();
         }
 
-        return Filter.newApproxMatchFilter(attributeDescription, assertionValue);
+        return Filter.approx(attributeDescription, assertionValue);
     }
 
     // Decodes an equality match filter.
@@ -390,7 +390,7 @@ public final class LDAPUtils {
             reader.readEndSequence();
         }
 
-        return Filter.newEqualityMatchFilter(attributeDescription, assertionValue);
+        return Filter.equality(attributeDescription, assertionValue);
     }
 
     // Decodes an extensible match filter.
@@ -419,7 +419,7 @@ public final class LDAPUtils {
             reader.readEndSequence();
         }
 
-        return Filter.newExtensibleMatchFilter(matchingRule, attributeDescription, assertionValue,
+        return Filter.extensible(matchingRule, attributeDescription, assertionValue,
                 dnAttributes);
     }
 
@@ -436,7 +436,7 @@ public final class LDAPUtils {
         } finally {
             reader.readEndSequence();
         }
-        return Filter.newGreaterOrEqualFilter(attributeDescription, assertionValue);
+        return Filter.greaterOrEqual(attributeDescription, assertionValue);
     }
 
     // Decodes a less than or equal filter.
@@ -452,7 +452,7 @@ public final class LDAPUtils {
             reader.readEndSequence();
         }
 
-        return Filter.newLessOrEqualFilter(attributeDescription, assertionValue);
+        return Filter.lessOrEqual(attributeDescription, assertionValue);
     }
 
     // Decodes a not filter.
@@ -466,7 +466,7 @@ public final class LDAPUtils {
             reader.readEndSequence();
         }
 
-        return Filter.newNotFilter(subFilter);
+        return Filter.not(subFilter);
     }
 
     // Decodes an or filter.
@@ -480,10 +480,10 @@ public final class LDAPUtils {
                 do {
                     subFilters.add(decodeFilter(reader));
                 } while (reader.hasNextElement());
-                filter = Filter.newOrFilter(subFilters);
+                filter = Filter.or(subFilters);
             } else {
                 // No sub-filters - this is an RFC 4526 absolute false filter.
-                filter = Filter.getAbsoluteFalseFilter();
+                filter = Filter.alwaysFalse();
             }
         } finally {
             reader.readEndSequence();
@@ -529,7 +529,7 @@ public final class LDAPUtils {
             anySubstrings = Collections.emptyList();
         }
 
-        return Filter.newSubstringsFilter(attributeDescription, initialSubstring, anySubstrings,
+        return Filter.substrings(attributeDescription, initialSubstring, anySubstrings,
                 finalSubstring);
     }
 

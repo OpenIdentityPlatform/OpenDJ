@@ -169,7 +169,7 @@ public final class LDAPUrl {
     /**
      * The default filter.
      */
-    private static final Filter DEFAULT_FILTER = Filter.getObjectClassPresentFilter();
+    private static final Filter DEFAULT_FILTER = Filter.objectClassPresent();
 
     /**
      * The default search scope.

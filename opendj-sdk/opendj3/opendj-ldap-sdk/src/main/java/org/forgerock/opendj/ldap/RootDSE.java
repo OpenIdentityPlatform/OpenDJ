@@ -116,7 +116,7 @@ public final class RootDSE {
             .create(CoreSchema.getVendorNameAttributeType());
 
     private static final SearchRequest SEARCH_REQUEST = Requests.newSearchRequest(DN.rootDN(),
-            SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter(), ATTR_ALT_SERVER
+            SearchScope.BASE_OBJECT, Filter.objectClassPresent(), ATTR_ALT_SERVER
                     .toString(), ATTR_NAMING_CONTEXTS.toString(),
             ATTR_SUPPORTED_CONTROL.toString(), ATTR_SUPPORTED_EXTENSION.toString(),
             ATTR_SUPPORTED_FEATURE.toString(), ATTR_SUPPORTED_LDAP_VERSION.toString(),

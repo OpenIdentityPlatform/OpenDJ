@@ -304,7 +304,7 @@ public abstract class AbstractConnection implements Connection {
             throws ErrorResultException {
         final SearchRequest request =
                 Requests.newSearchRequest(baseObject, SearchScope.BASE_OBJECT, Filter
-                        .getObjectClassPresentFilter(), attributeDescriptions);
+                        .objectClassPresent(), attributeDescriptions);
         return searchSingleEntry(request);
     }
 
@@ -326,7 +326,7 @@ public abstract class AbstractConnection implements Connection {
             final ResultHandler<? super SearchResultEntry> handler) {
         final SearchRequest request =
                 Requests.newSearchRequest(name, SearchScope.BASE_OBJECT, Filter
-                        .getObjectClassPresentFilter());
+                        .objectClassPresent());
         if (attributeDescriptions != null) {
             request.getAttributes().addAll(attributeDescriptions);
         }

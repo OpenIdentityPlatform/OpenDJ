@@ -56,7 +56,7 @@ public class AccountUsabilityResponseControlTestCase extends ControlsTestCase {
         // shouldn't be response.
         final SearchRequest req =
                 Requests.newSearchRequest(DN.valueOf("uid=user.1,ou=people,o=test"),
-                        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
+                        SearchScope.BASE_OBJECT, Filter.objectClassPresent());
         final Connection con = TestCaseUtils.getInternalConnection();
         final List<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
         con.search(req, entries);
@@ -73,7 +73,7 @@ public class AccountUsabilityResponseControlTestCase extends ControlsTestCase {
         // a valid response.
         final SearchRequest req =
                 Requests.newSearchRequest(DN.valueOf("uid=user.1,ou=people,o=test"),
-                        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
+                        SearchScope.BASE_OBJECT, Filter.objectClassPresent());
         final AccountUsabilityRequestControl control =
                 AccountUsabilityRequestControl.newControl(false);
         req.addControl(control);
