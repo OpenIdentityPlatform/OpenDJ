@@ -390,14 +390,13 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(
 
   <programlisting language="java">
 if (isSupported(ManageDsaITRequestControl.OID)) {
-    // This entry is a referral object:
-    final String dn = "dc=references,dc=example,dc=com";
+    final String dn = "dc=ref,dc=com";
 
     final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
     try {
         System.out.println("Referral without the ManageDsaIT control.");
         SearchRequest request = Requests.newSearchRequest(dn,
-                SearchScope.BASE_OBJECT, "(objectclass=*)", "");
+                SearchScope.SUBORDINATES, "(objectclass=*)", "");
         final ConnectionEntryReader reader = connection.search(request);
         while (reader.hasNext()) {
             if (reader.isReference()) {
@@ -409,7 +408,7 @@ if (isSupported(ManageDsaITRequestControl.OID)) {
         System.out.println("Referral with the ManageDsaIT control.");
         request.addControl(ManageDsaITRequestControl.newControl(true));
         final SearchResultEntry entry = connection.searchSingleEntry(request);
-        writer.writeEntry(entry)
+        writer.writeEntry(entry);
         writer.close();
     } catch (final ErrorResultIOException e) {
         e.printStackTrace();
@@ -421,7 +420,14 @@ if (isSupported(ManageDsaITRequestControl.OID)) {
 }
 </programlisting>
 
-  <para>OpenDJ directory server supports the ManageDsaIT Request Control.</para>
+  <para>OpenDJ directory server supports the ManageDsaIT Request Control. To use
+  the example entry create a new base DN, <literal>dc=ref,dc=com</literal>
+  before you import the data:</para>
+
+  <programlisting>Referral without the ManageDsaIT control.
+Reference: [ldap:///dc=example,dc=com??sub?]
+Referral with the ManageDsaIT control.
+dn: dc=references,dc=ref,dc=com</programlisting>
  </section>
 
  <section xml:id="use-matched-values-request-control">
@@ -791,7 +797,7 @@ static void useServerSideSortRequestControl(Connection connection)
         throws ErrorResultException {
     if (isSupported(ServerSideSortRequestControl.OID)) {
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=com",
+                Requests.newSearchRequest("ou=People,dc=example,dc=com",
                         SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
                         .addControl(ServerSideSortRequestControl.newControl(
                                         true, new SortKey("cn")));
@@ -805,7 +811,6 @@ static void useServerSideSortRequestControl(Connection connection)
                             new DecodeOptions());
             if (control != null &amp;&amp; control.getResult() == ResultCode.SUCCESS) {
                 System.out.println("# Entries are sorted.");
-                // FIXME: But the order is backwards!
             } else {
                 System.out.println("# Entries not necessarily sorted");
             }
@@ -958,18 +963,165 @@ cn: Ted Jensen
  </section>
 
  <section xml:id="use-subentry-request-control">
-  <title>Sub-entries Request Control</title>
-  <para>TODO</para>
+  <title>Subentries Request Control</title>
+
+  <para>RFC 3672, <link xlink:href="http://tools.ietf.org/html/rfc3672"
+  xlink:show="new"><citetitle>Subentries in LDAP</citetitle></link>, describes
+  subentries and also the subentries request control. When you perform a search
+  without the control and visibility set to <literal>TRUE</literal>, subentries
+  are only visible in searches with
+  <literal>SearchScope.BASE_OBJECT</literal>.</para>
+
+  <programlisting language="java">
+if (isSupported(SubentriesRequestControl.OID)) {
+    final SearchRequest request =
+            Requests.newSearchRequest("dc=example,dc=com",
+                        SearchScope.WHOLE_SUBTREE,
+                        "cn=*Class of Service", "*", "+")
+                    .addControl(SubentriesRequestControl.newControl(
+                        true, true));
+
+    final ConnectionEntryReader reader = connection.search(request);
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        while (reader.hasNext()) {
+            if (reader.isEntry()) {
+                final SearchResultEntry entry = reader.readEntry();
+                writer.writeEntry(entry);
+            }
+        }
+        writer.close();
+    } catch (ErrorResultIOException e) {
+        e.printStackTrace();
+    } catch (SearchResultReferenceIOException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the control.</para>
+
+  <programlisting>TODO: pending OPENDJ-486</programlisting>
  </section>
 
  <section xml:id="use-subtree-delete-control">
   <title>Subtree Delete Request Control</title>
-  <para>TODO</para>
+
+  <para>The subtree delete request control, described in the Internet-Draft
+  <link xlink:href="http://tools.ietf.org/html/draft-armijo-ldap-treedelete"
+  xlink:show="new"><citetitle>Tree Delete Control</citetitle></link>, lets
+  your application delete an entire branch of entries starting with the entry
+  you target for deletion.</para>
+
+  <programlisting language="java">
+if (isSupported(SubtreeDeleteRequestControl.OID)) {
+
+    final String dn = "ou=Apps,dc=example,dc=com";
+    final DeleteRequest request =
+            Requests.newDeleteRequest(dn)
+                    .addControl(SubtreeDeleteRequestControl.newControl(true));
+
+    final Result result = connection.delete(request);
+    if (result.isSuccess()) {
+        System.out.println("Successfully deleted " + dn
+                + " and all entries below.");
+    } else {
+        System.out.println("Result: " + result.getDiagnosticMessage());
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the subtree delete control:</para>
+
+  <programlisting
+  >Successfully deleted ou=Apps,dc=example,dc=com and all entries below.</programlisting>
  </section>
 
  <section xml:id="use-vlv-control">
   <title>Virtual List View Controls</title>
-  <para>TODO</para>
+
+  <para>The virtual list view controls are intended to be used by applications
+  that let users browse lists of directory entries. The Internet-Draft <link
+  xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv"
+  xlink:show="new"><citetitle>LDAP Extensions for Scrolling View Browsing of
+  Search Results</citetitle></link> describes the controls. The virtual list
+  view request control is used in conjunction with the server-side sort
+  control such that the subset of entries the directory server returns from
+  a search are a window into the full sorted list.</para>
+
+  <programlisting language="java">
+if (isSupported(VirtualListViewRequestControl.OID)) {
+    ByteString contextID = ByteString.empty();
+
+    // Add a window of 2 entries on either side of the first sn=Jensen entry.
+    final SearchRequest request =
+            Requests.newSearchRequest("ou=People,dc=example,dc=com",
+                    SearchScope.WHOLE_SUBTREE, "(sn=*)", "sn", "givenName")
+                    .addControl(ServerSideSortRequestControl.newControl(
+                            true, new SortKey("sn")))
+                    .addControl(
+                            VirtualListViewRequestControl.newAssertionControl(
+                                    true,
+                                    ByteString.valueOf("Jensen"),
+                                    2, 2, contextID));
+
+    final SearchResultHandler resultHandler = new MySearchResultHandler();
+    final Result result = connection.search(request, resultHandler);
+
+    try {
+        final ServerSideSortResponseControl sssControl =
+                result.getControl(ServerSideSortResponseControl.DECODER,
+                        new DecodeOptions());
+        if (sssControl != null &amp;&amp; sssControl.getResult() == ResultCode.SUCCESS){
+            System.out.println("# Entries are sorted.");
+        } else {
+            System.out.println("# Entries not necessarily sorted");
+        }
+
+        final VirtualListViewResponseControl vlvControl =
+                result.getControl(VirtualListViewResponseControl.DECODER,
+                        new DecodeOptions());
+        System.out.println("# Position in list: "
+                + vlvControl.getTargetPosition() + "/"
+                + vlvControl.getContentCount());
+    } catch (DecodeException e) {
+        e.printStackTrace();
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the virtual list view controls.
+  In order to set up OpenDJ directory server to produce the following output
+  with the example code, use OpenDJ Control Panel &gt; Manage Indexes &gt; New
+  VLV Index... to set up a virtual list view index for people by last name,
+  using the filter <literal>(|(givenName=*)(sn=*))</literal>, and sorting first
+  by surname, <literal>sn</literal>, in ascending order, then by given name
+  also in ascending order.</para>
+
+  <programlisting language="ldif">dn: uid=skellehe,ou=People,dc=example,dc=com
+givenName: Sue
+sn: Kelleher
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+givenName: Emanuel
+sn: Johnson
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+givenName: Allison
+sn: Jensen
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+givenName: Bjorn
+sn: Jensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+sn: Jensen
+
+# Entries are sorted.
+# Position in list: 92/150</programlisting>
  </section>
 
  <section xml:id="custom-control">
