@@ -61,11 +61,12 @@ import com.forgerock.opendj.util.Validator;
  * Filters can be constructed using the various factory methods. For example,
  * the following code illustrates how to create a filter having the string
  * representation {code}(&(cn=bjensen)(age>=21)){code}:
+ *
  * <pre>
  * import static org.forgerock.opendj.Filter.*;
  *
  * Filter filter = and(equality("cn", "bjensen"), greaterOrEqual("age", 21));
- * <pre>
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
  *      Directory Access Protocol (LDAP): The Protocol </a>
