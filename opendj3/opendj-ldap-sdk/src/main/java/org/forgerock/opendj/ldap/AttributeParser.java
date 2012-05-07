@@ -41,14 +41,15 @@ import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Functions;
 
 /**
- * A fluent API for parsing attributes as different types of value. An attribute
- * parser is obtained from an entry using the method
+ * A fluent API for parsing attributes as different types of object. An
+ * attribute parser is obtained from an entry using the method
  * {@link Entry#parseAttribute} or from an attribute using
- * {@link Attribute#parse()}.
+ * {@link Attribute#parse}.
  * <p>
  * Methods throw an {@code IllegalArgumentException} when a value cannot be
  * parsed (e.g. because its syntax is invalid). Methods which return a
- * {@code Set} always return a modifiable non-{@code null} result.
+ * {@code Set} always return a modifiable non-{@code null} result, even if the
+ * attribute is {@code null} or empty.
  * <p>
  * Examples:
  *
@@ -65,7 +66,7 @@ import com.forgerock.opendj.util.Functions;
  * </pre>
  *
  * @see Entry#parseAttribute
- * @see Attribute#parse()
+ * @see Attribute#parse
  */
 public final class AttributeParser {
     // TODO: enums, filters, rdns?
