@@ -228,18 +228,25 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         }
     }
 
+    /**
+     * Returns {@code true} if the provided object is an attribute type having
+     * the same numeric OID as this attribute type.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is an attribute type having
+     *         the same numeric OID as this attribute type.
+     */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
-        }
-
-        if (o instanceof AttributeType) {
+        } else if (o instanceof AttributeType) {
             final AttributeType other = (AttributeType) o;
             return oid.equals(other.oid);
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -349,6 +356,12 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         return attributeUsage;
     }
 
+    /**
+     * Returns the hash code for this attribute type. It will be calculated as
+     * the hash code of the numeric OID.
+     *
+     * @return The hash code for this attribute type.
+     */
     @Override
     public int hashCode() {
         return oid.hashCode();

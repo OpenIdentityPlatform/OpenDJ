@@ -90,6 +90,27 @@ public final class Syntax extends SchemaElement {
     }
 
     /**
+     * Returns {@code true} if the provided object is an attribute syntax having
+     * the same numeric OID as this attribute syntax.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is an attribute syntax having
+     *         the same numeric OID as this attribute syntax.
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof Syntax) {
+            final Syntax other = (Syntax) o;
+            return oid.equals(other.oid);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Retrieves the default approximate matching rule that will be used for
      * attributes with this syntax.
      *
@@ -147,14 +168,14 @@ public final class Syntax extends SchemaElement {
     }
 
     /**
-     * Retrieves the hash code for this schema element. It will be calculated as
-     * the sum of the characters in the OID.
+     * Returns the hash code for this attribute syntax. It will be calculated as
+     * the hash code of the numeric OID.
      *
      * @return The hash code for this attribute syntax.
      */
     @Override
     public int hashCode() {
-        return getOID().hashCode();
+        return oid.hashCode();
     }
 
     /**

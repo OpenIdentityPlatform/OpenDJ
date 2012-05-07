@@ -93,6 +93,27 @@ public final class DITStructureRule extends SchemaElement {
     }
 
     /**
+     * Returns {@code true} if the provided object is a DIT structure rule
+     * having the same rule ID as this DIT structure rule.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a DIT structure rule
+     *         having the same rule ID as this DIT structure rule.
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof DITStructureRule) {
+            final DITStructureRule other = (DITStructureRule) o;
+            return ruleID.equals(other.ruleID);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Retrieves the name form for this DIT structure rule.
      *
      * @return The name form for this DIT structure rule.
@@ -146,6 +167,12 @@ public final class DITStructureRule extends SchemaElement {
         return superiorRules;
     }
 
+    /**
+     * Returns the hash code for this DIT structure rule. It will be calculated
+     * as the hash code of the rule ID.
+     *
+     * @return The hash code for this DIT structure rule.
+     */
     @Override
     public int hashCode() {
         return ruleID.hashCode();

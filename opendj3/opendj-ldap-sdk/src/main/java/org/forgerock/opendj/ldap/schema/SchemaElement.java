@@ -58,6 +58,11 @@ abstract class SchemaElement {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public abstract boolean equals(Object obj);
+
+    /**
      * Returns the description of this schema definition.
      *
      * @return The description of this schema definition.
@@ -95,6 +100,16 @@ abstract class SchemaElement {
 
         return extraProperties.keySet();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public abstract int hashCode();
+
+    /**
+     * {@inheritDoc}
+     */
+    public abstract String toString();
 
     /**
      * Builds a string representation of this schema definition in the form

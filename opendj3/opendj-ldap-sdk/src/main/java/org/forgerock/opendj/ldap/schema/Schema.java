@@ -299,6 +299,12 @@ public final class Schema {
     }
 
     private static interface Impl {
+        boolean allowMalformedNamesAndOptions();
+
+        boolean allowNonStandardTelephoneNumbers();
+
+        boolean allowZeroLengthDirectoryStrings();
+
         AttributeType getAttributeType(String name);
 
         Collection<AttributeType> getAttributeTypes();
@@ -374,12 +380,6 @@ public final class Schema {
         boolean hasSyntax(String numericOID);
 
         boolean isStrict();
-
-        boolean allowMalformedNamesAndOptions();
-
-        boolean allowNonStandardTelephoneNumbers();
-
-        boolean allowZeroLengthDirectoryStrings();
     }
 
     private static final class NonStrictImpl implements Impl {
@@ -1124,6 +1124,35 @@ public final class Schema {
     }
 
     /**
+     * Reads the schema contained in the named subschema sub-entry.
+     * <p>
+     * If the requested schema is not returned by the Directory Server then the
+     * request will fail with an {@link EntryNotFoundException}. More
+     * specifically, this method will never return {@code null}.
+     *
+     * @param connection
+     *            A connection to the Directory Server whose schema is to be
+     *            read.
+     * @param name
+     *            The distinguished name of the subschema sub-entry.
+     * @return The schema from the Directory Server.
+     * @throws ErrorResultException
+     *             If the result code indicates that the request failed for some
+     *             reason.
+     * @throws UnsupportedOperationException
+     *             If the connection does not support search operations.
+     * @throws IllegalStateException
+     *             If the connection has already been closed, i.e. if
+     *             {@code connection.isClosed() == true}.
+     * @throws NullPointerException
+     *             If the {@code connection} or {@code name} was {@code null}.
+     */
+    public static Schema readSchema(final Connection connection, final DN name)
+            throws ErrorResultException {
+        return new SchemaBuilder().addSchema(connection, name, true).toSchema();
+    }
+
+    /**
      * Asynchronously reads the schema contained in the named subschema
      * sub-entry.
      * <p>
@@ -1169,18 +1198,26 @@ public final class Schema {
     }
 
     /**
-     * Reads the schema contained in the named subschema sub-entry.
+     * Reads the schema contained in the subschema sub-entry which applies to
+     * the named entry.
      * <p>
-     * If the requested schema is not returned by the Directory Server then the
-     * request will fail with an {@link EntryNotFoundException}. More
-     * specifically, this method will never return {@code null}.
+     * If the requested entry or its associated schema are not returned by the
+     * Directory Server then the request will fail with an
+     * {@link EntryNotFoundException}. More specifically, this method will never
+     * return {@code null}.
+     * <p>
+     * This implementation first reads the {@code subschemaSubentry} attribute
+     * of the entry in order to identify the schema and then invokes
+     * {@link #readSchema(Connection, DN)} to read the schema.
      *
      * @param connection
      *            A connection to the Directory Server whose schema is to be
      *            read.
      * @param name
-     *            The distinguished name of the subschema sub-entry.
-     * @return The schema from the Directory Server.
+     *            The distinguished name of the entry whose schema is to be
+     *            located.
+     * @return The schema from the Directory Server which applies to the named
+     *         entry.
      * @throws ErrorResultException
      *             If the result code indicates that the request failed for some
      *             reason.
@@ -1192,9 +1229,9 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static Schema readSchema(final Connection connection, final DN name)
+    public static Schema readSchemaForEntry(final Connection connection, final DN name)
             throws ErrorResultException {
-        return new SchemaBuilder().addSchema(connection, name, true).toSchema();
+        return new SchemaBuilder().addSchemaForEntry(connection, name, true).toSchema();
     }
 
     /**
@@ -1248,43 +1285,6 @@ public final class Schema {
         future.setFutureResult(innerFuture);
         return future;
 
-    }
-
-    /**
-     * Reads the schema contained in the subschema sub-entry which applies to
-     * the named entry.
-     * <p>
-     * If the requested entry or its associated schema are not returned by the
-     * Directory Server then the request will fail with an
-     * {@link EntryNotFoundException}. More specifically, this method will never
-     * return {@code null}.
-     * <p>
-     * This implementation first reads the {@code subschemaSubentry} attribute
-     * of the entry in order to identify the schema and then invokes
-     * {@link #readSchema(Connection, DN)} to read the schema.
-     *
-     * @param connection
-     *            A connection to the Directory Server whose schema is to be
-     *            read.
-     * @param name
-     *            The distinguished name of the entry whose schema is to be
-     *            located.
-     * @return The schema from the Directory Server which applies to the named
-     *         entry.
-     * @throws ErrorResultException
-     *             If the result code indicates that the request failed for some
-     *             reason.
-     * @throws UnsupportedOperationException
-     *             If the connection does not support search operations.
-     * @throws IllegalStateException
-     *             If the connection has already been closed, i.e. if
-     *             {@code connection.isClosed() == true}.
-     * @throws NullPointerException
-     *             If the {@code connection} or {@code name} was {@code null}.
-     */
-    public static Schema readSchemaForEntry(final Connection connection, final DN name)
-            throws ErrorResultException {
-        return new SchemaBuilder().addSchemaForEntry(connection, name, true).toSchema();
     }
 
     /**

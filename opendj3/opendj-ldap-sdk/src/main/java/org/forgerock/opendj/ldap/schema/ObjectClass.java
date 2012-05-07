@@ -136,18 +136,25 @@ public final class ObjectClass extends SchemaElement {
         this.definition = buildDefinition();
     }
 
+    /**
+     * Returns {@code true} if the provided object is an object class having the
+     * same numeric OID as this object class.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a object class having the
+     *         same numeric OID as this object class.
+     */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
-        }
-
-        if (o instanceof ObjectClass) {
+        } else if (o instanceof ObjectClass) {
             final ObjectClass other = (ObjectClass) o;
             return oid.equals(other.oid);
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -252,6 +259,12 @@ public final class ObjectClass extends SchemaElement {
         return superiorClasses;
     }
 
+    /**
+     * Returns the hash code for this object class. It will be calculated as the
+     * hash code of the numeric OID.
+     *
+     * @return The hash code for this object class.
+     */
     @Override
     public int hashCode() {
         return oid.hashCode();

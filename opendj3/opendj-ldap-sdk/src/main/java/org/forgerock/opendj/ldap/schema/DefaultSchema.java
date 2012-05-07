@@ -32,9 +32,9 @@ package org.forgerock.opendj.ldap.schema;
  * can cause initialization errors because the CoreSchema depends on Schema.
  */
 final class DefaultSchema {
+    static volatile Schema schema = Schema.getCoreSchema();
+
     private DefaultSchema() {
         // Prevent instantiation.
     }
-
-    static volatile Schema schema = Schema.getCoreSchema();
 }

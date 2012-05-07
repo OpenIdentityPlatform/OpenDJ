@@ -85,6 +85,27 @@ public final class MatchingRuleUse extends SchemaElement {
     }
 
     /**
+     * Returns {@code true} if the provided object is a matching rule use having
+     * the same numeric OID as this matching rule use.
+     *
+     * @param o
+     *            The object to be compared.
+     * @return {@code true} if the provided object is a matching rule use having
+     *         the same numeric OID as this matching rule use.
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof MatchingRuleUse) {
+            final MatchingRuleUse other = (MatchingRuleUse) o;
+            return oid.equals(other.oid);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Returns an unmodifiable set containing the attributes associated with
      * this matching rule use.
      *
@@ -151,6 +172,12 @@ public final class MatchingRuleUse extends SchemaElement {
         return attributes.contains(attributeType);
     }
 
+    /**
+     * Returns the hash code for this matching rule use. It will be calculated
+     * as the hash code of the numeric OID.
+     *
+     * @return The hash code for this matching rule use.
+     */
     @Override
     public int hashCode() {
         return oid.hashCode();

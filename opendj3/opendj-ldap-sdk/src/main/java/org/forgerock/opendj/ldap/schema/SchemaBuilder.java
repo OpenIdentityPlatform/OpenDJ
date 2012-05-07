@@ -96,7 +96,7 @@ public final class SchemaBuilder {
     // attribute from the named entry.
     private static SearchRequest getReadSchemaForEntrySearchRequest(final DN dn) {
         return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, Filter
-                .getObjectClassPresentFilter(), SUBSCHEMA_SUBENTRY_ATTRS);
+                .objectClassPresent(), SUBSCHEMA_SUBENTRY_ATTRS);
     }
 
     // Constructs a search request for retrieving the named subschema
@@ -1711,56 +1711,6 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Asynchronously reads the schema elements contained in the named subschema
-     * sub-entry and adds them to this schema builder.
-     * <p>
-     * If the requested schema is not returned by the Directory Server then the
-     * request will fail with an {@link EntryNotFoundException}.
-     *
-     * @param connection
-     *            A connection to the Directory Server whose schema is to be
-     *            read.
-     * @param name
-     *            The distinguished name of the subschema sub-entry.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
-     * @param overwrite
-     *            {@code true} if existing schema elements with the same
-     *            conflicting OIDs should be overwritten.
-     * @return A future representing the updated schema builder.
-     * @throws UnsupportedOperationException
-     *             If the connection does not support search operations.
-     * @throws IllegalStateException
-     *             If the connection has already been closed, i.e. if
-     *             {@code connection.isClosed() == true}.
-     * @throws NullPointerException
-     *             If the {@code connection} or {@code name} was {@code null}.
-     */
-    public FutureResult<SchemaBuilder> addSchemaAsync(final Connection connection, final DN name,
-            final ResultHandler<? super SchemaBuilder> handler, final boolean overwrite) {
-        // The call to addSchema will perform copyOnWrite.
-        final SearchRequest request = getReadSchemaSearchRequest(name);
-
-        final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
-                new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler) {
-
-                    @Override
-                    protected SchemaBuilder transformResult(final SearchResultEntry result)
-                            throws ErrorResultException {
-                        addSchema(result, overwrite);
-                        return SchemaBuilder.this;
-                    }
-
-                };
-
-        final FutureResult<SearchResultEntry> innerFuture =
-                connection.searchSingleEntryAsync(request, future);
-        future.setFutureResult(innerFuture);
-        return future;
-    }
-
-    /**
      * Reads the schema elements contained in the named subschema sub-entry and
      * adds them to this schema builder.
      * <p>
@@ -1932,6 +1882,98 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Asynchronously reads the schema elements contained in the named subschema
+     * sub-entry and adds them to this schema builder.
+     * <p>
+     * If the requested schema is not returned by the Directory Server then the
+     * request will fail with an {@link EntryNotFoundException}.
+     *
+     * @param connection
+     *            A connection to the Directory Server whose schema is to be
+     *            read.
+     * @param name
+     *            The distinguished name of the subschema sub-entry.
+     * @param handler
+     *            A result handler which can be used to asynchronously process
+     *            the operation result when it is received, may be {@code null}.
+     * @param overwrite
+     *            {@code true} if existing schema elements with the same
+     *            conflicting OIDs should be overwritten.
+     * @return A future representing the updated schema builder.
+     * @throws UnsupportedOperationException
+     *             If the connection does not support search operations.
+     * @throws IllegalStateException
+     *             If the connection has already been closed, i.e. if
+     *             {@code connection.isClosed() == true}.
+     * @throws NullPointerException
+     *             If the {@code connection} or {@code name} was {@code null}.
+     */
+    public FutureResult<SchemaBuilder> addSchemaAsync(final Connection connection, final DN name,
+            final ResultHandler<? super SchemaBuilder> handler, final boolean overwrite) {
+        // The call to addSchema will perform copyOnWrite.
+        final SearchRequest request = getReadSchemaSearchRequest(name);
+
+        final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
+                new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler) {
+
+                    @Override
+                    protected SchemaBuilder transformResult(final SearchResultEntry result)
+                            throws ErrorResultException {
+                        addSchema(result, overwrite);
+                        return SchemaBuilder.this;
+                    }
+
+                };
+
+        final FutureResult<SearchResultEntry> innerFuture =
+                connection.searchSingleEntryAsync(request, future);
+        future.setFutureResult(innerFuture);
+        return future;
+    }
+
+    /**
+     * Reads the schema elements contained in the subschema sub-entry which
+     * applies to the named entry and adds them to this schema builder.
+     * <p>
+     * If the requested entry or its associated schema are not returned by the
+     * Directory Server then the request will fail with an
+     * {@link EntryNotFoundException}.
+     * <p>
+     * This implementation first reads the {@code subschemaSubentry} attribute
+     * of the entry in order to identify the schema and then invokes
+     * {@link #addSchemaForEntry(Connection, DN, boolean)} to read the schema.
+     *
+     * @param connection
+     *            A connection to the Directory Server whose schema is to be
+     *            read.
+     * @param name
+     *            The distinguished name of the entry whose schema is to be
+     *            located.
+     * @param overwrite
+     *            {@code true} if existing schema elements with the same
+     *            conflicting OIDs should be overwritten.
+     * @return A reference to this schema builder.
+     * @throws ErrorResultException
+     *             If the result code indicates that the request failed for some
+     *             reason.
+     * @throws UnsupportedOperationException
+     *             If the connection does not support search operations.
+     * @throws IllegalStateException
+     *             If the connection has already been closed, i.e. if
+     *             {@code connection.isClosed() == true}.
+     * @throws NullPointerException
+     *             If the {@code connection} or {@code name} was {@code null}.
+     */
+    public SchemaBuilder addSchemaForEntry(final Connection connection, final DN name,
+            final boolean overwrite) throws ErrorResultException {
+        // The call to addSchema will perform copyOnWrite.
+        final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
+        final Entry entry = connection.searchSingleEntry(request);
+        final DN subschemaDN = getSubschemaSubentryDN(name, entry);
+        return addSchema(connection, subschemaDN, overwrite);
+    }
+
+    /**
      * Asynchronously reads the schema elements contained in the subschema
      * sub-entry which applies to the named entry and adds them to this schema
      * builder.
@@ -1989,48 +2031,6 @@ public final class SchemaBuilder {
                 connection.searchSingleEntryAsync(request, future);
         future.setFutureResult(innerFuture);
         return future;
-    }
-
-    /**
-     * Reads the schema elements contained in the subschema sub-entry which
-     * applies to the named entry and adds them to this schema builder.
-     * <p>
-     * If the requested entry or its associated schema are not returned by the
-     * Directory Server then the request will fail with an
-     * {@link EntryNotFoundException}.
-     * <p>
-     * This implementation first reads the {@code subschemaSubentry} attribute
-     * of the entry in order to identify the schema and then invokes
-     * {@link #addSchemaForEntry(Connection, DN, boolean)} to read the schema.
-     *
-     * @param connection
-     *            A connection to the Directory Server whose schema is to be
-     *            read.
-     * @param name
-     *            The distinguished name of the entry whose schema is to be
-     *            located.
-     * @param overwrite
-     *            {@code true} if existing schema elements with the same
-     *            conflicting OIDs should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ErrorResultException
-     *             If the result code indicates that the request failed for some
-     *             reason.
-     * @throws UnsupportedOperationException
-     *             If the connection does not support search operations.
-     * @throws IllegalStateException
-     *             If the connection has already been closed, i.e. if
-     *             {@code connection.isClosed() == true}.
-     * @throws NullPointerException
-     *             If the {@code connection} or {@code name} was {@code null}.
-     */
-    public SchemaBuilder addSchemaForEntry(final Connection connection, final DN name,
-            final boolean overwrite) throws ErrorResultException {
-        // The call to addSchema will perform copyOnWrite.
-        final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
-        final Entry entry = connection.searchSingleEntry(request);
-        final DN subschemaDN = getSubschemaSubentryDN(name, entry);
-        return addSchema(connection, subschemaDN, overwrite);
     }
 
     /**
