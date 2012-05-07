@@ -60,7 +60,7 @@ import com.forgerock.opendj.util.Validator;
  * <p>
  * Filters can be constructed using the various factory methods. For example,
  * the following code illustrates how to create a filter having the string
- * representation {code}(&(cn=bjensen)(age>=21)){code}:
+ * representation "{@code (&(cn=bjensen)(age>=21))}":
  *
  * <pre>
  * import static org.forgerock.opendj.Filter.*;
