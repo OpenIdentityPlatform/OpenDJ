@@ -187,7 +187,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("AssertionRequestControl not supported.");
+            System.err.println("AssertionRequestControl not supported.");
         }
     }
 
@@ -222,7 +222,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("AuthorizationIdentityRequestControl not supported.");
+            System.err.println("AuthorizationIdentityRequestControl not supported.");
         }
     }
 
@@ -267,7 +267,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("GetEffectiveRightsRequestControl not supported.");
+            System.err.println("GetEffectiveRightsRequestControl not supported.");
         }
     }
 
@@ -312,7 +312,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("ManageDsaITRequestControl not supported.");
+            System.err.println("ManageDsaITRequestControl not supported.");
         }
     }
 
@@ -346,7 +346,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("MatchedValuesRequestControl not supported.");
+            System.err.println("MatchedValuesRequestControl not supported.");
         }
     }
 
@@ -381,7 +381,7 @@ public final class Controls {
                 }
             }
         } else {
-            System.out.println("PasswordExpiredResponseControl not supported.");
+            System.err.println("PasswordExpiredResponseControl not supported.");
         }
     }
 
@@ -417,7 +417,7 @@ public final class Controls {
                 de.printStackTrace();
             }
         } else {
-            System.out.println("PasswordExpiringResponseControl not supported");
+            System.err.println("PasswordExpiringResponseControl not supported");
         }
     }
 
@@ -468,7 +468,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("PasswordPolicyRequestControl not supported");
+            System.err.println("PasswordPolicyRequestControl not supported");
         }
     }
 
@@ -497,7 +497,7 @@ public final class Controls {
             System.out.println("Permissive modify did not complain about "
                     + "attempt to add uid: bjensen to " + dn + ".");
         } else {
-            System.out.println("PermissiveModifyRequestControl not supported");
+            System.err.println("PermissiveModifyRequestControl not supported");
         }
     }
 
@@ -560,7 +560,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("PersistentSearchRequestControl not supported.");
+            System.err.println("PersistentSearchRequestControl not supported.");
         }
     }
 
@@ -601,7 +601,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("PostReadRequestControl not supported");
+            System.err.println("PostReadRequestControl not supported");
         }
     }
 
@@ -641,7 +641,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("PreReadRequestControl not supported");
+            System.err.println("PreReadRequestControl not supported");
         }
     }
 
@@ -679,7 +679,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("ProxiedAuthV2RequestControl not supported");
+            System.err.println("ProxiedAuthV2RequestControl not supported");
         }
     }
 
@@ -717,7 +717,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("ServerSideSortRequestControl not supported");
+            System.err.println("ServerSideSortRequestControl not supported");
         }
     }
 
@@ -792,7 +792,7 @@ public final class Controls {
                 ++page;
             } while (cookie.length() != 0);
         } else {
-            System.out.println("SimplePagedResultsControl not supported");
+            System.err.println("SimplePagedResultsControl not supported");
         }
     }
 
@@ -833,7 +833,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("SubentriesRequestControl not supported");
+            System.err.println("SubentriesRequestControl not supported");
         }
     }
 
@@ -860,10 +860,10 @@ public final class Controls {
                 System.out.println("Successfully deleted " + dn
                         + " and all entries below.");
             } else {
-                System.out.println("Result: " + result.getDiagnosticMessage());
+                System.err.println("Result: " + result.getDiagnosticMessage());
             }
         } else {
-            System.out.println("SubtreeDeleteRequestControl not supported");
+            System.err.println("SubtreeDeleteRequestControl not supported");
         }
     }
 
@@ -921,7 +921,7 @@ public final class Controls {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("VirtualListViewRequestControl not supported");
+            System.err.println("VirtualListViewRequestControl not supported");
         }
     }
 
