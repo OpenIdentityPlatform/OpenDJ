@@ -57,6 +57,15 @@ import com.forgerock.opendj.util.Validator;
  * The RFC 4515 string representation of a filter can be generated using the
  * {@link #toString} methods and parsed using the {@link #valueOf(String)}
  * factory method.
+ * <p>
+ * Filters can be constructed using the various factory methods. For example,
+ * the following code illustrates how to create a filter having the string
+ * representation {code}(&(cn=bjensen)(age>=21)){code}:
+ * <pre>
+ * import static org.forgerock.opendj.Filter.*;
+ *
+ * Filter filter = and(equality("cn", "bjensen"), greaterOrEqual("age", 21));
+ * <pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
  *      Directory Access Protocol (LDAP): The Protocol </a>
@@ -425,7 +434,7 @@ public final class Filter {
      * @return The absolute false filter.
      * @see <a href="http://tools.ietf.org/html/rfc4526">RFC 4526</a>
      */
-    public static Filter getAbsoluteFalseFilter() {
+    public static Filter alwaysFalse() {
         return FALSE;
     }
 
@@ -436,40 +445,24 @@ public final class Filter {
      * @return The absolute true filter.
      * @see <a href="http://tools.ietf.org/html/rfc4526">RFC 4526</a>
      */
-    public static Filter getAbsoluteTrueFilter() {
+    public static Filter alwaysTrue() {
         return TRUE;
-    }
-
-    /**
-     * Returns the {@code objectClass} presence filter {@code (objectClass=*)}.
-     * <p>
-     * A call to this method is equivalent to but more efficient than the
-     * following code:
-     *
-     * <pre>
-     * Filter.present(&quot;objectClass&quot;);
-     * </pre>
-     *
-     * @return The {@code objectClass} presence filter {@code (objectClass=*)}.
-     */
-    public static Filter getObjectClassPresentFilter() {
-        return OBJECT_CLASS_PRESENT;
     }
 
     /**
      * Creates a new {@code and} filter using the provided list of sub-filters.
      * <p>
      * Creating a new {@code and} filter with a {@code null} or empty list of
-     * sub-filters is equivalent to calling {@link #getAbsoluteTrueFilter()}.
+     * sub-filters is equivalent to calling {@link #alwaysTrue()}.
      *
      * @param subFilters
      *            The list of sub-filters, may be empty or {@code null}.
      * @return The newly created {@code and} filter.
      */
-    public static Filter newAndFilter(final Collection<Filter> subFilters) {
+    public static Filter and(final Collection<Filter> subFilters) {
         if (subFilters == null || subFilters.isEmpty()) {
             // RFC 4526 - TRUE filter.
-            return getAbsoluteTrueFilter();
+            return alwaysTrue();
         } else if (subFilters.size() == 1) {
             final Filter subFilter = subFilters.iterator().next();
             Validator.ensureNotNull(subFilter);
@@ -488,16 +481,16 @@ public final class Filter {
      * Creates a new {@code and} filter using the provided list of sub-filters.
      * <p>
      * Creating a new {@code and} filter with a {@code null} or empty list of
-     * sub-filters is equivalent to calling {@link #getAbsoluteTrueFilter()}.
+     * sub-filters is equivalent to calling {@link #alwaysTrue()}.
      *
      * @param subFilters
      *            The list of sub-filters, may be empty or {@code null}.
      * @return The newly created {@code and} filter.
      */
-    public static Filter newAndFilter(final Filter... subFilters) {
+    public static Filter and(final Filter... subFilters) {
         if ((subFilters == null) || (subFilters.length == 0)) {
             // RFC 4526 - TRUE filter.
-            return getAbsoluteTrueFilter();
+            return alwaysTrue();
         } else if (subFilters.length == 1) {
             Validator.ensureNotNull(subFilters[0]);
             return new Filter(new AndImpl(Collections.singletonList(subFilters[0])));
@@ -521,8 +514,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code approximate match} filter.
      */
-    public static Filter newApproxMatchFilter(final String attributeDescription,
-            final ByteString assertionValue) {
+    public static Filter approx(final String attributeDescription, final ByteString assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new ApproxMatchImpl(attributeDescription, assertionValue));
     }
@@ -540,8 +532,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code approximate match} filter.
      */
-    public static Filter newApproxMatchFilter(final String attributeDescription,
-            final Object assertionValue) {
+    public static Filter approx(final String attributeDescription, final Object assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
@@ -557,8 +548,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code equality match} filter.
      */
-    public static Filter newEqualityMatchFilter(final String attributeDescription,
-            final ByteString assertionValue) {
+    public static Filter equality(final String attributeDescription, final ByteString assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new EqualityMatchImpl(attributeDescription, assertionValue));
     }
@@ -576,8 +566,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code equality match} filter.
      */
-    public static Filter newEqualityMatchFilter(final String attributeDescription,
-            final Object assertionValue) {
+    public static Filter equality(final String attributeDescription, final Object assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
@@ -598,9 +587,8 @@ public final class Filter {
      *            Indicates whether DN matching should be performed.
      * @return The newly created {@code extensible match} filter.
      */
-    public static Filter newExtensibleMatchFilter(final String matchingRule,
-            final String attributeDescription, final ByteString assertionValue,
-            final boolean dnAttributes) {
+    public static Filter extensible(final String matchingRule, final String attributeDescription,
+            final ByteString assertionValue, final boolean dnAttributes) {
         Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
                 "matchingRule and/or " + "attributeDescription must not be null");
         Validator.ensureNotNull(assertionValue);
@@ -626,9 +614,8 @@ public final class Filter {
      *            Indicates whether DN matching should be performed.
      * @return The newly created {@code extensible match} filter.
      */
-    public static Filter newExtensibleMatchFilter(final String matchingRule,
-            final String attributeDescription, final Object assertionValue,
-            final boolean dnAttributes) {
+    public static Filter extensible(final String matchingRule, final String attributeDescription,
+            final Object assertionValue, final boolean dnAttributes) {
         Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
                 "matchingRule and/or " + "attributeDescription must not be null");
         Validator.ensureNotNull(assertionValue);
@@ -646,7 +633,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code greater or equal} filter.
      */
-    public static Filter newGreaterOrEqualFilter(final String attributeDescription,
+    public static Filter greaterOrEqual(final String attributeDescription,
             final ByteString assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new GreaterOrEqualImpl(attributeDescription, assertionValue));
@@ -665,7 +652,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code greater or equal} filter.
      */
-    public static Filter newGreaterOrEqualFilter(final String attributeDescription,
+    public static Filter greaterOrEqual(final String attributeDescription,
             final Object assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
@@ -682,7 +669,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code less or equal} filter.
      */
-    public static Filter newLessOrEqualFilter(final String attributeDescription,
+    public static Filter lessOrEqual(final String attributeDescription,
             final ByteString assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new LessOrEqualImpl(attributeDescription, assertionValue));
@@ -701,8 +688,7 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code less or equal} filter.
      */
-    public static Filter newLessOrEqualFilter(final String attributeDescription,
-            final Object assertionValue) {
+    public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
         return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
@@ -715,25 +701,41 @@ public final class Filter {
      *            The sub-filter.
      * @return The newly created {@code not} filter.
      */
-    public static Filter newNotFilter(final Filter subFilter) {
+    public static Filter not(final Filter subFilter) {
         Validator.ensureNotNull(subFilter);
         return new Filter(new NotImpl(subFilter));
+    }
+
+    /**
+     * Returns the {@code objectClass} presence filter {@code (objectClass=*)}.
+     * <p>
+     * A call to this method is equivalent to but more efficient than the
+     * following code:
+     *
+     * <pre>
+     * Filter.present(&quot;objectClass&quot;);
+     * </pre>
+     *
+     * @return The {@code objectClass} presence filter {@code (objectClass=*)}.
+     */
+    public static Filter objectClassPresent() {
+        return OBJECT_CLASS_PRESENT;
     }
 
     /**
      * Creates a new {@code or} filter using the provided list of sub-filters.
      * <p>
      * Creating a new {@code or} filter with a {@code null} or empty list of
-     * sub-filters is equivalent to calling {@link #getAbsoluteFalseFilter()}.
+     * sub-filters is equivalent to calling {@link #alwaysFalse()}.
      *
      * @param subFilters
      *            The list of sub-filters, may be empty or {@code null}.
      * @return The newly created {@code or} filter.
      */
-    public static Filter newOrFilter(final Collection<Filter> subFilters) {
+    public static Filter or(final Collection<Filter> subFilters) {
         if (subFilters == null || subFilters.isEmpty()) {
             // RFC 4526 - FALSE filter.
-            return getAbsoluteFalseFilter();
+            return alwaysFalse();
         } else if (subFilters.size() == 1) {
             final Filter subFilter = subFilters.iterator().next();
             Validator.ensureNotNull(subFilter);
@@ -752,16 +754,16 @@ public final class Filter {
      * Creates a new {@code or} filter using the provided list of sub-filters.
      * <p>
      * Creating a new {@code or} filter with a {@code null} or empty list of
-     * sub-filters is equivalent to calling {@link #getAbsoluteFalseFilter()}.
+     * sub-filters is equivalent to calling {@link #alwaysFalse()}.
      *
      * @param subFilters
      *            The list of sub-filters, may be empty or {@code null}.
      * @return The newly created {@code or} filter.
      */
-    public static Filter newOrFilter(final Filter... subFilters) {
+    public static Filter or(final Filter... subFilters) {
         if ((subFilters == null) || (subFilters.length == 0)) {
             // RFC 4526 - FALSE filter.
-            return getAbsoluteFalseFilter();
+            return alwaysFalse();
         } else if (subFilters.length == 1) {
             Validator.ensureNotNull(subFilters[0]);
             return new Filter(new OrImpl(Collections.singletonList(subFilters[0])));
@@ -783,7 +785,7 @@ public final class Filter {
      *            The attribute description.
      * @return The newly created {@code present} filter.
      */
-    public static Filter newPresentFilter(final String attributeDescription) {
+    public static Filter present(final String attributeDescription) {
         Validator.ensureNotNull(attributeDescription);
         if (toLowerCase(attributeDescription).equals("objectclass")) {
             return OBJECT_CLASS_PRESENT;
@@ -810,7 +812,7 @@ public final class Filter {
      *            are specified.
      * @return The newly created {@code substrings} filter.
      */
-    public static Filter newSubstringsFilter(final String attributeDescription,
+    public static Filter substrings(final String attributeDescription,
             final ByteString initialSubstring, final Collection<ByteString> anySubstrings,
             final ByteString finalSubstring) {
         Validator.ensureNotNull(attributeDescription);
@@ -861,7 +863,7 @@ public final class Filter {
      *            are specified.
      * @return The newly created {@code substrings} filter.
      */
-    public static Filter newSubstringsFilter(final String attributeDescription,
+    public static Filter substrings(final String attributeDescription,
             final Object initialSubstring, final Collection<?> anySubstrings,
             final Object finalSubstring) {
         Validator.ensureNotNull(attributeDescription);
@@ -903,7 +905,7 @@ public final class Filter {
      *            The filter content.
      * @return The newly created {@code unrecognized} filter.
      */
-    public static Filter newUnrecognizedFilter(final byte filterTag, final ByteString filterBytes) {
+    public static Filter unrecognized(final byte filterTag, final ByteString filterBytes) {
         Validator.ensureNotNull(filterBytes);
         return new Filter(new UnrecognizedImpl(filterTag, filterBytes));
     }
@@ -1186,14 +1188,14 @@ public final class Filter {
         if (c == '&') {
             final List<Filter> subFilters = valueOfFilterList(string, index + 1, endIndex);
             if (subFilters.isEmpty()) {
-                return getAbsoluteTrueFilter();
+                return alwaysTrue();
             } else {
                 return new Filter(new AndImpl(subFilters));
             }
         } else if (c == '|') {
             final List<Filter> subFilters = valueOfFilterList(string, index + 1, endIndex);
             if (subFilters.isEmpty()) {
-                return getAbsoluteFalseFilter();
+                return alwaysFalse();
             } else {
                 return new Filter(new OrImpl(subFilters));
             }
@@ -1528,7 +1530,7 @@ public final class Filter {
             return new Filter(new EqualityMatchImpl(attributeDescription, ByteString.empty()));
         } else if ((endIndex - startIndex == 1) && (string.charAt(startIndex) == '*')) {
             // Single asterisk is a present filter.
-            return newPresentFilter(attributeDescription);
+            return present(attributeDescription);
         } else if (asteriskIdx > 0 && asteriskIdx <= endIndex) {
             // Substring filter.
             return assertionValue2SubstringFilter(string, attributeDescription, startIndex,

@@ -89,18 +89,18 @@ public class LDAPUrlTestCase extends SdkTestCase {
                 "ldaps://void.central:123/???" },
             { new LDAPUrl(true, null, null, null, null, null, "cn", "sn"), "ldaps:///?cn,sn??" },
             {
-                new LDAPUrl(true, null, null, null, null, Filter.newEqualityMatchFilter("uid",
+                new LDAPUrl(true, null, null, null, null, Filter.equality("uid",
                         "abc"), "cn"), "ldaps:///?cn??(uid=abc)" },
             {
                 new LDAPUrl(true, null, null, null, SearchScope.WHOLE_SUBTREE, Filter
-                        .newEqualityMatchFilter("uid", "abc"), "cn"), "ldaps:///?cn?sub?(uid=abc)" },
+                        .equality("uid", "abc"), "cn"), "ldaps:///?cn?sub?(uid=abc)" },
             {
                 new LDAPUrl(true, null, null, DN.valueOf("uid=abc,o=target"),
-                        SearchScope.WHOLE_SUBTREE, Filter.newEqualityMatchFilter("uid", "abc"),
+                        SearchScope.WHOLE_SUBTREE, Filter.equality("uid", "abc"),
                         "cn"), "ldaps:///uid=abc,o=target?cn?sub?(uid=abc)" },
             {
                 new LDAPUrl(true, "localhost", 1345, DN.valueOf("uid=abc,o=target"),
-                        SearchScope.WHOLE_SUBTREE, Filter.newEqualityMatchFilter("uid", "abc"),
+                        SearchScope.WHOLE_SUBTREE, Filter.equality("uid", "abc"),
                         "cn"), "ldaps://localhost:1345/uid=abc,o=target?cn?sub?(uid=abc)" }, };
     }
 
@@ -122,19 +122,19 @@ public class LDAPUrlTestCase extends SdkTestCase {
             { new LDAPUrl(true, null, null, null, null, null, "cn", "sn"),
                 LDAPUrl.valueOf("ldaps:///?cn,sn??") },
             {
-                new LDAPUrl(true, null, null, null, null, Filter.newEqualityMatchFilter("uid",
+                new LDAPUrl(true, null, null, null, null, Filter.equality("uid",
                         "abc"), "cn"), LDAPUrl.valueOf("ldaps:///?cn??(uid=abc)") },
             {
                 new LDAPUrl(true, null, null, null, SearchScope.WHOLE_SUBTREE, Filter
-                        .newEqualityMatchFilter("uid", "abc"), "cn"),
+                        .equality("uid", "abc"), "cn"),
                 LDAPUrl.valueOf("ldaps:///?cn?sub?(uid=abc)") },
             {
                 new LDAPUrl(true, null, null, DN.valueOf("uid=abc,o=target"),
-                        SearchScope.WHOLE_SUBTREE, Filter.newEqualityMatchFilter("uid", "abc"),
+                        SearchScope.WHOLE_SUBTREE, Filter.equality("uid", "abc"),
                         "cn"), LDAPUrl.valueOf("ldaps:///uid=abc,o=target?cn?sub?(uid=abc)") },
             {
                 new LDAPUrl(true, "localhost", 1345, DN.valueOf("uid=abc,o=target"),
-                        SearchScope.WHOLE_SUBTREE, Filter.newEqualityMatchFilter("uid", "abc"),
+                        SearchScope.WHOLE_SUBTREE, Filter.equality("uid", "abc"),
                         "cn"),
                 LDAPUrl.valueOf("ldaps://localhost:1345/uid=abc,o=target?cn?sub?(uid=abc)") }, };
     }

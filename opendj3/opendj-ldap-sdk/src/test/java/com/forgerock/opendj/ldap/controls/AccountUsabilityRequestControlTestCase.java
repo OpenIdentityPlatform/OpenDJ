@@ -54,7 +54,7 @@ public class AccountUsabilityRequestControlTestCase extends ControlsTestCase {
         // a valid response.
         final SearchRequest req =
                 Requests.newSearchRequest(DN.valueOf("uid=user.1,ou=people,o=test"),
-                        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
+                        SearchScope.BASE_OBJECT, Filter.objectClassPresent());
         final AccountUsabilityRequestControl control =
                 AccountUsabilityRequestControl.newControl(false);
         req.addControl(control);
