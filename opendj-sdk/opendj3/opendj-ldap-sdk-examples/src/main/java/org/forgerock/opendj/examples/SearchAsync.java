@@ -33,15 +33,18 @@ import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.CancelExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
@@ -77,7 +80,9 @@ public final class SearchAsync {
             // Bind succeeded: initiate search.
             final SearchRequest request =
                     Requests.newSearchRequest(baseDN, scope, filter, attributes);
-            connection.searchAsync(request, null, new SearchResultHandlerImpl());
+            final FutureResult<Result> futureResult =
+                    connection.searchAsync(request, null, new SearchResultHandlerImpl());
+            requestID = futureResult.getRequestID();
         }
 
     }
@@ -117,8 +122,15 @@ public final class SearchAsync {
         @Override
         public synchronized boolean handleEntry(final SearchResultEntry entry) {
             try {
-                WRITER.writeComment("Search result entry: " + entry.getName().toString());
-                WRITER.writeEntry(entry);
+                if (entryCount < 10) {
+                    WRITER.writeComment("Search result entry: " + entry.getName().toString());
+                    WRITER.writeEntry(entry);
+                    ++entryCount;
+                } else { // Cancel the search.
+                    CancelExtendedRequest request = Requests.newCancelExtendedRequest(requestID);
+                    connection.extendedRequestAsync(request, null, new CancelResultHandlerImpl());
+                    return false;
+                }
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
@@ -175,6 +187,26 @@ public final class SearchAsync {
     private static String[] attributes;
     private static Connection connection = null;
     private static int resultCode = 0;
+
+    static int requestID;
+    static int entryCount = 0;
+
+    private static final class CancelResultHandlerImpl implements ResultHandler<ExtendedResult> {
+
+        @Override
+        public void handleErrorResult(final ErrorResultException error) {
+            System.err.println(error.getMessage());
+            resultCode = error.getResult().getResultCode().intValue();
+            COMPLETION_LATCH.countDown();
+        }
+
+        @Override
+        public void handleResult(final ExtendedResult result) {
+            resultCode = result.getResultCode().intValue();
+            COMPLETION_LATCH.countDown();
+        }
+
+    }
 
     /**
      * Main method.

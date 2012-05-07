@@ -103,7 +103,7 @@ private static void connect()
  </section>
  
  <section xml:id="simple-auth-with-starttls-or-ssl">
-  <title>Start TLS and SSL Authentication</title>
+  <title>Start TLS &amp; SSL Authentication</title>
   
   <para>Simple authentication involves sending a user name and password to
   the directory server. To avoid sending the user name and password in
