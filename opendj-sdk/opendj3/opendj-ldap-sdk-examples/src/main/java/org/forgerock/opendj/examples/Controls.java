@@ -811,7 +811,7 @@ public final class Controls {
             final SearchRequest request =
                     Requests.newSearchRequest("dc=example,dc=com",
                                 SearchScope.WHOLE_SUBTREE,
-                                "cn=*Class of Service", "*", "+")
+                                "cn=*Class of Service", "cn", "subtreeSpecification")
                             .addControl(SubentriesRequestControl.newControl(
                                 true, true));
 
