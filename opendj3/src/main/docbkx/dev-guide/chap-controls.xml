@@ -977,7 +977,7 @@ if (isSupported(SubentriesRequestControl.OID)) {
     final SearchRequest request =
             Requests.newSearchRequest("dc=example,dc=com",
                         SearchScope.WHOLE_SUBTREE,
-                        "cn=*Class of Service", "*", "+")
+                        "cn=*Class of Service", "cn", "subtreeSpecification")
                     .addControl(SubentriesRequestControl.newControl(
                         true, true));
 
@@ -1003,7 +1003,21 @@ if (isSupported(SubentriesRequestControl.OID)) {
 
   <para>OpenDJ directory server supports the control.</para>
 
-  <programlisting>TODO: pending OPENDJ-486</programlisting>
+  <programlisting language="ldif">dn: cn=Bronze Class of Service,dc=example,dc=com
+cn: Bronze Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+cn: Silver Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+cn: Gold Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+</programlisting>
  </section>
 
  <section xml:id="use-subtree-delete-control">
