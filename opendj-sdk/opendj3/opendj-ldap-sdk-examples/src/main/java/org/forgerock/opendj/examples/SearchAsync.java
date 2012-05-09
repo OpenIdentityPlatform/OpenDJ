@@ -178,6 +178,7 @@ public final class SearchAsync {
     }
 
     private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
+    private static final CountDownLatch CANCEL_LATCH = new CountDownLatch(1);
     private static final LDIFEntryWriter WRITER = new LDIFEntryWriter(System.out);
     private static String userName;
     private static String password;
@@ -197,11 +198,13 @@ public final class SearchAsync {
         public void handleErrorResult(final ErrorResultException error) {
             System.err.println("Cancel request failed with result code: "
                     + error.getResult().getResultCode().intValue());
+            CANCEL_LATCH.countDown();
         }
 
         @Override
         public void handleResult(final ExtendedResult result) {
             System.err.println("Cancel request succeeded");
+            CANCEL_LATCH.countDown();
         }
 
     }
@@ -267,6 +270,15 @@ public final class SearchAsync {
         } catch (final IOException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+            return;
+        }
+
+        // Await completion of the cancel request.
+        try {
+            CANCEL_LATCH.await();
+        } catch (final InterruptedException e) {
+            System.err.println(e.getMessage());
+            System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
             return;
         }
 
