@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -182,7 +183,9 @@ public class CancelExtendedOperation
 
 
     // Update the result of the extended operation and return.
-    operation.setResultCode(cancelResult.getResultCode());
+    ResultCode resultCode = cancelResult.getResultCode();
+    operation.setResultCode(resultCode == ResultCode.CANCELED
+                                ? ResultCode.SUCCESS : resultCode);
     operation.appendErrorMessage(cancelResult.getResponseMessage());
   }
 
