@@ -23,7 +23,7 @@
  *
  *      Copyright 2012 ForgeRock AS.
  */
-package com.forgerock.opendj.util;
+package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -33,30 +33,88 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
+import com.forgerock.opendj.util.Validator;
 
 /**
- * Utility class for encoding and decoding generalized time syntax values.
+ * An LDAP generalized time as defined in RFC 4517. This class facilitates
+ * parsing of generalized time values to and from {@link Date} and
+ * {@link Calendar} classes.
+ * <p>
+ * The following are examples of generalized time values:
+ *
+ * <pre>
+ * 199412161032Z
+ * 199412160532-0500
+ * </pre>
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc4517#section-3.3.13">RFC 4517 -
+ *      Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching
+ *      Rules </a>
  */
-public final class GeneralizedTime {
+public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
     // UTC TimeZone is assumed to never change over JVM lifetime
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone("UTC");
 
     /**
-     * Returns the provided generalized time syntax value decoded as a
-     * {@code Calendar}.
+     * Returns a generalized time representing the provided {@code Calendar}.
+     * <p>
+     * The provided calendar will be defensively copied in order to preserve
+     * immutability.
      *
-     * @param value
-     *            The generalized time value to be decoded.
-     * @return The decoded {@code Calendar}.
-     * @throws DecodeException
-     *             If the provided value cannot be parsed as a valid generalized
-     *             time string.
+     * @param calendar
+     *            The calendar to be converted to a generalized time.
+     * @return A generalized time representing the provided {@code Calendar}.
      */
-    public static Calendar decode(final ByteSequence value) throws DecodeException {
+    public static GeneralizedTime valueOf(final Calendar calendar) {
+        Validator.ensureNotNull(calendar);
+        return new GeneralizedTime((Calendar) calendar.clone(), null, -1L, null);
+    }
+
+    /**
+     * Returns a generalized time representing the provided {@code Date}.
+     * <p>
+     * The provided date will be defensively copied in order to preserve
+     * immutability.
+     *
+     * @param date
+     *            The date to be converted to a generalized time.
+     * @return A generalized time representing the provided {@code Date}.
+     */
+    public static GeneralizedTime valueOf(final Date date) {
+        Validator.ensureNotNull(date);
+        return new GeneralizedTime(null, (Date) date.clone(), -1L, null);
+    }
+
+    /**
+     * Returns a generalized time representing the provided time in milliseconds
+     * since the epoch.
+     *
+     * @param timeMS
+     *            The time to be converted to a generalized time.
+     * @return A generalized time representing the provided time in milliseconds
+     *         since the epoch.
+     */
+    public static GeneralizedTime valueOf(final long timeMS) {
+        Validator.ensureTrue(timeMS >= 0, "timeMS must be >= 0");
+        return new GeneralizedTime(null, null, timeMS, null);
+    }
+
+    /**
+     * Parses the provided string as an LDAP generalized time.
+     *
+     * @param time
+     *            The generalized time value to be parsed.
+     * @return The parsed generalized time.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code time} cannot be parsed as a valid generalized time
+     *             string.
+     * @throws NullPointerException
+     *             If {@code time} was {@code null}.
+     */
+    public static GeneralizedTime valueOf(final String time) {
         int year = 0;
         int month = 0;
         int day = 0;
@@ -66,14 +124,12 @@ public final class GeneralizedTime {
 
         // Get the value as a string and verify that it is at least long
         // enough for "YYYYMMDDhhZ", which is the shortest allowed value.
-        final String valueString = value.toString().toUpperCase();
+        final String valueString = time.toUpperCase();
         final int length = valueString.length();
         if (length < 11) {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT.get(valueString);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // The first four characters are the century and year, and they must
@@ -124,9 +180,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(valueString, String
                                 .valueOf(valueString.charAt(i)));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
         }
 
@@ -178,9 +232,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
                                 valueString.substring(4, 6));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
         case '1':
@@ -202,18 +254,14 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
                                 valueString.substring(4, 6));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
         default:
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString, valueString
                             .substring(4, 6));
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // The next two characters should be the day of the month, and they
@@ -267,9 +315,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
                                 .substring(6, 8));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -320,9 +366,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
                                 .substring(6, 8));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -373,9 +417,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
                                 .substring(6, 8));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -394,9 +436,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
                                 .substring(6, 8));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -404,9 +444,7 @@ public final class GeneralizedTime {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
                             .substring(6, 8));
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // The next two characters must be the hour, and they must form the
@@ -460,9 +498,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
                                 .substring(8, 10));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -512,9 +548,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
                                 .substring(8, 10));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -540,9 +574,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
                                 .substring(8, 10));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -550,9 +582,7 @@ public final class GeneralizedTime {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
                             .substring(8, 10));
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // Next, there should be either two digits comprising an integer
@@ -574,9 +604,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(m1), 10);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             minute = 10 * (m1 - '0');
@@ -625,9 +653,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(valueString,
                                 valueString.substring(10, 12));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             break;
@@ -641,9 +667,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(m1), 10);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         case '+':
@@ -657,9 +681,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(m1), 10);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         case '.':
@@ -671,9 +693,7 @@ public final class GeneralizedTime {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                             .valueOf(m1), 10);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // Next, there should be either two digits comprising an integer
@@ -695,9 +715,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(s1), 12);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             second = 10 * (s1 - '0');
@@ -746,9 +764,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(valueString,
                                 valueString.substring(12, 14));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             break;
@@ -760,18 +776,14 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(s1), 12);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             if (valueString.charAt(13) != '0') {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(valueString,
                                 valueString.substring(12, 14));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
             second = 60;
@@ -786,9 +798,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(s1), 12);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         case '+':
@@ -802,9 +812,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(s1), 12);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         case '.':
@@ -816,9 +824,7 @@ public final class GeneralizedTime {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                             .valueOf(s1), 12);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // Next, there should be either a period or comma followed by
@@ -840,9 +846,7 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(valueString.charAt(14)), 14);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         case '+':
@@ -856,129 +860,19 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                                 .valueOf(valueString.charAt(14)), 14);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
 
         default:
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
                             .valueOf(valueString.charAt(14)), 14);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
     }
 
     /**
-     * Returns the generalized time syntax encoding of the provided
-     * {@code Calendar}.
-     *
-     * @param value
-     *            The calendar to be encoded.
-     * @return The generalized time syntax encoding.
-     */
-    public static ByteString encode(final Calendar value) {
-        return encode(value.getTimeInMillis());
-    }
-
-    /**
-     * Returns the generalized time syntax encoding of the provided {@code Date}
-     * .
-     *
-     * @param value
-     *            The date to be encoded.
-     * @return The generalized time syntax encoding.
-     */
-    public static ByteString encode(final Date value) {
-        return encode(value.getTime());
-    }
-
-    /**
-     * Returns the generalized time syntax encoding of the provided date
-     * represented as milliseconds since the epoch.
-     *
-     * @param value
-     *            The date in milli-seconds since the epoch.
-     * @return The generalized time syntax encoding.
-     */
-    public static ByteString encode(final long value) {
-        // Generalized time has the format yyyyMMddHHmmss.SSS'Z'
-
-        // Do this in a thread-safe non-synchronized fashion.
-        // (Simple)DateFormat is neither fast nor thread-safe.
-        final StringBuilder sb = new StringBuilder(19);
-        final GregorianCalendar calendar = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
-        calendar.setLenient(false);
-        calendar.setTimeInMillis(value);
-
-        // Format the year yyyy.
-        int n = calendar.get(Calendar.YEAR);
-        if (n < 0) {
-            throw new IllegalArgumentException("Year cannot be < 0:" + n);
-        } else if (n < 10) {
-            sb.append("000");
-        } else if (n < 100) {
-            sb.append("00");
-        } else if (n < 1000) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the month MM.
-        n = calendar.get(Calendar.MONTH) + 1;
-        if (n < 10) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the day dd.
-        n = calendar.get(Calendar.DAY_OF_MONTH);
-        if (n < 10) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the hour HH.
-        n = calendar.get(Calendar.HOUR_OF_DAY);
-        if (n < 10) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the minute mm.
-        n = calendar.get(Calendar.MINUTE);
-        if (n < 10) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the seconds ss.
-        n = calendar.get(Calendar.SECOND);
-        if (n < 10) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the milli-seconds.
-        sb.append('.');
-        n = calendar.get(Calendar.MILLISECOND);
-        if (n < 10) {
-            sb.append("00");
-        } else if (n < 100) {
-            sb.append("0");
-        }
-        sb.append(n);
-
-        // Format the timezone (always Z).
-        sb.append('Z');
-
-        return ByteString.valueOf(sb.toString());
-    }
-
-    /**
-     * Returns a Calendar object representing the provided date / time
+     * Returns a generalized time object representing the provided date / time
      * parameters.
      *
      * @param value
@@ -997,29 +891,26 @@ public final class GeneralizedTime {
      *            The second.
      * @param tz
      *            The timezone.
-     * @return A Calendar object representing the provided date / time
+     * @return A generalized time representing the provided date / time
      *         parameters.
-     * @throws DecodeException
-     *             If the calendar could not be created.
+     * @throws LocalizedIllegalArgumentException
+     *             If the generalized time could not be created.
      */
-    private static Calendar createTime(final String value, final int year, final int month,
-            final int day, final int hour, final int minute, final int second, final TimeZone tz)
-            throws DecodeException {
+    private static GeneralizedTime createTime(final String value, final int year, final int month,
+            final int day, final int hour, final int minute, final int second, final TimeZone tz) {
         try {
             final GregorianCalendar calendar = new GregorianCalendar();
             calendar.setLenient(false);
             calendar.setTimeZone(tz);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, 0);
-            return calendar;
+            return new GeneralizedTime(calendar, null, -1L, value);
         } catch (final Exception e) {
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, String.valueOf(e));
-            final DecodeException de = DecodeException.error(message, e);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-            throw de;
+            throw new LocalizedIllegalArgumentException(message, e);
         }
     }
 
@@ -1053,13 +944,13 @@ public final class GeneralizedTime {
      *            should be 1000.
      * @return The timestamp created from the provided generalized time value
      *         including the fractional element.
-     * @throws DecodeException
+     * @throws LocalizedIllegalArgumentException
      *             If the provided value cannot be parsed as a valid generalized
      *             time string.
      */
-    private static Calendar finishDecodingFraction(final String value, final int startPos,
+    private static GeneralizedTime finishDecodingFraction(final String value, final int startPos,
             final int year, final int month, final int day, final int hour, final int minute,
-            final int second, final int multiplier) throws DecodeException {
+            final int second, final int multiplier) {
         final int length = value.length();
         final StringBuilder fractionBuffer = new StringBuilder((2 + length) - startPos);
         fractionBuffer.append("0.");
@@ -1089,10 +980,7 @@ public final class GeneralizedTime {
                     final LocalizableMessage message =
                             WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.get(value,
                                     String.valueOf(c));
-                    final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
-                            "finishDecodingFraction", e);
-                    throw e;
+                    throw new LocalizedIllegalArgumentException(message);
                 }
 
                 timeZone = TIME_ZONE_UTC_OBJ;
@@ -1107,27 +995,20 @@ public final class GeneralizedTime {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.get(value, String
                                 .valueOf(c));
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG
-                        .throwing("GeneralizedTimeSyntax", "finishDecodingFraction", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
         }
 
         if (fractionBuffer.length() == 2) {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION.get(value);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "finishDecodingFraction", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         if (timeZone == null) {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO.get(value);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "finishDecodingFraction", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         final Double fractionValue = Double.parseDouble(fractionBuffer.toString());
@@ -1139,16 +1020,13 @@ public final class GeneralizedTime {
             calendar.setTimeZone(timeZone);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, additionalMilliseconds);
-            return calendar;
+            return new GeneralizedTime(calendar, null, -1L, value);
         } catch (final Exception e) {
-
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, String.valueOf(e));
-            final DecodeException de = DecodeException.error(message, e);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "valueIsAcceptable", de);
-            throw de;
+            throw new LocalizedIllegalArgumentException(message, e);
         }
     }
 
@@ -1165,15 +1043,12 @@ public final class GeneralizedTime {
      * @throws DecodeException
      *             If the provided value does not contain a valid offset.
      */
-    private static TimeZone getTimeZoneForOffset(final String value, final int startPos)
-            throws DecodeException {
+    private static TimeZone getTimeZoneForOffset(final String value, final int startPos) {
         final String offSetStr = value.substring(startPos);
         if ((offSetStr.length() != 3) && (offSetStr.length() != 5)) {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // The first character must be either a plus or minus.
@@ -1186,9 +1061,7 @@ public final class GeneralizedTime {
         default:
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // The first two characters must be an integer between 00 and 23.
@@ -1212,9 +1085,7 @@ public final class GeneralizedTime {
             default:
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
@@ -1230,18 +1101,14 @@ public final class GeneralizedTime {
             default:
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
             break;
 
         default:
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-            final DecodeException e = DecodeException.error(message);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-            throw e;
+            throw new LocalizedIllegalArgumentException(message);
         }
 
         // If there are two more characters, then they must be an integer
@@ -1271,19 +1138,14 @@ public final class GeneralizedTime {
                 default:
                     final LocalizableMessage message =
                             WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-                    final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset",
-                            e);
-                    throw e;
+                    throw new LocalizedIllegalArgumentException(message);
                 }
                 break;
 
             default:
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
-                final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "getTimeZoneForOffset", e);
-                throw e;
+                throw new LocalizedIllegalArgumentException(message);
             }
         }
 
@@ -1292,8 +1154,204 @@ public final class GeneralizedTime {
         return TimeZone.getTimeZone("GMT" + offSetStr);
     }
 
-    private GeneralizedTime() {
-        // Prevent instantiation.
+    // Lazily constructed internal representations.
+    private volatile Calendar calendar;
+    private volatile Date date;
+    private volatile String stringValue;
+    private volatile long timeMS;
+
+    private GeneralizedTime(final Calendar calendar, final Date date, final long time,
+            final String stringValue) {
+        this.calendar = calendar;
+        this.date = date;
+        this.timeMS = time;
+        this.stringValue = stringValue;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public int compareTo(final GeneralizedTime o) {
+        final Long timeMS1 = getTimeInMillis();
+        final Long timeMS2 = o.getTimeInMillis();
+        return timeMS1.compareTo(timeMS2);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj instanceof GeneralizedTime) {
+            return getTimeInMillis() == ((GeneralizedTime) obj).getTimeInMillis();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the value of this generalized time in milliseconds since the
+     * epoch.
+     *
+     * @return The value of this generalized time in milliseconds since the
+     *         epoch.
+     */
+    public long getTimeInMillis() {
+        long tmpTimeMS = timeMS;
+        if (tmpTimeMS == -1) {
+            if (date != null) {
+                tmpTimeMS = date.getTime();
+            } else {
+                tmpTimeMS = calendar.getTimeInMillis();
+            }
+            timeMS = tmpTimeMS;
+        }
+        return tmpTimeMS;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int hashCode() {
+        return ((Long) getTimeInMillis()).hashCode();
+    }
+
+    /**
+     * Returns a {@code Calendar} representation of this generalized time.
+     * <p>
+     * Subsequent modifications to the returned calendar will not alter the
+     * internal state of this generalized time.
+     *
+     * @return A {@code Calendar} representation of this generalized time.
+     */
+    public Calendar toCalendar() {
+        Calendar tmpCalendar = calendar;
+        if (tmpCalendar == null) {
+            tmpCalendar = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
+            tmpCalendar.setLenient(false);
+            tmpCalendar.setTimeInMillis(getTimeInMillis());
+            calendar = tmpCalendar;
+        }
+        return (Calendar) tmpCalendar.clone();
+    }
+
+    /**
+     * Returns a {@code Date} representation of this generalized time.
+     * <p>
+     * Subsequent modifications to the returned date will not alter the internal
+     * state of this generalized time.
+     *
+     * @return A {@code Date} representation of this generalized time.
+     */
+    public Date toDate() {
+        Date tmpDate = date;
+        if (tmpDate == null) {
+            tmpDate = new Date(getTimeInMillis());
+            date = tmpDate;
+        }
+        return (Date) tmpDate.clone();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString() {
+        String tmpString = stringValue;
+        if (tmpString == null) {
+            // Do this in a thread-safe non-synchronized fashion.
+            // (Simple)DateFormat is neither fast nor thread-safe.
+            final StringBuilder sb = new StringBuilder(19);
+            final Calendar tmpCalendar = toCalendar();
+
+            // Format the year yyyy.
+            int n = tmpCalendar.get(Calendar.YEAR);
+            if (n < 0) {
+                throw new IllegalArgumentException("Year cannot be < 0:" + n);
+            } else if (n < 10) {
+                sb.append("000");
+            } else if (n < 100) {
+                sb.append("00");
+            } else if (n < 1000) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the month MM.
+            n = tmpCalendar.get(Calendar.MONTH) + 1;
+            if (n < 10) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the day dd.
+            n = tmpCalendar.get(Calendar.DAY_OF_MONTH);
+            if (n < 10) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the hour HH.
+            n = tmpCalendar.get(Calendar.HOUR_OF_DAY);
+            if (n < 10) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the minute mm.
+            n = tmpCalendar.get(Calendar.MINUTE);
+            if (n < 10) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the seconds ss.
+            n = tmpCalendar.get(Calendar.SECOND);
+            if (n < 10) {
+                sb.append("0");
+            }
+            sb.append(n);
+
+            // Format the milli-seconds.
+            n = tmpCalendar.get(Calendar.MILLISECOND);
+            if (n != 0) {
+                sb.append('.');
+                if (n < 10) {
+                    sb.append("00");
+                } else if (n < 100) {
+                    sb.append("0");
+                }
+                sb.append(n);
+            }
+
+            // Format the timezone.
+            n = tmpCalendar.get(Calendar.ZONE_OFFSET); /* ms */
+            if (n == 0) {
+                sb.append('Z');
+            } else {
+                if (n < 0) {
+                    sb.append('-');
+                    n = -n;
+                } else {
+                    sb.append('+');
+                }
+                n = n / 60000; // Minutes.
+
+                final int h = n / 60;
+                if (h < 10) {
+                    sb.append("0");
+                }
+                sb.append(h);
+
+                final int m = n % 60;
+                if (m < 10) {
+                    sb.append("0");
+                }
+                sb.append(m);
+            }
+            tmpString = sb.toString();
+            stringValue = tmpString;
+        }
+        return stringValue;
+    }
 }
