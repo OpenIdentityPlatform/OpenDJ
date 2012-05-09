@@ -33,10 +33,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_O
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_NAME;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.GeneralizedTime;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 
 /**
  * This class implements the fax attribute syntax. This should be restricted to
@@ -85,10 +84,10 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl {
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         try {
-            GeneralizedTime.decode(value);
+            GeneralizedTime.valueOf(value.toString());
             return true;
-        } catch (final DecodeException de) {
-            invalidReason.append(de.getMessageObject());
+        } catch (final LocalizedIllegalArgumentException e) {
+            invalidReason.append(e.getMessageObject());
             return false;
         }
     }

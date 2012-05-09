@@ -27,13 +27,16 @@
 
 package com.forgerock.opendj.util;
 
-import java.util.Calendar;
+import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_INTEGER_FAIL;
+import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_LONG_FAIL;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
@@ -60,28 +63,45 @@ public final class Functions {
 
     }
 
-    private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION =
-            new Function<ByteString, AttributeDescription, Schema>() {
-
-                public AttributeDescription apply(final ByteString value, final Schema p) {
-                    // FIXME: what should we do if parsing fails?
-                    return AttributeDescription.valueOf(value.toString(), p);
-                }
-            };
-
-    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
+    private static final Function<ByteString, String, Void> BYTESTRING_TO_STRING =
             new Function<ByteString, String, Void>() {
-
                 public String apply(final ByteString value, final Void p) {
-                    return Base64.encode(value);
+                    return value.toString();
                 }
             };
 
-    private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN =
-            new Function<ByteString, Boolean, Void>() {
+    private static final Function<Object, Object, Void> IDENTITY =
+            new Function<Object, Object, Void>() {
+                public Object apply(final Object value, final Void p) {
+                    return value;
+                }
+            };
 
-                public Boolean apply(final ByteString value, final Void p) {
-                    final String valueString = StaticUtils.toLowerCase(value.toString());
+    private static final Function<String, String, Void> NORMALIZE_STRING =
+            new Function<String, String, Void>() {
+                public String apply(final String value, final Void p) {
+                    return StaticUtils.toLowerCase(value).trim();
+                }
+            };
+
+    private static final Function<Object, ByteString, Void> OBJECT_TO_BYTESTRING =
+            new Function<Object, ByteString, Void>() {
+                public ByteString apply(final Object value, final Void p) {
+                    return ByteString.valueOf(value);
+                }
+            };
+
+    private static final Function<String, AttributeDescription, Schema> STRING_TO_ATTRIBUTE_DESCRIPTION =
+            new Function<String, AttributeDescription, Schema>() {
+                public AttributeDescription apply(final String value, final Schema p) {
+                    return AttributeDescription.valueOf(value, p);
+                }
+            };
+
+    private static final Function<String, Boolean, Void> STRING_TO_BOOLEAN =
+            new Function<String, Boolean, Void>() {
+                public Boolean apply(final String value, final Void p) {
+                    final String valueString = StaticUtils.toLowerCase(value);
 
                     if (valueString.equals("true") || valueString.equals("yes")
                             || valueString.equals("on") || valueString.equals("1")) {
@@ -90,86 +110,159 @@ public final class Functions {
                             || valueString.equals("off") || valueString.equals("0")) {
                         return Boolean.FALSE;
                     } else {
-                        throw new NumberFormatException("Invalid boolean value \"" + valueString
-                                + "\"");
+                        final LocalizableMessage message =
+                                WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString);
+                        throw new LocalizedIllegalArgumentException(message);
                     }
                 }
             };
 
-    private static final Function<ByteString, Calendar, Void> BYTESTRING_TO_CALENDAR =
-            new Function<ByteString, Calendar, Void>() {
+    private static final Function<String, DN, Schema> STRING_TO_DN =
+            new Function<String, DN, Schema>() {
+                public DN apply(final String value, final Schema p) {
+                    return DN.valueOf(value, p);
+                }
+            };
 
-                public Calendar apply(final ByteString value, final Void p) {
+    private static final Function<String, GeneralizedTime, Void> STRING_TO_GENERALIZED_TIME =
+            new Function<String, GeneralizedTime, Void>() {
+                public GeneralizedTime apply(final String value, final Void p) {
+                    return GeneralizedTime.valueOf(value);
+                }
+            };
+
+    private static final Function<String, Integer, Void> STRING_TO_INTEGER =
+            new Function<String, Integer, Void>() {
+                public Integer apply(final String value, final Void p) {
                     try {
-                        return GeneralizedTime.decode(value);
-                    } catch (DecodeException e) {
-                        throw new LocalizedIllegalArgumentException(e.getMessageObject(), e);
+                        return Integer.valueOf(value);
+                    } catch (final NumberFormatException e) {
+                        final LocalizableMessage message = FUNCTIONS_TO_INTEGER_FAIL.get(value);
+                        throw new LocalizedIllegalArgumentException(message);
                     }
                 }
             };
 
-    private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN =
-            new Function<ByteString, DN, Schema>() {
-
-                public DN apply(final ByteString value, final Schema p) {
-                    // FIXME: what should we do if parsing fails?
-
-                    // FIXME: we should have a ByteString valueOf
-                    // implementation.
-                    return DN.valueOf(value.toString(), p);
+    private static final Function<String, Long, Void> STRING_TO_LONG =
+            new Function<String, Long, Void>() {
+                public Long apply(final String value, final Void p) {
+                    try {
+                        return Long.valueOf(value);
+                    } catch (final NumberFormatException e) {
+                        final LocalizableMessage message = FUNCTIONS_TO_LONG_FAIL.get(value);
+                        throw new LocalizedIllegalArgumentException(message);
+                    }
                 }
             };
 
-    private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER =
-            new Function<ByteString, Integer, Void>() {
+    private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION =
+            composeSecondP(valueToString(), STRING_TO_ATTRIBUTE_DESCRIPTION);
 
-                public Integer apply(final ByteString value, final Void p) {
-                    // We do not use ByteString.toInt() as we are string based.
-                    return Integer.valueOf(value.toString());
-                }
+    private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN = compose(
+            valueToString(), STRING_TO_BOOLEAN);
+
+    private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN = composeSecondP(
+            valueToString(), STRING_TO_DN);
+
+    private static final Function<ByteString, GeneralizedTime, Void> BYTESTRING_TO_GENERALIZED_TIME =
+            compose(valueToString(), STRING_TO_GENERALIZED_TIME);
+
+    private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER = compose(
+            valueToString(), STRING_TO_INTEGER);
+
+    private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG = compose(
+            valueToString(), STRING_TO_LONG);
+
+    /**
+     * Returns the composition of two functions. The result of the first
+     * function will be passed to the second.
+     *
+     * @param <M>
+     *            The type of input values transformed by this function.
+     * @param <N>
+     *            The type of output values returned by this function.
+     * @param <X>
+     *            The type of intermediate values passed between the two
+     *            functions.
+     * @param first
+     *            The first function which will consume the input.
+     * @param second
+     *            The second function which will produce the result.
+     * @return The composition.
+     */
+    public static <M, X, N> Function<M, N, Void> compose(final Function<M, X, Void> first,
+            final Function<X, N, Void> second) {
+        return new Function<M, N, Void>() {
+            public N apply(final M value, final Void p) {
+                final X tmp = first.apply(value, p);
+                return second.apply(tmp, p);
             };
+        };
+    }
 
-    private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG =
-            new Function<ByteString, Long, Void>() {
-
-                public Long apply(final ByteString value, final Void p) {
-                    // We do not use ByteString.toLong() as we are string based.
-                    return Long.valueOf(value.toString());
-                }
+    /**
+     * Returns the composition of two functions. The result of the first
+     * function will be passed to the second. The first function will be passed
+     * an additional parameter.
+     *
+     * @param <M>
+     *            The type of input values transformed by this function.
+     * @param <N>
+     *            The type of output values returned by this function.
+     * @param <X>
+     *            The type of intermediate values passed between the two
+     *            functions.
+     * @param <P>
+     *            The type of the additional parameter to the first function's
+     *            {@code apply} method. Use {@link java.lang.Void} for functions
+     *            that do not need an additional parameter.
+     * @param first
+     *            The first function which will consume the input.
+     * @param second
+     *            The second function which will produce the result.
+     * @return The composition.
+     */
+    public static <M, X, N, P> Function<M, N, P> composeFirstP(final Function<M, X, P> first,
+            final Function<X, N, Void> second) {
+        return new Function<M, N, P>() {
+            public N apply(final M value, final P p) {
+                final X tmp = first.apply(value, p);
+                return second.apply(tmp, null);
             };
+        };
+    }
 
-    private static final Function<ByteString, String, Void> BYTESTRING_TO_STRING =
-            new Function<ByteString, String, Void>() {
-
-                public String apply(final ByteString value, final Void p) {
-                    return value.toString();
-                }
+    /**
+     * Returns the composition of two functions. The result of the first
+     * function will be passed to the second. The second function will be passed
+     * an additional parameter.
+     *
+     * @param <M>
+     *            The type of input values transformed by this function.
+     * @param <N>
+     *            The type of output values returned by this function.
+     * @param <X>
+     *            The type of intermediate values passed between the two
+     *            functions.
+     * @param <P>
+     *            The type of the additional parameter to the second function's
+     *            {@code apply} method. Use {@link java.lang.Void} for functions
+     *            that do not need an additional parameter.
+     * @param first
+     *            The first function which will consume the input.
+     * @param second
+     *            The second function which will produce the result.
+     * @return The composition.
+     */
+    public static <M, X, N, P> Function<M, N, P> composeSecondP(final Function<M, X, Void> first,
+            final Function<X, N, P> second) {
+        return new Function<M, N, P>() {
+            public N apply(final M value, final P p) {
+                final X tmp = first.apply(value, null);
+                return second.apply(tmp, p);
             };
-
-    private static final Function<Object, ByteString, Void> OBJECT_TO_BYTESTRING =
-            new Function<Object, ByteString, Void>() {
-
-                public ByteString apply(final Object value, final Void p) {
-                    return ByteString.valueOf(value);
-                }
-            };
-
-    private static final Function<String, String, Void> NORMALIZE_STRING =
-            new Function<String, String, Void>() {
-
-                public String apply(final String value, final Void p) {
-                    return StaticUtils.toLowerCase(value).trim();
-                }
-            };
-
-    private static final Function<Object, Object, Void> IDENTITY =
-            new Function<Object, Object, Void>() {
-
-                public Object apply(Object value, Void p) {
-                    return value;
-                }
-
-            };
+        };
+    }
 
     /**
      * Returns a function which which always invokes {@code function} with
@@ -232,28 +325,115 @@ public final class Functions {
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as an {@code AttributeDescription} using the default
-     * schema. Invalid values will result in a
+     * Returns a function which parses {@code AttributeDescription}s using the
+     * default schema. Invalid values will result in a
      * {@code LocalizedIllegalArgumentException}.
      *
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as an {@code AttributeDescription}.
+     * @return A function which parses {@code AttributeDescription}s.
+     */
+    public static Function<String, AttributeDescription, Void> stringToAttributeDescription() {
+        return fixedFunction(STRING_TO_ATTRIBUTE_DESCRIPTION, Schema.getDefaultSchema());
+    }
+
+    /**
+     * Returns a function which parses {@code AttributeDescription}s using the
+     * provided schema. Invalid values will result in a
+     * {@code LocalizedIllegalArgumentException}.
+     *
+     * @param schema
+     *            The schema to use for decoding attribute descriptions.
+     * @return A function which parses {@code AttributeDescription}s.
+     */
+    public static Function<String, AttributeDescription, Void> stringToAttributeDescription(
+            final Schema schema) {
+        return fixedFunction(STRING_TO_ATTRIBUTE_DESCRIPTION, schema);
+    }
+
+    /**
+     * Returns a function which parses {@code Boolean} values. The function will
+     * accept the values {@code 0}, {@code false}, {@code no}, {@code off},
+     * {@code 1}, {@code true}, {@code yes}, {@code on}. All other values will
+     * result in a {@code NumberFormatException}.
+     *
+     * @return A function which parses {@code Boolean} values.
+     */
+    public static Function<String, Boolean, Void> stringToBoolean() {
+        return STRING_TO_BOOLEAN;
+    }
+
+    /**
+     * Returns a function which parses {@code DN}s using the default schema.
+     * Invalid values will result in a {@code LocalizedIllegalArgumentException}
+     * .
+     *
+     * @return A function which parses {@code DN}s.
+     */
+    public static Function<String, DN, Void> stringToDN() {
+        return fixedFunction(STRING_TO_DN, Schema.getDefaultSchema());
+    }
+
+    /**
+     * Returns a function which parses {@code DN}s using the provided schema.
+     * Invalid values will result in a {@code LocalizedIllegalArgumentException}
+     * .
+     *
+     * @param schema
+     *            The schema to use for decoding DNs.
+     * @return A function which parses {@code DN}s.
+     */
+    public static Function<String, DN, Void> stringToDN(final Schema schema) {
+        return fixedFunction(STRING_TO_DN, schema);
+    }
+
+    /**
+     * Returns a function which parses generalized time strings. Invalid values
+     * will result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses generalized time strings.
+     */
+    public static Function<String, GeneralizedTime, Void> stringToGeneralizedTime() {
+        return STRING_TO_GENERALIZED_TIME;
+    }
+
+    /**
+     * Returns a function which parses {@code Integer} string values. Invalid
+     * values will result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses {@code Integer} string values.
+     */
+    public static Function<String, Integer, Void> stringToInteger() {
+        return STRING_TO_INTEGER;
+    }
+
+    /**
+     * Returns a function which parses {@code Long} string values. Invalid
+     * values will result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses {@code Long} string values.
+     */
+    public static Function<String, Long, Void> stringToLong() {
+        return STRING_TO_LONG;
+    }
+
+    /**
+     * Returns a function which parses {@code AttributeDescription}s using the
+     * default schema. Invalid values will result in a
+     * {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses {@code AttributeDescription}s.
      */
     public static Function<ByteString, AttributeDescription, Void> valueToAttributeDescription() {
         return fixedFunction(BYTESTRING_TO_ATTRIBUTE_DESCRIPTION, Schema.getDefaultSchema());
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as an {@code AttributeDescription} using the provided
-     * schema. Invalid values will result in a
+     * Returns a function which parses {@code AttributeDescription}s using the
+     * provided schema. Invalid values will result in a
      * {@code LocalizedIllegalArgumentException}.
      *
      * @param schema
      *            The schema to use for decoding attribute descriptions.
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as an {@code AttributeDescription}.
+     * @return A function which parses {@code AttributeDescription}s.
      */
     public static Function<ByteString, AttributeDescription, Void> valueToAttributeDescription(
             final Schema schema) {
@@ -261,85 +441,66 @@ public final class Functions {
     }
 
     /**
-     * Returns a function which encodes a {@code ByteString} as {@code Base64}.
+     * Returns a function which parses {@code Boolean} values. The function will
+     * accept the values {@code 0}, {@code false}, {@code no}, {@code off},
+     * {@code 1}, {@code true}, {@code yes}, {@code on}. All other values will
+     * result in a {@code NumberFormatException}.
      *
-     * @return A function which encodes a {@code ByteString} as {@code Base64}.
-     */
-    public static Function<ByteString, String, Void> valueToBase64() {
-        return BYTESTRING_TO_BASE64;
-    }
-
-    /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} to a {@code Boolean}. The function will accept the
-     * values {@code 0}, {@code false}, {@code no}, {@code off}, {@code 1},
-     * {@code true}, {@code yes}, {@code on}. All other values will result in a
-     * {@code NumberFormatException}.
-     *
-     * @return A function which transforms a {@code ByteString} to a
-     *         {@code Boolean}.
+     * @return A function which parses {@code Boolean} values.
      */
     public static Function<ByteString, Boolean, Void> valueToBoolean() {
         return BYTESTRING_TO_BOOLEAN;
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as a generalized time syntax. Invalid values will
-     * result in a {@code LocalizedIllegalArgumentException}.
+     * Returns a function which parses {@code DN}s using the default schema.
+     * Invalid values will result in a {@code LocalizedIllegalArgumentException}
+     * .
      *
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as generalized time syntax.
-     */
-    public static Function<ByteString, Calendar, Void> valueToCalendar() {
-        return BYTESTRING_TO_CALENDAR;
-    }
-
-    /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as a {@code DN} using the default schema. Invalid
-     * values will result in a {@code LocalizedIllegalArgumentException}.
-     *
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as an {@code DN}.
+     * @return A function which parses {@code DN}s.
      */
     public static Function<ByteString, DN, Void> valueToDN() {
         return fixedFunction(BYTESTRING_TO_DN, Schema.getDefaultSchema());
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as a {@code DN} using the provided schema. Invalid
-     * values will result in a {@code LocalizedIllegalArgumentException}.
+     * Returns a function which parses {@code DN}s using the provided schema.
+     * Invalid values will result in a {@code LocalizedIllegalArgumentException}
+     * .
      *
      * @param schema
      *            The schema to use for decoding DNs.
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as an {@code DN}.
+     * @return A function which parses {@code DN}s.
      */
     public static Function<ByteString, DN, Void> valueToDN(final Schema schema) {
         return fixedFunction(BYTESTRING_TO_DN, schema);
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as an {@code Integer}. Invalid values will result in a
-     * {@code NumberFormatException}.
+     * Returns a function which parses generalized time strings. Invalid values
+     * will result in a {@code LocalizedIllegalArgumentException}.
      *
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as an {@code Integer}.
+     * @return A function which parses generalized time strings.
+     */
+    public static Function<ByteString, GeneralizedTime, Void> valueToGeneralizedTime() {
+        return BYTESTRING_TO_GENERALIZED_TIME;
+    }
+
+    /**
+     * Returns a function which parses {@code Integer} string values. Invalid
+     * values will result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses {@code Integer} string values.
      */
     public static Function<ByteString, Integer, Void> valueToInteger() {
         return BYTESTRING_TO_INTEGER;
     }
 
     /**
-     * Returns a function which parses the string representation of a
-     * {@code ByteString} as a {@code Long}. Invalid values will result in a
-     * {@code NumberFormatException}.
+     * Returns a function which parses {@code Long} string values. Invalid
+     * values will result in a {@code LocalizedIllegalArgumentException}.
      *
-     * @return A function which parses the string representation of a
-     *         {@code ByteString} as a {@code Long}.
+     * @return A function which parses {@code Long} string values.
      */
     public static Function<ByteString, Long, Void> valueToLong() {
         return BYTESTRING_TO_LONG;

@@ -26,17 +26,17 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.Collections2.transformedCollection;
+
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.Schema;
 
-import com.forgerock.opendj.util.Base64;
-import com.forgerock.opendj.util.Collections2;
 import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Functions;
 
@@ -105,7 +105,7 @@ public final class AttributeParser {
      * @return The first value decoded as an {@code AttributeDescription}.
      */
     public AttributeDescription asAttributeDescription() {
-        return asAttributeDescription(null);
+        return asAttributeDescription((AttributeDescription) null);
     }
 
     /**
@@ -122,25 +122,16 @@ public final class AttributeParser {
     }
 
     /**
-     * Returns the first value encoded as base64, or {@code null} if the
-     * attribute does not contain any values.
-     *
-     * @return The first value encoded as base64.
-     */
-    public String asBase64() {
-        return asBase64(null);
-    }
-
-    /**
-     * Returns the first value encoded as base64, or {@code defaultValue} if the
+     * Returns the first value decoded as an {@code AttributeDescription} using
+     * the schema associated with this parser, or {@code defaultValue} if the
      * attribute does not contain any values.
      *
      * @param defaultValue
      *            The default value to return if the attribute is empty.
-     * @return The first value encoded as base64.
+     * @return The first value decoded as an {@code AttributeDescription}.
      */
-    public String asBase64(final ByteString defaultValue) {
-        return parseSingleValue(Functions.valueToBase64(), Base64.encode(defaultValue));
+    public AttributeDescription asAttributeDescription(final String defaultValue) {
+        return asAttributeDescription(AttributeDescription.valueOf(defaultValue, getSchema()));
     }
 
     /**
@@ -188,30 +179,6 @@ public final class AttributeParser {
     }
 
     /**
-     * Returns the first value decoded as a {@code Calendar} using the
-     * generalized time syntax, or {@code null} if the attribute does not
-     * contain any values.
-     *
-     * @return The first value decoded as a {@code Calendar}.
-     */
-    public Calendar asCalendar() {
-        return asCalendar(null);
-    }
-
-    /**
-     * Returns the first value decoded as an {@code Calendar} using the
-     * generalized time syntax, or {@code defaultValue} if the attribute does
-     * not contain any values.
-     *
-     * @param defaultValue
-     *            The default value to return if the attribute is empty.
-     * @return The first value decoded as an {@code Calendar}.
-     */
-    public Calendar asCalendar(final Calendar defaultValue) {
-        return parseSingleValue(Functions.valueToCalendar(), defaultValue);
-    }
-
-    /**
      * Returns the first value decoded as a {@code DN} using the schema
      * associated with this parser, or {@code null} if the attribute does not
      * contain any values.
@@ -219,7 +186,7 @@ public final class AttributeParser {
      * @return The first value decoded as a {@code DN}.
      */
     public DN asDN() {
-        return asDN(null);
+        return asDN((DN) null);
     }
 
     /**
@@ -233,6 +200,43 @@ public final class AttributeParser {
      */
     public DN asDN(final DN defaultValue) {
         return parseSingleValue(Functions.valueToDN(getSchema()), defaultValue);
+    }
+
+    /**
+     * Returns the first value decoded as a {@code DN} using the schema
+     * associated with this parser, or {@code defaultValue} if the attribute
+     * does not contain any values.
+     *
+     * @param defaultValue
+     *            The default value to return if the attribute is empty.
+     * @return The first value decoded as a {@code DN}.
+     */
+    public DN asDN(final String defaultValue) {
+        return asDN(DN.valueOf(defaultValue, getSchema()));
+    }
+
+    /**
+     * Returns the first value decoded as a {@code GeneralizedTime} using the
+     * generalized time syntax, or {@code null} if the attribute does not
+     * contain any values.
+     *
+     * @return The first value decoded as a {@code GeneralizedTime}.
+     */
+    public GeneralizedTime asGeneralizedTime() {
+        return asGeneralizedTime(null);
+    }
+
+    /**
+     * Returns the first value decoded as an {@code GeneralizedTime} using the
+     * generalized time syntax, or {@code defaultValue} if the attribute does
+     * not contain any values.
+     *
+     * @param defaultValue
+     *            The default value to return if the attribute is empty.
+     * @return The first value decoded as an {@code GeneralizedTime}.
+     */
+    public GeneralizedTime asGeneralizedTime(final GeneralizedTime defaultValue) {
+        return parseSingleValue(Functions.valueToGeneralizedTime(), defaultValue);
     }
 
     /**
@@ -281,6 +285,17 @@ public final class AttributeParser {
 
     /**
      * Returns the values decoded as a set of {@code AttributeDescription}s
+     * using the schema associated with this parser, or an empty set if the
+     * attribute does not contain any values.
+     *
+     * @return The values decoded as a set of {@code AttributeDescription}s.
+     */
+    public Set<AttributeDescription> asSetOfAttributeDescription() {
+        return asSetOfAttributeDescription(Collections.<AttributeDescription> emptySet());
+    }
+
+    /**
+     * Returns the values decoded as a set of {@code AttributeDescription}s
      * using the schema associated with this parser, or {@code defaultValues} if
      * the attribute does not contain any values.
      *
@@ -308,28 +323,17 @@ public final class AttributeParser {
     }
 
     /**
-     * Returns the values contained in the attribute encoded as base64, or
-     * {@code defaultValues} if the attribute does not contain any values.
+     * Returns the values decoded as a set of {@code AttributeDescription}s
+     * using the schema associated with this parser, or {@code defaultValues} if
+     * the attribute does not contain any values.
      *
      * @param defaultValues
      *            The default values to return if the attribute is empty.
-     * @return The values contained in the attribute encoded as base64.
+     * @return The values decoded as a set of {@code AttributeDescription}s.
      */
-    public Set<String> asSetOfBase64(final Collection<ByteString> defaultValues) {
-        return parseMultipleValues(Functions.valueToString(), Collections2.transformedCollection(
-                defaultValues, Functions.valueToBase64(), null));
-    }
-
-    /**
-     * Returns the values contained in the attribute encoded as base64, or
-     * {@code defaultValues} if the attribute does not contain any values.
-     *
-     * @param defaultValues
-     *            The default values to return if the attribute is empty.
-     * @return The values contained in the attribute encoded as base64.
-     */
-    public Set<String> asSetOfBase64(final String... defaultValues) {
-        return asSetOfString(Arrays.asList(defaultValues));
+    public Set<AttributeDescription> asSetOfAttributeDescription(final String... defaultValues) {
+        return asSetOfAttributeDescription(transformedCollection(Arrays.asList(defaultValues),
+                Functions.stringToAttributeDescription(getSchema()), null));
     }
 
     /**
@@ -381,29 +385,14 @@ public final class AttributeParser {
     }
 
     /**
-     * Returns the values decoded as a set of {@code Calendar}s using the
-     * generalized time syntax, or {@code defaultValues} if the attribute does
-     * not contain any values.
+     * Returns the values decoded as a set of {@code DN}s using the schema
+     * associated with this parser, or an empty set if the attribute does not
+     * contain any values.
      *
-     * @param defaultValues
-     *            The default values to return if the attribute is empty.
-     * @return The values decoded as a set of {@code Calendar}s.
+     * @return The values decoded as a set of {@code DN}s.
      */
-    public Set<Calendar> asSetOfCalendar(final Calendar... defaultValues) {
-        return asSetOfCalendar(Arrays.asList(defaultValues));
-    }
-
-    /**
-     * Returns the values decoded as a set of {@code Calendar}s using the
-     * generalized time syntax, or {@code defaultValues} if the attribute does
-     * not contain any values.
-     *
-     * @param defaultValues
-     *            The default values to return if the attribute is empty.
-     * @return The values decoded as a set of {@code Calendar}s.
-     */
-    public Set<Calendar> asSetOfCalendar(final Collection<Calendar> defaultValues) {
-        return parseMultipleValues(Functions.valueToCalendar(), defaultValues);
+    public Set<DN> asSetOfDN() {
+        return asSetOfDN(Collections.<DN> emptySet());
     }
 
     /**
@@ -430,6 +419,47 @@ public final class AttributeParser {
      */
     public Set<DN> asSetOfDN(final DN... defaultValues) {
         return asSetOfDN(Arrays.asList(defaultValues));
+    }
+
+    /**
+     * Returns the values decoded as a set of {@code DN}s using the schema
+     * associated with this parser, or {@code defaultValues} if the attribute
+     * does not contain any values.
+     *
+     * @param defaultValues
+     *            The default values to return if the attribute is empty.
+     * @return The values decoded as a set of {@code DN}s.
+     */
+    public Set<DN> asSetOfDN(final String... defaultValues) {
+        return asSetOfDN(transformedCollection(Arrays.asList(defaultValues), Functions
+                .stringToDN(getSchema()), null));
+    }
+
+    /**
+     * Returns the values decoded as a set of {@code GeneralizedTime}s using the
+     * generalized time syntax, or {@code defaultValues} if the attribute does
+     * not contain any values.
+     *
+     * @param defaultValues
+     *            The default values to return if the attribute is empty.
+     * @return The values decoded as a set of {@code GeneralizedTime}s.
+     */
+    public Set<GeneralizedTime> asSetOfGeneralizedTime(
+            final Collection<GeneralizedTime> defaultValues) {
+        return parseMultipleValues(Functions.valueToGeneralizedTime(), defaultValues);
+    }
+
+    /**
+     * Returns the values decoded as a set of {@code GeneralizedTime}s using the
+     * generalized time syntax, or {@code defaultValues} if the attribute does
+     * not contain any values.
+     *
+     * @param defaultValues
+     *            The default values to return if the attribute is empty.
+     * @return The values decoded as a set of {@code GeneralizedTime}s.
+     */
+    public Set<GeneralizedTime> asSetOfGeneralizedTime(final GeneralizedTime... defaultValues) {
+        return asSetOfGeneralizedTime(Arrays.asList(defaultValues));
     }
 
     /**

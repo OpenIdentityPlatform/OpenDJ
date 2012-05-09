@@ -26,11 +26,11 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.GeneralizedTime;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 
 /**
  * This class defines the generalizedTimeOrderingMatch matching rule defined in
@@ -39,6 +39,10 @@ import com.forgerock.opendj.util.GeneralizedTime;
 final class GeneralizedTimeOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
-        return ByteString.valueOf(GeneralizedTime.decode(value).getTimeInMillis());
+        try {
+            return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
+        } catch (LocalizedIllegalArgumentException e) {
+            throw DecodeException.error(e.getMessageObject());
+        }
     }
 }
