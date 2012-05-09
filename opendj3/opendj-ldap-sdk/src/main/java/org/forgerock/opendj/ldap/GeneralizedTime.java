@@ -967,7 +967,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
         TimeZone timeZone = null;
 
-        outerLoop:
+    outerLoop:
         for (int i = startPos; i < length; i++) {
             final char c = value.charAt(i);
             switch (c) {
