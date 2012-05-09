@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-extended-ops'
@@ -112,17 +112,105 @@ static boolean isSupported(final String extendedOperation) {
   an extended operation that lets you cancel an operation in progress and get
   an indication of the outcome.</para>
 
-  <para>This cancel extended requests uses the request ID of operation you
+  <para>The Cancel extended request uses the request ID of operation you
   want to cancel, and so therefore works with asynchronous searches and
-  updates.</para>
+  updates. Depending on the delay between your application sending the Cancel
+  request and the directory server receiving the request, the server might have
+  already finished processing the original request before it receives your
+  Cancel request.</para>
+
+  <para>You can add a Cancel extended request for example to stop handling
+  entries returned from a search if the directory server returns more entries
+  than you want.</para>
 
   <programlisting language="java">
-TODO
+private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
+private static final CountDownLatch CANCEL_LATCH = new CountDownLatch(1);
+private static final LDIFEntryWriter WRITER = new LDIFEntryWriter(System.out);
+
+static int requestID;
+static int entryCount = 0;
+
+// The requestID is obtained from the future result of the asynchronous search.
+// For more context see the example, SearchAsync.java.
+
+private static final class SearchResultHandlerImpl
+        implements SearchResultHandler {
+
+    @Override
+    public synchronized boolean handleEntry(final SearchResultEntry entry) {
+        try {
+            // Cancel the search if it returns too many results.
+            if (entryCount &lt; 10) {
+                WRITER.writeComment("Search result entry: "
+                        + entry.getName().toString());
+                WRITER.writeEntry(entry);
+                ++entryCount;
+            } else {
+                CancelExtendedRequest request =
+                        Requests.newCancelExtendedRequest(requestID);
+                connection.extendedRequestAsync(
+                        request, null, new CancelResultHandlerImpl());
+                return false;
+            }
+        } catch (final IOException e) {
+            System.err.println(e.getMessage());
+            resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+            COMPLETION_LATCH.countDown();
+            return false;
+        }
+        return true;
+    }
+    ...
+}
+
+private static final class CancelResultHandlerImpl
+        implements ResultHandler&lt;ExtendedResult&gt; {
+
+    @Override
+    public void handleErrorResult(final ErrorResultException error) {
+        System.err.println("Cancel request failed with result code: "
+                + error.getResult().getResultCode().intValue());
+        CANCEL_LATCH.countDown();
+    }
+
+    @Override
+    public void handleResult(final ExtendedResult result) {
+        System.err.println("Cancel request succeeded");
+        CANCEL_LATCH.countDown();
+    }
+
+}
 </programlisting>
 
-  <para>OpenDJ directory server supports the cancel operation.</para>
+  <para>OpenDJ directory server supports the cancel operation. If OpenDJ
+  directory server manages to return all entries in
+  <filename>Example.ldif</filename> before it receives the Cancel extended
+  request, you can see the Cancel request fail because the request ID refers
+  to the search, which is no longer in progress. Try adding a new base DN using
+  OpenDJ control panel and adding the default 2000 generated entries to ensure
+  more search results. For example if <literal>dc=example,dc=org</literal>
+  contains 2000 generated entries, and the <literal>SearchAsync</literal>
+  example is run with the arguments <literal>sub objectclass=* cn</literal>
+  for scope, filter, and attributes respectively, then the example produces
+  something like the following output:</para>
 
-  <programlisting>TODO</programlisting>
+  <programlisting>
+Canceled: Processing on this operation was terminated as a result of receiving
+ a cancel request (message ID 3)
+# Search result entry: dc=example,dc=org
+dn: dc=example,dc=org
+
+# Search result entry: ou=People,dc=example,dc=org
+dn: ou=People,dc=example,dc=org
+
+# Search result entry: uid=user.0,ou=People,dc=example,dc=org
+dn: uid=user.0,ou=People,dc=example,dc=org
+cn: Aaccf Amar
+
+...
+
+Cancel request succeeded</programlisting>
  </section>
 
  <section xml:id="use-password-modify-extended-operation">
