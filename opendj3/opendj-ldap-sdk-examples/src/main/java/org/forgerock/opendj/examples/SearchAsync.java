@@ -195,15 +195,13 @@ public final class SearchAsync {
 
         @Override
         public void handleErrorResult(final ErrorResultException error) {
-            System.err.println(error.getMessage());
-            resultCode = error.getResult().getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
+            System.err.println("Cancel request failed with result code: "
+                    + error.getResult().getResultCode().intValue());
         }
 
         @Override
         public void handleResult(final ExtendedResult result) {
-            resultCode = result.getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
+            System.err.println("Cancel request succeeded");
         }
 
     }
