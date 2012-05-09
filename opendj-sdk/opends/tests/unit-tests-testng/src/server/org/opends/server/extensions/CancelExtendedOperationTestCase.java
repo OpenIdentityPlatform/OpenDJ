@@ -23,26 +23,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.OID_CANCEL_REQUEST;
+import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
+import static org.testng.Assert.assertEquals;
+
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.plugins.DelayPreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -59,20 +59,23 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
+import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.types.*;
-
-import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
-
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import org.opends.messages.Message;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchScope;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 /**
@@ -163,8 +166,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be an add
-    // response and the other should be an extended response.  They should both
-    // have a result code of "cancelled".
+    // response and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -179,7 +181,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
@@ -246,8 +248,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be a compare
-    // response and the other should be an extended response.  They should both
-    // have a result code of "cancelled".
+    // response and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -263,7 +264,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
@@ -343,8 +344,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be a delete
-    // response and the other should be an extended response.  They should both
-    // have a result code of "cancelled".
+    // response and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -360,7 +360,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
@@ -424,16 +424,17 @@ public class CancelExtendedOperationTestCase
     message = new LDAPMessage(3, extendedRequest);
     w.writeMessage(message);
 
-                                                          
+
     // Read two response messages from the server.  They should both be extended
-    // responses and they should both have result codes of "cancelled".
-    for (int i=0; i < 2; i++)
-    {
-      message = r.readMessage();
-      ExtendedResponseProtocolOp extendedResponse =
-           message.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
-    }
+    // responses, one with the result code CANCELED and one with SUCCESS.
+    message = r.readMessage();
+    ExtendedResponseProtocolOp extendedResponse =
+            message.getExtendedResponseProtocolOp();
+    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    message = r.readMessage();
+    extendedResponse = message.getExtendedResponseProtocolOp();
+    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
     socket.close();
   }
@@ -502,8 +503,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be a modify
-    // response and the other should be an extended response.  They should both
-    // have a result code of "cancelled".
+    // response and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -519,7 +519,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
@@ -600,8 +600,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be a modify DN
-    // response and the other should be an extended response.  They should both
-    // have a result code of "cancelled".
+    // response and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -617,7 +616,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
@@ -688,8 +687,7 @@ public class CancelExtendedOperationTestCase
 
 
     // Read two response messages from the server.  One should be a search
-    // result done and the other should be an extended response.  They should
-    // both have a result code of "cancelled".
+    // result done and the other should be an extended response.
     for (int i=0; i < 2; i++)
     {
       message = r.readMessage();
@@ -705,7 +703,7 @@ public class CancelExtendedOperationTestCase
           ExtendedResponseProtocolOp extendedResponse =
                message.getExtendedResponseProtocolOp();
           assertEquals(extendedResponse.getResultCode(),
-                       LDAPResultCode.CANCELED);
+                       LDAPResultCode.SUCCESS);
           break;
         default:
       }
