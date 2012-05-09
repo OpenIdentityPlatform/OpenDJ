@@ -59,6 +59,16 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone("UTC");
 
     /**
+     * Returns a generalized time whose value is the current time, using the
+     * default time zone and locale.
+     *
+     * @return A generalized time whose value is the current time.
+     */
+    public static GeneralizedTime currentTime() {
+        return valueOf(Calendar.getInstance());
+    }
+
+    /**
      * Returns a generalized time representing the provided {@code Calendar}.
      * <p>
      * The provided calendar will be defensively copied in order to preserve
@@ -957,7 +967,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
         TimeZone timeZone = null;
 
-    outerLoop:
+        outerLoop:
         for (int i = startPos; i < length; i++) {
             final char c = value.charAt(i);
             switch (c) {
