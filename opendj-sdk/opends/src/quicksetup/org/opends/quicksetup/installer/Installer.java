@@ -496,7 +496,7 @@ public abstract class Installer extends GuiApplication {
    */
   @Override
   public ButtonName getInitialFocusButtonName() {
-    ButtonName name = null;
+    ButtonName name;
     if (!installStatus.isInstalled() || forceToDisplaySetup)
     {
       name = ButtonName.NEXT;
@@ -549,6 +549,7 @@ public abstract class Installer extends GuiApplication {
              *
              * @param ev the ButtonEvent we receive.
              */
+            @Override
             public void buttonActionPerformed(ButtonEvent ev)
             {
               // Simulate a close button event
@@ -3503,17 +3504,14 @@ public abstract class Installer extends GuiApplication {
     boolean hasGlobalAdministrators = false;
     Integer replicationPort = -1;
     boolean secureReplication = false;
-    String host = null;
     Integer port = null;
-    String dn = null;
-    String pwd = null;
     ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type)
       qs.getFieldValue(FieldName.REPLICATION_OPTIONS);
-    host = qs.getFieldStringValue(FieldName.REMOTE_SERVER_HOST);
-    dn = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
-    pwd = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PWD);
+    String host = qs.getFieldStringValue(FieldName.REMOTE_SERVER_HOST);
+    String dn = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
+    String pwd = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PWD);
 
     if (type != DataReplicationOptions.Type.STANDALONE)
     {
@@ -4093,12 +4091,11 @@ public abstract class Installer extends GuiApplication {
     for (ServerDescriptor server : servers.keySet())
     {
       String hostName = server.getHostName();
-      int replicationPort = -1;
       boolean secureReplication = (Boolean)hmSecure.get(server.getId());
       String sPort = (String)hm.get(server.getId());
       try
       {
-        replicationPort = Integer.parseInt(sPort);
+        int replicationPort = Integer.parseInt(sPort);
         if ((replicationPort < MIN_PORT_VALUE) ||
             (replicationPort > MAX_PORT_VALUE))
         {
@@ -4683,7 +4680,7 @@ public abstract class Installer extends GuiApplication {
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
     long lastTimeMsgLogged = -1;
-    int totalEntries = 0;
+    long totalEntries = 0;
     while (!isOver)
     {
       if (canceled)
@@ -4730,8 +4727,8 @@ public abstract class Installer extends GuiApplication {
         "ds-task-processed-entry-count");
         String sUnprocessed = getFirstValue(sr,
         "ds-task-unprocessed-entry-count");
-        int processed = -1;
-        int unprocessed = -1;
+        long processed = -1;
+        long unprocessed = -1;
         if (sProcessed != null)
         {
           processed = Integer.parseInt(sProcessed);
@@ -4746,7 +4743,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (processed + unprocessed > 0)
           {
-            int perc = (100 * processed) / (processed + unprocessed);
+            long perc = (100 * processed) / (processed + unprocessed);
             msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
                 String.valueOf(perc));
           }
