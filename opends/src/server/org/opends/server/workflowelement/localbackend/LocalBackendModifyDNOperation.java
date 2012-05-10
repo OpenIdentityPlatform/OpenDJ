@@ -724,11 +724,10 @@ modifyDNProcessing:
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
-        if (! AccessControlConfigManager.getInstance().
-                   getAccessControlHandler().isAllowed(entryDN,  this, c))
+        if (!LocalBackendWorkflowElement.isControlAllowed(entryDN, this, c))
         {
-          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                         ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          // Skip disallowed non-critical controls.
+          continue;
         }
 
         if (oid.equals(OID_LDAP_ASSERTION))
