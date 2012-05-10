@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -419,13 +419,23 @@ public class ExtendedOperationBasis
           try
           {
             if (!AccessControlConfigManager.getInstance()
-                .getAccessControlHandler().isAllowed(
-                    this.getAuthorizationDN(), this, c))
+                .getAccessControlHandler()
+                .isAllowed(getAuthorizationDN(), this, c))
             {
-              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
-                  .get(c.getOID()));
-              return;
+              // As per RFC 4511 4.1.11.
+              if (c.isCritical())
+              {
+                setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+                appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
+                    .get(c.getOID()));
+              }
+              else
+              {
+                // We don't want to process this non-critical control, so
+                // remove it.
+                removeRequestControl(c);
+                continue;
+              }
             }
           }
           catch (DirectoryException e)

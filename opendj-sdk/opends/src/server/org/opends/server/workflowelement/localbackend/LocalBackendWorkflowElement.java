@@ -51,6 +51,7 @@ import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 
 
@@ -320,6 +321,47 @@ public class LocalBackendWorkflowElement extends
         deregisterLocalBackend(localBackend.getWorkflowElementID());
       }
     }
+  }
+
+
+
+  /**
+   * Determine whether or not the provided request control is permitted by the
+   * access control policy. If it is not allowed, then abort the operation if
+   * the control was critical, otherwise ignore it.
+   *
+   * @param targetDN
+   *          The operation target DN.
+   * @param op
+   *          The operation.
+   * @param control
+   *          The request control.
+   * @return {@code true} if access is allowed, or {@code false} if access is
+   *         not allowed, but the control is non-critical and should be ignored.
+   * @throws DirectoryException
+   *           If access is not allowed and the control is critical.
+   */
+  static boolean isControlAllowed(DN targetDN, Operation op, Control control)
+      throws DirectoryException
+  {
+    if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .isAllowed(targetDN, op, control))
+    {
+      // As per RFC 4511 4.1.11.
+      if (control.isCritical())
+      {
+        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
+      }
+      else
+      {
+        // We don't want the backend to process this non-critical control, so
+        // remove it.
+        op.removeRequestControl(control);
+        return false;
+      }
+    }
+    return true;
   }
 
 

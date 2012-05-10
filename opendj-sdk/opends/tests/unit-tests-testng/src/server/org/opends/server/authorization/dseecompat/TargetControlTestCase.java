@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 
@@ -276,11 +277,11 @@ public class TargetControlTestCase extends AciTestCase {
     LDAPSearchParams(level3User, PWD, null, null, null,
             superUser, filter, "aclRights mail description", true,
             true, 0);
-    //This should fail since the both controls are not allowed for the
-    //ou=admins, o=test suffix.
+    //This should succeed since both controls are not allowed for the
+    //ou=admins, o=test suffix, but both are critical.
     LDAPSearchParams(superUser, PWD, null, null, null,
             superUser, filter, "aclRights mail description", true,
-            true, LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            true, 0);
     deleteAttrFromEntry(peopleBase, "aci");
   }
 
@@ -299,12 +300,12 @@ public class TargetControlTestCase extends AciTestCase {
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
                     controlAdmin, controlPeople);
     LDIFAdminModify(globalControlAcis, DIR_MGR_DN, PWD);
-    //Fails because geteffectiverights control not allowed on
-    //ou=people, o=test
+    //Succeeds because geteffectiverights control is not allowed on
+    //ou=people, o=test, but it is non-critical.
     LDAPSearchParams(level3User, PWD, null,
             "dn: " + level1User, null,
             level1User, filter, "aclRights mail description",
-            false, false, LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            false, false, 0);
     //Ok because geteffectiverights control is allowed on
     //ou=admin, o=test
     LDAPSearchParams(level3User, PWD, null,
@@ -318,11 +319,11 @@ public class TargetControlTestCase extends AciTestCase {
     String addEntryLDIF=makeAddEntryLDIF(newPeopleDN, newEntry);
     LDIFAdd(addEntryLDIF, superUser, PWD, controlStr,
             LDAPResultCode.PROTOCOL_ERROR);
-    //Test add to ou=admin, o=test with assertion control,
+    //Test add to ou=admin, o=test with assertion control, and critical
     //should get access denied since this control is not allowed.
     String addEntryLDIF1=makeAddEntryLDIF(newAdminDN, newEntry);
     LDIFAdd(addEntryLDIF1, superUser, PWD, controlStr,
-            LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            LDAPResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
     deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
@@ -344,7 +345,7 @@ public class TargetControlTestCase extends AciTestCase {
     LDAPSearchParams(superUser, PWD, null,
             "dn: " + superUser, null,
             base, filter, "aclRights mail description", false, false,
-            LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            0 /* disallowed but non-critical */);
     LDIFModify(aciRight, superUser, PWD, OID_LDAP_READENTRY_PREREAD,
             LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
     deleteAttrFromEntry (base, "aci");

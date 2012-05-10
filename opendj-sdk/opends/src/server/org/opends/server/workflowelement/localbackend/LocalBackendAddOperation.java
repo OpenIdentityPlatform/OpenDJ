@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -1415,11 +1415,10 @@ addProcessing:
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
-        if (!AccessControlConfigManager.getInstance().
-                getAccessControlHandler().isAllowed(parentDN, this, c))
+        if (!LocalBackendWorkflowElement.isControlAllowed(parentDN, this, c))
         {
-          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                         ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          // Skip disallowed non-critical controls.
+          continue;
         }
 
         if (oid.equals(OID_LDAP_ASSERTION))

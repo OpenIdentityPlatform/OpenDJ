@@ -405,11 +405,23 @@ public class ECLSearchOperation
       {
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
-        if (! AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(baseDN, this, c))
+
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(baseDN, this, c))
         {
-          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          // As per RFC 4511 4.1.11.
+          if (c.isCritical())
+          {
+            throw new DirectoryException(
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          }
+          else
+          {
+            // We don't want to process this non-critical control, so remove it.
+            removeRequestControl(c);
+            continue;
+          }
         }
 
         if (oid.equals(OID_ECL_COOKIE_EXCHANGE_CONTROL))
