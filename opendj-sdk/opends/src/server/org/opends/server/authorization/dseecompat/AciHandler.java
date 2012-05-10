@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -305,24 +305,28 @@ public final class AciHandler extends
     if (control.getOID().equals(OID_PROXIED_AUTH_V2)
         || control.getOID().equals(OID_PROXIED_AUTH_V1))
     {
-      op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
+      if (ret)
+      {
+        op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
+      }
     }
     else if (control.getOID().equals(OID_GET_EFFECTIVE_RIGHTS))
     {
-      GetEffectiveRightsRequestControl getEffectiveRightsControl;
-      if (control instanceof LDAPControl)
+      if (ret)
       {
-        getEffectiveRightsControl =
-            GetEffectiveRightsRequestControl.DECODER.decode(control
-                .isCritical(), ((LDAPControl) control).getValue());
+        GetEffectiveRightsRequestControl getEffectiveRightsControl;
+        if (control instanceof LDAPControl)
+        {
+          getEffectiveRightsControl = GetEffectiveRightsRequestControl.DECODER
+              .decode(control.isCritical(), ((LDAPControl) control).getValue());
+        }
+        else
+        {
+          getEffectiveRightsControl =
+              (GetEffectiveRightsRequestControl) control;
+        }
+        op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
       }
-      else
-      {
-        getEffectiveRightsControl =
-            (GetEffectiveRightsRequestControl) control;
-      }
-      op.setAttachment(OID_GET_EFFECTIVE_RIGHTS,
-          getEffectiveRightsControl);
     }
     return ret;
   }
