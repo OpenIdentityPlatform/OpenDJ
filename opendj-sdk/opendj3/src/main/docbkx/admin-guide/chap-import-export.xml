@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-import-export'
@@ -375,5 +375,33 @@ The Local DB Backend was created successfully</screen>
   <para>Alternatively, you can create a new backend in OpenDJ Control Panel
   (Directory Data &gt; New Base DN... &gt; Backend &gt; New Backend:
   <replaceable>backend-name</replaceable>).</para>
+ </section>
+
+ <section xml:id="delete-database-backend">
+  <title>Deleting a Database Backend</title>
+  <indexterm>
+   <primary>Database backend</primary>
+   <secondary>Deleting</secondary>
+  </indexterm>
+
+  <para>You delete a database backend by using the <command>dsconfig
+  delete-backend</command> command.</para>
+
+  <para>When you delete a database backend by using the <command>dsconfig
+  delete-backend</command> command, OpenDJ does not actually remove the
+  database files for two reasons. First, a mistake could potentially cause
+  lots of data to be lost. Second, deleting a large database backend could
+  cause severe service degradation due to a sudden increase in I/O load.</para>
+
+  <para>Instead, after you run the <command>dsconfig delete-backend</command>
+  command you must also manually remove the database backend files.</para>
+
+  <para>If you do run the <command>dsconfig delete-backend</command> command by
+  mistake and have not yet deleted the actual files, then you can recover from
+  the mistake by creating the backend again, reconfiguring the indexes that
+  were removed, and rebuilding the indexes as described in the section on <link
+  xlink:href="admin-guide#configure-indexes"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring &amp;
+  Rebuilding Indexes</citetitle></link>.</para>
  </section>
 </chapter>
