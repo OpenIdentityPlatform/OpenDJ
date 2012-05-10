@@ -314,7 +314,7 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public SearchResultEntry readEntry(final String baseObject,
             final String... attributeDescriptions) throws ErrorResultException {
-        return readEntry(DN.valueOf(baseObject));
+        return readEntry(DN.valueOf(baseObject), attributeDescriptions);
     }
 
     /**
