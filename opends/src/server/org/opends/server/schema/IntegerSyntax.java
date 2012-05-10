@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -76,6 +77,7 @@ public class IntegerSyntax
     /**
      * {@inheritDoc}
      */
+    @Override
     public Integer decode(AttributeValue value) throws DirectoryException
     {
       ByteString nvalue = value.getNormalizedValue();
@@ -111,6 +113,7 @@ public class IntegerSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -146,6 +149,7 @@ public class IntegerSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_INTEGER_NAME;
@@ -158,6 +162,7 @@ public class IntegerSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_INTEGER_OID;
@@ -170,6 +175,7 @@ public class IntegerSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_INTEGER_DESCRIPTION;
@@ -185,6 +191,7 @@ public class IntegerSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -200,6 +207,7 @@ public class IntegerSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -215,6 +223,7 @@ public class IntegerSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -230,6 +239,7 @@ public class IntegerSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -250,6 +260,7 @@ public class IntegerSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
@@ -278,13 +289,12 @@ public class IntegerSyntax
         case '9':
           return true;
         case '-':
-          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
-                  valueString));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE
+              .get(valueString));
           return false;
         default:
-          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  valueString,
-                  valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
+              .get(valueString, valueString.charAt(0), 0));
           return false;
       }
     }
@@ -295,8 +305,8 @@ public class IntegerSyntax
       switch (valueString.charAt(0))
       {
         case '0':
-          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                  valueString));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO
+              .get(valueString));
           return false;
         case '1':
         case '2':
@@ -314,9 +324,8 @@ public class IntegerSyntax
           negative = true;
           break;
         default:
-          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  valueString,
-                  valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
+              .get(valueString, valueString.charAt(0), 0));
           return false;
       }
 
@@ -326,8 +335,8 @@ public class IntegerSyntax
           // This is fine as long as the value isn't negative.
           if (negative)
           {
-            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                    valueString));
+            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO
+                .get(valueString));
             return false;
           }
           break;
@@ -343,9 +352,8 @@ public class IntegerSyntax
           // These are all fine.
           break;
         default:
-          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  valueString,
-                  valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
+              .get(valueString, valueString.charAt(1), 1));
           return false;
       }
 
@@ -366,9 +374,8 @@ public class IntegerSyntax
             // These are all fine.
             break;
           default:
-            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                    valueString,
-                    valueString.charAt(0), 0));
+            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
+                .get(valueString, valueString.charAt(i), i));
             return false;
         }
       }
@@ -382,6 +389,7 @@ public class IntegerSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBinary()
   {
     return false;

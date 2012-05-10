@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -40,17 +41,17 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
    * Create data for the testAcceptableValues test.
    * This should be a table of tables with 2 elements.
    * The first one should be the value to test, the second the expected
-   * result of the test. 
-   * 
+   * result of the test.
+   *
    * @return a table containing data for the testAcceptableValues Test.
    */
   @DataProvider(name="acceptableValues")
   public abstract Object[][] createAcceptableValues();
 
   /**
-   * Get an instance of the attribute syntax that muste be tested.
-   * 
-   * @return An instance of the attribute syntax that muste be tested.
+   * Get an instance of the attribute syntax that must be tested.
+   *
+   * @return An instance of the attribute syntax that must be tested.
    */
   protected abstract AttributeSyntax getRule();
 
@@ -68,9 +69,9 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
     // test the valueIsAcceptable method
     Boolean liveResult =
       syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
-    
+
     if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value + 
+      fail(syntax + ".valueIsAcceptable gave bad result for " + value +
           "reason : " + reason);
 
     // call the getters
