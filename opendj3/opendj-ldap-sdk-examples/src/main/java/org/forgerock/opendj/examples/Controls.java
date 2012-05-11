@@ -184,7 +184,8 @@ public final class Controls {
                 writer.writeEntry(connection.readEntry(dn, "description"));
                 writer.close();
             } catch (final IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("AssertionRequestControl not supported.");
@@ -219,7 +220,8 @@ public final class Controls {
                 System.out.println("Authorization ID returned: "
                                 + control.getAuthorizationID());
             } catch (final DecodeException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             }
         } else {
             System.err.println("AuthorizationIdentityRequestControl not supported.");
@@ -237,8 +239,7 @@ public final class Controls {
      * @throws ErrorResultException
      *             Operation failed.
      */
-    static void useGetEffectiveRightsRequestControl(Connection connection)
-            throws ErrorResultException {
+    static void useGetEffectiveRightsRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(GetEffectiveRightsRequestControl.OID)) {
             final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
 
@@ -260,11 +261,13 @@ public final class Controls {
                 }
                 writer.close();
             } catch (final ErrorResultIOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                e.printStackTrace();
+                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
             } catch (final IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("GetEffectiveRightsRequestControl not supported.");
@@ -305,11 +308,13 @@ public final class Controls {
                 writer.writeEntry(entry);
                 writer.close();
             } catch (final ErrorResultIOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                e.printStackTrace();
+                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
             } catch (final IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("ManageDsaITRequestControl not supported.");
@@ -343,7 +348,8 @@ public final class Controls {
                 writer.writeEntry(entry);
                 writer.close();
             } catch (final IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("MatchedValuesRequestControl not supported.");
@@ -367,7 +373,7 @@ public final class Controls {
 
             try {
                 connection.bind(dn, pwd);
-            } catch (ErrorResultException e) {
+            } catch (final ErrorResultException e) {
                 final Result result = e.getResult();
                 try {
                     final PasswordExpiredResponseControl control =
@@ -376,8 +382,9 @@ public final class Controls {
                     if (!(control == null) && control.hasValue()) {
                         System.out.println("Password expired for " + dn);
                     }
-                } catch (DecodeException de) {
-                    de.printStackTrace();
+                } catch (final DecodeException de) {
+                    System.err.println(de.getMessage());
+                    System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
                 }
             }
         } else {
@@ -398,8 +405,7 @@ public final class Controls {
      * @throws ErrorResultException
      *             Operation failed.
      */
-    static void usePasswordExpiringResponseControl(Connection connection)
-            throws ErrorResultException {
+    static void usePasswordExpiringResponseControl(Connection connection) throws ErrorResultException {
         if (isSupported(PasswordExpiringResponseControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final char[] pwd = "hifalutin".toCharArray();
@@ -413,8 +419,9 @@ public final class Controls {
                     System.out.println("Password for " + dn + " expires in "
                             + control.getSecondsUntilExpiration() + " seconds.");
                 }
-            } catch (DecodeException de) {
-                de.printStackTrace();
+            } catch (final DecodeException de) {
+                System.err.println(de.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             }
         } else {
             System.err.println("PasswordExpiringResponseControl not supported");
@@ -451,7 +458,7 @@ public final class Controls {
                             + control.getWarningType().toString() + ", value "
                             + control.getWarningValue() + " for " + dn);
                 }
-            } catch (ErrorResultException e) {
+            } catch (final ErrorResultException e) {
                 final Result result = e.getResult();
                 try {
                     final PasswordPolicyResponseControl control =
@@ -461,11 +468,13 @@ public final class Controls {
                         System.out.println("Password policy error "
                                 + control.getErrorType().toString() + " for " + dn);
                     }
-                } catch (DecodeException de) {
-                    de.printStackTrace();
+                } catch (final DecodeException de) {
+                    System.err.println(de.getMessage());
+                    System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
                 }
-            } catch (DecodeException e) {
-                e.printStackTrace();
+            } catch (final DecodeException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             }
         } else {
             System.err.println("PasswordPolicyRequestControl not supported");
@@ -483,8 +492,7 @@ public final class Controls {
      * @throws ErrorResultException
      *             Operation failed.
      */
-    static void usePermissiveModifyRequestControl(Connection connection)
-            throws ErrorResultException {
+    static void usePermissiveModifyRequestControl(Connection connection) throws ErrorResultException {
         if (isSupported(PermissiveModifyRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
@@ -553,11 +561,13 @@ public final class Controls {
                     }
                 }
             } catch (final DecodeException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             } catch (final ErrorResultIOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
+                System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                e.printStackTrace();
+                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
             }
         } else {
             System.err.println("PersistentSearchRequestControl not supported.");
@@ -595,10 +605,12 @@ public final class Controls {
                 final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
                 writer.writeEntry(entry);
                 writer.close();
-            } catch (DecodeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (final DecodeException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("PostReadRequestControl not supported");
@@ -635,10 +647,12 @@ public final class Controls {
                 final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
                 writer.writeEntry(entry);
                 writer.close();
-            } catch (DecodeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (final DecodeException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("PreReadRequestControl not supported");
@@ -675,8 +689,9 @@ public final class Controls {
             try {
                 writer.writeEntry(entry);
                 writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("ProxiedAuthV2RequestControl not supported");
@@ -713,8 +728,9 @@ public final class Controls {
                 } else {
                     System.out.println("# Entries not necessarily sorted");
                 }
-            } catch (DecodeException e) {
-                e.printStackTrace();
+            } catch (final DecodeException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             }
         } else {
             System.err.println("ServerSideSortRequestControl not supported");
@@ -739,8 +755,9 @@ public final class Controls {
             try {
                 writer.writeEntry(entry);
                 writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
             return true;
         }
@@ -785,8 +802,9 @@ public final class Controls {
                             result.getControl(SimplePagedResultsControl.DECODER,
                                     new DecodeOptions());
                     cookie = control.getCookie();
-                } catch (DecodeException e) {
-                    e.printStackTrace();
+                } catch (final DecodeException e) {
+                    System.err.println(e.getMessage());
+                    System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
                 }
 
                 ++page;
@@ -825,12 +843,14 @@ public final class Controls {
                     }
                 }
                 writer.close();
-            } catch (ErrorResultIOException e) {
-                e.printStackTrace();
-            } catch (SearchResultReferenceIOException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (final ErrorResultIOException e) {
+                System.err.println(e.getMessage());
+                System.exit(e.getCause().getResult().getResultCode().intValue());
+            } catch (final SearchResultReferenceIOException e) {
+                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
             }
         } else {
             System.err.println("SubentriesRequestControl not supported");
@@ -917,8 +937,9 @@ public final class Controls {
                 System.out.println("# Position in list: "
                         + vlvControl.getTargetPosition() + "/"
                         + vlvControl.getContentCount());
-            } catch (DecodeException e) {
-                e.printStackTrace();
+            } catch (final DecodeException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
             }
         } else {
             System.err.println("VirtualListViewRequestControl not supported");

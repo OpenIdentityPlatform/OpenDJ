@@ -152,7 +152,7 @@ if (isSupported(AssertionRequestControl.OID)) {
         writer.writeEntry(connection.readEntry(dn, "description"));
         writer.close();
     } catch (final IOException e) {
-        e.printStackTrace();
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -189,7 +189,7 @@ if (isSupported(AuthorizationIdentityRequestControl.OID)) {
         System.out.println("Authorization ID returned: "
                         + control.getAuthorizationID());
     } catch (final DecodeException e) {
-        e.printStackTrace();
+        // Failed to decode the response control.
     }
 }
 </programlisting>
@@ -249,11 +249,11 @@ if (isSupported(PersistentSearchRequestControl.OID)) {
            }
         }
     } catch (final DecodeException e) {
-        e.printStackTrace();
+        // Failed to decode the response control.
     } catch (final ErrorResultIOException e) {
-        e.printStackTrace();
+        // Request failed due to an IO problem.
     } catch (final SearchResultReferenceIOException e) {
-        e.printStackTrace();
+        // Read a reference, rather than an entry.
     }
 }
 </programlisting>
@@ -306,11 +306,11 @@ if (isSupported(GetEffectiveRightsRequestControl.OID)) {
         }
         writer.close();
     } catch (final ErrorResultIOException e) {
-        e.printStackTrace();
+        // Request failed due to an IO problem.
     } catch (final SearchResultReferenceIOException e) {
-        e.printStackTrace();
+        // Read a reference, rather than an entry.
     } catch (final IOException e) {
-        e.printStackTrace();
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -411,11 +411,11 @@ if (isSupported(ManageDsaITRequestControl.OID)) {
         writer.writeEntry(entry);
         writer.close();
     } catch (final ErrorResultIOException e) {
-        e.printStackTrace();
+        // Request failed due to an IO problem.
     } catch (final SearchResultReferenceIOException e) {
-        e.printStackTrace();
+        // Read a reference, rather than an entry.
     } catch (final IOException e) {
-        e.printStackTrace();
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -460,7 +460,7 @@ if (isSupported(MatchedValuesRequestControl.OID)) {
         writer.writeEntry(entry);
         writer.close();
     } catch (final IOException e) {
-        e.printStackTrace();
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -491,7 +491,7 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
 
     try {
         connection.bind(dn, pwd);
-    } catch (ErrorResultException e) {
+    } catch (final ErrorResultException e) {
         final Result result = e.getResult();
         try {
             final PasswordExpiredResponseControl control =
@@ -500,8 +500,8 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
             if (!(control == null) &amp;&amp; control.hasValue()) {
                 System.out.println("Password expired for " + dn);
             }
-        } catch (DecodeException de) {
-            de.printStackTrace();
+        } catch (final DecodeException de) {
+            // Failed to decode the response control.
         }
     }
 }
@@ -539,8 +539,8 @@ if (isSupported(PasswordExpiringResponseControl.OID)) {
             System.out.println("Password for " + dn + " expires in "
                     + control.getSecondsUntilExpiration() + " seconds.");
         }
-    } catch (DecodeException de) {
-        de.printStackTrace();
+    } catch (final DecodeException de) {
+        // Failed to decode the response control.
     }
 }
 </programlisting>
@@ -585,7 +585,7 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
                     + control.getWarningType().toString() + ", value "
                     + control.getWarningValue() + " for " + dn);
         }
-    } catch (ErrorResultException e) {
+    } catch (final ErrorResultException e) {
         final Result result = e.getResult();
         try {
             final PasswordPolicyResponseControl control =
@@ -595,11 +595,11 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
                 System.out.println("Password policy error "
                         + control.getErrorType().toString() + " for " + dn);
             }
-        } catch (DecodeException de) {
-            de.printStackTrace();
+        } catch (final DecodeException de) {
+            // Failed to decode the response control.
         }
-    } catch (DecodeException e) {
-        e.printStackTrace();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
     }
 }
 </programlisting>
@@ -683,10 +683,10 @@ if (isSupported(PostReadRequestControl.OID)) {
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
         writer.writeEntry(entry);
         writer.close();
-    } catch (DecodeException e) {
-        e.printStackTrace();
-    } catch (IOException e) {
-        e.printStackTrace();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -725,10 +725,10 @@ if (isSupported(PreReadRequestControl.OID)) {
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
         writer.writeEntry(entry);
         writer.close();
-    } catch (DecodeException e) {
-        e.printStackTrace();
-    } catch (IOException e) {
-        e.printStackTrace();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -770,8 +770,8 @@ if (isSupported(ProxiedAuthV2RequestControl.OID)) {
     try {
         writer.writeEntry(entry);
         writer.close();
-    } catch (IOException e) {
-        e.printStackTrace();
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
     }
 }</programlisting>
 
@@ -814,8 +814,8 @@ static void useServerSideSortRequestControl(Connection connection)
             } else {
                 System.out.println("# Entries not necessarily sorted");
             }
-        } catch (DecodeException e) {
-            e.printStackTrace();
+        } catch (final DecodeException e) {
+            // Failed to decode the response control.
         }
     } else {
         System.out.println("ServerSideSortRequestControl not supported");
@@ -840,8 +840,8 @@ private static class MySearchResultHandler implements SearchResultHandler {
         try {
             writer.writeEntry(entry);
             writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (final IOException e) {
+            // The writer could not write to System.out.
         }
         return true;
     }
@@ -918,8 +918,8 @@ if (isSupported(SimplePagedResultsControl.OID)) {
                     result.getControl(SimplePagedResultsControl.DECODER,
                             new DecodeOptions());
             cookie = control.getCookie();
-        } catch (DecodeException e) {
-            e.printStackTrace();
+        } catch (final DecodeException e) {
+            // Failed to decode the response control.
         }
 
         ++page;
@@ -991,12 +991,12 @@ if (isSupported(SubentriesRequestControl.OID)) {
             }
         }
         writer.close();
-    } catch (ErrorResultIOException e) {
-        e.printStackTrace();
-    } catch (SearchResultReferenceIOException e) {
-        e.printStackTrace();
-    } catch (IOException e) {
-        e.printStackTrace();
+    } catch (final ErrorResultIOException e) {
+        // Request failed due to an IO problem.
+    } catch (final SearchResultReferenceIOException e) {
+        // Read a reference, rather than an entry.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
     }
 }
 </programlisting>
@@ -1100,8 +1100,8 @@ if (isSupported(VirtualListViewRequestControl.OID)) {
         System.out.println("# Position in list: "
                 + vlvControl.getTargetPosition() + "/"
                 + vlvControl.getContentCount());
-    } catch (DecodeException e) {
-        e.printStackTrace();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
     }
 }
 </programlisting>
