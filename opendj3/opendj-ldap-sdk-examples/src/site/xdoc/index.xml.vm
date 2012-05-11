@@ -66,6 +66,10 @@
           - illustrates how to implement a SASL PLAIN bind to an LDAP server
         </li>
         <li>
+          <a href="xref/org/forgerock/opendj/examples/ParseAttributes.html">Parse
+          attributes</a> - illustrates how to get an entry's attribute values as objects
+        </li>
+        <li>
           <a href="xref/org/forgerock/opendj/examples/ReadSchema.html">Read LDAP schema</a>
           - illustrates how to read and verify an LDAP server's schema
         </li>

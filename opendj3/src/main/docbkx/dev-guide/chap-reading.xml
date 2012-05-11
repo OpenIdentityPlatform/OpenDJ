@@ -457,6 +457,50 @@ finally
   </itemizedlist>
  </section>
 
+ <section xml:id="handle-entry-attributes">
+  <title>Working With Entry Attributes</title>
+
+  <para>When you get an entry object, chances are you want to handle attribute
+  values as objects. The OpenDJ LDAP SDK provides the
+  <literal>Entry.parseAttribute()</literal> method and an
+  <literal>AttributeParser</literal> with methods for a variety of attribute
+  value types. You can use these methods to get attribute values as
+  objects.</para>
+
+  <programlisting language="java">
+// Use Kirsten Vaughan's credentials and her entry.
+String name = "uid=kvaughan,ou=People,dc=example,dc=com";
+char[] password = "bribery".toCharArray();
+connection.bind(name, password);
+
+// Make sure we have a timestamp to play with.
+updateEntry(connection, name, "description");
+
+// Read Kirsten's entry.
+final SearchResultEntry entry = connection.readEntry(name,
+        "cn", "objectClass", "hasSubordinates", "numSubordinates",
+        "isMemberOf", "modifyTimestamp");
+
+// Get the entry DN and some attribute values as objects.
+DN dn = entry.getName();
+
+Set&lt;String&gt; cn = entry.parseAttribute("cn").asSetOfString("");
+Set&lt;AttributeDescription&gt; objectClasses =
+        entry.parseAttribute("objectClass").asSetOfAttributeDescription();
+boolean hasChildren = entry.parseAttribute("hasSubordinates").asBoolean();
+int numChildren = entry.parseAttribute("numSubordinates").asInteger(0);
+Set&lt;DN&gt; groups = entry
+        .parseAttribute("isMemberOf")
+        .usingSchema(Schema.getDefaultSchema()).asSetOfDN();
+Calendar timestamp = entry
+        .parseAttribute("modifyTimestamp")
+        .asGeneralizedTime().toCalendar();
+
+// Do something with the objects.
+// ...
+</programlisting>
+ </section>
+
  <section xml:id="handle-ldap-urls">
   <title>Working With LDAP URLs</title>
 
