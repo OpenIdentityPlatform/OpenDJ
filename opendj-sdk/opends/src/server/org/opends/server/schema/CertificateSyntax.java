@@ -23,12 +23,16 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Forgerock AS
  */
 package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import java.util.List;
+
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -37,12 +41,20 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
+
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 
 /**
@@ -51,7 +63,8 @@ import static org.opends.server.schema.SchemaConstants.*;
  * bytes.  It will be treated much like the octet string attribute syntax.
  */
 public class CertificateSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
+       extends AttributeSyntax<CertificateAttributeSyntaxCfg>
+       implements ConfigurationChangeListener<CertificateAttributeSyntaxCfg>
 {
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
@@ -61,6 +74,9 @@ public class CertificateSyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+  // The current configuration.
+  private volatile CertificateAttributeSyntaxCfg config;
 
 
 
@@ -80,7 +96,7 @@ public class CertificateSyntax
   /**
    * {@inheritDoc}
    */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
+  public void initializeSyntax(CertificateAttributeSyntaxCfg configuration)
          throws ConfigException
   {
     defaultEqualityMatchingRule =
@@ -106,6 +122,34 @@ public class CertificateSyntax
       logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
     }
+
+    this.config = configuration;
+    config.addCertificateChangeListener(this);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      CertificateAttributeSyntaxCfg configuration,
+      List<Message> unacceptableReasons)
+  {
+    // The configuration is always acceptable.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      CertificateAttributeSyntaxCfg configuration)
+  {
+    this.config = configuration;
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
 
@@ -222,7 +266,215 @@ public class CertificateSyntax
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    // All values will be acceptable for the certificate syntax.
+    // Skip validation if strict validation is disabled.
+    if (!config.isStrictFormat())
+    {
+      return true;
+    }
+
+    // Validate the ByteSequence against the definitions of X.509, clause 7
+    long x509Version=0;
+    ASN1Reader reader = ASN1.getReader(value);
+    try
+    {
+      // Certificate SIGNED SEQUENCE
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.readStartSequence();
+
+      // CertificateContent SEQUENCE
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.readStartSequence();
+
+      // Optional Version
+      if (reader.hasNextElement() &&
+          reader.peekType() == (TYPE_MASK_CONTEXT | TYPE_MASK_CONSTRUCTED))
+      {
+        reader.readStartExplicitTag();
+        if (!reader.hasNextElement() ||
+            reader.peekType() != UNIVERSAL_INTEGER_TYPE)
+        {
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+          return false;
+        }
+        x509Version=reader.readInteger();
+        if (x509Version < 0 || x509Version >2)
+        {
+          // invalid Version specified
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_INVALID_VERSION
+            .get(x509Version));
+          return false;
+        }
+        if (x509Version == 0)
+        {
+          // DEFAULT values shall not be included in DER encoded SEQUENCE
+          // (X.690, 11.5)
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_INVALID_DER.get());
+          return false;
+        }
+        reader.readEndExplicitTag();
+      }
+
+      // serialNumber
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_INTEGER_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // signature AlgorithmIdentifier
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // issuer name (SEQUENCE as of X.501, 9.2)
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // validity (SEQUENCE)
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // subject name (SEQUENCE as of X.501, 9.2)
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // SubjectPublicKeyInfo (SEQUENCE)
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // OPTIONAL issuerUniqueIdentifier
+      if (reader.hasNextElement() &&
+          reader.peekType() == (TYPE_MASK_CONTEXT + 1))
+      {
+        if (x509Version < 1)
+        {
+          // only valid in v2 and v3
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+          return false;
+        }
+        reader.skipElement();
+      }
+
+      // OPTIONAL subjectUniqueIdentifier
+      if (reader.hasNextElement() &&
+          reader.peekType() == (TYPE_MASK_CONTEXT + 2))
+      {
+        if (x509Version < 1)
+        {
+          // only valid in v2 and v3
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+          return false;
+        }
+        reader.skipElement();
+      }
+
+      // OPTIONAL extensions
+      if (reader.hasNextElement() &&
+          reader.peekType() == ((TYPE_MASK_CONTEXT|TYPE_MASK_CONSTRUCTED) + 3))
+      {
+        if (x509Version < 2)
+        {
+          // only valid in v3
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+          return false;
+        }
+        reader.readStartExplicitTag(); // read Tag
+        if (!reader.hasNextElement() ||
+            reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+        {
+          // only valid in v3
+          invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+          return false;
+        }
+        reader.readEndExplicitTag(); // read end Tag
+      }
+
+      // There should not be any further ASN.1 elements within this SEQUENCE
+      if (reader.hasNextElement())
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.readEndSequence(); // End CertificateContent SEQUENCE
+
+      // AlgorithmIdentifier SEQUENCE
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // ENCRYPTED HASH BIT STRING
+      if (!reader.hasNextElement() ||
+          reader.peekType() != UNIVERSAL_BIT_STRING_TYPE)
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.skipElement();
+
+      // There should not be any further ASN.1 elements within this SEQUENCE
+      if (reader.hasNextElement())
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      reader.readEndSequence(); // End Certificate SEQUENCE
+
+      // There should not be any further ASN.1 elements
+      if (reader.hasNextElement())
+      {
+        invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
+        return false;
+      }
+      // End of the certificate
+    }
+    catch (ASN1Exception e)
+    {
+      System.out.println(e.getMessageObject());
+      invalidReason.append(e.getMessageObject());
+      return false;
+    }
+
+    // The basic structure of the value is an X.509 certificate
     return true;
   }
 
@@ -234,6 +486,16 @@ public class CertificateSyntax
   public boolean isBinary()
   {
     return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return false;
   }
 }
 

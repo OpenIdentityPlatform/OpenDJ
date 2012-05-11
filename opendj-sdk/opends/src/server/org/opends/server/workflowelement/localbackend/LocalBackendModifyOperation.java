@@ -1492,9 +1492,19 @@ modifyProcessing:
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+            if (!syntax.isHumanReadable() || syntax.isBinary())
+            {
+              // Value is not human-readable
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
+                    String.valueOf(entryDN), attr.getName(), invalidReason));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                 ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN), attr
                     .getName(), v.getValue().toString(), invalidReason));
+            }
           }
         }
       }
@@ -1506,8 +1516,18 @@ modifyProcessing:
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            logError(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                attr.getName(), v.getValue().toString(), invalidReason));
+            if (!syntax.isHumanReadable() || syntax.isBinary())
+            {
+              // Value is not human-readable
+              logError(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
+                  String.valueOf(entryDN), attr.getName(), invalidReason));
+            }
+            else
+            {
+              logError(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String
+                  .valueOf(entryDN), attr.getName(), v.getValue().toString(),
+                  invalidReason));
+            }
             invalidReason = new MessageBuilder();
           }
         }
@@ -1695,9 +1715,19 @@ modifyProcessing:
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+            if (!syntax.isHumanReadable() || syntax.isBinary())
+            {
+              // Value is not human-readable
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
+                    String.valueOf(entryDN), attr.getName(), invalidReason));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                 ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
                     attr.getName(), v.getValue().toString(), invalidReason));
+            }
           }
         }
       }
@@ -1709,9 +1739,18 @@ modifyProcessing:
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
-                .valueOf(entryDN), attr.getName(), v.getValue().toString(),
-                invalidReason));
+            if (!syntax.isHumanReadable() || syntax.isBinary())
+            {
+              // Value is not human-readable
+              logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(String
+                  .valueOf(entryDN), attr.getName(), invalidReason));
+            }
+            else
+            {
+              logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
+                  .valueOf(entryDN), attr.getName(), v.getValue().toString(),
+                  invalidReason));
+            }
             invalidReason = new MessageBuilder();
           }
         }

@@ -5135,3 +5135,9 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.9
   SUP ds-cfg-virtual-attribute
   STRUCTURAL
   X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.10
+  NAME 'ds-cfg-certificate-attribute-syntax'
+  SUP ds-cfg-attribute-syntax
+  STRUCTURAL
+  MAY ds-cfg-strict-format
+  X-ORIGIN 'OpenDJ Directory Server' )

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -80,7 +80,7 @@ public final class AttributeType
   private final ApproximateMatchingRule approximateMatchingRule;
 
   // The syntax for this attribute type.
-  private final AttributeSyntax syntax;
+  private final AttributeSyntax<?> syntax;
 
   // The superior attribute type from which this attribute type
   // inherits.
@@ -179,7 +179,7 @@ public final class AttributeType
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
-                       AttributeSyntax syntax,
+                       AttributeSyntax<?> syntax,
                        AttributeUsage attributeUsage,
                        boolean isCollective,
                        boolean isNoUserModification,
@@ -258,7 +258,7 @@ public final class AttributeType
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
-                       AttributeSyntax syntax,
+                       AttributeSyntax<?> syntax,
                        ApproximateMatchingRule
                             approximateMatchingRule,
                        EqualityMatchingRule equalityMatchingRule,
@@ -514,7 +514,7 @@ public final class AttributeType
    *
    * @return  The syntax for this attribute type.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return syntax;
   }
@@ -522,13 +522,25 @@ public final class AttributeType
 
 
   /**
-   * Indicates whether this attribute syntax is a binary one.
-   * @return  {@code true} if it is a binary syntax rule
-   *          , or {@code false} if not.
+   * Indicates whether this attribute syntax requires BER encoding.
+   *
+   * @return {@code true} if this syntax required BER encoding.
    */
   public boolean isBinary()
   {
     return syntax.isBinary();
+  }
+
+
+
+  /**
+   * Indicates whether this attribute syntax is human readable.
+   *
+   * @return {@code true} if this syntax is human readable.
+   */
+  public boolean isHumanReadable()
+  {
+    return syntax.isHumanReadable();
   }
 
 

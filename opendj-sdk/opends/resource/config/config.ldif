@@ -2044,9 +2044,11 @@ ds-cfg-enabled: true
 dn: cn=Certificate,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
+objectClass: ds-cfg-certificate-attribute-syntax
 cn: Certificate
 ds-cfg-java-class: org.opends.server.schema.CertificateSyntax
 ds-cfg-enabled: true
+ds-cfg-strict-format: true
 
 dn: cn=Certificate List,cn=Syntaxes,cn=config
 objectClass: top

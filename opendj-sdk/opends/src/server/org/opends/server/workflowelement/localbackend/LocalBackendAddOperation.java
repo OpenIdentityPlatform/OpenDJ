@@ -1259,15 +1259,30 @@ addProcessing:
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
                   {
-                    Message message = WARN_ADD_OP_INVALID_SYNTAX.get(
+                    if (!syntax.isHumanReadable() || syntax.isBinary())
+                    {
+                      // Value is not human-readable
+                      Message message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
+                                        String.valueOf(entryDN),
+                                        String.valueOf(a.getName()),
+                                        String.valueOf(invalidReason));
+
+                      throw new DirectoryException(
+                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                   message);
+                    }
+                    else
+                    {
+                      Message message = WARN_ADD_OP_INVALID_SYNTAX.get(
                                         String.valueOf(entryDN),
                                         String.valueOf(v.getValue().toString()),
                                         String.valueOf(a.getName()),
                                         String.valueOf(invalidReason));
 
-                    throw new DirectoryException(
+                      throw new DirectoryException(
                                    ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message);
+                    }
                   }
                 }
               }
@@ -1287,15 +1302,30 @@ addProcessing:
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))
                   {
-                    Message message = WARN_ADD_OP_INVALID_SYNTAX.
+                    if (!syntax.isHumanReadable() || syntax.isBinary())
+                    {
+                      // Value is not human-readable
+                      Message message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
+                        get(String.valueOf(entryDN),
+                            String.valueOf(a.getName()),
+                            String.valueOf(invalidReason));
+
+                      throw new DirectoryException(
+                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                   message);
+                    }
+                    else
+                    {
+                      Message message = WARN_ADD_OP_INVALID_SYNTAX.
                         get(String.valueOf(entryDN),
                             String.valueOf(v.getValue().toString()),
                             String.valueOf(a.getName()),
                             String.valueOf(invalidReason));
 
-                    throw new DirectoryException(
+                      throw new DirectoryException(
                                    ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message);
+                    }
                   }
                 }
               }
@@ -1319,11 +1349,22 @@ addProcessing:
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))
                   {
-                    logError(WARN_ADD_OP_INVALID_SYNTAX.get(
+                    if (!syntax.isHumanReadable() || syntax.isBinary())
+                    {
+                      // Value is not human-readable
+                      logError(WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
+                                  String.valueOf(entryDN),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason)));
+                    }
+                    else
+                    {
+                      logError(WARN_ADD_OP_INVALID_SYNTAX.get(
                                   String.valueOf(entryDN),
                                   String.valueOf(v.getValue().toString()),
                                   String.valueOf(a.getName()),
                                   String.valueOf(invalidReason)));
+                    }
                   }
                 }
               }
@@ -1342,11 +1383,22 @@ addProcessing:
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))
                   {
-                    logError(WARN_ADD_OP_INVALID_SYNTAX.get(
+                    if (!syntax.isHumanReadable() || syntax.isBinary())
+                    {
+                      // Value is not human-readable
+                      logError(WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
+                                  String.valueOf(entryDN),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason)));
+                    }
+                    else
+                    {
+                      logError(WARN_ADD_OP_INVALID_SYNTAX.get(
                                   String.valueOf(entryDN),
                                   String.valueOf(v.getValue().toString()),
                                   String.valueOf(a.getName()),
                                   String.valueOf(invalidReason)));
+                    }
                   }
                 }
               }

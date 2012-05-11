@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -215,11 +216,20 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 
 
   /**
-   * Indicates whether this attribute syntax is a binary one.
-   * @return  {@code true} if it is a binary syntax rule
-   *          , or {@code false} if not.
+   * Indicates whether this attribute syntax requires BER encoding.
+   *
+   * @return {@code true} if this syntax required BER encoding.
    */
   public abstract boolean isBinary();
+
+
+
+  /**
+   * Indicates whether this attribute syntax is human readable.
+   *
+   * @return {@code true} if this syntax is human readable.
+   */
+  public abstract boolean isHumanReadable();
 
 
 
@@ -273,7 +283,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
       return false;
     }
 
-    return getOID().equals(((AttributeSyntax) o).getOID());
+    return getOID().equals(((AttributeSyntax<?>) o).getOID());
   }
 
 

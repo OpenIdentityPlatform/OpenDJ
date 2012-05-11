@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Forgerock AS
  */
 package org.opends.server.protocols.asn1;
 
@@ -460,6 +461,16 @@ final class ASN1ByteSequenceReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public void readStartExplicitTag() throws ASN1Exception
+  {
+    // From an implementation point of view, an explicit tag is equivalent to a
+    // sequence, as it is a constructed type.
+    readStartSequence();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void readStartSet() throws ASN1Exception
   {
     // From an implementation point of view, a set is equivalent to a
@@ -488,6 +499,16 @@ final class ASN1ByteSequenceReader implements ASN1Reader
 
     // Reset the state
     state = ELEMENT_READ_STATE_NEED_TYPE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readEndExplicitTag() throws ASN1Exception
+  {
+    // From an implementation point of view, an explicit tag is equivalent to a
+    // sequence, as it is also a constructed type.
+    readEndSequence();
   }
 
   /**

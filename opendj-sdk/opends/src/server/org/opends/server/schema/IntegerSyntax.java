@@ -394,5 +394,15 @@ public class IntegerSyntax
   {
     return false;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
+  }
 }
 

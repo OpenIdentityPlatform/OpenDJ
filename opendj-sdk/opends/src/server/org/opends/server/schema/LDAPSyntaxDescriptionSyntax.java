@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -473,7 +473,7 @@ public class LDAPSyntaxDescriptionSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readQuotedString(valueStr, woidBuffer, pos);
         String syntaxOID = toLowerCase(woidBuffer.toString());
-        AttributeSyntax subSyntax = schema.getSyntax(syntaxOID);
+        AttributeSyntax<?> subSyntax = schema.getSyntax(syntaxOID);
         if (subSyntax == null)
         {
           Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(
@@ -933,6 +933,16 @@ public class LDAPSyntaxDescriptionSyntax
 
 
   /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
+  }
+
+
+
+  /**
    * This class provides a substitution mechanism where one unimplemented
    * syntax can be substituted by another defined syntax. A substitution syntax
    * is an LDAPSyntaxDescriptionSyntax with X-SUBST extension.
@@ -941,7 +951,7 @@ public class LDAPSyntaxDescriptionSyntax
           LDAPSyntaxDescriptionSyntax
   {
     // The syntax that will subsittute the unimplemented syntax.
-    private AttributeSyntax subSyntax;
+    private AttributeSyntax<?> subSyntax;
 
     // The description of this syntax.
     private String description;
@@ -956,7 +966,7 @@ public class LDAPSyntaxDescriptionSyntax
 
 
     //Creates a new instance of this syntax.
-    private SubstitutionSyntax(AttributeSyntax subSyntax,
+    private SubstitutionSyntax(AttributeSyntax<?> subSyntax,
             String definition,
             String description,
             String oid)

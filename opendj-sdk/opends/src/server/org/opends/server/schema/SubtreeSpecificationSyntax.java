@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -272,5 +272,15 @@ public final class SubtreeSpecificationSyntax
   public boolean isBinary()
   {
     return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
   }
 }

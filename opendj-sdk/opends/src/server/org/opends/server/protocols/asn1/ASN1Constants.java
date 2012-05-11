@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Forgerock AS
  */
 package org.opends.server.protocols.asn1;
 
@@ -50,6 +51,13 @@ public final class ASN1Constants
    * The BER type that is assigned to the universal integer type.
    */
   public static final byte UNIVERSAL_INTEGER_TYPE = 0x02;
+
+
+
+  /**
+   * The BER type that is assigned to the universal bit string type.
+   */
+  public static final byte UNIVERSAL_BIT_STRING_TYPE = 0x03;
 
 
 
