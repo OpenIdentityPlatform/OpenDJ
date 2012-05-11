@@ -23,6 +23,7 @@
  *
  *
  *      Copyright  2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Forgerock AS
  */
 
 package org.opends.server.protocols.ldap;
@@ -44,6 +45,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.*;
 import org.opends.server.types.*;
+import org.opends.server.util.Base64;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -63,7 +65,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
 
   //Constant value of userCertificate attribute.
   private static final String CERT=
-      ": MIIB5TCCAU6gAwIBAgIERloIajANBgkqhkiG9" +
+      "MIIB5TCCAU6gAwIBAgIERloIajANBgkqhkiG9" +
       "w0BAQUFADA3MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRXhhbXBs" +
       "ZSBDb3JwMREwDwYDVQQDEwhKb2huIERvZTAeFw0wNzA1MjcyMjM4" +
       "MzRaFw0wNzA4MjUyMjM4MzRaMDcxCzAJBgNVBAYTAlVTMRUwEwYD" +
@@ -110,7 +112,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "uid: user.1",
       "sn: 1",
       "cn: user 1",
-      "userCertificate"+CERT
+      "userCertificate:: "+CERT
       );
     String[] args = new String []
     {
@@ -131,7 +133,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "uid: user.2",
       "sn: 2",
       "cn: user 2",
-      "userCertificate;binary"+CERT
+      "userCertificate;binary:: "+CERT
       );
     args = new String []
     {
@@ -292,7 +294,8 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       addAttrs.add(RawAttribute.create("sn", "sn#1"));
       addAttrs.add(RawAttribute.create("sn;x-foo", "sn#2"));
       addAttrs.add(RawAttribute.create("sn;lang-fr", "sn#3"));
-      addAttrs.add(RawAttribute.create("userCertificate;binary", CERT));
+      addAttrs.add(RawAttribute.create("userCertificate;binary",
+                                       ByteString.wrap(Base64.decode(CERT))));
 
       AddRequestProtocolOp addRequest =
            new AddRequestProtocolOp(ByteString.valueOf("uid=user.7,o=test"),
@@ -488,7 +491,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
      "dn: uid=user.4,o=test",
      "changetype: modify",
      "add: usercertificate;binary",
-     "userCertificate;binary" + CERT);
+     "userCertificate;binary:: " + CERT);
     args = new String[]
     {
       "-h", "127.0.0.1",

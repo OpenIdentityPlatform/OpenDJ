@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -1652,6 +1653,16 @@ outerLoop:
   public boolean isBinary()
   {
     return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
   }
 }
 

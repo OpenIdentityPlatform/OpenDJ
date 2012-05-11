@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
@@ -405,6 +405,13 @@ public final class ASN1ByteChannelReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public void readEndExplicitTag() throws ASN1Exception {
+    reader.readEndExplicitTag();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void readEndSequence() throws ASN1Exception {
     reader.readEndSequence();
   }
@@ -463,6 +470,13 @@ public final class ASN1ByteChannelReader implements ASN1Reader
    */
   public String readOctetStringAsString(String charSet) throws ASN1Exception {
     return reader.readOctetStringAsString(charSet);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readStartExplicitTag() throws ASN1Exception {
+    reader.readStartExplicitTag();
   }
 
   /**

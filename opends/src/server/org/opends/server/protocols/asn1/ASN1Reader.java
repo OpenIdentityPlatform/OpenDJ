@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Forgerock AS
  */
 package org.opends.server.protocols.asn1;
 
@@ -112,6 +113,18 @@ public interface ASN1Reader extends Closeable
    *           If the element cannot be decoded as a boolean.
    */
   boolean readBoolean() throws ASN1Exception;
+
+
+
+  /**
+   * Finishes reading an explicit tag. Any elements not read in the
+   * explicit tag will be discarded.
+   *
+   * @throws ASN1Exception
+   *           If an error occurs while advancing to the end of the
+   *           explicit tag.
+   */
+  void readEndExplicitTag() throws ASN1Exception;
 
 
 
@@ -230,6 +243,18 @@ public interface ASN1Reader extends Closeable
    *           If the element cannot be decoded as an octet string.
    */
   String readOctetStringAsString(String charSet) throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as an explicit tag. All further
+   * reads will read the elements in the explicit tag until
+   * {@link #readEndExplicitTag()} is called.
+   *
+   * @throws ASN1Exception
+   *           If the next element is not an explicit tag.
+   */
+  void readStartExplicitTag() throws ASN1Exception;
 
 
 

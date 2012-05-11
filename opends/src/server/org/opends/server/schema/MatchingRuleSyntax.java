@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -396,7 +396,7 @@ public class MatchingRuleSyntax
     // for everything else we might need to know.
     ConcurrentHashMap<String,String> names =
          new ConcurrentHashMap<String,String>();
-    AttributeSyntax syntax = null;
+    AttributeSyntax<?> syntax = null;
     ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
          new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>();
 
@@ -1185,6 +1185,16 @@ public class MatchingRuleSyntax
   public boolean isBinary()
   {
     return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
   }
 }
 

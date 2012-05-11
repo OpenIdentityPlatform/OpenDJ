@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -448,7 +448,7 @@ public class AttributeTypeSyntax
     List<String> typeNames = new LinkedList<String>();
     String description = null;
     AttributeType superiorType = null;
-    AttributeSyntax syntax = DirectoryServer.getDefaultAttributeSyntax();
+    AttributeSyntax<?> syntax = DirectoryServer.getDefaultAttributeSyntax();
     ApproximateMatchingRule approximateMatchingRule = null;
     EqualityMatchingRule equalityMatchingRule = null;
     OrderingMatchingRule orderingMatchingRule = null;
@@ -1604,5 +1604,15 @@ public class AttributeTypeSyntax
   public boolean isBinary()
   {
     return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHumanReadable()
+  {
+    return true;
   }
 }
