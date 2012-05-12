@@ -24,6 +24,7 @@
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2012 profiq, s.r.o.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -309,9 +310,12 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           mo.commit();
 
           // Output success message.
-          app.println();
-          Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
-          app.printVerboseMessage(msg);
+          if (app.isVerbose())
+          {
+            app.println();
+            Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
+            app.printVerboseMessage(msg);
+          }
 
           for (PropertyEditorModification<?> mod : editor.getModifications())
           {
