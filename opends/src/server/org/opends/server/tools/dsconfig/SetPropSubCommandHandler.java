@@ -310,7 +310,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           mo.commit();
 
           // Output success message.
-          if (app.isVerbose())
+          if (app.isVerbose() || app.isInteractive())
           {
             app.println();
             Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
