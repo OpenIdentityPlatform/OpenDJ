@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 profiq, s.r.o.
  */
 package org.opends.server.tools;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -167,6 +168,7 @@ public class LDAPModify
       }
 
       LDIFImportConfig importConfig = new LDIFImportConfig(is);
+      importConfig.setValidateSchema(false);
       reader = new LDIFReader(importConfig);
     } catch (Exception e)
     {
