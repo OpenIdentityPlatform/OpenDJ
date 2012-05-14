@@ -55,7 +55,7 @@
       strictly comply with the standard definition for this syntax.
     </adm:synopsis>
     <adm:description>
-      When set to false, certificates will not be validation and, as a result
+      When set to false, certificates will not be valid and, as a result
       any sequence of bytes will be acceptable.
     </adm:description>
     <adm:default-behavior>
