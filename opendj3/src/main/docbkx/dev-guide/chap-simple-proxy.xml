@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-simple-proxy'
@@ -31,20 +31,84 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Writing a Simple LDAP Proxy</title>
 
- <para>TODO</para>
+ <para>The OpenDJ LDAP SDK <link xlink:show="new"
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Proxy.html"
+ >example Proxy</link> demonstrates a simple LDAP proxy that forwards requests
+ to one or more remote directory servers. Although the implementation is
+ intended as an example, it does demonstrate use of the asynchronous API,
+ load balancing, and connection pooling.</para>
 
- <section xml:id="load-balancing">
-  <title>Load Balancing</title>
-  <para>TODO</para>
+ <para>The Proxy example sets up connections pools with load balancing to the
+ directory servers. It passes the connection factories to a
+ <literal>ProxyBackend</literal> that handles the requests passed back
+ to the directory servers. It also sets up an LDAP listener to receive incoming
+ connections from clients of the Proxy.</para>
+
+ <para>The <literal>ProxyBackend</literal> uses separate connection factories,
+ one for bind operations, the other for other operations. It uses the proxied
+ authorization control to ensure operations are performed using the bind
+ identity for the operation.</para>
+
+ <para>The <literal>ProxyBackend</literal>'s function is to handle each client
+ request, encapsulating the result handlers that allow it to deal with each
+ basic operation. It authenticates to the directory server to check incoming
+ credentials, and adds the proxied authorization control to requests other than
+ binds. The <literal>ProxyBackend</literal> handles all operations using
+ asynchronous connections and methods.</para>
+
+ <section xml:id="connection-pooling">
+  <title>Connection Pooling</title>
+
+  <para>As shown in the Proxy example, the
+  <literal>Connections.newFixedConnectionPool()</literal> returns a connection
+  pool of the maximum size you specify.</para>
+
+  <programlisting language="java"
+>final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
+
+factories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
+        remoteAddress, remotePort), Integer.MAX_VALUE));</programlisting>
+
+  <para>Connections are returned to the pool when you <literal>close()</literal>
+  them. Notice that <literal>Connections</literal> also provides methods to
+  return <literal>ConnectionFactory</literal>s with a heart beat check on
+  connections provided by the factory, and connection factories that
+  authenticate connections before returning them.</para>
+
+  <para>Connections in the pool are intended for reuse. Therefore when you
+  <literal>close()</literal> a connection from the pool, the OpenDJ LDAP SDK
+  does not perform an <literal>unbind()</literal>. You must therefore be careful
+  about how you manage authentication on connections from a pool. As a rule,
+  either bind separately and use proxied authorization as in the Proxy example,
+  or make sure that the first operation on a connection retrieved from the pool
+  is a bind that correctly authenticates the user currently served by the
+  connection.</para>
  </section>
- 
- <section xml:id="managing-failover">
-  <title>Performing Failover</title>
-  <para>TODO</para>
+
+ <section xml:id="load-balancing-and-failover">
+  <title>Load Balancing &amp; Failover</title>
+
+  <para>The <literal>Connections.newLoadBalancer()</literal> method returns a
+  load balancer based on the algorithm you choose. Algorithms include both
+  round robin for equitably sharing load across local directory servers, and
+  also failover usually used for switching automatically from an unresponsive
+  server group to an alternative server group. The algorithms take collections
+  of connection factories, such as those that you set up for connection
+  pooling.</para>
+
+  <programlisting language="java"
+>final RoundRobinLoadBalancingAlgorithm algorithm =
+        new RoundRobinLoadBalancingAlgorithm(factories);
+
+final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
+
+  <para>The algorithms also include constructors that let you adjust timeouts
+  and so forth.</para>
  </section>
- 
+
  <section xml:id="dn-attr-rewriting">
   <title>DN &amp; Attribute Rewriting</title>
+
   <para>TODO</para>
  </section>
 </chapter>
