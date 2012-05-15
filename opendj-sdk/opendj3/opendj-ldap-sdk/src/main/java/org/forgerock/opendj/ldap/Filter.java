@@ -652,6 +652,54 @@ public final class Filter {
     }
 
     /**
+     * Creates a new {@code greater than} filter using the provided attribute
+     * description and assertion value.
+     * <p>
+     * <b>NOTE:</b> since LDAP does not support {@code greater than}
+     * comparisons, this method returns a filter of the form
+     * {@code (&(type>=value)(!(type=value)))}. An alternative is to return a
+     * filter of the form {@code (!(type<=value))} , however the outer
+     * {@code not} filter will often prevent directory servers from optimizing
+     * the search using indexes.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param assertionValue
+     *            The assertion value.
+     * @return The newly created {@code greater than} filter.
+     */
+    public static Filter greaterThan(final String attributeDescription,
+            final ByteString assertionValue) {
+        return and(greaterOrEqual(attributeDescription, assertionValue), not(equality(
+                attributeDescription, assertionValue)));
+    }
+
+    /**
+     * Creates a new {@code greater than} filter using the provided
+     * attribute description and assertion value.
+     * <p>
+     * If {@code assertionValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * <p>
+     * <b>NOTE:</b> since LDAP does not support {@code greater than}
+     * comparisons, this method returns a filter of the form
+     * {@code (&(type>=value)(!(type=value)))}. An alternative is to return a
+     * filter of the form {@code (!(type<=value))} , however the outer
+     * {@code not} filter will often prevent directory servers from optimizing
+     * the search using indexes.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param assertionValue
+     *            The assertion value.
+     * @return The newly created {@code greater than} filter.
+     */
+    public static Filter greaterThan(final String attributeDescription,
+            final Object assertionValue) {
+        return greaterThan(attributeDescription, ByteString.valueOf(assertionValue));
+    }
+
+    /**
      * Creates a new {@code less or equal} filter using the provided attribute
      * description and assertion value.
      *
@@ -682,6 +730,53 @@ public final class Filter {
      */
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
         return lessOrEqual(attributeDescription, ByteString.valueOf(assertionValue));
+    }
+
+    /**
+     * Creates a new {@code less than} filter using the provided attribute
+     * description and assertion value.
+     * <p>
+     * <b>NOTE:</b> since LDAP does not support {@code less than} comparisons,
+     * this method returns a filter of the form
+     * {@code (&(type<=value)(!(type=value)))}. An alternative is to return a
+     * filter of the form {@code (!(type>=value))} , however the outer
+     * {@code not} filter will often prevent directory servers from optimizing
+     * the search using indexes.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param assertionValue
+     *            The assertion value.
+     * @return The newly created {@code less than} filter.
+     */
+    public static Filter lessThan(final String attributeDescription,
+            final ByteString assertionValue) {
+        return and(lessOrEqual(attributeDescription, assertionValue), not(equality(
+                attributeDescription, assertionValue)));
+    }
+
+    /**
+     * Creates a new {@code less than} filter using the provided attribute
+     * description and assertion value.
+     * <p>
+     * If {@code assertionValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * <p>
+     * <b>NOTE:</b> since LDAP does not support {@code less than} comparisons,
+     * this method returns a filter of the form
+     * {@code (&(type<=value)(!(type=value)))}. An alternative is to return a
+     * filter of the form {@code (!(type>=value))} , however the outer
+     * {@code not} filter will often prevent directory servers from optimizing
+     * the search using indexes.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param assertionValue
+     *            The assertion value.
+     * @return The newly created {@code less than} filter.
+     */
+    public static Filter lessThan(final String attributeDescription, final Object assertionValue) {
+        return lessThan(attributeDescription, ByteString.valueOf(assertionValue));
     }
 
     /**
