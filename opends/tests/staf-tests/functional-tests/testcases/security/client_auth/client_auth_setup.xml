@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="client_auth_setup"/>
@@ -48,7 +49,7 @@
           <!-- Load in the local shared python objects from libraries -->
           <call function="'loadVariables'" />
           <message>   
-            '---- Generating Server Certicate -----'
+            '---- Generating Server Certificate -----'
           </message>
     
           <!-- create a server certificate -->           
@@ -65,7 +66,7 @@
       
           <!-- Self-Sign Server Cert    -->
           <message>
-                   '---- Self-Signing Server Certicate  ---- '
+                   '---- Self-Signing Server Certificate  ---- '
           </message>
 
           <call function="'SelfSignCertificate'">
@@ -91,7 +92,7 @@
           </call>      
             
           <message>
-                   '---- Generating client Certicate : %s ---- ' % (USER_1_CERT)
+                   '---- Generating client Certificate : %s ---- ' % (USER_1_CERT)
           </message>
             
           <!-- create a client certificate  : USER_1_CERT -->                
@@ -167,7 +168,7 @@
           <call function="'loadVariables'" />
                   
           <!-- Export the server Cert -->
-          <message>'----  Export the  Server Certicate ----'</message>    
+          <message>'----  Export the  Server Certificate ----'</message>    
           <call function="'ExportCertificate'">
             { 'certAlias'  : 'server-cert' ,
               'outputfile' : SERVER_CERT_FILE,
@@ -341,180 +342,32 @@
           <call function="'testCase_Preamble'"/>
           <!-- Load in the local shared python objects from libraries -->
           <call function="'loadVariables'" />
-          
-          <!-- Create users entries--> 
-          <!-- Create USER_1_DN -->       
-          <message> '----  Create User entry : %s----' % USER_1_DN</message>    
-          <script>
-            listAttr = []
-            listAttr.append('objectclass:top')
-            listAttr.append('objectclass:organizationalperson')
-            listAttr.append('objectclass:inetorgperson')
-            listAttr.append('objectclass:person')
-            listAttr.append('objectclass:ds-certificate-user')
-            listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:: YmFkX2NlcnRpZmljYXRlCgoK')
-            listAttr.append('givenname:%s' % USER_1_CERT)
-            listAttr.append('sn:%s' % USER_1_CERT)
-            listAttr.append('cn:%s' % USER_1_CERT)
-          </script>
-          
-          <call function="'addAnEntry'">
-            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-              'DNToAdd'         : USER_1_DN,
-              'listAttributes' : listAttr,
-              'expectedRC'     :  0
+
+
+          <call function="'createStrongUserEntries'">
+            { 'location'        : STAF_REMOTE_HOSTNAME,
+              'certificate'     : USER_1_CERT,
+              'filename'        : USER_1_CERT_FILE_RFC,
+              'userdn'          : USER_1_DN,
+              'localLdifFile'   : localUser1LdifFile,
+              'remoteLdifFile'  : remoteUser1LdifFile
             }
           </call>
 
-          <call function="'getFile'">
-            { 'location'    : STAF_REMOTE_HOSTNAME,
-              'filename'    : USER_1_CERT_FILE_RFC
-            }
-          </call>
-
-          <message>
-            'Certificate contents:\n %s' % cmdResult
-          </message>
-                              
-          <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
-          <script>
-            certList=STAXResult[1].split('\n')
-            ret_str = ""
-            for line in certList:
-              index_cert = line.find("CERTIFICATE")
-              if index_cert == -1:
-                ret_str+=line.strip()
-          </script>
-                          
-          <script>                        
-            listAttr = []
-            listAttr.append('dn: %s' % USER_1_DN)
-            listAttr.append('changetype: modify')
-            listAttr.append('replace: userCertificate;binary')
-            listAttr.append('userCertificate;binary:: %s' % ret_str)
-          </script>
-          
-          <!-- Write out the ldif -->
-          <script>
-            outfile = open(localUser1LdifFile,"w")
-            
-            for line in listAttr:
-              outfile.write("%s\n" % line)
-            
-            outfile.close()
-          </script>
-          
-          <!-- Copy the ldif file containing user certificate to remote host -->
-          <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser1LdifFile,USER_1_DN,remoteUser1LdifFile)</message>
-          <call function="'copyFile'">
-            { 'location'   : STAXServiceMachine,
-              'srcfile'    : localUser1LdifFile,
-              'destfile'   : remoteUser1LdifFile,
-              'remotehost' : STAF_REMOTE_HOSTNAME
+          <call function="'createStrongUserEntries'">
+            { 'location'        : STAF_REMOTE_HOSTNAME,
+              'certificate'     : USER_2_CERT,
+              'filename'        : USER_2_CERT_FILE_RFC,
+              'userdn'          : USER_2_DN,
+              'localLdifFile'   : localUser2LdifFile,
+              'remoteLdifFile'  : remoteUser2LdifFile
             }
           </call>
           
-          <call function="'modifyEntry'">
-            { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'entryToBeModified'  : remoteUser1LdifFile,
-              'expectedRC'        :  0
-            }
-          </call>
-          
-          <!-- Create USER_2_DN : this used contains the objectclass  ds-certificate-user -->
-          <message>'----  Create User entry : %s----' % USER_2_DN </message>
-          <message>'----  This user contains an objectclass ds-certificate-user' </message>
-          
-          <script>
-            listAttr = []   
-            listAttr.append('objectclass:top')
-            listAttr.append('objectclass:organizationalperson')
-            listAttr.append('objectclass:inetorgperson')
-            listAttr.append('objectclass:person')
-            listAttr.append('objectclass:ds-certificate-user')        
-            listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:: YmFkX2NlcnRpZmljYXRlCgoK')       
-            listAttr.append('givenname:%s' % USER_2_CERT)
-            listAttr.append('sn:%s' % USER_2_CERT)
-            listAttr.append('cn:%s' % USER_2_CERT)
-          </script>
-          <call function="'addAnEntry'">
-            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'DNToAdd'         : USER_2_DN,
-              'listAttributes' : listAttr,
-              'expectedRC'     :  0
-            }
-          </call>
-
-          <call function="'getFile'">
-            { 'location'    : STAF_REMOTE_HOSTNAME,
-              'filename'    : USER_2_CERT_FILE_RFC
-            }
-          </call>
-
-          <message>
-            'Certificate contents:\n %s' % cmdResult
-          </message>
-                              
-          <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
-          <script>
-            certList=STAXResult[1].split('\n')
-            ret_str = ""
-            for line in certList:
-              index_cert = line.find("CERTIFICATE")
-              if index_cert == -1:
-                ret_str+=line.strip()
-          </script>
-          
-          <!-- Modify the user Entry to store the certificates -->    
-          <script>
-            listAttr = []
-            listAttr.append('dn: %s' % USER_2_DN)
-            listAttr.append('changetype: modify')
-            listAttr.append('replace: userCertificate;binary')
-            listAttr.append('userCertificate;binary:: %s' % ret_str)
-          </script>
-          
-          <!-- Write out the ldif -->
-          <script>
-            outfile = open(localUser2LdifFile,"w")
-            for line in listAttr:
-              outfile.write("%s\n" % line)
-            outfile.close()
-          </script>
-          
-          <!-- Copy the ldif file containing user certificate to remote host -->
-          <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser2LdifFile,USER_2_DN,remoteUser2LdifFile)</message>
-          <call function="'copyFile'">
-            { 'location'   : STAXServiceMachine,
-              'srcfile'    : localUser2LdifFile,
-              'destfile'   : remoteUser2LdifFile,
-              'remotehost' : STAF_REMOTE_HOSTNAME 
-            }
-          </call>
-        
-          <call function="'modifyEntry'">
-            { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'entryToBeModified'  : '%s' % remoteUser2LdifFile,
-              'expectedRC'        :  0 
-            }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
     </sequence>
   </function>
+
 </stax>
