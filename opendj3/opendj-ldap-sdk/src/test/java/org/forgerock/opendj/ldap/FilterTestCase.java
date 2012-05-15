@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -197,6 +198,54 @@ public class FilterTestCase extends SdkTestCase {
             LocalizedIllegalArgumentException.class, NullPointerException.class })
     public void testDecodeException(final String filterStr, final Filter filter) throws Exception {
         Filter.valueOf(filterStr);
+    }
+
+    @Test
+    public void testGreaterThanFalse1() throws Exception {
+        final Filter filter = Filter.greaterThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=bbb", "objectclass: top", "cn: bbb");
+        final Matcher matcher = filter.matcher();
+        assertFalse(matcher.matches(entry).toBoolean());
+    }
+
+    @Test
+    public void testGreaterThanFalse2() throws Exception {
+        final Filter filter = Filter.greaterThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=aaa", "objectclass: top", "cn: aaa");
+        final Matcher matcher = filter.matcher();
+        assertFalse(matcher.matches(entry).toBoolean());
+    }
+
+    @Test
+    public void testGreaterThanTrue() throws Exception {
+        final Filter filter = Filter.greaterThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=ccc", "objectclass: top", "cn: ccc");
+        final Matcher matcher = filter.matcher();
+        assertTrue(matcher.matches(entry).toBoolean());
+    }
+
+    @Test
+    public void testLessThanFalse1() throws Exception {
+        final Filter filter = Filter.lessThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=bbb", "objectclass: top", "cn: bbb");
+        final Matcher matcher = filter.matcher();
+        assertFalse(matcher.matches(entry).toBoolean());
+    }
+
+    @Test
+    public void testLessThanFalse2() throws Exception {
+        final Filter filter = Filter.lessThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=ccc", "objectclass: top", "cn: ccc");
+        final Matcher matcher = filter.matcher();
+        assertFalse(matcher.matches(entry).toBoolean());
+    }
+
+    @Test
+    public void testLessThanTrue() throws Exception {
+        final Filter filter = Filter.lessThan("cn", "bbb");
+        final Entry entry = new LinkedHashMapEntry("dn: cn=aaa", "objectclass: top", "cn: aaa");
+        final Matcher matcher = filter.matcher();
+        assertTrue(matcher.matches(entry).toBoolean());
     }
 
     /**
