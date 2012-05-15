@@ -29,6 +29,8 @@ package com.forgerock.opendj.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.forgerock.opendj.ldap.Function;
+
 /**
  * Utility methods for manipulating {@link Iterator}s.
  */

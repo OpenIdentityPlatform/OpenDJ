@@ -22,13 +22,18 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
-package com.forgerock.opendj.util;
+package org.forgerock.opendj.ldap;
 
 /**
  * Functions transform input values of type {@code M} to output values of type
  * {@code N}.
+ * <p>
+ * A {@code Function} can be passed to an {@link AttributeParser} in order to
+ * facilitate parsing of attributes. Common implementations can be found in the
+ * {@link Functions} class.
  *
  * @param <M>
  *            The type of input values transformed by this function.
@@ -38,6 +43,8 @@ package com.forgerock.opendj.util;
  *            The type of the additional parameter to this function's
  *            {@code apply} method. Use {@link java.lang.Void} for functions
  *            that do not need an additional parameter.
+ * @see Functions
+ * @see AttributeParser
  */
 public interface Function<M, N, P> {
     /**

@@ -36,8 +36,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.Function;
-import com.forgerock.opendj.util.Functions;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.Validator;
 
@@ -116,13 +114,13 @@ public final class RootDSE {
             .create(CoreSchema.getVendorNameAttributeType());
 
     private static final SearchRequest SEARCH_REQUEST = Requests.newSearchRequest(DN.rootDN(),
-            SearchScope.BASE_OBJECT, Filter.objectClassPresent(), ATTR_ALT_SERVER
-                    .toString(), ATTR_NAMING_CONTEXTS.toString(),
-            ATTR_SUPPORTED_CONTROL.toString(), ATTR_SUPPORTED_EXTENSION.toString(),
-            ATTR_SUPPORTED_FEATURE.toString(), ATTR_SUPPORTED_LDAP_VERSION.toString(),
-            ATTR_SUPPORTED_SASL_MECHANISMS.toString(), ATTR_VENDOR_NAME.toString(),
-            ATTR_VENDOR_VERSION.toString(), ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES.toString(),
-            ATTR_SUBSCHEMA_SUBENTRY.toString(), "*");
+            SearchScope.BASE_OBJECT, Filter.objectClassPresent(), ATTR_ALT_SERVER.toString(),
+            ATTR_NAMING_CONTEXTS.toString(), ATTR_SUPPORTED_CONTROL.toString(),
+            ATTR_SUPPORTED_EXTENSION.toString(), ATTR_SUPPORTED_FEATURE.toString(),
+            ATTR_SUPPORTED_LDAP_VERSION.toString(), ATTR_SUPPORTED_SASL_MECHANISMS.toString(),
+            ATTR_VENDOR_NAME.toString(), ATTR_VENDOR_VERSION.toString(),
+            ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES.toString(), ATTR_SUBSCHEMA_SUBENTRY.toString(),
+            "*");
 
     /**
      * Asynchronously reads the Root DSE from the Directory Server using the
@@ -236,7 +234,7 @@ public final class RootDSE {
      *      Directory Access Protocol (LDAP): Uniform Resource Locator </a>
      */
     public Collection<String> getAlternativeServers() {
-        return getMultiValuedAttribute(ATTR_ALT_SERVER, Functions.valueToString());
+        return getMultiValuedAttribute(ATTR_ALT_SERVER, Functions.byteStringToString());
     }
 
     /**
@@ -261,7 +259,7 @@ public final class RootDSE {
      *         the naming contexts, which may be empty.
      */
     public Collection<DN> getNamingContexts() {
-        return getMultiValuedAttribute(ATTR_NAMING_CONTEXTS, Functions.valueToDN());
+        return getMultiValuedAttribute(ATTR_NAMING_CONTEXTS, Functions.byteStringToDN());
     }
 
     /**
@@ -275,7 +273,7 @@ public final class RootDSE {
      *         the Root DSE, or {@code null} if the DN is not provided.
      */
     public DN getSubschemaSubentry() {
-        return getSingleValuedAttribute(ATTR_SUBSCHEMA_SUBENTRY, Functions.valueToDN());
+        return getSingleValuedAttribute(ATTR_SUBSCHEMA_SUBENTRY, Functions.byteStringToDN());
     }
 
     /**
@@ -292,7 +290,7 @@ public final class RootDSE {
      */
     public Collection<String> getSupportedAuthenticationPasswordSchemes() {
         return getMultiValuedAttribute(ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES, Functions
-                .valueToString());
+                .byteStringToString());
     }
 
     /**
@@ -307,7 +305,7 @@ public final class RootDSE {
      *         request controls, which may be empty.
      */
     public Collection<String> getSupportedControls() {
-        return getMultiValuedAttribute(ATTR_SUPPORTED_CONTROL, Functions.valueToString());
+        return getMultiValuedAttribute(ATTR_SUPPORTED_CONTROL, Functions.byteStringToString());
     }
 
     /**
@@ -328,7 +326,7 @@ public final class RootDSE {
      *         extended operations, which may be empty.
      */
     public Collection<String> getSupportedExtendedOperations() {
-        return getMultiValuedAttribute(ATTR_SUPPORTED_EXTENSION, Functions.valueToString());
+        return getMultiValuedAttribute(ATTR_SUPPORTED_EXTENSION, Functions.byteStringToString());
     }
 
     /**
@@ -342,7 +340,7 @@ public final class RootDSE {
      *         elective features, which may be empty.
      */
     public Collection<String> getSupportedFeatures() {
-        return getMultiValuedAttribute(ATTR_SUPPORTED_FEATURE, Functions.valueToString());
+        return getMultiValuedAttribute(ATTR_SUPPORTED_FEATURE, Functions.byteStringToString());
     }
 
     /**
@@ -352,7 +350,7 @@ public final class RootDSE {
      * @return An unmodifiable list of the versions.
      */
     public Collection<Integer> getSupportedLDAPVersions() {
-        return getMultiValuedAttribute(ATTR_SUPPORTED_LDAP_VERSION, Functions.valueToInteger());
+        return getMultiValuedAttribute(ATTR_SUPPORTED_LDAP_VERSION, Functions.byteStringToInteger());
     }
 
     /**
@@ -371,7 +369,8 @@ public final class RootDSE {
      *      Authentication and Security Layer (SASL) </a>
      */
     public Collection<String> getSupportedSASLMechanisms() {
-        return getMultiValuedAttribute(ATTR_SUPPORTED_SASL_MECHANISMS, Functions.valueToString());
+        return getMultiValuedAttribute(ATTR_SUPPORTED_SASL_MECHANISMS, Functions
+                .byteStringToString());
     }
 
     /**
@@ -384,7 +383,7 @@ public final class RootDSE {
      *      Vendor Information in the LDAP Root DSE </a>
      */
     public String getVendorName() {
-        return getSingleValuedAttribute(ATTR_VENDOR_NAME, Functions.valueToString());
+        return getSingleValuedAttribute(ATTR_VENDOR_NAME, Functions.byteStringToString());
     }
 
     /**
@@ -403,7 +402,7 @@ public final class RootDSE {
      *      Vendor Information in the LDAP Root DSE </a>
      */
     public String getVendorVersion() {
-        return getSingleValuedAttribute(ATTR_VENDOR_VERSION, Functions.valueToString());
+        return getSingleValuedAttribute(ATTR_VENDOR_VERSION, Functions.byteStringToString());
     }
 
     private <N> Collection<N> getMultiValuedAttribute(

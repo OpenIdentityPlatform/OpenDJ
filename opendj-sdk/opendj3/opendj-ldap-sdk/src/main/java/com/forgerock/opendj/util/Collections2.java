@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.forgerock.opendj.ldap.Function;
+
 /**
  * Additional {@code Collection} based utility methods.
  */

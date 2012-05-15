@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
-import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Iterables;
 import com.forgerock.opendj.util.Validator;
 

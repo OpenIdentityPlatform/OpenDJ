@@ -25,7 +25,7 @@
  *      Portions copyright 2012 ForgeRock AS.
  */
 
-package com.forgerock.opendj.util;
+package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_INTEGER_FAIL;
 import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_LONG_FAIL;
@@ -33,14 +33,17 @@ import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BO
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.schema.Schema;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
- * Common {@link Function} implementations.
+ * Common {@link Function} implementations which may be used when parsing
+ * attributes.
+ *
+ * @see Entry#parseAttribute
+ * @see Attribute#parse
+ * @see AttributeParser
  */
 public final class Functions {
 
@@ -156,22 +159,22 @@ public final class Functions {
             };
 
     private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION =
-            composeSecondP(valueToString(), STRING_TO_ATTRIBUTE_DESCRIPTION);
+            composeSecondP(byteStringToString(), STRING_TO_ATTRIBUTE_DESCRIPTION);
 
     private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN = compose(
-            valueToString(), STRING_TO_BOOLEAN);
+            byteStringToString(), STRING_TO_BOOLEAN);
 
     private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN = composeSecondP(
-            valueToString(), STRING_TO_DN);
+            byteStringToString(), STRING_TO_DN);
 
     private static final Function<ByteString, GeneralizedTime, Void> BYTESTRING_TO_GENERALIZED_TIME =
-            compose(valueToString(), STRING_TO_GENERALIZED_TIME);
+            compose(byteStringToString(), STRING_TO_GENERALIZED_TIME);
 
     private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER = compose(
-            valueToString(), STRING_TO_INTEGER);
+            byteStringToString(), STRING_TO_INTEGER);
 
     private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG = compose(
-            valueToString(), STRING_TO_LONG);
+            byteStringToString(), STRING_TO_LONG);
 
     /**
      * Returns the composition of two functions. The result of the first
@@ -422,7 +425,7 @@ public final class Functions {
      *
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, Void> valueToAttributeDescription() {
+    public static Function<ByteString, AttributeDescription, Void> byteStringToAttributeDescription() {
         return fixedFunction(BYTESTRING_TO_ATTRIBUTE_DESCRIPTION, Schema.getDefaultSchema());
     }
 
@@ -435,7 +438,7 @@ public final class Functions {
      *            The schema to use for decoding attribute descriptions.
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, Void> valueToAttributeDescription(
+    public static Function<ByteString, AttributeDescription, Void> byteStringToAttributeDescription(
             final Schema schema) {
         return fixedFunction(BYTESTRING_TO_ATTRIBUTE_DESCRIPTION, schema);
     }
@@ -448,7 +451,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Boolean} values.
      */
-    public static Function<ByteString, Boolean, Void> valueToBoolean() {
+    public static Function<ByteString, Boolean, Void> byteStringToBoolean() {
         return BYTESTRING_TO_BOOLEAN;
     }
 
@@ -459,7 +462,7 @@ public final class Functions {
      *
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, Void> valueToDN() {
+    public static Function<ByteString, DN, Void> byteStringToDN() {
         return fixedFunction(BYTESTRING_TO_DN, Schema.getDefaultSchema());
     }
 
@@ -472,7 +475,7 @@ public final class Functions {
      *            The schema to use for decoding DNs.
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, Void> valueToDN(final Schema schema) {
+    public static Function<ByteString, DN, Void> byteStringToDN(final Schema schema) {
         return fixedFunction(BYTESTRING_TO_DN, schema);
     }
 
@@ -482,7 +485,7 @@ public final class Functions {
      *
      * @return A function which parses generalized time strings.
      */
-    public static Function<ByteString, GeneralizedTime, Void> valueToGeneralizedTime() {
+    public static Function<ByteString, GeneralizedTime, Void> byteStringToGeneralizedTime() {
         return BYTESTRING_TO_GENERALIZED_TIME;
     }
 
@@ -492,7 +495,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Integer} string values.
      */
-    public static Function<ByteString, Integer, Void> valueToInteger() {
+    public static Function<ByteString, Integer, Void> byteStringToInteger() {
         return BYTESTRING_TO_INTEGER;
     }
 
@@ -502,7 +505,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Long} string values.
      */
-    public static Function<ByteString, Long, Void> valueToLong() {
+    public static Function<ByteString, Long, Void> byteStringToLong() {
         return BYTESTRING_TO_LONG;
     }
 
@@ -513,7 +516,7 @@ public final class Functions {
      * @return A function which parses the string representation of a
      *         {@code ByteString} as a UTF-8 encoded {@code String}.
      */
-    public static Function<ByteString, String, Void> valueToString() {
+    public static Function<ByteString, String, Void> byteStringToString() {
         return BYTESTRING_TO_STRING;
     }
 
