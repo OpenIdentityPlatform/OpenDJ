@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
@@ -33,30 +34,30 @@ import org.forgerock.resource.provider.Context;
 public interface AttributeMapper {
 
     /**
-     * Returns an unmodifiable set containing the names of the LDAP attributes
-     * required by this attribute mapper. The returned set should only contain
-     * the names of attributes found in the LDAP entry directly associated with
-     * the resource.
+     * Returns an unmodifiable collection containing the names of the LDAP
+     * attributes required by this attribute mapper. The returned collection
+     * should only contain the names of attributes found in the LDAP entry
+     * directly associated with the resource.
      *
-     * @return An unmodifiable set containing the names of the LDAP attributes
-     *         required by this attribute mapper.
+     * @return An unmodifiable collection containing the names of the LDAP
+     *         attributes required by this attribute mapper.
      */
-    Set<String> getAllLDAPAttributes();
+    Collection<String> getAllLDAPAttributes();
 
     /**
-     * Returns an unmodifiable collection containing the names of the LDAP
-     * attributes required by this attribute mapper and which are associated
-     * with the provided resource attribute. The returned set should only
-     * contain the names of attributes found in the LDAP entry directly
-     * associated with the resource.
+     * Adds the names of the LDAP attributes required by this attribute mapper
+     * which are associated with the provided resource attribute.
+     * <p>
+     * Implementations should only add the names of attributes found in the LDAP
+     * entry directly associated with the resource.
      *
      * @param resourceAttribute
      *            The name of the resource attribute requested by the client.
-     * @return An unmodifiable collection containing the names of the LDAP
-     *         attributes required by this attribute mapper and which are
-     *         associated with the provided resource attribute.
+     * @param ldapAttributes
+     *            The set into which the required LDAP attribute names should be
+     *            put.
      */
-    Collection<String> getLDAPAttributesFor(JsonPointer resourceAttribute);
+    void getLDAPAttributesFor(JsonPointer resourceAttribute, Set<String> ldapAttributes);
 
     /**
      * Transforms attributes contained in the provided LDAP entry to JSON
@@ -69,10 +70,9 @@ public interface AttributeMapper {
      *
      * @param c
      * @param e
-     * @param v
      * @param h
      */
-    void toJson(Context c, Entry e, JsonValue v, ResultHandler<JsonValue> h);
+    void toJson(Context c, Entry e, ResultHandler<Map<String, Object>> h);
 
     /**
      * Transforms JSON content in the provided JSON value to LDAP attributes,
@@ -84,10 +84,9 @@ public interface AttributeMapper {
      *
      * @param c
      * @param v
-     * @param a
      * @param h
      */
-    void toLDAP(Context c, JsonValue v, List<Attribute> a, ResultHandler<Entry> h);
+    void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).
