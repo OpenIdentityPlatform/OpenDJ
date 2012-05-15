@@ -32,13 +32,13 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.Function;
-import com.forgerock.opendj.util.Functions;
 import com.forgerock.opendj.util.Validator;
 
 /**

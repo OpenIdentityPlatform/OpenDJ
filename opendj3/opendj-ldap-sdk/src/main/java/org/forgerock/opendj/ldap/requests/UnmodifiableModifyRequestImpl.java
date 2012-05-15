@@ -33,13 +33,13 @@ import java.util.List;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.Function;
-import com.forgerock.opendj.util.Functions;
 
 /**
  * Unmodifiable modify request implementation.

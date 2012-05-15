@@ -28,6 +28,8 @@ package com.forgerock.opendj.util;
 
 import java.util.Iterator;
 
+import org.forgerock.opendj.ldap.Function;
+
 /**
  * Utility methods for manipulating {@link Iterable}s.
  */

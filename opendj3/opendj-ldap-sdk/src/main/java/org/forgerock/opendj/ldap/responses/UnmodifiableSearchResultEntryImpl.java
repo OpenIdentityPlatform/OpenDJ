@@ -35,8 +35,8 @@ import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Function;
 
-import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Iterables;
 
 /**
