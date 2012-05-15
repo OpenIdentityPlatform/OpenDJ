@@ -1921,4 +1921,123 @@
       </call>
     </sequence>
   </function>
+
+  <function name="createStrongUserEntries" scope="local">
+    <function-prolog>
+      This creates strongAuthenticationUser entries with userCertificates
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="certificate" type="required">
+        <function-arg-description>
+          Certificate
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          Certificate filename
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="userdn" type="required">
+        <function-arg-description>
+          User DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+     <function-arg-def name="localLdifFile" type="required">
+        <function-arg-description>
+          Local ldif file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+     <function-arg-def name="remoteLdifFile" type="required">
+        <function-arg-description>
+          Remote ldif file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+    </function-map-args>
+  
+    <sequence>
+
+      <!-- Get a certificate from a file in PEM format -->
+      <call function="'getFile'">
+        { 'location'    : location,
+          'filename'    : filename
+        }
+      </call>
+
+      <message>
+        'Certificate contents:\n %s' % cmdResult
+      </message>
+
+      <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
+      <script>
+        certList=STAXResult[1].split('\n')
+        ret_str = ""
+        for line in certList:
+          index_cert = line.find("CERTIFICATE")
+          if index_cert == -1:
+            ret_str+=line.strip()
+      </script>
+
+      <!-- Create ldif for users entries and add userCertificate --> 
+      <message> '----  Create User entry : %s----' % userdn</message>    
+      <script>
+        listAttr = []
+        listAttr.append('dn: %s' % userdn)
+        listAttr.append('objectclass:top')
+        listAttr.append('objectclass:organizationalperson')
+        listAttr.append('objectclass:inetorgperson')
+        listAttr.append('objectclass:person')
+        listAttr.append('objectclass:ds-certificate-user')
+        listAttr.append('objectclass:strongAuthenticationUser')
+        listAttr.append('userCertificate;binary:: %s' % ret_str)
+        listAttr.append('givenname:%s' % certificate)
+        listAttr.append('sn:%s' % certificate)
+        listAttr.append('cn:%s' % certificate)
+      </script>
+
+      <!-- Write out the ldif of users entry-->
+      <script>
+        outfile = open(localLdifFile,"w")
+        for line in listAttr:
+          outfile.write("%s\n" % line)
+        outfile.close()
+      </script>
+      
+      <!-- Copy the ldif file containing userCertificate to remote host -->
+      <message>
+        'Copy ldif (%s) file to user entry %s  to %s' % (localLdifFile,userdn,remoteLdifFile)
+      </message>
+
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : localLdifFile,
+          'destfile'   : remoteLdifFile,
+          'remotehost' : location 
+        }
+      </call>
+
+      <!-- Add the users entry into the LDAP server -->
+      <call function="'ldapModifyWithScript'"> 
+        {
+          'dsAdd'            : 'True' ,
+          'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+          'dsFilename'       : remoteLdifFile
+        }
+      </call>
+
+    </sequence> 
+  </function> 
 </stax>
