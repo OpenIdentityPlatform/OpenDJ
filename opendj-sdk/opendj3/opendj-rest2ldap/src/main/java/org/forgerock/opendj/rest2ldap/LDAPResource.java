@@ -17,16 +17,24 @@
 package org.forgerock.opendj.rest2ldap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.AssertionFailureException;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ConnectionException;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
@@ -53,23 +61,27 @@ import org.forgerock.resource.provider.UpdateResultHandler;
  *
  */
 public class LDAPResource implements Resource {
-    private Set<String> allLDAPAttributes;
-    private final EntryContainer container;
-    private final List<AttributeMapper> mappers;
+    private final EntryContainer entryContainer;
+    private final AttributeMapper attributeMapper;
+    private final EtagStrategy etagStrategy;
 
     /**
      * Creates a new LDAP resource.
-     * 
-     * @param container
+     *
+     * @param entryContainer
      *            The entry container which will be used to interact with the
      *            LDAP server.
-     * @param mappers
-     *            The list of attribute mappers.
+     * @param etagStrategy
+     *            The algorithm which should be used to obtain a resource's etag
+     *            from an entry.
+     * @param attributeMapper
+     *            The attribute mapper.
      */
-    public LDAPResource(final EntryContainer container, final List<AttributeMapper> mappers) {
-        this.container = container;
-        this.mappers = mappers;
-        cacheAllLDAPAttributes();
+    public LDAPResource(final EntryContainer entryContainer, final EtagStrategy etagStrategy,
+            final AttributeMapper attributeMapper) {
+        this.entryContainer = entryContainer;
+        this.etagStrategy = etagStrategy;
+        this.attributeMapper = attributeMapper;
     }
 
     /**
@@ -125,7 +137,7 @@ public class LDAPResource implements Resource {
                 public boolean handleEntry(final SearchResultEntry entry) {
                     // TODO: should the resource or the container define the ID
                     // mapping?
-                    resourceIDs.add(container.getIDFromEntry(entry));
+                    resourceIDs.add(entryContainer.getIDFromEntry(entry));
                     return true;
                 }
 
@@ -135,7 +147,7 @@ public class LDAPResource implements Resource {
 
                 public boolean handleReference(final SearchResultReference reference) {
                     // TODO: should this be classed as an error since rest2ldap
-                    // assumes entries are all colocated.
+                    // assumes entries are all colocated?
                     return true;
                 }
 
@@ -143,13 +155,13 @@ public class LDAPResource implements Resource {
                     out.setResult(id, null, new JsonValue(resourceIDs));
                 }
             };
-            container.listEntries(context, handler);
+            entryContainer.listEntries(context, handler);
         } else {
             // Read a single entry.
 
             // TODO: Determine the set of LDAP attributes that need to be read.
             final Set<JsonPointer> requestedAttributes = new LinkedHashSet<JsonPointer>();
-            final Set<String> requestedLDAPAttributes =
+            final Collection<String> requestedLDAPAttributes =
                     getRequestedLDAPAttributes(requestedAttributes);
 
             final ResultHandler<SearchResultEntry> handler =
@@ -159,23 +171,22 @@ public class LDAPResource implements Resource {
                         }
 
                         public void handleResult(final SearchResultEntry entry) {
-                            final String revision = getRevisionFromEntry(entry);
-
-                            final ResultHandler<JsonValue> mapHandler =
-                                    new ResultHandler<JsonValue>() {
+                            final String revision = etagStrategy.getEtagFromEntry(entry);
+                            final ResultHandler<Map<String, Object>> mapHandler =
+                                    new ResultHandler<Map<String, Object>>() {
                                         public void handleErrorResult(
                                                 final ErrorResultException error) {
                                             out.setFailure(adaptErrorResult(error));
                                         }
 
-                                        public void handleResult(final JsonValue result) {
-                                            out.setResult(id, revision, result);
+                                        public void handleResult(final Map<String, Object> result) {
+                                            out.setResult(id, revision, new JsonValue(result));
                                         }
                                     };
-                            mapEntryToJson(context, requestedAttributes, entry, mapHandler);
+                            attributeMapper.toJson(context, entry, mapHandler);
                         }
                     };
-            container.readEntry(context, id, requestedLDAPAttributes, handler);
+            entryContainer.readEntry(context, id, requestedLDAPAttributes, handler);
         }
     }
 
@@ -187,56 +198,58 @@ public class LDAPResource implements Resource {
         out.setFailure(new NotSupportedException("Not yet implemented"));
     }
 
-    private ResourceException adaptErrorResult(final ErrorResultException error) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     /**
-     * Caches the set of LDAP attributes associated with all of this resource's
-     * mappers.
+     * Adapts an LDAP result code to a resource exception.
+     *
+     * @param error
+     *            The LDAP error that should be adapted.
+     * @return The equivalent resource exception.
      */
-    private void cacheAllLDAPAttributes() {
-        allLDAPAttributes = new LinkedHashSet<String>(mappers.size());
-        for (final AttributeMapper mapper : mappers) {
-            allLDAPAttributes.addAll(mapper.getAllLDAPAttributes());
+    private ResourceException adaptErrorResult(final ErrorResultException error) {
+        int resourceResultCode;
+        try {
+            throw error;
+        } catch (AssertionFailureException e) {
+            resourceResultCode = ResourceException.VERSION_MISMATCH;
+        } catch (AuthenticationException e) {
+            resourceResultCode = 401;
+        } catch (AuthorizationException e) {
+            resourceResultCode = ResourceException.FORBIDDEN;
+        } catch (ConnectionException e) {
+            resourceResultCode = ResourceException.UNAVAILABLE;
+        } catch (EntryNotFoundException e) {
+            resourceResultCode = ResourceException.NOT_FOUND;
+        } catch (MultipleEntriesFoundException e) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
+        } catch (TimeoutResultException e) {
+            resourceResultCode = 408;
+        } catch (ErrorResultException e) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
         }
+        return ResourceException.getException(resourceResultCode, null, error.getMessage(), error);
     }
 
     /**
      * Determines the set of LDAP attributes to request in an LDAP read (search,
      * post-read), based on the provided set of JSON pointers.
-     * 
+     *
      * @param requestedAttributes
      *            The set of resource attributes to be read.
      * @return The set of LDAP attributes associated with the resource
      *         attributes.
      */
-    private Set<String> getRequestedLDAPAttributes(final Set<JsonPointer> requestedAttributes) {
+    private Collection<String> getRequestedLDAPAttributes(final Set<JsonPointer> requestedAttributes) {
         if (requestedAttributes.isEmpty()) {
             // Full read.
-            return allLDAPAttributes;
+            return attributeMapper.getAllLDAPAttributes();
         } else {
             // Partial read.
             final Set<String> requestedLDAPAttributes =
                     new LinkedHashSet<String>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                for (final AttributeMapper mapper : mappers) {
-                    requestedLDAPAttributes.addAll(mapper.getLDAPAttributesFor(requestedAttribute));
-                }
+                attributeMapper.getLDAPAttributesFor(requestedAttribute, requestedLDAPAttributes);
             }
             return requestedLDAPAttributes;
         }
-    }
-
-    private String getRevisionFromEntry(final SearchResultEntry entry) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    private void mapEntryToJson(final Context c, final Set<JsonPointer> requestedAttributes,
-            final Entry result, final ResultHandler<JsonValue> h) {
-        // TODO Auto-generated method stub
-
     }
 }
