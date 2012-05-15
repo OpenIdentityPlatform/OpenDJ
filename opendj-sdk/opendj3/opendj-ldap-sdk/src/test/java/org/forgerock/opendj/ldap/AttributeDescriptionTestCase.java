@@ -27,11 +27,15 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Iterator;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -127,37 +131,36 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
                 AttributeDescription.valueOf(ad2, Schema.getCoreSchema());
 
         // Identity.
-        Assert.assertTrue(attributeDescription1.equals(attributeDescription1));
-        Assert.assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
-        Assert.assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
-        Assert.assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
+        assertTrue(attributeDescription1.equals(attributeDescription1));
+        assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
+        assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
+        assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
 
         if (compare == 0) {
-            Assert.assertTrue(attributeDescription1.equals(attributeDescription2));
-            Assert.assertTrue(attributeDescription2.equals(attributeDescription1));
-            Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
-            Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
+            assertTrue(attributeDescription1.equals(attributeDescription2));
+            assertTrue(attributeDescription2.equals(attributeDescription1));
+            assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
+            assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
 
-            Assert.assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
-            Assert.assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
-            Assert.assertTrue(attributeDescription2.isSubTypeOf(attributeDescription1));
-            Assert.assertTrue(attributeDescription2.isSuperTypeOf(attributeDescription1));
+            assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
+            assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
+            assertTrue(attributeDescription2.isSubTypeOf(attributeDescription1));
+            assertTrue(attributeDescription2.isSuperTypeOf(attributeDescription1));
         } else {
-            Assert.assertFalse(attributeDescription1.equals(attributeDescription2));
-            Assert.assertFalse(attributeDescription2.equals(attributeDescription1));
+            assertFalse(attributeDescription1.equals(attributeDescription2));
+            assertFalse(attributeDescription2.equals(attributeDescription1));
 
             if (compare < 0) {
-                Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) < 0);
-                Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) > 0);
+                assertTrue(attributeDescription1.compareTo(attributeDescription2) < 0);
+                assertTrue(attributeDescription2.compareTo(attributeDescription1) > 0);
             } else {
-                Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) > 0);
-                Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) < 0);
+                assertTrue(attributeDescription1.compareTo(attributeDescription2) > 0);
+                assertTrue(attributeDescription2.compareTo(attributeDescription1) < 0);
             }
 
-            Assert.assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
+            assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
 
-            Assert.assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2),
-                    isSuperType);
+            assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2), isSuperType);
         }
     }
 
@@ -171,37 +174,36 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
                 AttributeDescription.valueOf(ad2, Schema.getEmptySchema());
 
         // Identity.
-        Assert.assertTrue(attributeDescription1.equals(attributeDescription1));
-        Assert.assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
-        Assert.assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
-        Assert.assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
+        assertTrue(attributeDescription1.equals(attributeDescription1));
+        assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
+        assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
+        assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
 
         if (compare == 0) {
-            Assert.assertTrue(attributeDescription1.equals(attributeDescription2));
-            Assert.assertTrue(attributeDescription2.equals(attributeDescription1));
-            Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
-            Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
+            assertTrue(attributeDescription1.equals(attributeDescription2));
+            assertTrue(attributeDescription2.equals(attributeDescription1));
+            assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
+            assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
 
-            Assert.assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
-            Assert.assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
-            Assert.assertTrue(attributeDescription2.isSubTypeOf(attributeDescription1));
-            Assert.assertTrue(attributeDescription2.isSuperTypeOf(attributeDescription1));
+            assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
+            assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
+            assertTrue(attributeDescription2.isSubTypeOf(attributeDescription1));
+            assertTrue(attributeDescription2.isSuperTypeOf(attributeDescription1));
         } else {
-            Assert.assertFalse(attributeDescription1.equals(attributeDescription2));
-            Assert.assertFalse(attributeDescription2.equals(attributeDescription1));
+            assertFalse(attributeDescription1.equals(attributeDescription2));
+            assertFalse(attributeDescription2.equals(attributeDescription1));
 
             if (compare < 0) {
-                Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) < 0);
-                Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) > 0);
+                assertTrue(attributeDescription1.compareTo(attributeDescription2) < 0);
+                assertTrue(attributeDescription2.compareTo(attributeDescription1) > 0);
             } else {
-                Assert.assertTrue(attributeDescription1.compareTo(attributeDescription2) > 0);
-                Assert.assertTrue(attributeDescription2.compareTo(attributeDescription1) < 0);
+                assertTrue(attributeDescription1.compareTo(attributeDescription2) > 0);
+                assertTrue(attributeDescription2.compareTo(attributeDescription1) < 0);
             }
 
-            Assert.assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
+            assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
 
-            Assert.assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2),
-                    isSuperType);
+            assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2), isSuperType);
         }
     }
 
@@ -210,17 +212,17 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         final AttributeDescription attributeDescription =
                 AttributeDescription.valueOf(ad, Schema.getCoreSchema());
 
-        Assert.assertEquals(attributeDescription.toString(), ad);
+        assertEquals(attributeDescription.toString(), ad);
 
-        Assert.assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
+        assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
 
-        Assert.assertEquals(attributeDescription.isObjectClass(), isObjectClass);
+        assertEquals(attributeDescription.isObjectClass(), isObjectClass);
 
-        Assert.assertFalse(attributeDescription.hasOptions());
-        Assert.assertFalse(attributeDescription.containsOption("dummy"));
+        assertFalse(attributeDescription.hasOptions());
+        assertFalse(attributeDescription.containsOption("dummy"));
 
         final Iterator<String> iterator = attributeDescription.getOptions().iterator();
-        Assert.assertFalse(iterator.hasNext());
+        assertFalse(iterator.hasNext());
     }
 
     // FIXME: none of these pass! The valueOf method is far to lenient.
@@ -236,38 +238,182 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         final AttributeDescription attributeDescription =
                 AttributeDescription.valueOf(ad, Schema.getEmptySchema());
 
-        Assert.assertEquals(attributeDescription.toString(), ad);
+        assertEquals(attributeDescription.toString(), ad);
 
-        Assert.assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
+        assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
 
-        Assert.assertFalse(attributeDescription.isObjectClass());
+        assertFalse(attributeDescription.isObjectClass());
 
         if (options.length == 0) {
-            Assert.assertFalse(attributeDescription.hasOptions());
+            assertFalse(attributeDescription.hasOptions());
         } else {
-            Assert.assertTrue(attributeDescription.hasOptions());
+            assertTrue(attributeDescription.hasOptions());
         }
 
-        Assert.assertFalse(attributeDescription.containsOption("dummy"));
+        assertFalse(attributeDescription.containsOption("dummy"));
         if (containsFoo) {
-            Assert.assertTrue(attributeDescription.containsOption("foo"));
-            Assert.assertTrue(attributeDescription.containsOption("FOO"));
-            Assert.assertTrue(attributeDescription.containsOption("FoO"));
+            assertTrue(attributeDescription.containsOption("foo"));
+            assertTrue(attributeDescription.containsOption("FOO"));
+            assertTrue(attributeDescription.containsOption("FoO"));
         } else {
-            Assert.assertFalse(attributeDescription.containsOption("foo"));
-            Assert.assertFalse(attributeDescription.containsOption("FOO"));
-            Assert.assertFalse(attributeDescription.containsOption("FoO"));
+            assertFalse(attributeDescription.containsOption("foo"));
+            assertFalse(attributeDescription.containsOption("FOO"));
+            assertFalse(attributeDescription.containsOption("FoO"));
         }
 
         for (final String option : options) {
-            Assert.assertTrue(attributeDescription.containsOption(option));
+            assertTrue(attributeDescription.containsOption(option));
         }
 
         final Iterator<String> iterator = attributeDescription.getOptions().iterator();
         for (final String option : options) {
-            Assert.assertTrue(iterator.hasNext());
-            Assert.assertEquals(iterator.next(), option);
+            assertTrue(iterator.hasNext());
+            assertEquals(iterator.next(), option);
         }
-        Assert.assertFalse(iterator.hasNext());
+        assertFalse(iterator.hasNext());
     }
+
+    @Test
+    public void testWithOptionAddFirstOption() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn");
+        AttributeDescription ad2 = ad1.withOption("test");
+        assertTrue(ad2.hasOptions());
+        assertTrue(ad2.containsOption("test"));
+        assertFalse(ad2.containsOption("dummy"));
+        assertEquals(ad2.toString(), "cn;test");
+        assertEquals(ad2.getOptions().iterator().next(), "test");
+    }
+
+    @Test
+    public void testWithOptionAddExistingFirstOption() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test");
+        AttributeDescription ad2 = ad1.withOption("test");
+        assertSame(ad1, ad2);
+    }
+
+    @Test
+    public void testWithOptionAddSecondOption() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1");
+        AttributeDescription ad2 = ad1.withOption("test2");
+        assertTrue(ad2.hasOptions());
+        assertTrue(ad2.containsOption("test1"));
+        assertTrue(ad2.containsOption("test2"));
+        assertFalse(ad2.containsOption("dummy"));
+        assertEquals(ad2.toString(), "cn;test1;test2");
+        Iterator<String> i = ad2.getOptions().iterator();
+        assertEquals(i.next(), "test1");
+        assertEquals(i.next(), "test2");
+    }
+
+    @Test
+    public void testWithOptionAddExistingSecondOption() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withOption("test1");
+        AttributeDescription ad3 = ad1.withOption("test2");
+        assertSame(ad1, ad2);
+        assertSame(ad1, ad3);
+    }
+
+    @Test
+    public void testWithoutOptionEmpty() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn");
+        AttributeDescription ad2 = ad1.withoutOption("test");
+        assertSame(ad1, ad2);
+    }
+
+    @Test
+    public void testWithoutOptionFirstOption() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test");
+        AttributeDescription ad2 = ad1.withoutOption("test");
+        assertFalse(ad2.hasOptions());
+        assertFalse(ad2.containsOption("test"));
+        assertEquals(ad2.toString(), "cn");
+        assertFalse(ad2.getOptions().iterator().hasNext());
+    }
+
+    @Test
+    public void testWithoutOptionFirstOptionMissing() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test");
+        AttributeDescription ad2 = ad1.withoutOption("dummy");
+        assertSame(ad1, ad2);
+    }
+
+    @Test
+    public void testWithoutOptionSecondOption1() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withoutOption("test1");
+        assertTrue(ad2.hasOptions());
+        assertFalse(ad2.containsOption("test1"));
+        assertTrue(ad2.containsOption("test2"));
+        assertEquals(ad2.toString(), "cn;test2");
+        assertEquals(ad2.getOptions().iterator().next(), "test2");
+    }
+
+    @Test
+    public void testWithoutOptionSecondOption2() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withoutOption("test2");
+        assertTrue(ad2.hasOptions());
+        assertTrue(ad2.containsOption("test1"));
+        assertFalse(ad2.containsOption("test2"));
+        assertEquals(ad2.toString(), "cn;test1");
+        assertEquals(ad2.getOptions().iterator().next(), "test1");
+    }
+
+    @Test
+    public void testWithoutOptionSecondOptionMissing() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withoutOption("dummy");
+        assertSame(ad1, ad2);
+    }
+
+    @Test
+    public void testWithoutOptionThirdOption1() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
+        AttributeDescription ad2 = ad1.withoutOption("test1");
+        assertTrue(ad2.hasOptions());
+        assertFalse(ad2.containsOption("test1"));
+        assertTrue(ad2.containsOption("test2"));
+        assertTrue(ad2.containsOption("test3"));
+        assertEquals(ad2.toString(), "cn;test2;test3");
+        Iterator<String> i = ad2.getOptions().iterator();
+        assertEquals(i.next(), "test2");
+        assertEquals(i.next(), "test3");
+    }
+
+    @Test
+    public void testWithoutOptionThirdOption2() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
+        AttributeDescription ad2 = ad1.withoutOption("test2");
+        assertTrue(ad2.hasOptions());
+        assertTrue(ad2.containsOption("test1"));
+        assertFalse(ad2.containsOption("test2"));
+        assertTrue(ad2.containsOption("test3"));
+        assertEquals(ad2.toString(), "cn;test1;test3");
+        Iterator<String> i = ad2.getOptions().iterator();
+        assertEquals(i.next(), "test1");
+        assertEquals(i.next(), "test3");
+    }
+
+    @Test
+    public void testWithoutOptionThirdOption3() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
+        AttributeDescription ad2 = ad1.withoutOption("test3");
+        assertTrue(ad2.hasOptions());
+        assertTrue(ad2.containsOption("test1"));
+        assertTrue(ad2.containsOption("test2"));
+        assertFalse(ad2.containsOption("test3"));
+        assertEquals(ad2.toString(), "cn;test1;test2");
+        Iterator<String> i = ad2.getOptions().iterator();
+        assertEquals(i.next(), "test1");
+        assertEquals(i.next(), "test2");
+    }
+
+    @Test
+    public void testWithoutOptionThirdOptionMissing() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
+        AttributeDescription ad2 = ad1.withoutOption("dummy");
+        assertSame(ad1, ad2);
+    }
+
 }
