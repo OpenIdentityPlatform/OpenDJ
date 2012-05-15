@@ -67,7 +67,6 @@
  <xinclude:include href='chap-ldif.xml' />
  <xinclude:include href='chap-controls.xml' />
  <xinclude:include href='chap-extended-ops.xml' />
- <xinclude:include href='chap-multithreading.xml' />
  <xinclude:include href='chap-i18n.xml' />
  <xinclude:include href='chap-simple-proxy.xml' />
  
