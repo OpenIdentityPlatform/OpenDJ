@@ -534,9 +534,7 @@ public final class Filter {
      * @return The newly created {@code approximate match} filter.
      */
     public static Filter approx(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+        return approx(attributeDescription, ByteString.valueOf(assertionValue));
     }
 
     /**
@@ -568,9 +566,7 @@ public final class Filter {
      * @return The newly created {@code equality match} filter.
      */
     public static Filter equality(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+        return equality(attributeDescription, ByteString.valueOf(assertionValue));
     }
 
     /**
@@ -617,11 +613,8 @@ public final class Filter {
      */
     public static Filter extensible(final String matchingRule, final String attributeDescription,
             final Object assertionValue, final boolean dnAttributes) {
-        Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
-                "matchingRule and/or " + "attributeDescription must not be null");
-        Validator.ensureNotNull(assertionValue);
-        return new Filter(new ExtensibleMatchImpl(matchingRule, attributeDescription, ByteString
-                .valueOf(assertionValue), dnAttributes));
+        return extensible(matchingRule, attributeDescription, ByteString.valueOf(assertionValue),
+                dnAttributes);
     }
 
     /**
@@ -655,9 +648,7 @@ public final class Filter {
      */
     public static Filter greaterOrEqual(final String attributeDescription,
             final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+        return greaterOrEqual(attributeDescription, ByteString.valueOf(assertionValue));
     }
 
     /**
@@ -690,9 +681,7 @@ public final class Filter {
      * @return The newly created {@code less or equal} filter.
      */
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+        return lessOrEqual(attributeDescription, ByteString.valueOf(assertionValue));
     }
 
     /**
@@ -943,8 +932,7 @@ public final class Filter {
                 }
             } else {
                 // We tolerate the top level filter component not being
-                // surrounded
-                // by parentheses.
+                // surrounded by parentheses.
                 return valueOf0(string, 0, string.length());
             }
         } catch (final LocalizedIllegalArgumentException liae) {
@@ -1016,8 +1004,7 @@ public final class Filter {
         }
 
         // Finally, see if there is anything after the last asterisk, which
-        // would be
-        // the subFinal value.
+        // would be the subFinal value.
         ByteString subFinal;
         if (firstPos == (valueBytes.length - 1)) {
             subFinal = null;
