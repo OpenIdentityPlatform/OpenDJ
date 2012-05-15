@@ -3753,6 +3753,31 @@ ou: People
 uidNumber: 1109
 gidNumber: 1000
 
+dn: uid=fdupont,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: fdupont
+#classOfService: gold
+userpassword: ratatouille
+facsimileTelephoneNumber: +33 1 23 45 67 88
+givenName: Fredérique
+cn: Frederique Dupont
+cn;lang-fr: Fredérique Dupont
+telephoneNumber: +33 1 23 45 67 89
+sn: Dupont
+roomNumber: 0042
+homeDirectory: /home/fdupont
+mail: fdupont@example.fr
+l: Paris
+ou: Product Development
+ou: People
+uidNumber: 1110
+gidNumber: 1000
+
 # Quotas by class of service
 dn: cn=Bronze Class of Service,dc=example,dc=com
 objectClass: collectiveAttributeSubentry

@@ -90,6 +90,9 @@
    <listitem><para><xref linkend="complex-filter-search"/></para></listitem>
    <listitem><para><xref linkend="operational-attrs-search"/></para></listitem>
    <listitem><para><xref linkend="attr-desc-list-search"/></para></listitem>
+   <listitem><para><xref linkend="escape-characters-in-filter"/></para></listitem>
+   <listitem><para><xref linkend="extensible-match-search"/></para></listitem>
+   <listitem><para><xref linkend="localized-search"/></para></listitem>
   </itemizedlist>
   
   <example xml:id="simple-filter-search">
@@ -338,8 +341,55 @@ mail: bjensen@example.com
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 mail: kvaughan@example.com</screen>
   </example>
- </section>
 
+  <example xml:id="localized-search"><?dbfo keep-together="auto"?>
+   <title>Search: Language Subtype</title>
+
+   <para>OpenDJ directory server supports many language subtypes. See the
+   chapter on <link xlink:href="admin-guide#appendix-l10n"
+   xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Localization</citetitle></link> for a list.</para>
+
+   <para>When you perform a search you can request the language subtype by
+   OID or by language subtype string. For example, the following search gets
+   the French version of a common name. The example uses the
+   <command>base64</command> command provided with OpenDJ directory server to
+   decode the attribute value.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ "(givenName:fr:=Fréderique)" cn\;lang-fr
+dn: uid=fdupont,ou=People,dc=example,dc=com
+cn;lang-fr:: RnJlZMOpcmlxdWUgRHVwb250
+
+$ base64 decode -d RnJlZMOpcmlxdWUgRHVwb250
+Fredérique Dupont</screen>
+
+   <itemizedlist>
+    <para>At the end of the OID or language subtype, you further specify the
+    matching rule as follows:</para>
+    <listitem>
+     <para>Add <literal>.1</literal> for less than</para>
+    </listitem>
+    <listitem>
+     <para>Add <literal>.2</literal> for less than or equal to</para>
+    </listitem>
+    <listitem>
+     <para>Add <literal>.3</literal> for equal to (default)</para>
+    </listitem>
+    <listitem>
+     <para>Add <literal>.4</literal> for greater than or equal to</para>
+    </listitem>
+    <listitem>
+     <para>Add <literal>.5</literal> for greater than</para>
+    </listitem>
+    <listitem>
+     <para>Add <literal>.6</literal> for substring</para>
+    </listitem>
+   </itemizedlist>
+  </example>
+ </section>
 
  <section xml:id="compare-ldap">
   <title>Comparing Attribute Values</title>
