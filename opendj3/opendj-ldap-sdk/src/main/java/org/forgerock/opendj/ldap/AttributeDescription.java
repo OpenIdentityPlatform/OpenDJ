@@ -407,7 +407,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         if (impl instanceof ZeroOptionImpl) {
             return new AttributeDescription(newAttributeDescription, attributeType,
                     new SingleOptionImpl(option, normalizedOption));
-
         } else if (impl instanceof SingleOptionImpl) {
             final SingleOptionImpl simpl = (SingleOptionImpl) impl;
 
@@ -419,6 +418,9 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             if (normalizedOption.compareTo(simpl.normalizedOption) < 0) {
                 newNormalizedOptions[0] = normalizedOption;
                 newNormalizedOptions[1] = simpl.normalizedOption;
+            } else {
+                newNormalizedOptions[0] = simpl.normalizedOption;
+                newNormalizedOptions[1] = normalizedOption;
             }
 
             return new AttributeDescription(newAttributeDescription, attributeType,
@@ -457,6 +459,89 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
             return new AttributeDescription(newAttributeDescription, attributeType,
                     new MultiOptionImpl(newOptions, newNormalizedOptions));
+        }
+    }
+
+    /**
+     * Returns an attribute description having the same attribute type and
+     * options as this attribute description except for the provided option.
+     * <p>
+     * This method is idempotent: if this attribute description does not contain
+     * the provided option then this attribute description will be returned.
+     *
+     * @param option
+     *            The attribute option.
+     * @return The new attribute description excluding {@code option}.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} or {@code option} was
+     *             {@code null}.
+     */
+    public AttributeDescription withoutOption(final String option) {
+        Validator.ensureNotNull(option);
+
+        final String normalizedOption = toLowerCase(option);
+        if (!pimpl.containsOption(normalizedOption)) {
+            return this;
+        }
+
+        final String oldAttributeDescription = attributeDescription;
+        final StringBuilder builder =
+                new StringBuilder(oldAttributeDescription.length() - option.length() - 1);
+
+        final String normalizedOldAttributeDescription = toLowerCase(oldAttributeDescription);
+        final int index =
+                normalizedOldAttributeDescription.indexOf(normalizedOption);
+        builder.append(oldAttributeDescription, 0, index - 1 /* to semi-colon */);
+        builder.append(oldAttributeDescription, index + option.length(), oldAttributeDescription
+                .length());
+        final String newAttributeDescription = builder.toString();
+
+        final Impl impl = pimpl;
+        if (impl instanceof ZeroOptionImpl) {
+            throw new IllegalStateException("ZeroOptionImpl unexpected");
+        } else if (impl instanceof SingleOptionImpl) {
+            return new AttributeDescription(newAttributeDescription, attributeType,
+                    ZERO_OPTION_IMPL);
+        } else {
+            final MultiOptionImpl mimpl = (MultiOptionImpl) impl;
+            if (mimpl.options.length == 2) {
+                final String remainingOption;
+                final String remainingNormalizedOption;
+
+                if (toLowerCase(mimpl.options[0]).equals(normalizedOption)) {
+                    remainingOption = mimpl.options[1];
+                } else {
+                    remainingOption = mimpl.options[0];
+                }
+
+                if (mimpl.normalizedOptions[0].equals(normalizedOption)) {
+                    remainingNormalizedOption = mimpl.normalizedOptions[1];
+                } else {
+                    remainingNormalizedOption = mimpl.normalizedOptions[0];
+                }
+
+                return new AttributeDescription(newAttributeDescription, attributeType,
+                        new SingleOptionImpl(remainingOption, remainingNormalizedOption));
+            } else {
+                final String[] newOptions = new String[mimpl.options.length - 1];
+                final String[] newNormalizedOptions =
+                        new String[mimpl.normalizedOptions.length - 1];
+
+                for (int i = 0, j = 0; i < mimpl.options.length; i++) {
+                    if (!toLowerCase(mimpl.options[i]).equals(normalizedOption)) {
+                        newOptions[j++] = mimpl.options[i];
+                    }
+                }
+
+                for (int i = 0, j = 0; i < mimpl.normalizedOptions.length; i++) {
+                    if (!mimpl.normalizedOptions[i].equals(normalizedOption)) {
+                        newNormalizedOptions[j++] = mimpl.normalizedOptions[i];
+                    }
+                }
+
+                return new AttributeDescription(newAttributeDescription, attributeType,
+                        new MultiOptionImpl(newOptions, newNormalizedOptions));
+            }
         }
     }
 
