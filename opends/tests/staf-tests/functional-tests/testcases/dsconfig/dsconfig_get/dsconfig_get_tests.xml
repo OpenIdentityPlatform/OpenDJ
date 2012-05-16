@@ -30,7 +30,7 @@
 
   <function name="dsconfig_get_001" scope="local">
     <function-prolog>
-      This function modifies a property value using dsconfig
+      This function gets a property value using dsconfig
     </function-prolog>
     <function-map-args>
       <function-arg-def name="componentList"
@@ -78,6 +78,7 @@
                     'objectType'     :  '%s' % dsconfig_component1 ,
                     'objectName'     :  '%s' % dsconfig_component2 ,
                     'optionsString'  :  '--backend-name %s' % DIRECTORY_INSTANCE_BE ,
+                    'advanced'       : 'true' ,
                     'expectedRC'     : 0 
                   }
                   </call>
@@ -90,6 +91,7 @@
                     'subcommand'     :  '%s' % dsconfig_subcommand ,
                     'objectType'     :  '%s' % dsconfig_component1 ,
                     'objectName'     :  '%s' % dsconfig_component2 ,
+                    'advanced'       : 'true' ,
                     'expectedRC'     : 0 
                   }
                   </call>
@@ -137,7 +139,7 @@
 
   <function name="dsconfig_get_002" scope="local">
     <function-prolog>
-      This function modifies a property value using dsconfig
+      This function gets a property value using dsconfig
     </function-prolog>
     <function-map-args>
       <function-arg-def name="componentList"
