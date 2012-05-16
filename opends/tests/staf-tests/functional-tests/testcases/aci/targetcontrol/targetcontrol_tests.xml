@@ -308,6 +308,10 @@
             <message>
                'Test Name = %s' % STAXCurrentTestcase
             </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Add deny aci for effective rights control.' }
+            </call>
                           
             <script>
                 deny_aci='(targetcontrol=\"1.3.6.1.4.1.42.2.27.9.5.2\") (version 3.0; acl \"deny effective rights control\"; deny(all) userdn=\"ldap:///anyone\";)'
@@ -322,6 +326,10 @@
                 'attributeName'          : 'aci' ,
                 'newAttributeValue'      : deny_aci ,
                 'changetype'             : 'add' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Add allow aci for all users to search under aci branch.' }
             </call>
             
             <script>
@@ -341,9 +349,9 @@
                 'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (remote.data,curr_aci_ldif_file) }
             </call>
 
-            <message>
-               'ACI: Targetcontrol: Basic - search, user searching targeted entry'
-            </message>
+            <call function="'testStep'">
+              { 'stepMessage' : 'User searching under aci branch with effective rights control (non-critical).' }
+            </call>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -353,8 +361,25 @@
                 'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'uid aclRights roomnumber' ,
-                'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
-                'expectedRC'       : 50 }
+                'extraParams'      : '-J 1.3.6.1.4.1.42.2.27.9.5.2:false -T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'User searching targetted entry under aci branch with effective rights control (critical).' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'uid aclRights roomnumber' ,
+                'extraParams'      : '-J 1.3.6.1.4.1.42.2.27.9.5.2:true -T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                'expectedRC'       : 12
+              }
             </call>
 
             <script> 
@@ -378,10 +403,10 @@
                   'testString'         : 'insufficient access rights' ,
                   'expectedResult'     : '1' }
             </call>
-            
-            <message>
-               'ACI: Targetcontrol: Basic - search, user searching non-targeted entry'
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'User searching non-targeted entry under aci branch with effective rights control (critical).' }
+            </call>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -391,8 +416,8 @@
                 'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'aclRights' ,
-                'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
-                'expectedRC'       : 50 }
+                'extraParams'      : '-J 1.3.6.1.4.1.42.2.27.9.5.2:true -T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                'expectedRC'       : 12 }
             </call>
 
             <script> 
@@ -404,10 +429,10 @@
                   'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
                   'expectedResult'     : '0' }
             </call>
-            
-            <message>
-               'ACI: Targetcontrol: Basic - search, admin deleting aci'
-            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Remove aci under aci branch.' }
+            </call>
 
             <call function="'modifyEntry'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -417,9 +442,9 @@
                 'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % remote.data }
             </call>
 
-            <message>
-               'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
-            </message>
+            <call function="'testStep'">
+              { 'stepMessage' : 'User searching non-targeted entry under aci branch with effective rights control (critical).' }
+            </call>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -429,8 +454,8 @@
                 'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'aclRights' ,
-                'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
-                'expectedRC'       : 50 }
+                'extraParams'      : '-J 1.3.6.1.4.1.42.2.27.9.5.2:true -T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                'expectedRC'       : 12 }
             </call>
 
             <script> 
@@ -447,6 +472,10 @@
                 { 'returnString'       : returnString ,
                   'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
                   'expectedResult'     : '0' }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Remove aci under suffix denying effective rights control.' }
             </call>
             
             <call function="'modifyAnAttribute'">
