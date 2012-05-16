@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 <stax>
 
@@ -207,6 +208,32 @@
               binaryattrLdif='%s/binaryattr.ldif' % remote.temp
               templateName='binaryattr.template'
             </script>
+
+            <!-- Turn off the strict Certificate Syntax checking -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modifying Certificate Syntax string-format to false.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--syntax-name "Certificate"')
+              options.append('--set "strict-format:false"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'          : 'set-attribute-syntax-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'On line import of ldif file containing binary attributes.' }
+            </call>
 
             <!-- On line import of ldif file containing binary attribute -->
             <call function="'runFunction'">
