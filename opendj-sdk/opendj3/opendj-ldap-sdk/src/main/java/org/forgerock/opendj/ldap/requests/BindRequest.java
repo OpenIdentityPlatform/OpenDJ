@@ -83,7 +83,7 @@ public interface BindRequest extends Request {
 
     /**
      * Returns the name of the Directory object that the client wishes to bind
-     * as. The name may be empty (but never {@code null}) when used for of
+     * as. The name may be empty (but never {@code null}) when used for
      * anonymous binds, or when using SASL authentication. The server shall not
      * dereference any aliases in locating the named object.
      * <p>
