@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2012 ForgeRock AS
  ! -->
 
 <stax>
@@ -466,6 +467,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+
+      <function-arg-def name="advanced" type="optional">
+        <function-arg-description>
+          Boolean containing  whether to use the advanced option or not
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
           
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
@@ -505,6 +513,8 @@
           STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))      
         if optionsString:
           STAFCmdParamsList.append(' %s' % optionsString)
+        if advanced:
+          STAFCmdParamsList.append(' --advanced')
       </script>
       <call function="'_dsconfigCommonArgs'" />
       <script>
