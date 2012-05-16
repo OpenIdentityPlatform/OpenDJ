@@ -294,10 +294,4 @@ if (isSupported(WhoAmIExtendedRequest.OID)) {
   <programlisting
   >Authz ID: dn:uid=bjensen,ou=People,dc=example,dc=com</programlisting>
  </section>
-
- <section xml:id="custom-extended-operation">
-  <title>Custom Extended Operations</title>
-
-  <para>TODO</para>
- </section>
 </chapter>
