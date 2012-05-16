@@ -59,6 +59,7 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Request;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -214,8 +215,7 @@ public final class Proxy {
                                 + request.getAuthenticationType()));
             } else {
                 // Authenticate using a separate bind connection pool, because
-                // we
-                // don't want to change the state of the pooled connection.
+                // we don't want to change the state of the pooled connection.
                 final ConnectionCompletionHandler<BindResult> outerHandler =
                         new ConnectionCompletionHandler<BindResult>(resultHandler) {
 
@@ -430,9 +430,10 @@ public final class Proxy {
      *            ...
      */
     public static void main(final String[] args) {
-        if (args.length < 4 || args.length % 2 != 0) {
+        if (args.length < 6 || args.length % 2 != 0) {
             System.err.println("Usage: listenAddress listenPort "
-                    + "remoteAddress1 remotePort1 remoteAddress2 remotePort2");
+                    + "proxyDN proxyPassword remoteAddress1 remotePort1 "
+                    + "remoteAddress2 remotePort2 ...");
             System.exit(1);
         }
 
@@ -440,15 +441,20 @@ public final class Proxy {
         final String localAddress = args[0];
         final int localPort = Integer.parseInt(args[1]);
 
+        final String proxyDN = args[2];
+        final String proxyPassword = args[3];
+
         // Create load balancer.
         final List<ConnectionFactory> factories = new LinkedList<ConnectionFactory>();
         final List<ConnectionFactory> bindFactories = new LinkedList<ConnectionFactory>();
-        for (int i = 2; i < args.length; i += 2) {
+        for (int i = 4; i < args.length; i += 2) {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);
 
-            factories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
-                    remoteAddress, remotePort), Integer.MAX_VALUE));
+            factories.add(Connections.newFixedConnectionPool(Connections
+                    .newAuthenticatedConnectionFactory(new LDAPConnectionFactory(remoteAddress,
+                            remotePort), Requests.newSimpleBindRequest(proxyDN, proxyPassword
+                            .toCharArray())), Integer.MAX_VALUE));
             bindFactories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
                     remoteAddress, remotePort), Integer.MAX_VALUE));
         }
