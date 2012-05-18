@@ -113,7 +113,7 @@
 
   <programlisting language="java">// An entry to add to the directory
 DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-Entry entry = new TreeMapEntry(entryDN.toString())
+Entry entry = new LinkedHashMapEntry(entryDN.toString())
     .addAttribute("cn", "Bob")
     .addAttribute("objectclass", "top")
     .addAttribute("objectclass", "person")
