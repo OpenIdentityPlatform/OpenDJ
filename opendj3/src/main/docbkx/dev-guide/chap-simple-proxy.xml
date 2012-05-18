@@ -66,8 +66,11 @@
   <programlisting language="java"
 >final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
 
-factories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
-        remoteAddress, remotePort), Integer.MAX_VALUE));</programlisting>
+factories.add(Connections.newFixedConnectionPool(
+       Connections.newAuthenticatedConnectionFactory(
+           new LDAPConnectionFactory(remoteAddress,remotePort),
+           Requests.newSimpleBindRequest(proxyDN, proxyPassword.toCharArray())),
+       Integer.MAX_VALUE));</programlisting>
 
   <para>Connections are returned to the pool when you <literal>close()</literal>
   them. Notice that <literal>Connections</literal> also provides methods to
@@ -75,14 +78,19 @@ factories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
   connections provided by the factory, and connection factories that
   authenticate connections before returning them.</para>
 
-  <para>Connections in the pool are intended for reuse. Therefore when you
-  <literal>close()</literal> a connection from the pool, the OpenDJ LDAP SDK
-  does not perform an <literal>unbind()</literal>. You must therefore be careful
-  about how you manage authentication on connections from a pool. As a rule,
-  either bind separately and use proxied authorization as in the Proxy example,
-  or make sure that the first operation on a connection retrieved from the pool
-  is a bind that correctly authenticates the user currently served by the
-  connection.</para>
+  <para>Connections in the pool are intended for reuse. The Proxy gets an
+  authenticated connection, which is a connection where the OpenDJ LDAP
+  SDK passes a bind request immediately when getting the connection. The Proxy
+  then uses proxied authorization to handle the identity from the client
+  requesting the operation. As a rule, either handle binds separately and use
+  proxied authorization as in the Proxy example, or else make sure that the
+  first operation on a connection retrieved from the pool is a bind that
+  correctly authenticates the user currently served by the connection.</para>
+
+  <para>When you <literal>close()</literal> a connection from the pool, the
+  OpenDJ LDAP SDK does not perform an <literal>unbind()</literal>. This is why
+  you must be careful about how you manage authentication on connections from a
+  pool.</para>
  </section>
 
  <section xml:id="load-balancing-and-failover">
