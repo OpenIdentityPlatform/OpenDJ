@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TreeMapEntry;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -83,7 +84,7 @@ public final class ShortLife {
 
         // An entry to add to the directory
         DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-        Entry entry = new TreeMapEntry(entryDN.toString())
+        Entry entry = new LinkedHashMapEntry(entryDN.toString())
             .addAttribute("cn", "Bob")
             .addAttribute("objectclass", "top")
             .addAttribute("objectclass", "person")
