@@ -114,9 +114,85 @@ final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</progr
   and so forth.</para>
  </section>
 
+ <section xml:id="handling-client-connections">
+  <title>Listening For &amp; Handling Client Connections</title>
+
+  <para>You create an <literal>LDAPListener</literal> to handle incoming client
+  connections. The <literal>LDAPListener</literal> takes a connection handler
+  that deals with the connections, in this case connections back to the
+  directory servers handling client requests.</para>
+
+  <programlisting language="java">
+final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
+LDAPListener listener = null;
+try {
+    listener = new LDAPListener(localAddress, localPort, connectionHandler,
+            options);
+    System.out.println("Press any key to stop the server...");
+    System.in.read();
+} catch (final IOException e) {
+    System.out.println("Error listening on " + localAddress + ":" + localPort);
+    e.printStackTrace();
+} finally {
+    if (listener != null) {
+        listener.close();
+    }
+}
+</programlisting>
+
+  <para>You get a <literal>ServerConnectionFactory</literal> to handle requests
+  coming from clients. The <literal>ServerConnectionFactory</literal> takes a
+  request handler that deals with the incoming client requests. The request
+  handler implements handlers for all supported operations. The Proxy example
+  implements a <literal>ProxyBackend</literal> to handle requests. The
+  <literal>ProxyBackend</literal> sends the requests on to the backend
+  directory servers and routes the results returned back to client
+  applications.</para>
+
+  <programlisting language="java">
+final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
+final ServerConnectionFactory&lt;LDAPClientContext, Integer&gt; connectionHandler =
+        Connections.newServerConnectionFactory(backend);
+</programlisting>
+
+  <para>See the Proxy example code for details about the
+  <literal>ProxyBackend</literal> implementation.</para>
+ </section>
+
  <section xml:id="dn-attr-rewriting">
   <title>DN &amp; Attribute Rewriting</title>
 
-  <para>TODO</para>
+  <para>Suppose you have a client application that expects a different
+  attribute name, such as <literal>fullname</literal> for a standard attribute
+  like <literal>cn</literal> (common name), and that expects a distinguished
+  name (DN) suffix different from what is stored in the directory. If you
+  cannot change the application, one possible alternative is a proxy layer
+  that does DN and attribute rewriting.<footnote><para>Some servers, such as
+  OpenDJ directory server, can do attribute rewriting without a proxy layer.
+  See your directory server's documentation for details.</para></footnote></para>
+
+  <screen># A search accessing the directory server
+$ ldapsearch -b dc=example,dc=com -p 1389 "(cn=Babs Jensen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+# The same search search accessing a proxy that rewrites requests and responses
+$ ldapsearch -b o=example -p 8389 "(fullname=Babs Jensen)" fullname
+dn: uid=bjensen,ou=People,o=example
+fullname: Barbara Jensen
+fullname: Babs Jensen
+</screen>
+
+  <para>The OpenDJ LDAP SDK <link xlink:show="new"
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/RewriterProxy.html"
+  >RewriterProxy</link> example builds on the Proxy example, rewriting requests
+  and search result entries. When you read the example, look for the
+  <literal>rewrite()</literal> methods.</para>
+
+  <para>In the above output, the rewriter proxy listens on port 8389,
+  connecting to a directory server listening on 1389. The directory server
+  contains data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  xlink:show="new"><filename>Example.ldif</filename></link>.</para>
  </section>
 </chapter>
