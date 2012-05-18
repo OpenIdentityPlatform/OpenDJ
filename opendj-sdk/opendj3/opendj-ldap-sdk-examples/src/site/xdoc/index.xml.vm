@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -93,6 +93,10 @@
           <a href="xref/org/forgerock/opendj/examples/ExtendedOperations.html">Use
           LDAP Extended Operations</a> - illustrates how to use supported LDAP extended
           operations
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/RewriterProxy.html">Rewrite proxy</a>
+          - illustrates how to rewrite DNs and attribute names in a proxy layer
         </li>
       </ul>
     </section>
