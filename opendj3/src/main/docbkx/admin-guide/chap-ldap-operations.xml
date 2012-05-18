@@ -35,8 +35,6 @@
  command-line tools for performing LDAP operations. This chapter demonstrates
  how to use the command line tools to script LDAP operations.</para>
  
- <!-- TODO: who am I?, cancel -->
- 
  <section xml:id="search-ldap">
   <title>Searching the Directory</title>
   <indexterm><primary>Searching data</primary></indexterm>
