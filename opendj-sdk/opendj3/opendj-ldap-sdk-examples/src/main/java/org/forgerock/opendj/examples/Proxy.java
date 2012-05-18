@@ -82,7 +82,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;listenAddress> &lt;listenPort> &lt;remoteAddress1> &lt;remotePort1>
+ *  &lt;listenAddress> &lt;listenPort> &lt;proxyDN> &ltproxyPassword> &lt;remoteAddress1> &lt;remotePort1>
  *      [&lt;remoteAddress2> &lt;remotePort2> ...]
  * </pre>
  */
