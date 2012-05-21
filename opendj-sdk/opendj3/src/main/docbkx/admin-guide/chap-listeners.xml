@@ -210,7 +210,7 @@
 
   <para>The standard port number for LDAPS client access is 636. If you
   install OpenDJ directory server as a user who can use port 636 and the port
-  is not yet in use, then 389 is the default port number presented at
+  is not yet in use, then 636 is the default port number presented at
   installation time. If you install as a user who cannot use a port &lt; 1024,
   then the default port number presented at installation time is 1636.</para>
   
