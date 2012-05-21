@@ -36,6 +36,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
@@ -47,7 +48,6 @@ import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
-import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
@@ -101,8 +101,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * <li>It does not touch matched DNs in results.
  * <li>It does not rewrite attributes with options in search result entries.
  * <li>It does not touch search result references.
- * <li>It does not rewrite LDAP Controls or Extended Operations, except to
- * rewrite the DN used as authorization ID for proxied authorization.
  * </ul>
  * This example takes the following command line parameters:
  *
@@ -221,7 +219,7 @@ public final class RewriterProxy {
                                         .replaceFirst(
                                                 serverAttributeTypeName,
                                                 clientAttributeTypeName));
-                        attrsToAdd.add(new LinkedAttribute(clientAttrDesc, a.toArray()));
+                        attrsToAdd.add(Attributes.renameAttribute(a, clientAttrDesc));
                         attrsToRemove.add(ad);
                     }
                 }
@@ -288,9 +286,9 @@ public final class RewriterProxy {
                                             .getAttributeDescriptionAsString()
                                             .replaceFirst(clientAttributeTypeName,
                                                           serverAttributeTypeName);
-                                    Attribute serverAttr = new LinkedAttribute(
-                                            AttributeDescription.valueOf(ad),
-                                            a.toArray());
+                                    Attribute serverAttr =
+                                            Attributes.renameAttribute(a,
+                                                    AttributeDescription.valueOf(ad));
                                     rewrittenRequest.addAttribute(serverAttr);
                                     rewrittenRequest.removeAttribute(
                                             a.getAttributeDescription());
@@ -521,8 +519,7 @@ public final class RewriterProxy {
                                                             serverAttributeTypeName));
                                     rewrittenRequest.addModification(new Modification(
                                             mod.getModificationType(),
-                                            new LinkedAttribute(
-                                                    serverAttrDesc, a.toArray())));
+                                            Attributes.renameAttribute(a, serverAttrDesc)));
                                 } else {
                                     rewrittenRequest.addModification(mod);
                                 }
