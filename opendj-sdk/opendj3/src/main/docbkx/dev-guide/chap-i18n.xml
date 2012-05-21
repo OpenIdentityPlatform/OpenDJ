@@ -46,8 +46,8 @@
  Search Filters</citetitle></link>.</para>
 
  <para>For end user facing applications where you must return localized
- messages, TODO</para>
-
- <para>For applications where administrators need localized log messages,
- TODO</para>
+ messages, and for applications where administrators need localized log
+ messages, you can use the <link xlink:show="new"
+ xlink:href="http://commons.forgerock.org/i18n-framework/">ForgeRock I18N
+ Framework</link>.</para>
 </chapter>
