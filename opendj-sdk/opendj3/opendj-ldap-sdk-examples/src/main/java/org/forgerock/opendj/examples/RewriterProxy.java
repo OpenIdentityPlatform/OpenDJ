@@ -30,7 +30,9 @@ package org.forgerock.opendj.examples;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -73,6 +75,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This example is based on the {@link Proxy}. This example does no load
@@ -206,13 +209,31 @@ public final class RewriterProxy {
             private SearchResultEntry rewrite(SearchResultEntry entry) {
 
                 // Replace server attributes with client attributes.
-                // TODO: Handle attributes with options
-                Attribute serverAttribute = entry.getAttribute(
-                        serverAttributeDescription);
-                Attribute clientAttribute = new LinkedAttribute(
-                        clientAttributeDescription, serverAttribute.toArray());
-                entry.addAttribute(clientAttribute);
-                entry.removeAttribute(serverAttributeDescription);
+                Set<Attribute> attrsToAdd = new HashSet<Attribute>();
+                Set<AttributeDescription> attrsToRemove = new HashSet<AttributeDescription>();
+
+                for (Attribute a : entry.getAllAttributes(serverAttributeDescription)) {
+                    AttributeDescription ad = a.getAttributeDescription();
+                    AttributeType at = ad.getAttributeType();
+                    if (at.equals(serverAttributeDescription.getAttributeType())) {
+                        AttributeDescription clientAttrDesc =
+                                AttributeDescription.valueOf(ad.toString()
+                                        .replaceFirst(
+                                                serverAttributeTypeName,
+                                                clientAttributeTypeName));
+                        attrsToAdd.add(new LinkedAttribute(clientAttrDesc, a.toArray()));
+                        attrsToRemove.add(ad);
+                    }
+                }
+
+                if (!attrsToAdd.isEmpty() && !attrsToRemove.isEmpty()) {
+                    for (Attribute a : attrsToAdd) {
+                        entry.addAttribute(a);
+                    }
+                    for (AttributeDescription ad : attrsToRemove) {
+                        entry.removeAttribute(ad);
+                    }
+                }
 
                 // Transform the server DN suffix into a client DN suffix.
                 return entry.setName(entry.getName().toString()
@@ -260,20 +281,19 @@ public final class RewriterProxy {
 
                             // Transform the client attribute names into server
                             // attribute names, fullname;lang-fr ==> cn;lang-fr.
-                            for (Attribute clientAttribute
+                            for (Attribute a
                                     : request.getAllAttributes(clientAttributeDescription)) {
-                                if (clientAttribute != null) {
-                                    String attrDesc = clientAttribute
+                                if (a != null) {
+                                    String ad = a
                                             .getAttributeDescriptionAsString()
                                             .replaceFirst(clientAttributeTypeName,
                                                           serverAttributeTypeName);
-                                    Attribute serverAttribute =
-                                            new LinkedAttribute(
-                                                    AttributeDescription.valueOf(attrDesc),
-                                                    clientAttribute.toArray());
-                                    rewrittenRequest.addAttribute(serverAttribute);
+                                    Attribute serverAttr = new LinkedAttribute(
+                                            AttributeDescription.valueOf(ad),
+                                            a.toArray());
+                                    rewrittenRequest.addAttribute(serverAttr);
                                     rewrittenRequest.removeAttribute(
-                                            clientAttribute.getAttributeDescription());
+                                            a.getAttributeDescription());
                                 }
                             }
 
@@ -368,15 +388,15 @@ public final class RewriterProxy {
 
                             // Transform the client attribute name into a server
                             // attribute name, fullname;lang-fr ==> cn;lang-fr.
-                            String attrName = request.getAttributeDescription().toString();
-                            if (attrName.toLowerCase().startsWith(
+                            String ad = request.getAttributeDescription().toString();
+                            if (ad.toLowerCase().startsWith(
                                     clientAttributeTypeName.toLowerCase())) {
-                                String rewrittenAttrName = attrName
+                                String serverAttrDesc = ad
                                         .replaceFirst(clientAttributeTypeName,
                                                       serverAttributeTypeName);
                                 request.setAttributeDescription(
                                         AttributeDescription.valueOf(
-                                                rewrittenAttrName));
+                                                serverAttrDesc));
                             }
 
                             // Transform the client DN into a server DN.
@@ -489,20 +509,20 @@ public final class RewriterProxy {
                             // attribute names, fullname;lang-fr ==> cn;lang-fr.
                             List<Modification> mods = request.getModifications();
                             for (Modification mod : mods) {
-                                AttributeDescription attrDesc =
-                                        mod.getAttribute().getAttributeDescription();
+                                Attribute a = mod.getAttribute();
+                                AttributeDescription ad = a.getAttributeDescription();
+                                AttributeType at = ad.getAttributeType();
 
-                                if (attrDesc.equals(clientAttributeDescription)) {
-                                    String rewrittenAttrName =
-                                            attrDesc.toString()
-                                                .replaceFirst(clientAttributeTypeName,
-                                                              serverAttributeTypeName);
-                                    Attribute serverAttribute = new LinkedAttribute(
-                                            AttributeDescription.valueOf(rewrittenAttrName),
-                                            mod.getAttribute().toArray());
+                                if (at.equals(clientAttributeDescription.getAttributeType())) {
+                                    AttributeDescription serverAttrDesc =
+                                            AttributeDescription.valueOf(ad.toString()
+                                                    .replaceFirst(
+                                                            clientAttributeTypeName,
+                                                            serverAttributeTypeName));
                                     rewrittenRequest.addModification(new Modification(
                                             mod.getModificationType(),
-                                            serverAttribute));
+                                            new LinkedAttribute(
+                                                    serverAttrDesc, a.toArray())));
                                 } else {
                                     rewrittenRequest.addModification(mod);
                                 }
@@ -581,14 +601,16 @@ public final class RewriterProxy {
                         private SearchRequest rewrite(final SearchRequest request) {
                             // Transform the client attribute names to a server
                             // attribute names, fullname;lang-fr ==> cn;lang-fr.
-                            String[] attrNames =
-                                    new String[request.getAttributes().size()];
+                            String[] a = new String[request.getAttributes().size()];
                             int count = 0;
                             for (String attrName : request.getAttributes()) {
-                                if (attrName.equalsIgnoreCase(clientAttributeTypeName)) {
-                                    attrNames[count] = serverAttributeTypeName;
+                                if (attrName.toLowerCase().startsWith(
+                                        clientAttributeTypeName.toLowerCase())) {
+                                    a[count] = attrName.replaceFirst(
+                                            clientAttributeTypeName,
+                                            serverAttributeTypeName);
                                 } else {
-                                    attrNames[count] = attrName;
+                                    a[count] = attrName;
                                 }
                                 ++count;
                             }
@@ -605,7 +627,7 @@ public final class RewriterProxy {
                                     Filter.valueOf(request.getFilter().toString()
                                             .replace(clientAttributeTypeName,
                                                      serverAttributeTypeName)),
-                                    attrNames);
+                                    a);
                         }
 
                     };
