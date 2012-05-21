@@ -30,8 +30,6 @@ package org.forgerock.opendj.ldap;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import com.forgerock.opendj.util.Iterators;
 import com.forgerock.opendj.util.Validator;
 
@@ -357,28 +355,15 @@ public final class Attributes {
      * @param attribute
      *            The attribute to be renamed.
      * @param attributeDescription
-     *            The new attribute description for {@code attribute}, which
-     *            must be compatible with {@code attribute}'s attribute
-     *            description.
+     *            The new attribute description for {@code attribute}.
      * @return A renamed view of {@code attribute}.
-     * @throws IllegalArgumentException
-     *             If {@code attributeDescription} does not have the same
-     *             attribute type as {@code attribute}'s attribute description.
      * @throws NullPointerException
      *             If {@code attribute} or {@code attributeDescription} was
      *             {@code null}.
      */
     public static final Attribute renameAttribute(final Attribute attribute,
             final AttributeDescription attributeDescription) {
-        final AttributeType oldType = attribute.getAttributeDescription().getAttributeType();
-        final AttributeType newType = attributeDescription.getAttributeType();
-
-        // We could relax a bit by ensuring that they are both compatible
-        // (e.g. one sub-type of another, or same equality matching rule,
-        // etc).
-        Validator
-                .ensureTrue(oldType.equals(newType), "Old and new attribute type are not the same");
-
+        Validator.ensureNotNull(attribute, attributeDescription);
         return new RenamedAttribute(attribute, attributeDescription);
     }
 
