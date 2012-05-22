@@ -134,7 +134,7 @@ public class Example {
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(PATH_PROPERTY, "");
 
-        AttributeMapper mapper = new IdentityAttributeMapper();
+        AttributeMapper mapper = new IdentityAttributeMapper().excludeAttribute("entryUUID", "etag");
         ConnectionFactory factory =
                 Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory(
                         "localhost", 1389), Requests.newSimpleBindRequest("cn=directory manager",
