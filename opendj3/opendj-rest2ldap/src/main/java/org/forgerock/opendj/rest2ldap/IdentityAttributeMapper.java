@@ -65,7 +65,7 @@ public final class IdentityAttributeMapper implements AttributeMapper {
             return includedAttributes.values();
         } else {
             // All user attributes.
-            return Collections.emptySet();
+            return Collections.singleton("*");
         }
     }
 
@@ -88,6 +88,7 @@ public final class IdentityAttributeMapper implements AttributeMapper {
                 result.put(name, Utils.attributeToJson(a));
             }
         }
+        h.handleResult(result);
     }
 
     private boolean isIncludedAttribute(String name) {

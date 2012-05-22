@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 /**
  *
  */
-public final class Utils {
+final class Utils {
 
     private static final Function<ByteString, Object, Syntax> BYTESTRING_TO_JSON =
             new Function<ByteString, Object, Syntax>() {
@@ -72,18 +72,32 @@ public final class Utils {
         }
     }
 
-    public static Object attributeToJson(Attribute a) {
+    static Object attributeToJson(Attribute a) {
         Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
         Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, syntax);
         boolean isSingleValued = a.getAttributeDescription().getAttributeType().isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
 
-    public static String getAttributeName(Attribute a) {
+    static String getAttributeName(Attribute a) {
         return a.getAttributeDescription().withoutOption("binary").toString();
     }
 
-    public static String toLowerCase(String s) {
+    static String toLowerCase(String s) {
         return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
+    }
+
+    static <T> T ensureNotNull(final T object) {
+        if (object == null) {
+            throw new NullPointerException();
+        }
+        return object;
+    }
+
+    static <T> T ensureNotNull(final T object, final String message) {
+        if (object == null) {
+            throw new NullPointerException(message);
+        }
+        return object;
     }
 }

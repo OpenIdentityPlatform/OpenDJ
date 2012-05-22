@@ -63,25 +63,13 @@ import org.forgerock.resource.provider.UpdateResultHandler;
 public class LDAPResource implements Resource {
     private final EntryContainer entryContainer;
     private final AttributeMapper attributeMapper;
-    private final EtagStrategy etagStrategy;
 
     /**
      * Creates a new LDAP resource.
-     *
-     * @param entryContainer
-     *            The entry container which will be used to interact with the
-     *            LDAP server.
-     * @param etagStrategy
-     *            The algorithm which should be used to obtain a resource's etag
-     *            from an entry.
-     * @param attributeMapper
-     *            The attribute mapper.
      */
-    public LDAPResource(final EntryContainer entryContainer, final EtagStrategy etagStrategy,
-            final AttributeMapper attributeMapper) {
-        this.entryContainer = entryContainer;
-        this.etagStrategy = etagStrategy;
-        this.attributeMapper = attributeMapper;
+    public LDAPResource(final EntryContainer container, final AttributeMapper mapper) {
+        this.entryContainer = container;
+        this.attributeMapper = mapper;
     }
 
     /**
@@ -171,7 +159,7 @@ public class LDAPResource implements Resource {
                         }
 
                         public void handleResult(final SearchResultEntry entry) {
-                            final String revision = etagStrategy.getEtagFromEntry(entry);
+                            final String revision = entryContainer.getEtagFromEntry(entry);
                             final ResultHandler<Map<String, Object>> mapHandler =
                                     new ResultHandler<Map<String, Object>>() {
                                         public void handleErrorResult(
@@ -252,4 +240,5 @@ public class LDAPResource implements Resource {
             return requestedLDAPAttributes;
         }
     }
+
 }
