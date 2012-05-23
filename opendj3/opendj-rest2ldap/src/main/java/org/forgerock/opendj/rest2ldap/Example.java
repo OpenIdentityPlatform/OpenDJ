@@ -61,8 +61,15 @@ public class Example {
 
         // Create user resource.
         AttributeMapper userMapper =
-                new SimpleAttributeMapper().includeAttribute("uid", "cn", "sn", "mail",
-                        "isMemberOf", "modifyTimestamp");
+                new CompositeAttributeMapper().addMapper(
+                        new DefaultAttributeMapper().includeAttribute("uid", "isMemberOf",
+                                "modifyTimestamp")).addMapper(
+                        new ComplexAttributeMapper("name", new DefaultAttributeMapper()
+                                .includeAttribute("cn", "sn", "givenName"))).addMapper(
+                        new ComplexAttributeMapper("contactInformation",
+                                new CompositeAttributeMapper().addMapper(
+                                        new SimpleAttributeMapper("telephoneNumber")).addMapper(
+                                        new SimpleAttributeMapper("emailAddress", "mail"))));
         LDAPResource userResource = new LDAPResource(userContainer, userMapper);
         ResourceInvoker userResourceInvoker = new ResourceInvoker();
         userResourceInvoker.resource = userResource; // FIXME: Yuk!
@@ -70,7 +77,7 @@ public class Example {
 
         // Create group resource.
         AttributeMapper groupMapper =
-                new SimpleAttributeMapper().includeAttribute("cn", "ou", "description",
+                new DefaultAttributeMapper().includeAttribute("cn", "ou", "description",
                         "uniquemember");
         LDAPResource groupResource = new LDAPResource(groupContainer, groupMapper);
         ResourceInvoker groupResourceInvoker = new ResourceInvoker();

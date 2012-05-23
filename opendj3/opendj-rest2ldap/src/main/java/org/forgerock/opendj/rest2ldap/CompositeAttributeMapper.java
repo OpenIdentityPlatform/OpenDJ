@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,22 +37,21 @@ import org.forgerock.resource.provider.Context;
  *
  */
 public final class CompositeAttributeMapper implements AttributeMapper {
-    private final Set<String> allLDAPAttributes;
-    private final List<AttributeMapper> attributeMappers;
+    private final Set<String> allLDAPAttributes = new LinkedHashSet<String>();
+    private final List<AttributeMapper> attributeMappers = new LinkedList<AttributeMapper>();
 
     /**
      * Creates a new composite attribute mapper.
      *
-     * @param attributeMappers
-     *            The list of attribute mappers.
      */
-    public CompositeAttributeMapper(final List<AttributeMapper> attributeMappers) {
-        this.attributeMappers = new ArrayList<AttributeMapper>(attributeMappers);
-        Set<String> tmp = new LinkedHashSet<String>(attributeMappers.size());
-        for (final AttributeMapper mapper : attributeMappers) {
-            mapper.getLDAPAttributes(tmp);
-        }
-        allLDAPAttributes = Collections.unmodifiableSet(tmp);
+    public CompositeAttributeMapper() {
+        // No implementation required.
+    }
+
+    public CompositeAttributeMapper addMapper(AttributeMapper mapper) {
+        attributeMappers.add(mapper);
+        mapper.getLDAPAttributes(allLDAPAttributes);
+        return this;
     }
 
     /**

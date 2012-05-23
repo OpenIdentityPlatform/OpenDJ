@@ -16,7 +16,6 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Utils.attributeToJson;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.Collections;
@@ -28,56 +27,59 @@ import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.resource.exception.ResourceException;
 import org.forgerock.resource.provider.Context;
 
 /**
  *
  */
-public class SimpleAttributeMapper implements AttributeMapper {
+public class ComplexAttributeMapper implements AttributeMapper {
 
-    private final String ldapAttributeName;
-    private final String jsonAttributeName;
     private final String normalizedJsonAttributeName;
+    private final String jsonAttributeName;
+    private final AttributeMapper mapper;
 
     /**
-     * Creates a new simple attribute mapper which maps a single LDAP attribute
-     * to an entry.
-     *
-     * @param attributeName
-     *            The name of the simple JSON and LDAP attribute.
-     */
-    public SimpleAttributeMapper(String attributeName) {
-        this(attributeName, attributeName);
-    }
-
-    /**
-     * Creates a new simple attribute mapper which maps a single LDAP attribute
-     * to an entry.
+     * Creates a new complex attribute mapper which will wrap the results of the
+     * provided mapper as a complex JSON object.
      *
      * @param jsonAttributeName
-     *            The name of the simple JSON attribute.
-     * @param ldapAttributeName
-     *            The name of the LDAP attribute.
+     *            The name of the complex attribute.
+     * @param mapper
+     *            The mapper which should be used to provide the contents of the
+     *            complex attribute.
      */
-    public SimpleAttributeMapper(String jsonAttributeName, String ldapAttributeName) {
+    public ComplexAttributeMapper(String jsonAttributeName, AttributeMapper mapper) {
         this.jsonAttributeName = jsonAttributeName;
         this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
-        this.ldapAttributeName = ldapAttributeName;
+        this.mapper = mapper;
     }
 
     /**
      * {@inheritDoc}
      */
     public void getLDAPAttributes(Set<String> ldapAttributes) {
-        ldapAttributes.add(ldapAttributeName);
+        mapper.getLDAPAttributes(ldapAttributes);
     }
 
     /**
      * {@inheritDoc}
      */
     public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
-        if (toLowerCase(resourceAttribute.leaf()).equals(normalizedJsonAttributeName)) {
-            ldapAttributes.add(ldapAttributeName);
+        if (resourceAttribute.size() > 0) {
+            String rootName = resourceAttribute.get(0);
+            if (toLowerCase(rootName).equals(normalizedJsonAttributeName)) {
+                JsonPointer relativePointer = resourceAttribute.relativePointer();
+                if (relativePointer == null) {
+                    // User requested the entire contents of this complex
+                    // attribute.
+                    mapper.getLDAPAttributes(ldapAttributes);
+                } else {
+                    // User requested partial contents of this complex
+                    // attribute.
+                    mapper.getLDAPAttributes(ldapAttributes, relativePointer);
+                }
+            }
         }
     }
 
@@ -86,12 +88,20 @@ public class SimpleAttributeMapper implements AttributeMapper {
      */
     public void toJson(Context c, Entry e,
             final AttributeMapperCompletionHandler<Map<String, Object>> h) {
-        Attribute a = e.getAttribute(ldapAttributeName);
-        if (a != null) {
-            Map<String, Object> result =
-                    Collections.singletonMap(jsonAttributeName, attributeToJson(a));
-            h.onSuccess(result);
-        }
+        AttributeMapperCompletionHandler<Map<String, Object>> wrapper =
+                new AttributeMapperCompletionHandler<Map<String, Object>>() {
+
+                    public void onSuccess(Map<String, Object> result) {
+                        Map<String, Object> complexResult =
+                                Collections.singletonMap(jsonAttributeName, (Object) result);
+                        h.onSuccess(complexResult);
+                    }
+
+                    public void onFailure(ResourceException e) {
+                        h.onFailure(e);
+                    }
+                };
+        mapper.toJson(c, e, wrapper);
     }
 
     /**
