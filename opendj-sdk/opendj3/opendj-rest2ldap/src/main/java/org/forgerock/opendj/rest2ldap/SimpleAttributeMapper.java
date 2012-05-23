@@ -19,8 +19,6 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.rest2ldap.Utils.getAttributeName;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,46 +28,45 @@ import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.resource.provider.Context;
 
 /**
  *
  */
-public final class IdentityAttributeMapper implements AttributeMapper {
+public final class SimpleAttributeMapper implements AttributeMapper {
 
     // All user attributes by default.
     private final Map<String, String> includedAttributes = new LinkedHashMap<String, String>();
     private final Map<String, String> excludedAttributes = new LinkedHashMap<String, String>();
 
-    public IdentityAttributeMapper() {
+    public SimpleAttributeMapper() {
         // No implementation required.
     }
 
-    public IdentityAttributeMapper includeAttribute(String... attributes) {
+    public SimpleAttributeMapper includeAttribute(String... attributes) {
         for (String attribute : attributes) {
             includedAttributes.put(toLowerCase(attribute), attribute);
         }
         return this;
     }
 
-    public IdentityAttributeMapper excludeAttribute(String... attributes) {
+    public SimpleAttributeMapper excludeAttribute(String... attributes) {
         for (String attribute : attributes) {
             excludedAttributes.put(toLowerCase(attribute), attribute);
         }
         return this;
     }
 
-    public Collection<String> getAllLDAPAttributes() {
+    public void getLDAPAttributes(Set<String> ldapAttributes) {
         if (!includedAttributes.isEmpty()) {
-            return includedAttributes.values();
+            ldapAttributes.addAll(includedAttributes.values());
         } else {
             // All user attributes.
-            return Collections.singleton("*");
+            ldapAttributes.add("*");
         }
     }
 
-    public void getLDAPAttributesFor(JsonPointer resourceAttribute, Set<String> ldapAttributes) {
+    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
         String name = resourceAttribute.leaf();
         if (name != null) {
             if (isIncludedAttribute(name)) {
@@ -80,7 +77,7 @@ public final class IdentityAttributeMapper implements AttributeMapper {
         }
     }
 
-    public void toJson(Context c, Entry e, ResultHandler<Map<String, Object>> h) {
+    public void toJson(Context c, Entry e, AttributeMapperCompletionHandler<Map<String, Object>> h) {
         Map<String, Object> result = new LinkedHashMap<String, Object>(e.getAttributeCount());
         for (Attribute a : e.getAllAttributes()) {
             String name = getAttributeName(a);
@@ -88,7 +85,7 @@ public final class IdentityAttributeMapper implements AttributeMapper {
                 result.put(name, Utils.attributeToJson(a));
             }
         }
-        h.handleResult(result);
+        h.onSuccess(result);
     }
 
     private boolean isIncludedAttribute(String name) {
@@ -107,7 +104,7 @@ public final class IdentityAttributeMapper implements AttributeMapper {
         return false;
     }
 
-    public void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h) {
+    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
         // TODO:
     }
 }
