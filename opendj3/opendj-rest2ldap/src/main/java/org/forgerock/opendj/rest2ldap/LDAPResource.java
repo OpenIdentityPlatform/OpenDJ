@@ -160,14 +160,13 @@ public class LDAPResource implements Resource {
 
                         public void handleResult(final SearchResultEntry entry) {
                             final String revision = entryContainer.getEtagFromEntry(entry);
-                            final ResultHandler<Map<String, Object>> mapHandler =
-                                    new ResultHandler<Map<String, Object>>() {
-                                        public void handleErrorResult(
-                                                final ErrorResultException error) {
-                                            out.setFailure(adaptErrorResult(error));
+                            final AttributeMapperCompletionHandler<Map<String, Object>> mapHandler =
+                                    new AttributeMapperCompletionHandler<Map<String, Object>>() {
+                                        public void onFailure(final ResourceException e) {
+                                            out.setFailure(e);
                                         }
 
-                                        public void handleResult(final Map<String, Object> result) {
+                                        public void onSuccess(final Map<String, Object> result) {
                                             out.setResult(id, revision, new JsonValue(result));
                                         }
                                     };
@@ -227,18 +226,19 @@ public class LDAPResource implements Resource {
      *         attributes.
      */
     private Collection<String> getRequestedLDAPAttributes(final Set<JsonPointer> requestedAttributes) {
+        final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
-            return attributeMapper.getAllLDAPAttributes();
+            requestedLDAPAttributes = new LinkedHashSet<String>();
+            attributeMapper.getLDAPAttributes(requestedLDAPAttributes);
         } else {
             // Partial read.
-            final Set<String> requestedLDAPAttributes =
-                    new LinkedHashSet<String>(requestedAttributes.size());
+            requestedLDAPAttributes = new LinkedHashSet<String>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributesFor(requestedAttribute, requestedLDAPAttributes);
+                attributeMapper.getLDAPAttributes(requestedLDAPAttributes, requestedAttribute);
             }
-            return requestedLDAPAttributes;
         }
+        return requestedLDAPAttributes;
     }
 
 }

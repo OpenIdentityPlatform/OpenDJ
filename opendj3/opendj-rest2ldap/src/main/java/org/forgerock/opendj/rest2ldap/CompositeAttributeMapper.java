@@ -29,8 +29,7 @@ import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.resource.exception.ResourceException;
 import org.forgerock.resource.provider.Context;
 
 /**
@@ -50,7 +49,7 @@ public final class CompositeAttributeMapper implements AttributeMapper {
         this.attributeMappers = new ArrayList<AttributeMapper>(attributeMappers);
         Set<String> tmp = new LinkedHashSet<String>(attributeMappers.size());
         for (final AttributeMapper mapper : attributeMappers) {
-            tmp.addAll(mapper.getAllLDAPAttributes());
+            mapper.getLDAPAttributes(tmp);
         }
         allLDAPAttributes = Collections.unmodifiableSet(tmp);
     }
@@ -58,37 +57,38 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public Set<String> getAllLDAPAttributes() {
-        return allLDAPAttributes;
+    public void getLDAPAttributes(Set<String> ldapAttributes) {
+        ldapAttributes.addAll(allLDAPAttributes);
     }
 
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributesFor(JsonPointer resourceAttribute, Set<String> ldapAttributes) {
+    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
         for (AttributeMapper attribute : attributeMappers) {
-            attribute.getLDAPAttributesFor(resourceAttribute, ldapAttributes);
+            attribute.getLDAPAttributes(ldapAttributes, resourceAttribute);
         }
     }
 
     /**
      * {@inheritDoc}
      */
-    public void toJson(Context c, Entry e, final ResultHandler<Map<String, Object>> h) {
-        ResultHandler<Map<String, Object>> resultAccumulater =
-                new ResultHandler<Map<String, Object>>() {
+    public void toJson(Context c, Entry e,
+            final AttributeMapperCompletionHandler<Map<String, Object>> h) {
+        AttributeMapperCompletionHandler<Map<String, Object>> resultAccumulater =
+                new AttributeMapperCompletionHandler<Map<String, Object>>() {
                     private final AtomicInteger latch = new AtomicInteger(attributeMappers.size());
                     private final List<Map<String, Object>> results =
                             new ArrayList<Map<String, Object>>(latch.get());
 
-                    public void handleErrorResult(ErrorResultException error) {
+                    public void onFailure(ResourceException e) {
                         // Ensure that handler is only invoked once.
                         if (latch.getAndSet(0) > 0) {
-                            h.handleErrorResult(error);
+                            h.onFailure(e);
                         }
                     }
 
-                    public void handleResult(Map<String, Object> result) {
+                    public void onSuccess(Map<String, Object> result) {
                         synchronized (this) {
                             results.add(result);
                         }
@@ -106,7 +106,7 @@ public final class CompositeAttributeMapper implements AttributeMapper {
                                 mergeJsonValues(results, mergeResult);
                                 break;
                             }
-                            h.handleResult(mergeResult);
+                            h.onSuccess(mergeResult);
                         }
                     }
                 };
@@ -119,7 +119,7 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h) {
+    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }
