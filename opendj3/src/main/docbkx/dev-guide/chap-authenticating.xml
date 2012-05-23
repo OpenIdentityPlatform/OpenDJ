@@ -37,7 +37,11 @@
 
  <section xml:id="simple-auth">
   <title>Simple Authentication</title>
-  
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>Simple</secondary>
+  </indexterm>
+
   <para>You perform simple authentication by binding with the distinguished
   name of a user's directory entry and the user's password. For this reason
   simple authentication over unsecure network connections should be done only
@@ -104,7 +108,15 @@ private static void connect()
  
  <section xml:id="simple-auth-with-starttls-or-ssl">
   <title>Start TLS &amp; SSL Authentication</title>
-  
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>StartTLS, SSL</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>StartTLS</secondary>
+  </indexterm>
+
   <para>Simple authentication involves sending a user name and password to
   the directory server. To avoid sending the user name and password in
   the clear, you can use SSL or Start TLS.</para>
@@ -180,7 +192,11 @@ private static void trustAllConnect()
  
  <section xml:id="sasl-auth">
   <title>SASL Authentication</title>
-  
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>SASL</secondary>
+  </indexterm>
+
   <para>Simple Authentication and Security Layer (SASL) provides a way to
   use other mechanisms for authentication such as Kerberos or Digest
   authentication, or even to define your own authentication mechanism. The

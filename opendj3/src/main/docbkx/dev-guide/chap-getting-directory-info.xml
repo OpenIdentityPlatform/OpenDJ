@@ -38,7 +38,15 @@
 
  <section xml:id="read-root-dse">
   <title>Reading Root DSEs</title>
-  
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Root DSE</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
+
   <para>The directory with distinguished name <literal>""</literal> (empty
   string) is called the <firstterm>root DSE</firstterm>. DSE stands for
   DSA-Specific Entry. DSA stands for Directory Server Agent, a single
@@ -169,6 +177,10 @@ entryDN: </screen>
  
  <section xml:id="get-schema-information">
   <title>Getting Schema Information</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Schema</secondary>
+  </indexterm>
 
   <para>The root DSE attribute <literal>subschemaSubentry</literal> shows
   the DN of the entry holding LDAP schema definitions. LDAP schema defines the

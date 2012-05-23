@@ -30,6 +30,13 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Working With Controls</title>
+ <indexterm>
+  <primary>Controls</primary>
+ </indexterm>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>Controls</secondary>
+ </indexterm>
 
  <para>This chapter demonstrates how to use LDAP controls.</para>
 
@@ -45,6 +52,14 @@
 
  <section xml:id="get-supported-controls">
   <title>Determining Supported Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Supported</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
 
   <para>For OpenDJ, the controls supported are listed in the
   <citetitle>Administration Guide</citetitle> appendix, <link
@@ -127,6 +142,13 @@ static boolean isSupported(final String control) {
 
  <section xml:id="use-assertion-request-control">
   <title>Assertion Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Assertion</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
 
   <para>The <link xlink:href="http://tools.ietf.org/html/rfc4528"
   xlink:show="new" >LDAP assertion control</link> lets you specify a condition
@@ -165,6 +187,13 @@ description: Created using LDAP assertion control</programlisting>
 
  <section xml:id="use-authorization-identity-control">
   <title>Authorization Identity Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Authorization ID</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
 
   <para>The <link xlink:href="http://tools.ietf.org/html/rfc3829"
   xlink:show="new">LDAP Authorization Identity Controls</link> let you get the
@@ -203,11 +232,22 @@ Authorization ID returned: dn:uid=bjensen,ou=People,dc=example,dc=com</programli
  
  <section xml:id="use-entry-change-notification-control">
   <title>Entry Change Notification Response Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Entry change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Entry change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Change notification</primary>
+  </indexterm>
 
   <para>When performing a persistent search, your application can retrieve
   information using this response control about why the directory server
   returned the entry. See the Internet-Draft on <link xlink:show="new"
-  xlink:href="tools.ietf.org/html/draft-ietf-ldapext-psearch">persistent
+  xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-psearch">persistent
   searches</link> for background information.</para>
 
   <programlisting language="java">
@@ -277,6 +317,13 @@ Change number: -1</programlisting>
 
  <section xml:id="use-get-effective-rights-control">
   <title>GetEffectiveRights Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>GetEffectiveRights</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
 
   <para>Your application can attach the GetEffectiveRights request control to
   a search in order to determine what access a user has to perform operations
@@ -380,6 +427,13 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(
 
  <section xml:id="use-managedsait-control">
   <title>ManageDsaIT Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>ManageDsaIT</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
 
   <para>The ManageDsaIT control, described in <link xlink:show="new"
   xlink:href="http://tools.ietf.org/html/rfc3296">RFC 3296, <citetitle>Named
@@ -432,6 +486,13 @@ dn: dc=references,dc=ref,dc=com</programlisting>
 
  <section xml:id="use-matched-values-request-control">
   <title>Matched Values Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Matched values</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Groups</primary>
+  </indexterm>
 
   <para>RFC 3876, <link xlink:href="http://tools.ietf.org/html/rfc3876"
   xlink:show="new"><citetitle>Returning Matched Values with the
@@ -476,6 +537,14 @@ cn: Babs Jensen
 
  <section xml:id="use-password-expired-control">
   <title>Password Expired Response Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password expired</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
 
   <para>A directory server can return the Password Expired Response Control,
   described in the Internet-Draft <link xlink:show="new"
@@ -518,6 +587,14 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
 
  <section xml:id="use-password-expiring-control">
   <title>Password Expiring Response Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password expiring</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
 
   <para>The Password Expiring Response Control, described in the Internet-Draft
   <link xlink:href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy"
@@ -557,6 +634,14 @@ if (isSupported(PasswordExpiringResponseControl.OID)) {
  
  <section xml:id="use-password-policy-controls">
   <title>Password Policy Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
 
   <para>The Behera Internet-Draft, <link xlink:show="new"
   xlink:href="http://tools.ietf.org/html/draft-behera-ldap-password-policy"
@@ -621,6 +706,14 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
 
  <section xml:id="use-permissive-modify-request-control">
   <title>Permissive Modify Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Permissive modify</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Permissive modify</secondary>
+  </indexterm>
 
   <para>Microsoft defined a Permissive Modify Request Control that relaxes
   some constraints when your application performs a modify operation and
@@ -651,12 +744,31 @@ if (isSupported(PermissiveModifyRequestControl.OID)) {
 
  <section xml:id="use-persistent-search-request-control">
   <title>Persistent Search Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Change notification</primary>
+  </indexterm>
 
   <para>See <xref linkend="use-entry-change-notification-control" />.</para>
  </section>
 
  <section xml:id="use-post-read-control">
   <title>Post-Read Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Post-read</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
 
   <para>RFC 4527, <link xlink:href="http://tools.ietf.org/html/rfc4527"
   xlink:show="new"><citetitle>LDAP Read Entry Controls</citetitle></link>,
@@ -699,6 +811,13 @@ description: Using the PostReadRequestControl</programlisting>
 
  <section xml:id="use-pre-read-control">
   <title>Pre-Read Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Pre-read</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
 
   <para>RFC 4527, <link xlink:href="http://tools.ietf.org/html/rfc4527"
   xlink:show="new"><citetitle>LDAP Read Entry Controls</citetitle></link>,
@@ -741,6 +860,13 @@ mail: bjensen@example.com</programlisting>
 
  <section xml:id="use-proxy-authz-control">
   <title>Proxied Authorization Request Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Proxied authorization</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
 
   <para>Proxied authorization provides a standard control as defined in
   <link xlink:href="http://tools.ietf.org/html/rfc4370" xlink:show="new">RFC
@@ -784,6 +910,20 @@ description: Done with proxied authz</programlisting>
 
  <section xml:id="use-server-side-sort-control">
   <title>Server-Side Sort Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Server-side sort</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Server-side sort</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
 
   <para>The server-side sort controls are described in RFC 2891, <link
   xlink:show="new" xlink:href="http://tools.ietf.org/html/rfc2891"><citetitle
@@ -889,6 +1029,17 @@ cn: Ted Jensen
 
  <section xml:id="use-simple-paged-results-control">
   <title>Simple Paged Results Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Simple paged results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Simple paged results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
 
   <para>RFC 2696, <link xlink:href="http://tools.ietf.org/html/rfc2696"
   xlink:show="new"><citetitle>LDAP Control Extension for Simple Paged Results
@@ -964,6 +1115,14 @@ cn: Ted Jensen
 
  <section xml:id="use-subentry-request-control">
   <title>Subentries Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Subentries</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Subentries</secondary>
+  </indexterm>
 
   <para>RFC 3672, <link xlink:href="http://tools.ietf.org/html/rfc3672"
   xlink:show="new"><citetitle>Subentries in LDAP</citetitle></link>, describes
@@ -1022,6 +1181,14 @@ subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
 
  <section xml:id="use-subtree-delete-control">
   <title>Subtree Delete Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Subtree delete</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+   <secondary>Subtree delete</secondary>
+  </indexterm>
 
   <para>The subtree delete request control, described in the Internet-Draft
   <link xlink:href="http://tools.ietf.org/html/draft-armijo-ldap-treedelete"
@@ -1055,6 +1222,20 @@ if (isSupported(SubtreeDeleteRequestControl.OID)) {
 
  <section xml:id="use-vlv-control">
   <title>Virtual List View Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Virtual list view</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Virtual list view</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
 
   <para>The virtual list view controls are intended to be used by applications
   that let users browse lists of directory entries. The Internet-Draft <link

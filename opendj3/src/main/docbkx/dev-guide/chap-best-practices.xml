@@ -36,6 +36,12 @@
 
  <section xml:id="authenticate-correctly">
   <title>Authenticate Correctly</title>
+  <indexterm>
+   <primary>Authentications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
 
   <para>Unless your application performs only read operations, you should
   authenticate to the directory server. Some directory administrators require
@@ -62,6 +68,10 @@
 
  <section xml:id="reuse-connections">
   <title>Reuse Connections</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Pooling</secondary>
+  </indexterm>
 
   <para>LDAP is a stateful protocol. You authenticate (bind), you do stuff,
   you unbind. The server maintains a context that lets it make authorization
@@ -77,6 +87,10 @@
  
  <section xml:id="health-check-connections">
   <title>Health Check Connections</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Health check</secondary>
+  </indexterm>
 
   <para>In a network built for HTTP applications, your long-lived LDAP
   connections can get cut by network equipment configured to treat idle and
@@ -87,6 +101,11 @@
   make sure nothing on the network quietly decided to drop your connection
   without notification. A health check might involve reading an attribute
   on a well-known entry in the directory.</para>
+
+  <para>OpenDJ LDAP SDK offers
+  <literal>Connections.newHeartBeatConnectionFactory()</literal> methods to
+  ensure your <literal>ConnectionFactory</literal> serves connections that
+  are periodically checked to detect whether they are still alive.</para>
  </section>
  
  <section xml:id="request-what-you-need-all-at-once">
@@ -101,6 +120,9 @@
  
  <section xml:id="use-specific-filters">
   <title>Use Specific LDAP Filters</title>
+  <indexterm>
+   <primary>Filters</primary>
+  </indexterm>
 
   <para>The difference between a general filter
   <literal>(mail=*@example.com)</literal> and a good, specific filter like
@@ -125,6 +147,9 @@
 
  <section xml:id="make-modifications-specific">
   <title>Make Modifications Specific</title>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
 
   <para>When you modify attributes with multiple values, for example when you
   modify a list of group members, replace or delete specific values
@@ -135,6 +160,10 @@
 
  <section xml:id="trust-result-codes">
   <title>Trust Result Codes</title>
+  <indexterm>
+   <primary>Errors</primary>
+   <secondary>Result codes</secondary>
+  </indexterm>
 
   <para>Trust the LDAP result code that your application gets from the
   directory server. For example, if you request a modify application and you
@@ -150,6 +179,9 @@
   directory server instance, you could get a result that differs from what
   you expect.</para>
 
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
   <para>The loosely convergent model also means that the entry could have
   changed since you read it. If needed, you can use <link xlink:show="new"
   xlink:href="http://tools.ietf.org/html/rfc4528">LDAP assertions</link> to set
@@ -158,6 +190,9 @@
 
  <section xml:id="ismemberof-for-membership">
   <title>Check Group Membership on the Account, Not the Group</title>
+  <indexterm>
+   <primary>Groups</primary>
+  </indexterm>
 
   <para>If you need to determine which groups an account belongs to, request
   <literal>isMemberOf</literal> for example with OpenDJ when you read the
@@ -167,6 +202,10 @@
 
  <section xml:id="ask-directory-what-it-supports">
   <title>Ask the Directory Server What It Supports</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
 
   <para>Directory servers expose their capabilities, suffixes they support,
   and so forth as attribute values on the root DSE. See the section on
@@ -197,6 +236,9 @@
 
  <section xml:id="storing-large-attributes">
   <title>Store Large Attribute Values By Reference</title>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
 
   <para>When you use large attribute values such as photos or audio messages,
   consider storing the objects themselves elsewhere and keeping only a reference
@@ -212,6 +254,14 @@
 
  <section xml:id="careful-with-persistent-search-and-server-side-sorting">
   <title>Take Care With Persistent Search &amp; Server-Side Sorting</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Sorting</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
 
   <para>A persistent search lets your application receive updates from the
   server as they happen by keeping the connection open and forcing the server
@@ -236,6 +286,10 @@
 
  <section xml:id="reuse-schemas">
   <title>Reuse Schemas Where Possible</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Schema</secondary>
+  </indexterm>
 
   <para>Directory servers like OpenDJ come with schema definitions for a wide
   range of standard object classes and attribute types. This is because
@@ -266,6 +320,13 @@
 
  <section xml:id="handle-referrals">
   <title>Handle Referrals</title>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
 
   <para>When a directory server returns a search result, the result is not
   necessarily an entry. If the result is a referral, then your application
@@ -275,6 +336,10 @@
 
  <section xml:id="check-result-codes">
   <title>Troubleshooting: Check Result Codes</title>
+  <indexterm>
+   <primary>Errors</primary>
+   <secondary>Result codes</secondary>
+  </indexterm>
 
   <para>LDAP result codes are standard and clearly defined. When you receive
   a <literal>Result</literal>, check the <literal>ResultCode</literal> value to

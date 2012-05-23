@@ -38,6 +38,9 @@
 
  <section xml:id="about-ldif">
   <title>About LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+  </indexterm>
 
   <para>LDAP Data Interchange Format provides a mechanism to represent
   directory data in text format. LDIF data is typically used to initialize
@@ -115,6 +118,10 @@ delete: jpegPhoto
 
  <section xml:id="reading-ldif">
   <title>Reading LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Reading</secondary>
+  </indexterm>
 
   <para>OpenDJ LDAP SDK provides <literal>ChangeRecordReader</literal>s to
   read requests to modify directory data, and <literal>EntryReader</literal>s
@@ -146,6 +153,10 @@ final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);</program
 
  <section xml:id="writing-ldif">
   <title>Writing LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Writing</secondary>
+  </indexterm>
 
   <para><literal>ChangeRecordWriter</literal>s let you write requests to modify
   directory data, whereas <literal>EntryWriter</literal>s let you write entries

@@ -30,6 +30,9 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Internationalizing Applications</title>
+  <indexterm>
+   <primary>Internationalization</primary>
+  </indexterm>
 
  <para>When you internationalize your application &#8212; adapting your
  application for use in different languages and regions &#8212; how much you

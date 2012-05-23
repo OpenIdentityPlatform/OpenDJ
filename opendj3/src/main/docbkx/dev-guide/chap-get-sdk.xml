@@ -36,6 +36,10 @@
 
  <section xml:id="about-opendj-ldap-sdk">
   <title>About OpenDJ LDAP SDK</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>About</secondary>
+  </indexterm>
 
   <para>OpenDJ LDAP SDK provides a set of modern, developer-friendly Java APIs
   as part of the OpenDJ product suite. The product suite includes the client
@@ -55,6 +59,14 @@
 
  <section xml:id="prepare-ldap-server">
   <title>Preparing an LDAP Server</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Data</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Examples</primary>
+   <secondary>Data</secondary>
+  </indexterm>
 
   <para>Install an LDAP server such as OpenDJ directory server that you can
   use to test the applications you develop. Also, load sample data into your
@@ -77,6 +89,10 @@
 
   <procedure xml:id="use-maven">
    <title>To Include the SDK as a Maven Dependency</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>With Maven</secondary>
+   </indexterm>
 
    <para>Let that expensive computer you bought do the work.</para>
 
@@ -117,6 +133,11 @@
 
   <procedure xml:id="install-stable-sdk">
    <title>To Install the Latest Stable SDK</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>From download</secondary>
+   </indexterm>
+
    <step>
     <!-- Versions in links shouldn't be hard coded. Waiting for an enhancement
          http://code.google.com/p/docbkx-tools/issues/detail?id=49 -->
@@ -174,6 +195,11 @@ C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.ja
 
   <procedure xml:id="proc-roll-your-own-sdk">
    <title>To Build Your Own SDK From Source</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>Build your own</secondary>
+   </indexterm>
+
    <step>
     <para>Make sure you have Subversion (<command>svn</command>) and
     Maven (<command>mvn</command>) installed.</para>
@@ -334,5 +360,18 @@ ou: People
 l: Cupertino
 mail: bjensen@example.com
 facsimileTelephoneNumber: +1 408 555 1992</screen>
+ </section>
+
+ <section xml:id="opendj-ldap-sdk-examples">
+  <title>Accessing Example Java Code</title>
+  <indexterm>
+   <primary>Examples</primary>
+   <secondary>Java</secondary>
+  </indexterm>
+
+  <para>A number of OpenDJ LDAP SDK examples are available online on the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new"></link>OpenDJ community site. There you find samples
+  whose excerpts are shown in this guide.</para>
  </section>
 </chapter>

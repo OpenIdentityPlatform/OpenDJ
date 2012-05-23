@@ -30,6 +30,13 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Working With Extended Operations</title>
+ <indexterm>
+  <primary>Extended operations</primary>
+ </indexterm>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>Extended operations</secondary>
+ </indexterm>
 
  <para>This chapter demonstrates how to use LDAP extended operations.</para>
 
@@ -41,6 +48,14 @@
  
  <section xml:id="get-supported-extended-operations">
   <title>Determining Supported Extended Operations</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Supported</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
 
   <para>For OpenDJ, the extended operations supported are listed in the
   <citetitle>Administration Guide</citetitle> appendix, <link
@@ -106,6 +121,14 @@ static boolean isSupported(final String extendedOperation) {
  
  <section xml:id="use-cancel-extended-operation">
   <title>Cancel Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Cancel</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Cancel</secondary>
+  </indexterm>
 
   <para>RFC 3909, <link xlink:href="http://tools.ietf.org/html/rfc3909"
   xlink:show="new"><citetitle>LDAP Cancel Operation</citetitle></link>, defines
@@ -215,6 +238,14 @@ Cancel request succeeded</programlisting>
 
  <section xml:id="use-password-modify-extended-operation">
   <title>Password Modify Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Password modify</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Password modify</secondary>
+  </indexterm>
 
   <para>RFC 3062, <link xlink:href="http://tools.ietf.org/html/rfc3062"
   xlink:show="new"><citetitle>LDAP Password Modify Extended
@@ -262,6 +293,13 @@ if (isSupported(PasswordModifyExtendedRequest.OID)) {
 
  <section xml:id="use-who-am-i-extended-operation">
   <title>Who am I? Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Who am I?</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
 
   <para>RFC 4532, <link xlink:href="http://tools.ietf.org/html/rfc4532"
   xlink:show="new"><citetitle>LDAP "Who am I?" Operation</citetitle></link>,

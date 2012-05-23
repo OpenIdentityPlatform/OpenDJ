@@ -30,7 +30,11 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Understanding LDAP</title>
- 
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>About</secondary>
+ </indexterm>
+
  <para>A directory resembles a dictionary or a phone book. If you know a
  word, you can look it up its entry in the dictionary to learn its definition
  or its pronunciation. If you know a name, you can look it up its entry in the
@@ -93,6 +97,14 @@
 
  <section xml:id="directory-data">
   <title>Data In LDAP Directories</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Data</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
+
   <para>LDAP directory data is organized into entries, similar to the entries
   for words in the dictionary, or for subscriber names in the phone book.
   A sample entry follows.</para>
@@ -140,9 +152,9 @@ uidNumber: 1076
   <para>The entry also has a unique identifier, show at the top of the entry, 
   <literal>dn: uid=bjensen,ou=People,dc=example,dc=com</literal>. DN stands
   for distinguished name. No two entries in the directory have the same
-  distinguished name.<footnote><para>Sometimes your distinguished names
-  include characters that you must escape. The following example shows an entry
-  that includes escaped characters in the DN.</para>
+  distinguished name.<footnote><para>Sometimes your distinguished names include
+  characters that you must escape. The following example shows an entry that
+  includes escaped characters in the DN.</para>
   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"
 dn: cn=\" # \+ \, \; \&lt; = \&gt; \\ DN Escape Characters,dc=example,dc=com
 objectClass: person
@@ -195,6 +207,11 @@ mail: escape@example.com</screen></footnote></para>
  
  <section xml:id="ldap-client-server-communication">
   <title>LDAP Client &amp; Server Communication</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Connected protocol</secondary>
+  </indexterm>
+
   <para>You may be used to web service client server communication, where
   each time the web client has something to request of the web server, a
   connection is set up and then torn down. LDAP has a different model. In
@@ -215,6 +232,9 @@ mail: escape@example.com</screen></footnote></para>
   <itemizedlist xml:id="standard-ldap-operations">
    <para>The standard operations are as follows.</para>
    <listitem>
+    <indexterm>
+     <primary>Authentications</primary>
+    </indexterm>
     <para>Bind (authenticate). The first operation in an LDAP session involves
     the client binding to the LDAP server, with the server authenticating the
     client. Authentication identifies the client's identity in LDAP terms, the
@@ -222,6 +242,9 @@ mail: escape@example.com</screen></footnote></para>
     to directory data that the client wants to lookup or change.</para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Searches</primary>
+    </indexterm>
     <para>Search (lookup). After binding, the client can request that the server
     return entries based on an LDAP filter, which is an expression that the
     server uses to find entries that match the request, and a base DN under
@@ -232,11 +255,17 @@ mail: escape@example.com</screen></footnote></para>
     <literal>(mail=bjensen@example.com)</literal>.</para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Comparisons</primary>
+    </indexterm>
     <para>Compare. After binding, the client can request that the server
     compare an attribute value the client specifies with the value stored
     on an entry in the directory.</para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Modifications</primary>
+    </indexterm>
     <para>Modify. After binding, the client can request that the server
     change one or more attribute values stored on one or more entries. Often
     administrators do not allow clients to change directory data, so request
@@ -244,15 +273,24 @@ mail: escape@example.com</screen></footnote></para>
     application if you want to update data.</para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Adds</primary>
+    </indexterm>
     <para>Add. After binding, the client can request to add one or more
     new LDAP entries to the server. </para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Deletes</primary>
+    </indexterm>
     <para>Delete. After binding, the client can request that the server
     delete one or more entries. To delete and entry with other entries
     underneath, first delete the children, then then parent.</para>
    </listitem>
    <listitem>
+    <indexterm>
+     <primary>Renames</primary>
+    </indexterm>
     <para>Modify DN. After binding, the client can request that the server
     change the distinguished name of the entry. For example, if Barbara
     changes her unique identifier from <literal>bjensen</literal> to something
@@ -284,14 +322,22 @@ mail: escape@example.com</screen></footnote></para>
   operations that directory servers can perform. One mechanism involves using
   LDAP controls. The other mechanism involves using LDAP extended
   operations.</para>
-  
+
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>About</secondary>
+  </indexterm>
   <para>LDAP controls are information added to an LDAP message to further
   specify how an LDAP operation should be processed. For example, the
   Server Side Sort Request Control modifies a search to request that the
   directory server return entries to the client in sorted order. The Subtree
   Delete Request Control modifies a delete to request that the server
   also remove child entries of the entry targeted for deletion.</para>
-  
+
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>About</secondary>
+  </indexterm>
   <para>LDAP extended operations are additional LDAP operations not included
   in the original standard list. For example, the Cancel Extended Operation
   works like an abandon operation, but finishes with a response from the

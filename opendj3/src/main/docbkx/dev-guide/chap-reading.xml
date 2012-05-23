@@ -39,6 +39,10 @@
 
  <section xml:id="about-searching">
   <title>About Searching</title>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
+
   <itemizedlist>
    <para>An LDAP search looks up entries based on the following
    parameters.</para>
@@ -70,7 +74,9 @@
   stored on the standard <literal>mail</literal> attribute, and full names are
   store on the standard <literal>cn</literal> attribute.</para>
   
-  <para>You figure out how to authenticate from the chapter on authentication,
+  <para>You figure out how to authenticate from the chapter on <link
+  xlink:href="dev-guide#chap-authenticating"
+  xlink:role="http://docbook.org/xlink/role/olink">authentication</link>,
   in which you learn you need a bind DN and a password to do simple
   authentication. But how do you find the bind DN given the email? How do you
   get the full name?</para>
@@ -144,6 +150,14 @@ try {
 
  <section xml:id="basedn-and-scope">
   <title>Setting Search Base &amp; Scope</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Base</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Scope</secondary>
+  </indexterm>
 
   <para>Directory servers organize entries somewhat like a file system.
   Directory data is often depicted as an upside-down tree.</para>
@@ -214,6 +228,13 @@ try {
 
  <section xml:id="about-filters">
   <title>Working With Search Filters</title>
+  <indexterm>
+   <primary>Filters</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Filters</secondary>
+  </indexterm>
 
   <para>When you look someone up in the telephone directory, you use the value
   of one attribute of a person's entry (last name), to recover the person's
@@ -364,6 +385,13 @@ try {
 
  <section xml:id="send-search-request">
   <title>Sending a Search Request</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Synchronous</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
 
   <para>As shown in the following excerpt with a synchronous connection, you
   get a <literal>Connection</literal> to the directory server from an
@@ -396,6 +424,10 @@ try {
 
  <section xml:id="get-search-results">
   <title>Getting Search Results</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
 
   <para>Depending on the method you use to search, you handle results in
   different ways.</para>
@@ -459,6 +491,9 @@ finally
 
  <section xml:id="handle-entry-attributes">
   <title>Working With Entry Attributes</title>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
 
   <para>When you get an entry object, chances are you want to handle attribute
   values as objects. The OpenDJ LDAP SDK provides the
@@ -503,6 +538,13 @@ Calendar timestamp = entry
 
  <section xml:id="handle-ldap-urls">
   <title>Working With LDAP URLs</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>URLs</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
 
   <para>LDAP URLs express search requests in URL form. In the directory data
   you can find them used as <literal>memberURL</literal>
@@ -523,6 +565,13 @@ Calendar timestamp = entry
 
  <section xml:id="sort-search-results">
   <title>Sorting Search Results</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
 
   <para>If you want to sort search results in your client application, then
   make sure you have enough memory in the JVM to hold the results of the search,
@@ -546,6 +595,9 @@ Calendar timestamp = entry
 
  <section xml:id="about-comparisons">
   <title>About Comparing</title>
+  <indexterm>
+   <primary>Comparisons</primary>
+  </indexterm>
 
   <para>You use the LDAP compare operation to make an assertion about an
   attribute value on an entry. Unlike the search operation, you must know
