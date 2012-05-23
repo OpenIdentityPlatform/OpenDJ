@@ -46,6 +46,10 @@
 
   <itemizedlist>
    <listitem>
+    <indexterm>
+     <primary>Adds</primary>
+    </indexterm>
+
     <para>An add request is used to create a new entry in an LDAP directory.
     The entry must have a unique distinguished name that belongs under a base
     DN served by the directory. The entry must have a list of attributes that
@@ -60,10 +64,16 @@
    </listitem>
 
    <listitem>
+    <indexterm>
+     <primary>Modifications</primary>
+    </indexterm>
     <para>A modify request is used to add, delete, or replace attribute values
     on an entry in an LDAP directory. The resulting entry must be valid
     according to the directory schema.</para>
 
+    <indexterm>
+     <primary>Renames</primary>
+    </indexterm>
     <para>A modify DN request is used to rename or move a directory entry.
     In both cases the distinguished name changes. Renaming involves changing
     the relative distinguished name, for example from
@@ -80,6 +90,10 @@
    </listitem>
 
    <listitem>
+    <indexterm>
+     <primary>Deletes</primary>
+    </indexterm>
+
     <para>A delete request is used to remove an entry from an LDAP
     directory.</para>
 
@@ -92,6 +106,9 @@
    </listitem>
   </itemizedlist>
 
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
   <para>As a rule, your client application must be authorized to create,
   update, and delete directory data. Therefore to prepare to change directory
   data, you first get a connection, and then bind on that connection as a
@@ -100,6 +117,9 @@
 
  <section xml:id="adding-entries">
   <title>Adding Directory Entries</title>
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
 
   <para>The <literal>Connection.add()</literal> methods let you provide the
   entry to add as an <literal>AddRequest</literal>, an <literal>Entry</literal>,
@@ -144,6 +164,9 @@ try {
 
  <section xml:id="modifying-attr-values">
   <title>Modifying Directory Entry Attribute Values</title>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
 
   <para>The <literal>Connection.modify()</literal> methods let you add, replace,
   and delete attributes values on an entry. Either the modifications are
@@ -182,6 +205,9 @@ try {
  
  <section xml:id="renaming-entries">
   <title>Renaming Directory Entries</title>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
 
   <para>The <literal>Connection.modifyDN()</literal> methods serve to rename
   entries and to move them around.</para>
@@ -217,6 +243,9 @@ try {
 
  <section xml:id="deleting-entries">
   <title>Deleting Directory Entries</title>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
 
   <para>The following excerpt demonstrates how to delete an entry with DN
   <literal>cn=Ted,ou=People,dc=example,dc=com</literal>.</para>

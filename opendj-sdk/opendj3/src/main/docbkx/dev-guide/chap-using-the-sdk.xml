@@ -38,9 +38,16 @@
  connection. You then use the connection to make requests and get responses
  from the directory server.</para>
 
-
  <section xml:id="sync-vs-async">
   <title>Synchronous &amp; Asynchronous Operations</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Asynchronous</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Synchronous</secondary>
+  </indexterm>
 
   <para>For synchronous operations your application gets a connection from
   the <literal>LDAPConnectionFactory</literal> and requests operations on
@@ -118,6 +125,9 @@ if (connection != null) {
 
  <section xml:id="error-handling">
   <title>Managing Errors</title>
+  <indexterm>
+   <primary>Errors</primary>
+  </indexterm>
 
   <para>LDAP <link xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A"
   xlink:show="new">defines many result codes</link> to deal with conditions
@@ -161,6 +171,13 @@ try {
 
  <section xml:id="referral-handling">
   <title>Managing Referrals</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
 
   <para>TODO</para>
  </section>
