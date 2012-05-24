@@ -627,7 +627,7 @@
               'dsInstanceDn'     : server.dn ,
               'dsInstancePswd'   : server.password ,
               'entryToBeAdded'   : '%s/schema/ldifs/rfc3045_1.ldif' % remote.data ,
-              'expectedRC'       : 53 }
+              'expectedRC'       : 19 }
           </call>
 
         </sequence>
@@ -668,7 +668,7 @@
               'dsInstanceDn'     : server.dn ,
               'dsInstancePswd'   : server.password ,
               'entryToBeAdded'   : '%s/schema/ldifs/rfc3045_2.ldif' % remote.data ,
-              'expectedRC'       : 53 }
+              'expectedRC'       : 19 }
           </call>
 
         </sequence>
