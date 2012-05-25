@@ -20,6 +20,7 @@ import org.forgerock.json.resource.restlet.JsonResourceRestlet;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.resource.framework.JsonResourceProvider;
@@ -68,8 +69,11 @@ public class Example {
                                 .includeAttribute("cn", "sn", "givenName"))).addMapper(
                         new ComplexAttributeMapper("contactInformation",
                                 new CompositeAttributeMapper().addMapper(
-                                        new SimpleAttributeMapper("telephoneNumber")).addMapper(
-                                        new SimpleAttributeMapper("emailAddress", "mail"))));
+                                        new SimpleAttributeMapper("telephoneNumber").withDecoder(
+                                                Functions.byteStringToString()).forceSingleValued(
+                                                true)).addMapper(
+                                        new SimpleAttributeMapper("emailAddress", "mail")
+                                                .forceSingleValued(true))));
         LDAPResource userResource = new LDAPResource(userContainer, userMapper);
         ResourceInvoker userResourceInvoker = new ResourceInvoker();
         userResourceInvoker.resource = userResource; // FIXME: Yuk!

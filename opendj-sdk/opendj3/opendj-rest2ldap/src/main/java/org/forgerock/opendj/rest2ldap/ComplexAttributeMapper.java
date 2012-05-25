@@ -51,35 +51,17 @@ public class ComplexAttributeMapper implements AttributeMapper {
      */
     public ComplexAttributeMapper(String jsonAttributeName, AttributeMapper mapper) {
         this.jsonAttributeName = jsonAttributeName;
-        this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
         this.mapper = mapper;
+        this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
     }
 
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(Set<String> ldapAttributes) {
-        mapper.getLDAPAttributes(ldapAttributes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
-        if (resourceAttribute.size() > 0) {
-            String rootName = resourceAttribute.get(0);
-            if (toLowerCase(rootName).equals(normalizedJsonAttributeName)) {
-                JsonPointer relativePointer = resourceAttribute.relativePointer();
-                if (relativePointer == null) {
-                    // User requested the entire contents of this complex
-                    // attribute.
-                    mapper.getLDAPAttributes(ldapAttributes);
-                } else {
-                    // User requested partial contents of this complex
-                    // attribute.
-                    mapper.getLDAPAttributes(ldapAttributes, relativePointer);
-                }
-            }
+    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+        if (attributeMatchesPointer(jsonAttribute)) {
+            JsonPointer relativePointer = jsonAttribute.relativePointer();
+            mapper.getLDAPAttributes(relativePointer, ldapAttributes);
         }
     }
 
@@ -110,6 +92,11 @@ public class ComplexAttributeMapper implements AttributeMapper {
     public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
+    }
+
+    private boolean attributeMatchesPointer(JsonPointer resourceAttribute) {
+        return resourceAttribute.isEmpty()
+                || toLowerCase(resourceAttribute.get(0)).equals(normalizedJsonAttributeName);
     }
 
 }

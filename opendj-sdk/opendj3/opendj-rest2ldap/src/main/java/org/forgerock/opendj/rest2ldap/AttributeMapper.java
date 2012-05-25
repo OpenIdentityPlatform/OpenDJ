@@ -32,33 +32,19 @@ import org.forgerock.resource.provider.Context;
 public interface AttributeMapper {
 
     /**
-     * Adds the names of the all the LDAP attributes required by this attribute
-     * mapper to the provided set.
-     * <p>
-     * Implementations should only add the names of attributes found in the LDAP
-     * entry directly associated with the resource.
-     *
-     * @param ldapAttributes
-     *            The set into which the required LDAP attribute names should be
-     *            put.
-     */
-    void getLDAPAttributes(Set<String> ldapAttributes);
-
-    /**
      * Adds the names of the LDAP attributes required by this attribute mapper
      * which are associated with the provided resource attribute to the provided
      * set.
      * <p>
      * Implementations should only add the names of attributes found in the LDAP
      * entry directly associated with the resource.
-     *
+     * @param jsonAttribute
+     *            The name of the resource attribute requested by the client.
      * @param ldapAttributes
      *            The set into which the required LDAP attribute names should be
      *            put.
-     * @param resourceAttribute
-     *            The name of the resource attribute requested by the client.
      */
-    void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute);
+    void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes);
 
     /**
      * Transforms attributes contained in the provided LDAP entry to JSON

@@ -16,7 +16,7 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Utils.attributeToJson;
+import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.Collections;
@@ -27,7 +27,10 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.resource.provider.Context;
 
 /**
@@ -38,6 +41,11 @@ public class SimpleAttributeMapper implements AttributeMapper {
     private final String ldapAttributeName;
     private final String jsonAttributeName;
     private final String normalizedJsonAttributeName;
+
+    private boolean forceSingleValued = false;
+    private Object defaultValue = null;
+    private boolean isReadOnly = false;
+    private Function<ByteString, ?, Void> decoder = null;
 
     /**
      * Creates a new simple attribute mapper which maps a single LDAP attribute
@@ -61,24 +69,42 @@ public class SimpleAttributeMapper implements AttributeMapper {
      */
     public SimpleAttributeMapper(String jsonAttributeName, String ldapAttributeName) {
         this.jsonAttributeName = jsonAttributeName;
-        this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
         this.ldapAttributeName = ldapAttributeName;
+        this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
+    }
+
+    public SimpleAttributeMapper withDefaultValue(Object defaultValue) {
+        this.defaultValue = defaultValue;
+        return this;
+    }
+
+    public SimpleAttributeMapper isReadOnly(boolean readOnly) {
+        this.isReadOnly = readOnly;
+        return this;
+    }
+
+    public SimpleAttributeMapper forceSingleValued(boolean singleValued) {
+        this.forceSingleValued = singleValued;
+        return this;
+    }
+
+    public SimpleAttributeMapper withDecoder(Function<ByteString, ?, Void> f) {
+        this.decoder = f;
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(Set<String> ldapAttributes) {
-        ldapAttributes.add(ldapAttributeName);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
-        if (toLowerCase(resourceAttribute.leaf()).equals(normalizedJsonAttributeName)) {
+    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+        if (attributeMatchesPointer(jsonAttribute)) {
             ldapAttributes.add(ldapAttributeName);
         }
+    }
+
+    private boolean attributeMatchesPointer(JsonPointer resourceAttribute) {
+        return resourceAttribute.isEmpty()
+                || toLowerCase(resourceAttribute.get(0)).equals(normalizedJsonAttributeName);
     }
 
     /**
@@ -88,8 +114,15 @@ public class SimpleAttributeMapper implements AttributeMapper {
             final AttributeMapperCompletionHandler<Map<String, Object>> h) {
         Attribute a = e.getAttribute(ldapAttributeName);
         if (a != null) {
-            Map<String, Object> result =
-                    Collections.singletonMap(jsonAttributeName, attributeToJson(a));
+            Function<ByteString, ?, Void> f =
+                    decoder == null ? Functions.fixedFunction(byteStringToJson(), a) : decoder;
+            final Object value;
+            if (forceSingleValued || a.getAttributeDescription().getAttributeType().isSingleValue()) {
+                value = a.parse().as(f, defaultValue);
+            } else {
+                value = a.parse().asSetOf(f, defaultValue);
+            }
+            Map<String, Object> result = Collections.singletonMap(jsonAttributeName, value);
             h.onSuccess(result);
         }
     }
