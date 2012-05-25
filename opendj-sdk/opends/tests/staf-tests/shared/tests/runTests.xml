@@ -101,7 +101,7 @@
 
         groupsToRun = []
         for line in TEST_PLAN_CUSTOM.split(","):
-          groupsToRun.append(group_to_run(line.rstrip()))
+          groupsToRun.append(group_to_run(line.strip()))
       </script>
 
       <!-- TODO: If no groupsToRun then iterate will throw exception -->
