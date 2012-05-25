@@ -230,12 +230,12 @@ public class LDAPResource implements Resource {
         if (requestedAttributes.isEmpty()) {
             // Full read.
             requestedLDAPAttributes = new LinkedHashSet<String>();
-            attributeMapper.getLDAPAttributes(requestedLDAPAttributes);
+            attributeMapper.getLDAPAttributes(new JsonPointer(), requestedLDAPAttributes);
         } else {
             // Partial read.
             requestedLDAPAttributes = new LinkedHashSet<String>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributes(requestedLDAPAttributes, requestedAttribute);
+                attributeMapper.getLDAPAttributes(requestedAttribute, requestedLDAPAttributes);
             }
         }
         return requestedLDAPAttributes;

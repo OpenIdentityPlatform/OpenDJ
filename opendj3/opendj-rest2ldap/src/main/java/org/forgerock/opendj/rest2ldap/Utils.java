@@ -38,9 +38,10 @@ import org.forgerock.opendj.ldap.schema.Syntax;
  */
 final class Utils {
 
-    private static final Function<ByteString, Object, Syntax> BYTESTRING_TO_JSON =
-            new Function<ByteString, Object, Syntax>() {
-                public Object apply(final ByteString value, final Syntax syntax) {
+    private static final Function<ByteString, Object, Attribute> BYTESTRING_TO_JSON =
+            new Function<ByteString, Object, Attribute>() {
+                public Object apply(final ByteString value, final Attribute a) {
+                    Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
                     if (syntax.equals(getBooleanSyntax())) {
                         return Functions.byteStringToBoolean().apply(value, null);
                     } else if (syntax.equals(getIntegerSyntax())) {
@@ -72,9 +73,12 @@ final class Utils {
         }
     }
 
+    static Function<ByteString, Object, Attribute> byteStringToJson() {
+        return BYTESTRING_TO_JSON;
+    }
+
     static Object attributeToJson(Attribute a) {
-        Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
-        Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, syntax);
+        Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, a);
         boolean isSingleValued = a.getAttributeDescription().getAttributeType().isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
@@ -100,4 +104,5 @@ final class Utils {
         }
         return object;
     }
+
 }

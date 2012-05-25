@@ -67,14 +67,23 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         }
     }
 
-    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
-        String name = resourceAttribute.leaf();
-        if (name != null) {
+    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+        switch (jsonAttribute.size()) {
+        case 0:
+            // Requested everything.
+            if (!includedAttributes.isEmpty()) {
+                ldapAttributes.addAll(includedAttributes.values());
+            } else {
+                // All user attributes.
+                ldapAttributes.add("*");
+            }
+            break;
+        default:
+            String name = jsonAttribute.get(0);
             if (isIncludedAttribute(name)) {
                 ldapAttributes.add(name);
-            } else {
-                // FIXME: log something or return a ResourceException?
             }
+            break;
         }
     }
 

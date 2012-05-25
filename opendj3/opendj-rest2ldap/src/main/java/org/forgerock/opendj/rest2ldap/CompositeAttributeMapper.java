@@ -19,7 +19,6 @@ package org.forgerock.opendj.rest2ldap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,6 @@ import org.forgerock.resource.provider.Context;
  *
  */
 public final class CompositeAttributeMapper implements AttributeMapper {
-    private final Set<String> allLDAPAttributes = new LinkedHashSet<String>();
     private final List<AttributeMapper> attributeMappers = new LinkedList<AttributeMapper>();
 
     /**
@@ -50,23 +48,15 @@ public final class CompositeAttributeMapper implements AttributeMapper {
 
     public CompositeAttributeMapper addMapper(AttributeMapper mapper) {
         attributeMappers.add(mapper);
-        mapper.getLDAPAttributes(allLDAPAttributes);
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(Set<String> ldapAttributes) {
-        ldapAttributes.addAll(allLDAPAttributes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void getLDAPAttributes(Set<String> ldapAttributes, JsonPointer resourceAttribute) {
+    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
         for (AttributeMapper attribute : attributeMappers) {
-            attribute.getLDAPAttributes(ldapAttributes, resourceAttribute);
+            attribute.getLDAPAttributes(jsonAttribute, ldapAttributes);
         }
     }
 
