@@ -1,0 +1,17 @@
+TODO list
+
+* reference attribute mapper
+* finish attribute filters: pass in JSON pointers to toJSON method
+* resolve issues regarding read/query routing. Distinction currently based on
+  presence of query params which is wrong since reads may contain params as
+  well.
+* server side sorting, query filters, paged results
+* query should return entire resources, not ids only
+* implement create/delete/put/patch/action.
+* bulk support?
+* convert mappers to builders
+* authentication
+
+* gateway (file based config, Grizzly IO, WAR packaging)
+* standalone embedded listener (server config framework, internal connections, OpenDJ extension)
+* container embedded listener (as above, OpenDJ packaged as WAR).
