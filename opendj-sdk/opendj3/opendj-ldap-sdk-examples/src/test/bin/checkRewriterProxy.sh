@@ -25,8 +25,9 @@ echo Deleting uid=fdupont,ou=People,o=example...
 ./ldapdelete -h $HOST -p $PORT -D $BINDDN -w $BINDPWD uid=fdupont,ou=People,o=example
 echo
 
-echo Adding uid=fdupont,ou=People,o=example...
-./ldapmodify -h $HOST -p $PORT -D $BINDDN -w $BINDPWD -a <<EOF
+add() {
+  echo Adding uid=fdupont,ou=People,o=example...
+  ./ldapmodify -h $HOST -p $PORT -D $BINDDN -w $BINDPWD -a <<EOF
 
 dn: uid=fdupont,ou=People,o=example
 uid: fdupont
@@ -52,7 +53,10 @@ homeDirectory: /home/fdupont
 userPassword: password
 
 EOF
-echo 
+  echo
+}
+
+add
 
 echo Looking for fullname=Frederique Dupont...
 ./ldapsearch -h $HOST -p $PORT -D $BINDDN -w $BINDPWD -b o=example "(fullname=Frederique Dupont)" fullname
@@ -87,6 +91,8 @@ echo
 echo Deleting uid=qdupont,ou=People,o=example
 ./ldapdelete -h $HOST -p $PORT -D $BINDDN -w $BINDPWD uid=qdupont,ou=People,o=example
 echo
+
+add
 
 cd $CURRDIR
 
