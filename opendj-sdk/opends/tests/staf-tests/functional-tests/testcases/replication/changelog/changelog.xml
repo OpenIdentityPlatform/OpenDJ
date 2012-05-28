@@ -88,8 +88,8 @@
                   testsList.append('replication_changelog_001')
                   testsList.append('replication_changelog_002')
                   testsList.append('replication_changelog_003')
-                  testsList.append('replication_changelog_004')
-                  #OOS: testsList.append('replication_changelog_005')
+                  #OOS: testsList.append('replication_changelog_004')
+                  testsList.append('replication_changelog_005')
                   testsList.append('replication_changelog_006')
                 </script>
 

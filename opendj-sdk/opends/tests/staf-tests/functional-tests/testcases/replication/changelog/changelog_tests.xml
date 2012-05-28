@@ -1288,7 +1288,7 @@
                         there though since the last change is always kept)
   -->
   <function name="replication_changelog_006" scope="local">
-    <testcase name="getTestCaseName('Changelog Reset')">                     
+    <testcase name="getTestCaseName('Changelog Purge')">                     
       <sequence> 
         <try>
           <sequence>
