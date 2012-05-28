@@ -608,7 +608,7 @@
     #@TestPreamble              none
     #@TestStep                  Add Invalid RFC 3045 Schema Object.
     #@TestPostamble             none
-    #@TestResult                Success if Add returns 53 (Unwilling to Perform) 
+    #@TestResult                Success if Add returns 19 (Constraint Violation) 
 -->
 
   <function name="schema_rfc_3045_1" scope="local">
@@ -649,7 +649,7 @@
     #@TestPreamble              none
     #@TestStep                  Add Invalid RFC 3045 Schema Object.
     #@TestPostamble             none
-    #@TestResult                Success if Add returns 53 (Unwilling to Perform) 
+    #@TestResult                Success if Add returns 19 (Constraint Violation)) 
 -->
 
   <function name="schema_rfc_3045_2" scope="local">
