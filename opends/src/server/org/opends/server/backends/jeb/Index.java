@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -569,6 +570,7 @@ public class Index extends DatabaseContainer
           }
 
           setTrusted(txn, false);
+          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
         }
 
         if((rebuildRunning || trusted) && addedIDs != null &&
@@ -690,6 +692,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
+        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
 
       if((rebuildRunning || trusted) && addedIDs != null && addedIDs.size() > 0)
@@ -785,8 +788,6 @@ public class Index extends DatabaseContainer
         // will probably not be rebuilt.
         if(trusted && !rebuildRunning)
         {
-          setTrusted(txn, false);
-
           if(debugEnabled())
           {
             StringBuilder builder = new StringBuilder();
@@ -795,6 +796,7 @@ public class Index extends DatabaseContainer
                 "index %s.\nKey:%s", name, builder.toString());
           }
 
+          setTrusted(txn, false);
           logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
         }
       }
@@ -832,23 +834,19 @@ public class Index extends DatabaseContainer
       EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
       // Ignore failures if rebuild is running since the entry ID is
       // probably already removed.
-      if (!entryIDList.remove(entryID) && !rebuildRunning)
+      if (!entryIDList.remove(entryID) && !rebuildRunning && trusted)
       {
-        if(trusted)
+        if(debugEnabled())
         {
-          setTrusted(txn, false);
-
-          if(debugEnabled())
-          {
-            StringBuilder builder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError("The expected entry ID does not exist in " +
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          TRACER.debugError("The expected entry ID does not exist in " +
                 "the entry ID list for index %s.\nKey:%s",
                 name, builder.toString());
-          }
-
-          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
         }
+
+        setTrusted(txn, false);
+        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
       else
       {
@@ -873,8 +871,6 @@ public class Index extends DatabaseContainer
       // will probably not be rebuilt.
       if(trusted && !rebuildRunning)
       {
-        setTrusted(txn, false);
-
         if(debugEnabled())
         {
           StringBuilder builder = new StringBuilder();
@@ -883,6 +879,7 @@ public class Index extends DatabaseContainer
               "index %s.\nKey:%s", name, builder.toString());
         }
 
+        setTrusted(txn, false);
         logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
     }
