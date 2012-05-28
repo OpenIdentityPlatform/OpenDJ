@@ -86,7 +86,8 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'    : 'ds-cfg-lockout-failure-count:0',
-                'entryToBeCompared'   : basepwp }
+                'entryToBeCompared'   : basepwp ,
+                'expectedRC'          : 16 }
             </call>
 
             <call function="'testStep'">
