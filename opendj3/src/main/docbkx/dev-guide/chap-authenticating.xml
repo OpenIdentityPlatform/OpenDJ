@@ -52,9 +52,7 @@
   <para>To bind using Barbara Jensen's identity and simple authentication,
   for example, your application would provide the DN
   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> with the
-  password <literal>hifalutin</literal>. An example is provided with the
-  OpenDJ LDAP SDK examples in
-  <filename>org.forgerock.opendj.examples.SimpleAuth.java</filename>.</para>
+  password <literal>hifalutin</literal>.</para>
   
   <para>The directory stores the password value used for simple authentication
   in binary form on the <literal>userPassword</literal> attribute of the entry.
@@ -104,6 +102,12 @@ private static void connect()
   case, however, the directory authenticates the user as anonymous, therefore
   no doubt with fewer rights than the normal user, and surely fewer rights
   than an administrator.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
+  xlink:show="new">SimpleAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
  
  <section xml:id="simple-auth-with-starttls-or-ssl">
@@ -188,6 +192,12 @@ private static void trustAllConnect()
       connection.close();
   }
 }</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
+  xlink:show="new">SimpleAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
  
  <section xml:id="sasl-auth">
@@ -258,5 +268,11 @@ try
   default to use the Exact Match Identity Mapper to look up user IDs as
   <literal>uid</literal> values. If you use another directory server, you might
   have to configure how it maps user IDs to user entries.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SASLAuth.html"
+  xlink:show="new">SASLAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
 </chapter>

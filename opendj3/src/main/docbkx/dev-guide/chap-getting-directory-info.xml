@@ -86,6 +86,12 @@ try
   writer.flush();
 }</programlisting>
 
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/GetInfo.html"
+  xlink:show="new">GetInfo.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
   <para>Notice that by default you can access the root DSE after authenticating
   anonymously. When you look at the entry in LDIF, you see that supported
   capabilities are generally identified by object identifier (OID).</para>

@@ -40,6 +40,13 @@
 
  <para>This chapter demonstrates how to use LDAP extended operations.</para>
 
+ <para>For complete examples corresponding to the excerpts shown below, see
+ <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ExtendedOperations.html"
+ xlink:show="new">ExtendedOperations.java</link>, one of the <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+ xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
  <section xml:id="about-ldap-extended-operations">
   <title>About LDAP Extended Operations</title>
   <para>Extended operations allow additional operations to be defined for
