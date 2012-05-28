@@ -60,6 +60,7 @@
               options=[]
               options.append('--policy-name "Default Password Policy"')
               options.append('--property "allow-pre-encoded-passwords"')
+              options.append('--advanced')
               dsconfigOptions=' '.join(options)
             </script>
 
