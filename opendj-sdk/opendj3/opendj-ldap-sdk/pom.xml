@@ -106,7 +106,6 @@
               <report>mailing-list</report>
               <report>issue-tracking</report>
               <report>license</report>
-              <report>scm</report>
               <report>cim</report>
               <report>distribution-management</report>
             </reports>
