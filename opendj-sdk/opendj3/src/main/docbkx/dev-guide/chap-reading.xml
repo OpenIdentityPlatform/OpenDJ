@@ -146,6 +146,12 @@ try {
         connection.close();
     }
 }</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchBind.html"
+  xlink:show="new">SearchBind.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
 
  <section xml:id="basedn-and-scope">
@@ -420,6 +426,12 @@ try {
   returns a single entry, you can read the entry with the
   <literal>searchSingleEntry()</literal> methods. If you have the distinguished
   name, you can use <literal>readEntry()</literal> directly.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+  xlink:show="new">Search.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
 
  <section xml:id="get-search-results">
@@ -466,6 +478,12 @@ finally
 {
   reader.close();
 }</programlisting>
+
+    <para>For a complete example in context, see <link
+    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+    xlink:show="new">Search.java</link>, one of the <link
+    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+    xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
    </listitem>
 
    <listitem>
@@ -534,6 +552,12 @@ Calendar timestamp = entry
 // Do something with the objects.
 // ...
 </programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ParseAttributes.html"
+  xlink:show="new">ParseAttributes.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
 
  <section xml:id="handle-ldap-urls">

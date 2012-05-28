@@ -74,6 +74,12 @@ try {
     }
 </programlisting>
 
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+  xlink:show="new">Search.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
   <para>For asynchronous operations, your application passes a result handler
   to <literal>LDAPConnectionFactory.getConnectionAsync()</literal> that
   implements the <literal>ResultHandler&lt;Connection&gt;</literal>
@@ -119,8 +125,13 @@ if (connection != null) {
   <para>Asynchronous methods are non-blocking, returning a
   <literal>FutureResult</literal> whose <literal>get()</literal> method lets
   you retrieve the result. Your application must coordinate concurrency when
-  you use asynchronous operations. See <filename>SearchAsync.java</filename>
-  for an example.</para>
+  you use asynchronous operations.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchAsync.html"
+  xlink:show="new">SearchAsync.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
  </section>
 
  <section xml:id="error-handling">

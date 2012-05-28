@@ -371,7 +371,7 @@ facsimileTelephoneNumber: +1 408 555 1992</screen>
 
   <para>A number of OpenDJ LDAP SDK examples are available online on the <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new"></link>OpenDJ community site. There you find samples
+  xlink:show="new">OpenDJ community site</link>. There you find samples
   whose excerpts are shown in this guide.</para>
  </section>
 </chapter>
