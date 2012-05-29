@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -33,11 +34,13 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.opends.messages.Message;
 
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 
 
@@ -182,7 +185,13 @@ class TelephoneNumberSubstringMatchingRule
   {
     // In this case, the logic used to normalize a substring is identical to the
     // logic used to normalize a full value.
-    return normalizeValue(substring);
+    ByteString value = normalizeValue(substring);
+    if (value.length() == 0)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          Message.EMPTY);
+    }
+    return value;
   }
 }
 
