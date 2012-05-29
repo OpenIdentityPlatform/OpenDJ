@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -669,7 +670,8 @@ public class VirtualStaticGroupTestCase
                   SearchFilter.createFilterFromString(
                        "(member=" + u1.toString() + ")"),
                   null, null);
-    assertFalse(provider.isSearchable(rule, searchOperation));
+    assertFalse(provider.isSearchable(rule, searchOperation, false));
+    assertFalse(provider.isSearchable(rule, searchOperation, true));
 
     provider.processSearch(rule, searchOperation);
     assertFalse(searchOperation.getResultCode() == ResultCode.SUCCESS);
@@ -743,7 +745,8 @@ public class VirtualStaticGroupTestCase
                   SearchFilter.createFilterFromString(
                        "(member=" + u1.toString() + ")"),
                   null, null);
-    assertFalse(provider.isSearchable(rule, searchOperation));
+    assertFalse(provider.isSearchable(rule, searchOperation, false));
+    assertFalse(provider.isSearchable(rule, searchOperation, false));
 
     provider.processSearch(rule, searchOperation);
     assertFalse(searchOperation.getResultCode() == ResultCode.SUCCESS);

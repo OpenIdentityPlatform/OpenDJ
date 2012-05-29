@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -235,10 +236,12 @@ public class EntryDNVirtualAttributeProvider
    *   <LI>It is an OR filter in which all of the components are equality
    *       filters targeting the associated attribute type.</LI>
    * </UL>
+   * This virtual attribute also can be optimized as pre-indexed.
    */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
     return isSearchable(rule.getAttributeType(), searchOperation.getFilter(),
                         0);

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -334,11 +334,12 @@ public class MemberVirtualAttributeProvider
 
 
   /**
-   * {@inheritDoc}.
+   * {@inheritDoc}
    */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
     return false;
   }

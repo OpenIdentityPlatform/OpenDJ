@@ -14,7 +14,7 @@
  *
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
  * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
@@ -119,7 +119,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
    */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
     return false;
   }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -1025,8 +1025,11 @@ public class EntryDNVirtualAttributeProviderTestCase
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
-
-    assertEquals(provider.isSearchable(rule, searchOperation), isSearchable);
+    // This attribute is searchable for either pre-indexed or not
+    assertEquals(provider.isSearchable(rule, searchOperation, false),
+                 isSearchable);
+    assertEquals(provider.isSearchable(rule, searchOperation, true),
+                 isSearchable);
   }
 
 

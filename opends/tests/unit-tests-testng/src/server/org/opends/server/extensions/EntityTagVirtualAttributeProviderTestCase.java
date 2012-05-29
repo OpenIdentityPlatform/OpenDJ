@@ -470,7 +470,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testIsSearchable()
   {
-    assertFalse(provider.isSearchable(null, null));
+    assertFalse(provider.isSearchable(null, null, false));
+    assertFalse(provider.isSearchable(null, null, true));
   }
 
 

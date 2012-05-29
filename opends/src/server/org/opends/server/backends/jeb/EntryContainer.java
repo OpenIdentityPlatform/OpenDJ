@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -890,7 +890,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   public void search(SearchOperation searchOperation)
   throws DirectoryException, DatabaseException, CanceledOperationException
   {
-    DN baseDN = searchOperation.getBaseDN();
+    DN aBaseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
 
     PagedResultsControl pageRequest = searchOperation
@@ -949,7 +949,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Entry baseEntry = null;
       try
       {
-        baseEntry = getEntry(baseDN);
+        baseEntry = getEntry(aBaseDN);
       }
       catch (Exception e)
       {
@@ -963,10 +963,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (baseEntry == null)
       {
         // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(baseDN, searchScope);
+        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
 
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
-        DN matchedDN = getMatchedDN(baseDN);
+        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
+        DN matchedDN = getMatchedDN(aBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
       }
@@ -1036,6 +1036,16 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
     if(entryIDList == null)
     {
+      // See if we could use a virtual attribute rule to process the search.
+      for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+      {
+        if (rule.getProvider().isSearchable(rule, searchOperation, true))
+        {
+          rule.getProvider().processSearch(rule, searchOperation);
+          return;
+        }
+      }
+
       // Create an index filter to get the search result candidate entries.
       IndexFilter indexFilter =
         new IndexFilter(this, searchOperation, debugBuffer,
@@ -1049,12 +1059,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
       {
         // Read the ID from dn2id.
-        EntryID baseID = dn2id.get(null, baseDN, LockMode.DEFAULT);
+        EntryID baseID = dn2id.get(null, aBaseDN, LockMode.DEFAULT);
         if (baseID == null)
         {
           Message message =
-            ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
-          DN matchedDN = getMatchedDN(baseDN);
+            ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
+          DN matchedDN = getMatchedDN(aBaseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, matchedDN, null);
         }
@@ -1172,7 +1182,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
       {
-        if (rule.getProvider().isSearchable(rule, searchOperation))
+        if (rule.getProvider().isSearchable(rule, searchOperation, false))
         {
           rule.getProvider().processSearch(rule, searchOperation);
           return;
@@ -1233,7 +1243,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   throws DirectoryException, CanceledOperationException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    DN baseDN = searchOperation.getBaseDN();
+    DN aBaseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
 
@@ -1246,7 +1256,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Entry baseEntry = null;
       try
       {
-        baseEntry = getEntry(baseDN);
+        baseEntry = getEntry(aBaseDN);
       }
       catch (Exception e)
       {
@@ -1260,10 +1270,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (baseEntry == null)
       {
         // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(baseDN, searchScope);
+        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
 
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
-        DN matchedDN = getMatchedDN(baseDN);
+        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
+        DN matchedDN = getMatchedDN(aBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
       }
@@ -1309,7 +1319,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
      * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
      * "ou=people,dc=example,dc=com".
      */
-    byte[] baseDNKey = JebFormat.dnToDNKey(baseDN,
+    byte[] baseDNKey = JebFormat.dnToDNKey(aBaseDN,
                                              this.baseDN.getNumComponents());
     byte[] suffix = Arrays.copyOf(baseDNKey, baseDNKey.length+1);
     suffix[suffix.length-1] = 0x00;
@@ -1515,7 +1525,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     SearchScope searchScope = searchOperation.getScope();
-    DN baseDN = searchOperation.getBaseDN();
+    DN aBaseDN = searchOperation.getBaseDN();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
     boolean continueSearch = true;
 
@@ -1616,15 +1626,15 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             {
               // Check if this entry is an immediate child.
               if ((entryDN.getNumComponents() ==
-                baseDN.getNumComponents() + 1) &&
-                entryDN.isDescendantOf(baseDN))
+                aBaseDN.getNumComponents() + 1) &&
+                entryDN.isDescendantOf(aBaseDN))
               {
                 isInScope = true;
               }
             }
             else if (searchScope == SearchScope.WHOLE_SUBTREE)
             {
-              if (entryDN.isDescendantOf(baseDN))
+              if (entryDN.isDescendantOf(aBaseDN))
               {
                 isInScope = true;
               }
@@ -1632,8 +1642,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
             {
               if ((entryDN.getNumComponents() >
-              baseDN.getNumComponents()) &&
-              entryDN.isDescendantOf(baseDN))
+              aBaseDN.getNumComponents()) &&
+              entryDN.isDescendantOf(aBaseDN))
               {
                 isInScope = true;
               }
@@ -1705,7 +1715,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Entry baseEntry = null;
       try
       {
-        baseEntry = getEntry(baseDN);
+        baseEntry = getEntry(aBaseDN);
       }
       catch (Exception e)
       {
@@ -1719,10 +1729,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (baseEntry == null)
       {
         // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(baseDN, searchScope);
+        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
 
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
-        DN matchedDN = getMatchedDN(baseDN);
+        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
+        DN matchedDN = getMatchedDN(aBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
       }

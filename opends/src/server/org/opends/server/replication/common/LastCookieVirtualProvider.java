@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.replication.common;
@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
@@ -164,9 +165,11 @@ public class LastCookieVirtualProvider
    */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
-    // We will not allow searches based only on user-defined virtual attributes.
+    // We do not allow search for the lastCookie. It's a read-only
+    // attribute of the RootDSE.
     return false;
   }
 
@@ -180,7 +183,9 @@ public class LastCookieVirtualProvider
                             SearchOperation searchOperation)
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-    return;
+    final Message message = ERR_LASTCOOKIE_VATTR_NOT_SEARCHABLE.get(
+            rule.getAttributeType().getNameOrOID());
+    searchOperation.appendErrorMessage(message);
   }
 
 

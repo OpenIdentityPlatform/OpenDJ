@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -134,7 +135,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
               (UserDefinedVirtualAttributeProvider) rule.getProvider();
 
           assertFalse(provider.isMultiValued());
-          assertFalse(provider.isSearchable(rule, searchOperation));
+          assertFalse(provider.isSearchable(rule, searchOperation, false));
+          assertFalse(provider.isSearchable(rule, searchOperation, true));
 
           provider.processSearch(rule, searchOperation);
           assertEquals(searchOperation.getResultCode(),
@@ -201,7 +203,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
               (UserDefinedVirtualAttributeProvider) rule.getProvider();
 
           assertTrue(provider.isMultiValued());
-          assertFalse(provider.isSearchable(rule, searchOperation));
+          assertFalse(provider.isSearchable(rule, searchOperation, false));
+          assertFalse(provider.isSearchable(rule, searchOperation, true));
 
           provider.processSearch(rule, searchOperation);
           assertEquals(searchOperation.getResultCode(),

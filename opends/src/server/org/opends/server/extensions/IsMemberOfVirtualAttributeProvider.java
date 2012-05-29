@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -304,11 +304,18 @@ public class IsMemberOfVirtualAttributeProvider
    *   <LI>It is an AND filter in which at least one of the components is an
    *       equality filter targeting the associated attribute type.</LI>
    * </UL>
+   * Searching for this virtual attribute cannot be pre-indexed and thus,
+   * it should not be searchable when pre-indexed is required.
    */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
+    if (isPreIndexed)
+    {
+      return false;
+    }
     return isSearchable(rule.getAttributeType(), searchOperation.getFilter(),
                         0);
   }
