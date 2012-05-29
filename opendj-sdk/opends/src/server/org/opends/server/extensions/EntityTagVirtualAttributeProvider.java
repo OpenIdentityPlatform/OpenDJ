@@ -7,14 +7,14 @@
  * with the License.
  *
  * You can obtain a copy of the license at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE
- * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
  * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
@@ -216,11 +216,12 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
   /**
-   * {@inheritDoc}.
+   * {@inheritDoc}
    */
   @Override()
   public boolean isSearchable(final VirtualAttributeRule rule,
-      final SearchOperation searchOperation)
+                              final SearchOperation searchOperation,
+                              final boolean isPreIndexed)
   {
     // ETags cannot be searched since there is no way to determine which entry
     // is associated with a particular ETag.

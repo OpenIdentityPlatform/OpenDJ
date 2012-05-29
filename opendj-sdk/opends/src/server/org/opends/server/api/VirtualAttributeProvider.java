@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -633,18 +634,19 @@ public abstract class VirtualAttributeProvider
    * Indicates whether this attribute may be included in search
    * filters as part of the criteria for locating entries.
    *
-   * @param  rule             The virtual attribute rule which defines
-   *                          the constraints for the virtual
-   *                          attribute.
-   * @param  searchOperation  The search operation for which to make
-   *                          the determination.
-   *
-   * @return  {@code true} if this attribute may be included in search
-   *          filters, or {@code false} if not.
+   * @param rule             The virtual attribute rule which defines
+   *                         the constraints for the virtual
+   *                         attribute.
+   * @param searchOperation  The search operation for which to make
+   *                         the determination.
+   * @param isPreIndexed     Indicates if we expect the search on the virtual
+   *                         attribute to be faster than an index search.
+   * @return {@code true} if this attribute may be included in search
+   * filters, or {@code false} if not.
    */
   public abstract boolean isSearchable(VirtualAttributeRule rule,
-                                       SearchOperation
-                                            searchOperation);
+                                       SearchOperation searchOperation,
+                                       boolean isPreIndexed);
 
 
 

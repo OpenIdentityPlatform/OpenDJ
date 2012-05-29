@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -1127,7 +1127,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
 
-    assertEquals(provider.isSearchable(rule, new LocalBackendSearchOperation(searchOperation)), isSearchable);
+    assertEquals(provider.isSearchable(rule,
+        new LocalBackendSearchOperation(searchOperation), false), isSearchable);
+    // isMemberOf is not searchable with preIndexed set to true
+    assertEquals(provider.isSearchable(rule,
+        new LocalBackendSearchOperation(searchOperation), true), false);
   }
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -149,7 +150,9 @@ public class TestDN extends TypesTestCase {
         { "cn=#a" }, { "cn=#ag" }, { "cn=#ga" }, { "cn=#abcdefgh" },
         { "cn=a\\b" }, { "cn=a\\bg" }, { "cn=\"hello" },
         {"cn=+mail=,dc=example,dc=com"},{"cn=xyz+sn=,dc=example,dc=com"},
-        {"cn=,dc=example,dc=com"}};
+        {"cn=,dc=example,dc=com"},
+//        {"cn=a+cn=b,dc=example,dc=com"}
+    };
   }
 
 

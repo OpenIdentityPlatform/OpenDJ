@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -247,20 +248,12 @@ public class HasSubordinatesVirtualAttributeProvider
 
 
   /**
-   * {@inheritDoc}.  This virtual attribute will support search operations only
-   * if one of the following is true about the search filter:
-   * <UL>
-   *   <LI>It is an equality filter targeting the associated attribute
-   *       type.</LI>
-   *   <LI>It is an AND filter in which at least one of the components is an
-   *       equality filter targeting the associated attribute type.</LI>
-   *   <LI>It is an OR filter in which all of the components are equality
-   *       filters targeting the associated attribute type.</LI>
-   * </UL>
+   * {@inheritDoc}
    */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
-                              SearchOperation searchOperation)
+                              SearchOperation searchOperation,
+                              boolean isPreIndexed)
   {
     return false;
   }
