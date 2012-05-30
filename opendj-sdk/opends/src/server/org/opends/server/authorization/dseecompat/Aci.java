@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2012 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -122,7 +122,7 @@ public class Aci
      * all operational attributes.
      */
     public  static final String ATTR_NAME =
-              "((?i)[a-z\\d]{1}[[a-z]\\d-_.;]*(?-i)|\\*{1}|\\+{1})";
+              "((?i)[a-z\\d]{1}[[a-z]\\d-_.]*(?-i)|\\*{1}|\\+{1})";
 
     /**
       * Regular expression matching a LDAP URL.
