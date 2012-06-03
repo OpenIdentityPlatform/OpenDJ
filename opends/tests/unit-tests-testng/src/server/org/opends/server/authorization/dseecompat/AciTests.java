@@ -299,7 +299,7 @@ public class AciTests extends AciTestCase {
   private static final String TARG_ATTR_FILTERS_BAD_FORMAT =  "delete=cn;(&(cn=foo)(cn=f*)) && sn:(sn=joe*)";
   private static final String TARG_ATTR_FILTERS_TOO_MANY_LISTS = TARG_ATTR_FILTERS_1 + "," + TARG_ATTR_FILTERS_4 + "," + TARG_ATTR_FILTERS_1;
   private static final String TARG_ATTR_FILTERS_BAD_TOK =  "delete=cn:(&(cn=foo)(cn=f*)) && sn:(sn=joe*) || pager:(pager=123-*)";
-  private static final String TARG_ATTR_FILTERS_ATTR_TYPE_NAME =  "del=cn:(&(cn=foo)(cn=f*)) && 1sn_;:(1sn_;=joe*)";
+  private static final String TARG_ATTR_FILTERS_ATTR_TYPE_NAME =  "del=cn:(&(cn=foo)(cn=f*)) && 1sn_:(1sn_=joe*)";
 
   private static final String SELF_MODIFY_ACI = "aci: (targetattr=\"*\")(version 3.0; acl \"self modify\";allow(all) userdn=\"userdn=\"ldap:///self\";)";
 
@@ -603,9 +603,10 @@ public class AciTests extends AciTestCase {
     //These are four are OpenDS specific attr names
     buildAciValue("name", "opends targetattr", "targetattr", "1-digitinfirst", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "opendstargetattr", "targetattr", "this_has_underscores", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "locality targetattr", "targetattr", "locality;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "oid targetattr", "targetattr", " 2.16.840.1.113730.3.3.2.18.1.4", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "complicated targetattr", "targetattr", "1ocal_ity;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+    // OpenDJ 2.5 doesn't support acis with options
+    // buildAciValue("name", "locality targetattr", "targetattr", "locality;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+    // buildAciValue("name", "complicated targetattr", "targetattr", "1ocal_ity;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
 
     buildAciValue("name", "w/ * targetattr", "targetattr", "*", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ non-existing attr", "targetattr", "notanattr", "allow (write)", BIND_RULE_USERDN_SELF),       // DS 5.2p4 accepts this so we should too.
@@ -737,15 +738,19 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "too_many_lists", "targattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_tok", "targattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_targetfilter", "targetfilter","this is a bad filter", "allow (write)", BIND_RULE_USERDN_SELF),
-         buildAciValue("name", "bad targetScope", "targetScope", "sub_tree", "allow (write)", BIND_RULE_USERDN_SELF),
-         buildAciValue("name", "bad right", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all, foo)", BIND_RULE_USERDN_SELF),
-         buildAciValue("name", "bad access type", "targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
-         //no name
-         buildAciValue("targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
-         buildAciValue("name", "bad groupdn url", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap:///bogus\""),
-         buildAciValue("name", "bad groupdn url2", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap1:///bogus\""),
-         //Roledn keyword is not supported anymore.
-         buildAciValue("name", "unsupported roledn", "targetattr", "*", "allow (all)", "roledn=\"ldap:///cn=foo, dc=bar\""),
+          buildAciValue("name", "bad targetScope", "targetScope", "sub_tree", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad right", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all, foo)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad access type", "targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
+          //no name
+          buildAciValue("targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad groupdn url", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap:///bogus\""),
+          buildAciValue("name", "bad groupdn url2", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap1:///bogus\""),
+          //Roledn keyword is not supported anymore.
+          buildAciValue("name", "unsupported roledn", "targetattr", "*", "allow (all)", "roledn=\"ldap:///cn=foo, dc=bar\""),
+          // OpenDJ 2.5 doesn't support acis with options
+          buildAciValue("name", "unsupported option in targetattr", "targetattr", "locality;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "complicated unsupported option in targetattr", "targetattr", "1ocal_ity;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+
 // </PASSES>
   };
 
