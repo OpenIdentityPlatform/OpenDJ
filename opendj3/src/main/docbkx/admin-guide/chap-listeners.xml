@@ -418,6 +418,52 @@
     <screen>$ stop-ds --restart</screen>
    </step>
   </procedure>
+
+  <procedure xml:id="access-jmx">
+   <title>To Configure Access To JMX</title>
+
+   <para>After you set up OpenDJ directory server to listen for JMX connections,
+   you must assign privileges in order to allow a user to connect over
+   protocol.</para>
+
+   <step>
+    <para>Assign the privileges, <literal>jmx-notify</literal>,
+    <literal>jmx-read</literal>, and <literal>jmx-write</literal> as
+    necessary to the user who connects over JMX.</para>
+    <para>See the section on <link xlink:href="admin-guide#configure-privileges"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+    Privileges</citetitle></link> for details.</para>
+   </step>
+   <step>
+    <para>Connect using the service URI, user name, and password.</para>
+    <variablelist>
+     <varlistentry>
+      <term>Service URI</term>
+      <listitem>
+       <para>Full URI to the service including the hostname or IP address
+       and port number for JMX where OpenDJ directory server listens for
+       connections. For example, if the server IP is
+       <literal>192.168.0.10</literal> and you configured OpenDJ to listen
+       for JMX connections on port 1689, then the service URI is
+       <literal>service:jmx:rmi:///jndi/rmi://192.168.0.10:1689/org.opends.server.protocols.jmx.client-unknown</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>User name</term>
+      <listitem>
+       <para>The full DN of the user with privileges to connect over JMX such
+       as <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>Password</term>
+      <listitem>
+       <para>The bind password for the user.</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </step>
+  </procedure>
  </section>
 
  <section xml:id="ldif-access">
