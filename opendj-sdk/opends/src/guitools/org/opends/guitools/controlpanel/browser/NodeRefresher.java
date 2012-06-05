@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -277,33 +278,35 @@ public class NodeRefresher extends AbstractNodeTask {
         changeStateTo(State.READING_LOCAL_ENTRY);
         runReadLocalEntry();
       }
-      if (controller.getFollowReferrals() && isReferralEntry(localEntry)) {
-        changeStateTo(State.SOLVING_REFERRAL);
-        runSolveReferral();
-      }
-      if (node.isLeaf()) {
-        changeStateTo(State.DETECTING_CHILDREN);
-        runDetectChildren();
-      }
-      if (controller.nodeIsExpanded(node) && recursive) {
-        changeStateTo(State.SEARCHING_CHILDREN);
-        runSearchChildren();
-        /* If the node is not expanded, we have to refresh its children
-          when we expand it */
-      } else if (recursive  && (!node.isLeaf() || !isLeafNode)) {
-        node.setRefreshNeededOnExpansion(true);
-        checkExpand = true;
-      }
-      changeStateTo(State.FINISHED);
-      if (checkExpand && mustAutomaticallyExpand(node))
-      {
-        SwingUtilities.invokeLater(new Runnable()
+      if (!isInFinalState()) {
+        if (controller.getFollowReferrals() && isReferralEntry(localEntry)) {
+          changeStateTo(State.SOLVING_REFERRAL);
+          runSolveReferral();
+        }
+        if (node.isLeaf()) {
+          changeStateTo(State.DETECTING_CHILDREN);
+          runDetectChildren();
+        }
+        if (controller.nodeIsExpanded(node) && recursive) {
+          changeStateTo(State.SEARCHING_CHILDREN);
+          runSearchChildren();
+          /* If the node is not expanded, we have to refresh its children
+            when we expand it */
+        } else if (recursive  && (!node.isLeaf() || !isLeafNode)) {
+          node.setRefreshNeededOnExpansion(true);
+          checkExpand = true;
+        }
+        changeStateTo(State.FINISHED);
+        if (checkExpand && mustAutomaticallyExpand(node))
         {
-          public void run()
+          SwingUtilities.invokeLater(new Runnable()
           {
-            controller.expandNode(node);
-          }
-        });
+            public void run()
+            {
+              controller.expandNode(node);
+            }
+          });
+        }
       }
     }
     catch (NamingException ne)
@@ -331,7 +334,11 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private boolean useCustomFilter()
   {
-    return !controller.getFilter().equals(BrowserController.ALL_OBJECTS_FILTER);
+    boolean result=false;
+    if (controller.getFilter()!=null)
+      result =
+        !controller.getFilter().equals(BrowserController.ALL_OBJECTS_FILTER);
+    return result;
   }
 
   /**
@@ -424,45 +431,49 @@ public class NodeRefresher extends AbstractNodeTask {
   private void runReadLocalEntry() throws SearchAbandonException {
     BasicNode node = getNode();
     InitialLdapContext ctx = null;
-
     try {
       ctx = controller.findConnectionForLocalEntry(node);
 
-      if (useCustomFilter())
-      {
-        // Check that the entry verifies the filter
-        searchForCustomFilter(node, ctx);
-      }
+      if (ctx != null) {
+        if (useCustomFilter())
+        {
+          // Check that the entry verifies the filter
+          searchForCustomFilter(node, ctx);
+        }
 
-      SearchControls ctls = controller.getBasicSearchControls();
-      ctls.setReturningAttributes(controller.getAttrsForRedSearch());
-      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+        SearchControls ctls = controller.getBasicSearchControls();
+        ctls.setReturningAttributes(controller.getAttrsForRedSearch());
+        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
 
-      NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
+        NamingEnumeration<SearchResult> s =
+                ctx.search(new LdapName(node.getDN()),
                 controller.getObjectSearchFilter(),
                 ctls);
-      try
-      {
-        while (s.hasMore())
+        try
         {
-          localEntry = s.next();
-          localEntry.setName(node.getDN());
+          while (s.hasMore())
+          {
+            localEntry = s.next();
+            localEntry.setName(node.getDN());
 
+          }
         }
-      }
-      finally
-      {
-        s.close();
-      }
-      if (localEntry == null) {
-        /* Not enough rights to read the entry or the entry simply does not
+        finally
+        {
+          s.close();
+        }
+        if (localEntry == null) {
+          /* Not enough rights to read the entry or the entry simply does not
            exist */
-        throw new NameNotFoundException("Can't find entry: "+node.getDN());
+          throw new NameNotFoundException("Can't find entry: "+node.getDN());
+        }
+        throwAbandonIfNeeded(null);
+      } else {
+          changeStateTo(State.FINISHED);
       }
-      throwAbandonIfNeeded(null);
     }
     catch(NamingException x) {
-      throwAbandonIfNeeded(x);
+        throwAbandonIfNeeded(x);
     }
     finally {
       if (ctx != null) {
