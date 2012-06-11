@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 profiq s.r.o.
+ *      Copyright 2011-2012 profiq s.r.o.
  *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.plugins;
@@ -449,6 +449,9 @@ public final class SambaPasswordPlugin extends
   // The name of the Samba account object class.
   private static final String SAMBA_SAM_ACCOUNT_OC_NAME = "sambaSAMAccount";
 
+  // The name of the Samba last password change attribute.
+  private static final String SAMBA_PWD_LAST_SET_NAME = "sambaPwdLastSet";
+
   /**
    * Debug tracer object to log debugging information.
    */
@@ -464,6 +467,18 @@ public final class SambaPasswordPlugin extends
    */
   private static final String MAGIC_STR = "KGS!@#$%";
 
+  // Default timestamp provider implementation.
+  private static final TimeStampProvider DEFAULT_TIMESTAMP_PROVIDER =
+  new TimeStampProvider()
+  {
+    public long getCurrentTime()
+    {
+      return System.currentTimeMillis() / 1000L;
+    }
+  };
+
+  // Use the default implementation of the timestamp provider... by default.
+  private TimeStampProvider timeStampProvider = DEFAULT_TIMESTAMP_PROVIDER;
 
 
   /**
@@ -980,6 +995,11 @@ public final class SambaPasswordPlugin extends
         modifications
             .add(new Modification(ModificationType.REPLACE, attribute));
       }
+      final Attribute pwdLastSet = Attributes.create(
+        SAMBA_PWD_LAST_SET_NAME,
+        String.valueOf(timeStampProvider.getCurrentTime()));
+      modifications
+            .add(new Modification(ModificationType.REPLACE, pwdLastSet));
     }
     catch (final Exception e)
     {
@@ -1060,5 +1080,30 @@ public final class SambaPasswordPlugin extends
       }
     }
 
+  }
+
+  /**
+   * Timestamp provider interface. Intended primarily for testing purposes.
+   */
+  static interface TimeStampProvider
+  {
+    /**
+     * Generates a custom time stamp.
+     *
+     * @return  A timestamp in UNIX format.
+     */
+    long getCurrentTime();
+  }
+
+  /**
+   * Use custom timestamp provider. Intended primarily for testing purposes.
+   *
+   * @param timeStampProvider Provider object that implements the
+   * TimeStampProvider intreface.
+   */
+  void setTimeStampProvider(TimeStampProvider timeStampProvider)
+  {
+    this.timeStampProvider = (timeStampProvider == null)
+                             ? DEFAULT_TIMESTAMP_PROVIDER : timeStampProvider;
   }
 }
