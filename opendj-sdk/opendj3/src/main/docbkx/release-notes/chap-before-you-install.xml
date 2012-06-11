@@ -105,7 +105,7 @@ opendj hard nofile 131072</programlisting>
    <para>Apple Mac OS X 10.7</para>
   </listitem>
   <listitem>
-   <para>Linux 2.6</para>
+   <para>Linux 2.6 and later</para>
   </listitem>
   <listitem>
    <para>Microsoft Windows Server 2008</para>
