@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 profiq s.r.o.
+ *      Copyright 2011-2012 profiq s.r.o.
  *      Portions copyright 2011 ForgeRock AS.
  */
 
@@ -46,6 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.extensions.ExtensionsConstants;
+import org.opends.server.plugins.SambaPasswordPlugin.TimeStampProvider;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -581,7 +582,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getDN());
     assertNotNull(entry);
-
+    
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
 
     assertNull(sambaAttribute);
@@ -662,5 +663,196 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     assertThatPasswordsAreEqualTo(testEntry,
         "8846f7eaee8fb117ad06bdd830b7586c", "e52cac67419a9a224a3b108f3fa6cb6d");
     TestCaseUtils.deleteEntry(testEntry);
+  }
+
+  /**
+   * Test if the plugin properly updates the modifications list with the
+   * 'sambaPwdLastSetAttr' attribute.
+   * @throws Exception
+   */
+  @Test
+  public void testSambaPwdLastSetAttrThroughLDAPModify()
+    throws Exception
+  {
+    SambaPasswordPlugin plugin = (SambaPasswordPlugin)
+      DirectoryServer.getPluginConfigManager().getRegisteredPlugin(
+        DN.decode("cn=samba password,cn=Plugins,cn=config"));
+
+    TimeStampProvider testTimeStampProvider = new TimeStampProvider()
+    {
+      public long getCurrentTime()
+      {
+        return 1339012789L;
+      }
+
+    };
+
+    // Test entry
+    Entry testEntry = TestCaseUtils.makeEntry(
+      "dn: uid=test.user1,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "objectClass: sambaSAMAccount",
+        "uid: test.user",
+        "cn: Test User",
+        "givenName: Test",
+        "sn: User",
+        "sambaSID: 123",
+        "userPassword: password");
+    
+    try
+    {
+      plugin.setTimeStampProvider(testTimeStampProvider);
+
+      TestCaseUtils.addEntry(testEntry);
+
+      // Perform the modify operation
+      InternalClientConnection conn = InternalClientConnection
+          .getRootConnection();
+
+      LinkedList<Modification> mods = new LinkedList<Modification>();
+
+      mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
+          "userPassword", "password")));
+
+      ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+
+      assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
+
+      Attribute sambaPwdLastSetAttr =
+        Attributes.create("sambapwdlastset", String.valueOf(1339012789L));
+      boolean attrPresent = false;
+
+      for (Modification mod : modOp.getModifications())
+      {
+        if (mod.getAttribute().equals(sambaPwdLastSetAttr))
+        {
+          attrPresent = true;
+          break;
+        }
+      }
+
+      assertTrue(attrPresent);
+
+      TestCaseUtils.deleteEntry(testEntry);
+    }
+    finally
+    {
+      plugin.setTimeStampProvider(null);
+    }
+  }
+
+  /**
+   * Test if the plugin properly updates the 'sambaPwdLastSet' attribute when
+   * the password is changed through the PMEO.
+   * @param authzID
+   * @throws Exception
+   */
+  @Test(dataProvider="authzID")
+  public void testSambaPwdLastSetAttrThroughPWEOA(String authzID)
+    throws Exception
+  {
+    SambaPasswordPlugin plugin = (SambaPasswordPlugin)
+      DirectoryServer.getPluginConfigManager().getRegisteredPlugin(
+        DN.decode("cn=samba password,cn=Plugins,cn=config"));
+
+    TimeStampProvider testTimeStampProvider = new TimeStampProvider()
+    {
+      public long getCurrentTime()
+      {
+        return 1339012789L;
+      }
+
+    };
+
+    // Test entry
+    Entry testEntry = TestCaseUtils.makeEntry(
+      "dn: uid=test.user,o=test",
+       "objectClass: top",
+       "objectClass: person",
+       "objectClass: organizationalPerson",
+       "objectClass: inetOrgPerson",
+       "objectClass: sambaSAMAccount",
+       "uid: test.user",
+       "cn: Test User",
+       "givenName: Test", "sn: User",
+       "sambaSID: 123",
+       "userPassword: password");
+
+    try
+    {
+      plugin.setTimeStampProvider(testTimeStampProvider);
+
+      TestCaseUtils.addEntry(testEntry);
+
+      // Perform the extended operation
+      InternalClientConnection conn = InternalClientConnection
+          .getRootConnection();
+
+      /*
+       * Create the Password Modify Extended Operation request. It has the
+       * following format: passwdModifyOID OBJECT IDENTIFIER ::=
+       * 1.3.6.1.4.1.4203.1.11.1 PasswdModifyRequestValue ::= SEQUENCE {
+       * userIdentity [0] OCTET STRING OPTIONAL oldPasswd [1] OCTET STRING
+       * OPTIONAL newPasswd [2] OCTET STRING OPTIONAL }
+       */
+      ByteStringBuilder bsBuilder = new ByteStringBuilder();
+      ASN1Writer writer = ASN1.getWriter(bsBuilder);
+
+      // Start the sequence
+
+      writer.writeStartSequence();
+
+      // Write the authzID of the entry we are changing.
+      writer.writeOctetString(ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID,
+          authzID);
+
+      /*
+       * Since we perform the operation as ROOT, we don't have to put the old
+       * password writer.writeOctetString(
+       * ExtensionsConstants.TYPE_PASSWORD_MODIFY_OLD_PASSWORD, "");
+       */
+
+      // Write the new password
+      writer.writeOctetString(
+          ExtensionsConstants.TYPE_PASSWORD_MODIFY_NEW_PASSWORD, "password");
+
+      // End the sequence
+
+      writer.writeEndSequence();
+
+      ExtendedOperation extOp = conn.processExtendedOperation(
+          ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
+
+      assert (extOp.getResultCode() == ResultCode.SUCCESS);
+
+      // Verification of the result
+
+      Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+      assertNotNull(entry);
+
+      Attribute sambaPwdLastSetAttr =
+        Attributes.create("sambapwdlastset", String.valueOf(1339012789L));
+
+      boolean attrPresent = false;
+
+      for (Attribute attr : entry.getAttribute("sambapwdlastset"))
+      {
+        if (attr.equals(sambaPwdLastSetAttr))
+        {
+          attrPresent = true;
+          break;
+        }
+      }
+
+      assertTrue(attrPresent);
+      TestCaseUtils.deleteEntry(testEntry);
+    }
+    finally
+    {
+      plugin.setTimeStampProvider(null);
+    }
   }
 }
