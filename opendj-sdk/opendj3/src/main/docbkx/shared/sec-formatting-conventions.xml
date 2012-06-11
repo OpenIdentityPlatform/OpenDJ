@@ -46,6 +46,12 @@
  <filename>/path/to/OpenDJ</filename>, even if the text applies to
  <filename>C:\path\to\OpenDJ</filename> as well.</para>
 
+ <para>Absolute path names usually begin with the placeholder
+ <filename>/path/to/</filename>, which might translate to
+ <filename>/opt/</filename>, <filename>C:\Program Files\</filename>, or
+ somewhere else on your system. Unless you install from native packages,
+ you create this location before you install.</para>
+
  <programlisting language='java'>class Test
 {
     public static void main(String [] args)
