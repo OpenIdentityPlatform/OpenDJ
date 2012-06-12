@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
@@ -41,6 +43,23 @@ import org.testng.annotations.Test;
  * ClassPropertyDefinition Tester.
  */
 public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
+
+  // Dummy class for testing.
+  public static final class Dummy
+  {
+    public class X {}
+    public Comparator<Dummy> comparator()
+    {
+      return new Comparator<ClassPropertyDefinitionTest.Dummy>()
+      {
+        public int compare(Dummy o1, Dummy o2)
+        {
+          // No implementation required.
+          return 0;
+        }
+      };
+    }
+  }
 
   ClassPropertyDefinition.Builder builder = null;
 
@@ -58,16 +77,10 @@ public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
   @DataProvider(name = "testBuilderAddInstanceOf")
   public Object[][] createBuilderAddInstanceOfData() {
     return new Object[][]{
-            { "java.awt.Container" },
-            { "java.awt.Container$1" },
-            { "java.awt.Container$2$1" },
-            { "java.awt.Container$2" },
-            { "java.awt.Container$AccessibleAWTContainer$AccessibleContainerHandler" },
-            { "java.awt.Container$DropTargetEventTargetFilter" },
-            { "java.awt.Container$EventTargetFilter" },
-            { "java.awt.Container$MouseEventTargetFilter" },
-            { "java.awt.Container$WakingRunnable" },
-            { "java.awt.Container$AccessibleAWTContainer" }
+            { "org.opends.server.admin.ClassPropertyDefinitionTest" },
+            { "org.opends.server.admin.ClassPropertyDefinitionTest$Dummy" },
+            { "org.opends.server.admin.ClassPropertyDefinitionTest$Dummy$X" },
+            { "org.opends.server.admin.ClassPropertyDefinitionTest$Dummy$1" },
     };
   }
 
