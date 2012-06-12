@@ -697,7 +697,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       if (debugEnabled())
       {
         TRACER.debugInfo("Returning stored auth failure time list of %d " +
-            "elements for user %s" +
+            "elements for user %s",
             authFailureTimes.size(), userDNString);
       }
 
@@ -837,7 +837,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       highestFailureTime = currentTime;
     }
-    failureTimes.add(highestFailureTime);
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
@@ -846,16 +845,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       type = DirectoryServer.getDefaultAttributeType(
                                   OP_ATTR_PWPOLICY_FAILURE_TIME);
     }
-
-    AttributeBuilder builder = new AttributeBuilder(type);
-    for (Long l : failureTimes)
-    {
-      builder.add(AttributeValues.create(type,
-          GeneralizedTimeSyntax.format(l)));
-    }
-
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
 
     Attribute addAttr = Attributes.create(type, AttributeValues.create(type,
         GeneralizedTimeSyntax.format(highestFailureTime)));
