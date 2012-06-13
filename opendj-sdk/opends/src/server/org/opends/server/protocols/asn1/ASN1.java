@@ -23,21 +23,23 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
 
 
+import static org.opends.server.util.ServerConstants.*;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.ByteSequenceReader;
+
 
 
 /**
@@ -232,9 +234,32 @@ public final class ASN1
    */
   public static ASN1Writer getWriter(ByteStringBuilder builder)
   {
+    return getWriter(builder, DEFAULT_MAX_INTERNAL_BUFFER_SIZE);
+  }
+
+
+
+  /**
+   * Gets an ASN.1 writer whose destination is the provided byte string builder.
+   *
+   * @param builder
+   *          The byte string builder to use.
+   * @param maxInternalBufferSize
+   *          The threshold capacity beyond which internal cached buffers used
+   *          for encoding and decoding protocol messages will be trimmed after
+   *          use.
+   * @return The new ASN.1 writer.
+   */
+  public static ASN1Writer getWriter(ByteStringBuilder builder,
+      int maxInternalBufferSize)
+  {
+    if (maxInternalBufferSize <= 0)
+    {
+      throw new IllegalArgumentException();
+    }
     ByteSequenceOutputStream outputStream = new ByteSequenceOutputStream(
-        builder);
-    return getWriter(outputStream);
+        builder, maxInternalBufferSize);
+    return getWriter(outputStream, maxInternalBufferSize);
   }
 
 
@@ -249,54 +274,31 @@ public final class ASN1
    */
   public static ASN1Writer getWriter(OutputStream stream)
   {
-    return new ASN1OutputStreamWriter(stream);
+    return getWriter(stream, DEFAULT_MAX_INTERNAL_BUFFER_SIZE);
   }
 
 
 
   /**
-   * Gets an ASN.1 writer whose destination is the provided writable
-   * byte channel and which will use a 4KB buffer.
-   * <p>
-   * The NIO {@code ByteBuffer} will be flushed to the channel
-   * automatically when full or when the {@code ASN1Writer.flush()}
-   * method is called.
+   * Gets an ASN.1 writer whose destination is the provided output
+   * stream.
    *
-   * @param channel
-   *          The writable byte channel.
-   * @param writeLock
-   *          The write lock to use when flushing to the destination.
+   * @param stream
+   *          The output stream to use.
+   * @param maxInternalBufferSize
+   *          The threshold capacity beyond which internal cached buffers used
+   *          for encoding and decoding protocol messages will be trimmed after
+   *          use.
    * @return The new ASN.1 writer.
    */
-  public static ASN1Writer getWriter(WritableByteChannel channel,
-                                     ReentrantLock writeLock)
+  public static ASN1Writer getWriter(OutputStream stream,
+      int maxInternalBufferSize)
   {
-    return new ASN1ByteChannelWriter(channel, writeLock, 4096);
-  }
-
-
-
-  /**
-   * Gets an ASN.1 writer whose destination is the provided writable
-   * byte channel.
-   * <p>
-   * The NIO {@code ByteBuffer} will be flushed to the channel
-   * automatically when full or when the {@code ASN1Writer.flush()}
-   * method is called.
-   *
-   * @param channel
-   *          The writable byte channel.
-   * @param writeLock
-   *          The write lock to use when flushing to the destination.
-   * @param bufferSize
-   *          The buffer size to use when writing to the channel.
-   * @return The new ASN.1 writer.
-   */
-  public static ASN1Writer getWriter(WritableByteChannel channel,
-                                     ReentrantLock writeLock,
-                                     int bufferSize)
-  {
-    return new ASN1ByteChannelWriter(channel, writeLock, bufferSize);
+    if (maxInternalBufferSize <= 0)
+    {
+      throw new IllegalArgumentException();
+    }
+    return new ASN1OutputStreamWriter(stream, maxInternalBufferSize);
   }
 
 

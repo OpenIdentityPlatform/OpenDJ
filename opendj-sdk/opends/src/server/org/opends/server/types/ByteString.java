@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -33,6 +34,8 @@ import static org.opends.server.util.ServerConstants.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.StaticUtils;
@@ -489,6 +492,16 @@ public final class ByteString implements ByteSequence
   {
     stream.write(buffer, offset, length);
     return stream;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int copyTo(WritableByteChannel channel) throws IOException
+  {
+    return channel.write(ByteBuffer.wrap(buffer, offset, length));
   }
 
 

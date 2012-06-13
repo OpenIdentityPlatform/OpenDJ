@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.types;
@@ -153,6 +154,16 @@ public class ByteStringBuilderTest extends ByteSequenceTest
     bs.byteAt(0);
   }
 
+  @Test(dataProvider = "builderProvider",
+      expectedExceptions = IndexOutOfBoundsException.class)
+  public void testClearWithNewCapacity(ByteStringBuilder bs, byte[] ba)
+  {
+    bs.clear(123);
+    Assert.assertEquals(bs.length(), 0);
+    Assert.assertEquals(bs.capacity(), 123);
+    bs.byteAt(0);
+  }
+
   @Test
   public void testEnsureAdditionalCapacity()
   {
@@ -176,9 +187,9 @@ public class ByteStringBuilderTest extends ByteSequenceTest
   {
     ByteStringBuilder bsb = new ByteStringBuilder();
     bsb.append(eightBytes);
-    Assert.assertTrue(bsb.getBackingArray().length > 8);
+    Assert.assertTrue(bsb.capacity() > 8);
     bsb.trimToSize();
-    Assert.assertEquals(bsb.getBackingArray().length, 8);
+    Assert.assertEquals(bsb.capacity(), 8);
   }
 
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
@@ -242,5 +253,15 @@ public class ByteStringBuilderTest extends ByteSequenceTest
     ByteStringBuilder bsb = new ByteStringBuilder();
     ByteArrayInputStream stream = new ByteArrayInputStream(new byte[5]);
     Assert.assertEquals(bsb.append(stream, 10), 5);
+  }
+
+  @Test
+  public void testSetByteAt() throws Exception
+  {
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    bsb.append(0L);
+    Assert.assertEquals(bsb.byteAt(0), 0);
+    bsb.setByteAt(0, (byte) 0xff);
+    Assert.assertEquals(bsb.byteAt(0), (byte) 0xff);
   }
 }

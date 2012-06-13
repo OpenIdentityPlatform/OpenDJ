@@ -147,8 +147,8 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
           {
             // Avoid extra copy if ByteBuffer is array based.
             wrappedDataBytes = saslContext.wrap(unwrappedData.array(),
-                unwrappedData.arrayOffset(), wrapSize);
-            unwrappedData.position(unwrappedData.position() + wrapSize);
+                unwrappedData.arrayOffset() + unwrappedData.position(),
+                wrapSize);
           }
           else
           {
@@ -156,8 +156,8 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
             unwrappedData.get(sendUnwrappedBytes, 0, wrapSize);
             wrappedDataBytes = saslContext
                 .wrap(sendUnwrappedBytes, 0, wrapSize);
-            unwrappedData.position(unwrappedData.position() + wrapSize);
           }
+          unwrappedData.position(unwrappedData.position() + wrapSize);
 
           // Encode SASL packet: 4 byte length + wrapped data.
           if (sendWrappedBuffer.capacity() < wrappedDataBytes.length + 4)

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.types;
@@ -33,7 +34,10 @@ import org.testng.Assert;
 
 import java.util.Arrays;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Abstract test case for the ByteSequence interface.
@@ -121,6 +125,24 @@ public abstract class ByteSequenceTest extends TypesTestCase
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     bs.copyTo(stream);
     Assert.assertTrue(Arrays.equals(stream.toByteArray(), ba));
+  }
+
+  @Test(dataProvider = "byteSequenceProvider")
+  public void testCopyToWritableByteChannel(ByteSequence bs, byte[] ba) throws Exception
+  {
+    final ByteStringBuilder dst = new ByteStringBuilder();
+    WritableByteChannel channel = new WritableByteChannel()
+    {
+      public boolean isOpen() { return true; }
+      public void close() throws IOException { }
+      public int write(ByteBuffer src) throws IOException
+      {
+        dst.append(src, src.remaining());
+        return dst.length();
+      }
+    };
+    bs.copyTo(channel);
+    Assert.assertEquals(bs, dst);
   }
 
   @Test(dataProvider = "byteSequenceProvider")

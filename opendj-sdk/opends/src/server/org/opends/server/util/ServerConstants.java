@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS
+ *      Portions Copyright 2010-2012 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -2035,6 +2035,13 @@ public final class ServerConstants
    * "(&(&(&(&(&(&(&(&(&....".
    */
   public static final int MAX_NESTED_FILTER_DEPTH = 100;
+
+
+
+  /**
+   * Default maximum size for cached protocol/entry encoding buffers.
+   */
+  public static final int DEFAULT_MAX_INTERNAL_BUFFER_SIZE = 32 * 1024;
 
 
 

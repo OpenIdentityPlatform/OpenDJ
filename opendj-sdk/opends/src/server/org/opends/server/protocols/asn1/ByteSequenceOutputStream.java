@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
@@ -36,18 +37,26 @@ import java.io.IOException;
  * with the outputstream interface.
  */
 final class ByteSequenceOutputStream extends OutputStream {
+  private static final int BUFFER_INIT_SIZE = 32;
 
   private final ByteStringBuilder buffer;
+  private final int maxInternalBufferSize;
 
   /**
    * Creates a new byte string builder output stream.
    *
    * @param buffer
    *          The underlying byte string builder.
+   * @param maxInternalBufferSize
+   *          The threshold capacity beyond which internal cached buffers used
+   *          for encoding and decoding protocol messages will be trimmed after
+   *          use.
    */
-  ByteSequenceOutputStream(ByteStringBuilder buffer)
+  ByteSequenceOutputStream(ByteStringBuilder buffer, int maxInternalBufferSize)
   {
     this.buffer = buffer;
+    this.maxInternalBufferSize = Math.max(maxInternalBufferSize,
+        BUFFER_INIT_SIZE);
   }
 
   /**
@@ -98,18 +107,25 @@ final class ByteSequenceOutputStream extends OutputStream {
   }
 
   /**
-   * Resets this output stream such that the underlying byte string
-   * builder is empty.
+   * Resets this output stream such that the underlying byte string builder is
+   * empty, and also has a capacity which is not too big.
    */
   void reset()
   {
-    buffer.clear();
+    if (buffer.capacity() > maxInternalBufferSize)
+    {
+      buffer.clear(BUFFER_INIT_SIZE);
+    }
+    else
+    {
+      buffer.clear();
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   public void close() throws IOException {
-    buffer.clear();
+    reset();
   }
 }
