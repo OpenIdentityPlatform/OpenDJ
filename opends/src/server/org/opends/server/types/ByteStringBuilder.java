@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -34,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.loggers.debug.DebugTracer;
@@ -182,6 +185,16 @@ public final class ByteStringBuilder implements ByteSequence
       // Protect against reallocation: use builder's buffer.
       stream.write(buffer, subOffset, subLength);
       return stream;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int copyTo(WritableByteChannel channel) throws IOException
+    {
+      return channel.write(ByteBuffer.wrap(buffer, subOffset, subLength));
     }
 
 
@@ -516,7 +529,7 @@ public final class ByteStringBuilder implements ByteSequence
    *          builder.
    * @param length
    *          The maximum number of bytes to be appended from {@code
-   *          buffer}.
+   *          stream}.
    * @return The number of bytes read from the input stream, or
    *         {@code -1} if the end of the input stream has been
    *         reached.
@@ -540,6 +553,41 @@ public final class ByteStringBuilder implements ByteSequence
       this.length += bytesRead;
     }
 
+    return bytesRead;
+  }
+
+
+
+  /**
+   * Appends the provided {@code ReadableByteChannel} to this byte string
+   * builder.
+   *
+   * @param channel
+   *          The {@code ReadableByteChannel} to be appended to this byte string
+   *          builder.
+   * @param length
+   *          The maximum number of bytes to be appended from {@code channel}.
+   * @return The number of bytes read, possibly zero, or {@code -1} if the
+   *         channel has reached end-of-stream
+   * @throws IOException
+   *           If some other I/O error occurs
+   * @throws IndexOutOfBoundsException
+   *           If {@code length} is less than zero.
+   * @see ReadableByteChannel#read(ByteBuffer)
+   */
+  public int append(ReadableByteChannel channel, int length)
+      throws IndexOutOfBoundsException, IOException
+  {
+    if (length < 0)
+    {
+      throw new IndexOutOfBoundsException();
+    }
+    ensureAdditionalCapacity(length);
+    int bytesRead = channel.read(ByteBuffer.wrap(buffer, this.length, length));
+    if (bytesRead > 0)
+    {
+      this.length += bytesRead;
+    }
     return bytesRead;
   }
 
@@ -759,6 +807,19 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
+   * Returns the current capacity of this byte string builder. The capacity may
+   * increase as more data is appended.
+   *
+   * @return The current capacity of this byte string builder.
+   */
+  public int capacity()
+  {
+    return buffer.length;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   public int compareTo(byte[] b, int offset, int length)
@@ -802,9 +863,40 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
+   * Sets the length of this byte string builder to zero, and resets the
+   * capacity to the specified size.
+   * <p>
+   * <b>NOTE:</b> if this method is called, then
+   * {@code ByteSequenceReader.rewind()} must also be called on any associated
+   * byte sequence readers in order for them to remain valid.
+   *
+   * @param capacity
+   *          The new capacity.
+   * @return This byte string builder.
+   * @throws IllegalArgumentException
+   *           If the {@code capacity} is negative.
+   * @see #asReader()
+   */
+  public ByteStringBuilder clear(int capacity) throws IllegalArgumentException
+  {
+    if (capacity < 0)
+    {
+      throw new IllegalArgumentException();
+    }
+    if (capacity != buffer.length)
+    {
+      buffer = new byte[capacity];
+    }
+    length = 0;
+    return this;
+  }
+
+
+
+  /**
    * Attempts to compress the data in this buffer into the given
-   * buffer. Note that if copmpression was not successful, then the
-   * data in the destination buffer should be considered invalid.
+   * buffer. Note that if compression was not successful, then the
+   * destination buffer will remain unchanged.
    *
    * @param output
    *          The destination buffer of compressed data.
@@ -821,7 +913,7 @@ public final class ByteStringBuilder implements ByteSequence
     output.ensureAdditionalCapacity(length);
 
     int compressedSize = cryptoManager.compress(buffer, 0, length,
-        output.buffer, output.length, output.buffer.length);
+        output.buffer, output.length, output.buffer.length - output.length);
 
     if (compressedSize != -1)
     {
@@ -891,6 +983,16 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
+   * {@inheritDoc}
+   */
+  public int copyTo(WritableByteChannel channel) throws IOException
+  {
+    return channel.write(ByteBuffer.wrap(buffer, 0, length));
+  }
+
+
+
+  /**
    * Ensures that the specified number of additional bytes will fit in
    * this byte string builder and resizes it if necessary.
    *
@@ -900,12 +1002,11 @@ public final class ByteStringBuilder implements ByteSequence
    */
   public ByteStringBuilder ensureAdditionalCapacity(int size)
   {
-    int newCount = this.length + size;
+    int newCount = length + size;
     if (newCount > buffer.length)
     {
-      byte[] newbuffer =
-          new byte[Math.max(buffer.length << 1, newCount)];
-      System.arraycopy(buffer, 0, newbuffer, 0, buffer.length);
+      byte[] newbuffer = new byte[Math.max(buffer.length << 1, newCount)];
+      System.arraycopy(buffer, 0, newbuffer, 0, length);
       buffer = newbuffer;
     }
     return this;
@@ -1003,6 +1104,34 @@ public final class ByteStringBuilder implements ByteSequence
   public int length()
   {
     return length;
+  }
+
+
+
+  /**
+   * Sets the byte value at the specified index.
+   * <p>
+   * An index ranges from zero to {@code length() - 1}. The first byte value of
+   * the sequence is at index zero, the next at index one, and so on, as for
+   * array indexing.
+   *
+   * @param index
+   *          The index of the byte to be set.
+   * @param b
+   *          The new byte value.
+   * @return This byte string builder.
+   * @throws IndexOutOfBoundsException
+   *           If the index argument is negative or not less than length().
+   */
+  public ByteStringBuilder setByteAt(int index, byte b)
+      throws IndexOutOfBoundsException
+  {
+    if (index >= length || index < 0)
+    {
+      throw new IndexOutOfBoundsException();
+    }
+    buffer[index] = b;
+    return this;
   }
 
 
@@ -1106,9 +1235,8 @@ public final class ByteStringBuilder implements ByteSequence
 
   /**
    * Attempts to uncompress the data in this buffer into the given
-   * destination buffer. Note that if decompression was not
-   * successful, then the data in the destination buffer should be
-   * considered invalid.
+   * destination buffer. Note that if uncompression was not
+   * successful, then the destination buffer will remain unchanged.
    *
    * @param output
    *          The destination buffer of compressed data.
@@ -1132,14 +1260,14 @@ public final class ByteStringBuilder implements ByteSequence
       output.ensureAdditionalCapacity(uncompressedSize);
 
     int decompressResult = cryptoManager.uncompress(buffer, 0, length,
-        output.buffer, output.length, output.buffer.length);
+        output.buffer, output.length, output.buffer.length - output.length);
 
     if (decompressResult < 0)
     {
-      // The destiation buffer wasn't big enough. Resize and retry.
+      // The destination buffer wasn't big enough. Resize and retry.
       output.ensureAdditionalCapacity(-(decompressResult));
       decompressResult = cryptoManager.uncompress(buffer, 0, length,
-          output.buffer, output.length, output.buffer.length);
+          output.buffer, output.length, output.buffer.length - output.length);
     }
 
     if (decompressResult >= 0)

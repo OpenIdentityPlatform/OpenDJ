@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
@@ -48,22 +49,30 @@ final class ASN1OutputStreamWriter implements ASN1Writer
   private static final DebugTracer TRACER = getTracer();
 
   private final OutputStream rootStream;
-  private OutputStream out;
   private final ArrayList<ByteSequenceOutputStream> streamStack;
+  private final int maxInternalBufferSize;
+  private OutputStream out;
   private int stackDepth;
+
+
 
   /**
    * Creates a new ASN.1 output stream reader.
    *
    * @param stream
    *          The underlying output stream.
+   * @param maxInternalBufferSize
+   *          The threshold capacity beyond which internal cached buffers used
+   *          for encoding and decoding protocol messages will be trimmed after
+   *          use.
    */
-  ASN1OutputStreamWriter(OutputStream stream)
+  ASN1OutputStreamWriter(OutputStream stream, int maxInternalBufferSize)
   {
     this.out = stream;
     this.rootStream = stream;
     this.streamStack = new ArrayList<ByteSequenceOutputStream>();
     this.stackDepth = -1;
+    this.maxInternalBufferSize = maxInternalBufferSize;
   }
 
   /**
@@ -470,14 +479,16 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     // Make sure we have a cached sub-stream at this depth
     if(stackDepth >= streamStack.size())
     {
-      ByteSequenceOutputStream subStream =
-          new ByteSequenceOutputStream(new ByteStringBuilder());
+      ByteSequenceOutputStream subStream = new ByteSequenceOutputStream(
+          new ByteStringBuilder(), maxInternalBufferSize);
       streamStack.add(subStream);
       out = subStream;
     }
     else
     {
-      out = streamStack.get(stackDepth);
+      ByteSequenceOutputStream childStream = streamStack.get(stackDepth);
+      childStream.reset(); // Precaution.
+      out = childStream;
     }
 /*
     if(debugEnabled())
@@ -535,28 +546,41 @@ final class ASN1OutputStreamWriter implements ASN1Writer
   }
 
   /**
-   * Closes this ASN.1 writer and the underlying outputstream. Any unfinished
-   * sequences will be ended.
-   *
-   * @throws IOException if an error occurs while closing the stream.
+   * {@inheritDoc}
    */
-  public void close() throws IOException {
-    while(stackDepth >= 0)
+  public void close() throws IOException
+  {
+    try
+    {
+      flush();
+    }
+    finally
+    {
+      try
+      {
+        rootStream.close();
+      }
+      finally
+      {
+        // Reset for next usage in case where the root stream is reusable (e.g.
+        // ByteStringBuilder).
+        stackDepth = -1;
+        out = rootStream;
+      }
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void flush() throws IOException
+  {
+    while (stackDepth >= 0)
     {
       writeEndSequence();
     }
-    rootStream.flush();
-
-    streamStack.clear();
-    rootStream.close();
-  }
-
-  /**
-   * Flushes the stream.
-   *
-   * @throws IOException If an I/O error occurs
-   */
-  public void flush() throws IOException {
     rootStream.flush();
   }
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -30,6 +31,7 @@ package org.opends.server.types;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.WritableByteChannel;
 
 
 
@@ -212,6 +214,21 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *           OutputStream}.
    */
   OutputStream copyTo(OutputStream stream) throws IOException;
+
+
+
+  /**
+   * Copies the entire contents of this byte sequence to the provided
+   * {@code WritableByteChannel}.
+   *
+   * @param channel
+   *          The {@code WritableByteChannel} to copy to.
+   * @return The number of bytes written, possibly zero
+   * @throws IOException
+   *           If some other I/O error occurs
+   * @see WritableByteChannel#write(java.nio.ByteBuffer)
+   */
+  int copyTo(WritableByteChannel channel) throws IOException;
 
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
@@ -35,7 +36,7 @@ import java.io.ByteArrayOutputStream;
 public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase
 {
   private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-  private ASN1Writer writer = new ASN1OutputStreamWriter(outStream);
+  private ASN1Writer writer = ASN1.getWriter(outStream);
 
   @Override
   ASN1Writer getWriter()

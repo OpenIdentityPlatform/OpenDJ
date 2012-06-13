@@ -24,7 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2012 ForgeRock AS
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.opends.server.admin.std"
@@ -892,6 +892,34 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-max-psearches</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-internal-buffer-size" advanced="true">
+    <adm:synopsis>
+      The threshold capacity beyond which internal cached buffers used for
+      encoding and decoding entries and protocol messages will be trimmed
+      after use.
+    </adm:synopsis>
+    <adm:description>
+      Individual buffers may grow very large when encoding and decoding
+      large entries and protocol messages and should be reduced in size when
+      they are no longer needed. This setting specifies the threshold at which
+      a buffer is determined to have grown too big and should be trimmed down
+      after use.  
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>32 KB</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <!--  Upper limit to force 32-bit value -->
+      <adm:size lower-limit="512 B" upper-limit="1 GB"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-internal-buffer-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
