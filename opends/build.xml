@@ -182,7 +182,7 @@
 
   <!-- The build target that should be used before committing code. -->
   <target name="precommit" depends="initPrecommit,clean,dynamicconstants,
-       checkstyle,checkprecommit,dsml,testwithcoverage"
+       checkstyle,checkprecommit,dsml,test"
        description="Perform all processing needed before committing code.">
   </target>
 
@@ -200,7 +200,7 @@
 
   <!-- The build target that should be used for test part of nightly builds. -->
   <target name="nightlytests"
-       depends="coverage,testallwithcoverage"
+       depends="testall"
        description="Perform all processing related to unit tests for nightly builds.">
   </target>
 
@@ -215,7 +215,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,docgen,testallwithcoverage"
+       depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,docgen,testall"
        description="Build using all defined targets.">
   </target>
 
