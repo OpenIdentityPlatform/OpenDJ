@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-support'
@@ -35,7 +35,7 @@
  from ForgeRock and from consulting partners around the world and in your
  area. To contact ForgeRock, send mail to <link
  xlink:href='mailto:info@forgerock.com'>info@forgerock.com</link>. To find a
- partner in your area, see <link
- xlink:href='http://www.forgerock.com/partners.html'
- >http://www.forgerock.com/partners.html</link>.</para>
+ partner in your area, see <link xlink:show="new"
+ xlink:href="http://www.forgerock.com/content/consulting-partners"
+ >http://www.forgerock.com/content/consulting-partners</link>.</para>
 </chapter>
