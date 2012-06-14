@@ -837,7 +837,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       highestFailureTime = currentTime;
     }
+    // Update the current policy state
+    failureTimes.add(highestFailureTime);
 
+    // And the attribute in the user entry
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
     if (type == null)
