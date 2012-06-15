@@ -75,12 +75,127 @@
  
  <section xml:id="troubleshoot-installation">
   <title>Troubleshooting Installation &amp; Upgrade</title>
- 
+
   <para>Installation and upgrade procedures result in a log file tracing
   the operation. The log location differs by operating system, but look for
   lines in the command output of the following form.</para>
   
   <literallayout class="monospaced">See /var/....log for a detailed log of this operation.</literallayout>
+ </section>
+
+ <section xml:id="troubleshoot-reset-admin-passwords">
+  <title>Resetting Administrator Passwords</title>
+
+  <para>This section describes what to do if you forgot the password for
+  Directory Manager or for the global (replication) administrator.</para>
+
+  <procedure xml:id="reset-directory-manager-password">
+   <title>Resetting the Directory Manager's Password</title>
+   <indexterm>
+    <primary>Resetting passwords</primary>
+    <secondary>cn=Directory Manager</secondary>
+   </indexterm>
+
+   <para>OpenDJ directory server stores the entry for Directory Manager in
+   the LDIF representation of its configuration. You must be able to edit
+   directory server files in order to reset Directory Manager's password.</para>
+
+   <step>
+    <para>Generate the encoded version of the new password using the OpenDJ
+    <command>encode-password</command> command.</para>
+    <screen>$ cd /path/to/OpenDJ/bin/
+$ ./encode-password --storageScheme SSHA512 --clearPassword password
+Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
+ NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt"</screen>
+   </step>
+
+   <step>
+    <para>Stop OpenDJ directory server while you edit the configuration.</para>
+    <screen>$ ./stop-ds</screen>
+   </step>
+
+   <step>
+    <para>Find Directory Manager's entry, which has DN <literal>cn=Directory
+    Manager,cn=Root DNs,cn=config</literal>, in
+    <filename>/path/to/OpenDJ/config/config.ldif</filename>, and carefully
+    replace the <literal>userpassword</literal> attribute value with the
+    encoded version of the new password, taking care not to leave any
+    whitespace at the end of the line.</para>
+    <programlisting language="ldif"
+    >dn: cn=Directory Manager,cn=Root DNs,cn=config
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: ds-cfg-root-dn-user
+objectClass: top
+userpassword: {SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
+ NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt
+givenName: Directory
+cn: Directory Manager
+ds-cfg-alternate-bind-dn: cn=Directory Manager
+sn: Manager
+ds-pwp-password-policy-dn: cn=Root Password Policy,cn=Password Policies
+ ,cn=config
+ds-rlim-time-limit: 0
+ds-rlim-lookthrough-limit: 0
+ds-rlim-idle-time-limit: 0
+ds-rlim-size-limit: 0</programlisting>
+   </step>
+
+   <step>
+    <para>Start OpenDJ directory server again.</para>
+    <screen>$ ./start-ds</screen>
+   </step>
+
+   <step>
+    <para>Verify that you can administer the server as Directory Manager using
+    the new password.</para>
+    <screen>$ ./dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+
+
+&gt;&gt;&gt;&gt; OpenDJ configuration console main menu
+
+What do you want to configure?
+
+...
+
+Enter choice: q</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="reset-repl-admin-password">
+   <title>To Reset the Global Administrator's Password</title>
+   <indexterm>
+    <primary>Resetting passwords</primary>
+    <secondary>Global (replication) administrator</secondary>
+   </indexterm>
+
+   <para>When you enable replication, part of the process involves creating a
+   global administrator and setting that user's password. This user is present
+   on all replicas. If you chose default values, this user has DN
+   <literal>cn=admin,cn=Administrators,cn=admin data</literal>. You reset the
+   password as you would for any other user, though you do so as Directory
+   Manager.</para>
+
+   <step>
+    <para>Use the <command>ldappasswordmodify</command> command to reset the
+    global administrator's password</para>
+    <screen>$ cd /path/to/OpenDJ/bin/
+$ ./ldappasswordmodify
+ --useStartTLS
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "cn=admin,cn=Administrators,cn=admin data"
+ --newPassword password
+The LDAP password modify operation was successful</screen>
+   </step>
+
+   <step>
+    <para>Let replication copy the password change to other replicas.</para>
+   </step>
+  </procedure>
  </section>
 
  <section xml:id="troubleshoot-use-lockdown-mode">

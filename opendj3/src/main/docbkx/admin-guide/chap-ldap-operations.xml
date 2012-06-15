@@ -939,7 +939,10 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
   
   <example xml:id="password-reset">
    <title>Password Reset</title>
-   
+   <indexterm>
+    <primary>Resetting passwords</primary>
+   </indexterm>
+
    <para>The following example shows Kirsten Vaughan resetting Sam Carter's
    password. Kirsten has the appropriate privilege to reset Sam's
    password.</para>
@@ -1031,39 +1034,6 @@ cn: Barbara Jensen
 cn: Babs Jensen
 </screen>
   </example>
-
-  <tip xml:id="fix-forgotten-directory-manager-pwd">
-   <para>If you forget the password for <literal>cn=Directory Manager</literal>,
-   then one remedy uses the following steps.</para>
-    <orderedlist>
-     <listitem>
-      <para>Generate an encoded password value using the
-      <command>encode-password</command> command.</para>
-      <para>By default, the password for Directory Manager uses the SSHA512
-      password storage scheme. In the following example, the encoded password
-      is wrapped to fit on a printed page.</para>
-      <screen>$ encode-password --storageScheme SSHA512 --interactivePassword
-Please enter the password :
-Please renter the password:
-Encoded Password:
- "{SSHA512}U7Kx5oYcLxdsqSrpSkBk425LwL0Z61loNfS0dBVCcEKVhMyTT
- oe3oWikDJ/AJjKEkYBg+q3VUQ5hWgrGVf7MjfDrm5mum6yI"</screen>
-     </listitem>
-     <listitem>
-      <para>Stop OpenDJ.</para>
-     </listitem>
-     <listitem>
-      <para>Edit <filename>config/config.ldif</filename>, replacing the
-      <literal>userPassword</literal> value on the entry for
-      <literal>cn=Directory Manager,cn=Root DNs,cn=config</literal> with
-      the encoded password, taking care not to leave any whitespace at the
-      end of the line.</para>
-     </listitem>
-     <listitem>
-      <para>Start OpenDJ.</para>
-     </listitem>
-    </orderedlist>
-  </tip>
  </section>
 
  <section xml:id="tools-properties">
