@@ -29,7 +29,6 @@ package org.opends.quicksetup.util;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
-import org.opends.quicksetup.Constants;
 import org.opends.server.DirectoryServerTestCase;
 
 /**

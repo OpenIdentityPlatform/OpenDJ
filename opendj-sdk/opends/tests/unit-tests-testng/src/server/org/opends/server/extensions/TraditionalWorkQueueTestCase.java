@@ -199,8 +199,8 @@ public class TraditionalWorkQueueTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(),requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),requestControls,
                                      DN.decode("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
@@ -236,8 +236,8 @@ public class TraditionalWorkQueueTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(), requestControls,
                                      DN.decode("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,

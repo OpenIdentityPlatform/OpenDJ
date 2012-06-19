@@ -28,7 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.AfterClass;
@@ -42,7 +41,6 @@ import org.opends.server.admin.std.meta.
             DigestMD5SASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.
             DigestMD5SASLMechanismHandlerCfg;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;

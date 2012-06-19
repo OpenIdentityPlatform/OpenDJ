@@ -41,7 +41,6 @@ import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 

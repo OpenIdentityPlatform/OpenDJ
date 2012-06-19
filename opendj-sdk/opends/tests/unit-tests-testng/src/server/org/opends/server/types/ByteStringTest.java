@@ -31,9 +31,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
-import java.util.Arrays;
-import java.io.ByteArrayOutputStream;
-
 /**
  * This class defines a set of tests for the
  * org.opends.server.types.ByteString class.

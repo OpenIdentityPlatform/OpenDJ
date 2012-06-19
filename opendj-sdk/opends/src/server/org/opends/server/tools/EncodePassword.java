@@ -1184,7 +1184,7 @@ public class EncodePassword
         try
         {
           // attempt masking at this rate
-          this.sleep(1);
+          Thread.sleep(1);
         }
         catch (InterruptedException iex)
         {

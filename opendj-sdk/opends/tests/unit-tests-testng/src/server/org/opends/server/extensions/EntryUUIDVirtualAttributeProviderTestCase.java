@@ -471,8 +471,8 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, attrList, null);
@@ -511,8 +511,8 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, attrList, null);

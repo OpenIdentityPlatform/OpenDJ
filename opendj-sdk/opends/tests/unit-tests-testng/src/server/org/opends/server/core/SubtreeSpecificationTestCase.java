@@ -36,7 +36,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
 
 /**
  * An abstract base class for all subtree specification tests.

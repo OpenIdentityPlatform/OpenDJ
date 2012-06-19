@@ -509,8 +509,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, 1, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -602,8 +602,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, 0, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -695,8 +695,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, 3, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -787,8 +787,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, -1, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -845,8 +845,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(3, 3, 1, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -902,8 +902,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(3, 3, 30, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -974,8 +974,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, 7, 0));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -1066,8 +1066,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -1160,8 +1160,8 @@ public class VLVControlTestCase
                                               ByteString.valueOf("aaccf")));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -1254,8 +1254,8 @@ public class VLVControlTestCase
                                               ByteString.valueOf("albert")));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -1348,8 +1348,8 @@ public class VLVControlTestCase
                                               ByteString.valueOf("albert")));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -1442,8 +1442,8 @@ public class VLVControlTestCase
     requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),

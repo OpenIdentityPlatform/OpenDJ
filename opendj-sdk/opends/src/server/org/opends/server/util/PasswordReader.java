@@ -103,7 +103,7 @@ public final class PasswordReader
 
         try
         {
-          currentThread.sleep(1);
+          Thread.sleep(1);
         }
         catch (InterruptedException ie)
         {

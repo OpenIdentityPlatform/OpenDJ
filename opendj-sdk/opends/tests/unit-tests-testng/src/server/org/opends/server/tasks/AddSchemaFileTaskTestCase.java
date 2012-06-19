@@ -38,11 +38,9 @@ import org.testng.annotations.BeforeClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRule;
 import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;

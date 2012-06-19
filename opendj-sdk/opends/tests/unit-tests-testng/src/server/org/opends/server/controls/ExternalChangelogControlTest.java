@@ -27,7 +27,6 @@
 package org.opends.server.controls;
 
 import static org.opends.server.util.ServerConstants.OID_ECL_COOKIE_EXCHANGE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_PERSISTENT_SEARCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -37,9 +36,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

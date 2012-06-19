@@ -659,6 +659,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
   private void add1Clicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = availableList.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {
@@ -674,6 +675,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
   private void add2Clicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = availableList.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {
@@ -689,6 +691,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
   private void remove1Clicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = selectedList1.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {
@@ -704,6 +707,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
   private void remove2Clicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = selectedList2.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {

@@ -27,17 +27,12 @@ package org.opends.server.tools.dsconfig;
 
 
 
-import java.io.File;
-import java.io.FileWriter;
-
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.core.DirectoryServer;
-
 import static org.testng.Assert.*;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;

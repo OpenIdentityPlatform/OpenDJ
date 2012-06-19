@@ -84,6 +84,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -706,8 +707,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
         InternalSearchOperation internalSearch =
-             new InternalSearchOperation(conn, conn.nextOperationID(),
-                                         conn.nextMessageID(), requestControls,
+             new InternalSearchOperation(conn, nextOperationID(),
+                                         nextMessageID(), requestControls,
                                          baseDN,
                                          SearchScope.WHOLE_SUBTREE,
                                          DereferencePolicy.NEVER_DEREF_ALIASES,

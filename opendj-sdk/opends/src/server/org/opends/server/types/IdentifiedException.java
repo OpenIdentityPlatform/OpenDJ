@@ -43,6 +43,13 @@ public abstract class IdentifiedException
        extends OpenDsException
 {
   /**
+   * Generated serialization ID.
+   */
+  private static final long serialVersionUID = 7071843225564003122L;
+
+
+
+  /**
    * Creates a new identified exception.
    */
   protected IdentifiedException()

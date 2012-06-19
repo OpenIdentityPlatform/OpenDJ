@@ -111,6 +111,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
+    @SuppressWarnings("deprecation")
     Object[] backends = list.getSelectedValues();
     ArrayList<BackendDescriptor> backendsToDelete =
       new ArrayList<BackendDescriptor>();

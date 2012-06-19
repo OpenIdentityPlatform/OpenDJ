@@ -503,7 +503,8 @@ public abstract class CommonEntryCacheTestCase
 
     cache.putEntry(testEntriesList.get(0), b, 1);
     Entry testEntry = testEntriesList.get(1);
-    testEntry.setDN(testEntry.getDN().decode(
+    testEntry.getDN();
+    testEntry.setDN(DN.decode(
       testEntry.getDN().getRDN() + ",cn=config"));
     cache.putEntry(testEntry, c, 1);
     cache.clearSubtree(DN.decode("o=test"));

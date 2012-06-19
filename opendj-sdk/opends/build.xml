@@ -168,7 +168,15 @@
   <!-- Prevent ant runtime from being included on classpath during
        compilation. -->  
   <presetdef name="javac">
-    <javac includeantruntime="false" />
+    <javac optimize="true" includeantruntime="false"
+        debug="on" debuglevel="${build.debuglevel}"
+        deprecation="true" fork="true"
+        memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+      <compilerarg value="-Xlint:-rawtypes" />
+      <compilerarg value="-Xlint:-static" />
+      <compilerarg value="-Xlint:-unchecked" />
+    </javac>
   </presetdef>
 
   <!-- Create a package bundle containing the DSML library. -->
@@ -594,11 +602,7 @@
     <mkdir dir="${build.lib.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true"
-         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+         destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -625,11 +629,7 @@
   <target name="compilequicksetup" depends="buildtools,compile"
           description="Compile the Quick Setup source files.">
     <mkdir dir="${quicksetup.classes.dir}" />
-    <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
+    <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -637,29 +637,20 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
-               debug="on" debuglevel="${build.debuglevel}"
-               deprecation="true" fork="true" memoryInitialSize="${MEM}"
-               memoryMaximumSize="${MEM}">
+    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
       <include name="**/org/opends/messages/Message.java"/>
-    	<include name="**/org/opends/messages/MessageBuilder.java"/>
+      <include name="**/org/opends/messages/MessageBuilder.java"/>
       <include name="**/org/opends/messages/MessageDescriptor.java"/>
       <include name="**/org/opends/messages/Severity.java"/>
       <include name="**/org/opends/messages/Category.java"/>
       <include name="**/org/opends/messages/QuickSetupMessages.java"/>
       <include name="**/org/opends/server/types/OpenDsException.java"/>
-    <compilerarg value="-Xlint:all" />
     </javac>
-    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -763,12 +754,7 @@
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+         destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -804,11 +790,7 @@
 
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
-    <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
+    <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -816,10 +798,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
-                       debug="on" debuglevel="${build.debuglevel}"
-                       deprecation="true" fork="true" memoryInitialSize="${MEM}"
-                       memoryMaximumSize="${MEM}">
+    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
@@ -831,13 +810,8 @@
       <include name="**/org/opends/messages/Category.java"/>
       <include name="**/org/opends/messages/QuickSetupMessages.java"/>
       <include name="**/org/opends/server/types/OpenDsException.java"/>
-      <compilerarg value="-Xlint:all" />
     </javac>
-    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
-        debug="on" debuglevel="${build.debuglevel}"
-        deprecation="true" fork="true" memoryInitialSize="${MEM}"
-        memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -1254,13 +1228,8 @@
 
     <mkdir dir="${dsml.classes.dir}" />
 
-    <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
+    <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}">
       <compilerarg value="-Xlint:-path" />
-
       <classpath>
         <fileset dir="${dsml.lib.dir}">
           <include name="*.jar" />
@@ -1268,13 +1237,8 @@
       </classpath>
     </javac>
 
-    <javac srcdir="${dsml.src.dir}" destdir="${dsml.classes.dir}"
-         debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
+    <javac srcdir="${dsml.src.dir}" destdir="${dsml.classes.dir}">
       <compilerarg value="-Xlint:-path" />
-
       <classpath>
         <fileset dir="${dsml.lib.dir}">
           <include name="*.jar" />
@@ -1521,11 +1485,7 @@
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-        destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
-        deprecation="true" fork="true"
-        memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+        destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -1563,12 +1523,7 @@
 
     <!-- Compile the test cases -->
     <mkdir dir="${unittest.classes.dir}" />
-    <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}"
-           deprecation="true" fork="true" memoryInitialSize="${MEM}"
-           memoryMaximumSize="${MEM}" excludes="org/opends/server/snmp/**">
-      <compilerarg value="-Xlint:all" />
-
+    <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}" excludes="org/opends/server/snmp/**">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -2168,18 +2123,10 @@
                      org/opends/messages/MessagePropertyKey.java,
                      org/opends/messages/MessageDescriptor.java,
                      org/opends/server/types/PublicAPI.java,
-                     org/opends/server/types/StabilityLevel.java"
-           debug="on" debuglevel="${build.debuglevel}"
-           deprecation="true" fork="true" memoryInitialSize="${MEM}"
-           memoryMaximumSize="${MEM}"/>
+                     org/opends/server/types/StabilityLevel.java"/>
 
 
-    <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}"
-           deprecation="true" fork="true" memoryInitialSize="${MEM}"
-           memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+    <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}">
       <classpath>
         <fileset dir="${ant.lib.dir}">
           <include name="*.jar" />
@@ -2443,12 +2390,8 @@
 
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${snmp.gen.dir}"
-         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
-         source="1.4" target="1.4" deprecation="true" fork="true" nowarn="on"
-         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+    <javac srcdir="${snmp.gen.dir}" destdir="${classes.dir}" >
+      <compilerarg value="-Xlint:-serial" />
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -2459,12 +2402,7 @@
       </classpath>
     </javac>
 
-     <javac srcdir="${snmp.src.dir}"
-         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
-         deprecation="true" fork="true"
-         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
+     <javac srcdir="${snmp.src.dir}" destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -2521,11 +2459,7 @@
     <!-- Compile the SNMP test cases -->
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
-           debug="on" debuglevel="${build.debuglevel}"
-           deprecation="true" fork="true" memoryInitialSize="${MEM}"
-           memoryMaximumSize="${MEM}" includes="org/opends/server/snmp/**">
-      <compilerarg value="-Xlint:all" />
-
+           includes="org/opends/server/snmp/**">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />

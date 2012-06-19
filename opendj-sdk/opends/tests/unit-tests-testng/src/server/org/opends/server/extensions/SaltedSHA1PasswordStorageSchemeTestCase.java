@@ -104,7 +104,7 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
 
     scheme.initializePasswordStorageScheme(configuration);
 
-    String passwordString = scheme.encodeOffline(plaintext.toByteArray());
+    String passwordString = SaltedSHA1PasswordStorageScheme.encodeOffline(plaintext.toByteArray());
     String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);
     ByteString encodedPassword = ByteString.valueOf(pwComps[1]);
 

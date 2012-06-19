@@ -132,8 +132,8 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
             "ds-cfg-enabled", "true")));
     ModifyOperationBasis op = new ModifyOperationBasis(
         conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
         new ArrayList<Control>(),
         DN
             .decode("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),

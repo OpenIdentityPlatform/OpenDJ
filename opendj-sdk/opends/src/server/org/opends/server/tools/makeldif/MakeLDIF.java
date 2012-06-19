@@ -249,11 +249,11 @@ public class MakeLDIF
       // Initialize the Directory Server configuration handler using the
       // information that was provided.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
-      directoryServer.bootstrapClient();
+      DirectoryServer.bootstrapClient();
 
       try
       {
-        directoryServer.initializeJMX();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {

@@ -291,8 +291,8 @@ public class SimilarityBasedPasswordValidatorTestCase
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), new ArrayList<Control>(),
+           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();
@@ -367,8 +367,8 @@ public class SimilarityBasedPasswordValidatorTestCase
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), new ArrayList<Control>(),
+           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();

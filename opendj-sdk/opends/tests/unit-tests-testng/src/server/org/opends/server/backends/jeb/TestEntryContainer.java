@@ -28,19 +28,12 @@ package org.opends.server.backends.jeb;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
-import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.types.Entry;
-import org.opends.server.types.FilePermission;
 import org.opends.server.types.DN;
-import org.opends.server.util.Base64;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;

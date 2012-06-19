@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.build.tools;
 
@@ -700,7 +700,7 @@ public class GenerateMessageFile extends Task {
                               KEY_FORM_MSG);
             }
 
-            if (c == null) {
+            if (s == null) {
               throw new BuildException(
                       "No severity could be assigned to message " +
                               key + ".  The severity " +

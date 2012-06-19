@@ -39,7 +39,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.service.ReplicationBroker;

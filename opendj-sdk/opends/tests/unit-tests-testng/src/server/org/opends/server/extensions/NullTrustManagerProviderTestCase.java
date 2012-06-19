@@ -28,8 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import java.security.cert.X509Certificate;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

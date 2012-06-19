@@ -253,8 +253,8 @@ public class ListBackends
     {
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {

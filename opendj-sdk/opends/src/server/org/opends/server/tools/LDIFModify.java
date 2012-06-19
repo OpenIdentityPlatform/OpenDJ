@@ -537,7 +537,7 @@ public class LDIFModify
     {
       // Bootstrap the Directory Server configuration for use as a client.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
-      directoryServer.bootstrapClient();
+      DirectoryServer.bootstrapClient();
 
 
       // If we're to use the configuration then initialize it, along with the
@@ -547,7 +547,7 @@ public class LDIFModify
       {
         try
         {
-          directoryServer.initializeJMX();
+          DirectoryServer.initializeJMX();
         }
         catch (Exception e)
         {

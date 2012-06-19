@@ -29,7 +29,6 @@ package org.opends.server.schema;
 
 
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;

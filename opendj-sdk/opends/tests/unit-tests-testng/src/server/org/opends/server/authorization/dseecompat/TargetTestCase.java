@@ -31,17 +31,12 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ByteString;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.Assert;
-
-import javax.naming.Context;
-import java.util.Hashtable;
 
 public class TargetTestCase extends AciTestCase
 {

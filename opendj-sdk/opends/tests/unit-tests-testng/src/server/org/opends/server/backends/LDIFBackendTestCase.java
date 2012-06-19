@@ -50,18 +50,14 @@ import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDIFDiff;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
-
-import static org.opends.server.util.StaticUtils.*;
 
 
 

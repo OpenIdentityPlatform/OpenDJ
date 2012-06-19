@@ -41,6 +41,11 @@ public abstract class OpenDsException
         extends Exception
 {
 
+  /**
+   * Generated serialization ID.
+   */
+  private static final long serialVersionUID = 7310881401563732702L;
+
   /** Message that explains the problem. */
   Message message;
 

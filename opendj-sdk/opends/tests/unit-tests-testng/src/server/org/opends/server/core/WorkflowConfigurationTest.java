@@ -46,7 +46,6 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
-import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

@@ -31,8 +31,6 @@ import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertNotNull;
-
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;

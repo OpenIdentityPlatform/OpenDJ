@@ -2160,7 +2160,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // When problem found, we have to re-enable this test.
       if (false)
       {
-
         // ACI step
         debugInfo(tn, "Starting ACI step");
         s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());

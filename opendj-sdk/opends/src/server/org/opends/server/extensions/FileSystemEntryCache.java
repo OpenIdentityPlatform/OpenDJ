@@ -781,7 +781,8 @@ public class FileSystemEntryCache
           entriesExamined++;
           if ((entriesExamined % 1000) == 0) {
             cacheWriteLock.unlock();
-            Thread.currentThread().yield();
+            Thread.currentThread();
+            Thread.yield();
             cacheWriteLock.lock();
           }
         }
@@ -883,7 +884,8 @@ public class FileSystemEntryCache
         entriesExamined++;
         if ((entriesExamined % 1000) == 0) {
           cacheWriteLock.unlock();
-          Thread.currentThread().yield();
+          Thread.currentThread();
+          Thread.yield();
           cacheWriteLock.lock();
         }
       } catch (Exception e) {

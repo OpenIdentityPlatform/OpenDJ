@@ -138,7 +138,7 @@ public class AnonymousSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS, null);
     handler.processSASLBind(bindOperation);
@@ -165,7 +165,7 @@ public class AnonymousSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS, ByteString.empty());
     handler.processSASLBind(bindOperation);
@@ -191,7 +191,7 @@ public class AnonymousSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS,
                            ByteString.valueOf("Internal Trace String"));

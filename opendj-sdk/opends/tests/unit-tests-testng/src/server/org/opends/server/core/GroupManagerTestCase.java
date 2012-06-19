@@ -1416,8 +1416,8 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn0 = new InternalClientConnection(DN.nullDN());
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn0, conn0.nextOperationID(),
-                  conn0.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn0, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1442,8 +1442,8 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn1 = new InternalClientConnection(user1DN);
     searchOperation =
-         new InternalSearchOperation(conn1, conn1.nextOperationID(),
-                  conn1.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1472,8 +1472,8 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn2 = new InternalClientConnection(user2DN);
     searchOperation =
-         new InternalSearchOperation(conn2, conn2.nextOperationID(),
-                  conn2.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn2, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1502,8 +1502,8 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn3 = new InternalClientConnection(user3DN);
     searchOperation =
-         new InternalSearchOperation(conn3, conn3.nextOperationID(),
-                  conn3.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn3, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2311,8 +2311,8 @@ public class GroupManagerTestCase
     DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2337,8 +2337,8 @@ public class GroupManagerTestCase
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);
     searchOperation =
-         new InternalSearchOperation(conn1, conn1.nextOperationID(),
-                  conn1.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2387,8 +2387,8 @@ public class GroupManagerTestCase
     DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2417,8 +2417,8 @@ public class GroupManagerTestCase
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);
     searchOperation =
-         new InternalSearchOperation(conn1, conn1.nextOperationID(),
-                  conn1.nextMessageID(), null, DN.nullDN(),
+         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,

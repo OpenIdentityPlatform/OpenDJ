@@ -772,8 +772,8 @@ public class TestBackendImpl extends JebTestCase {
         InternalClientConnection.getRootConnection();
 
     DeleteOperationBasis delete = new DeleteOperationBasis(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
         deleteSubTreeControl,
 
         DN.decode("dc=test1,dc=com"));
@@ -823,8 +823,8 @@ public class TestBackendImpl extends JebTestCase {
           DN.decode("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       DeleteOperationBasis delete = new DeleteOperationBasis(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
         noControls,
 
           DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
@@ -1111,8 +1111,8 @@ public class TestBackendImpl extends JebTestCase {
       InternalClientConnection conn = InternalClientConnection
           .getRootConnection();
 
-      ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn, conn
-          .nextOperationID(), conn.nextMessageID(), noControls, DN
+      ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn, InternalClientConnection
+          .nextOperationID(), InternalClientConnection.nextMessageID(), noControls, DN
           .decode("uid=user.1,ou=People,dc=test,dc=com"), modifications);
 
       backend.replaceEntry(entry, newEntry, modifyOp);
@@ -1317,8 +1317,8 @@ public class TestBackendImpl extends JebTestCase {
           InternalClientConnection.getRootConnection();
 
       ModifyDNOperationBasis modifyDN = new ModifyDNOperationBasis(conn,
-          conn.nextOperationID(),
-          conn.nextMessageID(),
+          InternalClientConnection.nextOperationID(),
+          InternalClientConnection.nextMessageID(),
           noControls,
           DN.decode("ou=People,dc=test,dc=com"),
           RDN.decode("ou=Good People"),

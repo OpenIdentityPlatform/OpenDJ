@@ -38,11 +38,6 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.Base64;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import static org.testng.Assert.*;
 
 
@@ -420,9 +415,10 @@ public class LDIFDiffTestCase
     File newTargetFile = File.createTempFile("difftest", "newtarget.ldif");
     newTargetFile.deleteOnExit();
 
+    DirectoryServer.getInstance();
     args = new String[]
     {
-      "-c", DirectoryServer.getInstance().getConfigFile(),
+      "-c", DirectoryServer.getConfigFile(),
       "-s", sourceFile,
       "-m", diffOutputFile.getAbsolutePath(),
       "-t", newTargetFile.getAbsolutePath()
@@ -508,9 +504,10 @@ public class LDIFDiffTestCase
     File newTargetFile = File.createTempFile("difftest", "newtarget.ldif");
     newTargetFile.deleteOnExit();
 
+    DirectoryServer.getInstance();
     args = new String[]
     {
-      "-c", DirectoryServer.getInstance().getConfigFile(),
+      "-c", DirectoryServer.getConfigFile(),
       "-s", sourceFile,
       "-m", diffOutputFile.getAbsolutePath(),
       "-t", newTargetFile.getAbsolutePath()

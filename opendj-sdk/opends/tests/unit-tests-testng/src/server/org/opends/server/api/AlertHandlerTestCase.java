@@ -38,7 +38,6 @@ import org.opends.messages.Message;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DummyAlertHandler;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;

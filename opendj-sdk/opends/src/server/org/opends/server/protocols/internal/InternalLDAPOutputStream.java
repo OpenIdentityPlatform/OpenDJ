@@ -41,6 +41,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -438,7 +439,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     AddOperationBasis op =
-         new AddOperationBasis(conn, conn.nextOperationID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                messageID, message.getControls(),
                                request.getDN(),
                                request.getAttributes());
@@ -487,7 +488,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     BindOperationBasis op =
-         new BindOperationBasis(conn, conn.nextOperationID(),
+         new BindOperationBasis(conn, nextOperationID(),
                   messageID, message.getControls(),
                   String.valueOf(request.getProtocolVersion()),
                   request.getDN(), request.getSimplePassword());
@@ -531,7 +532,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     CompareOperationBasis op =
-         new CompareOperationBasis(conn, conn.nextOperationID(),
+         new CompareOperationBasis(conn, nextOperationID(),
                   messageID, message.getControls(), request.getDN(),
                   request.getAttributeType(),
                   request.getAssertionValue());
@@ -571,7 +572,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     DeleteOperationBasis op =
-         new DeleteOperationBasis(conn, conn.nextOperationID(),
+         new DeleteOperationBasis(conn, nextOperationID(),
                   messageID, message.getControls(), request.getDN());
     op.run();
 
@@ -619,7 +620,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     ExtendedOperationBasis op =
-         new ExtendedOperationBasis(conn, conn.nextOperationID(),
+         new ExtendedOperationBasis(conn, nextOperationID(),
                   messageID, message.getControls(), request.getOID(),
                   request.getValue());
     op.run();
@@ -659,7 +660,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     ModifyOperationBasis op =
-         new ModifyOperationBasis(conn, conn.nextOperationID(),
+         new ModifyOperationBasis(conn, nextOperationID(),
                   messageID, message.getControls(), request.getDN(),
                   request.getModifications());
     op.run();
@@ -698,7 +699,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     ModifyDNOperationBasis op =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
+         new ModifyDNOperationBasis(conn, nextOperationID(),
                messageID, message.getControls(), request.getEntryDN(),
                request.getNewRDN(), request.deleteOldRDN(),
                request.getNewSuperior());
@@ -738,7 +739,7 @@ public final class InternalLDAPOutputStream
 
     InternalClientConnection conn = socket.getConnection();
     InternalSearchOperation op =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
+         new InternalSearchOperation(conn, nextOperationID(),
                 messageID, message.getControls(), request.getBaseDN(),
                 request.getScope(), request.getDereferencePolicy(),
                 request.getSizeLimit(), request.getTimeLimit(),

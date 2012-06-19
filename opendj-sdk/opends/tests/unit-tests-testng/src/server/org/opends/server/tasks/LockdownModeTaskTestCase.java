@@ -35,9 +35,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.SchemaTestMatchingRule;
 import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPSearch;
