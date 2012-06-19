@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS
+ *      Portions Copyright 2010-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -232,7 +232,7 @@ public final class ECLServerHandler extends ServerHandler
           // non blocking
           UpdateMsg newMsg;
           do {
-            newMsg = mh.getnextMessage(false);
+            newMsg = mh.getNextMessage(false);
             // when the replication changelog is trimmed, the last (latest) chg
             // is left in the db (whatever its age), and we don't want this chg
             // to be returned in the external changelog.
@@ -1232,7 +1232,7 @@ public final class ECLServerHandler extends ServerHandler
    * @return the next message
    */
   @Override
-  protected UpdateMsg getnextMessage(boolean synchronous)
+  protected UpdateMsg getNextMessage(boolean synchronous)
   {
     UpdateMsg msg = null;
     try
