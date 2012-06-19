@@ -72,7 +72,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   private final MsgQueue msgQueue = new MsgQueue();
   /**
-   * Late queue.
+   * Late queue. All access to the lateQueue in getNextMessage() is
+   * single-threaded. However, reads from threads calling getOlderUpdateCN()
+   * need protecting against removals performed using getNextMessage().
    */
   private final MsgQueue lateQueue = new MsgQueue();
   /**
@@ -405,7 +407,10 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         } else
         {
           /* get the next change from the lateQueue */
-          msg = lateQueue.removeFirst();
+          synchronized (msgQueue)
+          {
+            msg = lateQueue.removeFirst();
+          }
           this.updateServerState(msg);
           return msg;
         }
