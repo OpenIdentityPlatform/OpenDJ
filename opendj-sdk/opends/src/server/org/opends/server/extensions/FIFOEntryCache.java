@@ -704,7 +704,6 @@ public class FIFOEntryCache
         if ((entriesDeleted % 1000)  == 0)
         {
           cacheWriteLock.unlock();
-          Thread.currentThread();
           Thread.yield();
           cacheWriteLock.lock();
         }
@@ -812,7 +811,6 @@ public class FIFOEntryCache
       if ((entriesExamined % 1000) == 0)
       {
         cacheWriteLock.unlock();
-        Thread.currentThread();
         Thread.yield();
         cacheWriteLock.lock();
       }
