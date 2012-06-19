@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -49,7 +49,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 
 /**
  * This class implements a buffering/producer/consumer mechanism of
@@ -75,7 +74,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Late queue.
    */
-  protected MsgQueue lateQueue = new MsgQueue();
+  private final MsgQueue lateQueue = new MsgQueue();
   /**
    * Local hosting RS.
    */
@@ -195,49 +194,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get an approximation of the delay by looking at the age of the oldest
-   * message that has not been sent to this server.
-   * This is an approximation because the age is calculated using the
-   * clock of the server where the replicationServer is currently running
-   * while it should be calculated using the clock of the server
-   * that originally processed the change.
-   *
-   * The approximation error is therefore the time difference between
-   *
-   * @return the approximate delay for the connected server.
-   */
-  public long getApproxDelay()
-  {
-    long olderUpdateTime = getOlderUpdateTime();
-    if (olderUpdateTime == 0)
-      return 0;
-
-    long currentTime = TimeThread.getTime();
-    return ((currentTime - olderUpdateTime) / 1000);
-  }
-
-  /**
-   * Get the age of the older change that has not yet been replicated
-   * to the server handled by this ServerHandler.
-   * @return The age if the older change has not yet been replicated
-   *         to the server handled by this ServerHandler.
-   */
-  public Long getApproxFirstMissingDate()
-  {
-    Long result = (long) 0;
-
-    // Get the older CN received
-    ChangeNumber olderUpdateCN = getOlderUpdateCN();
-    if (olderUpdateCN != null)
-    {
-      // If not present in the local RS db,
-      // then approximate with the older update time
-      result = olderUpdateCN.getTime();
-    }
-    return result;
-  }
-
-  /**
    * Returns the Replication Server Domain to which belongs this handler.
    *
    * @param createIfNotExist    Creates the domain if it does not exist.
@@ -311,7 +267,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * @return The next update that must be sent to the consumer.
    *         null when synchronous is false and queue is empty.
    */
-  protected UpdateMsg getnextMessage(boolean synchronous)
+  protected UpdateMsg getNextMessage(boolean synchronous)
   {
     UpdateMsg msg;
     while (activeConsumer == true)
@@ -574,18 +530,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       }
     }
     return result;
-  }
-
-  /**
-   * Get the older update time for that server.
-   * @return The older update time.
-   */
-  public long getOlderUpdateTime()
-  {
-    ChangeNumber olderUpdateCN = getOlderUpdateCN();
-    if (olderUpdateCN == null)
-      return 0;
-    return olderUpdateCN.getTime();
   }
 
   /**

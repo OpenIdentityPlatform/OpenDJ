@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -72,7 +72,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 
 /**
  * This class defines a server handler  :
@@ -410,28 +409,6 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Get an approximation of the delay by looking at the age of the oldest
-   * message that has not been sent to this server.
-   * This is an approximation because the age is calculated using the
-   * clock of the server where the replicationServer is currently running
-   * while it should be calculated using the clock of the server
-   * that originally processed the change.
-   *
-   * The approximation error is therefore the time difference between
-   *
-   * @return the approximate delay for the connected server.
-   */
-  public long getApproxDelay()
-  {
-    long olderUpdateTime = getOlderUpdateTime();
-    if (olderUpdateTime == 0)
-      return 0;
-
-    long currentTime = TimeThread.getTime();
-    return ((currentTime - olderUpdateTime) / 1000);
-  }
-
-  /**
    * Get the age of the older change that has not yet been replicated
    * to the server handled by this ServerHandler.
    * @return The age if the older change has not yet been replicated
@@ -659,18 +636,6 @@ public abstract class ServerHandler extends MessageHandler
    */
   @Override
   public abstract String getMonitorInstanceName();
-
-  /**
-   * Get the older update time for that server.
-   * @return The older update time.
-   */
-  public long getOlderUpdateTime()
-  {
-    ChangeNumber olderUpdateCN = getOlderUpdateCN();
-    if (olderUpdateCN == null)
-      return 0;
-    return olderUpdateCN.getTime();
-  }
 
   /**
    * Get the count of updates sent to this server.
@@ -1144,7 +1109,7 @@ public abstract class ServerHandler extends MessageHandler
   public UpdateMsg take()
   {
     boolean interrupted = true;
-    UpdateMsg msg = getnextMessage(true); // synchronous:block until msg
+    UpdateMsg msg = getNextMessage(true); // synchronous:block until msg
 
     boolean acquired = false;
     do
