@@ -31,8 +31,6 @@ package org.opends.server.extensions;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
-import javax.net.ssl.TrustManager;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -41,14 +39,10 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.FileBasedTrustManagerProviderCfgDefn;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-
-import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
 

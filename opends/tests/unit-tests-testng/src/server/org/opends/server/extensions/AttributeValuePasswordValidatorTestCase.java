@@ -415,7 +415,7 @@ public class AttributeValuePasswordValidatorTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 

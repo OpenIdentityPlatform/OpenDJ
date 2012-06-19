@@ -111,11 +111,11 @@ public abstract class DatabaseContainer
                               database.getDatabaseName(),
                               txn.getId());
         }
-        entryContainer.transactionCommit(txn);
+        EntryContainer.transactionCommit(txn);
       }
       catch (DatabaseException e)
       {
-        entryContainer.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
         throw e;
       }
     }

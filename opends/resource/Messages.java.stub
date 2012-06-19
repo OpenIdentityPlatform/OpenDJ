@@ -63,6 +63,7 @@ public final class ${CLASS_NAME} {
   * it returns <CODE>null</CODE> if the default ClassLoader is to be
   * used.
   */
+  @SuppressWarnings("unused")
   private static ClassLoader getClassLoader()
   {
     ClassLoader cl;

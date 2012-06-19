@@ -131,7 +131,7 @@ public final class EmbeddedUtils
   public static void initializeForClientUse()
   {
     DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
+    DirectoryServer.bootstrapClient();
   }
 }
 

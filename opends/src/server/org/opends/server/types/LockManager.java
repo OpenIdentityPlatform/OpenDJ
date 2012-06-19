@@ -37,8 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 

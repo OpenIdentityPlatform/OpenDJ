@@ -1392,7 +1392,7 @@ public class PrivilegeTestCase
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1415,7 +1415,7 @@ public class PrivilegeTestCase
         Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
 
@@ -1432,8 +1432,8 @@ public class PrivilegeTestCase
 
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getDN(),
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                               InternalClientConnection.nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
 
@@ -1454,7 +1454,7 @@ public class PrivilegeTestCase
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
 
@@ -1506,8 +1506,8 @@ public class PrivilegeTestCase
 
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, conn.nextOperationID(),
-                              conn.nextMessageID(), controls, targetDN,
+         new CompareOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                              InternalClientConnection.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
@@ -1525,8 +1525,8 @@ public class PrivilegeTestCase
 
     // Test a search operation against the PWReset Target user.
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), controls, targetDN,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1588,7 +1588,7 @@ public class PrivilegeTestCase
     // with a root connection so we can do other things with it.
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1613,7 +1613,7 @@ public class PrivilegeTestCase
         Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
 
@@ -1632,8 +1632,8 @@ public class PrivilegeTestCase
 
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getDN(),
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                               InternalClientConnection.nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
 
@@ -1656,7 +1656,7 @@ public class PrivilegeTestCase
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
 
@@ -1711,8 +1711,8 @@ public class PrivilegeTestCase
 
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, conn.nextOperationID(),
-                              conn.nextMessageID(), controls, targetDN,
+         new CompareOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                              InternalClientConnection.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
@@ -1730,8 +1730,8 @@ public class PrivilegeTestCase
 
     // Test a search operation against the PWReset Target user.
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), controls, targetDN,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,

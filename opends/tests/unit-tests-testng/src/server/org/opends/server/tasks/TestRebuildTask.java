@@ -31,16 +31,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.TestTaskListener;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.backends.jeb.JebTestCase;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
-
 import java.util.UUID;
 
 public class TestRebuildTask extends TasksTestCase

@@ -132,8 +132,8 @@ public class InternalClientConnectionTestCase
   @Test(dataProvider = "internalConns")
   public void testNextOperationID(InternalClientConnection conn)
   {
-    long opID1 = conn.nextOperationID();
-    long opID2 = conn.nextOperationID();
+    long opID1 = InternalClientConnection.nextOperationID();
+    long opID2 = InternalClientConnection.nextOperationID();
     assertEquals(opID2, (opID1 + 1));
   }
 
@@ -147,8 +147,8 @@ public class InternalClientConnectionTestCase
   @Test(dataProvider = "internalConns")
   public void testNextMessageID(InternalClientConnection conn)
   {
-    int msgID1 = conn.nextMessageID();
-    int msgID2 = conn.nextMessageID();
+    int msgID1 = InternalClientConnection.nextMessageID();
+    int msgID2 = InternalClientConnection.nextMessageID();
     assertEquals(msgID2, (msgID1 + 1));
   }
 

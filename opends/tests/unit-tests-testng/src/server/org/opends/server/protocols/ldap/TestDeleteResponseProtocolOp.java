@@ -27,8 +27,6 @@
 package org.opends.server.protocols.ldap;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
-
 import org.testng.annotations.*;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.*;

@@ -39,7 +39,6 @@ import org.testng.annotations.BeforeClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.*;

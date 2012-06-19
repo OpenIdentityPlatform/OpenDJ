@@ -318,8 +318,8 @@ public class ServerSideSortControlTestCase
     requestControls.add(new ServerSideSortRequestControl("givenName"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -389,8 +389,8 @@ public class ServerSideSortControlTestCase
                                  "givenName:caseExactOrderingMatch"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -458,8 +458,8 @@ public class ServerSideSortControlTestCase
     requestControls.add(new ServerSideSortRequestControl("-givenName"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -529,8 +529,8 @@ public class ServerSideSortControlTestCase
                                  "-givenName:caseExactOrderingMatch"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -598,8 +598,8 @@ public class ServerSideSortControlTestCase
     requestControls.add(new ServerSideSortRequestControl("givenName,sn"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -667,8 +667,8 @@ public class ServerSideSortControlTestCase
     requestControls.add(new ServerSideSortRequestControl("givenName,-sn"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -736,8 +736,8 @@ public class ServerSideSortControlTestCase
     requestControls.add(new ServerSideSortRequestControl(true, "undefined"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -769,8 +769,8 @@ public class ServerSideSortControlTestCase
                                  "givenName:undefinedOrderingMatch"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
@@ -800,8 +800,8 @@ public class ServerSideSortControlTestCase
                                  "bad_sort:caseExactOrderingMatch"));
 
     InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), requestControls,
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), requestControls,
                   DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),

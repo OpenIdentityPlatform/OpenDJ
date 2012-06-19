@@ -336,20 +336,14 @@ public class MatchedValuesControlTest
             assertEquals(subInitialTestCurrent, mvf.getSubInitialElement());
           }
 
-          if (subAnyTestCurrent == null)
+          ret = mvf.getSubAnyElements();
+          assertNotNull(ret);
+          assertEquals(subAnyTestCurrent.size(), ret.size());
+          for (ByteString r : ret)
           {
-            assertNull(mvf.getSubAnyElements());
+            assertTrue(subAnyTestCurrent.contains(r));
           }
-          else
-          {
-            ret = mvf.getSubAnyElements();
-            assertNotNull(ret);
-            assertEquals(subAnyTestCurrent.size(), ret.size());
-            for (ByteString r : ret)
-            {
-              assertTrue(subAnyTestCurrent.contains(r));
-            }
-          }
+
           if (subFinalTestCurrent == null)
           {
             assertNull(mvf.getSubFinalElement());
@@ -587,7 +581,7 @@ public class MatchedValuesControlTest
     AttributeValue attVal = null ;
     if (attType != null)
     {
-      AttributeValues.create(attType, value);
+      attVal = AttributeValues.create(attType, value);
     }
 
     // Check null, null

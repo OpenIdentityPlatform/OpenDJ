@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -663,8 +662,8 @@ public class VirtualStaticGroupTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.decode("o=test"),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.decode("o=test"),
                   SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString(
@@ -738,8 +737,8 @@ public class VirtualStaticGroupTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.decode("o=test"),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), null, DN.decode("o=test"),
                   SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString(

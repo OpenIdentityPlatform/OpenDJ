@@ -118,49 +118,49 @@ public class ModifyOperationTestCase
     LDAPAttribute ldapAttr = new LDAPAttribute("description", ldapValues);
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
@@ -170,17 +170,17 @@ public class ModifyOperationTestCase
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr2));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
@@ -188,17 +188,17 @@ public class ModifyOperationTestCase
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr2));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    ByteString.valueOf("o=test"), ldapMods));
 
 
@@ -207,48 +207,48 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, DN.nullDN(),
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, DN.nullDN(),
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, DN.nullDN(),
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
@@ -257,16 +257,16 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "bar")));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, DN.nullDN(),
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
@@ -275,16 +275,16 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("cn", "bar")));
 
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, DN.nullDN(),
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), null,
                                    DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls,
+    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                                   InternalClientConnection.nextMessageID(), noControls,
                                    DN.decode("o=test"), mods));
 
 
@@ -375,7 +375,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.empty(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
@@ -399,7 +399,7 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
@@ -424,7 +424,7 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
@@ -4096,7 +4096,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.valueOf(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -4130,7 +4130,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.valueOf(baseDN), mods);
 
     modifyOperation.run();
@@ -4609,7 +4609,7 @@ responseLoop:
                                     "foo"));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, ByteString.valueOf("o=test"), mods);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

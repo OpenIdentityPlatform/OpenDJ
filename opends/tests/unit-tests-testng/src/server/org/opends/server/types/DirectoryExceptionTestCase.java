@@ -34,7 +34,6 @@ import java.util.List;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 
 import static org.testng.Assert.*;

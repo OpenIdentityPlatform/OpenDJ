@@ -42,8 +42,6 @@ import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
@@ -55,8 +53,6 @@ import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
-
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 
@@ -86,22 +82,22 @@ public class DeleteOperationTestCase
 
     return new Operation[]
     {
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           new ArrayList<Control>(), ByteString.empty()),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, ByteString.empty()),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           new ArrayList<Control>(),
                           ByteString.valueOf("o=test")),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, ByteString.valueOf("o=test")),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           new ArrayList<Control>(), DN.nullDN()),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, DN.nullDN()),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           new ArrayList<Control>(), DN.decode("o=test")),
-      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, DN.decode("o=test"))
     };
   }
@@ -141,7 +137,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
@@ -161,7 +157,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
@@ -185,7 +181,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
@@ -801,7 +797,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.valueOf("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -826,7 +822,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, ByteString.valueOf("o=test"));
 
     deleteOperation.run();
@@ -1182,7 +1178,7 @@ responseLoop:
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              controls, ByteString.valueOf("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);

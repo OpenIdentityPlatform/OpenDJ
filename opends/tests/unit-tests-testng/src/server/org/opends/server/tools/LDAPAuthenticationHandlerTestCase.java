@@ -43,14 +43,12 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
-import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.controls.PasswordPolicyRequestControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.AnonymousSASLMechanismHandler;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 
 import static org.testng.Assert.*;

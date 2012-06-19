@@ -74,8 +74,8 @@ public class InternalSearchOperationTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, conn.nextOperationID(),
-                                conn.nextMessageID(), new ArrayList<Control>(),
+    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
@@ -96,8 +96,8 @@ public class InternalSearchOperationTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, conn.nextOperationID(),
-                                conn.nextMessageID(), new ArrayList<Control>(),
+    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
@@ -122,8 +122,8 @@ public class InternalSearchOperationTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, conn.nextOperationID(),
-                                conn.nextMessageID(), new ArrayList<Control>(),
+    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 DN.nullDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
@@ -147,8 +147,8 @@ public class InternalSearchOperationTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, conn.nextOperationID(),
-                                conn.nextMessageID(), new ArrayList<Control>(),
+    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 DN.nullDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
@@ -192,8 +192,8 @@ public class InternalSearchOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -222,8 +222,8 @@ public class InternalSearchOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -253,8 +253,8 @@ public class InternalSearchOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -282,8 +282,8 @@ public class InternalSearchOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(),
+         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,

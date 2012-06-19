@@ -45,8 +45,6 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.messages.Message;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
@@ -93,8 +91,8 @@ public class AbandonOperationTestCase
 
     return new Operation[]
     {
-      new AbandonOperationBasis(conn, conn.nextOperationID(),
-                           conn.nextMessageID(),
+      new AbandonOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                           InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(), 1)
     };
   }
@@ -118,8 +116,8 @@ public class AbandonOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AbandonOperationBasis abandonOperation =
-         new AbandonOperationBasis(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), new ArrayList<Control>(), 1);
+         new AbandonOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), new ArrayList<Control>(), 1);
     assertEquals(abandonOperation.getIDToAbandon(), 1);
   }
 
@@ -135,8 +133,8 @@ public class AbandonOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AbandonOperationBasis abandonOperation =
-         new AbandonOperationBasis(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), new ArrayList<Control>(), 1);
+         new AbandonOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), new ArrayList<Control>(), 1);
 
     CancelRequest cancelRequest = new CancelRequest(true,
             Message.raw("Test Cancel"));
@@ -157,8 +155,8 @@ public class AbandonOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AbandonOperationBasis abandonOperation =
-         new AbandonOperationBasis(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), new ArrayList<Control>(), 1);
+         new AbandonOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), new ArrayList<Control>(), 1);
     assertNull(abandonOperation.getCancelRequest());
   }
 
@@ -192,8 +190,8 @@ public class AbandonOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AbandonOperationBasis abandonOperation =
-         new AbandonOperationBasis(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), new ArrayList<Control>(), 1);
+         new AbandonOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(), new ArrayList<Control>(), 1);
     abandonOperation.run();
     assertEquals(abandonOperation.getResultCode(),
                  ResultCode.CANNOT_CANCEL);

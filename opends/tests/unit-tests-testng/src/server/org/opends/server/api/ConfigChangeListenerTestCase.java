@@ -29,21 +29,15 @@ package org.opends.server.api;
 
 
 import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-
 import static org.testng.Assert.*;
 
 

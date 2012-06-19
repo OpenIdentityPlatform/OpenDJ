@@ -265,7 +265,7 @@ public class SchemaBackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -288,7 +288,7 @@ public class SchemaBackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, schemaDN);
 
     schemaBackend.deleteEntry(schemaDN, deleteOperation);
@@ -310,8 +310,8 @@ public class SchemaBackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), null,
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
+                               InternalClientConnection.nextMessageID(), null,
                                currentSchemaDN, newSchemaDN.getRDN(),
                                true, null);
 

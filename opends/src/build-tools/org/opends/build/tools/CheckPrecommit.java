@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.build.tools;
 
@@ -37,10 +38,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.FileSet;
-
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNPropertyData;
@@ -176,7 +174,7 @@ public class CheckPrecommit
 
     try
     {
-      long status = ourClientManager.getStatusClient().doStatus(workspacePath, SVNRevision.WORKING, 
+      ourClientManager.getStatusClient().doStatus(workspacePath, SVNRevision.WORKING,
               SVNDepth.INFINITY, false, false, false, false, this, null);
     }
     catch (Exception e)

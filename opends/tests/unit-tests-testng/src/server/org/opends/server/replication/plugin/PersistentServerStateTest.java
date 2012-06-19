@@ -30,9 +30,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ServerState;
 

@@ -31,7 +31,6 @@ package org.opends.server.extensions;
 import static org.testng.Assert.assertNotNull;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

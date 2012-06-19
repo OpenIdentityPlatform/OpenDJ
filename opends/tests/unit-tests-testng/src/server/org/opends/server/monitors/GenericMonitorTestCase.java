@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;

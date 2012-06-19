@@ -38,8 +38,6 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 
-import java.util.ArrayList;
-
 public class TestSearchResultEntryProtocolOp extends LdapTestCase
 {
   @BeforeClass

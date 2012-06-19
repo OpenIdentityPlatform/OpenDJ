@@ -37,7 +37,6 @@ import static org.testng.Assert.*;
 
 import java.util.LinkedHashSet;
 import java.util.Arrays;
-import java.util.ArrayList;
 
 /**
  * Test class for LDAP Search protocol operation classes.

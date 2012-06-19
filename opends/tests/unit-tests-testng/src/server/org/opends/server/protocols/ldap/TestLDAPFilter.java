@@ -37,8 +37,6 @@ import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
-
 import java.util.ArrayList;
 
 public class TestLDAPFilter extends LdapTestCase

@@ -388,8 +388,8 @@ public class DBTest
       DirectoryServer directoryServer = DirectoryServer.getInstance();
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {

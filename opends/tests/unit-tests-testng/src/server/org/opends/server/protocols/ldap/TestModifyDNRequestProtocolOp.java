@@ -35,8 +35,6 @@ import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import java.util.ArrayList;
-
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.ModifyDNRequestProtocolOp class.

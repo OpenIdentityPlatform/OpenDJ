@@ -28,8 +28,6 @@
 package org.opends.quicksetup;
 
 import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.AfterSuite;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
 
 import java.io.IOException;

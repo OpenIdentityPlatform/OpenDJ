@@ -44,8 +44,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -112,17 +110,17 @@ public class AddOperationTestCase
 
     Operation[] opArray = new Operation[]
     {
-      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                        null, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                        noControls, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                        null, entry.getDN(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
-      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                        noControls, entry.getDN(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
@@ -205,7 +203,7 @@ public class AddOperationTestCase
     ldapAttrList.add(new LDAPAttribute("ou", values));
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, ByteString.valueOf("ou=People,o=test"),
                           ldapAttrList);
     assertNotNull(addOperation.getEntryDN());
@@ -233,7 +231,7 @@ public class AddOperationTestCase
          "ou: People");
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -263,7 +261,7 @@ public class AddOperationTestCase
          "ou: People");
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -1968,7 +1966,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -2001,7 +1999,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -2533,7 +2531,7 @@ responseLoop:
     rawAttrs.add(RawAttribute.create("o", "test"));
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                           controls, ByteString.valueOf("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);

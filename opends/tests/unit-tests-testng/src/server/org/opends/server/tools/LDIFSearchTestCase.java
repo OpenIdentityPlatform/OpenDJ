@@ -32,15 +32,12 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertEquals;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFReader;
 import java.io.*;
-import java.util.Map;
-import java.util.HashMap;
 
 
 /**

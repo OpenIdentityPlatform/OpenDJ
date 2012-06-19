@@ -26,10 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
 
 import static org.testng.Assert.*;
 

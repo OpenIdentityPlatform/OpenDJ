@@ -441,6 +441,7 @@ public class AddRemovePanel<T> extends JPanel
 
   private void addClicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = availableList.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {
@@ -456,6 +457,7 @@ public class AddRemovePanel<T> extends JPanel
 
   private void removeClicked()
   {
+    @SuppressWarnings("deprecation")
     Object[] selectedObjects = selectedList.getSelectedValues();
     for (int i=0; i<selectedObjects.length; i++)
     {

@@ -69,6 +69,7 @@ import org.opends.server.types.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -698,8 +699,8 @@ public class StaticGroup
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), requestControls,
+           new ModifyOperationBasis(conn, nextOperationID(),
+                               nextMessageID(), requestControls,
                                groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
@@ -753,8 +754,8 @@ public class StaticGroup
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), requestControls,
+           new ModifyOperationBasis(conn, nextOperationID(),
+                               nextMessageID(), requestControls,
                                groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)

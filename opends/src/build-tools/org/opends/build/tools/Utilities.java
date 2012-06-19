@@ -25,8 +25,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.build.tools;
-import org.opends.messages.Message;
-
 import java.util.StringTokenizer;
 
 /**

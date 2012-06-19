@@ -33,18 +33,12 @@ import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.GetConnectionIDExtendedOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
 
 
 

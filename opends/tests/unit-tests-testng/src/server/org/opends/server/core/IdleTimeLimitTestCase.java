@@ -36,9 +36,7 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.ByteString;
-import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.tools.LDAPWriter;
 
 import static org.testng.Assert.*;

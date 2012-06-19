@@ -173,6 +173,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
          */
         public void run()
         {
+          @SuppressWarnings("deprecation")
           Object[] s = list.getSelectedValues();
           Set<Object> selected = new HashSet<Object>();
           if (s != null)
@@ -377,6 +378,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
+    @SuppressWarnings("deprecation")
     Object[] dns = list.getSelectedValues();
     ArrayList<BaseDNDescriptor> baseDNsToDelete =
       new ArrayList<BaseDNDescriptor>();

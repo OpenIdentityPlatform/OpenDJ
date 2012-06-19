@@ -42,10 +42,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Entry;
-import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.Base64;
-
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
