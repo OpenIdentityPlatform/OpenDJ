@@ -188,10 +188,29 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
     <secondary>Restoring from backup</secondary>
    </indexterm>
    
-   <para>When you restore a replicated server from backup, make sure the
-   backup is newer than the last purge of the replication change log (default:
-   3 days).</para>
-   
+   <para>After you restore a replica from backup, replication brings the replica
+   up to date with changes that happened after you created the backup. In order
+   to bring the replica up to date, replication must apply changes that
+   happened after the backup was made. Replication uses internal change log
+   records to determine what changes to apply.</para>
+
+   <para>Internal change log records are no kept forever, though. Replication
+   is configured to purge the change log of old changes, preventing the log
+   from growing indefinitely. Yet, for replication to determine what changes
+   to apply to a restored replica, it must find change log records dating back
+   at least to the last change in the backup. In other words, replication can
+   bring the restored replica up to date <emphasis>as long as the change log
+   records used to determine which changes to apply have not been
+   purged</emphasis>.</para>
+
+   <para>Therefore, when you restore a replicated server from backup, make sure
+   the backup you use is newer than the last purge of the replication change
+   log (default: 3 days). If all your backups are older than the replication
+   purge delay, do not restore from a backup, but instead initialize a new
+   replica as described in <link xlink:href="admin-guide#init-repl"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Initializing
+   Replicas</citetitle></link>.</para>
+
    <step>
     <para>Prepare the replica to be restored.</para>
     <screen>$ dsreplication
