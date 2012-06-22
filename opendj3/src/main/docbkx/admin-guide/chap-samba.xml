@@ -32,7 +32,20 @@
  <title>Samba Password Synchronization</title>
  <indexterm><primary>Samba</primary></indexterm>
  
- <para>When you store Samba profiles in OpenDJ, Samba stores its own attributes
+ <para><link xlink:href="http://www.samba.org/" xlink:show="new">Samba</link>,
+ the Windows interoperability suite for Linux and Unix, stores accounts because
+ Unix and Windows password storage management is not interoperable. The default
+ account storage mechanism is designed to work well with relatively small
+ numbers of accounts and configurations with one domain controller. For larger
+ installations, you can configure Samba to use OpenDJ for storing Samba
+ accounts. See the Samba documentation for your platform for instructions on
+ how to configure an LDAP directory server such as OpenDJ as a Samba passdb
+ backend.</para>
+
+ <para>The rest of this chapter focuses on how you keep passwords in sync when
+ using OpenDJ for Samba account storage.</para>
+
+ <para>When you store Samba accounts in OpenDJ, Samba stores its own attributes
  as defined in the Samba schema. Samba does not use the LDAP standard
  <literal>userPassword</literal> attribute to store users' Samba passwords.
  You can configure Samba to apply changes to Samba passwords to LDAP passwords
