@@ -121,11 +121,20 @@ ds-backend-base-dn: dc=example,dc=com
  --set listen-port:11161
  --set trap-port:11162
  --trustAll
- --no-prompt
-$ stop-ds --restart
-...
-$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161 mib-2.66.1.1.2.1
-SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"</screen>
+ --no-prompt</screen>
+
+  <para>Restart OpenDJ to make sure the port number changes are taken into
+  account.</para>
+  <screen>$ stop-ds --restart</screen>
+
+  <para>Use a command such as <command>snmpwalk</command> to check that the
+  SNMP listen port works.</para>
+
+  <screen>$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
+SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ <?eval ${docTargetVersion}?>..."
+SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"
+...</screen>
+
  </section>
 
  <section xml:id="jmx-monitoring">
