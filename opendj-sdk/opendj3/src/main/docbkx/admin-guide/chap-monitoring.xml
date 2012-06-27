@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-monitoring'
@@ -122,6 +122,8 @@ ds-backend-base-dn: dc=example,dc=com
  --set trap-port:11162
  --trustAll
  --no-prompt
+$ stop-ds --restart
+...
 $ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161 mib-2.66.1.1.2.1
 SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"</screen>
  </section>
