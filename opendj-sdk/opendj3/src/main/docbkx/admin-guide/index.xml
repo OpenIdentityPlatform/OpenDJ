@@ -110,6 +110,7 @@
    <xinclude:include href='man-ldifsearch.xml' />
    <xinclude:include href='../shared/man-list-backends.xml' />
    <xinclude:include href='../shared/man-make-ldif.xml' />
+   <xinclude:include href='../shared/man-make-ldif-template.xml' />
    <xinclude:include href='../shared/man-manage-account.xml' />
    <xinclude:include href='../shared/man-manage-tasks.xml' />
    <xinclude:include href='../shared/man-rebuild-index.xml' />

@@ -116,4 +116,11 @@ Processed 2000 entries
 Processed 10000 entries
 LDIF processing complete.  10003 entries written</screen>
  </refsect1>
+ <refsect1>
+  <title>See Also</title>
+  <para><link xlink:href="admin-guide#make-ldif-template-5"
+  xlink:role="http://docbook.org/xlink/role/olink"><citerefentry><refentrytitle
+  >make-ldif.template</refentrytitle><manvolnum>5</manvolnum
+  ></citerefentry></link></para>
+ </refsect1>
 </refentry>
