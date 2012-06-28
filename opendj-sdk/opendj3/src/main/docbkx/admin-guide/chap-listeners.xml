@@ -68,8 +68,29 @@
     <para>This example changes the port number to 11389 in the configuration.</para>
    </step>
    <step>
-    <para>Restart the server so the change takes effect.</para>
-    <screen>$ stop-ds --restart</screen>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enable:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enable:true
+ --trustAll
+ --no-prompt</screen>
    </step>
   </procedure>
  </section>
@@ -257,8 +278,29 @@
     <para>This example changes the port number to 11636 in the configuration.</para>
    </step>
    <step>
-    <para>Restart the server so the change takes effect.</para>
-    <screen>$ stop-ds --restart</screen>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enable:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enable:true
+ --trustAll
+ --no-prompt</screen>
    </step>
   </procedure>
  </section>

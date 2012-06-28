@@ -123,9 +123,31 @@ ds-backend-base-dn: dc=example,dc=com
  --trustAll
  --no-prompt</screen>
 
-  <para>Restart OpenDJ to make sure the port number changes are taken into
-  account.</para>
-  <screen>$ stop-ds --restart</screen>
+  <para>Restart the SNMP Connection Handler to take the port number changes
+  into account.</para>
+  <para> To restart the connection handler, you disable it, then enable
+  it again.</para>
+
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
 
   <para>Use a command such as <command>snmpwalk</command> to check that the
   SNMP listen port works.</para>
