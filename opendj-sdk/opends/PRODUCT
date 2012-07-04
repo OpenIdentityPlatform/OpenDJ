@@ -17,7 +17,7 @@ POINT_VERSION=0
 DOC_REFERENCE_HOME=http://opendj.forgerock.org/
 
 # The product documentation set reference
-# wikis.forgerock.org/opendj
+# https://wikis.forgerock.org/confluence/display/OPENDJ/Home
 DOC_REFERENCE_WIKI=http://opendj.forgerock.org/docs.html
 
 # The setup document reference site
