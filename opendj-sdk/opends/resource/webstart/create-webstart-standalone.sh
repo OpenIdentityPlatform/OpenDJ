@@ -1,7 +1,5 @@
 #!/bin/sh
 
-GREP="/usr/bin/grep"
-
 # Determine the location to this script so that we know where we are in the
 # OpenDJ source tree.
 cd "`dirname $0`"
@@ -19,7 +17,7 @@ echo "PRODUCT_FILE:   ${PRODUCT_FILE}"
 
 if test -z "${PRODUCT_NAME}"
 then
-  PRODUCT_NAME=`${GREP} SHORT_NAME "${PRODUCT_FILE}" | cut -d= -f2`
+  PRODUCT_NAME=`grep SHORT_NAME "${PRODUCT_FILE}" | cut -d= -f2`
 fi
 echo "PRODUCT_NAME:   ${PRODUCT_NAME}"
 
