@@ -93,6 +93,8 @@
                   testsList.append('basic_pta_011')
                   testsList.append('basic_pta_012')
                   testsList.append('basic_pta_013')
+                  testsList.append('basic_pta_014')
+                  testsList.append('basic_pta_015')
                 </script>
 
                 <!-- Execute the Tests -->
