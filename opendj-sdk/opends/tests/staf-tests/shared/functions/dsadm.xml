@@ -720,7 +720,7 @@
   </function>
 
   <!-- Import-ldif Function -->
-  <function name="ImportLdifWithScript">
+  <function name="ImportLdifWithScript" scope="local">
     <function-prolog>
       This function performs an import of an ldif file
     </function-prolog>
@@ -952,6 +952,8 @@
       <call function="'_adminCommonArgs'" />
 
       <script>
+        foldersToCreate = []
+
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/import-ldif%s' % (dsBinPath,fileExt)
@@ -975,15 +977,11 @@
           STAFCmdParamsList.append('-S')
 
         if  skipFile:
-          if not os.path.exists(os.path.dirname(skipFile)):
-            os.makedirs(os.path.dirname(skipFile))
-
+          foldersToCreate.append(os.path.dirname(skipFile))
           STAFCmdParamsList.append('--skipFile %s' % skipFile)
 
         if  rejectFile:
-          if not os.path.exists(os.path.dirname(rejectFile)):
-            os.makedirs(os.path.dirname(rejectFile))
-
+          foldersToCreate.append(os.path.dirname(rejectFile))
           STAFCmdParamsList.append('-R %s' % rejectFile)
 
         if  overwriteFile:
@@ -1038,9 +1036,16 @@
 
       </script>
 
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
+
       <message>
         'Start import-ldif'
       </message>
@@ -1346,7 +1351,7 @@
   </function>
 
    <!-- Export-ldif Function -->
-  <function name="exportLdifWithScript">
+  <function name="exportLdifWithScript" scope="local">
     <function-prolog>
       This function performs an on line export task of an ldif file
     </function-prolog>
@@ -1519,6 +1524,8 @@
       <call function="'_adminCommonArgs'" />
 
       <script>
+        foldersToCreate = []
+
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/export-ldif%s' % (dsBinPath,fileExt)
@@ -1527,9 +1534,7 @@
           STAFCmdParamsList.append('-p %s' % dsInstancePort)
 
         if ldifFile:
-          if not os.path.exists(os.path.dirname(ldifFile)):
-            os.makedirs(os.path.dirname(ldifFile))
-            
+          foldersToCreate.append(os.path.dirname(ldifFile))
           STAFCmdParamsList.append('-l %s' % ldifFile)
 
         if startTask:
@@ -1584,9 +1589,16 @@
 
       </script>
 
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
+
       <message>
         'Start export-ldif'
       </message>
@@ -1633,7 +1645,7 @@
   </function>
   
   <!-- Backup Function -->
-  <function name="backup">
+  <function name="backup" scope="local">
     <function-prolog>
         This function performs an off line backup
     </function-prolog>
@@ -1741,14 +1753,14 @@
       <call function="'_adminCommonArgs'" />
         
       <script>
+        foldersToCreate = []
+
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/backup%s' % (dsBinPath,fileExt)
          
         if backupDir:
-          if not os.path.exists(os.path.dirname(backupDir)):
-            os.makedirs(os.path.dirname(backupDir))
-
+          foldersToCreate.append(os.path.dirname(backupDir))
           STAFCmdParamsList.append('-d %s' % backupDir)    
 
        if backEnd:
@@ -1769,8 +1781,19 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
+
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+
+      <message>
+        'Start backup'
       </message>
 
       <call function="'runCommand'">

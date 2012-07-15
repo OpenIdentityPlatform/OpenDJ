@@ -4119,6 +4119,8 @@
 
       <!-- Build the command -->
       <script>
+        foldersToCreate = []
+
         STAFCmdParamsList=[]
         STAFCmdParams=''
 
@@ -4144,9 +4146,7 @@
           STAFCmdParamsList.append('-l')
 
         if outputFile:
-          if not os.path.exists(os.path.dirname(outputFile)):
-            os.makedirs(os.path.dirname(outputFile))
-
+          foldersToCreate.append(os.path.dirname(outputFile))
           STAFCmdParamsList.append('-f %s' % outputFile)
 
         if nbrOfThread:
@@ -4172,6 +4172,12 @@
         env = ['%s' % cp]
 
       </script>
+
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
 
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
