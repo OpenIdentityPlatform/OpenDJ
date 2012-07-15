@@ -507,6 +507,63 @@
 
   </function>  
 
+    <function name="createMultiFolders" scope="local">
+
+    <function-prolog>
+        This function creates multiple folders
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="folderslist" type="required">
+        <function-arg-description>
+          Name of folder to be created
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+    </function-map-args>
+
+    <sequence>
+
+      <iterate var="folderToCreate" in="folderslist">
+      
+        <sequence>
+          <message>'Check if folder exists already.'</message>
+
+          <call function="'GetEntry'">
+            {
+            'location'  : location,
+            'entry'     : folderToCreate,
+            'attribute' : 'TYPE'
+            }
+          </call>
+
+          <if expr="RC == 48">
+            <sequence>
+     
+              <message>
+                'Folder %s does not exists, create folder' % folderToCreate
+              </message>
+    
+              <call function="'createFolder'">
+                { 'location'   : location,
+                  'foldername' : folderToCreate
+                }
+              </call>
+            </sequence>
+          </if>
+        </sequence>
+      </iterate>
+      
+    </sequence>
+
+  </function>
+
   <function name="queryLogs">
 
     <function-prolog>
