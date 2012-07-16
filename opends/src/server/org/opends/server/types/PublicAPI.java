@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -83,11 +84,6 @@ import java.lang.annotation.Target;
           ElementType.TYPE,
           ElementType.METHOD,
           ElementType.CONSTRUCTOR })
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=false)
 public @interface PublicAPI
 {
   /**
