@@ -21,6 +21,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Portions copyright 2012 ForgeRock AS.
 #
 
 dn: cn=testuser-1,ou=people,o=example
@@ -29,7 +30,7 @@ objectclass: person
 objectclass: testobjectclass-1
 cn: testuser-1
 sn: Test
-c: Testland
+c: GB
 street: Test Lane
 testattribute-1: new test attribute
 
