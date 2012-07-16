@@ -78,7 +78,7 @@
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "LDAP Connection Handler"
- --set enable:false
+ --set enabled:false
  --trustAll
  --no-prompt
 $ dsconfig
@@ -88,7 +88,7 @@ $ dsconfig
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "LDAP Connection Handler"
- --set enable:true
+ --set enabled:true
  --trustAll
  --no-prompt</screen>
    </step>
@@ -288,7 +288,7 @@ $ dsconfig
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "LDAPS Connection Handler"
- --set enable:false
+ --set enabled:false
  --trustAll
  --no-prompt
 $ dsconfig
@@ -298,7 +298,7 @@ $ dsconfig
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "LDAPS Connection Handler"
- --set enable:true
+ --set enabled:true
  --trustAll
  --no-prompt</screen>
    </step>
