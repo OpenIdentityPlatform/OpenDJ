@@ -19,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-resource-limits'
@@ -71,7 +71,19 @@
     <literal>time-limit</literal>, is 1 minute.</para>
     <para>You can override the limit for a particular user by changing the
     operational attribute, <literal>ds-rlim-time-limit</literal>, on
-    the user's entry.</para>
+    the user's entry. Times for <literal>ds-rlim-time-limit</literal> are
+    expressed in seconds.</para>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>idle time limit</firstterm> defines how long OpenDJ
+    allows idle connections to remain open.</para>
+    <para>No default idle time limit is set. You can set an idle time limit
+    by using the global server property
+    <literal>idle-time-limit</literal>.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-idle-time-limit</literal>, on
+    the user's entry. Times for <literal>ds-rlim-idle-time-limit</literal>
+    are expressed in seconds.</para>
    </listitem>
    <listitem>
     <para>The maximum number of persistent searches can be set using the

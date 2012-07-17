@@ -386,7 +386,23 @@
   multi-valued property using the <option>--add</option> option. You can reset
   the values of the multi-valued property using the <option>--reset</option>
   option.</para>
-  
+
+  <itemizedlist>
+   <para>Some property values take a time duration. Durations are expressed
+   as numbers followed by units. For example <literal>1 s</literal> means
+   one second, and <literal>2 w</literal> means two weeks. Some durations
+   have minimum granularity or maximum units, so you cannot necessary specify
+   every duration in milliseconds or weeks for example. Some durations allow
+   you to use a special value to mean unlimited. Units are specified as
+   follows.</para>
+   <listitem><para><literal>ms</literal>: milliseconds</para></listitem>
+   <listitem><para><literal>s</literal>: seconds</para></listitem>
+   <listitem><para><literal>m</literal>: minutes</para></listitem>
+   <listitem><para><literal>h</literal>: hours</para></listitem>
+   <listitem><para><literal>d</literal>: days</para></listitem>
+   <listitem><para><literal>w</literal>: weeks</para></listitem>
+  </itemizedlist>
+
   <!-- TODO: Automate generation of the following list of subcommands.
        Currently, there's a secret setting in dsconfig to produce the content.
        $ export OPENDS_JAVA_ARGS="-Dorg.forgerock.opendj.gendoc=true"
