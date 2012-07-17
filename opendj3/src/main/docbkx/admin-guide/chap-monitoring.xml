@@ -86,13 +86,24 @@ ds-backend-base-dn: dc=example,dc=com
   Server Monitoring MIB</link>.</para>
   
   <para>OpenDJ SNMP-based monitoring depends on OpenDMK, which you must
-  <link xlink:href="http://opendmk.java.net/download/">download
-  separately</link>. Install the Full Binary Bundle alongside OpenDJ. OpenDJ
-  that you download from ForgeRock is built with OpenDMK, but OpenDMK is not
-  part of OpenDJ, and SNMP is therefore not enabled by default. You can
-  set up a connection handler for SNMP by enabling the connection
-  handler, and pointing OpenDJ to your installation of the OpenDMK
-  <filename>jdmkrt.jar</filename> library.</para>
+  <link xlink:href="http://opendmk.java.net/download/" xlink:show="new">download
+  separately</link>. Install the Full Binary Bundle by using the graphical
+  installer, which requires that you accept the Binary License for Project
+  OpenDMK. OpenDJ directory server that you download from ForgeRock is built
+  with OpenDMK, but due to licensing OpenDMK is not part of OpenDJ. SNMP is
+  therefore not enabled by default.</para>
+
+  <para>To run the OpenDMK installer, use the self-extracting .jar.</para>
+
+  <screen>$ java -jar ~/Downloads/opendmk-1.0-b02-*.jar</screen>
+
+  <para>If you install under <filename>/path/to</filename>, then the runtime
+  library needed for SNMP is
+  <filename>/path/to/OpenDMK-bin/lib/jdmkrt.jar</filename>.</para>
+
+  <para>Once you have installed OpenDMK, you can set up a connection handler
+  for SNMP by enabling the connection handler, and pointing OpenDJ to your
+  installation of the OpenDMK <filename>jdmkrt.jar</filename> library.</para>
   
   <screen>$ dsconfig
  set-connection-handler-prop
