@@ -953,9 +953,11 @@ The LDAP password modify operation was successful</screen>
  --property global-aci</screen>
 
    <para>To disable anonymous read access for example, use the
-   <command>dsconfig set-access-control-handler-prop</command> command. The
-   <literal>global-aci</literal> attribute value should all be on one
-   line.</para>
+   <command>dsconfig set-access-control-handler-prop</command> command.</para>
+
+   <para>First, remove the <literal>global-aci</literal> attribute value that
+   allows anonymous read access. The <literal>global-aci</literal> attribute
+   value should all be on one line.</para>
 
    <screen>dsconfig
  set-access-control-handler-prop
@@ -987,9 +989,20 @@ The LDAP password modify operation was successful</screen>
  --bindPassword password
  --commandFilePath /tmp/captured-command.sh</screen>
 
-   <para>Notice that this change is made to the OpenDJ directory server
-   configuration, and so is not replicated to other servers. You must
-   instead apply the change separately to each server.</para>
+   <para>Next, add a global ACI value that allows authenticated users to
+   perform read operations. You can use <command>dsconfig</command>
+   interactively to add the ACI value as shown below
+   <literal>(targetattr!=...userdn="ldap:///all";)</literal>.</para>
+
+   <programlisting language="ldif">global-aci: (targetattr!="userPassword||
+ authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||
+ newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||
+ changeLogCookie||includedAttributes")(version 3.0; acl "Authenticated users
+ read access"; allow (read,search,compare) userdn="ldap:///all";)</programlisting>
+
+   <para>Notice that these changes are made to the OpenDJ directory server
+   configuration, and so are not replicated to other servers. You must instead
+   apply the changes separately to each server.</para>
   </example>
 
   <example xml:id="access-control-full-access">
