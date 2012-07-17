@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-issues'
@@ -31,10 +31,16 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
 
+ <!-- TODO: Update for the release. -->
+ <note>
+  <para>The current list of fixes and issues reflects OpenDJ
+  <?eval ${docTargetVersion}?> in progress as of July 17, 2012.</para>
+ </note>
+
  <para>OpenDJ issues are tracked at <link
  xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'
- >https://bugster.forgerock.org/jira/browse/OPENDJ</link>. This chapter
- covers the status of key issues at release <?eval ${docTargetVersion}?>.</para>
+ >https://bugster.forgerock.org/jira/browse/OPENDJ</link>.<!-- This chapter
+ covers the status of key issues at release <?eval ${docTargetVersion}?>. --></para>
 
  <section>
   <title>Fixes Since Last Release</title>
@@ -43,9 +49,69 @@
   <?eval ${stableServerVersion} ?>.</para>
 
   <itemizedlist>
-   <listitem>
-    <para>TODO</para>
-   </listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-525" xlink:show="new">OPENDJ-525</link>: Remove compiler warnings when building using JDK7</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-524" xlink:show="new">OPENDJ-524</link>: CME in LDAPClientConnection when writing many large responses concurrently to the same connection</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-506" xlink:show="new">OPENDJ-506</link>: NoSuchElementException thrown during replication in java.util.TreeMap.key(TreeMap.java:1221)</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-500" xlink:show="new">OPENDJ-500</link>: Upgrade trunk (2.5.0) to JE 5.0.48</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-494" xlink:show="new">OPENDJ-494</link>: dsreplication initialize reports negative percentage of completion</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-489" xlink:show="new">OPENDJ-489</link>: dsconfig is throwing a blank line to stderr on success</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-477" xlink:show="new">OPENDJ-477</link>: Adding an entry with binary options fails during reading ldif file</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-475" xlink:show="new">OPENDJ-475</link>: Incorrect behaviour/result code regarding non-critical controls</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-465" xlink:show="new">OPENDJ-465</link>: WhoAmI Extended operation code duplicates supported controls</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-459" xlink:show="new">OPENDJ-459</link>: User's privileges not working with SASL EXTERNAL auth</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-456" xlink:show="new">OPENDJ-456</link>: OpenDJ schema replication fails for 3rd server of topology</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-447" xlink:show="new">OPENDJ-447</link>: OpenDJ Quicksetup: Problems when hostname cannot be resolved</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-439" xlink:show="new">OPENDJ-439</link>: export-ldif on jeb produces duplicate entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-436" xlink:show="new">OPENDJ-436</link>: Inconsistency between hostname specified in setup and DIGEST-MD5 fqdn of server.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-401" xlink:show="new">OPENDJ-401</link>: Replication fails with Java 7.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-396" xlink:show="new">OPENDJ-396</link>: Remove support for ServiceTag.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-378" xlink:show="new">OPENDJ-378</link>: Remove activation.jar as it's bundled with Java 6</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-377" xlink:show="new">OPENDJ-377</link>: Kerberos authentication with AD KDC fails with LoginException(Client not found in Kerberos database (6))</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-363" xlink:show="new">OPENDJ-363</link>: Make it more obvious in the setup tool that the fully-qualified hostname is critical for all secured connections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-361" xlink:show="new">OPENDJ-361</link>: AttributeBuilderTest unit test fails on OpenJDK</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-330" xlink:show="new">OPENDJ-330</link>: Environment variables to override java.properties prefixed by OPENDS_</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-327" xlink:show="new">OPENDJ-327</link>: NPE in access log on clicking "Do not Accept" certificate in Control Panel</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-322" xlink:show="new">OPENDJ-322</link>: Binary encoding option causing problems in replace operations</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-306" xlink:show="new">OPENDJ-306</link>: Misleading access log error message when client resets the connection.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-304" xlink:show="new">OPENDJ-304</link>: The result code 53 (unwillingToPerform) should only be used for service errors</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-293" xlink:show="new">OPENDJ-293</link>: InternalClientConnection memory leak when performing password modify/state extended operations or SASL binds</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-292" xlink:show="new">OPENDJ-292</link>: LDAP PTA NPE when base-dn or bind-dn not exist on secondary server</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-290" xlink:show="new">OPENDJ-290</link>: LDAP PTA valid auth attempt rejected if AD reset connection</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-288" xlink:show="new">OPENDJ-288</link>: Use INVALID_CREDENTIALS result code when disconnecting users because their entry has been deleted</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-285" xlink:show="new">OPENDJ-285</link>: Unable to modify users entry after LDAP PTA Policy applied</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-280" xlink:show="new">OPENDJ-280</link>: Add support for the LDAP sub-entry control as defined in draft-ietf-ldup-subentry</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-278" xlink:show="new">OPENDJ-278</link>: ldapSubentry entries should have an implicit scope of { base="" } when no subtree specification is specified</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-266" xlink:show="new">OPENDJ-266</link>: Extra white space in some of the schema files shipped with OpenDJ 2.4</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-256" xlink:show="new">OPENDJ-256</link>: Fix regular unit test failures on 2.4 branch and trunk</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-252" xlink:show="new">OPENDJ-252</link>: ControlPanel fails with a Null Pointer Exception with Oracle JDK7.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-247" xlink:show="new">OPENDJ-247</link>: Rename max-entries property in JE backend to something more clearly related to index analysis</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-241" xlink:show="new">OPENDJ-241</link>: Unexpected authorization failure when using the assertion control with internal root connections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-236" xlink:show="new">OPENDJ-236</link>: Support dn: and u: authid notation in SambaPasswordPlugin</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-224" xlink:show="new">OPENDJ-224</link>: Replication fails when replication server is configured for a network interface which is not an alias of localhost/127.0.0.1</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-223" xlink:show="new">OPENDJ-223</link>: Modify operation isn't replayed on replica exactly as on original server.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-219" xlink:show="new">OPENDJ-219</link>: Replication server and draft changelog DB code may attempt to reference closed DB</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-212" xlink:show="new">OPENDJ-212</link>: Need better error message when trying to configure SNMP</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-211" xlink:show="new">OPENDJ-211</link>: missing ";" in cookie exchange control causes StringIndexOutOfBoundsException</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-202" xlink:show="new">OPENDJ-202</link>: All bind request APIs should take byte or char arrays for passwords</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-190" xlink:show="new">OPENDJ-190</link>: Look for tools.properties, etc. in ~/.opendj rather than ~/.opends</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-181" xlink:show="new">OPENDJ-181</link>: DirectoryException provided value has an invalid length for a UUID</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-130" xlink:show="new">OPENDJ-130</link>: External change log, used in compliance with Internet-draft, shows a divergence between replicas under load.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-126" xlink:show="new">OPENDJ-126</link>: Bad syntax for lastChangeNumber, firstChangeNumber, and lastExternalChangelogCookie</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-121" xlink:show="new">OPENDJ-121</link>: Replication failure on startup due to generation ID of -1</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-117" xlink:show="new">OPENDJ-117</link>: Replicated server slow to shutdown and ugly exceptions</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-106" xlink:show="new">OPENDJ-106</link>: QuickStart Welcome Panel calls for Java 5, although OpenDJ now requires Java 6</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-105" xlink:show="new">OPENDJ-105</link>: Replication protocol error. Bad message type. org.opends.server.replication.protocol.StopMsg received, ReplServerStartMsg required</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-103" xlink:show="new">OPENDJ-103</link>: Replication in 2.4 head and trunk are no longer compatible with 2.4.0 and 2.4.1</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-101" xlink:show="new">OPENDJ-101</link>: NPE when processing UniqueAttributePlugin/AuthenticatedUsers ChangeListener post-sync for moddn operations with conflicts</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-98" xlink:show="new">OPENDJ-98</link>: Searches on cn=monitor take a long time</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-97" xlink:show="new">OPENDJ-97</link>: Very many minor problems with the error logging for replication</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-96" xlink:show="new">OPENDJ-96</link>: Replication server monitor data computation takes too long / blocks rest of server when another RS is cannot be reached</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-95" xlink:show="new">OPENDJ-95</link>: Socket leak and constant disconnect/reconnect when a directory server can no longer reach its connected replication server</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-94" xlink:show="new">OPENDJ-94</link>: NullPointerException when shutting down worker threads</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-51" xlink:show="new">OPENDJ-51</link>: ECL: virtual attributes are calculated twice per retrieval and gratuitously allocate memory</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-50" xlink:show="new">OPENDJ-50</link>: ECL base object search operations on cn=changelog take a long time if the change log is big</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-48" xlink:show="new">OPENDJ-48</link>: Draft ECL: lastChangeNumber still not calculated correctly</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-46" xlink:show="new">OPENDJ-46</link>: Extensible filters which use dnAttributes are not processed correctly when there is an existing index for the named attribute</para></listitem>
   </itemizedlist>
  </section>
 
@@ -102,9 +168,33 @@
   <?eval ${docTargetVersion}?> became available.</para>
 
   <itemizedlist>
-   <listitem>
-    <para>TODO</para>
-   </listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-534" xlink:show="new">OPENDJ-534</link>: dsconfig is returning output to stderr rather than stdout</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-532" xlink:show="new">OPENDJ-532</link>: When replication is enabled cn=changelog appears in namingcontexts output</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-527" xlink:show="new">OPENDJ-527</link>: rebuild-index --rebuildAll corrupts the indexes for certain data sets</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-505" xlink:show="new">OPENDJ-505</link>: dsreplication enable fails when hostname contains an underscore</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-502" xlink:show="new">OPENDJ-502</link>: DSML gateway not correctly forwarding modifications to userCertificate;binary attributes</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-501" xlink:show="new">OPENDJ-501</link>: dsconfig advanced properties for the attribute syntaxes inconsistent</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-457" xlink:show="new">OPENDJ-457</link>: Sleeping replication threads prevent server from shutting down</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-454" xlink:show="new">OPENDJ-454</link>: Naming conflict of 2 adds with same DN leaves DIT inconsistent</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-453" xlink:show="new">OPENDJ-453</link>: Manually deleting an objectclass from 99-user.ldif does not get replicated.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-452" xlink:show="new">OPENDJ-452</link>: Manual add of new schema objectclass in 99-user.ldif are not replicated</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-449" xlink:show="new">OPENDJ-449</link>: modifiersName and modifyTimestamp not included in 99-user.ldif for replica</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-443" xlink:show="new">OPENDJ-443</link>: dsconfig should return wider range of error codes</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-431" xlink:show="new">OPENDJ-431</link>: Server side sort control only works on result sets of less than 100000 entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-405" xlink:show="new">OPENDJ-405</link>: Upgrade fails in many cases when configuration modified in the server to upgrade.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-399" xlink:show="new">OPENDJ-399</link>: DirectoryException thrown processing of virtual static groups during backend initialization</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-340" xlink:show="new">OPENDJ-340</link>: dsreplication disable takes --bindDN, but --adminPassword instead of --bindPassword</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-329" xlink:show="new">OPENDJ-329</link>: Starting OpenDJ when port is in use results in exceptions</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-320" xlink:show="new">OPENDJ-320</link>: log-file-permissions ignores group permissions</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-270" xlink:show="new">OPENDJ-270</link>: dsreplication disable takes a long time</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-253" xlink:show="new">OPENDJ-253</link>: Search for draft changeNumber on disabled suffix requires full resync</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-180" xlink:show="new">OPENDJ-180</link>: SSL handshake failed after restarting replication server</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-169" xlink:show="new">OPENDJ-169</link>: Modifying an existing object class definition requires server restart</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-118" xlink:show="new">OPENDJ-118</link>: RS load balancing does not occur after an RS becomes available after an outage</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-110" xlink:show="new">OPENDJ-110</link>: Searches on dc=replicationchanges return incomplete results for certain types of LDAP modifications.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-104" xlink:show="new">OPENDJ-104</link>: Remove Thread.sleep() synchronization design anti-pattern in replication code.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-88" xlink:show="new">OPENDJ-88</link>: Online backup of cn=config does not work</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-49" xlink:show="new">OPENDJ-49</link>: Replication replay does not take into consideration the server/backend's writability mode.</para></listitem>
   </itemizedlist>
   
   <para>Furthermore when deploying for production, make sure that you follow
