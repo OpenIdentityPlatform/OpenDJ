@@ -923,6 +923,75 @@ The LDAP password modify operation was successful</screen>
  </programlisting>
   </example>
 
+  <example xml:id="access-control-disable-anonymous"><?dbfo keep-together="auto"?>
+   <title>ACI: Disable Anonymous Access</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Disabling anonymous access</secondary>
+   </indexterm>
+
+   <para>By default OpenDJ denies access unless an access control explicitly
+   allows access.<footnote><para>This does not apply to the directory root
+   user, such as <literal>cn=Directory Manager</literal>, who bypasses
+   ACIs.</para></footnote> However, OpenDJ also allows anonymous access by
+   default to use some controls, to perform certain extended operations, to
+   view root DSE operational attributes, to view directory schema definitions,
+   to view some other operational attibutes, and to perform compare and search
+   operations.</para>
+
+   <para>These default capabilities are defined on the
+   <literal>global-aci</literal> property of the access control handler, which
+   you can read by using the
+   <command>dsconfig get-access-control-handler-prop</command> command.</para>
+
+   <screen>$ dsconfig
+ get-access-control-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --property global-aci</screen>
+
+   <para>To disable anonymous read access for example, use the
+   <command>dsconfig set-access-control-handler-prop</command> command. The
+   <literal>global-aci</literal> attribute value should all be on one
+   line.</para>
+
+   <screen>dsconfig
+ set-access-control-handler-prop
+ --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|changes\|
+  \|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|
+  \|newSuperior\|\|deleteOldRDN\|\|targetEntryUUID\|\|changeInitiatorsName\|
+  \|changeLogCookie\|\|includedAttributes\"\)\(version\ 3.0\;\ acl\ \"Anonymous
+  \ read\ access\"\;\ allow\ \(read,search,compare\)
+  \ userdn=\"ldap:///anyone\"\;\)
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN cn=Directory\ Manager
+ --bindPassword password
+ --trustAll
+ --no-prompt</screen>
+
+   <para>If the <literal>global-aci</literal> does not match the ACI exactly
+   then the command fails to remove the value. An alternative approach is to
+   use the <command>dsconfig</command> command interactively, adding the
+   <option>--commandFilePath</option> option. You can then use the command
+   you capture to remove the property value on other servers for example.
+   To use the <command>dsconfig</command> command this way, start the
+   command as follows.</para>
+
+   <screen>$ dsconfig
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --commandFilePath /tmp/captured-command.sh</screen>
+
+   <para>Notice that this change is made to the OpenDJ directory server
+   configuration, and so is not replicated to other servers. You must
+   instead apply the change separately to each server.</para>
+  </example>
+
   <example xml:id="access-control-full-access">
    <title>ACI: Full Access for Administrators</title>
    
