@@ -70,7 +70,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   Although ACI attribute values can become difficult to read in LDIF, the
   basic syntax is simple.</para>
   
-  <literallayout class="monospaced"><replaceable>targets</replaceable>(version 3.0;acl "<replaceable>name</replaceable>";<replaceable>permissions</replaceable> <replaceable>subjects</replaceable>;)</literallayout>
+  <literallayout class="monospaced"><replaceable
+  >targets</replaceable>(version 3.0;acl "<replaceable
+  >name</replaceable>";<replaceable>permissions</replaceable> <replaceable
+  >subjects</replaceable>;)</literallayout>
 
   <para>The following list briefly explains the variables in the syntax above.</para>
 
@@ -175,7 +178,13 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       particular attributes.</para>
       <para>Here <replaceable>expression</replaceable> takes one of the
       following forms. Separate expressions with semicolons, ;.</para>
-      <literallayout class="monospaced"><replaceable>op</replaceable>=<replaceable>attr1</replaceable>:<replaceable>filter1</replaceable>[&amp;&amp; <replaceable>attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable>op</replaceable>=<replaceable>attr3</replaceable>:<replaceable>filter3</replaceable>[&amp;&amp; <replaceable>attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
+      <literallayout class="monospaced"><replaceable
+      >op</replaceable>=<replaceable>attr1</replaceable>:<replaceable
+      >filter1</replaceable>[&amp;&amp; <replaceable
+      >attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable
+      >op</replaceable>=<replaceable>attr3</replaceable>:<replaceable
+      >filter3</replaceable>[&amp;&amp; <replaceable
+      >attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
       <para>Here <replaceable>op</replaceable> can be either
       <literal>add</literal> for operations creating attributes, or
       <literal>delete</literal> for operations removing them.
@@ -227,8 +236,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <para>ACI permission definitions take one of the following forms.</para>
    
-   <literallayout class="monospaced">allow(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
-   <literallayout class="monospaced">deny(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   <literallayout class="monospaced">allow(<replaceable
+   >action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   <literallayout class="monospaced">deny(<replaceable
+   >action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
    
    <tip>
     <para>Although <literal>deny</literal> is supported, avoid restricting
@@ -330,8 +341,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
 
    <variablelist>
     <varlistentry>
-     <term><literal>authmethod = "none|simple|ssl|sasl <replaceable>mech</replaceable>"</literal></term>
-     <term><literal>authmethod != "none|simple|ssl|sasl <replaceable>mech</replaceable>"</literal></term>
+     <term><literal>authmethod = "none|simple|ssl|sasl <replaceable
+     >mech</replaceable>"</literal></term>
+     <term><literal>authmethod != "none|simple|ssl|sasl <replaceable
+     >mech</replaceable>"</literal></term>
      <listitem>
       <para>Here you use <literal>none</literal> to mean do not check,
       <literal>simple</literal> for simple authentication,
@@ -342,8 +355,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
-     <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
+     <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable
+     >day</replaceable> ...]"</literal></term>
+     <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable
+     >day</replaceable> ...]"</literal></term>
      <listitem>
       <para>Replace <replaceable>day</replaceable> with one of
       <literal>sun</literal>, <literal>mon</literal>, <literal>tue</literal>,
@@ -360,8 +375,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>groupdn = "ldap:///<replaceable>DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
-     <term><literal>groupdn != "ldap:///<replaceable>DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     <term><literal>groupdn = "ldap:///<replaceable
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     <term><literal>groupdn != "ldap:///<replaceable
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
      <listitem>
       <para>Replace <replaceable>DN</replaceable> with the distinguished name
       of a group to permit or restrict access for members.</para>
@@ -373,7 +390,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <listitem>
       <para>Here <replaceable>addresses</replaceable> can be specified for
       IPv4 or IPv6. IPv6 addresses are specified in brackets as
-      <literal>ldap://[<replaceable>address</replaceable>]/<replaceable>subnet-prefix</replaceable></literal>
+      <literal>ldap://[<replaceable>address</replaceable>]/<replaceable
+      >subnet-prefix</replaceable></literal>
       where /<replaceable>subnet-prefix</replaceable> is optional.
       You can specify individual IPv4 addresses, addresses with asterisks (*) to
       replace subnets and host numbers, CIDR notation, and forms such as
@@ -407,12 +425,20 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>userattr = "<replaceable>attr</replaceable>#<replaceable>value</replaceable>"</literal></term>
-     <term><literal>userattr != "<replaceable>attr</replaceable>#<replaceable>value</replaceable>"</literal></term>
-     <term><literal>userattr = <replaceable>ldap-url</replaceable>#LDAPURL"</literal></term>
-     <term><literal>userattr != <replaceable>ldap-url</replaceable>#LDAPURL"</literal></term>
-     <term><literal>userattr = "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
-     <term><literal>userattr != "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
+     <term><literal>userattr = "<replaceable>attr</replaceable>#<replaceable
+     >value</replaceable>"</literal></term>
+     <term><literal>userattr != "<replaceable>attr</replaceable>#<replaceable
+     >value</replaceable>"</literal></term>
+     <term><literal>userattr = <replaceable
+     >ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr != <replaceable
+     >ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr = "[parent[<replaceable
+     >child-level</replaceable>].]<replaceable>attr</replaceable
+     >#GROUPDN|USERDN"</literal></term>
+     <term><literal>userattr != "[parent[<replaceable
+     >child-level</replaceable>].]<replaceable>attr</replaceable
+     >#GROUPDN|USERDN"</literal></term>
      <listitem>
       <para>The <literal>userattr</literal> subject specifies an attribute
       that must match on both the bind entry and the target of the ACI.</para>
@@ -438,8 +464,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable>ldap-url++</replaceable> ...]"</literal></term>
-     <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable>ldap-url++</replaceable> ...]"</literal></term>
+     <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable
+     >ldap-url++</replaceable> ...]"</literal></term>
+     <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable
+     >ldap-url++</replaceable> ...]"</literal></term>
      <listitem>
       <para>To match the bind DN, replace <replaceable>ldap-url++</replaceable>
       with either a valid LDAP URL such as
