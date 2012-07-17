@@ -294,7 +294,7 @@
   <title>Examples</title>
   <para>The following example schedules a restore as a task to begin
   immediately.</para>
-  <screen>$ restore -p 5444 -D "cn=Directory Manager" -w password
+  <screen>$ restore -p 4444 -D "cn=Directory Manager" -w password
  -d /path/to/OpenDJ/bak -I 20110613080032 -t 0
 Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</screen>
  </refsect1>
