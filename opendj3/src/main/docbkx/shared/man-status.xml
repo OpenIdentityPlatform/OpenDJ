@@ -227,7 +227,7 @@ Administration Connector: Port 4444 (LDAPS)
 Address:Port : Protocol    : State
 -------------:-------------:---------
 --           : LDIF        : Disabled
-9989         : Replication : Enabled
+8989         : Replication : Enabled
 0.0.0.0:161  : SNMP        : Disabled
 0.0.0.0:636  : LDAPS       : Disabled
 0.0.0.0:1389 : LDAP        : Enabled

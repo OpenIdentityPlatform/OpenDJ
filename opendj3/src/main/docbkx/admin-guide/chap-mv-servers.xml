@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-mv-servers'
@@ -102,8 +102,8 @@
     applications.</para>
     <screen>$ dsconfig
  set-global-configuration-prop
- --port 5444
- --hostname opendj.example.com
+ --port 4444
+ --hostname opendj2.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set writability-mode:internal-only
@@ -115,20 +115,20 @@
     <screen>$ dsreplication
  disable
  --disableAll
- --port 5444
- --hostname opendj.example.com
+ --port 4444
+ --hostname opendj2.example.com
  --adminUID admin
  --adminPassword password
  --trustAll
  --no-prompt
 Establishing connections ..... Done.
 Disabling replication on base DN dc=example,dc=com of server
- opendj.example.com:5444 ..... Done.
+ opendj2.example.com:4444 ..... Done.
 Disabling replication on base DN cn=admin data of server
- opendj.example.com:5444 ..... Done.
+ opendj2.example.com:4444 ..... Done.
 Disabling replication on base DN cn=schema of server
- opendj.example.com:5444 ..... Done.
-Disabling replication port 9989 of server opendj.example.com:5444 ..... Done.
+ opendj2.example.com:4444 ..... Done.
+Disabling replication port 8989 of server opendj2.example.com:4444 ..... Done.
 Removing registration information ..... Done.
 Removing truststore information ..... Done.
 
