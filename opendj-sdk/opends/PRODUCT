@@ -21,13 +21,13 @@ DOC_REFERENCE_HOME=http://opendj.forgerock.org/
 DOC_REFERENCE_WIKI=http://opendj.forgerock.org/docs.html
 
 # The setup document reference site
-DOC_REFERENCE_SETUP=http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide.html
+DOC_REFERENCE_SETUP=http://opendj.forgerock.org/doc/install-guide/index.html
 
 # The Quick reference guide documentation set reference
-DOC_QUICK_REFERENCE_GUIDE=http://opendj.forgerock.org/doc/admin-guide/OpenDJ-Admin-Guide.html
+DOC_QUICK_REFERENCE_GUIDE=http://opendj.forgerock.org/doc/admin-guide/index.html
 
 # The Administration Guide reference
-ADMINISTRATION_GUIDE_URL=http://opendj.forgerock.org/doc/admin-guide/OpenDJ-Admin-Guide.html
+ADMINISTRATION_GUIDE_URL=http://opendj.forgerock.org/doc/admin-guide/index.html
 
 # The version qualifier string for the Directory Server.  It should be blank
 # for the first official release with a new major, minor, and point version
