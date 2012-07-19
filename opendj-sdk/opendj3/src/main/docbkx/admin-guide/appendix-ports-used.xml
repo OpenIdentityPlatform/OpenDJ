@@ -41,7 +41,8 @@
     <indexterm><primary>Ports</primary><secondary>389 (1389)</secondary></indexterm>
     <para>OpenDJ directory server listens for LDAP requests from client
     applications on port 389 by default. OpenDJ directory server uses port
-    1389 by default for non-root users. LDAP is enabled by default.</para>
+    1389 by default for users who cannot use privileged ports. LDAP is enabled
+    by default.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="ldaps-port">
@@ -50,7 +51,8 @@
     <indexterm><primary>Ports</primary><secondary>636 (1636)</secondary></indexterm>
     <para>OpenDJ directory server listens for LDAPS requests from client
     applications on port 636 by default. OpenDJ directory server uses port
-    1636 by default for non-root users. LDAPS is not enabled by default.</para>
+    1636 by default for users who cannot use privileged ports. LDAPS is not
+    enabled by default.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="admin-port">
