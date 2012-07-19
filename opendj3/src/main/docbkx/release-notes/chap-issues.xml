@@ -34,7 +34,7 @@
  <!-- TODO: Update for the release. -->
  <note>
   <para>The current list of fixes and issues reflects OpenDJ
-  <?eval ${docTargetVersion}?> in progress as of July 18, 2012.</para>
+  <?eval ${docTargetVersion}?> in progress as of July 19, 2012.</para>
  </note>
 
  <para>OpenDJ issues are tracked at <link
@@ -49,6 +49,8 @@
   <!-- project = OPENDJ AND fixVersion = "2.5.0" AND component != documentation AND type = Bug and resolution = Fixed and priority != Trivial -->
 
   <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-538" xlink:show="new">OPENDJ-538</link>: NPE during initialization of quick upgrade</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-537" xlink:show="new">OPENDJ-537</link>: Broken link from Control Panel to Admin Guide</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-528" xlink:show="new">OPENDJ-528</link>: rebuild-index doesn't rebuild properly DN2ID after an upgrade from OpenDS 2.2.</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-524" xlink:show="new">OPENDJ-524</link>: CME in LDAPClientConnection when writing many large responses concurrently to the same connection</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-520" xlink:show="new">OPENDJ-520</link>: Worker threads are too greedy when caching memory used for encoding/decoding entries and protocol messages</para></listitem>
