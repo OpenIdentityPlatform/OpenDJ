@@ -28,7 +28,10 @@
 
 package org.opends.quicksetup;
 
+import static org.opends.server.util.ServerConstants.SERVER_LOCK_FILE_NAME;
+import static org.opends.server.util.ServerConstants.LOCK_FILE_SUFFIX;
 import org.opends.server.core.LockFileManager;
+import org.opends.quicksetup.util.Utils;
 
 import java.io.File;
 
@@ -92,7 +95,10 @@ public class Status {
    */
   public boolean isServerRunning() {
     boolean isServerRunning;
-    String lockFile = LockFileManager.getServerLockFileName();
+    String lockFileName = SERVER_LOCK_FILE_NAME + LOCK_FILE_SUFFIX;
+    String lockFile =
+            Utils.getPath(new File(installation.getLocksDirectory(),
+                                   lockFileName));
     StringBuilder failureReason = new StringBuilder();
     try {
       if (LockFileManager.acquireExclusiveLock(lockFile,
