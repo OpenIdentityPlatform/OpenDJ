@@ -1158,11 +1158,11 @@ aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
 </screen>
 
   <para>You can also request the effective rights for another user by using the
-  <option>--getEffectiveRightsAuthzid</option> option, which takes the
-  authorization identity of the other user as an argument. The following
-  example shows Directory Manager checking anonymous user rights to the same
-  entry. Notice that the authorization identity for an anonymous user is
-  expressed as <literal>"dn:"</literal>.</para>
+  <option>--getEffectiveRightsAuthzid</option> (short form: <option>-g</option>)
+  option, which takes the authorization identity of the other user as an
+  argument. The following example shows Directory Manager checking anonymous
+  user rights to the same entry. Notice that the authorization identity for an
+  anonymous user is expressed as <literal>"dn:"</literal>.</para>
 
   <screen>$ ldapsearch
  --getEffectiveRightsAuthzid "dn:"
@@ -1188,5 +1188,32 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access not allowed(dele
 aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
  ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
  ) to (anonymous) (not proxied) ( reason: no acis matched the subject )</screen>
+
+  <para>When you need to check access to an attribute that might not yet exist
+  on the entry, you can further use the
+  <option>--getEffectiveRightsAttribute</option> (short form:
+  <option>-e</option>) option, which takes an attribute list as an argument.
+  The following example shows Directory Manager checking anonymous user
+  access to the description attribute for the Self Service groups organizational
+  unit entry. The description attribute is not present on the entry, yet.</para>
+
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "ou=Self Service" description
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+
+$ ldapsearch
+ --getEffectiveRightsAuthzid "dn:"
+ --getEffectiveRightsAttribute description
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "ou=Self Service" aclRights
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;attributeLevel;description: search:1,read:1,compare:1,write:0,selfwrit
+ e_add:0,selfwrite_delete:0,proxy:0
+aclRights;entryLevel: add:0,delete:0,read:1,write:0,proxy:0</screen>
  </section>
 </chapter>
