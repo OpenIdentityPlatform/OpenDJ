@@ -1071,8 +1071,12 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
   <title>Viewing Effective Rights</title>
   <indexterm>
    <primary>Access control</primary>
+   <secondary>Debugging</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Access control</primary>
    <secondary>Effective rights</secondary>
-   </indexterm>
+  </indexterm>
   
   <para>Once you set up a number of ACIs, you might find it difficult to
   understand by inspection what rights a user actually has to a given entry.
@@ -1152,5 +1156,37 @@ aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
  ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
  matched the subject )
 </screen>
+
+  <para>You can also request the effective rights for another user by using the
+  <option>--getEffectiveRightsAuthzid</option> option, which takes the
+  authorization identity of the other user as an argument. The following
+  example shows Directory Manager checking anonymous user rights to the same
+  entry. Notice that the authorization identity for an anonymous user is
+  expressed as <literal>"dn:"</literal>.</para>
+
+  <screen>$ ldapsearch
+ --getEffectiveRightsAuthzid "dn:"
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "cn=*" aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (anonymous) (not proxied) ( reason: evaluated allow , deciding_aci: Anony
+ mous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access not allowed(dele
+ te) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NU
+ LL) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )</screen>
  </section>
 </chapter>
