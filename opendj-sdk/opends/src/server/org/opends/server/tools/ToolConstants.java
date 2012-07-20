@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -91,7 +91,7 @@ public class ToolConstants
 
 
   /**
-   * The name of the opends configuration direction in the user
+   * The name of the OpenDJ configuration directory in the user
    * home directory.
    */
   public static final String DEFAULT_OPENDS_CONFIG_DIR = ".opendj";
@@ -418,7 +418,7 @@ public class ToolConstants
           "getEffectiveRightsAuthzid";
 
   /**
-   * The value for the short option geteffectiveights control attributes.
+   * The value for the short option geteffectiverights control attributes.
    */
    public static final char OPTION_SHORT_EFFECTIVERIGHTSATTR = 'e';
 
@@ -564,12 +564,12 @@ public class ToolConstants
   public static final String OPTION_LONG_QUIET = "quiet";
 
   /**
-   * Value for noninteractive session short form.
+   * Value for non-interactive session short form.
    */
   public static final Character OPTION_SHORT_NO_PROMPT = 'n';
 
   /**
-   * Value for noninteractive session long form.
+   * Value for non-interactive session long form.
    */
   public static final String OPTION_LONG_NO_PROMPT = "no-prompt";
 
