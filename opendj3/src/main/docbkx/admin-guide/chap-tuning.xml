@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-tuning'
@@ -320,15 +320,19 @@
   <section xml:id="perf-data-storage">
    <title>Data Storage Settings</title>
    
-   <para>By default, OpenDJ does use compact data encoding, reducing size used
-   by attribute type and object class strings. However, OpenDJ does try to
-   compress entries by default. You can potentially gain space by setting the
-   backend property <literal>entries-compressed</literal> to
-   <literal>true</literal> before you (re-)import data from LDIF. OpenDJ
-   compresses entries before writing them to the database, but does not
-   proactively rewrite all entries in the database after you change the
-   settings, so to force OpenDJ to compress the entries, import the data
-   from LDIF.</para>
+   <para>By default, OpenDJ compressing attribute descriptions and object class
+   sets to reduce data size. This is called compact encoding.</para>
+
+   <para>By default, OpenDJ does not however compress entries stored in its
+   backend database. If your entries hold values that compress well &#8212;
+   such as text, and not JPEG photos or MP3 audio &#8212; you can gain space
+   by setting the local DB backend property
+   <literal>entries-compressed</literal> to <literal>true</literal> before you
+   (re-)import data from LDIF. With <literal>entries-compressed: true</literal>
+   OpenDJ compresses entries before writing them to the database.<footnote>
+   <para>OpenDJ does not proactively rewrite all entries in the database after
+   you change the settings. Instead, to force OpenDJ to compress all entries,
+   import the data from LDIF.</para></footnote></para>
    
    <screen>$ dsconfig
  set-backend-prop
@@ -460,8 +464,8 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    help troubleshoot any issues that arise.</para>
    
    <para>For OpenDJ servers handling very high throughput, however, such as
-   100,000 operations per second or more, the access log constitue a performance
-   bottleneck, as each client request results in multiple access log
+   100,000 operations per second or more, the access log constitute a
+   performance bottleneck, as each client request results in multiple access log
    messages. Consider disabling the access log in such cases.</para>
    
    <screen>$ dsconfig

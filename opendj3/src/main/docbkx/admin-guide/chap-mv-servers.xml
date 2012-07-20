@@ -168,7 +168,7 @@ Stopping Server...
    </step>
    <step performance="optional">
     <para>If you must change port numbers, edit the port numbers in
-    <filename>config/config.ldif</filename>, carefully avoiding to change
+    <filename>config/config.ldif</filename>, carefully avoiding changing
     any whitespace or other lines in the file.</para>
    </step>
    <step>
