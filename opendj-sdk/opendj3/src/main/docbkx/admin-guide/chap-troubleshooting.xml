@@ -284,13 +284,15 @@ ADD operation successful for DN
   the <option>--skipSchemaValidation</option> with the
   <command>import-ldif</command> command.</para>
   
-  <para>OpenDJ also ensures by default that entries have only one inheritance
-  of structural object classes. You can relax this behavior by using the
-  advanced global configuration property,
+  <para>OpenDJ also ensures by default that entries have only one structural
+  object class. You can relax this behavior by using the advanced global
+  configuration property,
   <literal>single-structural-objectclass-behavior</literal>. This can be useful
   when importing data exported from Sun Directory Server. For example, to
   warn when entries have more than one structural object class instead of
-  reject such entries being added, set the property as follows.</para>
+  reject such entries being added, set
+  <literal>single-structural-objectclass-behavior:warn</literal> as
+  follows.</para>
   
   <screen>$ dsconfig
  set-global-configuration-prop
@@ -615,10 +617,8 @@ global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
    <para>Alternatively, stop OpenDJ, edit the corresponding ACI carefully in
    <filename>/path/to/OpenDJ/config/config.ldif</filename>, and restart OpenDJ.
    <footnote><para>Unlike the <command>dsconfig</command> command, the
-   <filename>config.ldif</filename> file is not a public interface. In this
-   particular case, however, the <command>dsconfig</command> command is such a
-   pain in the nether regions that you might as well edit the LDIF instead
-   (unless you are doing this in production).</para></footnote></para>
+   <filename>config.ldif</filename> file is not a public interface, so this
+   alternative should not be used in production.</para></footnote></para>
   </section>
  </section>
 
