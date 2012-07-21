@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -43,8 +44,6 @@ import org.opends.server.util.cli.MenuResult;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.PrintStream;
-import java.io.InputStream;
 
 /**
  * Supports user interactions for a command line driven application.
@@ -54,21 +53,25 @@ public class CliUserInteraction extends ConsoleApplication
   static private final Logger LOG =
     Logger.getLogger(CliUserInteraction.class.getName());
 
+  private final boolean isInteractive;
+  private final boolean isForceOnError;
+
   /**
    * Creates an instance that will use standard streams for interaction.
    */
   public CliUserInteraction() {
-    super(System.in, System.out, System.err);
+    this(null);
   }
 
   /**
-   * Creates an instance using specific streams.
-   * @param out OutputStream where prompts will be written
-   * @param err OutputStream where errors will be written
-   * @param in InputStream from which information will be read
+   * Creates an instance that will use standard streams for interaction and with
+   * the provided CLI arguments.
+   * @param ud The CLI arguments.
    */
-  public CliUserInteraction(PrintStream out, PrintStream err, InputStream in) {
-    super(in, out, err);
+  public CliUserInteraction(UserData ud) {
+    super(System.in, System.out, System.err);
+    isInteractive = ud != null ? ud.isInteractive() : true;
+    isForceOnError = ud != null ? ud.isForceOnError() : false;
   }
 
   /**
@@ -174,15 +177,6 @@ public class CliUserInteraction extends ConsoleApplication
     return sb.toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public String promptForString(Message prompt, Message title,
-                                String defaultValue) {
-
-    return readInput(prompt, defaultValue, LOG);
-  }
-
   private void println(String text) {
     text = Utils.convertHtmlBreakToLineSeparator(text);
     text = Utils.stripHtml(text);
@@ -203,7 +197,7 @@ public class CliUserInteraction extends ConsoleApplication
    * {@inheritDoc}
    */
   public boolean isInteractive() {
-    return true;
+    return isInteractive;
   }
 
 
@@ -249,5 +243,12 @@ public class CliUserInteraction extends ConsoleApplication
   public boolean isCLI()
   {
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isForceOnError() {
+    return isForceOnError;
   }
 }

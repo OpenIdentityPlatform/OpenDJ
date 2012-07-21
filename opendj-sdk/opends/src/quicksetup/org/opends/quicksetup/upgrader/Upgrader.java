@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup.upgrader;
@@ -1199,7 +1199,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 INFO_ERROR_UPGRADED_SERVER_STARTS_WITH_ERRORS.get(
                         Constants.LINE_SEPARATOR + formattedDetails), null);
         UserInteraction ui = userInteraction();
-        if (ui != null) {
+        if (ui.isInteractive()) {
 
           // We are about to present the problems with the upgrade to the
           // user and ask if they would like to continue.  Regardless of
@@ -1224,7 +1224,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           } else {
             // User wants to continue;  nothing to do
           }
-        } else {
+        } else if (!ui.isForceOnError()) {
           // We can't ask the user if they want to continue so we
           // just bail on the upgrade by throwing an exception which
           // will cause upgrader to exit unsuccessfully

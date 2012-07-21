@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -65,6 +66,7 @@ public class UpgraderCliHelper extends ConsoleApplication {
     uud.setQuiet(launcher.isQuiet());
     uud.setInteractive(!launcher.isNoPrompt());
     uud.setVerbose(launcher.isVerbose());
+    uud.setForceOnError(launcher.isForceOnError());
     return uud;
   }
 

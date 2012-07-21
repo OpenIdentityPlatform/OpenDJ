@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -91,7 +92,7 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
                         reason.toMessage()),
                 null);
       } else {
-        if (ui != null) {
+        if (ui.isInteractive()) {
           for (Directive directive : issues) {
             Message title;
             Message summary;
@@ -155,7 +156,7 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
                       INFO_REVERSION_CANCELED.get(), null);
             }
           }
-        } else {
+        } else if (!ui.isForceOnError()) {
           throw new ApplicationException(
               ReturnCode.APPLICATION_ERROR,
               INFO_ORACLE_NO_SILENT.get(), null);
@@ -178,7 +179,7 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
-      if (ui != null)
+      if (ui.isInteractive())
       {
         String lineBreak = ui.isCLI() ? Constants.LINE_SEPARATOR
             : Constants.HTML_LINE_BREAK;

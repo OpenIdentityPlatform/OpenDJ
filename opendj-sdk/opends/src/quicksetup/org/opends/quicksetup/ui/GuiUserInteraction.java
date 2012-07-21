@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -152,21 +153,25 @@ public class GuiUserInteraction implements UserInteraction {
   /**
    * {@inheritDoc}
    */
-  public String promptForString(Message prompt, Message title,
-                                String defaultValue) {
-    Object o = JOptionPane.showInputDialog(
-            parent, prompt.toString(), title.toString(),
-            JOptionPane.QUESTION_MESSAGE,
-            null, null, defaultValue);
-    return o != null ? o.toString() : null;
+  public boolean isCLI()
+  {
+    return false;
   }
 
   /**
    * {@inheritDoc}
    */
-  public boolean isCLI()
+  public boolean isForceOnError()
   {
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive()
+  {
+    return true;
   }
 
   /**

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -514,7 +515,7 @@ public class Reverter extends Application implements CliApplication {
 
       // Get the user to confirm if possible
       UserInteraction ui = userInteraction();
-      if (ui != null) {
+      if (ui.isInteractive()) {
         Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
         Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
 
@@ -1106,11 +1107,7 @@ public class Reverter extends Application implements CliApplication {
     }
 
     if (currentVersion != null && newVersion != null) {
-      UserInteraction ui = userInteraction() ;
-      if (ui == null)
-      {
-        ui = new CliUserInteraction();
-      }
+      UserInteraction ui = userInteraction();
       ReversionIssueNotifier uo = new ReversionIssueNotifier(
               ui,currentVersion,newVersion);
       uo.notifyUser();

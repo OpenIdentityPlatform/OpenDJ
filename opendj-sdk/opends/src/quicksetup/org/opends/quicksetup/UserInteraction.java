@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -107,19 +108,27 @@ public interface UserInteraction {
   String createUnorderedList(List<?> list);
 
   /**
-   * Promt the user for a string.
-   * @param prompt for string
-   * @param title of prompt dialog
-   * @param defaultValue for default
-   * @return String typed by user
-   */
-  String promptForString(Message prompt, Message title, String defaultValue);
-
-  /**
    * Tells whether the interaction is command-line based.
    * @return <CODE>true</CODE> if the user interaction is command-line based and
    * <CODE>false</CODE> otherwise.
    */
   boolean isCLI();
+
+  /**
+   * Indicates whether or not the CLI based user has requested to continue when
+   * a non critical error occurs.
+   *
+   * @return boolean where true indicates to continue if there is a non critical
+   *         error.
+   */
+  boolean isForceOnError();
+
+  /**
+   * Indicates whether or not the CLI user has requested interactive behavior.
+   *
+   * @return <code>true</code> if the CLI user has requested interactive
+   *         behavior.
+   */
+  boolean isInteractive();
 
 }

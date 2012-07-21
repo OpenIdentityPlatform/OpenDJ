@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -317,7 +318,7 @@ public abstract class VersionIssueNotifier {
    */
   protected List<Message> getExportImportInstructions() {
     List<Message> instructions = new ArrayList<Message>();
-    if ((ui == null) || (ui.isCLI()))
+    if (ui.isCLI())
     {
       instructions.add(INFO_ORACLE_EI_ACTION_STEP1_CLI.get());
     }

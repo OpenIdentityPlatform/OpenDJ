@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -666,12 +667,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public UserInteraction userInteraction() {
     // Note:  overridden in GuiApplication
-    UserInteraction ui = null;
-    UserData ud = getUserData();
-    if (ud != null && ud.isInteractive()) {
-      ui = new CliUserInteraction();
-    }
-    return ui;
+    return new CliUserInteraction(getUserData());
   }
 
   /**
@@ -735,8 +731,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param status of the operation
    * @param note string with additional information
    * @throws ApplicationException if something goes wrong
-   * @see {@link #writeInitialHistoricalRecord(BuildInformation,
-          BuildInformation)}
    */
   protected void writeHistoricalRecord(
           Long id,
