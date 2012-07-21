@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -92,7 +93,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                         reason.toMessage()),
                 null);
       } else {
-        if (ui != null) {
+        if (ui.isInteractive()) {
           String lineBreak = ui.isCLI() ?
               Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
           for (VersionIssueNotifier.Directive directive : issues) {
@@ -156,7 +157,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                       INFO_UPGRADE_CANCELED.get(), null);
             }
           }
-        } else {
+        } else if (!ui.isForceOnError()) {
           throw new ApplicationException(
               ReturnCode.APPLICATION_ERROR,
               INFO_ORACLE_NO_SILENT.get(), null);
@@ -179,7 +180,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
-      if (ui != null)
+      if (ui.isInteractive())
       {
         String lineBreak = ui.isCLI() ? Constants.LINE_SEPARATOR
             : Constants.HTML_LINE_BREAK;

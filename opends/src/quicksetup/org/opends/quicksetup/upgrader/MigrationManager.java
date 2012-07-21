@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -354,7 +355,7 @@ public class MigrationManager {
       remainingChanges.removeAll(appliedChanges);
       if ((firstException != null) && (appliedChanges.size() == 0))
       {
-        if (ui != null) {
+        if (ui.isInteractive()) {
           Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
           Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
           Message retry = INFO_RETRY_BUTTON_LABEL.get();
@@ -377,6 +378,9 @@ public class MigrationManager {
                 ReturnCode.CANCELED,
                 INFO_UPGRADE_CANCELED.get(), firstException);
           }
+        } else if (ui.isForceOnError()) {
+          // Continue.
+          remainingChanges.remove(0);
         } else {
           throw firstException;
         }

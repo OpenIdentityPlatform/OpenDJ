@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -46,6 +47,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.Constructor;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -605,27 +607,27 @@ public abstract class GuiApplication extends Application {
   /**
    * {@inheritDoc}
    */
-  public UserInteraction userInteraction() {
-    UserInteraction ui = null;
-    if (getUserData().isInteractive()) {
-      if (Utils.isCli()) {
-        // Use reflection to avoid breaking the java web start in some
-        // platforms.
-        try
-        {
-          Class<?> cl =
-            Class.forName("org.opends.quicksetup.CliUserInteraction");
-          ui = (UserInteraction) cl.newInstance();
-        }
-        catch (Throwable t)
-        {
-          throw new IllegalStateException("Unexpected error: "+t, t);
-        }
-      } else {
-        ui = new GuiUserInteraction(qs.getFrame());
+  public UserInteraction userInteraction()
+  {
+    if (Utils.isCli())
+    {
+      // Use reflection to avoid breaking the java web start in some
+      // platforms.
+      try
+      {
+        Class<?> cl = Class.forName("org.opends.quicksetup.CliUserInteraction");
+        Constructor<?> c = cl.getConstructor(UserData.class);
+        return (UserInteraction) c.newInstance(getUserData());
+      }
+      catch (Throwable t)
+      {
+        throw new IllegalStateException("Unexpected error: " + t, t);
       }
     }
-    return ui;
+    else
+    {
+      return new GuiUserInteraction(qs.getFrame());
+    }
   }
 
   /**
