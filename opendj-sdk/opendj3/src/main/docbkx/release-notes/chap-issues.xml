@@ -283,6 +283,7 @@
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-202" xlink:show="new">OPENDJ-202</link>: All bind request APIs should take byte or char arrays for passwords</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-180" xlink:show="new">OPENDJ-180</link>: SSL handshake failed after restarting replication server</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-169" xlink:show="new">OPENDJ-169</link>: Modifying an existing object class definition requires server restart</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-137" xlink:show="new">OPENDJ-137</link>: Windows Service management flakiness</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-118" xlink:show="new">OPENDJ-118</link>: RS load balancing does not occur after an RS becomes available after an outage</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-110" xlink:show="new">OPENDJ-110</link>: Searches on dc=replicationchanges return incomplete results for certain types of LDAP modifications.</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-104" xlink:show="new">OPENDJ-104</link>: Remove Thread.sleep() synchronization design anti-pattern in replication code.</para></listitem>
