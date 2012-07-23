@@ -60,7 +60,7 @@
    release.</para>
   </important>
 
-  <para>Compared to the OpenDJ <?eval ${stableServerVersion}?>, OpenDJ
+  <para>Compared to the OpenDJ <?eval ${stableServerVersion}?> release, OpenDJ
   <?eval ${docTargetVersion}?> fixes a number of issues. OpenDJ
   <?eval ${docTargetVersion}?> provides the following new features.</para>
   
