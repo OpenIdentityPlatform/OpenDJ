@@ -34,7 +34,7 @@
  <!-- TODO: Update for the release. -->
  <note>
   <para>The current list of fixes and issues reflects OpenDJ
-  <?eval ${docTargetVersion}?> in progress as of July 19, 2012.</para>
+  <?eval ${docTargetVersion}?> in progress as of July 23, 2012.</para>
  </note>
 
  <para>OpenDJ issues are tracked at <link
