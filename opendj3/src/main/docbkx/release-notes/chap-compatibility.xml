@@ -63,7 +63,12 @@
    </listitem>
    <listitem>
     <para>Syntax checking has been added for certificate and country attribute
-    values. This affects applications updating those attribute values.</para>
+    values. This affects applications updating those attribute values.
+    Applications updating country attribute values must now use Country String
+    syntax for example, which uses two-character codes from <link
+    xlink:show="new" xlink:href="http://www.iso.org/iso/country_codes.htm">ISO
+    3166</link> such as <literal>US</literal> instead of full names such as
+    <literal>United States</literal>.</para>
    </listitem>
   </itemizedlist>
 
