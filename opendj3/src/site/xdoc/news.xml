@@ -33,6 +33,17 @@
  </properties>
  <body>
   <section name="New Releases">
+   <p>July 23, 2012. OpenDJ 2.5.0 Xpress is out now! OpenDJ 2.5.0 Xpress
+   brings you the latest OpenDJ directory server and DSML gateway features,
+   including the capability to delegate authentication to Microsoft AD, improved
+   referential integrity for groups, access log filtering and formatting,
+   optimistic concurrency control using ETags, synchronization of Samba and
+   OpenDJ passwords, 30 additional new features and enhancements, and 150 bug
+   fixes. Get OpenDJ 2.5.0 Xpress from the
+   <a href="http://www.forgerock.org/opendj.html">download page</a>. Be sure to
+   read the <a href="http://opendj.forgerock.org/doc/release-notes/index.html"
+   >Release Notes</a> for additional information.</p>
+
    <p>February 27, 2012. OpenDJ 2.4.5 is now available. OpenDJ 2.4.5 is an
    update release of the OpenDJ project. You can get the release from the
    <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
