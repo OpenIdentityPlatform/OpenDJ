@@ -31,6 +31,35 @@
   xmlns:xinclude='http://www.w3.org/2001/XInclude'>
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
+  <important>
+   <itemizedlist>
+    <para>OpenDJ 2.5.0-Xpress1 brings you the latest features such as:</para>
+    <listitem>
+     <para>Capability to delegate authentication to Microsoft Active Directory
+     (pass-through authentication)</para>
+    </listitem>
+    <listitem>
+     <para>Improved enforcement of referential integrity for groups, whereby
+     OpenDJ can now ensure both that members' entries exist when they are added
+     to groups, and also that members are removed from groups when their entries
+     are deleted</para>
+    </listitem>
+    <listitem>
+     <para>Access log filtering, with additional output configuration to combine
+     request and response messages, log control OIDs, and specify timestamp
+     formats</para>
+    </listitem>
+    <listitem>
+     <para>Optimistic concurrency control through ETag attributes</para>
+    </listitem>
+    <listitem>
+     <para>Synchronization of Samba and OpenDJ passwords</para>
+    </listitem>
+   </itemizedlist>
+   <para>You can purchase a support subscription from ForgeRock for this
+   release.</para>
+  </important>
+
   <para>Compared to the OpenDJ <?eval ${stableServerVersion}?>, OpenDJ
   <?eval ${docTargetVersion}?> fixes a number of issues. OpenDJ
   <?eval ${docTargetVersion}?> provides the following new features.</para>
