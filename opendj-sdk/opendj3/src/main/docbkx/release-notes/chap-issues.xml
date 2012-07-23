@@ -261,28 +261,26 @@
 
   <para>The following known issues remained open at the time release
   <?eval ${docTargetVersion}?> became available.</para>
+  <!-- project = OpenDJ and affectedVersion in ("2.5", "2.5.0") and (resolution = Unresolved or (resolution = fixed and fixVersion not in ("2.5", "2.5.0"))) and component != documentation and type = Bug -->
 
   <itemizedlist>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-534" xlink:show="new">OPENDJ-534</link>: dsconfig is returning output to stderr rather than stdout</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-532" xlink:show="new">OPENDJ-532</link>: When replication is enabled cn=changelog appears in namingcontexts output</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-542" xlink:show="new">OPENDJ-542</link>: ExceptionInInitializerError during upgrade with QuickSetup.jnlp</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-541" xlink:show="new">OPENDJ-541</link>: Severe Warning about file permissions in error logs when starting OpenDJ</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-527" xlink:show="new">OPENDJ-527</link>: rebuild-index --rebuildAll corrupts the indexes for certain data sets</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-505" xlink:show="new">OPENDJ-505</link>: dsreplication enable fails when hostname contains an underscore</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-502" xlink:show="new">OPENDJ-502</link>: DSML gateway not correctly forwarding modifications to userCertificate;binary attributes</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-501" xlink:show="new">OPENDJ-501</link>: dsconfig advanced properties for the attribute syntaxes inconsistent</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-457" xlink:show="new">OPENDJ-457</link>: Sleeping replication threads prevent server from shutting down</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-454" xlink:show="new">OPENDJ-454</link>: Naming conflict of 2 adds with same DN leaves DIT inconsistent</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-453" xlink:show="new">OPENDJ-453</link>: Manually deleting an objectclass from 99-user.ldif does not get replicated.</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-452" xlink:show="new">OPENDJ-452</link>: Manual add of new schema objectclass in 99-user.ldif are not replicated</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-449" xlink:show="new">OPENDJ-449</link>: modifiersName and modifyTimestamp not included in 99-user.ldif for replica</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-443" xlink:show="new">OPENDJ-443</link>: dsconfig should return wider range of error codes</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-431" xlink:show="new">OPENDJ-431</link>: Server side sort control only works on result sets of less than 100000 entries</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-405" xlink:show="new">OPENDJ-405</link>: Upgrade fails in many cases when configuration modified in the server to upgrade.</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-399" xlink:show="new">OPENDJ-399</link>: DirectoryException thrown processing of virtual static groups during backend initialization</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-340" xlink:show="new">OPENDJ-340</link>: dsreplication disable takes --bindDN, but --adminPassword instead of --bindPassword</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-329" xlink:show="new">OPENDJ-329</link>: Starting OpenDJ when port is in use results in exceptions</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-320" xlink:show="new">OPENDJ-320</link>: log-file-permissions ignores group permissions</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-270" xlink:show="new">OPENDJ-270</link>: dsreplication disable takes a long time</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-253" xlink:show="new">OPENDJ-253</link>: Search for draft changeNumber on disabled suffix requires full resync</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-253" xlink:show="new">OPENDJ-253</link>: search for draft changeNumber on disabled suffix requires full resync</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-202" xlink:show="new">OPENDJ-202</link>: All bind request APIs should take byte or char arrays for passwords</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-180" xlink:show="new">OPENDJ-180</link>: SSL handshake failed after restarting replication server</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-169" xlink:show="new">OPENDJ-169</link>: Modifying an existing object class definition requires server restart</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-118" xlink:show="new">OPENDJ-118</link>: RS load balancing does not occur after an RS becomes available after an outage</para></listitem>
