@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-attribute-uniqueness'
@@ -88,8 +88,8 @@
  --bindPassword password
  --plugin-name "UID Unique Attribute"
  --set enabled:true
- --add base-dn:dc=example,dc=com
- --add base-dn:dc=example,dc=org
+ --add base-dn:ou=people,dc=example,dc=com
+ --add base-dn:ou=people,dc=example,dc=org
  --trustAll
  --no-prompt</screen>
   </step>
