@@ -956,22 +956,22 @@ The LDAP password modify operation was successful</screen>
    <command>dsconfig set-access-control-handler-prop</command> command.</para>
 
    <para>First, remove the <literal>global-aci</literal> attribute value that
-   allows anonymous read access. The <literal>global-aci</literal> attribute
-   value should all be on one line.</para>
+   allows anonymous read access. Do not wrap the lines in the following
+   example if you use it as the basis for your script.</para>
 
-   <screen>dsconfig
- set-access-control-handler-prop
- --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|changes\|
-  \|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|
-  \|newSuperior\|\|deleteOldRDN\|\|targetEntryUUID\|\|changeInitiatorsName\|
-  \|changeLogCookie\|\|includedAttributes\"\)\(version\ 3.0\;\ acl\ \"Anonymous
-  \ read\ access\"\;\ allow\ \(read,search,compare\)
-  \ userdn=\"ldap:///anyone\"\;\)
- --hostname opendj.example.com
- --port 4444
- --bindDN cn=Directory\ Manager
- --bindPassword password
- --trustAll
+   <screen>$ dsconfig \
+ set-access-control-handler-prop \
+ --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|changes\|\
+\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\
+\|newSuperior\|\|deleteOldRDN\|\|targetEntryUUID\|\|changeInitiatorsName\|\
+\|changeLogCookie\|\|includedAttributes\"\)\(version\ 3.0\;\ acl\ \"Anonymous\
+\ read\ access\"\;\ allow\ \(read,search,compare\)\
+\ userdn=\"ldap:///anyone\"\;\)\
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN cn=Directory\ Manager \
+ --bindPassword password \
+ --trustAll \
  --no-prompt</screen>
 
    <para>If the <literal>global-aci</literal> does not match the ACI exactly
