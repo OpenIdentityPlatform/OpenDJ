@@ -217,7 +217,8 @@
     <para>When you configure account lockout as part of password policy,
     OpenDJ locks an account after the specified number of consecutive
     authentication failures. Account lockout is not transactional across a
-    replication topology, however.</para>
+    replication topology, however. Global account lockout occurs as soon as
+    the authentication failure times have been replicated.</para>
    </listitem>
    <listitem>
     <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
