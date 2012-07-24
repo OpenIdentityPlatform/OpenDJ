@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -781,7 +781,6 @@ public class FileSystemEntryCache
           entriesExamined++;
           if ((entriesExamined % 1000) == 0) {
             cacheWriteLock.unlock();
-            Thread.currentThread();
             Thread.yield();
             cacheWriteLock.lock();
           }
@@ -884,7 +883,6 @@ public class FileSystemEntryCache
         entriesExamined++;
         if ((entriesExamined % 1000) == 0) {
           cacheWriteLock.unlock();
-          Thread.currentThread();
           Thread.yield();
           cacheWriteLock.lock();
         }
