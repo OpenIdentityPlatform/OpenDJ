@@ -33,7 +33,11 @@
  </properties>
  <body>
   <section name="Core Documentation">
-   <p>This core documentation is in progress as part of the OpenDJ project.</p>
+   <p>This core documentation is <strong>in progress</strong> as part of
+   the OpenDJ project.</p>
+   <p>For completed, released documentation, see <a
+   href="http://docs.forgerock.org/en/index.html?product=opendj"
+   >docs.forgerock.org</a>.</p>
    <dl>
     <dt>Release Notes</dt>
     <dd><a href="./doc/OpenDJ-Release-Notes.epub">EPUB</a>,

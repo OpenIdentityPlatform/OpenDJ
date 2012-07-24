@@ -64,6 +64,10 @@
     <item name="Toolkit" href="opendj-ldap-toolkit" />
   </menu>
 
+  <menu name="Released Documentation">
+    <item name="OpenDJ 2.5.0-Xpress1" href="http://docs.forgerock.org/en/index.html?product=opendj&amp;version=2.5.0-Xpress1" />
+  </menu>
+
   <menu name="OpenDJ Documentation">
    <item name="All Formats" href="docs.html" />
    <item name="Release Notes" href="./doc/release-notes/index.html" />
