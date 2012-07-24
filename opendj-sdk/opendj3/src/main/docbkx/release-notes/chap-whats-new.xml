@@ -233,12 +233,8 @@
       <para>To configure PTA, you set up an LDAP pass through authentication
       policy in OpenDJ's configuration, and then assign the policy to users in
       the same way you would assign a password policy. See the
-<!--
       <link xlink:href="admin-guide#chap-pta"
       xlink:role="http://docbook.org/xlink/role/olink"
- -->
-      <link xlink:show="new"
-      xlink:href="http://opendj.forgerock.org/doc/admin-guide/index.html#chap-pta"
       ><citetitle>Administration Guide</citetitle></link> for details.</para>
     </listitem>
     <listitem>

@@ -76,14 +76,8 @@
   Finally, these notes list both issues fixed since the previous
   release and known issues open at the time of release.</para>
    
-<!--
   <para>See the <link xlink:role="http://docbook.org/xlink/role/olink"
   xlink:href="install-guide#install-guide"><citetitle>Installation
-  Guide</citetitle></link> for more after you read these release notes. The
- -->
-  <para>See the <link
-  xlink:href="http://opendj.forgerock.org/doc/install-guide/index.html#install-guide"
-  xlink:show="new"><citetitle>Installation
   Guide</citetitle></link> for more after you read these release notes. The
   installation guide covers installation and upgrade for OpenDJ directory
   server and OpenDJ DSML gateway.</para>
