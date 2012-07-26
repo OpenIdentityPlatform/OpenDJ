@@ -206,7 +206,7 @@
   <title>Limitations</title>
 
   <para>Release <?eval ${docTargetVersion}?> has the following limitations,
-  none of which are new since <?eval ${stableServerVersion} ?>.</para>
+  none of which are new since <?eval ${stableServerVersion}?>.</para>
 
   <itemizedlist>
    <listitem>
