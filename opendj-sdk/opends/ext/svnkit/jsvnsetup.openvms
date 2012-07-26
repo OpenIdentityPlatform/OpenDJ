@@ -19,12 +19,16 @@ $    write sys$output " "
 $ endif
 $!
 $!
-$ CP = "/svnkit_home/svnkit.jar"
-$ CP = CP + ":/svnkit_home/svnkit-cli.jar"
-$ CP = CP + ":/svnkit_home/trilead.jar"
-$ CP = CP + ":/svnkit_home/jna.jar"
+$ CP = "/svnkit_home/../lib"
+$ CP = CP + ":/svnkit_home/../lib/svnkit-1.7.5-v1.jar
+$ CP = CP + ":/svnkit_home/../lib/sequence-library-1.0.2.jar
+$ CP = CP + ":/svnkit_home/../lib/antlr-runtime-3.4.jar
+$ CP = CP + ":/svnkit_home/../lib/sqljet-1.1.4.jar
+$ CP = CP + ":/svnkit_home/../lib/jna-3.4.0.jar
+$ CP = CP + ":/svnkit_home/../lib/trilead-ssh2-1.0.0-build215.jar
+$ CP = CP + ":/svnkit_home/../lib/svnkit-cli-1.7.5-v1.jar
 $ OPT = ""
-$! OPT = "-Djava.util.logging.config.file=/svnkit_home/logging.properties"
+$! OPT = "-Djava.util.logging.config.file=/svnkit_home/../conf/logging.properties"
 $!
 $ JV = f$edit(java,"collapse")
 $ jsvn ==      "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svn.SVN"""
