@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2012 ForgeRock AS
 
 
 # Capture the current working directory so that we can change to it later.
