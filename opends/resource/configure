@@ -41,6 +41,17 @@ export INSTALL_ROOT
 SCRIPT_NAME=configure
 export SCRIPT_NAME
 
+case `uname -r` in
+  *10)
+       MANIFEST=/var/svc/manifest/network/ldap/opendj-manifest.xml
+       IMPORTSVC="/usr/sbin/svccfg import $MANIFEST"
+       ;;
+  *11)
+       MANIFEST=/lib/svc/manifest/network/ldap/opendj-manifest.xml
+       IMPORTSVC="/usr/sbin/svcadm restart svc:/system/manifest-import:default"
+       ;;
+esac
+
 # Check if running as root. This is required to be able to copy files and
 # enable SMF
 if [[ `id -u` -ne 0 ]]
@@ -90,13 +101,13 @@ else
     IFS=${CURRENT_IFS}
     if test "${USERNAME}" = "ldap" -a "$GROUPNAME" = "ldap"
     then
-        cp ${INSTALL_ROOT}/resources/opendj-manifest.xml /var/svc/manifest/network/ldap/
+        cp ${INSTALL_ROOT}/resources/opendj-manifest.xml $MANIFEST
     else
         cat ${INSTALL_ROOT}/resources/opendj-manifest.xml | sed -e "s/user='ldap/user='${USERNAME}/;s/group='ldap/group='${GROUPNAME}/" > /tmp/opendj-manifest.$$
-        cp /tmp/opendj-manifest.$$ /var/svc/manifest/network/ldap/opendj-manifest.xml
+        cp /tmp/opendj-manifest.$$ $MANIFEST
         rm /tmp/opendj-manifest.$$
     fi
-    /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opendj-manifest.xml
+    $IMPORTSVC
   fi
   exit ${RETURN_CODE}
 fi
