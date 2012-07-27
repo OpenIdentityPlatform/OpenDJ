@@ -106,12 +106,17 @@ then
 fi
 
 echo "Disabling SMF service ..."
-# Now update SMF manifest, delete it and remove the file from  /var/svc/manifest
-echo select network/ldap/server >  /tmp/opendj-unconfigure.$$
-echo delete opendj >> /tmp/opendj-unconfigure.$$
-/usr/sbin/svccfg -f /tmp/opendj-unconfigure.$$
-rm /tmp/opendj-unconfigure.$$
-rm /var/svc/manifest/network/ldap/opendj-manifest.xml
+if [ `uname -r` = "5.10" ]; then
+  # Now update SMF manifest, delete it and remove the file from  /var/svc/manifest
+  echo select network/ldap/server >  /tmp/opendj-unconfigure.$$
+  echo delete opendj >> /tmp/opendj-unconfigure.$$
+  /usr/sbin/svccfg -f /tmp/opendj-unconfigure.$$
+  rm /tmp/opendj-unconfigure.$$
+  rm /var/svc/manifest/network/ldap/opendj-manifest.xml
+else
+  rm /lib/svc/manifest/network/ldap/opendj-manifest.xml
+  /usr/sbin/svcadm restart svc:/system/manifest-import:default
+fi
 
 echo "Resetting instance location ..."
 # Launch the unconfigure process.
