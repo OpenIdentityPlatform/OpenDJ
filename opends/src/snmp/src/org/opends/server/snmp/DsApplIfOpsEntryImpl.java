@@ -23,6 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
+ *
  */
 package org.opends.server.snmp;
 
@@ -124,6 +126,46 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     if (stats != null) {
       long value = Long.parseLong((String) this.monitor.getAttribute(stats,
               "searchRequests"));
+      return SNMPMonitor.counter32Value(value);
+    } else {
+      return 0L;
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   * @return DsApplIfOneLevelSearchOps
+   */
+  @Override
+  public Long getDsApplIfOneLevelSearchOps() {
+    if (stats == null) {
+      stats = this.monitor.getConnectionHandlerStatistics(
+              connectionHandlerName);
+    }
+    if (stats != null) {
+      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
+              "searchOneRequests"));
+      return SNMPMonitor.counter32Value(value);
+    } else {
+      return 0L;
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   * @return DsApplIfWholeSubtreeSearchOps
+   */
+  @Override
+  public Long getDsApplIfWholeSubtreeSearchOps() {
+    if (stats == null) {
+      stats = this.monitor.getConnectionHandlerStatistics(
+              connectionHandlerName);
+    }
+    if (stats != null) {
+      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
+              "searchSubRequests"));
       return SNMPMonitor.counter32Value(value);
     } else {
       return 0L;

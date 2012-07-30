@@ -23,6 +23,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
+ *
  */
 package org.opends.server.protocols.ldap;
 
@@ -99,6 +101,8 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   private AtomicLong operationsCompleted = new AtomicLong(0);
   private AtomicLong operationsInitiated = new AtomicLong(0);
   private AtomicLong searchRequests = new AtomicLong(0);
+  private AtomicLong searchOneRequests = new AtomicLong(0);
+  private AtomicLong searchSubRequests = new AtomicLong(0);
   private AtomicLong searchResultEntries = new AtomicLong(0);
   private AtomicLong searchResultReferences = new AtomicLong(0);
   private AtomicLong searchResultsDone = new AtomicLong(0);
@@ -218,6 +222,8 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       long tmpOperationsCompleted = operationsCompleted.get();
       long tmpOperationsInitiated = operationsInitiated.get();
       long tmpSearchRequests = searchRequests.get();
+      long tmpSearchOneRequests = searchOneRequests.get();
+      long tmpSearchSubRequests = searchSubRequests.get();
       long tmpSearchEntries = searchResultEntries.get();
       long tmpSearchReferences = searchResultReferences.get();
       long tmpSearchResultsDone = searchResultsDone.get();
@@ -295,6 +301,10 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
         .valueOf(tmpModifyDNResponses)));
     attrs.add(createAttribute("searchRequests", String
         .valueOf(tmpSearchRequests)));
+    attrs.add(createAttribute("searchOneRequests", String
+            .valueOf(tmpSearchOneRequests)));
+    attrs.add(createAttribute("searchSubRequests", String
+            .valueOf(tmpSearchSubRequests)));
     attrs.add(createAttribute("searchResultEntries", String
         .valueOf(tmpSearchEntries)));
     attrs.add(createAttribute("searchResultReferences", String
@@ -412,6 +422,8 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       operationsCompleted.set(0);
       operationsInitiated.set(0);
       searchRequests.set(0);
+      searchOneRequests.set(0);
+      searchSubRequests.set(0);
       searchResultEntries.set(0);
       searchResultReferences.set(0);
       searchResultsDone.set(0);
@@ -518,6 +530,23 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
         break;
       case OP_TYPE_SEARCH_REQUEST:
         searchRequests.getAndIncrement();
+        SearchRequestProtocolOp s = (SearchRequestProtocolOp)message
+            .getProtocolOp();
+        switch (s.getScope())
+        {
+        case BASE_OBJECT:
+            // we don't count base object searches as
+            // this value can be derived from the others
+            break;
+        case SINGLE_LEVEL:
+            searchOneRequests.getAndIncrement();
+            break;
+        case WHOLE_SUBTREE:
+            searchSubRequests.getAndIncrement();
+            break;
+        default:
+            break;
+        }
         break;
       case OP_TYPE_UNBIND_REQUEST:
         unbindRequests.getAndIncrement();
@@ -935,6 +964,30 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   public long getSearchRequests()
   {
       return searchRequests.get();
+  }
+
+
+
+  /**
+   * Retrieves the number of one-level search requests that have been received.
+   *
+   * @return The number of one-level search requests that have been received.
+   */
+  public long getSearchOneRequests()
+  {
+      return searchOneRequests.get();
+  }
+
+
+
+  /**
+   * Retrieves the number of subtree search requests that have been received.
+   *
+   * @return The number of subtree search requests that have been received.
+   */
+  public long getSearchSubRequests()
+  {
+      return searchSubRequests.get();
   }
 
 
