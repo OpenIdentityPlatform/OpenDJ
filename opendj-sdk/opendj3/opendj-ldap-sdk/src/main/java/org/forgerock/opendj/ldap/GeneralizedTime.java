@@ -1050,8 +1050,6 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      *            offset. This should be the position of the plus or minus
      *            character.
      * @return The {@code TimeZone} object representing the decoded time zone.
-     * @throws DecodeException
-     *             If the provided value does not contain a valid offset.
      */
     private static TimeZone getTimeZoneForOffset(final String value, final int startPos) {
         final String offSetStr = value.substring(startPos);
