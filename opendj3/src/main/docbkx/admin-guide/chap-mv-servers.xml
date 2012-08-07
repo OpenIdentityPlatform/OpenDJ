@@ -372,8 +372,8 @@ $ keytool
  -keystore admin-keystore
  -storepass `cat admin-keystore.pin`
  -keypass `cat admin-keystore.pin`</screen>
-    <para>You might choose to make the key valid for two years with
-    <option>-validity 730</option>.</para>
+    <para>You might choose to make the key valid for 20 years with
+    <option>-validity 7300</option>.</para>
    </step>
    <step>
     <para>Self-sign what you generated.</para>
