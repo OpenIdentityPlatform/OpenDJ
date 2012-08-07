@@ -24,12 +24,16 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012 ForgeRock AS
+ *
  */
 package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import java.util.List;
+
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.JPEGAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -38,22 +42,31 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
+
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
 /**
- * This class implements the JPEG attribute syntax.  This should be restricted
- * to holding only JPEG image contents, but we will accept any set of bytes.  It
- * will be treated much like the octet string attribute syntax.
+ * This class implements the JPEG attribute syntax.  This is actually
+ * two specifications - JPEG and JFIF. As an extension we allow JPEG
+ * and Exif, which is what most digital cameras use. We only check for
+ * valid JFIF and Exif headers.
  */
 public class JPEGSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
+       extends AttributeSyntax<JPEGAttributeSyntaxCfg>
+       implements ConfigurationChangeListener<JPEGAttributeSyntaxCfg>
 {
+  // Indicates whether this syntax should operate in strict mode.
+  private boolean strictMode;
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -62,6 +75,9 @@ public class JPEGSyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+  // The current configuration for this JPEG syntax.
+  private JPEGAttributeSyntaxCfg currentConfig;
 
 
 
@@ -81,7 +97,7 @@ public class JPEGSyntax
   /**
    * {@inheritDoc}
    */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
+  public void initializeSyntax(JPEGAttributeSyntaxCfg configuration)
          throws ConfigException
   {
     defaultEqualityMatchingRule =
@@ -106,6 +122,17 @@ public class JPEGSyntax
     {
       logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
+    }
+
+    // We may or may not have access to the config entry.  If we do, then see if
+    // we should use the strict compliance mode.  If not, just assume that we
+    // won't.
+    strictMode = false;
+    if (configuration != null)
+    {
+      currentConfig = configuration;
+      currentConfig.addJPEGChangeListener(this);
+      strictMode = currentConfig.isStrictFormat();
     }
   }
 
@@ -223,9 +250,66 @@ public class JPEGSyntax
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    // All values will be acceptable for the JPEG syntax.
+    // anything is acceptable if we're not strict.
+    if (strictMode == false)
+        return true;
+
+    /* JFIF files start:
+     * 0xff 0xd8 0xff 0xe0 LH LL 0x4a 0x46 0x49 0x46 ...
+     * SOI       APP0      len   "JFIF"
+     *
+     * Exif files (from most digital cameras) start:
+     * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
+     * SOI       APP1      len   "Exif"
+     *
+     * So all legal values must be at least 10 bytes long
+     */
+    if (value.length() < 10)
+        return false;
+
+    if (value.byteAt(0) != (byte)0xff && value.byteAt(1) != (byte)0xd8)
+        return false;
+
+    if (value.byteAt(2) == (byte)0xff && value.byteAt(3) == (byte)0xe0 &&
+        value.byteAt(6) == 'J' && value.byteAt(7) == 'F' &&
+        value.byteAt(8) == 'I' && value.byteAt(9) == 'F')
+        return true;
+
+    if (value.byteAt(2) == (byte)0xff && value.byteAt(3) == (byte)0xe1 &&
+        value.byteAt(6) == 'E' && value.byteAt(7) == 'x' &&
+        value.byteAt(8) == 'i' && value.byteAt(9) == 'f')
+        return true;
+
+    // No JFIF or Exif header found
+    return false;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      JPEGAttributeSyntaxCfg configuration,
+                      List<Message> unacceptableReasons)
+  {
+    // The configuration will always be acceptable.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+              JPEGAttributeSyntaxCfg configuration)
+  {
+    currentConfig = configuration;
+    strictMode = configuration.isStrictFormat();
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
 
 
 

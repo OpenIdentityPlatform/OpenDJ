@@ -2160,9 +2160,11 @@ ds-cfg-enabled: true
 dn: cn=JPEG,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
+objectClass: ds-cfg-jpeg-attribute-syntax
 cn: JPEG
 ds-cfg-java-class: org.opends.server.schema.JPEGSyntax
 ds-cfg-enabled: true
+ds-cfg-strict-format: false
 
 dn: cn=LDAP Syntax Description,cn=Syntaxes,cn=config
 objectClass: top
