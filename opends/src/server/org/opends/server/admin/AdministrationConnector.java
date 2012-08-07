@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -89,7 +89,7 @@ public final class AdministrationConnector implements
   /**
    * Validity (in days) of the generated certificate.
    */
-  public static final int ADMIN_CERT_VALIDITY = 2 * 365;
+  public static final int ADMIN_CERT_VALIDITY = 20 * 365;
 
   // Friendly name of the administration connector
   private static final String FRIENDLY_NAME = "Administration Connector";

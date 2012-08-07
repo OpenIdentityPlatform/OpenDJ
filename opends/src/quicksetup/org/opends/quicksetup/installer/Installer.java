@@ -4487,7 +4487,7 @@ public abstract class Installer extends GuiApplication {
    */
   private int getSelfSignedCertificateValidity()
   {
-    return 2 * 365;
+    return 20 * 365;
   }
 
   /**
