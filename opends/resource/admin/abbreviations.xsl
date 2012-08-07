@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2008-2009 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS
+  !      Portions copyright 2011-2012 ForgeRock AS
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -54,7 +54,7 @@
               or $value = 'sha384' or $value = 'sha512' or $value = 'tls'
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
               or $value = 'db' or $value = 'snmp' or $value = 'qos'
-              or $value = 'ecl' or $value = 'ttl'
+              or $value = 'ecl' or $value = 'ttl' or $value = 'jpeg'
              "/>
   </xsl:template>
 </xsl:stylesheet>
