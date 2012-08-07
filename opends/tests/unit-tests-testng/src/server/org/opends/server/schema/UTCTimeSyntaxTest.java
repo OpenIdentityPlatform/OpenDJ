@@ -23,12 +23,18 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS
+ *
  */
 package org.opends.server.schema;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
+
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -129,4 +135,105 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
     // sure that the decoded value is within 1000 milliseconds.
     assertTrue(Math.abs(d.getTime() - decodedDate.getTime()) < 1000);
   }
+
+
+
+  /**
+   * Tests the {@code decodeUTCTimeValue} method decodes
+   * 50-99 into 1950-1999. See RFC 3280 4.1.2.5.1.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDecode50to99()
+         throws Exception
+  {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    // values from 50 through 99 inclusive shall have 1900 added to it
+    for (int yy = 50; yy <= 99; yy++) {
+      String utcString = String.format("%02d0819120000Z", new Integer(yy));
+      Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(ByteString.valueOf(utcString));
+      cal.clear();
+      cal.setTime(decodedDate);
+      int year = cal.get(Calendar.YEAR);
+      assertEquals(year, yy + 1900);
+    }
+  }
+
+
+
+  /**
+   * Tests the {@code decodeUTCTimeValue} method decodes
+   * 00-49 into 2000-2049. See RFC 3280 4.1.2.5.1.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDecode00to49()
+         throws Exception
+  {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    // values from 00 through 49 inclusive shall have 2000 added to it
+    for (int yy = 0; yy <= 49; yy++) {
+      String utcString = String.format("%02d0819120000Z", new Integer(yy));
+      Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(ByteString.valueOf(utcString));
+      cal.clear();
+      cal.setTime(decodedDate);
+      int year = cal.get(Calendar.YEAR);
+      assertEquals(year, yy + 2000);
+    }
+  }
+
+
+
+  /**
+   * Tests the {@code createUTCTimeValue} method converts
+   * 1950-1999 into 50-99. See RFC 3280 4.1.2.5.1.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testCreate50to99()
+         throws Exception
+  {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    // values from 50 through 99 inclusive shall have 1900 added to it
+    for (int yy = 50; yy <= 99; yy++) {
+      cal.clear();
+      cal.set(1900 + yy, 7, 19, 12, 0, 0); // months are 0..11
+      Date date = cal.getTime();
+      String createdString = UTCTimeSyntax.createUTCTimeValue(date).toString();
+      String expectedString = String.format("%02d0819120000Z", new Integer(yy));
+      assertEquals(expectedString, createdString);
+    }
+  }
+
+
+
+  /**
+   * Tests the {@code createUTCTimeValue} method converts
+   * 2000-2049 to 00-49. See RFC 3280 4.1.2.5.1.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testCreate00to49()
+         throws Exception
+  {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    // values from 00 through 49 inclusive shall have 2000 added to it
+    for (int yy = 0; yy <= 49; yy++) {
+      cal.clear();
+      cal.set(2000 + yy, 7, 19, 12, 0, 0); // months are 0..11
+      Date date = cal.getTime();
+      String createdString = UTCTimeSyntax.createUTCTimeValue(date).toString();
+      String expectedString = String.format("%02d0819120000Z", new Integer(yy));
+      assertEquals(expectedString, createdString);
+	}
+  }
 }
+

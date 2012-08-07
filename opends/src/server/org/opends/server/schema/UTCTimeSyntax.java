@@ -30,6 +30,7 @@ package org.opends.server.schema;
 
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -86,6 +87,11 @@ public class UTCTimeSyntax
    */
   private static SimpleDateFormat dateFormat;
 
+  /**
+   * The date formatter needs help converting 2-digit years.
+   */
+  private static Date datum1900;
+  private static Date datum2000;
 
 
   // The default equality matching rule for this syntax.
@@ -108,6 +114,15 @@ public class UTCTimeSyntax
     dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
     dateFormat.setLenient(false);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    cal.clear();
+    cal.set(1900, 0, 1);
+    datum1900 = cal.getTime();
+
+    cal.clear();
+    cal.set(2000, 0, 1);
+    datum2000 = cal.getTime();
 
     dateFormatLock = new Object();
   }
@@ -865,10 +880,33 @@ public class UTCTimeSyntax
          throws DirectoryException
   {
     String valueString = normalizedValue.toString();
+
     try
     {
       synchronized (dateFormatLock)
       {
+        // RFC 3280 4.1.2.5.1. defines the datum we need to
+        // set for the parser.
+        switch (valueString.charAt(0))
+        {
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+            // 00-49
+            dateFormat.set2DigitYearStart(datum2000);
+            break;
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+          default:
+            // 50-99
+            dateFormat.set2DigitYearStart(datum1900);
+            break;
+        }
         return dateFormat.parse(valueString);
       }
     }
