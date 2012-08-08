@@ -462,7 +462,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private Message getLogMsg(UpgradeProgressStep step) {
     Message txt;
     if (step == UpgradeProgressStep.FINISHED) {
-      txt = getFinalSuccessMessage();
+      txt = getFormattedProgress(getFinalSuccessMessage());
     } else if (step == UpgradeProgressStep.FINISHED_CANCELED) {
       txt = getFinalCanceledMessage();
     } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
