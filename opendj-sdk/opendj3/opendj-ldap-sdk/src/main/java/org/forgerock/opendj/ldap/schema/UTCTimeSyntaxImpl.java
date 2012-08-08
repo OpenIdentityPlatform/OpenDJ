@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -30,6 +31,7 @@ import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -62,6 +64,12 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
      */
     private final static SimpleDateFormat DATE_FORMAT;
 
+    /**
+     * The date formatter needs help converting 2-digit years.
+     */
+    private static Date datum1900;
+    private static Date datum2000;
+
     /*
      * Create the date formatter that will be used to construct and parse
      * normalized UTC time values.
@@ -70,6 +78,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
         DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
         DATE_FORMAT.setLenient(false);
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
+
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(TIME_ZONE_UTC));
+        cal.clear();
+        cal.set(1900, 0, 1);
+        datum1900 = cal.getTime();
+
+        cal.clear();
+        cal.set(2000, 0, 1);
+        datum2000 = cal.getTime();
 
         DATE_FORMAT_LOCK = new Object();
     }
@@ -104,6 +121,27 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
     static Date decodeUTCTimeValue(final String valueString) throws DecodeException {
         try {
             synchronized (DATE_FORMAT_LOCK) {
+                // RFC 3280 4.1.2.5.1. defines the datum we need to
+                // set for the parser.
+                switch (valueString.charAt(0)) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                    // 00-49
+                    DATE_FORMAT.set2DigitYearStart(datum2000);
+                    break;
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                default:
+                    // 50-99
+                    DATE_FORMAT.set2DigitYearStart(datum1900);
+                    break;
+                }
                 return DATE_FORMAT.parse(valueString);
             }
         } catch (final Exception e) {
