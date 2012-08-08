@@ -172,6 +172,8 @@ public final class SchemaBuilder {
 
     private boolean allowMalformedNamesAndOptions;
 
+    private boolean allowMalformedJPEGPhotos;
+
     // A schema which should be copied into this builder on any mutation.
     private Schema copyOnWriteSchema = null;
 
@@ -2247,6 +2249,26 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Specifies whether or not the JPEG Photo syntax should allow values
+     * which do not conform to the JFIF or Exif specifications.
+     * <p>
+     * By default this compatibility option is set to {@code true}.
+     *
+     * @param allowMalformedJPEGPhotos
+     *            {@code true} if the JPEG Photo syntax should allow
+     *            values which do not conform to the JFIF or Exif
+     *            specifications.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder allowMalformedJPEGPhotos(
+            final boolean allowMalformedJPEGPhotos) {
+        lazyInitBuilder();
+
+        this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
+        return this;
+    }
+
+    /**
      * Specifies whether or not the Telephone Number syntax should allow values
      * which do not conform to the E.123 international telephone number format.
      * <p>
@@ -2508,8 +2530,9 @@ public final class SchemaBuilder {
 
         final Schema schema =
                 new Schema(localSchemaName, allowMalformedNamesAndOptions,
-                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
-                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
+                        allowMalformedJPEGPhotos, allowNonStandardTelephoneNumbers,
+                        allowZeroLengthDirectoryStrings, numericOID2Syntaxes,
+                        numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
@@ -2784,6 +2807,7 @@ public final class SchemaBuilder {
         // Lazy initialization.
         if (numericOID2Syntaxes == null) {
             allowMalformedNamesAndOptions = true;
+            allowMalformedJPEGPhotos = true;
             allowNonStandardTelephoneNumbers = true;
             allowZeroLengthDirectoryStrings = false;
 
@@ -2814,6 +2838,7 @@ public final class SchemaBuilder {
             addSchema0(copyOnWriteSchema, true);
 
             allowMalformedNamesAndOptions = copyOnWriteSchema.allowMalformedNamesAndOptions();
+            allowMalformedJPEGPhotos = copyOnWriteSchema.allowMalformedJPEGPhotos();
             allowNonStandardTelephoneNumbers = copyOnWriteSchema.allowNonStandardTelephoneNumbers();
             allowZeroLengthDirectoryStrings = copyOnWriteSchema.allowZeroLengthDirectoryStrings();
 
@@ -2826,6 +2851,7 @@ public final class SchemaBuilder {
         this.copyOnWriteSchema = copyOnWriteSchema;
 
         this.allowMalformedNamesAndOptions = true;
+        this.allowMalformedJPEGPhotos = true;
         this.allowNonStandardTelephoneNumbers = true;
         this.allowZeroLengthDirectoryStrings = false;
 

@@ -85,6 +85,10 @@ public final class Schema {
             return true;
         }
 
+        public boolean allowMalformedJPEGPhotos() {
+            return true;
+        }
+
         public boolean allowZeroLengthDirectoryStrings() {
             return false;
         }
@@ -301,6 +305,8 @@ public final class Schema {
     private static interface Impl {
         boolean allowMalformedNamesAndOptions();
 
+        boolean allowMalformedJPEGPhotos();
+
         boolean allowNonStandardTelephoneNumbers();
 
         boolean allowZeroLengthDirectoryStrings();
@@ -391,6 +397,10 @@ public final class Schema {
 
         public boolean allowMalformedNamesAndOptions() {
             return strictImpl.allowMalformedNamesAndOptions();
+        }
+
+        public boolean allowMalformedJPEGPhotos() {
+            return strictImpl.allowMalformedJPEGPhotos();
         }
 
         public boolean allowNonStandardTelephoneNumbers() {
@@ -651,6 +661,8 @@ public final class Schema {
 
         private final String schemaName;
 
+        private final boolean allowMalformedJPEGPhotos;
+
         private final boolean allowNonStandardTelephoneNumbers;
 
         private final boolean allowZeroLengthDirectoryStrings;
@@ -658,6 +670,7 @@ public final class Schema {
         private final boolean allowMalformedNamesAndOptions;
 
         StrictImpl(final String schemaName, final boolean allowMalformedNamesAndOptions,
+                final boolean allowMalformedJPEGPhotos,
                 final boolean allowNonStandardTelephoneNumbers,
                 final boolean allowZeroLengthDirectoryStrings,
                 final Map<String, Syntax> numericOID2Syntaxes,
@@ -680,6 +693,7 @@ public final class Schema {
                 final List<LocalizableMessage> warnings) {
             this.schemaName = schemaName;
             this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
+            this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
             this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
             this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
             this.numericOID2Syntaxes = Collections.unmodifiableMap(numericOID2Syntaxes);
@@ -705,6 +719,10 @@ public final class Schema {
 
         public boolean allowMalformedNamesAndOptions() {
             return allowMalformedNamesAndOptions;
+        }
+
+        public boolean allowMalformedJPEGPhotos() {
+            return allowMalformedJPEGPhotos;
         }
 
         public boolean allowNonStandardTelephoneNumbers() {
@@ -1323,6 +1341,7 @@ public final class Schema {
     private final Impl impl;
 
     Schema(final String schemaName, final boolean allowMalformedNamesAndOptions,
+            final boolean allowMalformedJPEGPhotos,
             final boolean allowNonStandardTelephoneNumbers,
             final boolean allowZeroLengthDirectoryStrings,
             final Map<String, Syntax> numericOID2Syntaxes,
@@ -1345,8 +1364,9 @@ public final class Schema {
             final List<LocalizableMessage> warnings) {
         impl =
                 new StrictImpl(schemaName, allowMalformedNamesAndOptions,
-                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
-                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
+                        allowMalformedJPEGPhotos, allowNonStandardTelephoneNumbers,
+                        allowZeroLengthDirectoryStrings, numericOID2Syntaxes,
+                        numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
@@ -1379,6 +1399,21 @@ public final class Schema {
      */
     public boolean allowMalformedNamesAndOptions() {
         return impl.allowMalformedNamesAndOptions();
+    }
+
+    /**
+     * Returns {@code true} if the JPEG Photo syntax defined for this
+     * schema allows values which do not conform to the JFIF or Exif
+     * specifications.
+     * <p>
+     * By default this compatibility option is set to {@code true}.
+     *
+     * @return {@code true} if the JPEG Photo syntax defined for this
+     *         schema allows values which do not conform to the JFIF
+     *         of Exit specifications.
+     */
+    public boolean allowMalformedJPEGPhotos() {
+        return impl.allowMalformedJPEGPhotos();
     }
 
     /**
