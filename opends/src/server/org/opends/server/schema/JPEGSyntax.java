@@ -64,9 +64,6 @@ public class JPEGSyntax
        extends AttributeSyntax<JPEGAttributeSyntaxCfg>
        implements ConfigurationChangeListener<JPEGAttributeSyntaxCfg>
 {
-  // Indicates whether this syntax should operate in strict mode.
-  private boolean strictMode;
-
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -77,7 +74,7 @@ public class JPEGSyntax
   private SubstringMatchingRule defaultSubstringMatchingRule;
 
   // The current configuration for this JPEG syntax.
-  private JPEGAttributeSyntaxCfg currentConfig;
+  private volatile JPEGAttributeSyntaxCfg config;
 
 
 
@@ -124,16 +121,8 @@ public class JPEGSyntax
           SMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
     }
 
-    // We may or may not have access to the config entry.  If we do, then see if
-    // we should use the strict compliance mode.  If not, just assume that we
-    // won't.
-    strictMode = false;
-    if (configuration != null)
-    {
-      currentConfig = configuration;
-      currentConfig.addJPEGChangeListener(this);
-      strictMode = currentConfig.isStrictFormat();
-    }
+    this.config = configuration;
+    config.addJPEGChangeListener(this);
   }
 
 
@@ -251,7 +240,7 @@ public class JPEGSyntax
                                    MessageBuilder invalidReason)
   {
     // anything is acceptable if we're not strict.
-    if (strictMode == false)
+    if (!config.isStrictFormat())
         return true;
 
     /* JFIF files start:
@@ -304,9 +293,7 @@ public class JPEGSyntax
   public ConfigChangeResult applyConfigurationChange(
               JPEGAttributeSyntaxCfg configuration)
   {
-    currentConfig = configuration;
-    strictMode = configuration.isStrictFormat();
-
+    this.config = configuration;
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
