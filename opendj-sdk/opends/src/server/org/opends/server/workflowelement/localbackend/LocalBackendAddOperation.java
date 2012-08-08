@@ -1019,10 +1019,10 @@ addProcessing:
   public final void handlePasswordPolicy()
          throws DirectoryException
   {
-    // FIXME -- We need to check to see if the password policy subentry
-    //          might be specified virtually rather than as a real
-    //          attribute.
-    AuthenticationPolicy policy = AuthenticationPolicy.forUser(entry, false);
+    // Construct any virtual/collective attributes which might
+    // contain a value for the OP_ATTR_PWPOLICY_POLICY_DN attribute.
+    Entry copy = entry.duplicate(true);
+    AuthenticationPolicy policy = AuthenticationPolicy.forUser(copy, false);
     if (!policy.isPasswordPolicy())
     {
       // The entry doesn't have a locally managed password, so no action is
