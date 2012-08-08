@@ -744,7 +744,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: test");
+      "userPassword: testtest");
 
     try
     {
