@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -34,9 +35,10 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 /**
- * This class implements the JPEG attribute syntax. This should be restricted to
- * holding only JPEG image contents, but we will accept any set of bytes. It
- * will be treated much like the octet string attribute syntax.
+ * This class implements the JPEG attribute syntax. This is actually
+ * two specifications - JPEG and JFIF. As an extension we allow JPEG
+ * and Exif, which is what most digital cameras use. We only check for
+ * valid JFIF and Exif headers.
  */
 final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
     @Override
@@ -73,7 +75,41 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
      */
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
-        // All values will be acceptable for the fax syntax.
+
+        if (!schema.allowMalformedJPEGPhotos()) {
+            /* JFIF files start:
+             * 0xff 0xd8 0xff 0xe0 LH LL 0x4a 0x46 0x49 0x46 ...
+             * SOI       APP0      len   "JFIF"
+             *
+             * Exif files (from most digital cameras) start:
+             * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
+             * SOI       APP1      len   "Exif"
+             *
+             * So all legal values must be at least 10 bytes long
+             */
+            if (value.length() < 10) {
+                return false;
+            }
+
+            if (value.byteAt(0) != (byte) 0xff && value.byteAt(1) != (byte) 0xd8) {
+                return false;
+            }
+
+            if (value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe0
+                && value.byteAt(6) == 'J' && value.byteAt(7) == 'F'
+                && value.byteAt(8) == 'I' && value.byteAt(9) == 'F') {
+                return true;
+            }
+
+            if (value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe1
+                && value.byteAt(6) == 'E' && value.byteAt(7) == 'x'
+                && value.byteAt(8) == 'i' && value.byteAt(9) == 'f') {
+                return true;
+            }
+
+            // No JFIF or Exif header found
+            return false;
+        }
         return true;
     }
 }
