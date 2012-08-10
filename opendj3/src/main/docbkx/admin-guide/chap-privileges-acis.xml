@@ -400,7 +400,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </varlistentry>
     <varlistentry>
      <term><literal>ssf = "<replaceable>strength</replaceable>"</literal></term>
-     <term><literal>ssf !=! "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf != "<replaceable>strength</replaceable>"</literal></term>
      <term><literal>ssf &gt; "<replaceable>strength</replaceable>"</literal></term>
      <term><literal>ssf &gt;= "<replaceable>strength</replaceable>"</literal></term>
      <term><literal>ssf &lt; "<replaceable>strength</replaceable>"</literal></term>
