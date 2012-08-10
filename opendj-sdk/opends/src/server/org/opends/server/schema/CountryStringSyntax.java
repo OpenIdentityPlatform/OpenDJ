@@ -24,12 +24,15 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012 Manuel Gaupp
  */
 package org.opends.server.schema;
 
 
+import java.util.List;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -38,10 +41,13 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.PrintableString.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -55,7 +61,8 @@ import static org.opends.server.util.StaticUtils.*;
  * ways, it will behave like the directory string attribute syntax.
  */
 public class CountryStringSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
+       extends AttributeSyntax<CountryStringAttributeSyntaxCfg>
+       implements ConfigurationChangeListener<CountryStringAttributeSyntaxCfg>
 {
   // The default approximate matching rule for this syntax.
   private ApproximateMatchingRule defaultApproximateMatchingRule;
@@ -68,6 +75,9 @@ public class CountryStringSyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+  // The current configuration
+  private volatile CountryStringAttributeSyntaxCfg config;
 
 
 
@@ -87,7 +97,7 @@ public class CountryStringSyntax
   /**
    * {@inheritDoc}
    */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
+  public void initializeSyntax(CountryStringAttributeSyntaxCfg configuration)
          throws ConfigException
   {
     defaultApproximateMatchingRule =
@@ -121,7 +131,38 @@ public class CountryStringSyntax
       logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_COUNTRY_STRING_NAME));
     }
+
+    this.config = configuration;
+    config.addCountryStringChangeListener(this);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      CountryStringAttributeSyntaxCfg configuration,
+      List<Message> unacceptableReasons)
+  {
+    // The configuration is always acceptable.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      CountryStringAttributeSyntaxCfg configuration)
+  {
+    this.config = configuration;
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+
+
 
 
 
@@ -236,7 +277,7 @@ public class CountryStringSyntax
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    String stringValue = toLowerCase(value.toString());
+    String stringValue = value.toString();
     if (stringValue.length() != 2)
     {
       invalidReason.append(
@@ -244,16 +285,28 @@ public class CountryStringSyntax
       return false;
     }
 
-
-    if ((! isPrintableCharacter(stringValue.charAt(0))) ||
-        (! isPrintableCharacter(stringValue.charAt(1))))
+    if (config.isStrictFormat())
     {
-      invalidReason.append(
-              ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE.get(stringValue));
-      return false;
+      // Check for a string containing [A-Z][A-Z]
+      if (stringValue.charAt(0) < 'A' || stringValue.charAt(0) > 'Z' ||
+          stringValue.charAt(1) < 'A' || stringValue.charAt(1) > 'Z')
+        {
+          invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_NO_VALID_ISO_CODE
+                 .get(value.toString()));
+          return false;
+        }
     }
-
-
+    else
+    {
+      // Just validate as string containing 2 printable characters
+      if ((! isPrintableCharacter(stringValue.charAt(0))) ||
+          (! isPrintableCharacter(stringValue.charAt(1))))
+      {
+        invalidReason.append(
+                ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE.get(stringValue));
+        return false;
+      }
+    }
     return true;
   }
 
