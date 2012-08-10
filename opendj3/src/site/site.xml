@@ -95,7 +95,7 @@
    <src>./images/opendj-tagline-179x65.png</src>
    <alt>OpenDJ</alt>
   </openproject>
-  <siteSearchFQDN>opendj.forgerock.org</siteSearchFQDN>
+  <siteSearchFQDN>forgerock.org</siteSearchFQDN>
  </custom>
 
 </project>
