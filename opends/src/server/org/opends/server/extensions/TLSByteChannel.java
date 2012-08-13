@@ -429,7 +429,11 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     CIPHER_MAP.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
     CIPHER_MAP.put("_WITH_AES_128_CBC_", new Integer(128));
     CIPHER_MAP.put("_WITH_IDEA_CBC_", new Integer(128));
+    CIPHER_MAP.put("_WITH_RC4_128_", new Integer(128));
+    CIPHER_MAP.put("_WITH_FORTEZZA_CBC_", new Integer(96));
     CIPHER_MAP.put("_WITH_DES_CBC_", new Integer(56));
+    CIPHER_MAP.put("_WITH_RC4_56_", new Integer(56));
+    CIPHER_MAP.put("_WITH_DES_CBC_40_", new Integer(40));
     CIPHER_MAP.put("_WITH_RC2_CBC_40_", new Integer(40));
     CIPHER_MAP.put("_WITH_RC4_40_", new Integer(40));
     CIPHER_MAP.put("_WITH_DES40_CBC_", new Integer(40));
