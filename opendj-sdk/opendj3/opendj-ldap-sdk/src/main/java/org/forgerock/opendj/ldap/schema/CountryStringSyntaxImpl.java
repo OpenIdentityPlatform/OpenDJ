@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 Manuel Gaupp
  */
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NO_VALID_ISO_CODE;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 /**
  * This class defines the country string attribute syntax, which should be a
  * two-character ISO 3166 country code. However, for maintainability, it will
- * accept any value consisting entirely of two printable characters. In most
+ * accept any value consisting entirely of two upper-case characters. In most
  * ways, it will behave like the directory string attribute syntax.
  */
 final class CountryStringSyntaxImpl extends AbstractSyntaxImpl {
@@ -86,15 +86,16 @@ final class CountryStringSyntaxImpl extends AbstractSyntaxImpl {
      */
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
-        final String stringValue = toLowerCase(value.toString());
+        final String stringValue = value.toString();
         if (stringValue.length() != 2) {
             invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH.get(stringValue));
             return false;
         }
 
-        if (!PrintableStringSyntaxImpl.isPrintableCharacter(stringValue.charAt(0))
-                || !PrintableStringSyntaxImpl.isPrintableCharacter(stringValue.charAt(1))) {
-            invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE.get(stringValue));
+        // Check for a string containing [A-Z][A-Z]
+        if (stringValue.charAt(0) < 'A' || stringValue.charAt(0) > 'Z'
+            || stringValue.charAt(1) < 'A' || stringValue.charAt(1) > 'Z') {
+            invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_STRING_NO_VALID_ISO_CODE.get(stringValue));
             return false;
         }
 
