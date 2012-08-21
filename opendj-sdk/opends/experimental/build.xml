@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2010 Sun Microsystems, Inc.
- !      Portions Copyright 2010 ForgeRock AS.
+ !      Portions Copyright 2010-2012 ForgeRock AS.
  ! -->
 
 <project name="extension" basedir="." default="package">
@@ -35,7 +35,7 @@
     <!-- OpenDS base directory -->
   <dirname property="extension.basedir" file="${ant.file.extension}" />
   <property name="base.dir" location="${extension.basedir}/.." />
-  
+
   <property file="${base.dir}/PRODUCT" />
 
   <!-- Construct the version number string -->
@@ -238,10 +238,41 @@
     </condition>
   </target>
 
-    <!-- Compile the Directory Server extension configuration definition files. -->
-  <target name="compileadmin" depends="ensurexalan,validateadmin">
+  <!-- Compile the Directory Server extension configuration definition files. -->
+  <target name="compileadmin" depends="init,ensurexalan,validateadmin">
+    <!-- The XSLT task creates a lot of noise.
+         I can't find any other way to shut it up. -->
 
-    <echo message="classpath = ${xalan.class.path}" />
+    <condition property="antcmd" value="ant.bat">
+      <os family="windows" />
+    </condition>
+
+    <condition property="antcmd" value="ant">
+      <not>
+        <isset property="antcmd" />
+      </not>
+    </condition>
+
+    <exec executable="${ant.home}/bin/${antcmd}" failonerror="true">
+      <arg value="-buildfile" />
+      <arg value="${ant.file}" />
+      <arg value="-Dbuild.dir=${build.dir}" />
+      <arg value="-quiet" />
+      <arg value="compileadminsubtask" />
+      <env key="ANT_OPTS" value="-Xmx${MEM}" />
+      <!-- Set classpath to workaround Apple JDK Xalan conflict -->
+      <env key="CLASSPATH" value="${xalan.directory}/xalan.jar" />
+    </exec>
+  </target>
+
+  <target name="compileadminsubtask">
+    <!-- Xalan-J Class Path : refer to it explicitly from each XSLT task. -->
+    <path id="xalan.class.path">
+      <fileset dir="${xalan.directory}">
+        <include name="*.jar" />
+      </fileset>
+    </path>
+
     <!-- Copy XML definitions for this extension and core server into the same location -->
     <tempfile property="admin.temp.dir" destDir="${classes.dir}" />
     <mkdir dir="${admin.temp.dir}" />
