@@ -23,16 +23,19 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.Assert;
-import static org.opends.server.config.ConfigConstants.*;
-
 import java.util.HashMap;
+import static org.opends.server.config.ConfigConstants.*;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 public class TargetAttrTestCase extends AciTestCase {
 
@@ -335,7 +338,7 @@ public class TargetAttrTestCase extends AciTestCase {
   }
 
   /**
-   * Test two scenerios with userattr LDAP URL and groupdn keyword.
+   * Test two scenarios with userattr LDAP URL and groupdn keyword.
    *
    * @throws Exception Exception If test result is unexpected.
    */
@@ -368,4 +371,53 @@ public class TargetAttrTestCase extends AciTestCase {
     Assert.assertTrue(mapVal.equals(val));
   }
 
+  /*
+   * New tests to really unit test the isApplicable method.
+   */
+  @DataProvider(name = "targetAttrData")
+  public Object[][] createData() throws Exception {
+    return new Object[][] {
+        /*
+         * 4 elements:
+         *  Operator ( = or !=),
+         *  TartgetAttr Attributes list,
+         *  Attribute to eval,
+         *  Expected result
+         */
+        { "=", "cn", "cn", true },
+        { "=", "cn || sn", "cn", true },
+        { "=", "cn || sn", "sn", true },
+        { "=", "cn", "sn", false },
+        { "=", "*", "cn", true },
+        { "=", "*", "modifytimestamp", false },
+        { "=", "+", "modifytimestamp", true },
+        { "=", "+", "cn", false },
+        { "=", "* || +", "cn", true }, // Always true
+        { "=", "* || +", "modifytimestamp", true }, // Always true
+        { "=", "+ || *", "foo", true }, // Always true
+        { "=", "* || +", "foo", true }, // Always true
+        { "!=", "cn", "cn", false },
+        { "!=", "cn || sn", "cn", false },
+        { "!=", "cn || sn", "sn", false },
+        { "!=", "cn", "sn", true }, // Not eq user attr
+        { "!=", "cn || sn", "description", true }, // Not eq user attr
+        { "!=", "cn || sn", "modifytimestamp", true }, // Not eq op attr
+        { "!=", "aci", "cn", true },
+        { "!=", "aci", "modifytimestamp", true },
+    };
+  }
+
+  @Test(dataProvider = "targetAttrData")
+  public void testTargetAttrStrings(String eqOperator, String targetAttrString,
+    String attribute, Boolean expectedResult) throws Exception
+  {
+    EnumTargetOperator op = EnumTargetOperator.createOperator(eqOperator);
+    TargetAttr targetAttr = TargetAttr.decode(op, targetAttrString);
+    AttributeType attributeType;
+    if((attributeType =
+          DirectoryServer.getAttributeType(attribute)) == null)
+      attributeType = DirectoryServer.getDefaultAttributeType(attribute);
+    Boolean res = TargetAttr.isApplicable(attributeType, targetAttr);
+    Assert.assertEquals(res, expectedResult);
+  }
 }
