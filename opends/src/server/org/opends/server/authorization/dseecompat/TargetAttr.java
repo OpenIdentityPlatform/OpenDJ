@@ -276,6 +276,7 @@ public class TargetAttr {
                   targetAttr.opAttributes.contains(a))
             ret=true;
           if(targetAttr.isAllOpAttributes() ||
+             !targetAttr.attributes.isEmpty() ||
              !targetAttr.opAttributes.isEmpty()) {
             if(targetAttr.getOperator().
                     equals(EnumTargetOperator.NOT_EQUALITY))
@@ -286,6 +287,7 @@ public class TargetAttr {
                   targetAttr.attributes.contains(a))
             ret=true;
           if(targetAttr.isAllUserAttributes() ||
+                  !targetAttr.opAttributes.isEmpty() ||
                   !targetAttr.attributes.isEmpty()) {
             if(targetAttr.getOperator().
                     equals(EnumTargetOperator.NOT_EQUALITY))
