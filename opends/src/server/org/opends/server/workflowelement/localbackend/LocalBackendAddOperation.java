@@ -1137,11 +1137,14 @@ addProcessing:
         // There are never any current passwords for an add operation.
         HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
         MessageBuilder invalidReason = new MessageBuilder();
+        // Work on a copy of the entry without the password to avoid
+        // false positives from some validators.
+        copy.removeAttribute(passwordAttribute);
         for (PasswordValidator<?> validator :
           passwordPolicy.getPasswordValidators())
         {
           if (! validator.passwordIsAcceptable(value, currentPasswords, this,
-                                               entry, invalidReason))
+                                               copy, invalidReason))
           {
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
