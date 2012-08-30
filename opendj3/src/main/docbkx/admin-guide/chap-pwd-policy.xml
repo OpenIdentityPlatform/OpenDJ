@@ -387,6 +387,7 @@ require-secure-password-changes           : false</screen>
  --set default-password-storage-scheme:"Salted SHA-1"
  --set force-change-on-add:true
  --set password-attribute:userPassword
+ --type password-policy
  --trustAll
  --no-prompt</screen>
    </step>
