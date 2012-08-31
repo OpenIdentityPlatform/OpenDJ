@@ -109,6 +109,14 @@
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <gaId>UA-23412190-8</gaId>
+    <!--
+      Release date is specified only when building the documentation
+      for publication. For example:
+          -D"releaseDate=Software release date: January 1, 1970"
+      Otherwise release date should remain empty.
+    -->
+    <releaseDate />
+    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
   </properties>
   <build>
