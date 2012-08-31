@@ -147,7 +147,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
         {"12", false},
         {"UK", true},
         {"Xf", false},
-        {"ÖÄ", false},
+        {"\u00D6\u00C4", false},
     };
   }
 
