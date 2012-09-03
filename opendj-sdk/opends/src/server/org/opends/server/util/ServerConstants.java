@@ -1602,7 +1602,7 @@ public final class ServerConstants
       "Directory Server detects that its configuration has been manually " +
       "edited with the server online and those changes were overwritten by " +
       "another change made through the server.  The manually-edited " +
-      "configuration will be copied off to another location.";
+      "configuration will be copied to another location.";
 
 
 
@@ -1806,7 +1806,7 @@ public final class ServerConstants
    */
   public static final String ALERT_DESCRIPTION_CANNOT_WRITE_NEW_SCHEMA_FILES =
       "This alert type will be used to notify administrators if a problem " +
-      "occurs while attempting to write new verisons of the server schema " +
+      "occurs while attempting to write new versions of the server schema " +
       "configuration files, and the schema configuration is left in a " +
       "potentially inconsistent state.";
 
@@ -1871,12 +1871,12 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
-   * notification generated when the free disk space have reached
+   * notification generated when the free disk space has reached
    * the low threshold.
    */
   public static final String ALERT_DESCRIPTION_DISK_SPACE_LOW =
       "This alert type will be used to provide notification that the " +
-      "free disk space have reached the low threshold.";
+      "free disk space has reached the low threshold.";
 
 
 
@@ -1892,12 +1892,12 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
-   * notification generated when the free disk space have reached
+   * notification generated when the free disk space has reached
    * the full threshold.
    */
   public static final String ALERT_DESCRIPTION_DISK_FULL =
       "This alert type will be used to provide notification that the " +
-      "free disk space have reached the full threshold.";
+      "free disk space has reached the full threshold.";
 
 
 
@@ -1929,7 +1929,7 @@ public final class ServerConstants
    * generated when the LDIF backend cannot write an updated LDIF file.
    */
   public static final String ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE =
-       "org.opends.server.LDIFBackendCannotWriteUupdate";
+       "org.opends.server.LDIFBackendCannotWriteUpdate";
 
 
 
@@ -3152,17 +3152,17 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
-   * notification generated if the multimaster replication detects
+   * notification generated if multimaster replication detects
    * a conflict that cannot be solved automatically.
    */
   public static final String ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT =
-          "This alert type will be used to notify administrators if the  " +
-          "multimaster replication cannot resolve automatically a conflict.";
+          "This alert type will be used to notify administrators if " +
+          "multimaster replication cannot resolve a conflict automatically.";
 
 
   /**
    * The alert type string that will be used for the alert notification
-   * generated if the multimaster replication detects
+   * generated if multimaster replication detects
    * a conflict that cannot be solved automatically.
    */
   public static final String ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT =
