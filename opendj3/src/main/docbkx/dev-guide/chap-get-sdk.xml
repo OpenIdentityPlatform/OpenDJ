@@ -125,31 +125,23 @@
   &lt;dependency&gt;
     &lt;groupId&gt;org.forgerock.opendj&lt;/groupId&gt;
     &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
-    &lt;version&gt;3.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;version&gt;<?eval ${currentSDKversion}?>&lt;/version&gt;
   &lt;/dependency&gt;
 &lt;/dependencies&gt;</programlisting>
    </step>
   </procedure>
 
   <procedure xml:id="install-stable-sdk">
-   <title>To Install the Latest Stable SDK</title>
+   <title>To Install the Latest Stable SDK &amp; Tools</title>
    <indexterm>
     <primary>Installing</primary>
     <secondary>From download</secondary>
    </indexterm>
 
    <step>
-    <!-- Versions in links shouldn't be hard coded. Waiting for an enhancement
-         http://code.google.com/p/docbkx-tools/issues/detail?id=49 -->
-    <para>Download the <link
-    xlink:href='http://builds.forgerock.org/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-toolkit/artifact/org.forgerock.opendj/opendj-ldap-toolkit/3.0.0-SNAPSHOT/opendj-ldap-toolkit-3.0.0-SNAPSHOT.zip'
-    >latest stable OpenDJ LDAP SDK and tools bundle</link>.</para>
-   </step>
-   <step>
-    <para>Download the <link
-    xlink:href='http://builds.forgerock.org/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk/artifact/org.forgerock.opendj/opendj-ldap-sdk/3.0.0-SNAPSHOT/opendj-ldap-sdk-3.0.0-SNAPSHOT-javadoc.jar'
-    >latest stable version of the OpenDJ LDAP SDK documentation</link>
-    (javadoc).</para>
+    <para>Download the latest OpenDJ LDAP Client Toolkit from the <link
+    xlink:href="http://forgerock.org/opendj.html"
+    xlink:show="new">download page</link>.</para>
    </step>
    <step>
     <para>Unzip the bundle,
@@ -157,14 +149,6 @@
     where you want to install the SDK.</para>
     <screen>$ unzip opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</screen>
    </step>
-   <step>
-    <para>Unpack the OpenDJ LDAP SDK documentation,
-    <filename>opendj-ldap-sdk-<?eval ${currentSDKversion}?>-javadoc.jar</filename>,
-    under the SDK install directory.</para>
-    <screen>$ mkdir opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/javadoc
-$ cd opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/javadoc
-$ jar -xf /path/to/opendj-ldap-sdk-<?eval ${currentSDKversion}?>-javadoc.jar</screen>
-    </step>
     <step>
      <para>Add the tools to your PATH.</para>
      <screen>(UNIX)
@@ -179,14 +163,14 @@ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat:%PA
      <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
      <screen>(UNIX)
 $ export CLASSPATH=/path/to/lib/gmbal-api-only-3.0.0-b023.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.7.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.9.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/i18n-core-1.4.0.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/management-api-3.0.0-b012.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
 C:\>set CLASSPATH=\\path\to\lib\gmbal-api-only-3.0.0-b023.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.7.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.9.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.4.0.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\management-api-3.0.0-b012.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:%CLASSPATH%</screen>
@@ -258,15 +242,10 @@ $ mvn install
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
     <filename>opendj-ldap-sdk-<?eval ${currentSDKVersion}?>.jar</filename>, 
     the I18N core library, <filename>i18n-core-1.4.0.jar</filename>, the Grizzly
-    framework, <filename>grizzly-framework-2.1.7.jar</filename>, and the
+    framework, <filename>grizzly-framework-2.1.9.jar</filename>, and the
     GlassFish management APIs, <filename>gmbal-api-only-3.0.0-b023.jar</filename>
     &amp; <filename>management-api-3.0.0-b012.jar</filename>
     under <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
-   </step>
-   <step>
-    <para>Find the OpenDJ LDAP SDK documentation under <link
-    xlink:href='file:///path/to/opendj3/opendj-ldap-sdk/target/apidocs/index.html'
-    >file:///path/to/opendj3/opendj-ldap-sdk/target/apidocs/index.html</link>.</para>
    </step>
   </procedure>
 
