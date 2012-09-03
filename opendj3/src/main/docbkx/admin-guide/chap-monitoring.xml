@@ -547,5 +547,216 @@ $ dsconfig
  --set sender-address:opendj@example.com
  --trustAll
  --no-prompt</screen>
+
+  <variablelist xml:id="alert-types">
+   <title>Alert Types</title>
+
+   <para>OpenDJ directory server uses the following types when sending
+   alerts. For alert types that indicate server problems, check
+   <filename>OpenDJ/logs/errors</filename> for details.</para>
+
+   <varlistentry>
+    <term><literal>org.opends.server.AccessControlDisabled</literal></term>
+    <listitem>
+     <para>The access control handler has been disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.AccessControlEnabled</literal></term>
+    <listitem>
+     <para>The access control handler has been enabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.authentiation.dseecompat.ACIParseFailed</literal></term>
+    <listitem>
+     <para>The dseecompat access control subsystem failed to correctly parse
+     one or more ACI rules when the server first started.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.BackendRunRecovery</literal></term>
+    <listitem>
+     <para>The JE backend has thrown a <literal>RunRecoveryException</literal>.
+     The directory server needs to be restarted.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotCopySchemaFiles</literal></term>
+    <listitem>
+     <para>A problem has occurred while attempting to create copies of the
+     existing schema configuration files before making a schema update, and the
+     schema configuration has been left in a potentially inconsistent
+     state.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotRenameCurrentTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to rename the current tasks backing
+     file in the process of trying to write an updated version.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotRenameNewTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to rename the new tasks backing file
+     into place.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotScheduleRecurringIteration</literal></term>
+    <listitem>
+     <para>The directory server is unable to schedule an iteration of a
+     recurring task.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteConfig</literal></term>
+    <listitem>
+     <para>The directory server is unable to write its updated configuration
+     for some reason and therefore the server may not exhibit the new
+     configuration if it is restarted.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteNewSchemaFiles</literal></term>
+    <listitem>
+     <para>A problem has occurred while attempting to write new versions of the
+     server schema configuration files, and the schema configuration has been
+     left in a potentially inconsistent state.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to write an updated tasks backing
+     file for some reason.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DirectoryServerShutdown</literal></term>
+    <listitem>
+     <para>The directory server has begun the process of shutting down.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DirectoryServerStarted</literal></term>
+    <listitem>
+     <para>The directory server has completed its startup process.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DiskFull</literal></term>
+    <listitem>
+     <para>Free disk space has reached the full threshold.</para>
+     <para>Default is 20 MB.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DiskSpaceLow</literal></term>
+    <listitem>
+     <para>Free disk space has reached the low threshold.</para>
+     <para>Default is 100 MB.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.EnteringLockdownMode</literal></term>
+    <listitem>
+     <para>The directory server is entering lockdown mode, in which only root
+     users are allowed to perform operations and only over the loopback
+     address.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDAPHandlerDisabledByConsecutiveFailures</literal></term>
+    <listitem>
+     <para>Consecutive failures have occurred in the LDAP connection handler
+     and have caused it to become disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDAPHandlerUncaughtError</literal></term>
+    <listitem>
+     <para>Uncaught errors in the LDAP connection handler that have caused it
+     to become disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFBackendCannotWriteUpdate</literal></term>
+    <listitem>
+     <para>An LDIF backend was unable to store an updated copy of the LDIF file
+     after processing a write operation.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFConnectionHandlerIOError</literal></term>
+    <listitem>
+     <para>The LDIF connection handler encountered an I/O error that prevented
+     it from completing its processing.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFConnectionHandlerParseError</literal></term>
+    <listitem>
+     <para>The LDIF connection handler encountered an unrecoverable error while
+     attempting to parse an LDIF file.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LeavingLockdownMode</literal></term>
+    <listitem>
+     <para>The directory server is leaving lockdown mode.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.ManualConfigEditHandled</literal></term>
+    <listitem>
+     <para>The directory server detects that its configuration has been
+     manually edited with the server online and those changes were overwritten
+     by another change made through the server. The manually-edited
+     configuration will be copied to another location.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.ManualConfigEditLost</literal></term>
+    <listitem>
+     <para>The directory server detects that its configuration has been
+     manually edited with the server online and those changes were overwritten
+     by another change made through the server. The manually-edited
+     configuration could not be preserved due to an unexpected error.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.replication.UnresolvedConflict</literal></term>
+    <listitem>
+     <para>Multimaster replication cannot resolve a conflict
+     automatically.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UncaughtException</literal></term>
+    <listitem>
+     <para>A directory server thread has encountered an uncaught exception that
+     caused that thread to terminate abnormally. The impact that this problem
+     has on the server depends on which thread was impacted and the nature
+     of the exception.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UniqueAttributeSynchronizationConflict</literal></term>
+    <listitem>
+     <para>A unique attribute conflict has been detected during synchronization
+     processing.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UniqueAttributeSynchronizationError</literal></term>
+    <listitem>
+     <para>An error occurred while attempting to perform unique attribute
+     conflict detection during synchronization processing.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </section>
 </chapter>
