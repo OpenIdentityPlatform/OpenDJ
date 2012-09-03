@@ -47,7 +47,7 @@
    <secondary>Checking supported features</secondary>
   </indexterm>
 
-  <para>The directory with distinguished name <literal>""</literal> (empty
+  <para>The directory entry with distinguished name <literal>""</literal> (empty
   string) is called the <firstterm>root DSE</firstterm>. DSE stands for
   DSA-Specific Entry. DSA stands for Directory Server Agent, a single
   directory server.</para>

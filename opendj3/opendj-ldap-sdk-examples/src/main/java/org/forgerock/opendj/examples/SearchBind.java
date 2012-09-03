@@ -33,7 +33,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 /**
@@ -85,14 +84,10 @@ public final class SearchBind {
                     connection.searchSingleEntry(baseDN, SearchScope.WHOLE_SUBTREE, "(mail=" + mail
                             + ")", "cn");
             DN bindDN = entry.getName();
-            BindResult result = connection.bind(bindDN.toString(), password);
+            connection.bind(bindDN.toString(), password);
 
-            if (result.isSuccess()) {
-                String cn = entry.getAttribute("cn").firstValueAsString();
-                System.out.println("Hello, " + cn + "!");
-            } else {
-                System.err.println("Failed to bind.");
-            }
+            String cn = entry.getAttribute("cn").firstValueAsString();
+            System.out.println("Hello, " + cn + "!");
         } catch (final ErrorResultException e) {
             System.err.println("Failed to bind.");
             System.exit(e.getResult().getResultCode().intValue());

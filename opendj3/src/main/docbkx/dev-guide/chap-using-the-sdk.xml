@@ -189,7 +189,7 @@ try {
   <indexterm>
    <primary>Referrals</primary>
   </indexterm>
-
+  <!-- See https://bugster.forgerock.org/jira/browse/OPENDJ-178 -->
   <para>TODO</para>
  </section>
 </chapter>

@@ -88,6 +88,13 @@
 
  <reference xml:id="admin-tools-ref">
   <title>Tools Reference</title>
+
+  <partintro>
+   <para>You can find the tools under the <filename>bin/</filename> or
+   <filename>bat\</filename> folder where you installed OpenDJ directory
+   server. For example, <filename>/path/to/OpenDJ/bin</filename>.</para>
+  </partintro>
+
    <xinclude:include href='../shared/man-backup.xml' />
    <xinclude:include href='../shared/man-base64.xml' />
    <xinclude:include href='../shared/man-control-panel.xml' />
