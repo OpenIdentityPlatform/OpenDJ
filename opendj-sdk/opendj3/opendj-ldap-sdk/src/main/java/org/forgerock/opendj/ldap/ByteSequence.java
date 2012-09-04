@@ -263,7 +263,7 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      * Returns the Base64 encoded string representation of this byte string.
      *
      * @return The Base64 encoded string representation of this byte string.
-     * @see ByteString#valueOfBase64(String)
+     * @see ByteString#valueOfBase64String(String)
      */
     String toBase64String();
 

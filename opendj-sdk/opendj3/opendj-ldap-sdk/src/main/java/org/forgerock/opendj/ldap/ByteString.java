@@ -154,7 +154,7 @@ public final class ByteString implements ByteSequence {
      *             content.
      * @see #toBase64String()
      */
-    public static ByteString valueOfBase64(final String s) {
+    public static ByteString valueOfBase64String(final String s) {
         return Base64.decode(s);
     }
 
