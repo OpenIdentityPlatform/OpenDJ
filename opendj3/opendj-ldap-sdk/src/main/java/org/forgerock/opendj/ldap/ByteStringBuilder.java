@@ -200,6 +200,15 @@ public final class ByteStringBuilder implements ByteSequence {
             return new SubSequence(subOffset + start, end - start);
         }
 
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toBase64String() {
+            return Base64.encode(this);
+        }
+
         /**
          * {@inheritDoc}
          */
@@ -894,6 +903,14 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
         return new SubSequence(start, end - start);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toBase64String() {
+        return Base64.encode(this);
     }
 
     /**

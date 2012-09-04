@@ -55,7 +55,6 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
-import com.forgerock.opendj.util.Base64;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -258,7 +257,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 }
 
                 try {
-                    value = Base64.decode(ldifLine.substring(pos));
+                    value = ByteString.valueOfBase64(ldifLine.substring(pos));
                 } catch (final LocalizedIllegalArgumentException e) {
                     // The value did not have a valid base64-encoding.
                     final LocalizableMessage message =
@@ -608,7 +607,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
 
             final String base64DN = ldifLine.substring(pos);
             try {
-                dnString = Base64.decode(base64DN).toString();
+                dnString = ByteString.valueOfBase64(base64DN).toString();
             } catch (final LocalizedIllegalArgumentException e) {
                 // The value did not have a valid base64-encoding.
                 final LocalizableMessage message =
@@ -663,7 +662,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             }
 
             try {
-                pair.value = Base64.decode(ldifLine.substring(pos)).toString();
+                pair.value = ByteString.valueOfBase64(ldifLine.substring(pos)).toString();
             } catch (final LocalizedIllegalArgumentException e) {
                 pair.key = null;
                 return ldifLine;

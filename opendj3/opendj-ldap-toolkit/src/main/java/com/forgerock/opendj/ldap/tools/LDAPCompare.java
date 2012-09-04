@@ -54,8 +54,6 @@ import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
 
-import com.forgerock.opendj.util.Base64;
-
 /**
  * A tool that can be used to issue Compare requests to the Directory Server.
  */
@@ -299,7 +297,7 @@ public final class LDAPCompare extends ConsoleApplication {
             if (nextChar == ':') {
                 final String base64 = remainder.substring(1, remainder.length());
                 try {
-                    attributeVal = Base64.decode(base64);
+                    attributeVal = ByteString.valueOfBase64(base64);
                 } catch (final LocalizedIllegalArgumentException e) {
                     println(INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
