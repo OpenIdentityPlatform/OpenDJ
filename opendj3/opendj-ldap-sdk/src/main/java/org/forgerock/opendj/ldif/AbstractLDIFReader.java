@@ -257,7 +257,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 }
 
                 try {
-                    value = ByteString.valueOfBase64(ldifLine.substring(pos));
+                    value = ByteString.valueOfBase64String(ldifLine.substring(pos));
                 } catch (final LocalizedIllegalArgumentException e) {
                     // The value did not have a valid base64-encoding.
                     final LocalizableMessage message =
@@ -607,7 +607,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
 
             final String base64DN = ldifLine.substring(pos);
             try {
-                dnString = ByteString.valueOfBase64(base64DN).toString();
+                dnString = ByteString.valueOfBase64String(base64DN).toString();
             } catch (final LocalizedIllegalArgumentException e) {
                 // The value did not have a valid base64-encoding.
                 final LocalizableMessage message =
@@ -662,7 +662,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             }
 
             try {
-                pair.value = ByteString.valueOfBase64(ldifLine.substring(pos)).toString();
+                pair.value = ByteString.valueOfBase64String(ldifLine.substring(pos)).toString();
             } catch (final LocalizedIllegalArgumentException e) {
                 pair.key = null;
                 return ldifLine;

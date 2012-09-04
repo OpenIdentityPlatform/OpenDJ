@@ -54,9 +54,9 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
         return new Object[][] {
             { ByteString.empty(), new byte[0] },
-            { ByteString.valueOfBase64("AAA="), new byte[] { 0x00, 0x00 }},
-            { ByteString.valueOfBase64("AAAA"), new byte[] { 0x00, 0x00, 0x00 }},
-            { ByteString.valueOfBase64("AAAAAA=="), new byte[] { 0x00, 0x00, 0x00, 0x00 }},
+            { ByteString.valueOfBase64String("AAA="), new byte[] { 0x00, 0x00 }},
+            { ByteString.valueOfBase64String("AAAA"), new byte[] { 0x00, 0x00, 0x00 }},
+            { ByteString.valueOfBase64String("AAAAAA=="), new byte[] { 0x00, 0x00, 0x00, 0x00 }},
             { ByteString.valueOf(1),
                 new byte[] { (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01 } },
             { ByteString.valueOf(Integer.MAX_VALUE),
@@ -230,13 +230,13 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
             expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testValueOfBase64ThrowsLIAE(final String invalidBase64) throws Exception {
         Assert.fail("Expected exception but got result: "
-                + Arrays.toString(new ByteString[] { ByteString.valueOfBase64(invalidBase64) }));
+                + Arrays.toString(new ByteString[] { ByteString.valueOfBase64String(invalidBase64) }));
     }
 
     @Test(dataProvider = "validBase64Data")
     public void testValueOfBase64(final String hexData, final String encodedData) throws Exception {
         final byte[] data = DatatypeConverter.parseHexBinary(hexData);
-        final byte[] decodedData = ByteString.valueOfBase64(encodedData).toByteArray();
+        final byte[] decodedData = ByteString.valueOfBase64String(encodedData).toByteArray();
         Assert.assertEquals(decodedData, data);
     }
 }

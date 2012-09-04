@@ -297,7 +297,7 @@ public final class LDAPCompare extends ConsoleApplication {
             if (nextChar == ':') {
                 final String base64 = remainder.substring(1, remainder.length());
                 try {
-                    attributeVal = ByteString.valueOfBase64(base64);
+                    attributeVal = ByteString.valueOfBase64String(base64);
                 } catch (final LocalizedIllegalArgumentException e) {
                     println(INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
