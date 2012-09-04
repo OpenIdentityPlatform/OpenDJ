@@ -260,6 +260,14 @@ public interface ByteSequence extends Comparable<ByteSequence> {
     ByteSequence subSequence(int start, int end);
 
     /**
+     * Returns the Base64 encoded string representation of this byte string.
+     *
+     * @return The Base64 encoded string representation of this byte string.
+     * @see ByteString#valueOfBase64(String)
+     */
+    String toBase64String();
+
+    /**
      * Returns a byte array containing the bytes in this sequence in the same
      * order as this sequence. The length of the byte array will be the length
      * of this sequence.

@@ -30,6 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -167,4 +169,9 @@ public abstract class ByteSequenceTestCase extends SdkTestCase {
         Assert.assertTrue(bs.toString().equals(str));
     }
 
+    @Test(dataProvider = "byteSequenceProvider")
+    public void testToBase64String(final ByteSequence bs, final byte[] ba) throws Exception {
+        final String base64 = bs.toBase64String();
+        Assert.assertEquals(base64, DatatypeConverter.printBase64Binary(ba));
+    }
 }

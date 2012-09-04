@@ -24,7 +24,7 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions copyright 2012 ForgeRock AS.
  */
-package com.forgerock.opendj.util;
+package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.Validator.ensureNotNull;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
@@ -32,17 +32,19 @@ import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_L
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 /**
  * This class provides methods for performing base64 encoding and decoding.
  * Base64 is a mechanism for encoding binary data in ASCII form by converting
  * sets of three bytes with eight significant bits each to sets of four bytes
  * with six significant bits each.
+ * <p>
+ * <b>NOTE:</b> the JDK class {@link javax.xml.bind.DatatypeConverter} provides
+ * similar functionality, however the methods are better suited to the LDAP SDK.
+ * For example, the JDK encoder does not handle array/offset/len parameters, and
+ * the decoder ignores invalid Base64 data.
  */
-public final class Base64 {
+final class Base64 {
     /**
      * The set of characters that may be used in base64-encoded values.
      */
@@ -61,7 +63,7 @@ public final class Base64 {
      * @throws NullPointerException
      *             If {@code base64} was {@code null}.
      */
-    public static ByteString decode(final String base64) {
+    static ByteString decode(final String base64) {
         ensureNotNull(base64);
 
         // The encoded value must have length that is a multiple of four
@@ -315,7 +317,7 @@ public final class Base64 {
      * @throws NullPointerException
      *             If {@code bytes} was {@code null}.
      */
-    public static String encode(final ByteSequence bytes) {
+    static String encode(final ByteSequence bytes) {
         ensureNotNull(bytes);
 
         final StringBuilder buffer = new StringBuilder(4 * bytes.length() / 3);

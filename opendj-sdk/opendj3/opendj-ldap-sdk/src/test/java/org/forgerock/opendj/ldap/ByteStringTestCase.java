@@ -22,13 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
 
+import javax.xml.bind.DatatypeConverter;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -51,6 +54,9 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
         return new Object[][] {
             { ByteString.empty(), new byte[0] },
+            { ByteString.valueOfBase64("AAA="), new byte[] { 0x00, 0x00 }},
+            { ByteString.valueOfBase64("AAAA"), new byte[] { 0x00, 0x00, 0x00 }},
+            { ByteString.valueOfBase64("AAAAAA=="), new byte[] { 0x00, 0x00, 0x00, 0x00 }},
             { ByteString.valueOf(1),
                 new byte[] { (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01 } },
             { ByteString.valueOf(Integer.MAX_VALUE),
@@ -164,5 +170,73 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testUndersizedToLong() {
         ByteString.wrap(new byte[] { (byte) 0x00, (byte) 0x01, (byte) 0x02, (byte) 0x03 }).toLong();
+    }
+
+    /**
+     * Base 64 invalid test data provider.
+     *
+     * @return Returns an array of invalid encoded base64 data.
+     */
+    @DataProvider(name = "invalidBase64Data")
+    public Object[][] createInvalidBase64Data() {
+        // FIXME: fix cases ==== and ==x=
+
+        return new Object[][] { { "=" }, { "==" }, { "===" }, { "A" }, { "AA" }, { "AAA" },
+            { "AA`=" }, { "AA~=" }, { "AA!=" }, { "AA@=" }, { "AA#=" }, { "AA$=" }, { "AA%=" },
+            { "AA^=" }, { "AA*=" }, { "AA(=" }, { "AA)=" }, { "AA_=" }, { "AA-=" }, { "AA{=" },
+            { "AA}=" }, { "AA|=" }, { "AA[=" }, { "AA]=" }, { "AA\\=" }, { "AA;=" }, { "AA'=" },
+            { "AA\"=" }, { "AA:=" }, { "AA,=" }, { "AA.=" }, { "AA<=" }, { "AA>=" }, { "AA?=" },
+            { "AA;=" } };
+    }
+
+    /**
+     * Base 64 valid test data provider.
+     *
+     * @return Returns an array of decoded and valid encoded base64 data.
+     */
+    @DataProvider(name = "validBase64Data")
+    public Object[][] createValidBase64Data() {
+        return new Object[][] {
+            { "", "" },
+            { "00", "AA==" },
+            { "01", "AQ==" },
+            { "02", "Ag==" },
+            { "03", "Aw==" },
+            { "04", "BA==" },
+            { "05", "BQ==" },
+            { "06", "Bg==" },
+            { "07", "Bw==" },
+            { "0000", "AAA=" },
+            { "000000", "AAAA" },
+            { "00000000", "AAAAAA==" },
+            {
+                "000102030405060708090a0b0c0d0e0f" + "101112131415161718191a1b1c1d1e1f"
+                        + "202122232425262728292a2b2c2d2e2f" + "303132333435363738393a3b3c3d3e3f"
+                        + "404142434445464748494a4b4c4d4e4f" + "505152535455565758595a5b5c5d5e5f"
+                        + "606162636465666768696a6b6c6d6e6f" + "707172737475767778797a7b7c7d7e7f"
+                        + "808182838485868788898a8b8c8d8e8f" + "909192939495969798999a9b9c9d9e9f"
+                        + "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf" + "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"
+                        + "c0c1c2c3c4c5c6c7c8c9cacbcccdcecf" + "d0d1d2d3d4d5d6d7d8d9dadbdcdddedf"
+                        + "e0e1e2e3e4e5e6e7e8e9eaebecedeeef" + "f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+                "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4v"
+                        + "MDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5f"
+                        + "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6P"
+                        + "kJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/"
+                        + "wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v"
+                        + "8PHy8/T19vf4+fr7/P3+/w==" }, };
+    }
+
+    @Test(dataProvider = "invalidBase64Data",
+            expectedExceptions = { LocalizedIllegalArgumentException.class })
+    public void testValueOfBase64ThrowsLIAE(final String invalidBase64) throws Exception {
+        Assert.fail("Expected exception but got result: "
+                + Arrays.toString(new ByteString[] { ByteString.valueOfBase64(invalidBase64) }));
+    }
+
+    @Test(dataProvider = "validBase64Data")
+    public void testValueOfBase64(final String hexData, final String encodedData) throws Exception {
+        final byte[] data = DatatypeConverter.parseHexBinary(hexData);
+        final byte[] decodedData = ByteString.valueOfBase64(encodedData).toByteArray();
+        Assert.assertEquals(decodedData, data);
     }
 }

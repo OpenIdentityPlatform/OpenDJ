@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.schema.Schema;
 
-import com.forgerock.opendj.util.Base64;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -335,7 +334,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             builder.setLength(0);
             builder.append(key);
             builder.append(":: ");
-            builder.append(Base64.encode(value));
+            builder.append(value.toBase64String());
         } else {
             builder.append(key);
             builder.append(": ");

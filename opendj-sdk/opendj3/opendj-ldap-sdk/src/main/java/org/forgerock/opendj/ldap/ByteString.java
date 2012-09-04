@@ -34,6 +34,8 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 import com.forgerock.opendj.util.StaticUtils;
 
 /**
@@ -137,6 +139,23 @@ public final class ByteString implements ByteSequence {
      */
     public static ByteString valueOf(final String s) {
         return wrap(StaticUtils.getBytes(s));
+    }
+
+    /**
+     * Returns a byte string containing the Base64 decoded bytes of the provided
+     * string.
+     *
+     * @param s
+     *            The string to use.
+     * @return The byte string containing the Base64 decoded bytes of the
+     *         provided string.
+     * @throws LocalizedIllegalArgumentException
+     *             If the provided string does not contain valid Base64 encoded
+     *             content.
+     * @see #toBase64String()
+     */
+    public static ByteString valueOfBase64(final String s) {
+        return Base64.decode(s);
     }
 
     /**
@@ -526,6 +545,13 @@ public final class ByteString implements ByteSequence {
             throw new IndexOutOfBoundsException();
         }
         return new ByteString(buffer, offset + start, end - start);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toBase64String() {
+        return Base64.encode(this);
     }
 
     /**
