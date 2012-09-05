@@ -232,7 +232,7 @@ $ export-ldif
    <command>ldapsearch</command> command.</para>
    
    <screen>$ ldifsearch
- --includeBranch dc=example,dc=org
+ --baseDN dc=example,dc=org
  --ldifFile generated.ldif
  "(sn=Grenier)"
  mobile
