@@ -80,7 +80,6 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -589,28 +588,21 @@ final class LDAPServerFilter extends BaseFilter {
             clientContext.close();
 
             // Notify the server connection: it may be null if disconnect is
-            // invoked
-            // during accept.
+            // invoked during accept.
             final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
             if (serverConnection != null) {
                 serverConnection.handleConnectionClosed(messageID, unbindRequest);
             }
 
             // If this close was a result of an unbind request then the
-            // connection
-            // won't actually be closed yet. To avoid TIME_WAIT TCP state, let
-            // the
-            // client disconnect.
+            // connection won't actually be closed yet. To avoid TIME_WAIT TCP
+            // state, let the client disconnect.
             if (unbindRequest != null) {
                 return;
             }
 
             // Close the connection.
-            try {
-                connection.close();
-            } catch (final IOException e) {
-                StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
-            }
+            connection.closeSilently();
         }
     }
 
@@ -622,19 +614,14 @@ final class LDAPServerFilter extends BaseFilter {
             clientContext.close();
 
             // Notify the server connection: it may be null if disconnect is
-            // invoked
-            // during accept.
+            // invoked during accept.
             final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
             if (serverConnection != null) {
                 serverConnection.handleConnectionDisconnected(resultCode, message);
             }
 
             // Close the connection.
-            try {
-                connection.close();
-            } catch (final IOException e) {
-                StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
-            }
+            connection.closeSilently();
         }
     }
 
@@ -646,19 +633,14 @@ final class LDAPServerFilter extends BaseFilter {
             clientContext.close();
 
             // Notify the server connection: it may be null if disconnect is
-            // invoked
-            // during accept.
+            // invoked during accept.
             final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
             if (serverConnection != null) {
                 serverConnection.handleConnectionError(error);
             }
 
             // Close the connection.
-            try {
-                connection.close();
-            } catch (final IOException e) {
-                StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
-            }
+            connection.closeSilently();
         }
     }
 

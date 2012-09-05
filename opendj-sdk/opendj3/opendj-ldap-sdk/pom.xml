@@ -46,7 +46,7 @@
     <dependency>
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-framework</artifactId>
-      <version>2.1.9</version>
+      <version>${grizzlyFrameworkVersion}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

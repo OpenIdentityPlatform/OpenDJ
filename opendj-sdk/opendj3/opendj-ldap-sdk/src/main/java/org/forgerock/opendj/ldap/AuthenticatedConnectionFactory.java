@@ -208,6 +208,8 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");
         builder.append(String.valueOf(parentFactory));
+        builder.append(", ");
+        builder.append(request);
         builder.append(')');
         return builder.toString();
     }

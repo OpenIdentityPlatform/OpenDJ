@@ -49,11 +49,10 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         private static final int BUFFER_SIZE = 4096;
         private final byte[] buffer = new byte[BUFFER_SIZE];
         private final ConnectionSecurityLayer layer;
-        private final MemoryManager<?> memoryManager;
 
         public Decoder(final ConnectionSecurityLayer layer, final MemoryManager<?> memoryManager) {
             this.layer = layer;
-            this.memoryManager = memoryManager;
+            setMemoryManager(memoryManager);
         }
 
         public String getName() {
@@ -67,7 +66,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         @Override
         public TransformationResult<Buffer, Buffer> transformImpl(final AttributeStorage storage,
                 final Buffer input) {
-
+            final MemoryManager<?> memoryManager = obtainMemoryManager(storage);
             final int len = Math.min(buffer.length, input.remaining());
             input.get(buffer, 0, len);
 
@@ -89,11 +88,10 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         private static final int BUFFER_SIZE = 4096;
         private final byte[] buffer = new byte[BUFFER_SIZE];
         private final ConnectionSecurityLayer layer;
-        private final MemoryManager<?> memoryManager;
 
         private Encoder(final ConnectionSecurityLayer layer, final MemoryManager<?> memoryManager) {
             this.layer = layer;
-            this.memoryManager = memoryManager;
+            setMemoryManager(memoryManager);
         }
 
         public String getName() {
@@ -107,7 +105,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         @Override
         public TransformationResult<Buffer, Buffer> transformImpl(final AttributeStorage storage,
                 final Buffer input) {
-
+            final MemoryManager<?> memoryManager = obtainMemoryManager(storage);
             final int len = Math.min(buffer.length, input.remaining());
             input.get(buffer, 0, len);
 

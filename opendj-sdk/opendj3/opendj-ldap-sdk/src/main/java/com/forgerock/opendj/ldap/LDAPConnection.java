@@ -139,10 +139,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
 
         if (pendingRequest == null) {
             // There has never been a request with the specified message ID or
-            // the
-            // response has already been received and handled. We can ignore
-            // this
-            // abandon request.
+            // the response has already been received and handled. We can ignore
+            // this abandon request.
 
             // Message ID will be -1 since no request was sent.
             return new CompletedFutureResult<Void>((Void) null);
@@ -280,8 +278,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 // Use the bind client to get the initial request instead of
-                // using the
-                // bind request passed to this method.
+                // using the bind request passed to this method.
                 final GenericBindRequest initialRequest = context.nextBindRequest();
                 ldapWriter.bindRequest(asn1Writer, messageID, 3, initialRequest);
                 connection.write(asn1Writer.getBuffer(), null);
@@ -723,15 +720,11 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 connectionInvalidReason = reason;
             } else {
                 // Connection termination was triggered remotely. We don't want
-                // to
-                // blindly pass on the result code to requests since it could be
-                // confused for a genuine response. For example, if the
-                // disconnect
-                // contained the invalidCredentials result code then this could
-                // be
-                // misinterpreted as a genuine authentication failure for
-                // subsequent
-                // bind requests.
+                // to blindly pass on the result code to requests since it could
+                // be confused for a genuine response. For example, if the
+                // disconnect contained the invalidCredentials result code then
+                // this could be misinterpreted as a genuine authentication
+                // failure for subsequent bind requests.
                 connectionInvalidReason =
                         Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN)
                                 .setDiagnosticMessage("Connection closed by server");
@@ -762,12 +755,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 // Underlying channel prob blown up. Just ignore.
             }
         }
-
-        try {
-            connection.close();
-        } catch (final IOException e) {
-            // Ignore.
-        }
+        connection.closeSilently();
 
         // Notify listeners.
         if (notifyClose) {
@@ -817,8 +805,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
             int filterIndex = oldFilterChain.size() - 1;
             if (filter instanceof SSLFilter) {
                 // Beneath any ConnectionSecurityLayerFilters if present,
-                // otherwise
-                // beneath the LDAP filter.
+                // otherwise beneath the LDAP filter.
                 for (int i = oldFilterChain.size() - 2; i >= 0; i--) {
                     if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter)) {
                         filterIndex = i + 1;

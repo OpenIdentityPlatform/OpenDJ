@@ -157,8 +157,7 @@ final class LDAPClientFilter extends BaseFilter {
                                             bindClient.getConnectionSecurityLayer();
                                     if (l != null) {
                                         // The connection needs to be secured by
-                                        // the SASL
-                                        // mechanism.
+                                        // the SASL mechanism.
                                         ldapConnection
                                                 .installFilter(new ConnectionSecurityLayerFilter(l,
                                                         ctx.getConnection().getTransport()
@@ -451,8 +450,7 @@ final class LDAPClientFilter extends BaseFilter {
         final Connection<?> connection = ctx.getConnection();
         if (!connection.isOpen()) {
             // Grizzly doens't not deregister the read interest from the
-            // selector so closing the connection results in an
-            // EOFException.
+            // selector so closing the connection results in an EOFException.
             // Just ignore errors on closed connections.
             return;
         }

@@ -163,8 +163,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // startTLS + SASL confidentiality
         // Use IP address here so that DIGEST-MD5 host verification works if
-        // local
-        // host name is not localhost (e.g. on some machines it might be
+        // local host name is not localhost (e.g. on some machines it might be
         // localhost.localdomain).
         factories[6][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(new InetSocketAddress(
@@ -291,8 +290,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     @Test(enabled = false)
     public void testSchemaUsage() throws Exception {
         // Create a connection factory: this should always use the default
-        // schema,
-        // even if it is updated.
+        // schema, even if it is updated.
         final ConnectionFactory factory =
                 new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort());
         final Schema defaultSchema = Schema.getDefaultSchema();
