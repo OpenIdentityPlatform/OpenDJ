@@ -165,11 +165,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // Use IP address here so that DIGEST-MD5 host verification works if
         // local host name is not localhost (e.g. on some machines it might be
         // localhost.localdomain).
+        // FIXME: enable QOP once OPENDJ-514 is fixed.
         factories[6][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(new InetSocketAddress(
                         "127.0.0.1", TestCaseUtils.getLdapPort()), options), Requests
-                        .newDigestMD5SASLBindRequest("id:user", "password".toCharArray()).addQOP(
-                                DigestMD5SASLBindRequest.QOP_AUTH_CONF).setCipher(
+                        .newDigestMD5SASLBindRequest("id:user", "password".toCharArray()).setCipher(
                                 DigestMD5SASLBindRequest.CIPHER_LOW));
 
         // Connection pool and load balancing tests.
