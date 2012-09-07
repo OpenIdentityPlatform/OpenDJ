@@ -284,4 +284,187 @@ try {
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Subtree Delete
   Request Control</citetitle></link>.</para>
  </section>
+
+ <section xml:id="updating-static-groups">
+  <title>Updating Static Groups</title>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Static groups</secondary>
+  </indexterm>
+
+  <para>Static groups enumerate user entries. Static groups can grow large.
+  For an example, see the group entry at the end of <link xlink:show="new"
+  xlink:href="http://opendj.forgerock.org/big-group.ldif">big-group.ldif</link>:</para>
+
+  <programlisting language="ldif">dn: cn=Static,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: groupofnames
+cn: Static
+member: uid=user.0,ou=People,dc=example,dc=com
+member: uid=user.1,ou=People,dc=example,dc=com
+member: uid=user.2,ou=People,dc=example,dc=com
+...
+member: uid=user.10000,ou=People,dc=example,dc=com</programlisting>
+
+  <para>To update a static group, you either add members or remove members.
+  For sample code, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/UpdateGroup.html"
+  xlink:show="new">UpdateGroup.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+  <para>The <literal>UpdateGroup</literal> example checks that the directory
+  server supports the Permissive Modify control. With directory servers such
+  as OpenDJ that support the LDAP Permissive Modify control, you can use the
+  control to avoid having to determine whether a given member is already in the
+  group before performing the operation. Instead you can simply request an
+  add or a delete modification for the member.</para>
+
+  <example xml:id="update-group-with-permissive-modify"><?dbfo keep-together="auto"?>
+   <title>Updating a Group With Permissive Modify</title>
+   <programlisting language="java"
+   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    Collection&lt;String&gt; controls =
+            RootDSE.readRootDSE(connection).getSupportedControls();
+
+    final String user = "cn=Directory Manager";
+    final char[] password = "password".toCharArray();
+    connection.bind(user, password);
+
+    if (controls.contains(PermissiveModifyRequestControl.OID)) {
+
+        final ModifyRequest request = Requests.newModifyRequest(groupDN)
+                .addControl(PermissiveModifyRequestControl.newControl(true))
+                .addModification(modType, "member", memberDN);
+        connection.modify(request);
+
+    } else {
+
+        /* ... */
+
+    }
+
+    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
+    System.out.println("The entry with DN " + memberDN + " has been "
+            + op + " the group with DN " + groupDN + ".");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+  </example>
+
+  <para>If the directory server does not support the Permissive Modify control,
+  then the example checks whether the member is present in the group by using
+  an LDAP compare operation. If a member to be added does not yet belong to the
+  group, the example requests an add modification. If a member to be deleted
+  does belong to the group, the example requests a delete modification.</para>
+
+  <example xml:id="update-group-with-compare-and-modify"><?dbfo keep-together="auto"?>
+   <title>Updating a Group With Compare &amp; Modify</title>
+   <programlisting language="java"
+   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    Collection&lt;String&gt; controls =
+            RootDSE.readRootDSE(connection).getSupportedControls();
+
+    final String user = "cn=Directory Manager";
+    final char[] password = "password".toCharArray();
+    connection.bind(user, password);
+
+    if (controls.contains(PermissiveModifyRequestControl.OID)) {
+
+        /* ... */
+
+    } else {
+
+        System.out.println("Checking whether the entry with DN "
+                + memberDN + " belongs to the group with DN " + groupDN
+                + "...");
+        final CompareRequest request =
+                Requests.newCompareRequest(groupDN, "member", memberDN);
+        CompareResult result = connection.compare(request);
+
+        if (modType == ModificationType.ADD) {
+            if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
+                System.out.println("Member does not yet belong to group."
+                        + " Adding it...");
+                final ModifyRequest addMember =
+                        Requests.newModifyRequest(groupDN)
+                            .addModification(modType, "member", memberDN);
+                connection.modify(addMember);
+            }
+        }
+
+        if (modType == ModificationType.DELETE) {
+            if (result.getResultCode() == ResultCode.COMPARE_TRUE) {
+                System.out.println("Member belongs to group."
+                        + " Removing it...");
+                final ModifyRequest delMember =
+                        Requests.newModifyRequest(groupDN)
+                            .addModification(modType, "member", memberDN);
+                connection.modify(delMember);
+            }
+        }
+
+    }
+
+    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
+    System.out.println("The entry with DN " + memberDN + " has been "
+            + op + " the group with DN " + groupDN + ".");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+   <para>You can change multiple member values with a single modification. The
+   final argument of this form of the
+   <literal>ModifyRequest.addModification()</literal> method takes a series
+   of one or more values. So if you have multiple group members to add or
+   delete, you can loop over your list to perform compare individual compare
+   requests, then construct a single modify request to add or delete the
+   group members. In other words, if you have three members to add, you can
+   list the three member DNs as arguments of
+   <literal>addModification</literal>.</para>
+
+   <programlisting language="java"
+   >String member1 = "uid=user1,ou=people,dc=example,dc=com";
+String member2 = "uid=user1,ou=people,dc=example,dc=com";
+String member3 = "uid=user1,ou=people,dc=example,dc=com";
+final ModifyRequest addMember =
+    Requests.newModifyRequest(groupDN)
+        .addModification(modType, "member", member1, member2, member3);
+connection.modify(addMember);</programlisting>
+  </example>
+
+  <para>To try the example, download and import
+  <filename>big-group.ldif</filename> into your directory server, and then
+  run the sample. For example, if OpenDJ is set up to with directory manager
+  as <literal>cn=Directory Manager</literal>, password
+  <literal>password</literal> listening on <literal>localhost</literal> port
+  <literal>1389</literal>, and you run the example with arguments
+  <literal>localhost 1389 cn=Static,ou=Groups,dc=example,dc=com
+  uid=user.5150,ou=People,dc=example,dc=com del</literal>, the resulting output
+  is <literal>The entry with DN uid=user.5150,ou=People,dc=example,dc=com has
+  been deleted from the group with DN
+  cn=Static,ou=Groups,dc=example,dc=com.</literal>.</para>
+ </section>
 </chapter>
