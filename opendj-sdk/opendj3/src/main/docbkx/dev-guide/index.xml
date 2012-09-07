@@ -95,5 +95,7 @@
   <xinclude:include href='../shared/man-searchrate.xml' />
  </reference>
 
+ <xinclude:include href="../shared/glossary.xml" />
+
  <index />
 </book>
