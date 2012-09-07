@@ -131,6 +131,8 @@
    <xinclude:include href='../shared/man-verify-index.xml' />
  </reference>
 
+ <xinclude:include href="../shared/glossary.xml" />
+
  <xinclude:include href='appendix-file-layout.xml' />
  <xinclude:include href='appendix-ports-used.xml' />
  <xinclude:include href='appendix-standards.xml' />
