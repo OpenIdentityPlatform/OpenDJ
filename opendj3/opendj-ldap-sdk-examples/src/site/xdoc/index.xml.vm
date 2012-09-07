@@ -98,6 +98,10 @@
           <a href="xref/org/forgerock/opendj/examples/RewriterProxy.html">Rewrite proxy</a>
           - illustrates how to rewrite DNs and attribute names in a proxy layer
         </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UpdateGroup.html">Update group</a>
+          - illustrates how to add or remove a member from a static group
+        </li>
       </ul>
     </section>
     <section name="Get the OpenDJ LDAP SDK Examples">
