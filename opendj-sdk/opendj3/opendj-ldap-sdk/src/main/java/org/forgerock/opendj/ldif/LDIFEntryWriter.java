@@ -37,7 +37,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Matcher;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -216,21 +215,6 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     public LDIFEntryWriter setIncludeFilter(final Matcher includeFilter) {
         Validator.ensureNotNull(includeFilter);
         includeFilters.add(includeFilter);
-        return this;
-    }
-
-    /**
-     * Sets the schema which should be used when filtering entries (not required
-     * if no filtering is to be performed). The default schema is used if no
-     * other is specified.
-     *
-     * @param schema
-     *            The schema which should be used when filtering entries.
-     * @return A reference to this {@code LDIFEntryWriter}.
-     */
-    public LDIFEntryWriter setSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
-        this.schema = schema;
         return this;
     }
 
