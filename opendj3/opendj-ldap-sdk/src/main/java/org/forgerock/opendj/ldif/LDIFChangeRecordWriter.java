@@ -41,7 +41,6 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -193,21 +192,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     public LDIFChangeRecordWriter setIncludeBranch(final DN includeBranch) {
         Validator.ensureNotNull(includeBranch);
         includeBranches.add(includeBranch);
-        return this;
-    }
-
-    /**
-     * Sets the schema which should be used when filtering change records (not
-     * required if no filtering is to be performed). The default schema is used
-     * if no other is specified.
-     *
-     * @param schema
-     *            The schema which should be used when filtering change records.
-     * @return A reference to this {@code LDIFChangeRecordWriter}.
-     */
-    public LDIFChangeRecordWriter setSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
-        this.schema = schema;
         return this;
     }
 
