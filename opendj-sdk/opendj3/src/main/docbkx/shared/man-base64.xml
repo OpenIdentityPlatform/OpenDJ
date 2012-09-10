@@ -42,8 +42,7 @@
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>base64</command>
-   <command><replaceable>subcommand</replaceable></command>
+   <command>base64 <replaceable>subcommand</replaceable></command>
    <arg choice="req">options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
@@ -59,12 +58,62 @@
     <term><command>base64 decode</command></term>
     <listitem>
      <para>Decode base64-encoded information into raw data</para>
+     <para>When no options are specified, this subcommand reads from standard
+     input and writes to standard output.</para>
+     <variablelist>
+      <title>Decode Options</title>
+      <varlistentry>
+       <term><option>-d, --encodedData {data}</option></term>
+       <listitem>
+        <para>The base64-encoded data to be decoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-f, --encodedDataFile {path}</option></term>
+       <listitem>
+        <para>The path to a file containing the base64-encoded data to be
+        decoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-o, --toRawFile {path}</option></term>
+       <listitem>
+        <para>The path to a file to which the raw base64-decoded data should be
+        written</para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><command>base64 encode</command></term>
     <listitem>
      <para>Encode raw data using base64</para>
+     <para>When no options are specified, this subcommand reads from standard
+     input and writes to standard output.</para>
+     <variablelist>
+      <title>Decode Options</title>
+      <varlistentry>
+       <term><option>-d, --rawData {data}</option></term>
+       <listitem>
+        <para>The raw data to be base64 encoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-f, --rawDataFile {path}</option></term>
+       <listitem>
+        <para>The path to a file containing the raw data to be base64
+        encoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-o, --toEncodedFile {path}</option></term>
+       <listitem>
+        <para>The path to a file to which the base64-encoded data should be
+        written</para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
     </listitem>
    </varlistentry>
   </variablelist>
