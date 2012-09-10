@@ -369,13 +369,22 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
 
         final List<String> actual = new ArrayList<String>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
+        int opAttributes = 0;
 
         writer.setExcludeAllOperationalAttributes(false);
         writer.writeEntry(getStandardEntry());
         writer.close();
 
+        for (String line : actual) {
+            if (line.contains("entryUUID") || line.contains("entryDN")) {
+                opAttributes++;
+            }
+        }
         assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
         assertThat(actual.size()).isGreaterThan(getStandardEntry().getAttributeCount());
+
+        assertThat(opAttributes).isEqualTo(2);
+
     }
 
     /**
@@ -397,8 +406,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
 
         for (String line : actual) {
             assertThat(line).doesNotContain("entryUUID");
-            // entryDN appears here but it's also an operational attribute - jira/browse/OPENDJ-589
-            // TODO when bug will be fixed, test if entryDN appears.
+            assertThat(line).doesNotContain("entryDN");
         }
 
         assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());

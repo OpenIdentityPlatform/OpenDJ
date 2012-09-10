@@ -249,6 +249,8 @@ public final class CoreSchema {
             .getAttributeType("2.5.4.46");
     private static final AttributeType ENHANCED_SEARCH_GUIDE_ATTRIBUTE_TYPE = CoreSchemaImpl
             .getInstance().getAttributeType("2.5.4.47");
+    private static final AttributeType ENTRY_DN_ATTRIBUTE_TYPE = CoreSchemaImpl.getInstance()
+            .getAttributeType("1.3.6.1.1.20");
     private static final AttributeType ENTRY_UUID_ATTRIBUTE_TYPE = CoreSchemaImpl.getInstance()
             .getAttributeType("1.3.6.1.1.16.4");
     private static final AttributeType FACSIMILE_TELEPHONE_NUMBER_ATTRIBUTE_TYPE = CoreSchemaImpl
@@ -400,44 +402,18 @@ public final class CoreSchema {
     private static final ObjectClass UID_OBJECT_OBJECT_CLASS = CoreSchemaImpl.getInstance()
             .getObjectClass("1.3.6.1.1.3.1");
 
-    /**
-     * Returns a reference to the {@code aliasedObjectName} Attribute Type which
-     * has the OID {@code 2.5.4.1}.
-     *
-     * @return A reference to the {@code aliasedObjectName} Attribute Type.
-     */
-    public static AttributeType getAliasedObjectNameAttributeType() {
-        return ALIASED_OBJECT_NAME_ATTRIBUTE_TYPE;
+    // Prevent instantiation
+    private CoreSchema() {
+        // Nothing to do.
     }
 
     /**
-     * Returns a reference to the {@code alias} Object Class which has the OID
-     * {@code 2.5.6.1}.
+     * Returns a reference to the singleton core schema.
      *
-     * @return A reference to the {@code alias} Object Class.
+     * @return The core schema.
      */
-    public static ObjectClass getAliasObjectClass() {
-        return ALIAS_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code altServer} Attribute Type which has the
-     * OID {@code 1.3.6.1.4.1.1466.101.120.6}.
-     *
-     * @return A reference to the {@code altServer} Attribute Type.
-     */
-    public static AttributeType getAltServerAttributeType() {
-        return ALT_SERVER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code applicationProcess} Object Class which
-     * has the OID {@code 2.5.6.11}.
-     *
-     * @return A reference to the {@code applicationProcess} Object Class.
-     */
-    public static ObjectClass getApplicationProcessObjectClass() {
-        return APPLICATION_PROCESS_OBJECT_CLASS;
+    public static Schema getInstance() {
+        return CoreSchemaImpl.getInstance();
     }
 
     /**
@@ -451,16 +427,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code attributeTypes} Attribute Type which
-     * has the OID {@code 2.5.21.5}.
-     *
-     * @return A reference to the {@code attributeTypes} Attribute Type.
-     */
-    public static AttributeType getAttributeTypesAttributeType() {
-        return ATTRIBUTE_TYPES_ATTRIBUTE_TYPE;
-    }
-
-    /**
      * Returns a reference to the {@code Authentication Password Syntax} which
      * has the OID {@code 1.3.6.1.4.1.4203.1.1.2}.
      *
@@ -468,36 +434,6 @@ public final class CoreSchema {
      */
     public static Syntax getAuthenticationPasswordSyntax() {
         return AUTHENTICATION_PASSWORD_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code authPassword} Attribute Type which has
-     * the OID {@code 1.3.6.1.4.1.4203.1.3.4}.
-     *
-     * @return A reference to the {@code authPassword} Attribute Type.
-     */
-    public static AttributeType getAuthPasswordAttributeType() {
-        return AUTH_PASSWORD_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code authPasswordExactMatch} Matching Rule
-     * which has the OID {@code 1.3.6.1.4.1.4203.1.2.2}.
-     *
-     * @return A reference to the {@code authPasswordExactMatch} Matching Rule.
-     */
-    public static MatchingRule getAuthPasswordExactMatchingRule() {
-        return AUTH_PASSWORD_EXACT_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code authPasswordObject} Object Class which
-     * has the OID {@code 1.3.6.1.4.1.4203.1.4.7}.
-     *
-     * @return A reference to the {@code authPasswordObject} Object Class.
-     */
-    public static ObjectClass getAuthPasswordObjectObjectClass() {
-        return AUTH_PASSWORD_OBJECT_OBJECT_CLASS;
     }
 
     /**
@@ -511,16 +447,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code bitStringMatch} Matching Rule which has
-     * the OID {@code 2.5.13.16}.
-     *
-     * @return A reference to the {@code bitStringMatch} Matching Rule.
-     */
-    public static MatchingRule getBitStringMatchingRule() {
-        return BIT_STRING_MATCHING_RULE;
-    }
-
-    /**
      * Returns a reference to the {@code Bit String Syntax} which has the OID
      * {@code 1.3.6.1.4.1.1466.115.121.1.6}.
      *
@@ -528,16 +454,6 @@ public final class CoreSchema {
      */
     public static Syntax getBitStringSyntax() {
         return BIT_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code booleanMatch} Matching Rule which has
-     * the OID {@code 2.5.13.13}.
-     *
-     * @return A reference to the {@code booleanMatch} Matching Rule.
-     */
-    public static MatchingRule getBooleanMatchingRule() {
-        return BOOLEAN_MATCHING_RULE;
     }
 
     /**
@@ -551,13 +467,413 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code businessCategory} Attribute Type which
-     * has the OID {@code 2.5.4.15}.
+     * Returns a reference to the {@code Certificate List Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.9}.
      *
-     * @return A reference to the {@code businessCategory} Attribute Type.
+     * @return A reference to the {@code Certificate List Syntax}.
      */
-    public static AttributeType getBusinessCategoryAttributeType() {
-        return BUSINESS_CATEGORY_ATTRIBUTE_TYPE;
+    public static Syntax getCertificateListSyntax() {
+        return CERTIFICATE_LIST_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Certificate Pair Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.10}.
+     *
+     * @return A reference to the {@code Certificate Pair Syntax}.
+     */
+    public static Syntax getCertificatePairSyntax() {
+        return CERTIFICATE_PAIR_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Certificate Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.8}.
+     *
+     * @return A reference to the {@code Certificate Syntax}.
+     */
+    public static Syntax getCertificateSyntax() {
+        return CERTIFICATE_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Country String Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.11}.
+     *
+     * @return A reference to the {@code Country String Syntax}.
+     */
+    public static Syntax getCountryStringSyntax() {
+        return COUNTRY_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Delivery Method Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.14}.
+     *
+     * @return A reference to the {@code Delivery Method Syntax}.
+     */
+    public static Syntax getDeliveryMethodSyntax() {
+        return DELIVERY_METHOD_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Directory String Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.15}.
+     *
+     * @return A reference to the {@code Directory String Syntax}.
+     */
+    public static Syntax getDirectoryStringSyntax() {
+        return DIRECTORY_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code DIT Content Rule Description Syntax}
+     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.16}.
+     *
+     * @return A reference to the {@code DIT Content Rule Description Syntax}.
+     */
+    public static Syntax getDITContentRuleDescriptionSyntax() {
+        return DIT_CONTENT_RULE_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code DIT Structure Rule Description Syntax}
+     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.17}.
+     *
+     * @return A reference to the {@code DIT Structure Rule Description Syntax}.
+     */
+    public static Syntax getDITStructureRuleDescriptionSyntax() {
+        return DIT_STRUCTURE_RULE_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code DN Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.12}.
+     *
+     * @return A reference to the {@code DN Syntax}.
+     */
+    public static Syntax getDNSyntax() {
+        return DN_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Enhanced Guide Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.21}.
+     *
+     * @return A reference to the {@code Enhanced Guide Syntax}.
+     */
+    public static Syntax getEnhancedGuideSyntax() {
+        return ENHANCED_GUIDE_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Facsimile Telephone Number Syntax}
+     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.22}.
+     *
+     * @return A reference to the {@code Facsimile Telephone Number Syntax}.
+     */
+    public static Syntax getFacsimileTelephoneNumberSyntax() {
+        return FACSIMILE_TELEPHONE_NUMBER_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Fax Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.23}.
+     *
+     * @return A reference to the {@code Fax Syntax}.
+     */
+    public static Syntax getFaxSyntax() {
+        return FAX_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Generalized Time Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.24}.
+     *
+     * @return A reference to the {@code Generalized Time Syntax}.
+     */
+    public static Syntax getGeneralizedTimeSyntax() {
+        return GENERALIZED_TIME_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Guide Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.25}.
+     *
+     * @return A reference to the {@code Guide Syntax}.
+     */
+    public static Syntax getGuideSyntax() {
+        return GUIDE_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code IA5 String Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.26}.
+     *
+     * @return A reference to the {@code IA5 String Syntax}.
+     */
+    public static Syntax getIA5StringSyntax() {
+        return IA5_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Integer Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.27}.
+     *
+     * @return A reference to the {@code Integer Syntax}.
+     */
+    public static Syntax getIntegerSyntax() {
+        return INTEGER_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code JPEG Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.28}.
+     *
+     * @return A reference to the {@code JPEG Syntax}.
+     */
+    public static Syntax getJPEGSyntax() {
+        return JPEG_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code LDAP Syntax Description Syntax} which
+     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.54}.
+     *
+     * @return A reference to the {@code LDAP Syntax Description Syntax}.
+     */
+    public static Syntax getLDAPSyntaxDescriptionSyntax() {
+        return LDAP_SYNTAX_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Matching Rule Description Syntax} which
+     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.30}.
+     *
+     * @return A reference to the {@code Matching Rule Description Syntax}.
+     */
+    public static Syntax getMatchingRuleDescriptionSyntax() {
+        return MATCHING_RULE_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Matching Rule Use Description Syntax}
+     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.31}.
+     *
+     * @return A reference to the {@code Matching Rule Use Description Syntax}.
+     */
+    public static Syntax getMatchingRuleUseDescriptionSyntax() {
+        return MATCHING_RULE_USE_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Name and Optional UID Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.34}.
+     *
+     * @return A reference to the {@code Name and Optional UID Syntax}.
+     */
+    public static Syntax getNameAndOptionalUIDSyntax() {
+        return NAME_AND_OPTIONAL_UID_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Name Form Description Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.35}.
+     *
+     * @return A reference to the {@code Name Form Description Syntax}.
+     */
+    public static Syntax getNameFormDescriptionSyntax() {
+        return NAME_FORM_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Numeric String Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.36}.
+     *
+     * @return A reference to the {@code Numeric String Syntax}.
+     */
+    public static Syntax getNumericStringSyntax() {
+        return NUMERIC_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Object Class Description Syntax} which
+     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.37}.
+     *
+     * @return A reference to the {@code Object Class Description Syntax}.
+     */
+    public static Syntax getObjectClassDescriptionSyntax() {
+        return OBJECT_CLASS_DESCRIPTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Octet String Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.40}.
+     *
+     * @return A reference to the {@code Octet String Syntax}.
+     */
+    public static Syntax getOctetStringSyntax() {
+        return OCTET_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code OID Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.38}.
+     *
+     * @return A reference to the {@code OID Syntax}.
+     */
+    public static Syntax getOIDSyntax() {
+        return OID_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Other Mailbox Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.39}.
+     *
+     * @return A reference to the {@code Other Mailbox Syntax}.
+     */
+    public static Syntax getOtherMailboxSyntax() {
+        return OTHER_MAILBOX_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Postal Address Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.41}.
+     *
+     * @return A reference to the {@code Postal Address Syntax}.
+     */
+    public static Syntax getPostalAddressSyntax() {
+        return POSTAL_ADDRESS_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Presentation Address Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.43}.
+     *
+     * @return A reference to the {@code Presentation Address Syntax}.
+     */
+    public static Syntax getPresentationAddressSyntax() {
+        return PRESENTATION_ADDRESS_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Printable String Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.44}.
+     *
+     * @return A reference to the {@code Printable String Syntax}.
+     */
+    public static Syntax getPrintableStringSyntax() {
+        return PRINTABLE_STRING_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Protocol Information Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.42}.
+     *
+     * @return A reference to the {@code Protocol Information Syntax}.
+     */
+    public static Syntax getProtocolInformationSyntax() {
+        return PROTOCOL_INFORMATION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Substring Assertion Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.58}.
+     *
+     * @return A reference to the {@code Substring Assertion Syntax}.
+     */
+    public static Syntax getSubstringAssertionSyntax() {
+        return SUBSTRING_ASSERTION_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Supported Algorithm Syntax} which has
+     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.49}.
+     *
+     * @return A reference to the {@code Supported Algorithm Syntax}.
+     */
+    public static Syntax getSupportedAlgorithmSyntax() {
+        return SUPPORTED_ALGORITHM_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Telephone Number Syntax} which has the
+     * OID {@code 1.3.6.1.4.1.1466.115.121.1.50}.
+     *
+     * @return A reference to the {@code Telephone Number Syntax}.
+     */
+    public static Syntax getTelephoneNumberSyntax() {
+        return TELEPHONE_NUMBER_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Teletex Terminal Identifier Syntax}
+     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.51}.
+     *
+     * @return A reference to the {@code Teletex Terminal Identifier Syntax}.
+     */
+    public static Syntax getTeletexTerminalIdentifierSyntax() {
+        return TELETEX_TERMINAL_IDENTIFIER_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Telex Number Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.52}.
+     *
+     * @return A reference to the {@code Telex Number Syntax}.
+     */
+    public static Syntax getTelexNumberSyntax() {
+        return TELEX_NUMBER_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code UTC Time Syntax} which has the OID
+     * {@code 1.3.6.1.4.1.1466.115.121.1.53}.
+     *
+     * @return A reference to the {@code UTC Time Syntax}.
+     */
+    public static Syntax getUTCTimeSyntax() {
+        return UTC_TIME_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code UUID Syntax} which has the OID
+     * {@code 1.3.6.1.1.16.1}.
+     *
+     * @return A reference to the {@code UUID Syntax}.
+     */
+    public static Syntax getUUIDSyntax() {
+        return UUID_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code authPasswordExactMatch} Matching Rule
+     * which has the OID {@code 1.3.6.1.4.1.4203.1.2.2}.
+     *
+     * @return A reference to the {@code authPasswordExactMatch} Matching Rule.
+     */
+    public static MatchingRule getAuthPasswordExactMatchingRule() {
+        return AUTH_PASSWORD_EXACT_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code bitStringMatch} Matching Rule which has
+     * the OID {@code 2.5.13.16}.
+     *
+     * @return A reference to the {@code bitStringMatch} Matching Rule.
+     */
+    public static MatchingRule getBitStringMatchingRule() {
+        return BIT_STRING_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code booleanMatch} Matching Rule which has
+     * the OID {@code 2.5.13.13}.
+     *
+     * @return A reference to the {@code booleanMatch} Matching Rule.
+     */
+    public static MatchingRule getBooleanMatchingRule() {
+        return BOOLEAN_MATCHING_RULE;
     }
 
     /**
@@ -675,156 +991,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code c} Attribute Type which has the OID
-     * {@code 2.5.4.6}.
-     *
-     * @return A reference to the {@code c} Attribute Type.
-     */
-    public static AttributeType getCAttributeType() {
-        return C_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Certificate List Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.9}.
-     *
-     * @return A reference to the {@code Certificate List Syntax}.
-     */
-    public static Syntax getCertificateListSyntax() {
-        return CERTIFICATE_LIST_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Certificate Pair Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.10}.
-     *
-     * @return A reference to the {@code Certificate Pair Syntax}.
-     */
-    public static Syntax getCertificatePairSyntax() {
-        return CERTIFICATE_PAIR_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Certificate Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.8}.
-     *
-     * @return A reference to the {@code Certificate Syntax}.
-     */
-    public static Syntax getCertificateSyntax() {
-        return CERTIFICATE_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code cn} Attribute Type which has the OID
-     * {@code 2.5.4.3}.
-     *
-     * @return A reference to the {@code cn} Attribute Type.
-     */
-    public static AttributeType getCNAttributeType() {
-        return CN_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code country} Object Class which has the OID
-     * {@code 2.5.6.2}.
-     *
-     * @return A reference to the {@code country} Object Class.
-     */
-    public static ObjectClass getCountryObjectClass() {
-        return COUNTRY_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code Country String Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.11}.
-     *
-     * @return A reference to the {@code Country String Syntax}.
-     */
-    public static Syntax getCountryStringSyntax() {
-        return COUNTRY_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code createTimestamp} Attribute Type which
-     * has the OID {@code 2.5.18.1}.
-     *
-     * @return A reference to the {@code createTimestamp} Attribute Type.
-     */
-    public static AttributeType getCreateTimestampAttributeType() {
-        return CREATE_TIMESTAMP_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code creatorsName} Attribute Type which has
-     * the OID {@code 2.5.18.3}.
-     *
-     * @return A reference to the {@code creatorsName} Attribute Type.
-     */
-    public static AttributeType getCreatorsNameAttributeType() {
-        return CREATORS_NAME_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code dc} Attribute Type which has the OID
-     * {@code 0.9.2342.19200300.100.1.25}.
-     *
-     * @return A reference to the {@code dc} Attribute Type.
-     */
-    public static AttributeType getDCAttributeType() {
-        return DC_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code dcObject} Object Class which has the
-     * OID {@code 1.3.6.1.4.1.1466.344}.
-     *
-     * @return A reference to the {@code dcObject} Object Class.
-     */
-    public static ObjectClass getDCObjectObjectClass() {
-        return DC_OBJECT_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code Delivery Method Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.14}.
-     *
-     * @return A reference to the {@code Delivery Method Syntax}.
-     */
-    public static Syntax getDeliveryMethodSyntax() {
-        return DELIVERY_METHOD_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code description} Attribute Type which has
-     * the OID {@code 2.5.4.13}.
-     *
-     * @return A reference to the {@code description} Attribute Type.
-     */
-    public static AttributeType getDescriptionAttributeType() {
-        return DESCRIPTION_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code destinationIndicator} Attribute Type
-     * which has the OID {@code 2.5.4.27}.
-     *
-     * @return A reference to the {@code destinationIndicator} Attribute Type.
-     */
-    public static AttributeType getDestinationIndicatorAttributeType() {
-        return DESTINATION_INDICATOR_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code device} Object Class which has the OID
-     * {@code 2.5.6.14}.
-     *
-     * @return A reference to the {@code device} Object Class.
-     */
-    public static ObjectClass getDeviceObjectClass() {
-        return DEVICE_OBJECT_CLASS;
-    }
-
-    /**
      * Returns a reference to the {@code directoryStringFirstComponentMatch}
      * Matching Rule which has the OID {@code 2.5.13.31}.
      *
@@ -836,26 +1002,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code Directory String Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.15}.
-     *
-     * @return A reference to the {@code Directory String Syntax}.
-     */
-    public static Syntax getDirectoryStringSyntax() {
-        return DIRECTORY_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code distinguishedName} Attribute Type which
-     * has the OID {@code 2.5.4.49}.
-     *
-     * @return A reference to the {@code distinguishedName} Attribute Type.
-     */
-    public static AttributeType getDistinguishedNameAttributeType() {
-        return DISTINGUISHED_NAME_ATTRIBUTE_TYPE;
-    }
-
-    /**
      * Returns a reference to the {@code distinguishedNameMatch} Matching Rule
      * which has the OID {@code 2.5.13.1}.
      *
@@ -863,137 +1009,6 @@ public final class CoreSchema {
      */
     public static MatchingRule getDistinguishedNameMatchingRule() {
         return DISTINGUISHED_NAME_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code DIT Content Rule Description Syntax}
-     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.16}.
-     *
-     * @return A reference to the {@code DIT Content Rule Description Syntax}.
-     */
-    public static Syntax getDITContentRuleDescriptionSyntax() {
-        return DIT_CONTENT_RULE_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code ditContentRules} Attribute Type which
-     * has the OID {@code 2.5.21.2}.
-     *
-     * @return A reference to the {@code ditContentRules} Attribute Type.
-     */
-    public static AttributeType getDITContentRulesAttributeType() {
-        return DIT_CONTENT_RULES_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code DIT Structure Rule Description Syntax}
-     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.17}.
-     *
-     * @return A reference to the {@code DIT Structure Rule Description Syntax}.
-     */
-    public static Syntax getDITStructureRuleDescriptionSyntax() {
-        return DIT_STRUCTURE_RULE_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code ditStructureRules} Attribute Type which
-     * has the OID {@code 2.5.21.1}.
-     *
-     * @return A reference to the {@code ditStructureRules} Attribute Type.
-     */
-    public static AttributeType getDITStructureRulesAttributeType() {
-        return DIT_STRUCTURE_RULES_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code dnQualifier} Attribute Type which has
-     * the OID {@code 2.5.4.46}.
-     *
-     * @return A reference to the {@code dnQualifier} Attribute Type.
-     */
-    public static AttributeType getDNQualifierAttributeType() {
-        return DN_QUALIFIER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code DN Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.12}.
-     *
-     * @return A reference to the {@code DN Syntax}.
-     */
-    public static Syntax getDNSyntax() {
-        return DN_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Enhanced Guide Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.21}.
-     *
-     * @return A reference to the {@code Enhanced Guide Syntax}.
-     */
-    public static Syntax getEnhancedGuideSyntax() {
-        return ENHANCED_GUIDE_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code enhancedSearchGuide} Attribute Type
-     * which has the OID {@code 2.5.4.47}.
-     *
-     * @return A reference to the {@code enhancedSearchGuide} Attribute Type.
-     */
-    public static AttributeType getEnhancedSearchGuideAttributeType() {
-        return ENHANCED_SEARCH_GUIDE_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code entryUUID} Attribute Type which has the
-     * OID {@code 1.3.6.1.1.16.4}.
-     *
-     * @return A reference to the {@code entryUUID} Attribute Type.
-     */
-    public static AttributeType getEntryUUIDAttributeType() {
-        return ENTRY_UUID_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code extensibleObject} Object Class which
-     * has the OID {@code 1.3.6.1.4.1.1466.101.120.111}.
-     *
-     * @return A reference to the {@code extensibleObject} Object Class.
-     */
-    public static ObjectClass getExtensibleObjectObjectClass() {
-        return EXTENSIBLE_OBJECT_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code facsimileTelephoneNumber} Attribute
-     * Type which has the OID {@code 2.5.4.23}.
-     *
-     * @return A reference to the {@code facsimileTelephoneNumber} Attribute
-     *         Type.
-     */
-    public static AttributeType getFacsimileTelephoneNumberAttributeType() {
-        return FACSIMILE_TELEPHONE_NUMBER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Facsimile Telephone Number Syntax}
-     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.22}.
-     *
-     * @return A reference to the {@code Facsimile Telephone Number Syntax}.
-     */
-    public static Syntax getFacsimileTelephoneNumberSyntax() {
-        return FACSIMILE_TELEPHONE_NUMBER_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Fax Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.23}.
-     *
-     * @return A reference to the {@code Fax Syntax}.
-     */
-    public static Syntax getFaxSyntax() {
-        return FAX_SYNTAX;
     }
 
     /**
@@ -1015,115 +1030,6 @@ public final class CoreSchema {
      */
     public static MatchingRule getGeneralizedTimeOrderingMatchingRule() {
         return GENERALIZED_TIME_ORDERING_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code Generalized Time Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.24}.
-     *
-     * @return A reference to the {@code Generalized Time Syntax}.
-     */
-    public static Syntax getGeneralizedTimeSyntax() {
-        return GENERALIZED_TIME_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code generationQualifier} Attribute Type
-     * which has the OID {@code 2.5.4.44}.
-     *
-     * @return A reference to the {@code generationQualifier} Attribute Type.
-     */
-    public static AttributeType getGenerationQualifierAttributeType() {
-        return GENERATION_QUALIFIER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code givenName} Attribute Type which has the
-     * OID {@code 2.5.4.42}.
-     *
-     * @return A reference to the {@code givenName} Attribute Type.
-     */
-    public static AttributeType getGivenNameAttributeType() {
-        return GIVEN_NAME_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code governingStructureRule} Attribute Type
-     * which has the OID {@code 2.5.21.10}.
-     *
-     * @return A reference to the {@code governingStructureRule} Attribute Type.
-     */
-    public static AttributeType getGoverningStructureRuleAttributeType() {
-        return GOVERNING_STRUCTURE_RULE_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code groupOfNames} Object Class which has
-     * the OID {@code 2.5.6.9}.
-     *
-     * @return A reference to the {@code groupOfNames} Object Class.
-     */
-    public static ObjectClass getGroupOfNamesObjectClass() {
-        return GROUP_OF_NAMES_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code groupOfUniqueNames} Object Class which
-     * has the OID {@code 2.5.6.17}.
-     *
-     * @return A reference to the {@code groupOfUniqueNames} Object Class.
-     */
-    public static ObjectClass getGroupOfUniqueNamesObjectClass() {
-        return GROUP_OF_UNIQUE_NAMES_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code Guide Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.25}.
-     *
-     * @return A reference to the {@code Guide Syntax}.
-     */
-    public static Syntax getGuideSyntax() {
-        return GUIDE_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code houseIdentifier} Attribute Type which
-     * has the OID {@code 2.5.4.51}.
-     *
-     * @return A reference to the {@code houseIdentifier} Attribute Type.
-     */
-    public static AttributeType getHouseIdentifierAttributeType() {
-        return HOUSE_IDENTIFIER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code IA5 String Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.26}.
-     *
-     * @return A reference to the {@code IA5 String Syntax}.
-     */
-    public static Syntax getIA5StringSyntax() {
-        return IA5_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code initials} Attribute Type which has the
-     * OID {@code 2.5.4.43}.
-     *
-     * @return A reference to the {@code initials} Attribute Type.
-     */
-    public static AttributeType getInitialsAttributeType() {
-        return INITIALS_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the singleton core schema.
-     *
-     * @return The core schema.
-     */
-    public static Schema getInstance() {
-        return CoreSchemaImpl.getInstance();
     }
 
     /**
@@ -1158,37 +1064,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code Integer Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.27}.
-     *
-     * @return A reference to the {@code Integer Syntax}.
-     */
-    public static Syntax getIntegerSyntax() {
-        return INTEGER_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code internationalISDNNumber} Attribute Type
-     * which has the OID {@code 2.5.4.25}.
-     *
-     * @return A reference to the {@code internationalISDNNumber} Attribute
-     *         Type.
-     */
-    public static AttributeType getInternationalISDNNumberAttributeType() {
-        return INTERNATIONAL_ISDN_NUMBER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code JPEG Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.28}.
-     *
-     * @return A reference to the {@code JPEG Syntax}.
-     */
-    public static Syntax getJPEGSyntax() {
-        return JPEG_SYNTAX;
-    }
-
-    /**
      * Returns a reference to the {@code keywordMatch} Matching Rule which has
      * the OID {@code 2.5.13.33}.
      *
@@ -1196,166 +1071,6 @@ public final class CoreSchema {
      */
     public static MatchingRule getKeywordMatchingRule() {
         return KEYWORD_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code l} Attribute Type which has the OID
-     * {@code 2.5.4.7}.
-     *
-     * @return A reference to the {@code l} Attribute Type.
-     */
-    public static AttributeType getLAttributeType() {
-        return L_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code LDAP Syntax Description Syntax} which
-     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.54}.
-     *
-     * @return A reference to the {@code LDAP Syntax Description Syntax}.
-     */
-    public static Syntax getLDAPSyntaxDescriptionSyntax() {
-        return LDAP_SYNTAX_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code ldapSyntaxes} Attribute Type which has
-     * the OID {@code 1.3.6.1.4.1.1466.101.120.16}.
-     *
-     * @return A reference to the {@code ldapSyntaxes} Attribute Type.
-     */
-    public static AttributeType getLDAPSyntaxesAttributeType() {
-        return LDAP_SYNTAXES_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code locality} Object Class which has the
-     * OID {@code 2.5.6.3}.
-     *
-     * @return A reference to the {@code locality} Object Class.
-     */
-    public static ObjectClass getLocalityObjectClass() {
-        return LOCALITY_OBJECT_CLASS;
-    }
-
-    /**
-     * Returns a reference to the {@code Matching Rule Description Syntax} which
-     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.30}.
-     *
-     * @return A reference to the {@code Matching Rule Description Syntax}.
-     */
-    public static Syntax getMatchingRuleDescriptionSyntax() {
-        return MATCHING_RULE_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code matchingRules} Attribute Type which has
-     * the OID {@code 2.5.21.4}.
-     *
-     * @return A reference to the {@code matchingRules} Attribute Type.
-     */
-    public static AttributeType getMatchingRulesAttributeType() {
-        return MATCHING_RULES_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code matchingRuleUse} Attribute Type which
-     * has the OID {@code 2.5.21.8}.
-     *
-     * @return A reference to the {@code matchingRuleUse} Attribute Type.
-     */
-    public static AttributeType getMatchingRuleUseAttributeType() {
-        return MATCHING_RULE_USE_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Matching Rule Use Description Syntax}
-     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.31}.
-     *
-     * @return A reference to the {@code Matching Rule Use Description Syntax}.
-     */
-    public static Syntax getMatchingRuleUseDescriptionSyntax() {
-        return MATCHING_RULE_USE_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code member} Attribute Type which has the
-     * OID {@code 2.5.4.31}.
-     *
-     * @return A reference to the {@code member} Attribute Type.
-     */
-    public static AttributeType getMemberAttributeType() {
-        return MEMBER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code modifiersName} Attribute Type which has
-     * the OID {@code 2.5.18.4}.
-     *
-     * @return A reference to the {@code modifiersName} Attribute Type.
-     */
-    public static AttributeType getModifiersNameAttributeType() {
-        return MODIFIERS_NAME_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code modifyTimestamp} Attribute Type which
-     * has the OID {@code 2.5.18.2}.
-     *
-     * @return A reference to the {@code modifyTimestamp} Attribute Type.
-     */
-    public static AttributeType getModifyTimestampAttributeType() {
-        return MODIFY_TIMESTAMP_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Name and Optional UID Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.34}.
-     *
-     * @return A reference to the {@code Name and Optional UID Syntax}.
-     */
-    public static Syntax getNameAndOptionalUIDSyntax() {
-        return NAME_AND_OPTIONAL_UID_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code name} Attribute Type which has the OID
-     * {@code 2.5.4.41}.
-     *
-     * @return A reference to the {@code name} Attribute Type.
-     */
-    public static AttributeType getNameAttributeType() {
-        return NAME_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Name Form Description Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.35}.
-     *
-     * @return A reference to the {@code Name Form Description Syntax}.
-     */
-    public static Syntax getNameFormDescriptionSyntax() {
-        return NAME_FORM_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code nameForms} Attribute Type which has the
-     * OID {@code 2.5.21.7}.
-     *
-     * @return A reference to the {@code nameForms} Attribute Type.
-     */
-    public static AttributeType getNameFormsAttributeType() {
-        return NAME_FORMS_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code namingContexts} Attribute Type which
-     * has the OID {@code 1.3.6.1.4.1.1466.101.120.5}.
-     *
-     * @return A reference to the {@code namingContexts} Attribute Type.
-     */
-    public static AttributeType getNamingContextsAttributeType() {
-        return NAMING_CONTEXTS_ATTRIBUTE_TYPE;
     }
 
     /**
@@ -1388,56 +1103,6 @@ public final class CoreSchema {
      */
     public static MatchingRule getNumericStringSubstringsMatchingRule() {
         return NUMERIC_STRING_SUBSTRINGS_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code Numeric String Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.36}.
-     *
-     * @return A reference to the {@code Numeric String Syntax}.
-     */
-    public static Syntax getNumericStringSyntax() {
-        return NUMERIC_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code o} Attribute Type which has the OID
-     * {@code 2.5.4.10}.
-     *
-     * @return A reference to the {@code o} Attribute Type.
-     */
-    public static AttributeType getOAttributeType() {
-        return O_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code objectClass} Attribute Type which has
-     * the OID {@code 2.5.4.0}.
-     *
-     * @return A reference to the {@code objectClass} Attribute Type.
-     */
-    public static AttributeType getObjectClassAttributeType() {
-        return OBJECT_CLASS_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Object Class Description Syntax} which
-     * has the OID {@code 1.3.6.1.4.1.1466.115.121.1.37}.
-     *
-     * @return A reference to the {@code Object Class Description Syntax}.
-     */
-    public static Syntax getObjectClassDescriptionSyntax() {
-        return OBJECT_CLASS_DESCRIPTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code objectClasses} Attribute Type which has
-     * the OID {@code 2.5.21.6}.
-     *
-     * @return A reference to the {@code objectClasses} Attribute Type.
-     */
-    public static AttributeType getObjectClassesAttributeType() {
-        return OBJECT_CLASSES_ATTRIBUTE_TYPE;
     }
 
     /**
@@ -1494,73 +1159,468 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code Octet String Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.40}.
+     * Returns a reference to the {@code presentationAddressMatch} Matching Rule
+     * which has the OID {@code 2.5.13.22}.
      *
-     * @return A reference to the {@code Octet String Syntax}.
+     * @return A reference to the {@code presentationAddressMatch} Matching
+     *         Rule.
      */
-    public static Syntax getOctetStringSyntax() {
-        return OCTET_STRING_SYNTAX;
+    public static MatchingRule getPresentationAddressMatchingRule() {
+        return PRESENTATION_ADDRESS_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code OID Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.38}.
+     * Returns a reference to the {@code protocolInformationMatch} Matching Rule
+     * which has the OID {@code 2.5.13.24}.
      *
-     * @return A reference to the {@code OID Syntax}.
+     * @return A reference to the {@code protocolInformationMatch} Matching
+     *         Rule.
      */
-    public static Syntax getOIDSyntax() {
-        return OID_SYNTAX;
+    public static MatchingRule getProtocolInformationMatchingRule() {
+        return PROTOCOL_INFORMATION_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code organizationalPerson} Object Class
-     * which has the OID {@code 2.5.6.7}.
+     * Returns a reference to the {@code telephoneNumberMatch} Matching Rule
+     * which has the OID {@code 2.5.13.20}.
      *
-     * @return A reference to the {@code organizationalPerson} Object Class.
+     * @return A reference to the {@code telephoneNumberMatch} Matching Rule.
      */
-    public static ObjectClass getOrganizationalPersonObjectClass() {
-        return ORGANIZATIONAL_PERSON_OBJECT_CLASS;
+    public static MatchingRule getTelephoneNumberMatchingRule() {
+        return TELEPHONE_NUMBER_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code organizationalRole} Object Class which
-     * has the OID {@code 2.5.6.8}.
+     * Returns a reference to the {@code telephoneNumberSubstringsMatch}
+     * Matching Rule which has the OID {@code 2.5.13.21}.
      *
-     * @return A reference to the {@code organizationalRole} Object Class.
+     * @return A reference to the {@code telephoneNumberSubstringsMatch}
+     *         Matching Rule.
      */
-    public static ObjectClass getOrganizationalRoleObjectClass() {
-        return ORGANIZATIONAL_ROLE_OBJECT_CLASS;
+    public static MatchingRule getTelephoneNumberSubstringsMatchingRule() {
+        return TELEPHONE_NUMBER_SUBSTRINGS_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code organizationalUnit} Object Class which
-     * has the OID {@code 2.5.6.5}.
+     * Returns a reference to the {@code uniqueMemberMatch} Matching Rule which
+     * has the OID {@code 2.5.13.23}.
      *
-     * @return A reference to the {@code organizationalUnit} Object Class.
+     * @return A reference to the {@code uniqueMemberMatch} Matching Rule.
      */
-    public static ObjectClass getOrganizationalUnitObjectClass() {
-        return ORGANIZATIONAL_UNIT_OBJECT_CLASS;
+    public static MatchingRule getUniqueMemberMatchingRule() {
+        return UNIQUE_MEMBER_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code organization} Object Class which has
-     * the OID {@code 2.5.6.4}.
+     * Returns a reference to the {@code uuidMatch} Matching Rule which has the
+     * OID {@code 1.3.6.1.1.16.2}.
      *
-     * @return A reference to the {@code organization} Object Class.
+     * @return A reference to the {@code uuidMatch} Matching Rule.
      */
-    public static ObjectClass getOrganizationObjectClass() {
-        return ORGANIZATION_OBJECT_CLASS;
+    public static MatchingRule getUUIDMatchingRule() {
+        return UUID_MATCHING_RULE;
     }
 
     /**
-     * Returns a reference to the {@code Other Mailbox Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.39}.
+     * Returns a reference to the {@code uuidOrderingMatch} Matching Rule which
+     * has the OID {@code 1.3.6.1.1.16.3}.
      *
-     * @return A reference to the {@code Other Mailbox Syntax}.
+     * @return A reference to the {@code uuidOrderingMatch} Matching Rule.
      */
-    public static Syntax getOtherMailboxSyntax() {
-        return OTHER_MAILBOX_SYNTAX;
+    public static MatchingRule getUUIDOrderingMatchingRule() {
+        return UUID_ORDERING_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code wordMatch} Matching Rule which has the
+     * OID {@code 2.5.13.32}.
+     *
+     * @return A reference to the {@code wordMatch} Matching Rule.
+     */
+    public static MatchingRule getWordMatchingRule() {
+        return WORD_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code aliasedObjectName} Attribute Type which
+     * has the OID {@code 2.5.4.1}.
+     *
+     * @return A reference to the {@code aliasedObjectName} Attribute Type.
+     */
+    public static AttributeType getAliasedObjectNameAttributeType() {
+        return ALIASED_OBJECT_NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code altServer} Attribute Type which has the
+     * OID {@code 1.3.6.1.4.1.1466.101.120.6}.
+     *
+     * @return A reference to the {@code altServer} Attribute Type.
+     */
+    public static AttributeType getAltServerAttributeType() {
+        return ALT_SERVER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code attributeTypes} Attribute Type which
+     * has the OID {@code 2.5.21.5}.
+     *
+     * @return A reference to the {@code attributeTypes} Attribute Type.
+     */
+    public static AttributeType getAttributeTypesAttributeType() {
+        return ATTRIBUTE_TYPES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code authPassword} Attribute Type which has
+     * the OID {@code 1.3.6.1.4.1.4203.1.3.4}.
+     *
+     * @return A reference to the {@code authPassword} Attribute Type.
+     */
+    public static AttributeType getAuthPasswordAttributeType() {
+        return AUTH_PASSWORD_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code businessCategory} Attribute Type which
+     * has the OID {@code 2.5.4.15}.
+     *
+     * @return A reference to the {@code businessCategory} Attribute Type.
+     */
+    public static AttributeType getBusinessCategoryAttributeType() {
+        return BUSINESS_CATEGORY_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code cn} Attribute Type which has the OID
+     * {@code 2.5.4.3}.
+     *
+     * @return A reference to the {@code cn} Attribute Type.
+     */
+    public static AttributeType getCNAttributeType() {
+        return CN_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code createTimestamp} Attribute Type which
+     * has the OID {@code 2.5.18.1}.
+     *
+     * @return A reference to the {@code createTimestamp} Attribute Type.
+     */
+    public static AttributeType getCreateTimestampAttributeType() {
+        return CREATE_TIMESTAMP_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code creatorsName} Attribute Type which has
+     * the OID {@code 2.5.18.3}.
+     *
+     * @return A reference to the {@code creatorsName} Attribute Type.
+     */
+    public static AttributeType getCreatorsNameAttributeType() {
+        return CREATORS_NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code c} Attribute Type which has the OID
+     * {@code 2.5.4.6}.
+     *
+     * @return A reference to the {@code c} Attribute Type.
+     */
+    public static AttributeType getCAttributeType() {
+        return C_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code dc} Attribute Type which has the OID
+     * {@code 0.9.2342.19200300.100.1.25}.
+     *
+     * @return A reference to the {@code dc} Attribute Type.
+     */
+    public static AttributeType getDCAttributeType() {
+        return DC_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code description} Attribute Type which has
+     * the OID {@code 2.5.4.13}.
+     *
+     * @return A reference to the {@code description} Attribute Type.
+     */
+    public static AttributeType getDescriptionAttributeType() {
+        return DESCRIPTION_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code destinationIndicator} Attribute Type
+     * which has the OID {@code 2.5.4.27}.
+     *
+     * @return A reference to the {@code destinationIndicator} Attribute Type.
+     */
+    public static AttributeType getDestinationIndicatorAttributeType() {
+        return DESTINATION_INDICATOR_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code distinguishedName} Attribute Type which
+     * has the OID {@code 2.5.4.49}.
+     *
+     * @return A reference to the {@code distinguishedName} Attribute Type.
+     */
+    public static AttributeType getDistinguishedNameAttributeType() {
+        return DISTINGUISHED_NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code ditContentRules} Attribute Type which
+     * has the OID {@code 2.5.21.2}.
+     *
+     * @return A reference to the {@code ditContentRules} Attribute Type.
+     */
+    public static AttributeType getDITContentRulesAttributeType() {
+        return DIT_CONTENT_RULES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code ditStructureRules} Attribute Type which
+     * has the OID {@code 2.5.21.1}.
+     *
+     * @return A reference to the {@code ditStructureRules} Attribute Type.
+     */
+    public static AttributeType getDITStructureRulesAttributeType() {
+        return DIT_STRUCTURE_RULES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code dnQualifier} Attribute Type which has
+     * the OID {@code 2.5.4.46}.
+     *
+     * @return A reference to the {@code dnQualifier} Attribute Type.
+     */
+    public static AttributeType getDNQualifierAttributeType() {
+        return DN_QUALIFIER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code enhancedSearchGuide} Attribute Type
+     * which has the OID {@code 2.5.4.47}.
+     *
+     * @return A reference to the {@code enhancedSearchGuide} Attribute Type.
+     */
+    public static AttributeType getEnhancedSearchGuideAttributeType() {
+        return ENHANCED_SEARCH_GUIDE_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code entryDN} Attribute Type which has the
+     * OID {@code 1.3.6.1.1.20}.
+     *
+     * @return A reference to the {@code entryDN} Attribute Type.
+     */
+    public static AttributeType getEntryDNAttributeType() {
+        return ENTRY_DN_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code entryUUID} Attribute Type which has the
+     * OID {@code 1.3.6.1.1.16.4}.
+     *
+     * @return A reference to the {@code entryUUID} Attribute Type.
+     */
+    public static AttributeType getEntryUUIDAttributeType() {
+        return ENTRY_UUID_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code facsimileTelephoneNumber} Attribute
+     * Type which has the OID {@code 2.5.4.23}.
+     *
+     * @return A reference to the {@code facsimileTelephoneNumber} Attribute
+     *         Type.
+     */
+    public static AttributeType getFacsimileTelephoneNumberAttributeType() {
+        return FACSIMILE_TELEPHONE_NUMBER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code generationQualifier} Attribute Type
+     * which has the OID {@code 2.5.4.44}.
+     *
+     * @return A reference to the {@code generationQualifier} Attribute Type.
+     */
+    public static AttributeType getGenerationQualifierAttributeType() {
+        return GENERATION_QUALIFIER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code givenName} Attribute Type which has the
+     * OID {@code 2.5.4.42}.
+     *
+     * @return A reference to the {@code givenName} Attribute Type.
+     */
+    public static AttributeType getGivenNameAttributeType() {
+        return GIVEN_NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code governingStructureRule} Attribute Type
+     * which has the OID {@code 2.5.21.10}.
+     *
+     * @return A reference to the {@code governingStructureRule} Attribute Type.
+     */
+    public static AttributeType getGoverningStructureRuleAttributeType() {
+        return GOVERNING_STRUCTURE_RULE_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code houseIdentifier} Attribute Type which
+     * has the OID {@code 2.5.4.51}.
+     *
+     * @return A reference to the {@code houseIdentifier} Attribute Type.
+     */
+    public static AttributeType getHouseIdentifierAttributeType() {
+        return HOUSE_IDENTIFIER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code initials} Attribute Type which has the
+     * OID {@code 2.5.4.43}.
+     *
+     * @return A reference to the {@code initials} Attribute Type.
+     */
+    public static AttributeType getInitialsAttributeType() {
+        return INITIALS_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code internationalISDNNumber} Attribute Type
+     * which has the OID {@code 2.5.4.25}.
+     *
+     * @return A reference to the {@code internationalISDNNumber} Attribute
+     *         Type.
+     */
+    public static AttributeType getInternationalISDNNumberAttributeType() {
+        return INTERNATIONAL_ISDN_NUMBER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code ldapSyntaxes} Attribute Type which has
+     * the OID {@code 1.3.6.1.4.1.1466.101.120.16}.
+     *
+     * @return A reference to the {@code ldapSyntaxes} Attribute Type.
+     */
+    public static AttributeType getLDAPSyntaxesAttributeType() {
+        return LDAP_SYNTAXES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code l} Attribute Type which has the OID
+     * {@code 2.5.4.7}.
+     *
+     * @return A reference to the {@code l} Attribute Type.
+     */
+    public static AttributeType getLAttributeType() {
+        return L_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code matchingRules} Attribute Type which has
+     * the OID {@code 2.5.21.4}.
+     *
+     * @return A reference to the {@code matchingRules} Attribute Type.
+     */
+    public static AttributeType getMatchingRulesAttributeType() {
+        return MATCHING_RULES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code matchingRuleUse} Attribute Type which
+     * has the OID {@code 2.5.21.8}.
+     *
+     * @return A reference to the {@code matchingRuleUse} Attribute Type.
+     */
+    public static AttributeType getMatchingRuleUseAttributeType() {
+        return MATCHING_RULE_USE_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code member} Attribute Type which has the
+     * OID {@code 2.5.4.31}.
+     *
+     * @return A reference to the {@code member} Attribute Type.
+     */
+    public static AttributeType getMemberAttributeType() {
+        return MEMBER_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code modifiersName} Attribute Type which has
+     * the OID {@code 2.5.18.4}.
+     *
+     * @return A reference to the {@code modifiersName} Attribute Type.
+     */
+    public static AttributeType getModifiersNameAttributeType() {
+        return MODIFIERS_NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code modifyTimestamp} Attribute Type which
+     * has the OID {@code 2.5.18.2}.
+     *
+     * @return A reference to the {@code modifyTimestamp} Attribute Type.
+     */
+    public static AttributeType getModifyTimestampAttributeType() {
+        return MODIFY_TIMESTAMP_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code name} Attribute Type which has the OID
+     * {@code 2.5.4.41}.
+     *
+     * @return A reference to the {@code name} Attribute Type.
+     */
+    public static AttributeType getNameAttributeType() {
+        return NAME_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code nameForms} Attribute Type which has the
+     * OID {@code 2.5.21.7}.
+     *
+     * @return A reference to the {@code nameForms} Attribute Type.
+     */
+    public static AttributeType getNameFormsAttributeType() {
+        return NAME_FORMS_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code namingContexts} Attribute Type which
+     * has the OID {@code 1.3.6.1.4.1.1466.101.120.5}.
+     *
+     * @return A reference to the {@code namingContexts} Attribute Type.
+     */
+    public static AttributeType getNamingContextsAttributeType() {
+        return NAMING_CONTEXTS_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code objectClasses} Attribute Type which has
+     * the OID {@code 2.5.21.6}.
+     *
+     * @return A reference to the {@code objectClasses} Attribute Type.
+     */
+    public static AttributeType getObjectClassesAttributeType() {
+        return OBJECT_CLASSES_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code objectClass} Attribute Type which has
+     * the OID {@code 2.5.4.0}.
+     *
+     * @return A reference to the {@code objectClass} Attribute Type.
+     */
+    public static AttributeType getObjectClassAttributeType() {
+        return OBJECT_CLASS_ATTRIBUTE_TYPE;
     }
 
     /**
@@ -1584,13 +1644,13 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code person} Object Class which has the OID
-     * {@code 2.5.6.6}.
+     * Returns a reference to the {@code o} Attribute Type which has the OID
+     * {@code 2.5.4.10}.
      *
-     * @return A reference to the {@code person} Object Class.
+     * @return A reference to the {@code o} Attribute Type.
      */
-    public static ObjectClass getPersonObjectClass() {
-        return PERSON_OBJECT_CLASS;
+    public static AttributeType getOAttributeType() {
+        return O_ATTRIBUTE_TYPE;
     }
 
     /**
@@ -1612,16 +1672,6 @@ public final class CoreSchema {
      */
     public static AttributeType getPostalAddressAttributeType() {
         return POSTAL_ADDRESS_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Postal Address Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.41}.
-     *
-     * @return A reference to the {@code Postal Address Syntax}.
-     */
-    public static Syntax getPostalAddressSyntax() {
-        return POSTAL_ADDRESS_SYNTAX;
     }
 
     /**
@@ -1656,58 +1706,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code presentationAddressMatch} Matching Rule
-     * which has the OID {@code 2.5.13.22}.
-     *
-     * @return A reference to the {@code presentationAddressMatch} Matching
-     *         Rule.
-     */
-    public static MatchingRule getPresentationAddressMatchingRule() {
-        return PRESENTATION_ADDRESS_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code Presentation Address Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.43}.
-     *
-     * @return A reference to the {@code Presentation Address Syntax}.
-     */
-    public static Syntax getPresentationAddressSyntax() {
-        return PRESENTATION_ADDRESS_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Printable String Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.44}.
-     *
-     * @return A reference to the {@code Printable String Syntax}.
-     */
-    public static Syntax getPrintableStringSyntax() {
-        return PRINTABLE_STRING_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code protocolInformationMatch} Matching Rule
-     * which has the OID {@code 2.5.13.24}.
-     *
-     * @return A reference to the {@code protocolInformationMatch} Matching
-     *         Rule.
-     */
-    public static MatchingRule getProtocolInformationMatchingRule() {
-        return PROTOCOL_INFORMATION_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code Protocol Information Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.42}.
-     *
-     * @return A reference to the {@code Protocol Information Syntax}.
-     */
-    public static Syntax getProtocolInformationSyntax() {
-        return PROTOCOL_INFORMATION_SYNTAX;
-    }
-
-    /**
      * Returns a reference to the {@code registeredAddress} Attribute Type which
      * has the OID {@code 2.5.4.26}.
      *
@@ -1715,16 +1713,6 @@ public final class CoreSchema {
      */
     public static AttributeType getRegisteredAddressAttributeType() {
         return REGISTERED_ADDRESS_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code residentialPerson} Object Class which
-     * has the OID {@code 2.5.6.10}.
-     *
-     * @return A reference to the {@code residentialPerson} Object Class.
-     */
-    public static ObjectClass getResidentialPersonObjectClass() {
-        return RESIDENTIAL_PERSON_OBJECT_CLASS;
     }
 
     /**
@@ -1778,16 +1766,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code st} Attribute Type which has the OID
-     * {@code 2.5.4.8}.
-     *
-     * @return A reference to the {@code st} Attribute Type.
-     */
-    public static AttributeType getSTAttributeType() {
-        return ST_ATTRIBUTE_TYPE;
-    }
-
-    /**
      * Returns a reference to the {@code street} Attribute Type which has the
      * OID {@code 2.5.4.9}.
      *
@@ -1808,13 +1786,13 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code subschema} Object Class which has the
-     * OID {@code 2.5.20.1}.
+     * Returns a reference to the {@code st} Attribute Type which has the OID
+     * {@code 2.5.4.8}.
      *
-     * @return A reference to the {@code subschema} Object Class.
+     * @return A reference to the {@code st} Attribute Type.
      */
-    public static ObjectClass getSubschemaObjectClass() {
-        return SUBSCHEMA_OBJECT_CLASS;
+    public static AttributeType getSTAttributeType() {
+        return ST_ATTRIBUTE_TYPE;
     }
 
     /**
@@ -1825,26 +1803,6 @@ public final class CoreSchema {
      */
     public static AttributeType getSubschemaSubentryAttributeType() {
         return SUBSCHEMA_SUBENTRY_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Substring Assertion Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.58}.
-     *
-     * @return A reference to the {@code Substring Assertion Syntax}.
-     */
-    public static Syntax getSubstringAssertionSyntax() {
-        return SUBSTRING_ASSERTION_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code Supported Algorithm Syntax} which has
-     * the OID {@code 1.3.6.1.4.1.1466.115.121.1.49}.
-     *
-     * @return A reference to the {@code Supported Algorithm Syntax}.
-     */
-    public static Syntax getSupportedAlgorithmSyntax() {
-        return SUPPORTED_ALGORITHM_SYNTAX;
     }
 
     /**
@@ -1920,37 +1878,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code telephoneNumberMatch} Matching Rule
-     * which has the OID {@code 2.5.13.20}.
-     *
-     * @return A reference to the {@code telephoneNumberMatch} Matching Rule.
-     */
-    public static MatchingRule getTelephoneNumberMatchingRule() {
-        return TELEPHONE_NUMBER_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code telephoneNumberSubstringsMatch}
-     * Matching Rule which has the OID {@code 2.5.13.21}.
-     *
-     * @return A reference to the {@code telephoneNumberSubstringsMatch}
-     *         Matching Rule.
-     */
-    public static MatchingRule getTelephoneNumberSubstringsMatchingRule() {
-        return TELEPHONE_NUMBER_SUBSTRINGS_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code Telephone Number Syntax} which has the
-     * OID {@code 1.3.6.1.4.1.1466.115.121.1.50}.
-     *
-     * @return A reference to the {@code Telephone Number Syntax}.
-     */
-    public static Syntax getTelephoneNumberSyntax() {
-        return TELEPHONE_NUMBER_SYNTAX;
-    }
-
-    /**
      * Returns a reference to the {@code teletexTerminalIdentifier} Attribute
      * Type which has the OID {@code 2.5.4.22}.
      *
@@ -1959,16 +1886,6 @@ public final class CoreSchema {
      */
     public static AttributeType getTeletexTerminalIdentifierAttributeType() {
         return TELETEX_TERMINAL_IDENTIFIER_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code Teletex Terminal Identifier Syntax}
-     * which has the OID {@code 1.3.6.1.4.1.1466.115.121.1.51}.
-     *
-     * @return A reference to the {@code Teletex Terminal Identifier Syntax}.
-     */
-    public static Syntax getTeletexTerminalIdentifierSyntax() {
-        return TELETEX_TERMINAL_IDENTIFIER_SYNTAX;
     }
 
     /**
@@ -1982,16 +1899,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code Telex Number Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.52}.
-     *
-     * @return A reference to the {@code Telex Number Syntax}.
-     */
-    public static Syntax getTelexNumberSyntax() {
-        return TELEX_NUMBER_SYNTAX;
-    }
-
-    /**
      * Returns a reference to the {@code title} Attribute Type which has the OID
      * {@code 2.5.4.12}.
      *
@@ -1999,16 +1906,6 @@ public final class CoreSchema {
      */
     public static AttributeType getTitleAttributeType() {
         return TITLE_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code top} Object Class which has the OID
-     * {@code 2.5.6.0}.
-     *
-     * @return A reference to the {@code top} Object Class.
-     */
-    public static ObjectClass getTopObjectClass() {
-        return TOP_OBJECT_CLASS;
     }
 
     /**
@@ -2022,16 +1919,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code uidObject} Object Class which has the
-     * OID {@code 1.3.6.1.1.3.1}.
-     *
-     * @return A reference to the {@code uidObject} Object Class.
-     */
-    public static ObjectClass getUIDObjectObjectClass() {
-        return UID_OBJECT_OBJECT_CLASS;
-    }
-
-    /**
      * Returns a reference to the {@code uniqueMember} Attribute Type which has
      * the OID {@code 2.5.4.50}.
      *
@@ -2042,16 +1929,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code uniqueMemberMatch} Matching Rule which
-     * has the OID {@code 2.5.13.23}.
-     *
-     * @return A reference to the {@code uniqueMemberMatch} Matching Rule.
-     */
-    public static MatchingRule getUniqueMemberMatchingRule() {
-        return UNIQUE_MEMBER_MATCHING_RULE;
-    }
-
-    /**
      * Returns a reference to the {@code userPassword} Attribute Type which has
      * the OID {@code 2.5.4.35}.
      *
@@ -2059,46 +1936,6 @@ public final class CoreSchema {
      */
     public static AttributeType getUserPasswordAttributeType() {
         return USER_PASSWORD_ATTRIBUTE_TYPE;
-    }
-
-    /**
-     * Returns a reference to the {@code UTC Time Syntax} which has the OID
-     * {@code 1.3.6.1.4.1.1466.115.121.1.53}.
-     *
-     * @return A reference to the {@code UTC Time Syntax}.
-     */
-    public static Syntax getUTCTimeSyntax() {
-        return UTC_TIME_SYNTAX;
-    }
-
-    /**
-     * Returns a reference to the {@code uuidMatch} Matching Rule which has the
-     * OID {@code 1.3.6.1.1.16.2}.
-     *
-     * @return A reference to the {@code uuidMatch} Matching Rule.
-     */
-    public static MatchingRule getUUIDMatchingRule() {
-        return UUID_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code uuidOrderingMatch} Matching Rule which
-     * has the OID {@code 1.3.6.1.1.16.3}.
-     *
-     * @return A reference to the {@code uuidOrderingMatch} Matching Rule.
-     */
-    public static MatchingRule getUUIDOrderingMatchingRule() {
-        return UUID_ORDERING_MATCHING_RULE;
-    }
-
-    /**
-     * Returns a reference to the {@code UUID Syntax} which has the OID
-     * {@code 1.3.6.1.1.16.1}.
-     *
-     * @return A reference to the {@code UUID Syntax}.
-     */
-    public static Syntax getUUIDSyntax() {
-        return UUID_SYNTAX;
     }
 
     /**
@@ -2122,16 +1959,6 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code wordMatch} Matching Rule which has the
-     * OID {@code 2.5.13.32}.
-     *
-     * @return A reference to the {@code wordMatch} Matching Rule.
-     */
-    public static MatchingRule getWordMatchingRule() {
-        return WORD_MATCHING_RULE;
-    }
-
-    /**
      * Returns a reference to the {@code x121Address} Attribute Type which has
      * the OID {@code 2.5.4.24}.
      *
@@ -2151,8 +1978,193 @@ public final class CoreSchema {
         return X500_UNIQUE_IDENTIFIER_ATTRIBUTE_TYPE;
     }
 
-    // Prevent instantiation
-    private CoreSchema() {
-        // Nothing to do.
+    /**
+     * Returns a reference to the {@code alias} Object Class which has the OID
+     * {@code 2.5.6.1}.
+     *
+     * @return A reference to the {@code alias} Object Class.
+     */
+    public static ObjectClass getAliasObjectClass() {
+        return ALIAS_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code applicationProcess} Object Class which
+     * has the OID {@code 2.5.6.11}.
+     *
+     * @return A reference to the {@code applicationProcess} Object Class.
+     */
+    public static ObjectClass getApplicationProcessObjectClass() {
+        return APPLICATION_PROCESS_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code authPasswordObject} Object Class which
+     * has the OID {@code 1.3.6.1.4.1.4203.1.4.7}.
+     *
+     * @return A reference to the {@code authPasswordObject} Object Class.
+     */
+    public static ObjectClass getAuthPasswordObjectObjectClass() {
+        return AUTH_PASSWORD_OBJECT_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code country} Object Class which has the OID
+     * {@code 2.5.6.2}.
+     *
+     * @return A reference to the {@code country} Object Class.
+     */
+    public static ObjectClass getCountryObjectClass() {
+        return COUNTRY_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code dcObject} Object Class which has the
+     * OID {@code 1.3.6.1.4.1.1466.344}.
+     *
+     * @return A reference to the {@code dcObject} Object Class.
+     */
+    public static ObjectClass getDCObjectObjectClass() {
+        return DC_OBJECT_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code device} Object Class which has the OID
+     * {@code 2.5.6.14}.
+     *
+     * @return A reference to the {@code device} Object Class.
+     */
+    public static ObjectClass getDeviceObjectClass() {
+        return DEVICE_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code extensibleObject} Object Class which
+     * has the OID {@code 1.3.6.1.4.1.1466.101.120.111}.
+     *
+     * @return A reference to the {@code extensibleObject} Object Class.
+     */
+    public static ObjectClass getExtensibleObjectObjectClass() {
+        return EXTENSIBLE_OBJECT_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code groupOfNames} Object Class which has
+     * the OID {@code 2.5.6.9}.
+     *
+     * @return A reference to the {@code groupOfNames} Object Class.
+     */
+    public static ObjectClass getGroupOfNamesObjectClass() {
+        return GROUP_OF_NAMES_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code groupOfUniqueNames} Object Class which
+     * has the OID {@code 2.5.6.17}.
+     *
+     * @return A reference to the {@code groupOfUniqueNames} Object Class.
+     */
+    public static ObjectClass getGroupOfUniqueNamesObjectClass() {
+        return GROUP_OF_UNIQUE_NAMES_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code locality} Object Class which has the
+     * OID {@code 2.5.6.3}.
+     *
+     * @return A reference to the {@code locality} Object Class.
+     */
+    public static ObjectClass getLocalityObjectClass() {
+        return LOCALITY_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code organizationalPerson} Object Class
+     * which has the OID {@code 2.5.6.7}.
+     *
+     * @return A reference to the {@code organizationalPerson} Object Class.
+     */
+    public static ObjectClass getOrganizationalPersonObjectClass() {
+        return ORGANIZATIONAL_PERSON_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code organizationalRole} Object Class which
+     * has the OID {@code 2.5.6.8}.
+     *
+     * @return A reference to the {@code organizationalRole} Object Class.
+     */
+    public static ObjectClass getOrganizationalRoleObjectClass() {
+        return ORGANIZATIONAL_ROLE_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code organizationalUnit} Object Class which
+     * has the OID {@code 2.5.6.5}.
+     *
+     * @return A reference to the {@code organizationalUnit} Object Class.
+     */
+    public static ObjectClass getOrganizationalUnitObjectClass() {
+        return ORGANIZATIONAL_UNIT_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code organization} Object Class which has
+     * the OID {@code 2.5.6.4}.
+     *
+     * @return A reference to the {@code organization} Object Class.
+     */
+    public static ObjectClass getOrganizationObjectClass() {
+        return ORGANIZATION_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code person} Object Class which has the OID
+     * {@code 2.5.6.6}.
+     *
+     * @return A reference to the {@code person} Object Class.
+     */
+    public static ObjectClass getPersonObjectClass() {
+        return PERSON_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code residentialPerson} Object Class which
+     * has the OID {@code 2.5.6.10}.
+     *
+     * @return A reference to the {@code residentialPerson} Object Class.
+     */
+    public static ObjectClass getResidentialPersonObjectClass() {
+        return RESIDENTIAL_PERSON_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code subschema} Object Class which has the
+     * OID {@code 2.5.20.1}.
+     *
+     * @return A reference to the {@code subschema} Object Class.
+     */
+    public static ObjectClass getSubschemaObjectClass() {
+        return SUBSCHEMA_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code top} Object Class which has the OID
+     * {@code 2.5.6.0}.
+     *
+     * @return A reference to the {@code top} Object Class.
+     */
+    public static ObjectClass getTopObjectClass() {
+        return TOP_OBJECT_CLASS;
+    }
+
+    /**
+     * Returns a reference to the {@code uidObject} Object Class which has the
+     * OID {@code 1.3.6.1.1.3.1}.
+     *
+     * @return A reference to the {@code uidObject} Object Class.
+     */
+    public static ObjectClass getUIDObjectObjectClass() {
+        return UID_OBJECT_OBJECT_CLASS;
     }
 }

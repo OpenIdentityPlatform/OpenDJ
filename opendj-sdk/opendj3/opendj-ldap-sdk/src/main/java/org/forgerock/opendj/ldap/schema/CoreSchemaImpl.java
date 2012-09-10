@@ -59,6 +59,9 @@ final class CoreSchemaImpl {
     private static final Map<String, List<String>> RFC4530_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4530"));
 
+    private static final Map<String, List<String>> RFC5020_ORIGIN = Collections.singletonMap(
+            SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 5020"));
+
     static final Map<String, List<String>> OPENDS_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDS Directory Server"));
 
@@ -79,6 +82,7 @@ final class CoreSchemaImpl {
         addRFC4530(builder);
         addRFC3045(builder);
         addRFC3112(builder);
+        addRFC5020(builder);
         addSunProprietary(builder);
 
         SINGLETON = builder.toSchema().asNonStrictSchema();
@@ -557,6 +561,13 @@ final class CoreSchemaImpl {
                 "UUID of the entry", false, null, EMR_UUID_OID, OMR_UUID_OID, null, null,
                 SYNTAX_UUID_OID, true, false, true, AttributeUsage.DIRECTORY_OPERATION,
                 RFC4530_ORIGIN, false);
+    }
+
+    private static void addRFC5020(final SchemaBuilder builder) {
+        builder.addAttributeType("1.3.6.1.1.20", Collections.singletonList("entryDN"),
+                "DN of the entry", false, null, EMR_DN_OID, null, null, null,
+                SYNTAX_DN_OID, true, false, true, AttributeUsage.DIRECTORY_OPERATION,
+                RFC5020_ORIGIN, false);
     }
 
     private static void addSunProprietary(final SchemaBuilder builder) {
