@@ -74,7 +74,7 @@
    allows clients to find people even when they misspell names as in the
    following example.</para>
    
-   <screen>$ ldapsearch --baseDN dc=example,dc=com "(cn~=Babs Jansen)" cn
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn~=Babs Jansen)" cn
 dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
 cn: Babs Jensen</screen>
@@ -92,7 +92,7 @@ cn: Babs Jensen</screen>
    the search filter. An equality index requires clients to match values
    without wildcards or misspellings.</para>
    
-   <screen>$ ldapsearch --baseDN dc=example,dc=com "(uid=bjensen)" mail
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)" mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com</screen>
   </section>
@@ -111,10 +111,8 @@ mail: bjensen@example.com</screen>
    
    <para>The following example shows a search that specifies ranges.</para>
    
-   <screen>$ ldapsearch
- --baseDN dc=example,dc=com
- "(&amp;(uidNumber&gt;=1120)(roomNumber&gt;=4500))"
- uid
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com
+ "(&amp;(uidNumber&gt;=1120)(roomNumber&gt;=4500))" uid
 dn: uid=charvey,ou=People,dc=example,dc=com
 uid: charvey
 
@@ -140,7 +138,7 @@ uid: pchassin</screen>
    attribute is indexed for presence by default to allow quick retrieval
    of entries with ACIs.</para>
    
-   <screen>$ ldapsearch --baseDN dc=example,dc=com "(aci=*)" -
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(aci=*)" -
 dn: dc=example,dc=com
 
 dn: ou=People,dc=example,dc=com</screen>
@@ -157,7 +155,7 @@ dn: ou=People,dc=example,dc=com</screen>
    in the filter. Substring indexes can be expensive to maintain, especially
    for large attribute values.</para>
    
-   <screen>$ ldapsearch --baseDN dc=example,dc=com "(cn=Barb*)" cn
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Barb*)" cn
 dn: uid=bfrancis,ou=People,dc=example,dc=com
 cn: Barbara Francis
 

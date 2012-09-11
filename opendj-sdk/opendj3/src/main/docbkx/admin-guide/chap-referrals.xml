@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-referrals'
@@ -102,9 +102,12 @@ MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
   a referral for operations under the People organizational unit.</para>
   
   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
+
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
+
 $ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
+
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})</screen>
  
