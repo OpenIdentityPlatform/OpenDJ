@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -89,12 +90,12 @@ import com.forgerock.opendj.util.Validator;
 final class LDAPServerFilter extends BaseFilter {
     private abstract class AbstractHandler<R extends Result> implements
             IntermediateResponseHandler, ResultHandler<R> {
+        protected final ClientContextImpl context;
         protected final int messageID;
-        protected final Connection<?> connection;
 
-        protected AbstractHandler(final int messageID, final Connection<?> connection) {
+        protected AbstractHandler(final ClientContextImpl context, final int messageID) {
             this.messageID = messageID;
-            this.connection = connection;
+            this.context = context;
         }
 
         @Override
@@ -102,9 +103,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.intermediateResponse(asn1Writer, messageID, response);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
                 return false;
             } finally {
                 asn1Writer.recycle();
@@ -114,8 +115,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class AddHandler extends AbstractHandler<Result> {
-        private AddHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private AddHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -128,9 +129,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.addResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -138,8 +139,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class BindHandler extends AbstractHandler<BindResult> {
-        private BindHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private BindHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -164,9 +165,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.bindResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -175,9 +176,7 @@ final class LDAPServerFilter extends BaseFilter {
 
     private final class ClientContextImpl implements LDAPClientContext {
         private final Connection<?> connection;
-
-        private volatile boolean isClosed = false;
-
+        private final AtomicBoolean isClosed = new AtomicBoolean();
         private ServerConnection<Integer> serverConnection = null;
 
         private ClientContextImpl(final Connection<?> connection) {
@@ -186,18 +185,44 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void disconnect() {
-            LDAPServerFilter.notifyConnectionDisconnected(connection, null, null);
+            disconnect0(null, null);
         }
 
         @Override
         public void disconnect(final ResultCode resultCode, final String message) {
             Validator.ensureNotNull(resultCode);
-
             final GenericExtendedResult notification =
                     Responses.newGenericExtendedResult(resultCode).setOID(
                             OID_NOTICE_OF_DISCONNECTION).setDiagnosticMessage(message);
             sendUnsolicitedNotification(notification);
-            LDAPServerFilter.notifyConnectionDisconnected(connection, resultCode, message);
+            disconnect0(resultCode, message);
+        }
+
+        @Override
+        public void enableConnectionSecurityLayer(final ConnectionSecurityLayer layer) {
+            synchronized (this) {
+                installFilter(new ConnectionSecurityLayerFilter(layer, connection.getTransport()
+                        .getMemoryManager()));
+            }
+        }
+
+        @Override
+        public void enableTLS(final SSLContext sslContext, final String[] protocols,
+                final String[] suites, final boolean wantClientAuth, final boolean needClientAuth) {
+            Validator.ensureNotNull(sslContext);
+            synchronized (this) {
+                if (isTLSEnabled()) {
+                    throw new IllegalStateException("TLS already enabled");
+                }
+
+                final SSLEngineConfigurator sslEngineConfigurator =
+                        new SSLEngineConfigurator(sslContext, false, false, false);
+                sslEngineConfigurator.setEnabledCipherSuites(suites);
+                sslEngineConfigurator.setEnabledProtocols(protocols);
+                sslEngineConfigurator.setWantClientAuth(wantClientAuth);
+                sslEngineConfigurator.setNeedClientAuth(needClientAuth);
+                installFilter(new SSLFilter(sslEngineConfigurator, null));
+            }
         }
 
         @Override
@@ -232,7 +257,7 @@ final class LDAPServerFilter extends BaseFilter {
          */
         @Override
         public boolean isClosed() {
-            return isClosed;
+            return isClosed.get();
         }
 
         @Override
@@ -242,44 +267,18 @@ final class LDAPServerFilter extends BaseFilter {
                 LDAP_WRITER.extendedResult(asn1Writer, 0, notification);
                 connection.write(asn1Writer.getBuffer(), null);
             } catch (final IOException ioe) {
-                LDAPServerFilter.notifyConnectionException(connection, ioe);
+                handleError(ioe);
             } finally {
                 asn1Writer.recycle();
-            }
-        }
-
-        @Override
-        public void enableConnectionSecurityLayer(final ConnectionSecurityLayer layer) {
-            synchronized (this) {
-                installFilter(new ConnectionSecurityLayerFilter(layer, connection.getTransport()
-                        .getMemoryManager()));
-            }
-        }
-
-        @Override
-        public void enableTLS(final SSLContext sslContext, final String[] protocols,
-                final String[] suites, final boolean wantClientAuth, final boolean needClientAuth) {
-            Validator.ensureNotNull(sslContext);
-            synchronized (this) {
-                if (isTLSEnabled()) {
-                    throw new IllegalStateException("TLS already enabled");
-                }
-
-                SSLEngineConfigurator sslEngineConfigurator =
-                        new SSLEngineConfigurator(sslContext, false, false, false);
-                sslEngineConfigurator.setEnabledCipherSuites(suites);
-                sslEngineConfigurator.setEnabledProtocols(protocols);
-                sslEngineConfigurator.setWantClientAuth(wantClientAuth);
-                sslEngineConfigurator.setNeedClientAuth(needClientAuth);
-                installFilter(new SSLFilter(sslEngineConfigurator, null));
             }
         }
 
         /**
          * {@inheritDoc}
          */
+        @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
+            final StringBuilder builder = new StringBuilder();
             builder.append("LDAPClientContext(");
             builder.append(getLocalAddress());
             builder.append(',');
@@ -288,16 +287,67 @@ final class LDAPServerFilter extends BaseFilter {
             return builder.toString();
         }
 
-        private void close() {
-            isClosed = true;
+        public void write(final ASN1BufferWriter asn1Writer) {
+            connection.write(asn1Writer.getBuffer(), null);
+        }
+
+        private void disconnect0(final ResultCode resultCode, final String message) {
+            // Close this connection context.
+            if (isClosed.compareAndSet(false, true)) {
+                try {
+                    // Notify the server connection: it may be null if disconnect is
+                    // invoked during accept.
+                    if (serverConnection != null) {
+                        serverConnection.handleConnectionDisconnected(resultCode, message);
+                    }
+                } finally {
+                    // Close the connection.
+                    connection.closeSilently();
+                }
+            }
         }
 
         private ServerConnection<Integer> getServerConnection() {
             return serverConnection;
         }
 
-        private void setServerConnection(final ServerConnection<Integer> serverConnection) {
-            this.serverConnection = serverConnection;
+        private void handleClose(final int messageID, final UnbindRequest unbindRequest) {
+            // Close this connection context.
+            if (isClosed.compareAndSet(false, true)) {
+                try {
+                    // Notify the server connection: it may be null if disconnect is
+                    // invoked during accept.
+                    if (serverConnection != null) {
+                        serverConnection.handleConnectionClosed(messageID, unbindRequest);
+                    }
+                } finally {
+                    // If this close was a result of an unbind request then the
+                    // connection won't actually be closed yet. To avoid TIME_WAIT TCP
+                    // state, let the client disconnect.
+                    if (unbindRequest != null) {
+                        return;
+                    }
+
+                    // Close the connection.
+                    connection.closeSilently();
+                }
+            }
+        }
+
+        private void handleError(final Throwable error) {
+            // Close this connection context.
+            if (isClosed.compareAndSet(false, true)) {
+                try {
+                    // Notify the server connection: it may be null if disconnect is
+                    // invoked during accept.
+                    if (serverConnection != null) {
+                        serverConnection.handleConnectionError(error);
+                    }
+                } finally {
+                    // Close the connection.
+                    connection.closeSilently();
+                }
+            }
         }
 
         /**
@@ -313,8 +363,7 @@ final class LDAPServerFilter extends BaseFilter {
             int filterIndex = oldFilterChain.size() - 1;
             if (filter instanceof SSLFilter) {
                 // Beneath any ConnectionSecurityLayerFilters if present,
-                // otherwise
-                // beneath the LDAP filter.
+                // otherwise beneath the LDAP filter.
                 for (int i = oldFilterChain.size() - 2; i >= 0; i--) {
                     if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter)) {
                         filterIndex = i + 1;
@@ -339,7 +388,7 @@ final class LDAPServerFilter extends BaseFilter {
         private boolean isTLSEnabled() {
             synchronized (this) {
                 final FilterChain currentFilterChain = (FilterChain) connection.getProcessor();
-                for (Filter filter : currentFilterChain) {
+                for (final Filter filter : currentFilterChain) {
                     if (filter instanceof SSLFilter) {
                         return true;
                     }
@@ -348,11 +397,14 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
+        private void setServerConnection(final ServerConnection<Integer> serverConnection) {
+            this.serverConnection = serverConnection;
+        }
     }
 
     private final class CompareHandler extends AbstractHandler<CompareResult> {
-        private CompareHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private CompareHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -377,9 +429,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.compareResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -387,8 +439,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class DeleteHandler extends AbstractHandler<Result> {
-        private DeleteHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private DeleteHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -401,9 +453,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.deleteResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -411,8 +463,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class ExtendedHandler<R extends ExtendedResult> extends AbstractHandler<R> {
-        private ExtendedHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private ExtendedHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -438,9 +490,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.extendedResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -448,8 +500,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class ModifyDNHandler extends AbstractHandler<Result> {
-        private ModifyDNHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private ModifyDNHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -462,9 +514,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.modifyDNResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -472,8 +524,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final class ModifyHandler extends AbstractHandler<Result> {
-        private ModifyHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private ModifyHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -486,9 +538,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.modifyResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -497,8 +549,8 @@ final class LDAPServerFilter extends BaseFilter {
 
     private final class SearchHandler extends AbstractHandler<Result> implements
             SearchResultHandler {
-        private SearchHandler(final int messageID, final Connection<?> connection) {
-            super(messageID, connection);
+        private SearchHandler(final ClientContextImpl context, final int messageID) {
+            super(context, messageID);
         }
 
         @Override
@@ -506,9 +558,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.searchResultEntry(asn1Writer, messageID, entry);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
                 return false;
             } finally {
                 asn1Writer.recycle();
@@ -526,9 +578,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.searchResultReference(asn1Writer, messageID, reference);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
                 return false;
             } finally {
                 asn1Writer.recycle();
@@ -541,9 +593,9 @@ final class LDAPServerFilter extends BaseFilter {
             final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
                 LDAP_WRITER.searchResult(asn1Writer, messageID, result);
-                connection.write(asn1Writer.getBuffer(), null);
+                context.write(asn1Writer);
             } catch (final IOException ioe) {
-                notifyConnectionException(connection, ioe);
+                context.handleError(ioe);
             } finally {
                 asn1Writer.recycle();
             }
@@ -553,6 +605,14 @@ final class LDAPServerFilter extends BaseFilter {
     // Map of cipher phrases to effective key size (bits). Taken from the
     // following RFCs: 5289, 4346, 3268,4132 and 4162.
     private static final Map<String, Integer> CIPHER_KEY_SIZES;
+
+    private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
+
+    private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPServerConnection");
+
+    private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
 
     static {
         CIPHER_KEY_SIZES = new LinkedHashMap<String, Integer>();
@@ -572,78 +632,10 @@ final class LDAPServerFilter extends BaseFilter {
         CIPHER_KEY_SIZES.put("_WITH_NULL_", 0);
     }
 
-    private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
+    private final LDAPReader ldapReader;
 
-    private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
-            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPServerConnection");
-
-    private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
-            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
-
-    private static void notifyConnectionClosed(final Connection<?> connection, final int messageID,
-            final UnbindRequest unbindRequest) {
-        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(connection);
-        if (clientContext != null) {
-            // Close the connection context.
-            clientContext.close();
-
-            // Notify the server connection: it may be null if disconnect is
-            // invoked during accept.
-            final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
-            if (serverConnection != null) {
-                serverConnection.handleConnectionClosed(messageID, unbindRequest);
-            }
-
-            // If this close was a result of an unbind request then the
-            // connection won't actually be closed yet. To avoid TIME_WAIT TCP
-            // state, let the client disconnect.
-            if (unbindRequest != null) {
-                return;
-            }
-
-            // Close the connection.
-            connection.closeSilently();
-        }
-    }
-
-    private static void notifyConnectionDisconnected(final Connection<?> connection,
-            final ResultCode resultCode, final String message) {
-        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(connection);
-        if (clientContext != null) {
-            // Close the connection context.
-            clientContext.close();
-
-            // Notify the server connection: it may be null if disconnect is
-            // invoked during accept.
-            final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
-            if (serverConnection != null) {
-                serverConnection.handleConnectionDisconnected(resultCode, message);
-            }
-
-            // Close the connection.
-            connection.closeSilently();
-        }
-    }
-
-    private static void notifyConnectionException(final Connection<?> connection,
-            final Throwable error) {
-        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(connection);
-        if (clientContext != null) {
-            // Close the connection context.
-            clientContext.close();
-
-            // Notify the server connection: it may be null if disconnect is
-            // invoked during accept.
-            final ServerConnection<Integer> serverConnection = clientContext.getServerConnection();
-            if (serverConnection != null) {
-                serverConnection.handleConnectionError(error);
-            }
-
-            // Close the connection.
-            connection.closeSilently();
-        }
-    }
-
+    private final LDAPListenerImpl listener;
+    private final int maxASN1ElementSize;
     private final AbstractLDAPMessageHandler<FilterChainContext> serverRequestHandler =
             new AbstractLDAPMessageHandler<FilterChainContext>() {
                 @Override
@@ -664,7 +656,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final AddHandler handler = new AddHandler(messageID, ctx.getConnection());
+                        final AddHandler handler = new AddHandler(clientContext, messageID);
                         conn.handleAdd(messageID, request, handler, handler);
                     }
                 }
@@ -677,7 +669,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final BindHandler handler = new BindHandler(messageID, ctx.getConnection());
+                        final BindHandler handler = new BindHandler(clientContext, messageID);
                         conn.handleBind(messageID, version, bindContext, handler, handler);
                     }
                 }
@@ -689,8 +681,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final CompareHandler handler =
-                                new CompareHandler(messageID, ctx.getConnection());
+                        final CompareHandler handler = new CompareHandler(clientContext, messageID);
                         conn.handleCompare(messageID, request, handler, handler);
                     }
                 }
@@ -702,8 +693,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final DeleteHandler handler =
-                                new DeleteHandler(messageID, ctx.getConnection());
+                        final DeleteHandler handler = new DeleteHandler(clientContext, messageID);
                         conn.handleDelete(messageID, request, handler, handler);
                     }
                 }
@@ -717,7 +707,7 @@ final class LDAPServerFilter extends BaseFilter {
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
                         final ExtendedHandler<R> handler =
-                                new ExtendedHandler<R>(messageID, ctx.getConnection());
+                                new ExtendedHandler<R>(clientContext, messageID);
                         conn.handleExtendedRequest(messageID, request, handler, handler);
                     }
                 }
@@ -730,7 +720,7 @@ final class LDAPServerFilter extends BaseFilter {
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
                         final ModifyDNHandler handler =
-                                new ModifyDNHandler(messageID, ctx.getConnection());
+                                new ModifyDNHandler(clientContext, messageID);
                         conn.handleModifyDN(messageID, request, handler, handler);
                     }
                 }
@@ -742,8 +732,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final ModifyHandler handler =
-                                new ModifyHandler(messageID, ctx.getConnection());
+                        final ModifyHandler handler = new ModifyHandler(clientContext, messageID);
                         conn.handleModify(messageID, request, handler, handler);
                     }
                 }
@@ -755,8 +744,7 @@ final class LDAPServerFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final SearchHandler handler =
-                                new SearchHandler(messageID, ctx.getConnection());
+                        final SearchHandler handler = new SearchHandler(clientContext, messageID);
                         conn.handleSearch(messageID, request, handler, handler);
                     }
                 }
@@ -764,22 +752,22 @@ final class LDAPServerFilter extends BaseFilter {
                 @Override
                 public void unbindRequest(final FilterChainContext ctx, final int messageID,
                         final UnbindRequest request) {
-                    notifyConnectionClosed(ctx.getConnection(), messageID, request);
+                    // Remove the client context causing any subsequent LDAP
+                    // traffic to be ignored.
+                    final ClientContextImpl clientContext =
+                            LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
+                    if (clientContext != null) {
+                        clientContext.handleClose(messageID, request);
+                    }
                 }
 
                 @Override
                 public void unrecognizedMessage(final FilterChainContext ctx, final int messageID,
                         final byte messageTag, final ByteString messageBytes) {
-                    notifyConnectionException(ctx.getConnection(), new UnsupportedMessageException(
-                            messageID, messageTag, messageBytes));
+                    exceptionOccurred(ctx, new UnsupportedMessageException(messageID, messageTag,
+                            messageBytes));
                 }
             };
-
-    private final int maxASN1ElementSize;
-
-    private final LDAPReader ldapReader;
-
-    private final LDAPListenerImpl listener;
 
     LDAPServerFilter(final LDAPListenerImpl listener, final LDAPReader ldapReader,
             final int maxASN1ElementSize) {
@@ -790,7 +778,10 @@ final class LDAPServerFilter extends BaseFilter {
 
     @Override
     public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
-        notifyConnectionException(ctx.getConnection(), error);
+        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
+        if (clientContext != null) {
+            clientContext.handleError(error);
+        }
     }
 
     @Override
@@ -812,7 +803,10 @@ final class LDAPServerFilter extends BaseFilter {
 
     @Override
     public NextAction handleClose(final FilterChainContext ctx) throws IOException {
-        notifyConnectionClosed(ctx.getConnection(), -1, null);
+        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
+        if (clientContext != null) {
+            clientContext.handleClose(-1, null);
+        }
         return ctx.getStopAction();
     }
 

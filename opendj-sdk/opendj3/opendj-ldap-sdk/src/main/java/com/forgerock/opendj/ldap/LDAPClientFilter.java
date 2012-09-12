@@ -226,42 +226,43 @@ final class LDAPClientFilter extends BaseFilter {
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         if (messageID == 0) {
+                            // Unsolicited notification received.
                             if ((result.getOID() != null)
                                     && result.getOID().equals(OID_NOTICE_OF_DISCONNECTION)) {
-
+                                // Treat this as a connection error.
                                 final Result errorResult =
                                         Responses
                                                 .newResult(result.getResultCode())
                                                 .setDiagnosticMessage(result.getDiagnosticMessage());
                                 ldapConnection.close(null, true, errorResult);
-                                return;
                             } else {
-                                // Unsolicited notification received.
                                 ldapConnection.handleUnsolicitedNotification(result);
                             }
-                        }
+                        } else {
+                            final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                                    ldapConnection.removePendingRequest(messageID);
 
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>) {
-                                final LDAPExtendedFutureResultImpl<?> extendedFuture =
-                                        ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
-                                try {
-                                    handleExtendedResult0(ldapConnection, extendedFuture, result);
-                                } catch (final DecodeException de) {
-                                    // FIXME: should the connection be closed as
-                                    // well?
-                                    final Result errorResult =
-                                            Responses.newResult(
-                                                    ResultCode.CLIENT_SIDE_DECODING_ERROR)
-                                                    .setDiagnosticMessage(de.getLocalizedMessage())
-                                                    .setCause(de);
-                                    extendedFuture.adaptErrorResult(errorResult);
+                            if (pendingRequest != null) {
+                                if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>) {
+                                    final LDAPExtendedFutureResultImpl<?> extendedFuture =
+                                            ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
+                                    try {
+                                        handleExtendedResult0(ldapConnection, extendedFuture,
+                                                result);
+                                    } catch (final DecodeException de) {
+                                        // FIXME: should the connection be closed as
+                                        // well?
+                                        final Result errorResult =
+                                                Responses.newResult(
+                                                        ResultCode.CLIENT_SIDE_DECODING_ERROR)
+                                                        .setDiagnosticMessage(
+                                                                de.getLocalizedMessage()).setCause(
+                                                                de);
+                                        extendedFuture.adaptErrorResult(errorResult);
+                                    }
+                                } else {
+                                    throw new UnexpectedResponseException(messageID, result);
                                 }
-                            } else {
-                                throw new UnexpectedResponseException(messageID, result);
                             }
                         }
                     }
