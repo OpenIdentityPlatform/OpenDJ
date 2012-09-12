@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -36,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * Class for organizing options into logical groups when arguement usage is
  * printed. To use an argument group, create an instance and use
- * {@link org.opendj.server.util.args.ArgumentParser #addArgument(Argument, ArgumentGroup)}
+ * {@link ArgumentParser#addArgument(Argument, ArgumentGroup)}
  * when adding arguments for to the parser.
  */
 final class ArgumentGroup implements Comparable<ArgumentGroup> {
