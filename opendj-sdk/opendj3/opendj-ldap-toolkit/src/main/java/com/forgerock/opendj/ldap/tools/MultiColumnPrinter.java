@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -121,11 +122,11 @@ import java.util.Vector;
  */
 final class MultiColumnPrinter {
 
-    final public static int LEFT = 0;
+    final static int LEFT = 0;
 
-    final public static int CENTER = 1;
+    final static int CENTER = 1;
 
-    final public static int RIGHT = 2;
+    final static int RIGHT = 2;
 
     private int numCol = 2;
 
@@ -435,6 +436,8 @@ final class MultiColumnPrinter {
      * Set alignment for title strings.
      *
      * @param titleAlign
+     *            The alignment which should be one of {@code LEFT},
+     *            {@code RIGHT}, or {@code CENTER}.
      */
     void setTitleAlign(final int titleAlign) {
         this.titleAlign = titleAlign;

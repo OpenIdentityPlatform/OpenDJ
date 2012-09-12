@@ -75,7 +75,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test setExcludeAttribute method of LDIFEntryWriter Throws a
      * NullPointerException if the attributeDescription is null.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeAttributeDoesntAllowNull() throws Exception {
@@ -90,7 +90,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Test to write an entry with attribute exclusions.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAttributeWithMatch() throws Exception {
@@ -114,7 +114,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test to write an entry with attribute exclusions. In this test, the
      * attribute description 'vip' doesn't exist then the entry must be written
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAttributeWithNoMatch() throws Exception {
@@ -139,7 +139,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetExcludeBranch method of LDIFEntryWriter Throws a
      * NullPointerException if the excludeBranch is null.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeBranchDoesntAllowNull() throws Exception {
@@ -154,7 +154,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Test SetExcludeBranch method of LDIFEntryWriter.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeBranchWrongDN() throws Exception {
@@ -176,7 +176,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Test SetExcludeBranch method of LDIFEntryWriter.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeBranchWithNoMatch() throws Exception {
@@ -197,7 +197,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Test SetExcludeBranch method of LDIFEntryWriter.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeBranchWithMatch() throws Exception {
@@ -219,7 +219,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetExcludeFilter method of LDIFEntryWriter Throws a
      * NullPointerException if the excludeFilter is null.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testsetExcludeFilterDoesntAllowNull() throws Exception {
@@ -235,7 +235,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test testSetExcludeFilter method of LDIFEntryWriter. StandardEntry has an
      * objectclass : person
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeFilterWithMatch() throws Exception {
@@ -258,7 +258,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test testSetExcludeFilter method of LDIFEntryWriter StandardEntry has an
      * objectclass : person
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeFilterWithNoMatch() throws Exception {
@@ -280,7 +280,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeAttribute method of LDIFEntryWriter Throws a
      * NullPointerException if the attributeDescription is null.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeAttributeDoesntAllowNull() throws Exception {
@@ -294,7 +294,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeAttribute method of LDIFEntryWriter. Inserting attribute
      * cn (common name) & sn (surname)
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeAttributeWithMatch() throws Exception {
@@ -315,7 +315,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * field "manager" is not present in the StandardEntry. Then the entry must
      * only write the first line : dn: cn=John Doe,ou=people,dc=example,dc=com
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeAttributeWithNoMatch() throws Exception {
@@ -337,7 +337,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeAttribute method of LDIFEntryWriter. Attempted insertions
      * repeating attributes. An attribute mustn't be written twice or +.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeAttributeWithRepeatedAttributes() throws Exception {
@@ -362,7 +362,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test to write an entry excluding all operational attributes
      * setExcludeAllOperationalAttributes to false (default case)
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAllOperationalAttributesFalse() throws Exception {
@@ -392,7 +392,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * setExcludeAllOperationalAttributes is forced to true Result should be dn:
      * cn=John Doe,ou=people,dc=example,dc=com plus an empty line.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAllOperationalAttributesTrue() throws Exception {
@@ -417,7 +417,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test to write an entry excluding user attributes Default case - full
      * entry must be written
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAllUserAttributesFalse() throws Exception {
@@ -438,7 +438,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test to write an entry excluding user attributes result should be dn:
      * cn=John Doe,ou=people,dc=example,dc=com plus an empty line.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetExcludeAllUserAttributesTrue() throws Exception {
@@ -463,7 +463,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeBranch method of LDIFEntryWriter Throws a
      * NullPointerException if the includeBranch is null.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeBranchDoesntAllowNull() throws Exception {
@@ -477,7 +477,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeBranch method of LDIFEntryWriter verifying right data are
      * present.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeBranchWithMatch() throws Exception {
@@ -500,7 +500,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * "dc=opendj,dc=org", which is not the one from the standard entry Entry
      * must not be written
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeBranchWithNoMatch() throws Exception {
@@ -522,7 +522,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Filter.equality("objectclass", "vip"); which is not the one from the
      * standard entry.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeFilterWithNoMatch() throws Exception {
@@ -544,7 +544,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Filter.equality("objectclass", "person"); which is the one from the
      * standard entry.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testSetIncludeFilterWithMatch() throws Exception {
@@ -567,7 +567,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test SetIncludeFilter method of LDIFEntryWriter Throws a
      * NullPointerException if the schema is null.
      *
-     * @throws NullPointerException
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeFilterDoesntAllowNull() throws Exception {
@@ -687,10 +687,10 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Test to write an entry adding the user friendly Comment TODO
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
-    public void testSetAddUserFriendlyComments() throws IOException {
+    public void testSetAddUserFriendlyComments() throws Exception {
         final List<String> actual = new ArrayList<String>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
@@ -775,8 +775,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Testing the WriteEntry function using the mock for testing more
      * IOExceptions and verify if they are correctly handled.
      *
-     * @throws FileNotFoundException
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test(expectedExceptions = IOException.class)
     public void testWriteEntryUsingMockOutputThrowsIOException() throws Exception {
@@ -797,7 +796,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     /**
      * Verify flush/close are also forwarded to the stream.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testWriteEntryUsingMockOutputForFlushAndClose() throws Exception {
@@ -817,7 +816,7 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
      * Test the WriteEntry using an output file verifying write is correctly
      * invoked.
      *
-     * @throws Exception
+     * @throws Exception If the test failed unexpectedly.
      */
     @Test
     public void testWriteEntryOutputStreamUsingMock() throws Exception {
