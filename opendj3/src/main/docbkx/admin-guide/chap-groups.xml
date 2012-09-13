@@ -44,6 +44,28 @@
  
  <para>This chapter demonstrates how to work with groups.</para>
 
+ <tip>
+  <para>The examples in this chapter assume that an
+  <literal>ou=Groups,dc=example,dc=com</literal> entry already exists. If you
+  imported data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  xlink:show="new">Example.ldif</link>, then you already have the entry. If you
+  generated data during setup and did not create an organizational unit for
+  groups yet, create the entry before you try the examples.</para>
+
+  <screen>$ ldapmodify
+ --defaultAdd
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Groups
+
+Processing ADD request for ou=Groups,dc=example,dc=com
+ADD operation successful for DN ou=Groups,dc=example,dc=com</screen>
+ </tip>
+
  <section xml:id="static-groups">
   <title>Creating Static Groups</title>
   <indexterm>
