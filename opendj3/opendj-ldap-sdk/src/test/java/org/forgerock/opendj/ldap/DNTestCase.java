@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -432,6 +432,28 @@ public class DNTestCase extends SdkTestCase {
         final DN expected = DN.valueOf(e);
 
         assertEquals(dn.child(rdn), expected);
+    }
+
+    /**
+     * Test the child(String attributeType, Object attributeValue) method.
+     *
+     * @param s
+     *            The test DN string.
+     * @param r
+     *            The RDN to be appended.
+     * @param e
+     *            The expected DN.
+     * @throws Exception
+     *             If the test failed unexpectedly.
+     */
+    @Test(dataProvider = "createChildRDNTestData")
+    public void testChildTypeValue(final String s, final String r, final String e) throws Exception {
+        final DN dn = DN.valueOf(s);
+        final RDN rdn = RDN.valueOf(r);
+        final DN expected = DN.valueOf(e);
+
+        assertEquals(dn.child(rdn.getFirstAVA().getAttributeType().getNameOrOID(), rdn
+                .getFirstAVA().getAttributeValue()), expected);
     }
 
     /**
