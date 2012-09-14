@@ -343,6 +343,29 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
+     * Returns a DN which is an immediate child of this DN and with an RDN
+     * having the provided attribute type and value decoded using the default
+     * schema.
+     * <p>
+     * If {@code attributeValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * @param attributeType
+     *            The attribute type.
+     * @param attributeValue
+     *            The attribute value.
+     * @return The child DN.
+     * @throws UnknownSchemaElementException
+     *             If {@code attributeType} was not found in the default schema.
+     * @throws NullPointerException
+     *             If {@code attributeType} or {@code attributeValue} was
+     *             {@code null}.
+     */
+    public DN child(final String attributeType, final Object attributeValue) {
+        return child(new RDN(attributeType, attributeValue));
+    }
+
+    /**
      * {@inheritDoc}
      */
     public int compareTo(final DN dn) {
