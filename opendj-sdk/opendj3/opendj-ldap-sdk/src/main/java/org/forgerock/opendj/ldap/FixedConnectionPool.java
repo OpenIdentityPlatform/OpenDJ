@@ -216,8 +216,8 @@ final class FixedConnectionPool implements ConnectionPool {
                 // Try to get a new connection to replace it.
                 factory.getConnectionAsync(connectionResultHandler);
 
-                if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING)) {
-                    StaticUtils.DEBUG_LOG.warning(String.format("Connection no longer valid. "
+                if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
+                    StaticUtils.DEBUG_LOG.fine(String.format("Connection no longer valid. "
                             + "currentPoolSize=%d, poolSize=%d", poolSize
                             - currentPoolSize.availablePermits(), poolSize));
                 }
