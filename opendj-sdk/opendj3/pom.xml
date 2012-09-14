@@ -166,6 +166,11 @@
           <configuration>
             <properties>
               <property>
+                <name>forkMode</name>
+                <value>never</value>
+              </property>
+<!--
+              <property>
                 <name>useDefaultListeners</name>
                 <value>false</value>
               </property>
@@ -173,6 +178,7 @@
                 <name>listener</name>
                 <value>org.forgerock.testng.ForgeRockTestListener</value>
               </property>
+          -->
             </properties>
           </configuration>
         </plugin>
