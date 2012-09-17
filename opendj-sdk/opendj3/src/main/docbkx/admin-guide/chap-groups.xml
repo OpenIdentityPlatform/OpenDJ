@@ -158,7 +158,12 @@ cn: My Static Group</screen>
   
   <para>To create a dynamic group, add a group entry such as the following to
   the directory.</para>
-  
+
+  <para>The following example builds a dynamic group of entries effectively
+  matching the filter <literal>"(l=Cupertino)"</literal> (users whose location
+  is Cupertino). Change the filter if your data is different, and so no
+  entries have <literal>l: Cupertino</literal>.</para>
+
   <screen>$ cat dynamic.ldif
 dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
 cn: My Dynamic Group
