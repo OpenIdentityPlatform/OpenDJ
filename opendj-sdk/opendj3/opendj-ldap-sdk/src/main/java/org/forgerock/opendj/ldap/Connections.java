@@ -72,6 +72,15 @@ public final class Connections {
     /**
      * Creates a new connection pool which will maintain {@code poolSize}
      * connections created using the provided connection factory.
+     * <p>
+     * Connections obtained from the connection pool are guaranteed to be valid
+     * immediately before being returned to the calling application. More
+     * specifically, connections which have remained idle in the connection pool
+     * for a long time and which have been remotely closed due to a time out
+     * will never be returned. However, once a pooled connection has been
+     * obtained it is the responsibility of the calling application to handle
+     * subsequent connection failures, these being signaled via a
+     * {@link ConnectionException}.
      *
      * @param factory
      *            The connection factory to use for creating new connections.
