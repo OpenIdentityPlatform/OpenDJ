@@ -46,9 +46,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.TreeSet;
 import java.util.UnknownFormatConversionException;
 import java.util.Calendar;
 import java.util.Arrays;
@@ -70,6 +75,7 @@ public class GenerateMessageFile extends Task {
   private File source;
   private File dest;
   private boolean overwrite;
+  private boolean writeLogRef;
 
   static private final String MESSAGES_FILE_STUB =
           "resource/Messages.java.stub";
@@ -517,6 +523,239 @@ public class GenerateMessageFile extends Task {
   }
 
   /**
+   * Indicates when true that an XML log message reference should be generated
+   * instead of a Java messages file.
+   *
+   * @param xml
+   *          true means write an XML log message reference
+   */
+  public void setWriteLogRef(boolean xml) {
+    this.writeLogRef = xml;
+  }
+
+  /**
+   * Represents a log reference entry for an individual message.
+   */
+  private class MessageRefEntry implements Comparable<MessageRefEntry>
+  {
+
+    private Severity severity;
+    private Integer id;
+    private String formatString;
+
+    /**
+     * Build log reference entry for an log message.
+     *
+     * @param category
+     * @param severity
+     * @param ordinal
+     * @param formatString
+     */
+    public MessageRefEntry(final Category category, final Severity severity,
+        final Integer ordinal, final String formatString)
+    {
+      this.severity = severity;
+      this.formatString = formatString;
+      id = calculateId(category, severity, ordinal);
+    }
+
+    private Integer calculateId(final Category category,
+        final Severity severity, final Integer ordinal)
+    {
+      return new Integer(ordinal | category.getMask() | severity.getMask());
+    }
+
+    /**
+     * Return a DocBook XML &lt;varlistentry&gt; of this log reference entry.
+     * This implementation copies the message string verbatim, and does not
+     * interpret format specifiers.
+     *
+     * @return DocBook XML &lt;varlistentry&gt;.
+     */
+    public String toString()
+    {
+      return
+          "  <varlistentry xml:id=\"log-ref-" + id.intValue() + "\">" + EOL
+          + "   <term>ID: " + id.intValue() + "</term>" + EOL
+          + "   <listitem>" + EOL
+          + "    <para>Severity: " + severity.name() + "</para>" + EOL
+          + "    <para>Message: " + formatString + "</para>" + EOL
+          + "   </listitem>" + EOL + "  </varlistentry>" + EOL;
+    }
+
+    /**
+     * Calls {@link #toString()}.
+     */
+    public String toXML()
+    {
+      return toString();
+    }
+
+    /**
+     * The unique message identifier is calculated using the category, severity,
+     * and message ordinal.
+     *
+     * @return unique message identifier
+     */
+    public Integer getId()
+    {
+      return this.id;
+    }
+
+    /**
+     * Compare message entries by unique identifier.
+     *
+     * @return See {@link java.lang.Comparable#compareTo(Object)}.
+     */
+    public int compareTo(MessageRefEntry mre)
+    {
+      return this.id.compareTo(mre.getId());
+    }
+  }
+
+  /**
+   * One-line descriptions for log reference categories
+   */
+  static private HashMap<String,String> CATEGORY_DESCRIPTIONS;
+  static {
+    CATEGORY_DESCRIPTIONS = new HashMap<String,String>();
+    CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", "Access Control.");
+    CATEGORY_DESCRIPTIONS.put("ADMIN", "the administration framework.");
+    CATEGORY_DESCRIPTIONS.put("ADMIN_TOOL", "the tool like the offline"
+            + " installer and uninstaller.");
+    CATEGORY_DESCRIPTIONS.put("BACKEND", "generic backends.");
+    CATEGORY_DESCRIPTIONS.put("CONFIG", "configuration handling.");
+    CATEGORY_DESCRIPTIONS.put("CORE", "the core server.");
+    CATEGORY_DESCRIPTIONS.put("DSCONFIG", "the dsconfig administration tool.");
+    CATEGORY_DESCRIPTIONS.put("EXTENSIONS", "server extensions for example,"
+            + " extended operations, SASL mechanisms, password storage"
+            + " schemes, password validators, and so on).");
+    CATEGORY_DESCRIPTIONS.put("JEB", "the JE backend.");
+    CATEGORY_DESCRIPTIONS.put("LOG", "the server loggers.");
+    CATEGORY_DESCRIPTIONS.put("PLUGIN", "plugin processing.");
+    CATEGORY_DESCRIPTIONS.put("PROTOCOL", "connection and protocol handling"
+            +  " (for example, ASN.1 and LDAP).");
+    CATEGORY_DESCRIPTIONS.put("QUICKSETUP", "quicksetup tools.");
+    CATEGORY_DESCRIPTIONS.put("RUNTIME_INFORMATION", "the runtime"
+            + " information.");
+    CATEGORY_DESCRIPTIONS.put("SCHEMA", "the server schema elements.");
+    CATEGORY_DESCRIPTIONS.put("SYNC", "the Synchronization.");
+    CATEGORY_DESCRIPTIONS.put("TASK", "tasks.");
+    CATEGORY_DESCRIPTIONS.put("THIRD_PARTY", "third-party (including"
+            + " user-defined) modules.");
+    CATEGORY_DESCRIPTIONS.put("TOOLS", "tools.");
+    CATEGORY_DESCRIPTIONS.put("USER_DEFINED", "user-defined modules.");
+    CATEGORY_DESCRIPTIONS.put("UTIL", "the general server utilities.");
+    CATEGORY_DESCRIPTIONS.put("VERSION", "version information.");
+  }
+
+  /**
+   * Represents a log reference list of messages for a category.
+   */
+  private class MessageRefCategory
+  {
+    private Category category;
+    private TreeSet<MessageRefEntry> messages;
+    private String description;
+
+    MessageRefCategory(final Category category,
+        final TreeSet<MessageRefEntry> messages)
+    {
+      this.category = category;
+      this.messages = messages;
+      this.description = getDescription(category);
+    }
+
+    private String getDescription(final Category category)
+    {
+      return "<para>This category concerns messages associated with "
+          + CATEGORY_DESCRIPTIONS.get(category.name()) + "</para>" + EOL;
+    }
+
+    /**
+     * Return a DocBook XML &lt;variablelist&gt; of this log reference category.
+     *
+     * @return DocBook XML &lt;variablelist&gt;
+     */
+    public String toString()
+    {
+      StringBuilder entries = new StringBuilder();
+      for (MessageRefEntry entry : messages)
+      {
+        entries.append(entry.toXML());
+      }
+
+      return getVariablelistHead() + entries.toString() + getVariablelistTail();
+    }
+
+    /**
+     * Calls {@link #toString()}.
+     */
+    public String toXML()
+    {
+      return toString();
+    }
+
+    private String getXMLPreamble()
+    {
+      DateFormat df = new SimpleDateFormat("yyyy");
+      Date now = new Date();
+      String year = df.format(now);
+
+      return new StringBuilder()
+        .append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append(EOL)
+        .append("<!--").append(EOL)
+        .append("  ! CCPL HEADER START").append(EOL)
+        .append("  !").append(EOL)
+        .append("  ! This work is licensed under the Creative Commons").append(EOL)
+        .append("  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.").append(EOL)
+        .append("  ! To view a copy of this license, visit").append(EOL)
+        .append("  ! http://creativecommons.org/licenses/by-nc-nd/3.0/").append(EOL)
+        .append("  ! or send a letter to Creative Commons, 444 Castro Street,").append(EOL)
+        .append("  ! Suite 900, Mountain View, California, 94041, USA.").append(EOL)
+        .append("  !").append(EOL)
+        .append("  ! See the License for the specific language governing permissions").append(EOL)
+        .append("  ! and limitations under the License.").append(EOL)
+        .append("  !").append(EOL)
+        .append("  ! If applicable, add the following below this CCPL HEADER, with the fields").append(EOL)
+        .append("  ! enclosed by brackets \"[]\" replaced with your own identifying information:").append(EOL)
+        .append("  !      Portions Copyright [yyyy] [name of copyright owner]").append(EOL)
+        .append("  !").append(EOL)
+        .append("  ! CCPL HEADER END").append(EOL)
+        .append("  !").append(EOL)
+        .append("  !      Copyright " + year + " ForgeRock AS").append(EOL)
+        .append("  !").append(EOL)
+        .append("-->").append(EOL)
+        .toString();
+    }
+
+    private String getBaseElementAttrs()
+    {
+      return "xmlns='http://docbook.org/ns/docbook'"
+          + " version='5.0' xml:lang='en'"
+          + " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'"
+          + " xsi:schemaLocation='http://docbook.org/ns/docbook"
+          + " http://docbook.org/xml/5.0/xsd/docbook.xsd'"
+          + " xmlns:xlink='http://www.w3.org/1999/xlink'"
+          + " xmlns:xinclude='http://www.w3.org/2001/XInclude'";
+    }
+
+    private String getVariablelistHead()
+    {
+      return getXMLPreamble() + " <variablelist xml:id=\"log-ref-"
+          + this.category.name() + "\" " + getBaseElementAttrs() + ">" + EOL
+          + "  <title>Log Message Category: " + category.name() + "</title>"
+          + EOL + "  " + this.description;
+    }
+
+    private String getVariablelistTail()
+    {
+      return " </variablelist>" + EOL;
+    }
+
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -555,8 +794,13 @@ public class GenerateMessageFile extends Task {
       // filename without ".properties"
       filename = filename.substring(0, filename.length()-11);
       // change to src-generated directory keeping package name
-      pathname = pathname.replace(getProject().getProperty("msg.dir"),
-                                  getProject().getProperty("msg.javagen.dir"));
+      if (writeLogRef) {
+        pathname = pathname.replace(getProject().getProperty("msg.dir"),
+                                    getProject().getProperty("msg.logref.dir"));
+      } else {
+        pathname = pathname.replace(getProject().getProperty("msg.dir"),
+                                    getProject().getProperty("msg.javagen.dir"));
+      }
 
 
       // append characters from filename to pathname starting with an uppercase
@@ -575,7 +819,11 @@ public class GenerateMessageFile extends Task {
           sb.append(c);
         }
       }
-      sb.append("Messages.java");
+      if (writeLogRef) {
+        sb.append("Messages.xml");
+      } else {
+        sb.append("Messages.java");
+      }
 
       setDestJava(new File(sb.toString()));
     }
@@ -612,6 +860,8 @@ public class GenerateMessageFile extends Task {
       String stubLine;
       Properties properties = new Properties();
       properties.load(new FileInputStream(source));
+      TreeSet<MessageRefEntry> messageRefEntries =
+          new TreeSet<MessageRefEntry>();
       while (null != (stubLine = stubReader.readLine())) {
         if (stubLine.contains("${MESSAGES}")) {
           Integer globalOrdinal = null;
@@ -722,17 +972,33 @@ public class GenerateMessageFile extends Task {
               }
             }
 
-            message.setConstructorArguments(
-                    "BASE",
-                    quote(key.toString()),
-                    globalMask != null ? globalMask.toString() : c.name(),
-                    s.name(),
-                    globalOrdinal != null ?
-                            globalOrdinal.toString() :
-                            key.getOrdinal().toString()
-            );
-            destWriter.println(message.toString());
-            destWriter.println();
+            if (writeLogRef) {
+              // Document only FATAL_ERROR and SEVERE_ERROR messages.
+              if (s.name().equalsIgnoreCase("FATAL_ERROR")
+                  || s.name().equalsIgnoreCase("SEVERE_ERROR")) {
+                MessageRefEntry entry =
+                        new MessageRefEntry(
+                                c,
+                                s,
+                                globalOrdinal != null ?
+                                        globalOrdinal :
+                                        key.getOrdinal(),
+                                formatString.replaceAll("<", "&lt;"));
+                messageRefEntries.add(entry);
+                }
+            } else {
+              message.setConstructorArguments(
+                "BASE",
+                quote(key.toString()),
+                globalMask != null ? globalMask.toString() : c.name(),
+                s.name(),
+                globalOrdinal != null ?
+                        globalOrdinal.toString() :
+                        key.getOrdinal().toString()
+              );
+              destWriter.println(message.toString());
+              destWriter.println();
+            }
 
             // Keep track of when we use the generic descriptor
             // so that we can report it later
@@ -741,11 +1007,21 @@ public class GenerateMessageFile extends Task {
             }
           }
 
+          if (writeLogRef) {
+            if (messageRefEntries.isEmpty()) {
+              destWriter.println("<!-- No message for this category -->");
+            } else {
+              MessageRefCategory mrc =
+                      new MessageRefCategory(globalCategory, messageRefEntries);
+              destWriter.println(mrc.toXML());
+            }
+          }
+
           log("  Message Generated:" + keyMap.size(), Project.MSG_VERBOSE);
           log("  MessageDescriptor.ArgN:" + usesOfGenericDescriptor,
                   Project.MSG_VERBOSE);
 
-        } else {
+        } else if (!writeLogRef) {
           stubLine = stubLine.replace("${PACKAGE}", getPackage());
           stubLine = stubLine.replace("${CLASS_NAME}",
                   dest.getName().substring(0, dest.getName().length() -
@@ -820,6 +1096,8 @@ public class GenerateMessageFile extends Task {
   }
 
   private String getPackage() {
+    if (writeLogRef) { return "dummy.package.name"; }
+
     String destPath = unixifyPath(dest.getAbsolutePath());
     String msgJavaGenDir = unixifyPath(
                                    getProject().getProperty("msg.javagen.dir"));
@@ -951,6 +1229,13 @@ public class GenerateMessageFile extends Task {
     File source = new File("src/messages/messages/tools.properties");
     File dest = new File("/tmp/org/opends/XXX.java");
     GenerateMessageFile gmf = new GenerateMessageFile();
+
+    if (args.length > 0 && args[0].equalsIgnoreCase("generateMessageReference"))
+    {
+      dest = new File("/tmp/tools-ref.xml");
+      gmf.setWriteLogRef(true);
+    }
+
     gmf.setOverwrite(true);
     gmf.setDestJava(dest);
     gmf.setSourceProps(source);

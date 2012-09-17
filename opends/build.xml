@@ -146,6 +146,7 @@
   <property name="msg.dir"         location="src/messages" />
   <property name="msg.prop.dir"    location="${msg.dir}/messages" />
   <property name="msg.javagen.dir" location="${msg.dir}/generated" />
+  <property name="msg.logref.dir"  location="${docgen.dir}/logref" />
   <property name="msg.package.dir" location="${classes.dir}/messages" />
   <property name="msg.src.dir"     location="${msg.dir}/src" />
 
@@ -303,6 +304,97 @@
             destJava="${msg.javagen.dir}/org/opends/messages/RuntimeMessages.java">
     </genmsg>
 
+  </target>
+
+
+  <target name="generateLogReference" depends="buildtools">
+    <typedef name="genlogref"
+             classname="org.opends.build.tools.GenerateMessageFile" >
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </typedef>
+    <!--
+    <genlogref sourceProps="${msg.prop.dir}/xxx_yyy.properties"
+               destJava="${msg.logref.dir}/log-ref-xxx-yyy.xml"
+               writelogref="true" />
+    -->
+    <genlogref sourceProps="${msg.prop.dir}/access_control.properties"
+               destJava="${msg.logref.dir}/log-ref-access-control.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/admin.properties"
+               destJava="${msg.logref.dir}/log-ref-admin.xml"
+               writelogref="true" />
+    <!-- Ignore admin tool messages while documenting only serious errors.
+    <genlogref sourceProps="${msg.prop.dir}/admin_tool.properties"
+               destJava="${msg.logref.dir}/log-ref-admin-tool.xml"
+               writelogref="true" />
+    -->
+    <genlogref sourceProps="${msg.prop.dir}/backend.properties"
+               destJava="${msg.logref.dir}/log-ref-backend.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/config.properties"
+               destJava="${msg.logref.dir}/log-ref-config.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/core.properties"
+               destJava="${msg.logref.dir}/log-ref-core.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/dsconfig.properties"
+               destJava="${msg.logref.dir}/log-ref-dsconfig.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/extension.properties"
+               destJava="${msg.logref.dir}/log-ref-extension.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/jeb.properties"
+               destJava="${msg.logref.dir}/log-ref-jeb.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/log.properties"
+               destJava="${msg.logref.dir}/log-ref-log.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/plugin.properties"
+               destJava="${msg.logref.dir}/log-ref-plugin.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/protocol.properties"
+               destJava="${msg.logref.dir}/log-ref-protocol.xml"
+               writelogref="true" />
+    <!-- Ignore QuickSetup messages that users handle interactively.
+    <genlogref sourceProps="${msg.prop.dir}/quicksetup.properties"
+               destJava="${msg.logref.dir}/log-ref-quicksetup.xml"
+               writelogref="true" />
+    -->
+    <genlogref sourceProps="${msg.prop.dir}/replication.properties"
+               destJava="${msg.logref.dir}/log-ref-replication.xml"
+               writelogref="true" />
+    <!-- Ignore runtime info messages while documenting only serious errors.
+    <genlogref sourceProps="${msg.prop.dir}/runtime_information.properties"
+               destJava="${msg.logref.dir}/log-ref-runtime-information.xml"
+               writelogref="true" />
+    -->
+    <genlogref sourceProps="${msg.prop.dir}/schema.properties"
+               destJava="${msg.logref.dir}/log-ref-schema.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/task.properties"
+               destJava="${msg.logref.dir}/log-ref-task.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/tools.properties"
+               destJava="${msg.logref.dir}/log-ref-tools.xml"
+               writelogref="true" />
+    <genlogref sourceProps="${msg.prop.dir}/utility.properties"
+               destJava="${msg.logref.dir}/log-ref-utility.xml"
+               writelogref="true" />
+    <!-- Ignore version messages while documenting only serious errors.
+    <genlogref sourceProps="${msg.prop.dir}/version.properties"
+               destJava="${msg.logref.dir}/log-ref-version.xml"
+               writelogref="true" />
+    -->
+
+    <copy file="${resource.dir}/log-message-reference.xml"
+          todir="${msg.logref.dir}" />
+    <jar destfile="${docgen.dir}/log-ref.jar"
+         basedir="${msg.logref.dir}"
+         includes="**/*.xml" />
   </target>
 
   <!-- Remove all dynamically-generated build files. -->
