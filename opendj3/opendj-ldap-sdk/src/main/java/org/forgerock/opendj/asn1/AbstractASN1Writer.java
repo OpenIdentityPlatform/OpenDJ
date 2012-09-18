@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.asn1;
-
-import static org.forgerock.opendj.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
@@ -49,35 +47,35 @@ public abstract class AbstractASN1Writer implements ASN1Writer {
      * {@inheritDoc}
      */
     public ASN1Writer writeBoolean(final boolean value) throws IOException {
-        return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, value);
+        return writeBoolean(ASN1.UNIVERSAL_BOOLEAN_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeEnumerated(final int value) throws IOException {
-        return writeEnumerated(UNIVERSAL_ENUMERATED_TYPE, value);
+        return writeEnumerated(ASN1.UNIVERSAL_ENUMERATED_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeInteger(final int value) throws IOException {
-        return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
+        return writeInteger(ASN1.UNIVERSAL_INTEGER_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeInteger(final long value) throws IOException {
-        return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
+        return writeInteger(ASN1.UNIVERSAL_INTEGER_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeNull() throws IOException {
-        return writeNull(UNIVERSAL_NULL_TYPE);
+        return writeNull(ASN1.UNIVERSAL_NULL_TYPE);
     }
 
     /**
@@ -99,35 +97,35 @@ public abstract class AbstractASN1Writer implements ASN1Writer {
      */
     public ASN1Writer writeOctetString(final byte[] value, final int offset, final int length)
             throws IOException {
-        return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value, offset, length);
+        return writeOctetString(ASN1.UNIVERSAL_OCTET_STRING_TYPE, value, offset, length);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeOctetString(final ByteSequence value) throws IOException {
-        return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
+        return writeOctetString(ASN1.UNIVERSAL_OCTET_STRING_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeOctetString(final String value) throws IOException {
-        return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
+        return writeOctetString(ASN1.UNIVERSAL_OCTET_STRING_TYPE, value);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeStartSequence() throws IOException {
-        return writeStartSequence(UNIVERSAL_SEQUENCE_TYPE);
+        return writeStartSequence(ASN1.UNIVERSAL_SEQUENCE_TYPE);
     }
 
     /**
      * {@inheritDoc}
      */
     public ASN1Writer writeStartSet() throws IOException {
-        return writeStartSet(UNIVERSAL_SET_TYPE);
+        return writeStartSet(ASN1.UNIVERSAL_SET_TYPE);
     }
 
 }

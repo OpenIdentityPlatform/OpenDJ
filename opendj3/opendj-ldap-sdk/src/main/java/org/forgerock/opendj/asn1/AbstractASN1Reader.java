@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.*;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public boolean readBoolean(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_BOOLEAN_TYPE;
+            type = ASN1.UNIVERSAL_BOOLEAN_TYPE;
         }
         checkType(type);
         return readBoolean();
@@ -64,7 +64,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public int readEnumerated(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_ENUMERATED_TYPE;
+            type = ASN1.UNIVERSAL_ENUMERATED_TYPE;
         }
         checkType(type);
         return readEnumerated();
@@ -75,7 +75,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public long readInteger(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_INTEGER_TYPE;
+            type = ASN1.UNIVERSAL_INTEGER_TYPE;
         }
         checkType(type);
         return readInteger();
@@ -86,7 +86,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public void readNull(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_NULL_TYPE;
+            type = ASN1.UNIVERSAL_NULL_TYPE;
         }
         checkType(type);
         readNull();
@@ -97,7 +97,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public ByteString readOctetString(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_OCTET_STRING_TYPE;
+            type = ASN1.UNIVERSAL_OCTET_STRING_TYPE;
         }
         checkType(type);
         return readOctetString();
@@ -109,7 +109,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
     public ByteStringBuilder readOctetString(byte type, final ByteStringBuilder builder)
             throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_OCTET_STRING_TYPE;
+            type = ASN1.UNIVERSAL_OCTET_STRING_TYPE;
         }
         checkType(type);
         readOctetString(builder);
@@ -123,7 +123,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         // We could cache the UTF-8 CharSet if performance proves to be an
         // issue.
         if (type == 0x00) {
-            type = UNIVERSAL_OCTET_STRING_TYPE;
+            type = ASN1.UNIVERSAL_OCTET_STRING_TYPE;
         }
         checkType(type);
         return readOctetStringAsString();
@@ -134,7 +134,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
      */
     public void readStartSequence(byte type) throws IOException {
         if (type == 0x00) {
-            type = UNIVERSAL_SEQUENCE_TYPE;
+            type = ASN1.UNIVERSAL_SEQUENCE_TYPE;
         }
         checkType(type);
         readStartSequence();
@@ -147,7 +147,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         if (type == 0x00) {
-            type = UNIVERSAL_SET_TYPE;
+            type = ASN1.UNIVERSAL_SET_TYPE;
         }
         checkType(type);
         readStartSet();

@@ -27,8 +27,6 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
-import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
@@ -121,7 +119,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
                         }
 
                         if (reader.hasNextElement()
-                                && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)) {
+                                && (reader.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
                             if (changeType != PersistentSearchChangeType.MODIFY_DN) {
                                 final LocalizableMessage message =
                                         ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
@@ -131,7 +129,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
                             previousDNString = reader.readOctetStringAsString();
                         }
                         if (reader.hasNextElement()
-                                && (reader.peekType() == UNIVERSAL_INTEGER_TYPE)) {
+                                && (reader.peekType() == ASN1.UNIVERSAL_INTEGER_TYPE)) {
                             changeNumber = reader.readInteger();
                         }
                     } catch (final IOException e) {

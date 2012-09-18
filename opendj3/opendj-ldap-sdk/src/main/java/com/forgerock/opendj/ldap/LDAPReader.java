@@ -22,14 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.LDAPConstants.*;
-import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
@@ -38,6 +36,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -521,10 +520,10 @@ final class LDAPReader {
             oid = reader.readOctetStringAsString();
             isCritical = false;
             value = null;
-            if (reader.hasNextElement() && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE)) {
+            if (reader.hasNextElement() && (reader.peekType() == ASN1.UNIVERSAL_BOOLEAN_TYPE)) {
                 isCritical = reader.readBoolean();
             }
-            if (reader.hasNextElement() && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)) {
+            if (reader.hasNextElement() && (reader.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
                 value = reader.readOctetString();
             }
         } finally {
@@ -555,10 +554,10 @@ final class LDAPReader {
             oid = reader.readOctetStringAsString();
             isCritical = false;
             value = null;
-            if (reader.hasNextElement() && (reader.peekType() == UNIVERSAL_BOOLEAN_TYPE)) {
+            if (reader.hasNextElement() && (reader.peekType() == ASN1.UNIVERSAL_BOOLEAN_TYPE)) {
                 isCritical = reader.readBoolean();
             }
-            if (reader.hasNextElement() && (reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)) {
+            if (reader.hasNextElement() && (reader.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
                 value = reader.readOctetString();
             }
         } finally {
