@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -44,17 +45,10 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
-import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
-import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
-import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.tools.RebuildIndex;
-import org.opends.server.types.OpenDsException;
 
 /**
  * The class that is used when a set of indexes must be rebuilt.
@@ -88,6 +82,7 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   public Type getType()
   {
     return Type.REBUILD_INDEXES;
@@ -96,6 +91,7 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTaskDescription()
   {
     if (baseDNs.size() == 1)
@@ -114,6 +110,7 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<Message> incompatibilityReasons)
   {
@@ -138,34 +135,14 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
     lastException = null;
     try
     {
-      boolean mustDisable = false;
-      boolean mustEnable = false;
       boolean isLocal = getInfo().getServerDescriptor().isLocal();
-      String backendName = backendSet.iterator().next();
-      if (isServerRunning() && isLocal)
-      {
-        for (BackendDescriptor backend :
-          getInfo().getServerDescriptor().getBackends())
-        {
-          if (backendName.equals(backend.getBackendID()))
-          {
-            mustDisable = backend.isEnabled();
-            break;
-          }
-        }
-      }
-
-      if (mustDisable)
-      {
-        setBackendEnable(backendName, false);
-        mustEnable = true;
-      }
 
       for (final String baseDN : baseDNs)
       {
@@ -181,6 +158,7 @@ public class RebuildIndexTask extends IndexTask
 
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             printEquivalentCommandLine(getCommandLinePath("rebuild-index"),
@@ -189,7 +167,7 @@ public class RebuildIndexTask extends IndexTask
           }
         });
 
-        if (isLocal)
+        if (isLocal && !isServerRunning())
         {
           returnCode = executeCommandLine(getCommandLinePath("rebuild-index"),
               args);
@@ -204,10 +182,6 @@ public class RebuildIndexTask extends IndexTask
         {
           break;
         }
-      }
-      if (mustEnable)
-      {
-        setBackendEnable(backendName, true);
       }
 
       if (returnCode != 0)
@@ -234,6 +208,7 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();
@@ -275,10 +250,10 @@ public class RebuildIndexTask extends IndexTask
     }
 
     boolean isLocal = getInfo().getServerDescriptor().isLocal();
-    if (!isLocal)
+    if (isLocal && isServerRunning())
     {
-      args.addAll(getConnectionCommandLineArguments());
-      args.addAll(getConfigCommandLineArguments());
+    args.addAll(getConnectionCommandLineArguments());
+    args.addAll(getConfigCommandLineArguments());
     }
 
     return args;
@@ -287,79 +262,10 @@ public class RebuildIndexTask extends IndexTask
   /**
    * {@inheritDoc}
    */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
-  }
-
-  /**
-   * Enables a backend.
-   * @param backendName the backend name.
-   * @param enable whether to enable or disable the backend.
-   * @throws OpenDsException if an error occurs.
-   */
-  private void setBackendEnable(final String backendName,
-      final boolean enable) throws OpenDsException
-  {
-    final ArrayList<String> args = new ArrayList<String>();
-    args.add("set-backend-prop");
-    args.add("--backend-name");
-    args.add(backendName);
-    args.add("--set");
-    args.add("enabled:"+enable);
-
-    args.addAll(getConnectionCommandLineArguments());
-    args.add(getNoPropertiesFileArgument());
-    args.add("--no-prompt");
-
-    final ProgressDialog progressDialog = getProgressDialog();
-
-    SwingUtilities.invokeLater(new Runnable()
-    {
-      public void run()
-      {
-        if (enable)
-        {
-          printEquivalentCommandLine(getCommandLinePath("dsconfig"),
-              args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ENABLE_BACKEND.get(
-                  backendName));
-          progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
-              INFO_CTRL_PANEL_ENABLING_BACKEND.get(backendName),
-              ColorAndFontConstants.progressFont));
-        }
-        else
-        {
-          printEquivalentCommandLine(getCommandLinePath("dsconfig"),
-              args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DISABLE_BACKEND.get(
-                  backendName));
-          progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
-              INFO_CTRL_PANEL_DISABLING_BACKEND.get(backendName),
-              ColorAndFontConstants.progressFont));
-        }
-      }
-    });
-
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(getInfo().getDirContext()));
-    RootCfgClient root = mCtx.getRootConfiguration();
-    LocalDBBackendCfgClient backend =
-      (LocalDBBackendCfgClient)root.getBackend(backendName);
-
-    if (backend.isEnabled() != enable)
-    {
-      backend.setEnabled(enable);
-      backend.commit();
-    }
-
-    SwingUtilities.invokeLater(new Runnable()
-    {
-      public void run()
-      {
-        progressDialog.appendProgressHtml(Utilities.getProgressDone(
-            ColorAndFontConstants.progressFont)+
-        "<br><br>");
-      }
-    });
   }
 
   private boolean rebuildAll()
