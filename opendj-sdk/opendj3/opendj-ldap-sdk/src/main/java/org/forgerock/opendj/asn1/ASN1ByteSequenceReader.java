@@ -27,9 +27,6 @@
 
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
@@ -49,7 +46,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Reader {
 
-    private int state = ELEMENT_READ_STATE_NEED_TYPE;
+    private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
     private byte peekType = 0;
 
@@ -88,10 +85,10 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
      * {@inheritDoc}
      */
     public boolean elementAvailable() throws IOException {
-        if ((state == ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false)) {
+        if ((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false)) {
             return false;
         }
-        if ((state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
+        if ((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
                 && !needFirstLengthByteState(false)) {
             return false;
         }
@@ -103,7 +100,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
      * {@inheritDoc}
      */
     public boolean hasNextElement() throws IOException {
-        return (state != ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(false);
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(false);
     }
 
     /**
@@ -112,7 +109,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
     public int peekLength() throws IOException {
         peekType();
 
-        if (state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE) {
+        if (state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE) {
             needFirstLengthByteState(true);
         }
 
@@ -123,7 +120,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
      * {@inheritDoc}
      */
     public byte peekType() throws IOException {
-        if (state == ELEMENT_READ_STATE_NEED_TYPE) {
+        if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             // Read just the type.
             if (reader.remaining() <= 0) {
                 final LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
@@ -132,7 +129,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             final int type = reader.get();
 
             peekType = (byte) type;
-            state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
         }
 
         return peekType;
@@ -156,7 +153,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         }
         final int readByte = reader.get();
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return readByte != 0x00;
     }
 
@@ -177,7 +174,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         reader = readerStack.removeFirst();
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -232,7 +229,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
                 longValue = (longValue << 8) | (readByte & 0xFF);
             }
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return longValue;
         } else {
             int intValue = 0;
@@ -244,7 +241,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
                 intValue = (intValue << 8) | (readByte & 0xFF);
             }
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return intValue;
         }
     }
@@ -262,7 +259,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             throw DecodeException.fatalError(message);
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -278,7 +275,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             throw DecodeException.fatalError(message);
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return reader.getByteString(peekLength);
     }
 
@@ -297,7 +294,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         }
         builder.append(reader, peekLength);
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return builder;
     }
 
@@ -314,7 +311,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             throw DecodeException.fatalError(message);
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return reader.getString(peekLength);
     }
 
@@ -336,7 +333,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         reader = subByteString;
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -360,7 +357,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             throw DecodeException.fatalError(message);
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         reader.skip(peekLength);
         return this;
     }
@@ -419,7 +416,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
                             .get(peekLength, maxElementSize);
             throw DecodeException.fatalError(message);
         }
-        state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+        state = ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
         return true;
     }
 
@@ -446,7 +443,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         final int type = reader.get();
 
         peekType = (byte) type;
-        state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
         return true;
     }
 }

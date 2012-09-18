@@ -27,10 +27,6 @@
 
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
-import static org.forgerock.opendj.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
@@ -50,7 +46,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * An ASN1Reader that reads from an input stream.
  */
 final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Reader {
-    private int state = ELEMENT_READ_STATE_NEED_TYPE;
+    private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
     private byte peekType = 0;
 
@@ -97,14 +93,14 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
      * {@inheritDoc}
      */
     public boolean elementAvailable() throws IOException {
-        if ((state == ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false, false)) {
+        if ((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false, false)) {
             return false;
         }
-        if ((state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
+        if ((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
                 && !needFirstLengthByteState(false, false)) {
             return false;
         }
-        if ((state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
+        if ((state == ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
                 && !needAdditionalLengthBytesState(false, false)) {
             return false;
         }
@@ -124,7 +120,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             return (subSq.getSizeLimit() - subSq.getBytesRead() > 0);
         }
 
-        return (state != ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true, false);
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true, false);
     }
 
     /**
@@ -134,11 +130,11 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         peekType();
 
         switch (state) {
-        case ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
+        case ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
             needFirstLengthByteState(true, true);
             break;
 
-        case ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
+        case ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
             needAdditionalLengthBytesState(true, true);
         }
 
@@ -149,7 +145,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
      * {@inheritDoc}
      */
     public byte peekType() throws IOException {
-        if (state == ELEMENT_READ_STATE_NEED_TYPE) {
+        if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             needTypeState(true, true);
         }
 
@@ -180,7 +176,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                     String.valueOf(readByte != 0x00)));
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return readByte != 0x00;
     }
 
@@ -212,7 +208,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         in = streamStack.removeFirst();
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -268,7 +264,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                 longValue = (longValue << 8) | (readByte & 0xFF);
             }
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return longValue;
         } else {
             int intValue = 0;
@@ -291,7 +287,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                         intValue));
             }
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return intValue;
         }
     }
@@ -314,7 +310,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                     peekType, peekLength));
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -325,7 +321,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return ByteString.empty();
         }
 
@@ -349,7 +345,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                     "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType, peekLength));
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return ByteString.wrap(value);
     }
 
@@ -361,7 +357,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return builder;
         }
 
@@ -383,7 +379,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                     "READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType, peekLength));
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return builder;
     }
 
@@ -395,7 +391,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return "";
         }
 
@@ -416,7 +412,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             bytesNeeded -= bytesRead;
         }
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
         String str;
         try {
@@ -457,7 +453,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         in = subStream;
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -481,7 +477,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             final LocalizableMessage message = ERR_ASN1_SKIP_TRUNCATED_VALUE.get(peekLength);
             throw DecodeException.fatalError(message);
         }
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return this;
     }
 
@@ -509,7 +505,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         while (lengthBytesNeeded > 0) {
             readByte = in.read();
             if (readByte == -1) {
-                state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+                state = ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
                 if (throwEofException) {
                     final LocalizableMessage message =
                             ERR_ASN1_TRUNCATED_LENGTH_BYTES.get(lengthBytesNeeded);
@@ -529,7 +525,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                             .get(peekLength, maxElementSize);
             throw DecodeException.fatalError(message);
         }
-        state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+        state = ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
         return true;
     }
 
@@ -572,14 +568,14 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             peekLength = 0x00;
 
             if (!isBlocking && (in.available() < lengthBytesNeeded)) {
-                state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+                state = ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
                 return false;
             }
 
             while (lengthBytesNeeded > 0) {
                 readByte = in.read();
                 if (readByte == -1) {
-                    state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+                    state = ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
                     if (throwEofException) {
                         final LocalizableMessage message =
                                 ERR_ASN1_TRUNCATED_LENGTH_BYTES.get(lengthBytesNeeded);
@@ -600,7 +596,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                             .get(peekLength, maxElementSize);
             throw DecodeException.fatalError(message);
         }
-        state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+        state = ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
         return true;
     }
 
@@ -635,7 +631,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         }
 
         peekType = (byte) type;
-        state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
         return true;
     }
 }

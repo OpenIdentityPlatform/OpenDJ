@@ -26,8 +26,6 @@
  */
 package com.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 
 import java.io.IOException;
@@ -35,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.asn1.AbstractASN1Writer;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -229,7 +228,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 1);
-        sequenceBuffer.writeByte(booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
+        sequenceBuffer.writeByte(booleanValue ? ASN1.BOOLEAN_VALUE_TRUE : ASN1.BOOLEAN_VALUE_FALSE);
 
         if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
             StaticUtils.DEBUG_LOG.finest(String.format(

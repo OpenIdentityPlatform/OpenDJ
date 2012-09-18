@@ -26,7 +26,6 @@
  */
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -182,7 +181,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         final ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), 1);
-        assertEquals(r.peekType(), UNIVERSAL_BOOLEAN_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_BOOLEAN_TYPE);
         assertEquals(r.readBoolean(), b);
     }
 
@@ -216,7 +215,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         final ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), length);
-        assertEquals(r.peekType(), UNIVERSAL_ENUMERATED_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_ENUMERATED_TYPE);
         assertEquals(r.readInteger(), i);
     }
 
@@ -232,7 +231,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         final ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), length);
-        assertEquals(r.peekType(), UNIVERSAL_INTEGER_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_INTEGER_TYPE);
         assertEquals(r.readInteger(), i);
     }
 
@@ -248,7 +247,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         final ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), length);
-        assertEquals(r.peekType(), UNIVERSAL_INTEGER_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_INTEGER_TYPE);
         assertEquals(r.readInteger(), l);
     }
 
@@ -297,7 +296,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         final ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), 0);
-        assertEquals(r.peekType(), UNIVERSAL_NULL_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_NULL_TYPE);
         r.readNull();
     }
 
@@ -327,14 +326,14 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
         ASN1Reader r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), b.length);
-        assertEquals(r.peekType(), UNIVERSAL_OCTET_STRING_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         assertTrue(bs.equals(r.readOctetString()));
 
         getWriter().writeOctetString(b, 0, b.length);
 
         r = getReader(getEncodedBytes());
         assertEquals(r.peekLength(), b.length);
-        assertEquals(r.peekType(), UNIVERSAL_OCTET_STRING_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         assertTrue(bs.equals(r.readOctetString()));
     }
 
@@ -351,7 +350,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
         } else {
             assertEquals(r.peekLength(), StaticUtils.getBytes(s).length);
         }
-        assertEquals(r.peekType(), UNIVERSAL_OCTET_STRING_TYPE);
+        assertEquals(r.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         if (s == null) {
             assertTrue(r.readOctetStringAsString().equals(""));
         } else {
@@ -374,7 +373,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
             final ASN1Reader r = getReader(getEncodedBytes());
             assertEquals(r.peekLength(), 3);
-            assertEquals(r.peekType(), UNIVERSAL_OCTET_STRING_TYPE);
+            assertEquals(r.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
             assertTrue(bs.equals(r.readOctetString()));
         }
     }
@@ -456,7 +455,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
         writer.writeEndSequence();
 
         final ASN1Reader reader = getReader(getEncodedBytes());
-        assertEquals(reader.peekType(), UNIVERSAL_SEQUENCE_TYPE);
+        assertEquals(reader.peekType(), ASN1.UNIVERSAL_SEQUENCE_TYPE);
         assertEquals(reader.peekLength(), 71);
 
         assertTrue(reader.hasNextElement());
@@ -472,13 +471,13 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
         reader.skipElement();
 
         assertEquals(reader.peekLength(), 17);
-        assertEquals(reader.peekType(), UNIVERSAL_SEQUENCE_TYPE);
+        assertEquals(reader.peekType(), ASN1.UNIVERSAL_SEQUENCE_TYPE);
         reader.readStartSequence();
         assertEquals("nested sequence", reader.readOctetStringAsString());
         reader.readEndSequence();
 
         assertEquals(reader.peekLength(), 12);
-        assertEquals(reader.peekType(), UNIVERSAL_SET_TYPE);
+        assertEquals(reader.peekType(), ASN1.UNIVERSAL_SET_TYPE);
         reader.readStartSequence();
         assertEquals("nested set", reader.readOctetStringAsString());
         reader.readEndSequence();

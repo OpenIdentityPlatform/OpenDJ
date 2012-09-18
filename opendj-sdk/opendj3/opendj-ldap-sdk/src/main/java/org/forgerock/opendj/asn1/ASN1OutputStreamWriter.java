@@ -26,8 +26,6 @@
  */
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 
 import java.io.IOException;
@@ -90,7 +88,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Wri
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         out.write(type);
         writeLength(1);
-        out.write(booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
+        out.write(booleanValue ? ASN1.BOOLEAN_VALUE_TRUE : ASN1.BOOLEAN_VALUE_FALSE);
 
         if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
             StaticUtils.DEBUG_LOG.finest(String.format(
