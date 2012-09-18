@@ -639,7 +639,7 @@ public class GenerateMessageFile extends Task {
     CATEGORY_DESCRIPTIONS.put("RUNTIME_INFORMATION", "the runtime"
             + " information.");
     CATEGORY_DESCRIPTIONS.put("SCHEMA", "the server schema elements.");
-    CATEGORY_DESCRIPTIONS.put("SYNC", "the Synchronization.");
+    CATEGORY_DESCRIPTIONS.put("SYNC", "replication.");
     CATEGORY_DESCRIPTIONS.put("TASK", "tasks.");
     CATEGORY_DESCRIPTIONS.put("THIRD_PARTY", "third-party (including"
             + " user-defined) modules.");
