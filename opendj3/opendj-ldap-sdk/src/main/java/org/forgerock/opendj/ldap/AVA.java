@@ -565,6 +565,9 @@ public final class AVA implements Comparable<AVA> {
     /**
      * Creates a new attribute value assertion (AVA) using the provided
      * attribute type and value.
+     * <p>
+     * If {@code attributeValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param attributeType
      *            The attribute type.
@@ -574,11 +577,11 @@ public final class AVA implements Comparable<AVA> {
      *             If {@code attributeType} or {@code attributeValue} was
      *             {@code null}.
      */
-    public AVA(final AttributeType attributeType, final ByteString attributeValue) {
+    public AVA(final AttributeType attributeType, final Object attributeValue) {
         Validator.ensureNotNull(attributeType, attributeValue);
 
         this.attributeType = attributeType;
-        this.attributeValue = attributeValue;
+        this.attributeValue = ByteString.valueOf(attributeValue);
     }
 
     /**

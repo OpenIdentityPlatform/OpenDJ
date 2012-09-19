@@ -180,6 +180,9 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
     /**
      * Creates a new RDN using the provided attribute type and value.
+     * <p>
+     * If {@code attributeValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param attributeType
      *            The attribute type.
@@ -189,7 +192,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      *             If {@code attributeType} or {@code attributeValue} was
      *             {@code null}.
      */
-    public RDN(final AttributeType attributeType, final ByteString attributeValue) {
+    public RDN(final AttributeType attributeType, final Object attributeValue) {
         this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
     }
 
