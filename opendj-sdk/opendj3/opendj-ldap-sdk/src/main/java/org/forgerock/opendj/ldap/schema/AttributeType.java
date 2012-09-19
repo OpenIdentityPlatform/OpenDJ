@@ -537,7 +537,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
 
     /**
      * Implements a place-holder tolerant version of {@link #equals}. This
-     * method returns {@true} in the following cases:
+     * method returns {@code true} in the following cases:
      * <ul>
      * <li>this attribute type is equal to the provided attribute type as
      * specified by {@link #equals}
