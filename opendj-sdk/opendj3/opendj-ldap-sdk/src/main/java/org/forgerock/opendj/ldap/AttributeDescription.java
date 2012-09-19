@@ -67,7 +67,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
         public abstract int compareTo(Impl other);
 
-        public abstract boolean containsOption(String normalizedOption);
+        public abstract boolean hasOption(String normalizedOption);
 
         public abstract boolean equals(Impl other);
 
@@ -128,7 +128,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         }
 
         @Override
-        public boolean containsOption(final String normalizedOption) {
+        public boolean hasOption(final String normalizedOption) {
             final int sz = normalizedOptions.length;
             for (int i = 0; i < sz; i++) {
                 if (normalizedOptions[i].equals(normalizedOption)) {
@@ -169,7 +169,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             if (other == ZERO_OPTION_IMPL) {
                 return true;
             } else if (other.size() == 1) {
-                return containsOption(other.firstNormalizedOption());
+                return hasOption(other.firstNormalizedOption());
             } else if (other.size() > size()) {
                 return false;
             } else {
@@ -179,7 +179,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 // not worth it.
                 final MultiOptionImpl tmp = (MultiOptionImpl) other;
                 for (final String normalizedOption : tmp.normalizedOptions) {
-                    if (!containsOption(normalizedOption)) {
+                    if (!hasOption(normalizedOption)) {
                         return false;
                     }
                 }
@@ -191,7 +191,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         public boolean isSuperTypeOf(final Impl other) {
             // Must contain a sub-set of other's options.
             for (final String normalizedOption : normalizedOptions) {
-                if (!other.containsOption(normalizedOption)) {
+                if (!other.hasOption(normalizedOption)) {
                     return false;
                 }
             }
@@ -235,13 +235,13 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         }
 
         @Override
-        public boolean containsOption(final String normalizedOption) {
+        public boolean hasOption(final String normalizedOption) {
             return this.normalizedOption.equals(normalizedOption);
         }
 
         @Override
         public boolean equals(final Impl other) {
-            return other.size() == 1 && other.containsOption(normalizedOption);
+            return other.size() == 1 && other.hasOption(normalizedOption);
         }
 
         @Override
@@ -272,7 +272,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         @Override
         public boolean isSuperTypeOf(final Impl other) {
             // Other must have this option.
-            return other.containsOption(normalizedOption);
+            return other.hasOption(normalizedOption);
         }
 
         public Iterator<String> iterator() {
@@ -298,7 +298,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         }
 
         @Override
-        public boolean containsOption(final String normalizedOption) {
+        public boolean hasOption(final String normalizedOption) {
             return false;
         }
 
@@ -391,7 +391,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         Validator.ensureNotNull(option);
 
         final String normalizedOption = toLowerCase(option);
-        if (pimpl.containsOption(normalizedOption)) {
+        if (pimpl.hasOption(normalizedOption)) {
             return this;
         }
 
@@ -480,7 +480,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         Validator.ensureNotNull(option);
 
         final String normalizedOption = toLowerCase(option);
-        if (!pimpl.containsOption(normalizedOption)) {
+        if (!pimpl.hasOption(normalizedOption)) {
             return this;
         }
 
@@ -489,8 +489,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 new StringBuilder(oldAttributeDescription.length() - option.length() - 1);
 
         final String normalizedOldAttributeDescription = toLowerCase(oldAttributeDescription);
-        final int index =
-                normalizedOldAttributeDescription.indexOf(normalizedOption);
+        final int index = normalizedOldAttributeDescription.indexOf(normalizedOption);
         builder.append(oldAttributeDescription, 0, index - 1 /* to semi-colon */);
         builder.append(oldAttributeDescription, index + option.length(), oldAttributeDescription
                 .length());
@@ -1033,15 +1032,16 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @throws NullPointerException
      *             If {@code option} was {@code null}.
      */
-    public boolean containsOption(final String option) {
+    public boolean hasOption(final String option) {
         final String normalizedOption = toLowerCase(option);
-        return pimpl.containsOption(normalizedOption);
+        return pimpl.hasOption(normalizedOption);
     }
 
     /**
      * Indicates whether the provided object is an attribute description which
      * is equal to this attribute description. It will be considered equal if
-     * the attribute type and normalized sorted list of options are identical.
+     * the attribute types are {@link AttributeType#equals equal} and normalized
+     * sorted list of options are identical.
      *
      * @param o
      *            The object for which to make the determination.
@@ -1053,19 +1053,12 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
-        }
-
-        if (!(o instanceof AttributeDescription)) {
+        } else if (o instanceof AttributeDescription) {
+            final AttributeDescription other = (AttributeDescription) o;
+            return attributeType.equals(other.attributeType) && pimpl.equals(other.pimpl);
+        } else {
             return false;
         }
-
-        final AttributeDescription other = (AttributeDescription) o;
-        if (!attributeType.equals(other.attributeType)) {
-            return false;
-        }
-
-        // Attribute type is the same, compare options.
-        return pimpl.equals(other.pimpl);
     }
 
     /**
@@ -1125,14 +1118,34 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
+     * Indicates whether this attribute description is a temporary place-holder
+     * allocated dynamically by a non-strict schema when no corresponding
+     * registered attribute type was found.
+     * <p>
+     * Place holder attribute descriptions have an attribute type whose OID is
+     * the normalized attribute name with the string {@code -oid} appended. In
+     * addition, they will use the directory string syntax and case ignore
+     * matching rule.
+     *
+     * @return {@code true} if this is a temporary place-holder attribute
+     *         description allocated dynamically by a non-strict schema when no
+     *         corresponding registered attribute type was found.
+     * @see Schema#getAttributeType(String)
+     * @see AttributeType#isPlaceHolder()
+     */
+    public boolean isPlaceHolder() {
+        return attributeType.isPlaceHolder();
+    }
+
+    /**
      * Indicates whether or not this attribute description is a sub-type of the
      * provided attribute description as defined in RFC 4512 section 2.5.
      * Specifically, this method will return {@code true} if and only if the
      * following conditions are both {@code true}:
      * <ul>
-     * <li>This attribute description has an attribute type which is equal to,
-     * or is a sub-type of, the attribute type in the provided attribute
-     * description.
+     * <li>This attribute description has an attribute type which
+     * {@link AttributeType#matches matches}, or is a sub-type of, the attribute
+     * type in the provided attribute description.
      * <li>This attribute description contains all of the options contained in
      * the provided attribute description.
      * </ul>
@@ -1160,9 +1173,9 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * Specifically, this method will return {@code true} if and only if the
      * following conditions are both {@code true}:
      * <ul>
-     * <li>This attribute description has an attribute type which is equal to,
-     * or is a super-type of, the attribute type in the provided attribute
-     * description.
+     * <li>This attribute description has an attribute type which
+     * {@link AttributeType#matches matches}, or is a super-type of, the
+     * attribute type in the provided attribute description.
      * <li>This attribute description contains a sub-set of the options
      * contained in the provided attribute description.
      * </ul>
@@ -1177,10 +1190,29 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code name} was {@code null}.
      */
     public boolean isSuperTypeOf(final AttributeDescription other) {
-        if (!other.attributeType.isSubTypeOf(attributeType)) {
+        if (!attributeType.isSuperTypeOf(other.attributeType)) {
             return false;
         } else {
             return pimpl.isSuperTypeOf(other.pimpl);
+        }
+    }
+
+    /**
+     * Indicates whether the provided attribute description matches this
+     * attribute description. It will be considered a match if the attribute
+     * types {@link AttributeType#matches match} and the normalized sorted list
+     * of options are identical.
+     *
+     * @param other
+     *            The attribute description for which to make the determination.
+     * @return {@code true} if the provided attribute description matches this
+     *         attribute description, or {@code false} if not.
+     */
+    public boolean matches(final AttributeDescription other) {
+        if (this == other) {
+            return true;
+        } else {
+            return attributeType.matches(other.attributeType) && pimpl.equals(other.pimpl);
         }
     }
 

@@ -74,6 +74,9 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     // Indicates whether this definition is declared "obsolete".
     private final boolean isObsolete;
 
+    // Indicates whether this definition is a temporary place-holder.
+    private final boolean isPlaceHolder;
+
     // Indicates whether this attribute type is declared "single-value".
     private final boolean isSingleValue;
 
@@ -162,34 +165,45 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         }
 
         this.isObjectClassType = oid.equals("2.5.4.0");
+        this.isPlaceHolder = false;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
     }
 
-    AttributeType(final String oid, final List<String> names, final String description,
-            final MatchingRule equalityMatchingRule, final Syntax syntax) {
-        super(description, Collections.<String, List<String>> emptyMap());
+    /**
+     * Creates a new place-holder attribute type having the specified name,
+     * default syntax, and default matching rule. The OID of the place-holder
+     * attribute will be the normalized attribute type name followed by the
+     * suffix "-oid".
+     *
+     * @param name
+     *            The name of the place-holder attribute type.
+     */
+    AttributeType(final String name) {
+        super("", Collections.<String, List<String>> emptyMap());
 
-        Validator.ensureNotNull(oid, names, description);
+        final StringBuilder builder = new StringBuilder(name.length() + 4);
+        StaticUtils.toLowerCase(name, builder);
+        builder.append("-oid");
 
-        this.oid = oid;
-        this.names = names;
+        this.oid = builder.toString();
+        this.names = Collections.singletonList(name);
         this.isObsolete = false;
         this.superiorTypeOID = null;
         this.superiorType = null;
+        this.equalityMatchingRule = Schema.getDefaultMatchingRule();
         this.equalityMatchingRuleOID = equalityMatchingRule.getOID();
-        this.equalityMatchingRule = equalityMatchingRule;
         this.orderingMatchingRuleOID = null;
         this.substringMatchingRuleOID = null;
         this.approximateMatchingRuleOID = null;
+        this.syntax = Schema.getDefaultSyntax();
         this.syntaxOID = syntax.getOID();
-        this.syntax = syntax;
         this.isSingleValue = false;
         this.isCollective = false;
         this.isNoUserModification = false;
         this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
         this.definition = buildDefinition();
-
-        this.isObjectClassType = oid.equals("2.5.4.0");
+        this.isObjectClassType = false;
+        this.isPlaceHolder = true;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
     }
 
@@ -200,7 +214,8 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * <li>The {@code objectClass} attribute is less than all other attribute
      * types.
      * <li>User attributes are less than operational attributes.
-     * <li>Lexicographic comparison of the primary name or OID.
+     * <li>Lexicographic comparison of the primary name and then, if equal, the
+     * OID.
      * </ul>
      *
      * @param type
@@ -219,9 +234,13 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         } else {
             final boolean isOperational = getUsage().isOperational();
             final boolean typeIsOperational = type.getUsage().isOperational();
-
             if (isOperational == typeIsOperational) {
-                return normalizedName.compareTo(type.normalizedName);
+                final int tmp = normalizedName.compareTo(type.normalizedName);
+                if (tmp == 0) {
+                    return oid.compareTo(type.oid);
+                } else {
+                    return tmp;
+                }
             } else {
                 return isOperational ? 1 : -1;
             }
@@ -452,6 +471,24 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     }
 
     /**
+     * Indicates whether this attribute type is a temporary place-holder
+     * allocated dynamically by a non-strict schema when no registered attribute
+     * type was found.
+     * <p>
+     * Place holder attribute types have an OID which is the normalized
+     * attribute name with the string {@code -oid} appended. In addition, they
+     * will use the directory string syntax and case ignore matching rule.
+     *
+     * @return {@code true} if this is a temporary place-holder attribute type
+     *         allocated dynamically by a non-strict schema when no registered
+     *         attribute type was found.
+     * @see Schema#getAttributeType(String)
+     */
+    public boolean isPlaceHolder() {
+        return isPlaceHolder;
+    }
+
+    /**
      * Indicates whether this attribute type is declared "single-value".
      *
      * @return {@code true} if this attribute type is declared "single-value",
@@ -475,12 +512,56 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     public boolean isSubTypeOf(final AttributeType type) {
         AttributeType tmp = this;
         do {
-            if (tmp.equals(type)) {
+            if (tmp.matches(type)) {
                 return true;
             }
             tmp = tmp.getSuperiorType();
         } while (tmp != null);
         return false;
+    }
+
+    /**
+     * Indicates whether or not this attribute type is a super-type of the
+     * provided attribute type.
+     *
+     * @param type
+     *            The attribute type for which to make the determination.
+     * @return {@code true} if this attribute type is a super-type of the
+     *         provided attribute type, or {@code false} if not.
+     * @throws NullPointerException
+     *             If {@code type} was {@code null}.
+     */
+    public boolean isSuperTypeOf(final AttributeType type) {
+        return type.isSubTypeOf(this);
+    }
+
+    /**
+     * Implements a place-holder tolerant version of {@link #equals}. This
+     * method returns {@true} in the following cases:
+     * <ul>
+     * <li>this attribute type is equal to the provided attribute type as
+     * specified by {@link #equals}
+     * <li>this attribute type is a place-holder and the provided attribute type
+     * has a name which matches the name of this attribute type
+     * <li>the provided attribute type is a place-holder and this attribute type
+     * has a name which matches the name of the provided attribute type.
+     * </ul>
+     *
+     * @param type
+     *            The attribute type for which to make the determination.
+     * @return {@code true} if the provided attribute type matches this
+     *         attribute type.
+     */
+    public boolean matches(final AttributeType type) {
+        if (this == type) {
+            return true;
+        } else if (oid.equals(type.oid)) {
+            return true;
+        } else if (isPlaceHolder != type.isPlaceHolder) {
+            return isPlaceHolder ? type.hasName(normalizedName) : hasName(type.normalizedName);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -591,8 +672,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     boolean validate(final Schema schema, final List<AttributeType> invalidSchemaElements,
             final List<LocalizableMessage> warnings) {
         // Avoid validating this schema element more than once. This may occur
-        // if
-        // multiple attributes specify the same superior.
+        // if multiple attributes specify the same superior.
         if (!needsValidating) {
             return isValid;
         }
@@ -612,8 +692,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             }
 
             // First ensure that the superior has been validated and fail if it
-            // is
-            // invalid.
+            // is invalid.
             if (!superiorType.validate(schema, invalidSchemaElements, warnings)) {
                 final LocalizableMessage message =
                         WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_TYPE.get(getNameOrOID(),

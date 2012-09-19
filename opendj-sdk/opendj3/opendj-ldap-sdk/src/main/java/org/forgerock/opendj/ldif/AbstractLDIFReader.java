@@ -501,7 +501,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         // Ensure that the binary option is present if required.
         if (!syntax.isBEREncodingRequired()) {
             if (schemaValidationPolicy.checkAttributeValues().needsChecking()
-                    && attributeDescription.containsOption("binary")) {
+                    && attributeDescription.hasOption("binary")) {
                 final LocalizableMessage message =
                         ERR_LDIF_UNEXPECTED_BINARY_OPTION.get(record.lineNumber, entry.getName()
                                 .toString(), attrDescr);

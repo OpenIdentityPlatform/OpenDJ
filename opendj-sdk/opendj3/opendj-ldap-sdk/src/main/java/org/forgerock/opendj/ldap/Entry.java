@@ -38,8 +38,12 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
  * {@link #addAttribute(String, Object...)} and {@link #setName(String)}). In
  * these cases the default schema is used unless an alternative schema is
  * specified in the {@code Entry} constructor. The default schema is not used
- * for any other purpose. In particular, an {@code Entry} will permit attributes
- * to be added which have been decoded using multiple schemas.
+ * for any other purpose. In particular, an {@code Entry} may contain attributes
+ * which have been decoded using different schemas.
+ * <p>
+ * When determining whether or not an entry already contains a particular
+ * attribute, attribute descriptions will be compared using
+ * {@link AttributeDescription#matches}.
  * <p>
  * Full LDAP modify semantics are provided via the {@link #addAttribute},
  * {@link #removeAttribute}, and {@link #replaceAttribute} methods.
@@ -64,12 +68,14 @@ public interface Entry {
      * Ensures that this entry contains the provided attribute and values
      * (optional operation). This method has the following semantics:
      * <ul>
-     * <li>If this entry does not already contain an attribute with the same
-     * attribute description, then this entry will be modified such that it
-     * contains {@code attribute}, even if it is empty.
-     * <li>If this entry already contains an attribute with the same attribute
-     * description, then the attribute values contained in {@code attribute}
-     * will be merged with the existing attribute values.
+     * <li>If this entry does not already contain an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * this entry will be modified such that it contains {@code attribute}, even
+     * if it is empty.
+     * <li>If this entry already contains an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * the attribute values contained in {@code attribute} will be merged with
+     * the existing attribute values.
      * </ul>
      * <p>
      * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
@@ -91,12 +97,14 @@ public interface Entry {
      * Ensures that this entry contains the provided attribute and values
      * (optional operation). This method has the following semantics:
      * <ul>
-     * <li>If this entry does not already contain an attribute with the same
-     * attribute description, then this entry will be modified such that it
-     * contains {@code attribute}, even if it is empty.
-     * <li>If this entry already contains an attribute with the same attribute
-     * description, then the attribute values contained in {@code attribute}
-     * will be merged with the existing attribute values.
+     * <li>If this entry does not already contain an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * this entry will be modified such that it contains {@code attribute}, even
+     * if it is empty.
+     * <li>If this entry already contains an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * the attribute values contained in {@code attribute} will be merged with
+     * the existing attribute values.
      * </ul>
      * <p>
      * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
@@ -121,12 +129,14 @@ public interface Entry {
      * Ensures that this entry contains the provided attribute and values
      * (optional operation). This method has the following semantics:
      * <ul>
-     * <li>If this entry does not already contain an attribute with the same
-     * attribute description, then this entry will be modified such that it
-     * contains {@code attribute}, even if it is empty.
-     * <li>If this entry already contains an attribute with the same attribute
-     * description, then the attribute values contained in {@code attribute}
-     * will be merged with the existing attribute values.
+     * <li>If this entry does not already contain an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * this entry will be modified such that it contains {@code attribute}, even
+     * if it is empty.
+     * <li>If this entry already contains an attribute with a
+     * {@link AttributeDescription#matches matching} attribute description, then
+     * the attribute values contained in {@code attribute} will be merged with
+     * the existing attribute values.
      * </ul>
      * <p>
      * The attribute description will be decoded using the schema associated

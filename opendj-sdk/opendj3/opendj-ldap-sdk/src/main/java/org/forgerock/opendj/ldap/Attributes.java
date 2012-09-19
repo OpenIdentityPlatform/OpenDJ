@@ -30,6 +30,8 @@ package org.forgerock.opendj.ldap;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 import com.forgerock.opendj.util.Iterators;
 import com.forgerock.opendj.util.Validator;
 
@@ -97,7 +99,6 @@ public final class Attributes {
     private static final class RenamedAttribute implements Attribute {
 
         private final Attribute attribute;
-
         private final AttributeDescription attributeDescription;
 
         private RenamedAttribute(final Attribute attribute,
@@ -106,31 +107,38 @@ public final class Attributes {
             this.attributeDescription = attributeDescription;
         }
 
+        @Override
         public boolean add(final ByteString value) {
             return attribute.add(value);
         }
 
+        @Override
         public boolean add(final Object firstValue, final Object... remainingValues) {
             return attribute.add(firstValue, remainingValues);
         }
 
+        @Override
         public boolean addAll(final Collection<? extends ByteString> values) {
             return attribute.addAll(values);
         }
 
+        @Override
         public boolean addAll(final Collection<? extends ByteString> values,
                 final Collection<? super ByteString> duplicateValues) {
             return attribute.addAll(values, duplicateValues);
         }
 
+        @Override
         public void clear() {
             attribute.clear();
         }
 
+        @Override
         public boolean contains(final Object value) {
             return attribute.contains(value);
         }
 
+        @Override
         public boolean containsAll(final Collection<?> values) {
             return attribute.containsAll(values);
         }
@@ -140,18 +148,22 @@ public final class Attributes {
             return AbstractAttribute.equals(this, object);
         }
 
+        @Override
         public ByteString firstValue() {
             return attribute.firstValue();
         }
 
+        @Override
         public String firstValueAsString() {
             return attribute.firstValueAsString();
         }
 
+        @Override
         public AttributeDescription getAttributeDescription() {
             return attributeDescription;
         }
 
+        @Override
         public String getAttributeDescriptionAsString() {
             return attributeDescription.toString();
         }
@@ -161,48 +173,59 @@ public final class Attributes {
             return AbstractAttribute.hashCode(this);
         }
 
-        public AttributeParser parse() {
-            return attribute.parse();
-        }
-
+        @Override
         public boolean isEmpty() {
             return attribute.isEmpty();
         }
 
+        @Override
         public Iterator<ByteString> iterator() {
             return attribute.iterator();
         }
 
+        @Override
+        public AttributeParser parse() {
+            return attribute.parse();
+        }
+
+        @Override
         public boolean remove(final Object value) {
             return attribute.remove(value);
         }
 
+        @Override
         public boolean removeAll(final Collection<?> values) {
             return attribute.removeAll(values);
         }
 
+        @Override
         public <T> boolean removeAll(final Collection<T> values,
                 final Collection<? super T> missingValues) {
             return attribute.removeAll(values, missingValues);
         }
 
+        @Override
         public boolean retainAll(final Collection<?> values) {
             return attribute.retainAll(values);
         }
 
+        @Override
         public <T> boolean retainAll(final Collection<T> values,
                 final Collection<? super T> missingValues) {
             return attribute.retainAll(values, missingValues);
         }
 
+        @Override
         public int size() {
             return attribute.size();
         }
 
+        @Override
         public ByteString[] toArray() {
             return attribute.toArray();
         }
 
+        @Override
         public <T> T[] toArray(final T[] array) {
             return attribute.toArray(array);
         }
@@ -210,6 +233,72 @@ public final class Attributes {
         @Override
         public String toString() {
             return AbstractAttribute.toString(this);
+        }
+
+    }
+
+    /**
+     * Singleton attribute.
+     */
+    private static final class SingletonAttribute extends AbstractAttribute {
+
+        private final AttributeDescription attributeDescription;
+        private ByteString normalizedValue;
+        private final ByteString value;
+
+        private SingletonAttribute(final AttributeDescription attributeDescription,
+                final Object value) {
+            this.attributeDescription = attributeDescription;
+            this.value = ByteString.valueOf(value);
+        }
+
+        @Override
+        public boolean add(final ByteString value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean contains(final Object value) {
+            final ByteString normalizedValue = normalizeValue(this, ByteString.valueOf(value));
+            return normalizedSingleValue().equals(normalizedValue);
+        }
+
+        @Override
+        public AttributeDescription getAttributeDescription() {
+            return attributeDescription;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public Iterator<ByteString> iterator() {
+            return Iterators.singletonIterator(value);
+        }
+
+        @Override
+        public boolean remove(final Object value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            return 1;
+        }
+
+        // Lazily computes the normalized single value.
+        private ByteString normalizedSingleValue() {
+            if (normalizedValue == null) {
+                normalizedValue = normalizeValue(this, value);
+            }
+            return normalizedValue;
         }
 
     }
@@ -225,31 +314,38 @@ public final class Attributes {
             this.attribute = attribute;
         }
 
+        @Override
         public boolean add(final ByteString value) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean add(final Object firstValue, final Object... remainingValues) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean addAll(final Collection<? extends ByteString> values) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean addAll(final Collection<? extends ByteString> values,
                 final Collection<? super ByteString> duplicateValues) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void clear() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean contains(final Object value) {
             return attribute.contains(value);
         }
 
+        @Override
         public boolean containsAll(final Collection<?> values) {
             return attribute.containsAll(values);
         }
@@ -259,18 +355,22 @@ public final class Attributes {
             return (object == this || attribute.equals(object));
         }
 
+        @Override
         public ByteString firstValue() {
             return attribute.firstValue();
         }
 
+        @Override
         public String firstValueAsString() {
             return attribute.firstValueAsString();
         }
 
+        @Override
         public AttributeDescription getAttributeDescription() {
             return attribute.getAttributeDescription();
         }
 
+        @Override
         public String getAttributeDescriptionAsString() {
             return attribute.getAttributeDescriptionAsString();
         }
@@ -280,48 +380,59 @@ public final class Attributes {
             return attribute.hashCode();
         }
 
+        @Override
         public boolean isEmpty() {
             return attribute.isEmpty();
         }
 
+        @Override
         public Iterator<ByteString> iterator() {
             return Iterators.unmodifiableIterator(attribute.iterator());
         }
 
+        @Override
         public AttributeParser parse() {
             return attribute.parse();
         }
 
+        @Override
         public boolean remove(final Object value) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean removeAll(final Collection<?> values) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public <T> boolean removeAll(final Collection<T> values,
                 final Collection<? super T> missingValues) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean retainAll(final Collection<?> values) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public <T> boolean retainAll(final Collection<T> values,
                 final Collection<? super T> missingValues) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int size() {
             return attribute.size();
         }
 
+        @Override
         public ByteString[] toArray() {
             return attribute.toArray();
         }
 
+        @Override
         public <T> T[] toArray(final T[] array) {
             return attribute.toArray(array);
         }
@@ -330,12 +441,13 @@ public final class Attributes {
         public String toString() {
             return attribute.toString();
         }
-
     }
 
     /**
      * Returns a read-only empty attribute having the specified attribute
-     * description.
+     * description. Attempts to modify the returned attribute either directly,
+     * or indirectly via an iterator, result in an
+     * {@code UnsupportedOperationException}.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -345,6 +457,26 @@ public final class Attributes {
      */
     public static final Attribute emptyAttribute(final AttributeDescription attributeDescription) {
         return new EmptyAttribute(attributeDescription);
+    }
+
+    /**
+     * Returns a read-only empty attribute having the specified attribute
+     * description. The attribute description will be decoded using the default
+     * schema. Attempts to modify the returned attribute either directly, or
+     * indirectly via an iterator, result in an
+     * {@code UnsupportedOperationException}.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @return The empty attribute.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code attributeDescription} could not be decoded using
+     *             the default schema.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} was {@code null}.
+     */
+    public static final Attribute emptyAttribute(final String attributeDescription) {
+        return emptyAttribute(AttributeDescription.valueOf(attributeDescription));
     }
 
     /**
@@ -365,6 +497,80 @@ public final class Attributes {
             final AttributeDescription attributeDescription) {
         Validator.ensureNotNull(attribute, attributeDescription);
         return new RenamedAttribute(attribute, attributeDescription);
+    }
+
+    /**
+     * Returns a view of {@code attribute} having a different attribute
+     * description. All operations on the returned attribute "pass-through" to
+     * the underlying attribute. The attribute description will be decoded using
+     * the default schema.
+     *
+     * @param attribute
+     *            The attribute to be renamed.
+     * @param attributeDescription
+     *            The new attribute description for {@code attribute}.
+     * @return A renamed view of {@code attribute}.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code attributeDescription} could not be decoded using
+     *             the default schema.
+     * @throws NullPointerException
+     *             If {@code attribute} or {@code attributeDescription} was
+     *             {@code null}.
+     */
+    public static final Attribute renameAttribute(final Attribute attribute,
+            final String attributeDescription) {
+        Validator.ensureNotNull(attribute, attributeDescription);
+        return renameAttribute(attribute, AttributeDescription.valueOf(attributeDescription));
+    }
+
+    /**
+     * Returns a read-only single-valued attribute having the specified
+     * attribute description and value. Attempts to modify the returned
+     * attribute either directly, or indirectly via an iterator, result in an
+     * {@code UnsupportedOperationException}.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param value
+     *            The single attribute value.
+     * @return The single-valued attribute.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} or {@code value} was
+     *             {@code null}.
+     */
+    public static final Attribute singletonAttribute(
+            final AttributeDescription attributeDescription, final Object value) {
+        return new SingletonAttribute(attributeDescription, value);
+    }
+
+    /**
+     * Returns a read-only single-valued attribute having the specified
+     * attribute description. The attribute description will be decoded using
+     * the default schema. Attempts to modify the returned attribute either
+     * directly, or indirectly via an iterator, result in an
+     * {@code UnsupportedOperationException}.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param value
+     *            The single attribute value.
+     * @return The single-valued attribute.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code attributeDescription} could not be decoded using
+     *             the default schema.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} or {@code value} was
+     *             {@code null}.
+     */
+    public static final Attribute singletonAttribute(final String attributeDescription,
+            final Object value) {
+        return singletonAttribute(AttributeDescription.valueOf(attributeDescription), value);
     }
 
     /**
