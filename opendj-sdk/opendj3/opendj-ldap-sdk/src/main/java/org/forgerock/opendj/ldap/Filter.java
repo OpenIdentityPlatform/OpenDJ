@@ -508,21 +508,6 @@ public final class Filter {
     /**
      * Creates a new {@code approximate match} filter using the provided
      * attribute description and assertion value.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code approximate match} filter.
-     */
-    public static Filter approx(final String attributeDescription, final ByteString assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new ApproxMatchImpl(attributeDescription, assertionValue));
-    }
-
-    /**
-     * Creates a new {@code approximate match} filter using the provided
-     * attribute description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
      * it will be converted using the {@link ByteString#valueOf(Object)} method.
@@ -534,22 +519,9 @@ public final class Filter {
      * @return The newly created {@code approximate match} filter.
      */
     public static Filter approx(final String attributeDescription, final Object assertionValue) {
-        return approx(attributeDescription, ByteString.valueOf(assertionValue));
-    }
-
-    /**
-     * Creates a new {@code equality match} filter using the provided attribute
-     * description and assertion value.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code equality match} filter.
-     */
-    public static Filter equality(final String attributeDescription, final ByteString assertionValue) {
         Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new EqualityMatchImpl(attributeDescription, assertionValue));
+        return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
+                .valueOf(assertionValue)));
     }
 
     /**
@@ -566,31 +538,9 @@ public final class Filter {
      * @return The newly created {@code equality match} filter.
      */
     public static Filter equality(final String attributeDescription, final Object assertionValue) {
-        return equality(attributeDescription, ByteString.valueOf(assertionValue));
-    }
-
-    /**
-     * Creates a new {@code extensible match} filter.
-     *
-     * @param matchingRule
-     *            The matching rule name, may be {@code null} if
-     *            {@code attributeDescription} is specified.
-     * @param attributeDescription
-     *            The attribute description, may be {@code null} if
-     *            {@code matchingRule} is specified.
-     * @param assertionValue
-     *            The assertion value.
-     * @param dnAttributes
-     *            Indicates whether DN matching should be performed.
-     * @return The newly created {@code extensible match} filter.
-     */
-    public static Filter extensible(final String matchingRule, final String attributeDescription,
-            final ByteString assertionValue, final boolean dnAttributes) {
-        Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
-                "matchingRule and/or " + "attributeDescription must not be null");
-        Validator.ensureNotNull(assertionValue);
-        return new Filter(new ExtensibleMatchImpl(matchingRule, attributeDescription,
-                assertionValue, dnAttributes));
+        Validator.ensureNotNull(attributeDescription, assertionValue);
+        return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
+                .valueOf(assertionValue)));
     }
 
     /**
@@ -613,24 +563,11 @@ public final class Filter {
      */
     public static Filter extensible(final String matchingRule, final String attributeDescription,
             final Object assertionValue, final boolean dnAttributes) {
-        return extensible(matchingRule, attributeDescription, ByteString.valueOf(assertionValue),
-                dnAttributes);
-    }
-
-    /**
-     * Creates a new {@code greater or equal} filter using the provided
-     * attribute description and assertion value.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code greater or equal} filter.
-     */
-    public static Filter greaterOrEqual(final String attributeDescription,
-            final ByteString assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new GreaterOrEqualImpl(attributeDescription, assertionValue));
+        Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
+                "matchingRule and/or " + "attributeDescription must not be null");
+        Validator.ensureNotNull(assertionValue);
+        return new Filter(new ExtensibleMatchImpl(matchingRule, attributeDescription, ByteString
+                .valueOf(assertionValue), dnAttributes));
     }
 
     /**
@@ -648,36 +585,15 @@ public final class Filter {
      */
     public static Filter greaterOrEqual(final String attributeDescription,
             final Object assertionValue) {
-        return greaterOrEqual(attributeDescription, ByteString.valueOf(assertionValue));
+        Validator.ensureNotNull(attributeDescription, assertionValue);
+        return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
+                .valueOf(assertionValue)));
     }
 
     /**
      * Creates a new {@code greater than} filter using the provided attribute
      * description and assertion value.
      * <p>
-     * <b>NOTE:</b> since LDAP does not support {@code greater than}
-     * comparisons, this method returns a filter of the form
-     * {@code (&(type>=value)(!(type=value)))}. An alternative is to return a
-     * filter of the form {@code (!(type<=value))} , however the outer
-     * {@code not} filter will often prevent directory servers from optimizing
-     * the search using indexes.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code greater than} filter.
-     */
-    public static Filter greaterThan(final String attributeDescription,
-            final ByteString assertionValue) {
-        return and(greaterOrEqual(attributeDescription, assertionValue), not(equality(
-                attributeDescription, assertionValue)));
-    }
-
-    /**
-     * Creates a new {@code greater than} filter using the provided
-     * attribute description and assertion value.
-     * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
      * it will be converted using the {@link ByteString#valueOf(Object)} method.
      * <p>
@@ -694,25 +610,9 @@ public final class Filter {
      *            The assertion value.
      * @return The newly created {@code greater than} filter.
      */
-    public static Filter greaterThan(final String attributeDescription,
-            final Object assertionValue) {
-        return greaterThan(attributeDescription, ByteString.valueOf(assertionValue));
-    }
-
-    /**
-     * Creates a new {@code less or equal} filter using the provided attribute
-     * description and assertion value.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code less or equal} filter.
-     */
-    public static Filter lessOrEqual(final String attributeDescription,
-            final ByteString assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
-        return new Filter(new LessOrEqualImpl(attributeDescription, assertionValue));
+    public static Filter greaterThan(final String attributeDescription, final Object assertionValue) {
+        return and(greaterOrEqual(attributeDescription, assertionValue), not(equality(
+                attributeDescription, assertionValue)));
     }
 
     /**
@@ -729,30 +629,9 @@ public final class Filter {
      * @return The newly created {@code less or equal} filter.
      */
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
-        return lessOrEqual(attributeDescription, ByteString.valueOf(assertionValue));
-    }
-
-    /**
-     * Creates a new {@code less than} filter using the provided attribute
-     * description and assertion value.
-     * <p>
-     * <b>NOTE:</b> since LDAP does not support {@code less than} comparisons,
-     * this method returns a filter of the form
-     * {@code (&(type<=value)(!(type=value)))}. An alternative is to return a
-     * filter of the form {@code (!(type>=value))} , however the outer
-     * {@code not} filter will often prevent directory servers from optimizing
-     * the search using indexes.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param assertionValue
-     *            The assertion value.
-     * @return The newly created {@code less than} filter.
-     */
-    public static Filter lessThan(final String attributeDescription,
-            final ByteString assertionValue) {
-        return and(lessOrEqual(attributeDescription, assertionValue), not(equality(
-                attributeDescription, assertionValue)));
+        Validator.ensureNotNull(attributeDescription, assertionValue);
+        return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
+                .valueOf(assertionValue)));
     }
 
     /**
@@ -776,7 +655,8 @@ public final class Filter {
      * @return The newly created {@code less than} filter.
      */
     public static Filter lessThan(final String attributeDescription, final Object assertionValue) {
-        return lessThan(attributeDescription, ByteString.valueOf(assertionValue));
+        return and(lessOrEqual(attributeDescription, assertionValue), not(equality(
+                attributeDescription, assertionValue)));
     }
 
     /**
@@ -876,54 +756,6 @@ public final class Filter {
             return OBJECT_CLASS_PRESENT;
         }
         return new Filter(new PresentImpl(attributeDescription));
-    }
-
-    /**
-     * Creates a new {@code substrings} filter using the provided attribute
-     * description, {@code initial}, {@code final}, and {@code any} sub-strings.
-     *
-     * @param attributeDescription
-     *            The attribute description.
-     * @param initialSubstring
-     *            The initial sub-string, may be {@code null} if either
-     *            {@code finalSubstring} or {@code anySubstrings} are specified.
-     * @param anySubstrings
-     *            The final sub-string, may be {@code null} or empty if either
-     *            {@code finalSubstring} or {@code initialSubstring} are
-     *            specified.
-     * @param finalSubstring
-     *            The final sub-string, may be {@code null}, may be {@code null}
-     *            if either {@code initialSubstring} or {@code anySubstrings}
-     *            are specified.
-     * @return The newly created {@code substrings} filter.
-     */
-    public static Filter substrings(final String attributeDescription,
-            final ByteString initialSubstring, final Collection<ByteString> anySubstrings,
-            final ByteString finalSubstring) {
-        Validator.ensureNotNull(attributeDescription);
-        Validator.ensureTrue((initialSubstring != null) || (finalSubstring != null)
-                || ((anySubstrings != null) && (anySubstrings.size() > 0)),
-                "at least one substring (initial, any or final)" + " must be specified");
-
-        List<ByteString> anySubstringList;
-        if ((anySubstrings == null) || (anySubstrings.size() == 0)) {
-            anySubstringList = Collections.emptyList();
-        } else if (anySubstrings.size() == 1) {
-            final ByteString anySubstring = anySubstrings.iterator().next();
-            Validator.ensureNotNull(anySubstring);
-            anySubstringList = Collections.singletonList(anySubstring);
-        } else {
-            anySubstringList = new ArrayList<ByteString>(anySubstrings.size());
-            for (final ByteString anySubstring : anySubstrings) {
-                Validator.ensureNotNull(anySubstring);
-
-                anySubstringList.add(anySubstring);
-            }
-            anySubstringList = Collections.unmodifiableList(anySubstringList);
-        }
-
-        return new Filter(new SubstringsImpl(attributeDescription, initialSubstring,
-                anySubstringList, finalSubstring));
     }
 
     /**
