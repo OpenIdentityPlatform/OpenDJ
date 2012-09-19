@@ -28,6 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 import com.forgerock.opendj.util.Iterables;
 import com.forgerock.opendj.util.Predicate;
@@ -43,99 +44,12 @@ public abstract class AbstractEntry implements Entry {
     private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
             new Predicate<Attribute, AttributeDescription>() {
 
+                @Override
                 public boolean matches(final Attribute value, final AttributeDescription p) {
                     return value.getAttributeDescription().isSubTypeOf(p);
                 }
 
             };
-
-    /**
-     * Returns {@code true} if {@code object} is an entry which is equal to
-     * {@code entry}. Two entry are considered equal if their distinguished
-     * names are equal, they both have the same number of attributes, and every
-     * attribute contained in the first entry is also contained in the second
-     * entry.
-     *
-     * @param entry
-     *            The entry to be tested for equality.
-     * @param object
-     *            The object to be tested for equality with the entry.
-     * @return {@code true} if {@code object} is an entry which is equal to
-     *         {@code entry}, or {@code false} if not.
-     */
-    static boolean equals(final Entry entry, final Object object) {
-        if (entry == object) {
-            return true;
-        }
-
-        if (!(object instanceof Entry)) {
-            return false;
-        }
-
-        final Entry other = (Entry) object;
-        if (!entry.getName().equals(other.getName())) {
-            return false;
-        }
-
-        // Distinguished name is the same, compare attributes.
-        if (entry.getAttributeCount() != other.getAttributeCount()) {
-            return false;
-        }
-
-        for (final Attribute attribute : entry.getAllAttributes()) {
-            final Attribute otherAttribute =
-                    other.getAttribute(attribute.getAttributeDescription());
-
-            if (!attribute.equals(otherAttribute)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns the hash code for {@code entry}. It will be calculated as the sum
-     * of the hash codes of the distinguished name and all of the attributes.
-     *
-     * @param entry
-     *            The entry whose hash code should be calculated.
-     * @return The hash code for {@code entry}.
-     */
-    static int hashCode(final Entry entry) {
-        int hashCode = entry.getName().hashCode();
-        for (final Attribute attribute : entry.getAllAttributes()) {
-            hashCode += attribute.hashCode();
-        }
-        return hashCode;
-    }
-
-    /**
-     * Returns a string representation of {@code entry}.
-     *
-     * @param entry
-     *            The entry whose string representation should be returned.
-     * @return The string representation of {@code entry}.
-     */
-    static String toString(final Entry entry) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Entry(");
-        builder.append(entry.getName());
-        builder.append(", {");
-
-        boolean firstValue = true;
-        for (final Attribute attribute : entry.getAllAttributes()) {
-            if (!firstValue) {
-                builder.append(", ");
-            }
-
-            builder.append(attribute);
-            firstValue = false;
-        }
-
-        builder.append("})");
-        return builder.toString();
-    }
 
     /**
      * Sole constructor.
@@ -147,6 +61,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean addAttribute(final Attribute attribute) {
         return addAttribute(attribute, null);
     }
@@ -154,6 +69,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry addAttribute(final String attributeDescription, final Object... values) {
         addAttribute(new LinkedAttribute(attributeDescription, values), null);
         return this;
@@ -162,6 +78,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean containsAttribute(final Attribute attribute,
             final Collection<ByteString> missingValues) {
         final Attribute a = getAttribute(attribute.getAttributeDescription());
@@ -187,6 +104,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean containsAttribute(final String attributeDescription, final Object... values) {
         return containsAttribute(new LinkedAttribute(attributeDescription, values), null);
     }
@@ -196,12 +114,34 @@ public abstract class AbstractEntry implements Entry {
      */
     @Override
     public boolean equals(final Object object) {
-        return equals(this, object);
+        if (this == object) {
+            return true;
+        } else if (object instanceof Entry) {
+            final Entry other = (Entry) object;
+            if (!this.getName().equals(other.getName())) {
+                return false;
+            }
+            // Distinguished name is the same, compare attributes.
+            if (this.getAttributeCount() != other.getAttributeCount()) {
+                return false;
+            }
+            for (final Attribute attribute : this.getAllAttributes()) {
+                final Attribute otherAttribute =
+                        other.getAttribute(attribute.getAttributeDescription());
+                if (!attribute.equals(otherAttribute)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<Attribute> getAllAttributes(final AttributeDescription attributeDescription) {
         Validator.ensureNotNull(attributeDescription);
 
@@ -212,6 +152,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterable<Attribute> getAllAttributes(final String attributeDescription) {
         return getAllAttributes(AttributeDescription.valueOf(attributeDescription));
     }
@@ -219,6 +160,21 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public Attribute getAttribute(final AttributeDescription attributeDescription) {
+        for (final Attribute attribute : getAllAttributes()) {
+            final AttributeDescription ad = attribute.getAttributeDescription();
+            if (isAssignable(attributeDescription, ad)) {
+                return attribute;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Attribute getAttribute(final String attributeDescription) {
         return getAttribute(AttributeDescription.valueOf(attributeDescription));
     }
@@ -228,26 +184,64 @@ public abstract class AbstractEntry implements Entry {
      */
     @Override
     public int hashCode() {
-        return hashCode(this);
+        int hashCode = this.getName().hashCode();
+        for (final Attribute attribute : this.getAllAttributes()) {
+            hashCode += attribute.hashCode();
+        }
+        return hashCode;
     }
 
     /**
      * {@inheritDoc}
      */
-    public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+    @Override
+    public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
         return AttributeParser.parseAttribute(getAttribute(attributeDescription));
     }
 
     /**
      * {@inheritDoc}
      */
-    public AttributeParser parseAttribute(String attributeDescription) {
+    @Override
+    public AttributeParser parseAttribute(final String attributeDescription) {
         return AttributeParser.parseAttribute(getAttribute(attributeDescription));
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
+    public boolean removeAttribute(final Attribute attribute,
+            final Collection<ByteString> missingValues) {
+        final Iterator<Attribute> i = getAllAttributes().iterator();
+        final AttributeDescription attributeDescription = attribute.getAttributeDescription();
+        while (i.hasNext()) {
+            final Attribute oldAttribute = i.next();
+            if (isAssignable(attributeDescription, oldAttribute.getAttributeDescription())) {
+                if (attribute.isEmpty()) {
+                    i.remove();
+                    return true;
+                } else {
+                    final boolean modified = oldAttribute.removeAll(attribute, missingValues);
+                    if (oldAttribute.isEmpty()) {
+                        i.remove();
+                        return true;
+                    }
+                    return modified;
+                }
+            }
+        }
+        // Not found.
+        if (missingValues != null) {
+            missingValues.addAll(attribute);
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean removeAttribute(final AttributeDescription attributeDescription) {
         return removeAttribute(Attributes.emptyAttribute(attributeDescription), null);
     }
@@ -255,6 +249,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry removeAttribute(final String attributeDescription, final Object... values) {
         removeAttribute(new LinkedAttribute(attributeDescription, values), null);
         return this;
@@ -263,12 +258,20 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean replaceAttribute(final Attribute attribute) {
         if (attribute.isEmpty()) {
             return removeAttribute(attribute.getAttributeDescription());
         } else {
-            removeAttribute(attribute.getAttributeDescription());
-            addAttribute(attribute, null);
+            // For consistency with addAttribute and removeAttribute, preserve
+            // the existing attribute if it already exists.
+            final Attribute oldAttribute = getAttribute(attribute.getAttributeDescription());
+            if (oldAttribute != null) {
+                oldAttribute.clear();
+                oldAttribute.addAll(attribute);
+            } else {
+                addAttribute(attribute, null);
+            }
             return true;
         }
     }
@@ -276,6 +279,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry replaceAttribute(final String attributeDescription, final Object... values) {
         replaceAttribute(new LinkedAttribute(attributeDescription, values));
         return this;
@@ -284,6 +288,7 @@ public abstract class AbstractEntry implements Entry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry setName(final String dn) {
         return setName(DN.valueOf(dn));
     }
@@ -293,7 +298,29 @@ public abstract class AbstractEntry implements Entry {
      */
     @Override
     public String toString() {
-        return toString(this);
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Entry(");
+        builder.append(this.getName());
+        builder.append(", {");
+        boolean firstValue = true;
+        for (final Attribute attribute : this.getAllAttributes()) {
+            if (!firstValue) {
+                builder.append(", ");
+            }
+
+            builder.append(attribute);
+            firstValue = false;
+        }
+        builder.append("})");
+        return builder.toString();
+    }
+
+    private boolean isAssignable(final AttributeDescription from, final AttributeDescription to) {
+        if (!from.isPlaceHolder()) {
+            return from.equals(to);
+        } else {
+            return from.matches(to);
+        }
     }
 
 }

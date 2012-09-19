@@ -37,7 +37,6 @@ import com.forgerock.opendj.util.Validator;
  */
 abstract class AbstractMapEntry extends AbstractEntry {
     private final Map<AttributeDescription, Attribute> attributes;
-
     private DN name;
 
     /**
@@ -57,12 +56,11 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean addAttribute(final Attribute attribute,
             final Collection<ByteString> duplicateValues) {
-        Validator.ensureNotNull(attribute);
-
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
-        final Attribute oldAttribute = attributes.get(attributeDescription);
+        final Attribute oldAttribute = getAttribute(attributeDescription);
         if (oldAttribute != null) {
             return oldAttribute.addAll(attribute, duplicateValues);
         } else {
@@ -74,6 +72,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final Entry clearAttributes() {
         attributes.clear();
         return this;
@@ -82,6 +81,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final Iterable<Attribute> getAllAttributes() {
         return attributes.values();
     }
@@ -89,15 +89,21 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final Attribute getAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
-
-        return attributes.get(attributeDescription);
+        final Attribute attribute = attributes.get(attributeDescription);
+        if (attribute == null && attributeDescription.isPlaceHolder()) {
+            // Fall-back to inefficient search using place-holder.
+            return super.getAttribute(attributeDescription);
+        } else {
+            return attribute;
+        }
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public final int getAttributeCount() {
         return attributes.size();
     }
@@ -105,6 +111,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final DN getName() {
         return name;
     }
@@ -112,20 +119,27 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean removeAttribute(final Attribute attribute,
             final Collection<ByteString> missingValues) {
-        Validator.ensureNotNull(attribute);
-
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
-
         if (attribute.isEmpty()) {
-            return attributes.remove(attributeDescription) != null;
+            if (attributes.remove(attributeDescription) != null) {
+                return true;
+            } else if (attributeDescription.isPlaceHolder()) {
+                // Fall-back to inefficient remove using place-holder.
+                return super.removeAttribute(attribute, missingValues);
+            } else {
+                return false;
+            }
         } else {
-            final Attribute oldAttribute = attributes.get(attributeDescription);
+            final Attribute oldAttribute = getAttribute(attributeDescription);
             if (oldAttribute != null) {
                 final boolean modified = oldAttribute.removeAll(attribute, missingValues);
                 if (oldAttribute.isEmpty()) {
-                    attributes.remove(attributeDescription);
+                    // Use old attribute's description in case it is different
+                    // (e.g. this may be the case when using place-holders).
+                    attributes.remove(oldAttribute.getAttributeDescription());
                     return true;
                 }
                 return modified;
@@ -141,6 +155,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final Entry setName(final DN dn) {
         Validator.ensureNotNull(dn);
         this.name = dn;

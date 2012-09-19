@@ -219,7 +219,7 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         assertEquals(attributeDescription.isObjectClass(), isObjectClass);
 
         assertFalse(attributeDescription.hasOptions());
-        assertFalse(attributeDescription.containsOption("dummy"));
+        assertFalse(attributeDescription.hasOption("dummy"));
 
         final Iterator<String> iterator = attributeDescription.getOptions().iterator();
         assertFalse(iterator.hasNext());
@@ -250,19 +250,19 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             assertTrue(attributeDescription.hasOptions());
         }
 
-        assertFalse(attributeDescription.containsOption("dummy"));
+        assertFalse(attributeDescription.hasOption("dummy"));
         if (containsFoo) {
-            assertTrue(attributeDescription.containsOption("foo"));
-            assertTrue(attributeDescription.containsOption("FOO"));
-            assertTrue(attributeDescription.containsOption("FoO"));
+            assertTrue(attributeDescription.hasOption("foo"));
+            assertTrue(attributeDescription.hasOption("FOO"));
+            assertTrue(attributeDescription.hasOption("FoO"));
         } else {
-            assertFalse(attributeDescription.containsOption("foo"));
-            assertFalse(attributeDescription.containsOption("FOO"));
-            assertFalse(attributeDescription.containsOption("FoO"));
+            assertFalse(attributeDescription.hasOption("foo"));
+            assertFalse(attributeDescription.hasOption("FOO"));
+            assertFalse(attributeDescription.hasOption("FoO"));
         }
 
         for (final String option : options) {
-            assertTrue(attributeDescription.containsOption(option));
+            assertTrue(attributeDescription.hasOption(option));
         }
 
         final Iterator<String> iterator = attributeDescription.getOptions().iterator();
@@ -278,8 +278,8 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn");
         AttributeDescription ad2 = ad1.withOption("test");
         assertTrue(ad2.hasOptions());
-        assertTrue(ad2.containsOption("test"));
-        assertFalse(ad2.containsOption("dummy"));
+        assertTrue(ad2.hasOption("test"));
+        assertFalse(ad2.hasOption("dummy"));
         assertEquals(ad2.toString(), "cn;test");
         assertEquals(ad2.getOptions().iterator().next(), "test");
     }
@@ -296,9 +296,9 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1");
         AttributeDescription ad2 = ad1.withOption("test2");
         assertTrue(ad2.hasOptions());
-        assertTrue(ad2.containsOption("test1"));
-        assertTrue(ad2.containsOption("test2"));
-        assertFalse(ad2.containsOption("dummy"));
+        assertTrue(ad2.hasOption("test1"));
+        assertTrue(ad2.hasOption("test2"));
+        assertFalse(ad2.hasOption("dummy"));
         assertEquals(ad2.toString(), "cn;test1;test2");
         Iterator<String> i = ad2.getOptions().iterator();
         assertEquals(i.next(), "test1");
@@ -326,7 +326,7 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test");
         AttributeDescription ad2 = ad1.withoutOption("test");
         assertFalse(ad2.hasOptions());
-        assertFalse(ad2.containsOption("test"));
+        assertFalse(ad2.hasOption("test"));
         assertEquals(ad2.toString(), "cn");
         assertFalse(ad2.getOptions().iterator().hasNext());
     }
@@ -343,8 +343,8 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
         AttributeDescription ad2 = ad1.withoutOption("test1");
         assertTrue(ad2.hasOptions());
-        assertFalse(ad2.containsOption("test1"));
-        assertTrue(ad2.containsOption("test2"));
+        assertFalse(ad2.hasOption("test1"));
+        assertTrue(ad2.hasOption("test2"));
         assertEquals(ad2.toString(), "cn;test2");
         assertEquals(ad2.getOptions().iterator().next(), "test2");
     }
@@ -354,8 +354,8 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
         AttributeDescription ad2 = ad1.withoutOption("test2");
         assertTrue(ad2.hasOptions());
-        assertTrue(ad2.containsOption("test1"));
-        assertFalse(ad2.containsOption("test2"));
+        assertTrue(ad2.hasOption("test1"));
+        assertFalse(ad2.hasOption("test2"));
         assertEquals(ad2.toString(), "cn;test1");
         assertEquals(ad2.getOptions().iterator().next(), "test1");
     }
@@ -372,9 +372,9 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test1");
         assertTrue(ad2.hasOptions());
-        assertFalse(ad2.containsOption("test1"));
-        assertTrue(ad2.containsOption("test2"));
-        assertTrue(ad2.containsOption("test3"));
+        assertFalse(ad2.hasOption("test1"));
+        assertTrue(ad2.hasOption("test2"));
+        assertTrue(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test2;test3");
         Iterator<String> i = ad2.getOptions().iterator();
         assertEquals(i.next(), "test2");
@@ -386,9 +386,9 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test2");
         assertTrue(ad2.hasOptions());
-        assertTrue(ad2.containsOption("test1"));
-        assertFalse(ad2.containsOption("test2"));
-        assertTrue(ad2.containsOption("test3"));
+        assertTrue(ad2.hasOption("test1"));
+        assertFalse(ad2.hasOption("test2"));
+        assertTrue(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test1;test3");
         Iterator<String> i = ad2.getOptions().iterator();
         assertEquals(i.next(), "test1");
@@ -400,9 +400,9 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test3");
         assertTrue(ad2.hasOptions());
-        assertTrue(ad2.containsOption("test1"));
-        assertTrue(ad2.containsOption("test2"));
-        assertFalse(ad2.containsOption("test3"));
+        assertTrue(ad2.hasOption("test1"));
+        assertTrue(ad2.hasOption("test2"));
+        assertFalse(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test1;test2");
         Iterator<String> i = ad2.getOptions().iterator();
         assertEquals(i.next(), "test1");

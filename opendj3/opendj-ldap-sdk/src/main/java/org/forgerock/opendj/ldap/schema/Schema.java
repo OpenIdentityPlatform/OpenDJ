@@ -73,8 +73,10 @@ import com.forgerock.opendj.util.Validator;
 public final class Schema {
     private static final class EmptyImpl implements Impl {
 
-        private EmptyImpl() {
-            // Nothing to do.
+        private final boolean isStrict;
+
+        private EmptyImpl(final boolean isStrict) {
+            this.isStrict = isStrict;
         }
 
         public boolean allowMalformedNamesAndOptions() {
@@ -95,17 +97,12 @@ public final class Schema {
 
         @Override
         public AttributeType getAttributeType(final String name) {
-            // Construct an placeholder attribute type with the given name,
-            // the default matching rule, and the default syntax. The OID of
-            // the attribute will be the normalized OID alias with "-oid"
-            // appended to the given name.
-            final StringBuilder builder = new StringBuilder(name.length() + 4);
-            StaticUtils.toLowerCase(name, builder);
-            builder.append("-oid");
-            final String noid = builder.toString();
-
-            return new AttributeType(noid, Collections.singletonList(name), "", Schema
-                    .getDefaultMatchingRule(), Schema.getDefaultSyntax());
+            if (isStrict) {
+                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
+            } else {
+                // Return a place-holder.
+                return new AttributeType(name);
+            }
         }
 
         @Override
@@ -298,7 +295,7 @@ public final class Schema {
 
         @Override
         public boolean isStrict() {
-            return false;
+            return isStrict;
         }
     }
 
@@ -389,9 +386,9 @@ public final class Schema {
     }
 
     private static final class NonStrictImpl implements Impl {
-        private final Impl strictImpl;
+        private final StrictImpl strictImpl;
 
-        private NonStrictImpl(final Impl strictImpl) {
+        private NonStrictImpl(final StrictImpl strictImpl) {
             this.strictImpl = strictImpl;
         }
 
@@ -413,20 +410,8 @@ public final class Schema {
 
         @Override
         public AttributeType getAttributeType(final String name) {
-            if (!strictImpl.hasAttributeType(name)) {
-                // Construct an placeholder attribute type with the given name,
-                // the default matching rule, and the default syntax. The OID of
-                // the attribute will be the normalized OID alias with "-oid"
-                // appended to the given name.
-                final StringBuilder builder = new StringBuilder(name.length() + 4);
-                StaticUtils.toLowerCase(name, builder);
-                builder.append("-oid");
-                final String noid = builder.toString();
-
-                return new AttributeType(noid, Collections.singletonList(name), "", Schema
-                        .getDefaultMatchingRule(), Schema.getDefaultSyntax());
-            }
-            return strictImpl.getAttributeType(name);
+            final AttributeType type = strictImpl.getAttributeType0(name);
+            return type != null ? type : new AttributeType(name);
         }
 
         @Override
@@ -735,19 +720,12 @@ public final class Schema {
 
         @Override
         public AttributeType getAttributeType(final String name) {
-            final AttributeType type = numericOID2AttributeTypes.get(name);
+            final AttributeType type = getAttributeType0(name);
             if (type != null) {
                 return type;
+            } else {
+                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
             }
-            final List<AttributeType> attributes =
-                    name2AttributeTypes.get(StaticUtils.toLowerCase(name));
-            if (attributes != null) {
-                if (attributes.size() == 1) {
-                    return attributes.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGIOUS.get(name));
-            }
-            throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
         }
 
         @Override
@@ -1073,28 +1051,37 @@ public final class Schema {
         public boolean isStrict() {
             return true;
         }
+
+        AttributeType getAttributeType0(final String name) {
+            final AttributeType type = numericOID2AttributeTypes.get(name);
+            if (type != null) {
+                return type;
+            }
+            final List<AttributeType> attributes =
+                    name2AttributeTypes.get(StaticUtils.toLowerCase(name));
+            if (attributes != null) {
+                if (attributes.size() == 1) {
+                    return attributes.get(0);
+                }
+                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGIOUS.get(name));
+            }
+            return null;
+        }
     }
 
     /*
      * WARNING: do not reference the core schema in the following declarations.
      */
 
-    private static final Schema EMPTY_SCHEMA = new Schema(new EmptyImpl());
-
+    private static final Schema EMPTY_STRICT_SCHEMA = new Schema(new EmptyImpl(true));
+    private static final Schema EMPTY_NON_STRICT_SCHEMA = new Schema(new EmptyImpl(false));
     static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
-
     static final String ATTR_DIT_CONTENT_RULES = "dITContentRules";
-
     static final String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
-
     static final String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
-
     static final String ATTR_MATCHING_RULE_USE = "matchingRuleUse";
-
     static final String ATTR_MATCHING_RULES = "matchingRules";
-
     static final String ATTR_NAME_FORMS = "nameForms";
-
     static final String ATTR_OBJECT_CLASSES = "objectClasses";
 
     /**
@@ -1138,7 +1125,7 @@ public final class Schema {
      * @return The empty schema.
      */
     public static Schema getEmptySchema() {
-        return EMPTY_SCHEMA;
+        return EMPTY_NON_STRICT_SCHEMA;
     }
 
     /**
@@ -1457,10 +1444,13 @@ public final class Schema {
      * @see Schema#isStrict()
      */
     public Schema asNonStrictSchema() {
-        if (impl.isStrict()) {
-            return new Schema(new NonStrictImpl(impl));
-        } else {
+        if (!impl.isStrict()) {
             return this;
+        } else if (impl instanceof StrictImpl) {
+            return new Schema(new NonStrictImpl((StrictImpl) impl));
+        } else {
+            // EmptyImpl
+            return EMPTY_NON_STRICT_SCHEMA;
         }
     }
 
@@ -1475,13 +1465,23 @@ public final class Schema {
     public Schema asStrictSchema() {
         if (impl.isStrict()) {
             return this;
-        } else {
+        } else if (impl instanceof NonStrictImpl) {
             return new Schema(((NonStrictImpl) impl).strictImpl);
+        } else {
+            // EmptyImpl
+            return EMPTY_STRICT_SCHEMA;
         }
     }
 
     /**
      * Returns the attribute type with the specified name or numeric OID.
+     * <p>
+     * If the requested attribute type is not registered in this schema and this
+     * schema is non-strict then a temporary "place-holder" attribute type will
+     * be created and returned. Place holder attribute types have an OID which
+     * is the normalized attribute name with the string {@code -oid} appended.
+     * In addition, they will use the directory string syntax and case ignore
+     * matching rule.
      *
      * @param name
      *            The name or OID of the attribute type to retrieve.
@@ -1489,6 +1489,7 @@ public final class Schema {
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested attribute type
      *             was not found or if the provided name is ambiguous.
+     * @see AttributeType#isPlaceHolder()
      */
     public AttributeType getAttributeType(final String name) {
         return impl.getAttributeType(name);
