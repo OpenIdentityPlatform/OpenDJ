@@ -188,10 +188,10 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
     /**
      * {@inheritDoc}
      */
-    public boolean addAll(final Collection<? extends ByteString> values,
-            final Collection<? super ByteString> duplicateValues) {
+    public <T> boolean addAll(final Collection<T> values,
+            final Collection<? super T> duplicateValues) {
         boolean modified = false;
-        for (final ByteString value : values) {
+        for (final T value : values) {
             if (add(value)) {
                 modified = true;
             } else if (duplicateValues != null) {

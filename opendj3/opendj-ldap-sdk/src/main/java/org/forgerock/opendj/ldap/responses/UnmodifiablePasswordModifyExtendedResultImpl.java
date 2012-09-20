@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.ldap.responses;
 
-import org.forgerock.opendj.ldap.ByteString;
-
 /**
  * Unmodifiable Password modify extended result implementation.
  */
@@ -40,12 +38,12 @@ class UnmodifiablePasswordModifyExtendedResultImpl extends
     }
 
     @Override
-    public ByteString getGeneratedPassword() {
+    public byte[] getGeneratedPassword() {
         return impl.getGeneratedPassword();
     }
 
     @Override
-    public PasswordModifyExtendedResult setGeneratedPassword(ByteString password) {
+    public PasswordModifyExtendedResult setGeneratedPassword(byte[] password) {
         throw new UnsupportedOperationException();
     }
 

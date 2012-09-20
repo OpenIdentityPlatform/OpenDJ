@@ -61,7 +61,7 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
         throw new UnsupportedOperationException();
     }
 
-    public boolean addAttribute(Attribute attribute, Collection<ByteString> duplicateValues) {
+    public boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues) {
         throw new UnsupportedOperationException();
     }
 
@@ -73,7 +73,8 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
         throw new UnsupportedOperationException();
     }
 
-    public boolean containsAttribute(Attribute attribute, Collection<ByteString> missingValues) {
+    public boolean containsAttribute(Attribute attribute,
+            Collection<? super ByteString> missingValues) {
         return impl.containsAttribute(attribute, missingValues);
     }
 
@@ -130,7 +131,7 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
         return impl.parseAttribute(attributeDescription);
     }
 
-    public boolean removeAttribute(Attribute attribute, Collection<ByteString> missingValues) {
+    public boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues) {
         throw new UnsupportedOperationException();
     }
 

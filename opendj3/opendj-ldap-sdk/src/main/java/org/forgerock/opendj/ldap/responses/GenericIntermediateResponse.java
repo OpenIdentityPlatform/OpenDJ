@@ -87,8 +87,11 @@ public interface GenericIntermediateResponse extends IntermediateResponse {
     /**
      * Sets the value, if any, associated with this intermediate response. Its
      * format is defined by the specification of this intermediate response.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
      *
-     * @param bytes
+     * @param value
      *            The value associated with this intermediate response, or
      *            {@code null} if there is no value.
      * @return This generic intermediate response.
@@ -96,6 +99,6 @@ public interface GenericIntermediateResponse extends IntermediateResponse {
      *             If this intermediate response does not permit the response
      *             value to be set.
      */
-    GenericIntermediateResponse setValue(ByteString bytes);
+    GenericIntermediateResponse setValue(Object value);
 
 }

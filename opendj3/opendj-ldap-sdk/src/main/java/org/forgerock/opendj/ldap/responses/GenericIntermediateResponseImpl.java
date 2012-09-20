@@ -39,25 +39,13 @@ final class GenericIntermediateResponseImpl extends
         GenericIntermediateResponse {
 
     private String responseName = null;
-
     private ByteString responseValue = null;
 
     /**
-     * Creates a new generic intermediate response using the provided response
-     * name and value.
-     *
-     * @param responseName
-     *            The dotted-decimal representation of the unique OID
-     *            corresponding to this intermediate response, which may be
-     *            {@code null} indicating that none was provided.
-     * @param responseValue
-     *            The response value associated with this generic intermediate
-     *            response, which may be {@code null} indicating that none was
-     *            provided.
+     * Creates a new generic intermediate response with no name or value.
      */
-    GenericIntermediateResponseImpl(final String responseName, final ByteString responseValue) {
-        this.responseName = responseName;
-        this.responseValue = responseValue;
+    GenericIntermediateResponseImpl() {
+        // Nothing to do.
     }
 
     /**
@@ -110,8 +98,8 @@ final class GenericIntermediateResponseImpl extends
     /**
      * {@inheritDoc}
      */
-    public GenericIntermediateResponse setValue(final ByteString bytes) {
-        this.responseValue = bytes;
+    public GenericIntermediateResponse setValue(final Object value) {
+        this.responseValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 

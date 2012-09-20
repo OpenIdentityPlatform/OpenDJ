@@ -32,7 +32,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -255,15 +254,15 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         }
 
         if (currentPW.isPresent()) {
-            request.setOldPassword(ByteString.valueOf(currentPW.getValue()));
+            request.setOldPassword(currentPW.getValue().toCharArray());
         } else if (currentPWFile.isPresent()) {
-            request.setOldPassword(ByteString.valueOf(currentPWFile.getValue()));
+            request.setOldPassword(currentPWFile.getValue().toCharArray());
         }
 
         if (newPW.isPresent()) {
-            request.setNewPassword(ByteString.valueOf(newPW.getValue()));
+            request.setNewPassword(newPW.getValue().toCharArray());
         } else if (newPWFile.isPresent()) {
-            request.setNewPassword(ByteString.valueOf(newPWFile.getValue()));
+            request.setNewPassword(newPWFile.getValue().toCharArray());
         }
 
         PasswordModifyExtendedResult result;

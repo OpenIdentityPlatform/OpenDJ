@@ -56,10 +56,6 @@ final class UnmodifiableCompareRequestImpl extends AbstractUnmodifiableRequest<C
         return impl.getName();
     }
 
-    public CompareRequest setAssertionValue(ByteString value) {
-        throw new UnsupportedOperationException();
-    }
-
     public CompareRequest setAssertionValue(Object value) {
         throw new UnsupportedOperationException();
     }

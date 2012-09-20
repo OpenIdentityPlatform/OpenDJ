@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldap.requests;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
  * Unmodifiable password modify extended request implementation.
  */
@@ -40,12 +42,14 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
         super(impl);
     }
 
-    public ByteString getNewPassword() {
-        return impl.getNewPassword();
+    public byte[] getNewPassword() {
+        // Defensive copy.
+        return StaticUtils.copyOfBytes(impl.getNewPassword());
     }
 
-    public ByteString getOldPassword() {
-        return impl.getOldPassword();
+    public byte[] getOldPassword() {
+        // Defensive copy.
+        return StaticUtils.copyOfBytes(impl.getOldPassword());
     }
 
     public ByteString getUserIdentity() {
@@ -56,7 +60,7 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
         return impl.getUserIdentityAsString();
     }
 
-    public PasswordModifyExtendedRequest setNewPassword(ByteString newPassword) {
+    public PasswordModifyExtendedRequest setNewPassword(byte[] newPassword) {
         throw new UnsupportedOperationException();
     }
 
@@ -64,7 +68,7 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword) {
+    public PasswordModifyExtendedRequest setOldPassword(byte[] oldPassword) {
         throw new UnsupportedOperationException();
     }
 
@@ -72,11 +76,7 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity) {
-        throw new UnsupportedOperationException();
-    }
-
-    public PasswordModifyExtendedRequest setUserIdentity(String userIdentity) {
+    public PasswordModifyExtendedRequest setUserIdentity(Object userIdentity) {
         throw new UnsupportedOperationException();
     }
 }

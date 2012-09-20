@@ -65,7 +65,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry {
     /**
      * {@inheritDoc}
      */
-    boolean addAttribute(Attribute attribute, Collection<ByteString> duplicateValues);
+    boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues);
 
     /**
      * {@inheritDoc}
@@ -85,7 +85,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry {
     /**
      * {@inheritDoc}
      */
-    boolean containsAttribute(Attribute attribute, Collection<ByteString> missingValues);
+    boolean containsAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
     /**
      * {@inheritDoc}
@@ -141,7 +141,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry {
     /**
      * {@inheritDoc}
      */
-    boolean removeAttribute(Attribute attribute, Collection<ByteString> missingValues);
+    boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
     /**
      * {@inheritDoc}

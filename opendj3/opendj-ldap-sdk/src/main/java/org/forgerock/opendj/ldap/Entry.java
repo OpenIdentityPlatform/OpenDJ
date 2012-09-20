@@ -123,7 +123,7 @@ public interface Entry {
      * @throws NullPointerException
      *             If {@code attribute} was {@code null}.
      */
-    boolean addAttribute(Attribute attribute, Collection<ByteString> duplicateValues);
+    boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues);
 
     /**
      * Ensures that this entry contains the provided attribute and values
@@ -191,7 +191,7 @@ public interface Entry {
      * @throws NullPointerException
      *             If {@code attribute} was {@code null}.
      */
-    boolean containsAttribute(Attribute attribute, Collection<ByteString> missingValues);
+    boolean containsAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
     /**
      * Returns {@code true} if this entry contains all of the attribute values
@@ -380,7 +380,7 @@ public interface Entry {
      * @throws NullPointerException
      *             If {@code attribute} was {@code null}.
      */
-    boolean removeAttribute(Attribute attribute, Collection<ByteString> missingValues);
+    boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
     /**
      * Removes the named attribute from this entry if it is present (optional

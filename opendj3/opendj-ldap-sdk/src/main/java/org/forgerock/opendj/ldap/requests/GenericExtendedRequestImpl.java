@@ -56,7 +56,8 @@ final class GenericExtendedRequestImpl extends
                 return (GenericExtendedRequest) request;
             } else {
                 final GenericExtendedRequest newRequest =
-                        new GenericExtendedRequestImpl(request.getOID(), request.getValue());
+                        new GenericExtendedRequestImpl(request.getOID()).setValue(request
+                                .getValue());
 
                 for (final Control control : request.getControls()) {
                     newRequest.addControl(control);
@@ -97,27 +98,20 @@ final class GenericExtendedRequestImpl extends
     private static final GenericExtendedResultDecoder RESULT_DECODER =
             new GenericExtendedResultDecoder();
 
-    private ByteString requestValue = ByteString.empty();
-
+    private ByteString requestValue = null;
     private String requestName;
 
     /**
-     * Creates a new generic extended request using the provided name and
-     * optional value.
+     * Creates a new generic extended request using the provided name.
      *
      * @param requestName
      *            The dotted-decimal representation of the unique OID
      *            corresponding to this extended request.
-     * @param requestValue
-     *            The content of this generic extended request in a form defined
-     *            by the extended operation, or {@code null} if there is no
-     *            content.
      * @throws NullPointerException
      *             If {@code requestName} was {@code null}.
      */
-    GenericExtendedRequestImpl(final String requestName, final ByteString requestValue) {
+    GenericExtendedRequestImpl(final String requestName) {
         this.requestName = requestName;
-        this.requestValue = requestValue;
     }
 
     /**
@@ -179,8 +173,8 @@ final class GenericExtendedRequestImpl extends
     /**
      * {@inheritDoc}
      */
-    public GenericExtendedRequest setValue(final ByteString bytes) {
-        this.requestValue = bytes;
+    public GenericExtendedRequest setValue(final Object value) {
+        this.requestValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 

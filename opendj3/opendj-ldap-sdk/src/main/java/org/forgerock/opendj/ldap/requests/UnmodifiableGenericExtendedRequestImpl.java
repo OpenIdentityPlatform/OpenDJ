@@ -27,7 +27,6 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 
 /**
@@ -44,7 +43,7 @@ final class UnmodifiableGenericExtendedRequestImpl extends
         throw new UnsupportedOperationException();
     }
 
-    public GenericExtendedRequest setValue(ByteString bytes) {
+    public GenericExtendedRequest setValue(Object value) {
         throw new UnsupportedOperationException();
     }
 }

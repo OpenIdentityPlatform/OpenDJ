@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.ldap.responses;
 
-import org.forgerock.opendj.ldap.ByteString;
-
 /**
  * Unmodifiable Generic extended result implementation.
  */
@@ -45,7 +43,7 @@ class UnmodifiableGenericExtendedResultImpl extends
     }
 
     @Override
-    public GenericExtendedResult setValue(ByteString bytes) {
+    public GenericExtendedResult setValue(Object value) {
         throw new UnsupportedOperationException();
     }
 }

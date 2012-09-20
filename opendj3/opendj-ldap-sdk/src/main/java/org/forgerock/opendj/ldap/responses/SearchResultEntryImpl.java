@@ -86,7 +86,7 @@ final class SearchResultEntryImpl extends AbstractResponseImpl<SearchResultEntry
      * {@inheritDoc}
      */
     public boolean addAttribute(final Attribute attribute,
-            final Collection<ByteString> duplicateValues) {
+            final Collection<? super ByteString> duplicateValues) {
         return entry.addAttribute(attribute, duplicateValues);
     }
 
@@ -110,7 +110,7 @@ final class SearchResultEntryImpl extends AbstractResponseImpl<SearchResultEntry
      * {@inheritDoc}
      */
     public boolean containsAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         return entry.containsAttribute(attribute, missingValues);
     }
 
@@ -188,7 +188,7 @@ final class SearchResultEntryImpl extends AbstractResponseImpl<SearchResultEntry
      * {@inheritDoc}
      */
     public boolean removeAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         return entry.removeAttribute(attribute, missingValues);
     }
 

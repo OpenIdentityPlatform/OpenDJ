@@ -104,12 +104,15 @@ public final class Responses {
      * @return The new generic intermediate response.
      */
     public static GenericIntermediateResponse newGenericIntermediateResponse() {
-        return new GenericIntermediateResponseImpl(null, null);
+        return new GenericIntermediateResponseImpl();
     }
 
     /**
      * Creates a new generic intermediate response using the provided response
      * name and value.
+     * <p>
+     * If the response value is not an instance of {@code ByteString} then it
+     * will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param responseName
      *            The dotted-decimal representation of the unique OID
@@ -122,8 +125,8 @@ public final class Responses {
      * @return The new generic intermediate response.
      */
     public static GenericIntermediateResponse newGenericIntermediateResponse(
-            final String responseName, final ByteString responseValue) {
-        return new GenericIntermediateResponseImpl(responseName, responseValue);
+            final String responseName, final Object responseValue) {
+        return new GenericIntermediateResponseImpl().setOID(responseName).setValue(responseValue);
     }
 
     /**

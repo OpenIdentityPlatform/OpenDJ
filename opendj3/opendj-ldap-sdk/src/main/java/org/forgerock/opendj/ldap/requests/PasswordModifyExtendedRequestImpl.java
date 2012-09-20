@@ -48,6 +48,8 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
  * Password modify extended request implementation.
  */
@@ -71,11 +73,11 @@ final class PasswordModifyExtendedRequestImpl extends
                     }
                     if (reader.hasNextElement()
                             && (reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD)) {
-                        newRequest.setOldPassword(reader.readOctetString());
+                        newRequest.setOldPassword(reader.readOctetString().toByteArray());
                     }
                     if (reader.hasNextElement()
                             && (reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD)) {
-                        newRequest.setNewPassword(reader.readOctetString());
+                        newRequest.setNewPassword(reader.readOctetString().toByteArray());
                     }
                     reader.readEndSequence();
                 } catch (final IOException e) {
@@ -120,7 +122,8 @@ final class PasswordModifyExtendedRequestImpl extends
                         final ASN1Reader asn1Reader = ASN1.getReader(responseValue);
                         asn1Reader.readStartSequence();
                         if (asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD) {
-                            newResult.setGeneratedPassword(asn1Reader.readOctetString());
+                            newResult.setGeneratedPassword(asn1Reader.readOctetString()
+                                    .toByteArray());
                         }
                         asn1Reader.readEndSequence();
                     } catch (final IOException e) {
@@ -164,10 +167,8 @@ final class PasswordModifyExtendedRequestImpl extends
     private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
 
     private ByteString userIdentity = null;
-
-    private ByteString oldPassword = null;
-
-    private ByteString newPassword = null;
+    private byte[] oldPassword = null;
+    private byte[] newPassword = null;
 
     private static final ExtendedResultDecoder<PasswordModifyExtendedResult> RESULT_DECODER =
             new ResultDecoder();
@@ -197,7 +198,7 @@ final class PasswordModifyExtendedRequestImpl extends
     /**
      * {@inheritDoc}
      */
-    public ByteString getNewPassword() {
+    public byte[] getNewPassword() {
         return newPassword;
     }
 
@@ -212,7 +213,7 @@ final class PasswordModifyExtendedRequestImpl extends
     /**
      * {@inheritDoc}
      */
-    public ByteString getOldPassword() {
+    public byte[] getOldPassword() {
         return oldPassword;
     }
 
@@ -277,7 +278,7 @@ final class PasswordModifyExtendedRequestImpl extends
     /**
      * {@inheritDoc}
      */
-    public PasswordModifyExtendedRequest setNewPassword(final ByteString newPassword) {
+    public PasswordModifyExtendedRequest setNewPassword(final byte[] newPassword) {
         this.newPassword = newPassword;
         return this;
     }
@@ -286,14 +287,14 @@ final class PasswordModifyExtendedRequestImpl extends
      * {@inheritDoc}
      */
     public PasswordModifyExtendedRequest setNewPassword(final char[] newPassword) {
-        this.newPassword = (newPassword != null) ? ByteString.valueOf(newPassword) : null;
+        this.newPassword = (newPassword != null) ? StaticUtils.getBytes(newPassword) : null;
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public PasswordModifyExtendedRequest setOldPassword(final ByteString oldPassword) {
+    public PasswordModifyExtendedRequest setOldPassword(final byte[] oldPassword) {
         this.oldPassword = oldPassword;
         return this;
     }
@@ -302,22 +303,14 @@ final class PasswordModifyExtendedRequestImpl extends
      * {@inheritDoc}
      */
     public PasswordModifyExtendedRequest setOldPassword(final char[] oldPassword) {
-        this.oldPassword = (oldPassword != null) ? ByteString.valueOf(oldPassword) : null;
+        this.oldPassword = (oldPassword != null) ? StaticUtils.getBytes(oldPassword) : null;
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public PasswordModifyExtendedRequest setUserIdentity(final ByteString userIdentity) {
-        this.userIdentity = userIdentity;
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public PasswordModifyExtendedRequest setUserIdentity(final String userIdentity) {
+    public PasswordModifyExtendedRequest setUserIdentity(final Object userIdentity) {
         this.userIdentity = (userIdentity != null) ? ByteString.valueOf(userIdentity) : null;
         return this;
     }

@@ -75,7 +75,7 @@ public final class Entries {
          */
         @Override
         public boolean addAttribute(final Attribute attribute,
-                final Collection<ByteString> duplicateValues) {
+                final Collection<? super ByteString> duplicateValues) {
             throw new UnsupportedOperationException();
         }
 
@@ -94,7 +94,7 @@ public final class Entries {
 
         @Override
         public boolean containsAttribute(final Attribute attribute,
-                final Collection<ByteString> missingValues) {
+                final Collection<? super ByteString> missingValues) {
             return entry.containsAttribute(attribute, missingValues);
         }
 
@@ -195,7 +195,7 @@ public final class Entries {
          */
         @Override
         public boolean removeAttribute(final Attribute attribute,
-                final Collection<ByteString> missingValues) {
+                final Collection<? super ByteString> missingValues) {
             throw new UnsupportedOperationException();
         }
 

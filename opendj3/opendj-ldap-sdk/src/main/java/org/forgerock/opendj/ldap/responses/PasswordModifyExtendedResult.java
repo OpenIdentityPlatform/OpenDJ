@@ -85,7 +85,7 @@ public interface PasswordModifyExtendedResult extends ExtendedResult {
      * @return The newly generated password, or {@code null} if the password
      *         modify request failed or a generated password was not requested.
      */
-    ByteString getGeneratedPassword();
+    byte[] getGeneratedPassword();
 
     /**
      * {@inheritDoc}
@@ -148,7 +148,7 @@ public interface PasswordModifyExtendedResult extends ExtendedResult {
      *             If this password modify extended result does not permit the
      *             generated password to be set.
      */
-    PasswordModifyExtendedResult setGeneratedPassword(ByteString password);
+    PasswordModifyExtendedResult setGeneratedPassword(byte[] password);
 
     /**
      * Sets the generated password. The password will be converted to a UTF-8

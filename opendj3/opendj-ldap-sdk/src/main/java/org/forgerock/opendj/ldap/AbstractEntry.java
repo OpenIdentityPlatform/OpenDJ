@@ -80,7 +80,7 @@ public abstract class AbstractEntry implements Entry {
      */
     @Override
     public boolean containsAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         final Attribute a = getAttribute(attribute.getAttributeDescription());
         if (a == null) {
             if (missingValues != null) {
@@ -212,7 +212,7 @@ public abstract class AbstractEntry implements Entry {
      */
     @Override
     public boolean removeAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         final Iterator<Attribute> i = getAllAttributes().iterator();
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
         while (i.hasNext()) {

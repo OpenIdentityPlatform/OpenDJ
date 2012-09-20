@@ -35,13 +35,15 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
  * Password modify extended result implementation.
  */
 final class PasswordModifyExtendedResultImpl extends
         AbstractExtendedResult<PasswordModifyExtendedResult> implements
         PasswordModifyExtendedResult {
-    private ByteString password;
+    private byte[] password;
 
     /**
      * The ASN.1 element type that will be used to encode the genPasswd
@@ -71,7 +73,7 @@ final class PasswordModifyExtendedResultImpl extends
     /**
      * {@inheritDoc}
      */
-    public ByteString getGeneratedPassword() {
+    public byte[] getGeneratedPassword() {
         return password;
     }
 
@@ -118,7 +120,7 @@ final class PasswordModifyExtendedResultImpl extends
     /**
      * {@inheritDoc}
      */
-    public PasswordModifyExtendedResult setGeneratedPassword(final ByteString password) {
+    public PasswordModifyExtendedResult setGeneratedPassword(final byte[] password) {
         this.password = password;
         return this;
     }
@@ -127,7 +129,7 @@ final class PasswordModifyExtendedResultImpl extends
      * {@inheritDoc}
      */
     public PasswordModifyExtendedResult setGeneratedPassword(final char[] password) {
-        this.password = (password != null) ? ByteString.valueOf(password) : null;
+        this.password = (password != null) ? StaticUtils.getBytes(password) : null;
         return this;
     }
 

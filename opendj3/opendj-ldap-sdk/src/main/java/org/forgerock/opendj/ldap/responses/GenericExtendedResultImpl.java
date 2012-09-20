@@ -39,7 +39,6 @@ final class GenericExtendedResultImpl extends AbstractExtendedResult<GenericExte
         implements ExtendedResult, GenericExtendedResult {
 
     private String responseName = null;
-
     private ByteString responseValue = null;
 
     /**
@@ -101,8 +100,8 @@ final class GenericExtendedResultImpl extends AbstractExtendedResult<GenericExte
     /**
      * {@inheritDoc}
      */
-    public GenericExtendedResult setValue(final ByteString bytes) {
-        this.responseValue = bytes;
+    public GenericExtendedResult setValue(final Object value) {
+        this.responseValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 

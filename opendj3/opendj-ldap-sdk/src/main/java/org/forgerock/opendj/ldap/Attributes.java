@@ -123,8 +123,8 @@ public final class Attributes {
         }
 
         @Override
-        public boolean addAll(final Collection<? extends ByteString> values,
-                final Collection<? super ByteString> duplicateValues) {
+        public <T> boolean addAll(final Collection<T> values,
+                final Collection<? super T> duplicateValues) {
             return attribute.addAll(values, duplicateValues);
         }
 
@@ -330,8 +330,8 @@ public final class Attributes {
         }
 
         @Override
-        public boolean addAll(final Collection<? extends ByteString> values,
-                final Collection<? super ByteString> duplicateValues) {
+        public <T> boolean addAll(final Collection<T> values,
+                final Collection<? super T> duplicateValues) {
             throw new UnsupportedOperationException();
         }
 

@@ -91,7 +91,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements Ad
      * {@inheritDoc}
      */
     public boolean addAttribute(final Attribute attribute,
-            final Collection<ByteString> duplicateValues) {
+            final Collection<? super ByteString> duplicateValues) {
         return entry.addAttribute(attribute, duplicateValues);
     }
 
@@ -115,7 +115,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements Ad
      * {@inheritDoc}
      */
     public boolean containsAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         return entry.containsAttribute(attribute, missingValues);
     }
 
@@ -179,7 +179,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements Ad
      * {@inheritDoc}
      */
     public boolean removeAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         return entry.removeAttribute(attribute, missingValues);
     }
 
