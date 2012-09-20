@@ -6,9 +6,16 @@
     LDAP Directory Services as defined in <a
       href="http://tools.ietf.org/html/rfc4510">RFC 4510</a>.
     <br>
-    <h1>Getting started</h1>
+    For an introduction to LDAP, read the <em>OpenDJ SDK Developer's Guide</em>
+    chapter on <a
+      href="http://opendj.forgerock.org/doc/dev-guide/index.html#chap-understanding-ldap"
+    >Understanding LDAP</a>. Also see the chapter on <a
+      href="http://opendj.forgerock.org/doc/dev-guide/index.html#chap-best-practices"
+    >Best Practices For LDAP Application Developers</a>.
+    <br>
+    <h1>Getting Started</h1>
     The following example shows how the OpenDJ SDK may be used to
-    connect to a Directory Server, authenticate, and then perform a
+    connect to a directory server, authenticate, and then perform a
     search. The search results are output as LDIF to the standard
     output:
     <br>
@@ -63,32 +70,32 @@
         </tr>
       </tbody>
     </table>
+    <br><!-- It seems the .zip is not packaged with the SDK. -->
+    Additional examples can be found online at the <a
+      href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+    >OpenDJ LDAP SDK Examples</a> site.
     <br>
-    Additional examples can be found in the file examples.zip which is
-    included with this SDK.
-    <br>
-    <h1>Creating connections</h1>
+    <h1>Creating Connections</h1>
     The following classes can be used to create and manage connections to
-    LDAP Directory Servers:
+    LDAP directory servers:
     <ul>
       <li>{@link org.forgerock.opendj.ldap.LDAPConnectionFactory}</li>
       <li>{@link org.forgerock.opendj.ldap.Connection}</li>
       <li>{@link org.forgerock.opendj.ldap.Connections}</li>
     </ul>
     <br>
-    <h1>Creating requests</h1>
+    <h1>Creating Requests</h1>
     The following classes can be used to create LDAP requests:
     <ul>
       <li>{@link org.forgerock.opendj.ldap.requests.Requests}</li>
       <li>{@link org.forgerock.opendj.ldap.requests.Request}</li>
     </ul>
     <br>
-    <h1>Using controls</h1>
+    <h1>Using Controls</h1>
     Common LDAP control implementations can be found in
     {@link org.forgerock.opendj.ldap.controls}.
     <br>
-    <br>
-    <h1>Core types</h1>
+    <h1>Core Types</h1>
     The following classes and interfaces represent core types:
     <ul>
       <li>{@link org.forgerock.opendj.ldap.AttributeDescription}</li>

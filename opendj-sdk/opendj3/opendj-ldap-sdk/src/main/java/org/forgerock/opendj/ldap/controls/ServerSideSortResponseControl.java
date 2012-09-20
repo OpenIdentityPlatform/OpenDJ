@@ -56,6 +56,27 @@ import com.forgerock.opendj.util.Validator;
  * result code in this control is success. If the server omits this control from
  * the search result, the client SHOULD assume that the sort control was ignored
  * by the server.
+ * <p>
+ * The following example demonstrates how to work with a server-side sort.
+ *
+ * <pre>
+ * Connection connection = ...;
+ *
+ * SearchRequest request = Requests.newSearchRequest(
+ *         "ou=People,dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+ *         .addControl(ServerSideSortRequestControl.newControl(true, new SortKey("cn")));
+ *
+ * SearchResultHandler resultHandler = new MySearchResultHandler();
+ * Result result = connection.search(request, resultHandler);
+ *
+ * ServerSideSortResponseControl control = result.getControl(
+ *         ServerSideSortResponseControl.DECODER, new DecodeOptions());
+ * if (control != null && control.getResult() == ResultCode.SUCCESS) {
+ *     // Entries are sorted.
+ * } else {
+ *     // Entries not sorted.
+ * }
+ * </pre>
  *
  * @see ServerSideSortRequestControl
  * @see <a href="http://tools.ietf.org/html/rfc2891">RFC 2891 - LDAP Control

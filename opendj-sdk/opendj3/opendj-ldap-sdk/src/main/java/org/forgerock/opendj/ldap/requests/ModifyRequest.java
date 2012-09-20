@@ -44,6 +44,18 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 /**
  * The Modify operation allows a client to request that a modification of an
  * entry be performed on its behalf by a server.
+ * <p>
+ * The following example adds a member to a static group entry.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String groupDN = ...;
+ * String memberDN = ...;
+ *
+ * ModifyRequest addMember = Requests.newModifyRequest(groupDN)
+ *         .addModification(ModificationType.ADD, "member", memberDN);
+ * connection.modify(addMember);
+ * </pre>
  */
 public interface ModifyRequest extends Request, ChangeRecord {
     /**

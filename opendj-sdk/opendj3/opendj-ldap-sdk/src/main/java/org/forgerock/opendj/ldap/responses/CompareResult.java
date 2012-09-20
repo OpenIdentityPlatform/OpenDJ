@@ -41,6 +41,22 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * the attribute or sub-type according to the attribute's equality matching rule
  * then the result code is set to {@link ResultCode#COMPARE_TRUE} and can be
  * determined by invoking the {@link #matched} method.
+ * <p>
+ * The following excerpt shows how to use the Compare operation to check whether
+ * a member belongs to a (possibly large) static group.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String groupDN = ...;
+ * String memberDN = ...;
+ *
+ * CompareRequest request =
+ *         Requests.newCompareRequest(groupDN, "member", memberDN);
+ * CompareResult result = connection.compare(request);
+ * if (result.matched()) {
+ *     // The member belongs to the group.
+ * }
+ * </pre>
  */
 public interface CompareResult extends Result {
     /**

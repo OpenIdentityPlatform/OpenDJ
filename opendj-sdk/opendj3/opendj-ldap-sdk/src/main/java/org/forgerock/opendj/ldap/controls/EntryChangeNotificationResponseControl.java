@@ -52,6 +52,40 @@ import com.forgerock.opendj.util.Validator;
  * about the change the caused a particular entry to be returned as the result
  * of a persistent search.
  *
+ * <pre>
+ * Connection connection = ...;
+ *
+ * SearchRequest request =
+ *         Requests.newSearchRequest(
+ *                 "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+ *                 "(objectclass=inetOrgPerson)", "cn")
+ *                 .addControl(PersistentSearchRequestControl.newControl(
+ *                             true, true, true, // critical,changesOnly,returnECs
+ *                             PersistentSearchChangeType.ADD,
+ *                             PersistentSearchChangeType.DELETE,
+ *                             PersistentSearchChangeType.MODIFY,
+ *                             PersistentSearchChangeType.MODIFY_DN));
+ *
+ * ConnectionEntryReader reader = connection.search(request);
+ *
+ * while (reader.hasNext()) {
+ *     if (!reader.isReference()) {
+ *         SearchResultEntry entry = reader.readEntry(); // Entry that changed
+ *
+ *         EntryChangeNotificationResponseControl control = entry.getControl(
+ *                 EntryChangeNotificationResponseControl.DECODER,
+ *                 new DecodeOptions());
+ *
+ *         PersistentSearchChangeType type = control.getChangeType();
+ *         if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
+ *             // Previous DN: control.getPreviousName()
+ *         }
+ *         // Change number: control.getChangeNumber());
+ *     }
+ * }
+ *
+ * </pre>
+ *
  * @see PersistentSearchRequestControl
  * @see PersistentSearchChangeType
  * @see <a

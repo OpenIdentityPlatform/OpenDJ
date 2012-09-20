@@ -435,7 +435,9 @@ public interface Entry {
      * {@code attribute} is empty then the entire attribute will be removed if
      * it is present.
      * <p>
-     * <b>NOTE:</b> This method implements LDAP Modify replace semantics.
+     * <b>NOTE:</b> This method implements LDAP Modify replace semantics as
+     * described in <a href="http://tools.ietf.org/html/rfc4511#section-4.6"
+     * >RFC 4511 - Section 4.6. Modify Operation</a>.
      *
      * @param attribute
      *            The attribute values to be added to this entry, replacing any
@@ -462,7 +464,9 @@ public interface Entry {
      * Any attribute values which are not instances of {@code ByteString} will
      * be converted using the {@link ByteString#valueOf(Object)} method.
      * <p>
-     * <b>NOTE:</b> This method implements LDAP Modify replace semantics.
+     * <b>NOTE:</b> This method implements LDAP Modify replace semantics as
+     * described in <a href="http://tools.ietf.org/html/rfc4511#section-4.6"
+     * >RFC 4511 - Section 4.6. Modify Operation</a>.
      *
      * @param attributeDescription
      *            The name of the attribute whose values are to be replaced.

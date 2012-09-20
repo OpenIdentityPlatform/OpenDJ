@@ -55,6 +55,43 @@ import com.forgerock.opendj.util.Validator;
  * The persistent search request control as defined in
  * draft-ietf-ldapext-psearch. This control allows a client to receive
  * notification of changes that occur in an LDAP server.
+ * <p>
+ * You can examine the entry change notification response control to get more
+ * information about a change returned by the persistent search.
+ *
+ * <pre>
+ * Connection connection = ...;
+ *
+ * SearchRequest request =
+ *         Requests.newSearchRequest(
+ *                 "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+ *                 "(objectclass=inetOrgPerson)", "cn")
+ *                 .addControl(PersistentSearchRequestControl.newControl(
+ *                             true, true, true, // critical,changesOnly,returnECs
+ *                             PersistentSearchChangeType.ADD,
+ *                             PersistentSearchChangeType.DELETE,
+ *                             PersistentSearchChangeType.MODIFY,
+ *                             PersistentSearchChangeType.MODIFY_DN));
+ *
+ * ConnectionEntryReader reader = connection.search(request);
+ *
+ * while (reader.hasNext()) {
+ *     if (!reader.isReference()) {
+ *         SearchResultEntry entry = reader.readEntry(); // Entry that changed
+ *
+ *         EntryChangeNotificationResponseControl control = entry.getControl(
+ *                 EntryChangeNotificationResponseControl.DECODER,
+ *                 new DecodeOptions());
+ *
+ *         PersistentSearchChangeType type = control.getChangeType();
+ *         if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
+ *             // Previous DN: control.getPreviousName()
+ *         }
+ *         // Change number: control.getChangeNumber());
+ *     }
+ * }
+ *
+ * </pre>
  *
  * @see EntryChangeNotificationResponseControl
  * @see PersistentSearchChangeType

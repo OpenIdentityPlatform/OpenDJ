@@ -55,6 +55,19 @@ import com.forgerock.opendj.util.Validator;
  * the attribute contains the specified attribute value, and a {@code delete}
  * modification <i>ensures</i> that the attribute does not contain the specified
  * attribute value.
+ *
+ * <pre>
+ * String groupDN = ...;
+ * String memberDN = ...;
+ * Connection connection = ...;
+ *
+ * // Add a member to a static group, telling the directory server not to
+ * // complain if the member already belongs to the group.
+ * ModifyRequest request = Requests.newModifyRequest(groupDN)
+ *          .addControl(PermissiveModifyRequestControl.newControl(true))
+ *          .addModification(ModificationType.ADD, "member", memberDN);
+ * connection.modify(request);
+ * </pre>
  */
 public final class PermissiveModifyRequestControl implements Control {
     /**

@@ -45,6 +45,24 @@ import com.forgerock.opendj.util.Validator;
  * control value is a string representation of the number of seconds until
  * expiration.
  *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ * char[] password = ...;
+ *
+ * BindResult result = connection.bind(DN, password);
+ * try {
+ *     PasswordExpiringResponseControl control =
+ *             result.getControl(PasswordExpiringResponseControl.DECODER,
+ *                     new DecodeOptions());
+ *     if (!(control == null) && control.hasValue()) {
+ *         // Password expires in control.getSecondsUntilExpiration() seconds
+ *     }
+ * } catch (DecodeException de) {
+ *     // Failed to decode the response control.
+ * }
+ * </pre>
+ *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy">draft-vchu-ldap-pwd-policy
  *      - Password Policy for LDAP Directories </a>

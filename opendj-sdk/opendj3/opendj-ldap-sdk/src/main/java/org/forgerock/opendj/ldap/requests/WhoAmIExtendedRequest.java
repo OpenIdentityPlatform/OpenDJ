@@ -41,6 +41,24 @@ import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
  * clients to obtain the primary authorization identity, in its primary form,
  * that the server has associated with the user or application entity.
  * <p>
+ * The following example demonstrates use of the Who Am I? request and response.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String name = ...;
+ * char[] password = ...;
+ *
+ * Result result = connection.bind(name, password);
+ * if (result.isSuccess()) {
+ *     WhoAmIExtendedRequest request = Requests.newWhoAmIExtendedRequest();
+ *     WhoAmIExtendedResult extResult = connection.extendedRequest(request);
+ *
+ *     if (extResult.isSuccess()) {
+ *         // Authz ID: "  + extResult.getAuthorizationID());
+ *     }
+ * }
+ * </pre>
+ *
  * This operation may preferable to the Authorization Identity Controls
  * mechanism defined in RFC 3829, which uses Bind request and response controls
  * to request and return the authorization identity. Bind controls are not

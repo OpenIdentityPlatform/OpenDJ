@@ -45,6 +45,16 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  * Only leaf entries (those with no subordinate entries) can be deleted with
  * this operation. However, addition of the {@code SubtreeDeleteControl} permits
  * whole sub-trees to be deleted using a single Delete request.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String baseDN = ...;
+ *
+ * DeleteRequest request =
+ *         Requests.newDeleteRequest(baseDN)
+ *             .addControl(SubtreeDeleteRequestControl.newControl(true));
+ * connection.delete(request);
+ * </pre>
  */
 public interface DeleteRequest extends Request, ChangeRecord {
     /**

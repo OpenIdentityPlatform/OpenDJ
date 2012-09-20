@@ -29,7 +29,6 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -83,8 +82,8 @@ public final class ShortLife {
         char[] adminPwd = "bribery".toCharArray();
 
         // An entry to add to the directory
-        DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-        Entry entry = new LinkedHashMapEntry(entryDN.toString())
+        String entryDN = "cn=Bob,ou=People,dc=example,dc=com";
+        Entry entry = new LinkedHashMapEntry(entryDN)
             .addAttribute("cn", "Bob")
             .addAttribute("objectclass", "top")
             .addAttribute("objectclass", "person")
@@ -116,15 +115,15 @@ public final class ShortLife {
             System.out.println("...done.");
 
             System.out.println("Renaming the entry...");
-            DN newDN = DN.valueOf("cn=Ted,ou=People,dc=example,dc=com");
-            entry = entry.setName(newDN);
+            String newDN = "cn=Ted,ou=People,dc=example,dc=com";
+            entry =entry.setName(newDN);
             writeToConsole(writer, entry);
-            connection.modifyDN(entryDN.toString(), "cn=Ted");
+            connection.modifyDN(entryDN, "cn=Ted");
             System.out.println("...done.");
 
             System.out.println("Deleting the entry...");
             writeToConsole(writer, entry);
-            connection.delete(newDN.toString());
+            connection.delete(newDN);
             System.out.println("...done.");
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());

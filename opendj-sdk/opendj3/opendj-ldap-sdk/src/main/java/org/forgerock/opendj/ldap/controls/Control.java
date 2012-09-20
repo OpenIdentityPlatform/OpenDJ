@@ -33,6 +33,22 @@ import org.forgerock.opendj.ldap.ByteString;
  * single LDAP message. A control only affects the semantics of the message it
  * is attached to. Controls sent by clients are termed 'request controls', and
  * those sent by servers are termed 'response controls'.
+ * <p>
+ * To determine whether a directory server supports a given control, read the
+ * list of supported controls from the root DSE to get a collection of control
+ * OIDs, and then check for a match:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * Collection&lt;String&gt; supported =
+ *     RootDSE.readRootDSE(connection).getSupportedControls();
+ *
+ * Control control = ...;
+ * String OID = control.getOID();
+ * if (supported != null && !supported.isEmpty() && supported.contains(OID)) {
+ *     // The control is supported. Use it here...
+ * }
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
  *      Directory Access Protocol (LDAP): The Protocol </a>

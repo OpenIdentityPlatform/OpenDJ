@@ -59,8 +59,29 @@ import com.forgerock.opendj.util.Validator;
  * This controls may be useful when the client has limited functionality or for
  * some other reason cannot sort the results but still needs them sorted. In
  * cases where the client can sort the results client-side sorting is
- * recommended in order to reduce load on the server. See {@link SortKey} for
- * an example of client-side sorting.
+ * recommended in order to reduce load on the server. See {@link SortKey} for an
+ * example of client-side sorting.
+ * <p>
+ * The following example demonstrates how to work with a server-side sort.
+ *
+ * <pre>
+ * Connection connection = ...;
+ *
+ * SearchRequest request = Requests.newSearchRequest(
+ *         "ou=People,dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+ *         .addControl(ServerSideSortRequestControl.newControl(true, new SortKey("cn")));
+ *
+ * SearchResultHandler resultHandler = new MySearchResultHandler();
+ * Result result = connection.search(request, resultHandler);
+ *
+ * ServerSideSortResponseControl control = result.getControl(
+ *         ServerSideSortResponseControl.DECODER, new DecodeOptions());
+ * if (control != null && control.getResult() == ResultCode.SUCCESS) {
+ *     // Entries are sorted.
+ * } else {
+ *     // Entries not sorted.
+ * }
+ * </pre>
  *
  * @see ServerSideSortResponseControl
  * @see SortKey

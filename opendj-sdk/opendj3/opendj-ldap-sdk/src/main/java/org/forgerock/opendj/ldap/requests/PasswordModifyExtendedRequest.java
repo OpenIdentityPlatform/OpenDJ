@@ -45,6 +45,26 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
  * addition, it includes support for requiring the user's current password as
  * well as for generating a new password if none was provided.
  *
+ * <pre>
+ * String userIdentity = ...; // For example, u:&lt;uid> or dn:&lt;DN>
+ * char[] oldPassword = ...;
+ * char[] newPassword = ...;
+ * Connection connection = ...;
+ *
+ * PasswordModifyExtendedRequest request =
+ *         Requests.newPasswordModifyExtendedRequest()
+ *             .setUserIdentity(userIdentity)
+ *             .setOldPassword(oldPassword)
+ *             .setNewPassword(newPassword);
+ *
+ * PasswordModifyExtendedResult result = connection.extendedRequest(request);
+ * if (result.isSuccess()) {
+ *     // Changed password
+ * } else {
+ *     // Use result to diagnose error.
+ * }
+ * </pre>
+ *
  * @see PasswordModifyExtendedResult
  * @see <a href="http://tools.ietf.org/html/rfc3062">RFC 3062 - LDAP Password
  *      Modify Extended Operation </a>

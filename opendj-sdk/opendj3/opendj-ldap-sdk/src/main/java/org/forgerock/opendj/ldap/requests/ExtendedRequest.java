@@ -42,6 +42,23 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  * operation which installs transport layer security (see
  * {@link StartTLSExtendedRequest}).
  *
+ * <p>
+ * To determine whether a directory server supports a given extension, read the
+ * list of supported extensions from the root DSE to get a collection of
+ * extension OIDs, and then check for a match. For example:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * Collection&lt;String&gt; supported =
+ *     RootDSE.readRootDSE(connection).getSupportedExtendedOperations();
+ *
+ * ExtendedRequest extension = ...;
+ * String OID = extension.getOID();
+ * if (supported != null && !supported.isEmpty() && supported.contains(OID)) {
+ *     // The extension is supported. Use it here...
+ * }
+ * </pre>
+ *
  * @param <S>
  *            The type of result.
  */

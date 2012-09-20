@@ -29,6 +29,9 @@ package org.forgerock.opendj.ldap.schema;
 /**
  * This enumeration defines the set of possible objectclass types that may be
  * used, as defined in RFC 2252.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc2252">RFC 2252 - Lightweight
+ *      Directory Access Protocol (v3): Attribute Syntax Definitions</a>
  */
 public enum ObjectClassType {
     /**

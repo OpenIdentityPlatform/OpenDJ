@@ -46,6 +46,9 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * An Intermediate response may convey an optional response name and value.
  * These can be retrieved using the {@link #getOID} and {@link #getValue}
  * methods respectively.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc3771">RFC 3771 - The Lightweight
+ *      Directory Access Protocol (LDAP) Intermediate Response Message</a>
  */
 public interface IntermediateResponse extends Response {
     /**

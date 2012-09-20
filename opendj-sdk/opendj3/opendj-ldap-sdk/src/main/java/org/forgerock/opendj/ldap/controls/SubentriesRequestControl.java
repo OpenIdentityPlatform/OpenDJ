@@ -54,6 +54,40 @@ import com.forgerock.opendj.util.Validator;
  * visible to search operations unless the target/base of the operation is a
  * sub-entry. In the presence of the sub-entry request control, sub-entries are
  * visible if and only if the control's value is {@code TRUE}.
+ * <p>
+ * Consider "Class of Service" sub-entries such as the following:
+ *
+ * <pre>
+ * dn: cn=Gold Class of Service,dc=example,dc=com
+ * objectClass: collectiveAttributeSubentry
+ * objectClass: extensibleObject
+ * objectClass: subentry
+ * objectClass: top
+ * cn: Gold Class of Service
+ * diskQuota;collective: 100 GB
+ * mailQuota;collective: 10 GB
+ * subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ *  gold)" }
+ * </pre>
+ *
+ * To access the sub-entries in your search, use the control with value
+ * {@code TRUE}.
+ *
+ * <pre>
+ * Connection connection = ...;
+ *
+ * SearchRequest request = Requests.newSearchRequest("dc=example,dc=com",
+ *         SearchScope.WHOLE_SUBTREE, "cn=*Class of Service", "cn", "subtreeSpecification")
+ *         .addControl(SubentriesRequestControl.newControl(true, true));
+ *  
+ * ConnectionEntryReader reader = connection.search(request);
+ * while (reader.hasNext()) {
+ *     if (reader.isEntry()) {
+ *         SearchResultEntry entry = reader.readEntry();
+ *         // ...
+ *     }
+ * }
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc3672">RFC 3672 - Subentries in
  *      the Lightweight Directory Access Protocol </a>

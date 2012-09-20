@@ -47,7 +47,42 @@ import com.forgerock.opendj.util.Validator;
 /**
  * The password policy response control as defined in
  * draft-behera-ldap-password-policy.
- * <p>
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ * char[] password = ...;
+ *
+ * try {
+ *     BindRequest request = Requests.newSimpleBindRequest(DN, password)
+ *             .addControl(PasswordPolicyRequestControl.newControl(true));
+ *
+ *     BindResult result = connection.bind(request);
+ *
+ *     PasswordPolicyResponseControl control =
+ *             result.getControl(PasswordPolicyResponseControl.DECODER,
+ *                     new DecodeOptions());
+ *     if (!(control == null) && !(control.getWarningType() == null)) {
+ *         // Password policy warning, use control.getWarningType(),
+ *         // and control.getWarningValue().
+ *     }
+ * } catch (ErrorResultException e) {
+ *     Result result = e.getResult();
+ *     try {
+ *         PasswordPolicyResponseControl control =
+ *                 result.getControl(PasswordPolicyResponseControl.DECODER,
+ *                         new DecodeOptions());
+ *         if (!(control == null)) {
+ *             // Password policy error, use control.getErrorType().
+ *         }
+ *     } catch (DecodeException de) {
+ *         // Failed to decode the response control.
+ *     }
+ * } catch (DecodeException e) {
+ *     // Failed to decode the response control.
+ * }
+ * </pre>
+ *
  * If the client has sent a passwordPolicyRequest control, the server (when
  * solicited by the inclusion of the request control) sends this control with
  * the following operation responses: bindResponse, modifyResponse, addResponse,

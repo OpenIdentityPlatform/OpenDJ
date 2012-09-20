@@ -45,6 +45,22 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * Note that some directory systems may establish access controls that permit
  * the values of certain attributes (such as {@code userPassword} ) to be
  * compared but not interrogated by other means.
+ * <p>
+ * The following excerpt shows how to use the Compare operation to check whether
+ * a member belongs to a (possibly large) static group.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String groupDN = ...;
+ * String memberDN = ...;
+ *
+ * CompareRequest request =
+ *          Requests.newCompareRequest(groupDN, "member", memberDN);
+ * CompareResult result = connection.compare(request);
+ * if (result.matched()) {
+ *     // The member belongs to the group.
+ * }
+ * </pre>
  */
 public interface CompareRequest extends Request {
     /**

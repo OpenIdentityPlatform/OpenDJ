@@ -39,7 +39,20 @@ import com.forgerock.opendj.util.Validator;
  * for storing attributes. Attributes are returned in ascending order of
  * attribute description, with {@code objectClass} first, then all user
  * attributes, and finally any operational attributes. All operations are
- * supported by this implementation.
+ * supported by this implementation. For example, you can build an entry like
+ * this:
+ *
+ * <pre>
+ * Entry entry = new TreeMapEntry("cn=Bob,ou=People,dc=example,dc=com")
+ *    .addAttribute("cn", "Bob")
+ *    .addAttribute("objectclass", "top")
+ *    .addAttribute("objectclass", "person")
+ *    .addAttribute("objectclass", "organizationalPerson")
+ *    .addAttribute("objectclass", "inetOrgPerson")
+ *    .addAttribute("mail", "subgenius@example.com")
+ *    .addAttribute("sn", "Dobbs");
+ * </pre>
+ *
  * <p>
  * A {@code TreeMapEntry} stores references to attributes which have been added
  * using the {@link #addAttribute} methods. Attributes sharing the same

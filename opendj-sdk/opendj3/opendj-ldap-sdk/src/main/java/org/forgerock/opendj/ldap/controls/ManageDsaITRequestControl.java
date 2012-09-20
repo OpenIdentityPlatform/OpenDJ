@@ -44,6 +44,30 @@ import com.forgerock.opendj.util.Validator;
  * objects and instead will treat the referral object as a normal entry. The
  * server, however, is still free to return referrals for other reasons.
  *
+ * <pre>
+ * // &quot;dc=ref,dc=com&quot; holds a referral to something else.
+ *
+ * // Referral without the ManageDsaIT control:
+ * SearchRequest request = Requests.newSearchRequest(
+ *          &quot;dc=ref,dc=com&quot;,
+ *          SearchScope.SUBORDINATES,
+ *          &quot;(objectclass=*)&quot;,
+ *          &quot;&quot;);
+ *
+ * ConnectionEntryReader reader = connection.search(request);
+ * while (reader.hasNext()) {
+ *     if (reader.isReference()) {
+ *         SearchResultReference ref = reader.readReference();
+ *         // References: ref.getURIs()
+ *     }
+ * }
+ *
+ * // Referral with the ManageDsaIT control:
+ * request.addControl(ManageDsaITRequestControl.newControl(true));
+ * SearchResultEntry entry = connection.searchSingleEntry(request);
+ * // ...
+ * </pre>
+ *
  * @see <a href="http://tools.ietf.org/html/rfc3296">RFC 3296 - Named
  *      Subordinate References in Lightweight Directory Access Protocol (LDAP)
  *      Directories </a>

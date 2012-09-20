@@ -40,6 +40,9 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * 4513.
  * <p>
  * <TODO>finish doc.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc4513#section-5.2.1.8">RFC 4513 -
+ *      SASL Authorization Identities (authzId) </a>
  */
 public interface SASLBindRequest extends BindRequest {
     /**

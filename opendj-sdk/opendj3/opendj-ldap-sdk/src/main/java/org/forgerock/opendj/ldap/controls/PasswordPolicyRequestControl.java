@@ -44,6 +44,41 @@ import com.forgerock.opendj.util.Validator;
  * control. When a server receives this control, it will return the password
  * policy response control when appropriate and with the proper data.
  *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ * char[] password = ...;
+ *
+ * try {
+ *     BindRequest request = Requests.newSimpleBindRequest(DN, password)
+ *             .addControl(PasswordPolicyRequestControl.newControl(true));
+ *
+ *     BindResult result = connection.bind(request);
+ *
+ *     PasswordPolicyResponseControl control =
+ *             result.getControl(PasswordPolicyResponseControl.DECODER,
+ *                     new DecodeOptions());
+ *     if (!(control == null) && !(control.getWarningType() == null)) {
+ *         // Password policy warning, use control.getWarningType(),
+ *         // and control.getWarningValue().
+ *     }
+ * } catch (ErrorResultException e) {
+ *     Result result = e.getResult();
+ *     try {
+ *         PasswordPolicyResponseControl control =
+ *                 result.getControl(PasswordPolicyResponseControl.DECODER,
+ *                         new DecodeOptions());
+ *         if (!(control == null)) {
+ *             // Password policy error, use control.getErrorType().
+ *         }
+ *     } catch (DecodeException de) {
+ *         // Failed to decode the response control.
+ *     }
+ * } catch (DecodeException e) {
+ *     // Failed to decode the response control.
+ * }
+ * </pre>
+ *
  * @see PasswordPolicyResponseControl
  * @see <a href="http://tools.ietf.org/html/draft-behera-ldap-password-policy">
  *      draft-behera-ldap-password-policy - Password Policy for LDAP Directories
