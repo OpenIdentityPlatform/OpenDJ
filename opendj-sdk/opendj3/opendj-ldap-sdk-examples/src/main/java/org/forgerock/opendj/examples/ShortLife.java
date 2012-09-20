@@ -116,7 +116,7 @@ public final class ShortLife {
 
             System.out.println("Renaming the entry...");
             String newDN = "cn=Ted,ou=People,dc=example,dc=com";
-            entry =entry.setName(newDN);
+            entry = entry.setName(newDN);
             writeToConsole(writer, entry);
             connection.modifyDN(entryDN, "cn=Ted");
             System.out.println("...done.");
