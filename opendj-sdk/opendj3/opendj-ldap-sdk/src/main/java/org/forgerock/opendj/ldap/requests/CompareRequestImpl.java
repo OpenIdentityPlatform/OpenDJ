@@ -113,15 +113,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest> imple
     /**
      * {@inheritDoc}
      */
-    public CompareRequest setAssertionValue(final ByteString value) {
-        Validator.ensureNotNull(value);
-        this.assertionValue = value;
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public CompareRequest setAssertionValue(final Object value) {
         Validator.ensureNotNull(value);
         this.assertionValue = ByteString.valueOf(value);

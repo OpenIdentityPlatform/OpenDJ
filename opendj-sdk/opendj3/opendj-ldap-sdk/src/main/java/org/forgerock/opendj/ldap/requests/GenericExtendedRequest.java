@@ -106,14 +106,18 @@ public interface GenericExtendedRequest extends ExtendedRequest<GenericExtendedR
     /**
      * Sets the value, if any, associated with this extended request. Its format
      * is defined by the specification of this extended request.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
      *
-     * @param bytes
-     *            The value associated with this extended request, or
-     *            {@code null} if there is no value.
+     * @param value
+     *            TThe value associated with this extended request, or
+     *            {@code null} if there is no value. Its format is defined by
+     *            the specification of this control.
      * @return This generic extended request.
      * @throws UnsupportedOperationException
      *             If this generic extended request does not permit the request
      *             value to be set.
      */
-    GenericExtendedRequest setValue(ByteString bytes);
+    GenericExtendedRequest setValue(Object value);
 }

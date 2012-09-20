@@ -636,27 +636,6 @@ public final class LinkedAttribute extends AbstractAttribute {
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(final Collection<? extends ByteString> values,
-            final Collection<? super ByteString> duplicateValues) {
-        Validator.ensureNotNull(values);
-
-        // TODO: could optimize if objects is a LinkedAttribute having the same
-        // equality matching rule.
-        boolean modified = false;
-        for (final ByteString value : values) {
-            if (add(value)) {
-                modified = true;
-            } else if (duplicateValues != null) {
-                duplicateValues.add(value);
-            }
-        }
-        return modified;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void clear() {
         pimpl.clear(this);
     }
@@ -710,27 +689,6 @@ public final class LinkedAttribute extends AbstractAttribute {
     public boolean remove(final Object value) {
         Validator.ensureNotNull(value);
         return pimpl.remove(this, ByteString.valueOf(value));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T> boolean removeAll(final Collection<T> values,
-            final Collection<? super T> missingValues) {
-        Validator.ensureNotNull(values);
-
-        // TODO: could optimize if objects is a LinkedAttribute having the same
-        // equality matching rule.
-        boolean modified = false;
-        for (final T value : values) {
-            if (remove(ByteString.valueOf(value))) {
-                modified = true;
-            } else if (missingValues != null) {
-                missingValues.add(value);
-            }
-        }
-        return modified;
     }
 
     /**

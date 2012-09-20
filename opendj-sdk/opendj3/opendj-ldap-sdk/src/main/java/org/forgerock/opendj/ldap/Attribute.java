@@ -40,21 +40,8 @@ import java.util.Set;
  * equality matching rule associated with the attribute description.
  * <p>
  * Any methods which accept {@code Object} based attribute values convert the
- * attribute values to instances of {@code ByteString} as follows:
- *
- * <pre>
- * Object object = ...;
- * ByteString value = null;
- * if (object instanceof ByteSequence)
- * {
- *   value = ((ByteSequence)object).toByteString();
- * }
- * else
- * {
- *   value = ByteString.valueOf(object.toString());
- * }
- * </pre>
- * <p>
+ * attribute values to instances of {@code ByteString} using
+ * {@link ByteString#valueOf(Object)}.
  */
 public interface Attribute extends Set<ByteString> {
     // TODO: matching against attribute value assertions.
@@ -121,7 +108,12 @@ public interface Attribute extends Set<ByteString> {
      * attribute if they are not already present (optional operation). Any
      * attribute values which are already present will be added to
      * {@code duplicateValues} if specified.
+     * <p>
+     * Any attribute values which are not instances of {@code ByteString} will
+     * be converted using the {@link ByteString#valueOf(Object)} method.
      *
+     * @param <T>
+     *            The type of the attribute value objects being added.
      * @param values
      *            The attribute values to be added to this attribute.
      * @param duplicateValues
@@ -134,8 +126,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code values} was {@code null}.
      */
-    boolean addAll(Collection<? extends ByteString> values,
-            Collection<? super ByteString> duplicateValues);
+    <T> boolean addAll(Collection<T> values, Collection<? super T> duplicateValues);
 
     /**
      * Removes all of the attribute values from this attribute (optional

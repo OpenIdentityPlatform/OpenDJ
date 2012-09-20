@@ -107,7 +107,7 @@ public interface PasswordModifyExtendedRequest extends
      * @return The desired password for the user, or {@code null} if a new
      *         password should be generated.
      */
-    ByteString getNewPassword();
+    byte[] getNewPassword();
 
     /**
      * {@inheritDoc}
@@ -120,7 +120,7 @@ public interface PasswordModifyExtendedRequest extends
      * @return The current password for the user, or {@code null} if the
      *         password is not known.
      */
-    ByteString getOldPassword();
+    byte[] getOldPassword();
 
     /**
      * {@inheritDoc}
@@ -172,7 +172,7 @@ public interface PasswordModifyExtendedRequest extends
      *             If this password modify extended request does not permit the
      *             new password to be set.
      */
-    PasswordModifyExtendedRequest setNewPassword(ByteString newPassword);
+    PasswordModifyExtendedRequest setNewPassword(byte[] newPassword);
 
     /**
      * Sets the desired password for the user. The password will be converted to
@@ -199,7 +199,7 @@ public interface PasswordModifyExtendedRequest extends
      *             If this password modify extended request does not permit the
      *             old password to be set.
      */
-    PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword);
+    PasswordModifyExtendedRequest setOldPassword(byte[] oldPassword);
 
     /**
      * Sets the current password for the user. The password will be converted to
@@ -218,6 +218,9 @@ public interface PasswordModifyExtendedRequest extends
     /**
      * Sets the identity of the user whose password is to be modified. The
      * identity may or may not be a distinguished name.
+     * <p>
+     * If {@code userIdentity} is not an instance of {@code ByteString} then it
+     * will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param userIdentity
      *            The identity of the user whose password is to be modified, or
@@ -228,22 +231,6 @@ public interface PasswordModifyExtendedRequest extends
      *             If this password modify extended request does not permit the
      *             user identity to be set.
      */
-    PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity);
-
-    /**
-     * Sets the identity of the user whose password is to be modified. The
-     * identity may or may not be a distinguished name. The identity will be
-     * converted to a UTF-8 octet string.
-     *
-     * @param userIdentity
-     *            The identity of the user whose password is to be modified, or
-     *            {@code null} if the request should be applied to the user
-     *            currently associated with the session.
-     * @return This password modify request.
-     * @throws UnsupportedOperationException
-     *             If this password modify extended request does not permit the
-     *             user identity to be set.
-     */
-    PasswordModifyExtendedRequest setUserIdentity(String userIdentity);
+    PasswordModifyExtendedRequest setUserIdentity(Object userIdentity);
 
 }

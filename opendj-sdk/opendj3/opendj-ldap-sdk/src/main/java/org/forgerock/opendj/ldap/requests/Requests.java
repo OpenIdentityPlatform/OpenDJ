@@ -209,6 +209,9 @@ public final class Requests {
     /**
      * Creates a new compare request using the provided distinguished name,
      * attribute name, and assertion value.
+     * <p>
+     * If the assertion value is not an instance of {@code ByteString} then it
+     * will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param name
      *            The distinguished name of the entry to be compared.
@@ -222,9 +225,10 @@ public final class Requests {
      *             {@code assertionValue} was {@code null}.
      */
     public static CompareRequest newCompareRequest(final DN name,
-            final AttributeDescription attributeDescription, final ByteString assertionValue) {
+            final AttributeDescription attributeDescription, final Object assertionValue) {
         Validator.ensureNotNull(name, attributeDescription, assertionValue);
-        return new CompareRequestImpl(name, attributeDescription, assertionValue);
+        return new CompareRequestImpl(name, attributeDescription, ByteString
+                .valueOf(assertionValue));
     }
 
     /**
@@ -443,12 +447,15 @@ public final class Requests {
      */
     public static GenericExtendedRequest newGenericExtendedRequest(final String requestName) {
         Validator.ensureNotNull(requestName);
-        return new GenericExtendedRequestImpl(requestName, null);
+        return new GenericExtendedRequestImpl(requestName);
     }
 
     /**
      * Creates a new generic extended request using the provided name and
      * optional value.
+     * <p>
+     * If the request value is not an instance of {@code ByteString} then it
+     * will be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param requestName
      *            The dotted-decimal representation of the unique OID
@@ -462,9 +469,9 @@ public final class Requests {
      *             If {@code requestName} was {@code null}.
      */
     public static GenericExtendedRequest newGenericExtendedRequest(final String requestName,
-            final ByteString requestValue) {
+            final Object requestValue) {
         Validator.ensureNotNull(requestName);
-        return new GenericExtendedRequestImpl(requestName, requestValue);
+        return new GenericExtendedRequestImpl(requestName).setValue(requestValue);
     }
 
     /**

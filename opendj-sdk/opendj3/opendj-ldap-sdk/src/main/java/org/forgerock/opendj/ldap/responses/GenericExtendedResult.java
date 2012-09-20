@@ -148,8 +148,11 @@ public interface GenericExtendedResult extends ExtendedResult {
     /**
      * Sets the value, if any, associated with this extended result. Its format
      * is defined by the specification of this extended result.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
      *
-     * @param bytes
+     * @param value
      *            The value associated with this extended result, or
      *            {@code null} if there is no value.
      * @return This generic extended result.
@@ -157,6 +160,6 @@ public interface GenericExtendedResult extends ExtendedResult {
      *             If this generic extended result does not permit the result
      *             value to be set.
      */
-    GenericExtendedResult setValue(ByteString bytes);
+    GenericExtendedResult setValue(Object value);
 
 }

@@ -58,7 +58,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
      */
     @Override
     public final boolean addAttribute(final Attribute attribute,
-            final Collection<ByteString> duplicateValues) {
+            final Collection<? super ByteString> duplicateValues) {
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
         final Attribute oldAttribute = getAttribute(attributeDescription);
         if (oldAttribute != null) {
@@ -121,7 +121,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
      */
     @Override
     public final boolean removeAttribute(final Attribute attribute,
-            final Collection<ByteString> missingValues) {
+            final Collection<? super ByteString> missingValues) {
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
         if (attribute.isEmpty()) {
             if (attributes.remove(attributeDescription) != null) {
