@@ -45,6 +45,25 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * criterion. This can be used to read attributes from a single entry, from
  * entries immediately subordinate to a particular entry, or from a whole
  * subtree of entries.
+ * <p>
+ * Use {@link Requests#newSearchRequest(DN, SearchScope, Filter, String...)} or
+ * {@link Requests#newSearchRequest(String, SearchScope, String, String...)} to
+ * create a new search request.
+ *
+ * <pre>
+ * SearchRequest request = Requests.newSearchRequest(
+ *          "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn");
+ * </pre>
+ *
+ * Alternatively, use the
+ * {@link org.forgerock.opendj.ldap.Connection#search(String, SearchScope, String, String...)
+ * Connection.search()} method to specify the arguments directly.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * ConnectionEntryReader reader = connection.search(
+ *          "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn");
+ * </pre>
  */
 public interface SearchRequest extends Request {
     /**

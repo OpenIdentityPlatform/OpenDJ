@@ -56,6 +56,26 @@ import com.forgerock.opendj.util.Validator;
  * included a post-read request control. The control contains a Search Result
  * Entry containing, subject to access controls and other constraints, values of
  * the requested attributes.
+ * <p>
+ * The following example gets a modified entry from the result of a modify
+ * operation.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ *
+ * ModifyRequest request =
+ *         Requests.newModifyRequest(DN)
+ *         .addControl(PostReadRequestControl.newControl(true, "description"))
+ *         .addModification(ModificationType.REPLACE,
+ *                 "description", "Using the PostReadRequestControl");
+ *
+ * Result result = connection.modify(request);
+ * PostReadResponseControl control =
+ *         result.getControl(PostReadResponseControl.DECODER,
+ *                 new DecodeOptions());
+ * Entry modifiedEntry = control.getEntry();
+ * </pre>
  *
  * @see PostReadRequestControl
  * @see <a href="http://tools.ietf.org/html/rfc4527">RFC 4527 - Lightweight

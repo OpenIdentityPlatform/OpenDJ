@@ -56,6 +56,25 @@ import com.forgerock.opendj.util.Validator;
  * included a pre-read request control. The control contains a Search Result
  * Entry containing, subject to access controls and other constraints, values of
  * the requested attributes.
+ * <p>
+ * The following example gets the entry as it was before the modify operation.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ *
+ * ModifyRequest request =
+ *         Requests.newModifyRequest(DN)
+ *         .addControl(PreReadRequestControl.newControl(true, "mail"))
+ *         .addModification(ModificationType.REPLACE,
+ *                 "mail", "modified@example.com");
+ *
+ * Result result = connection.modify(request);
+ * PreReadResponseControl control =
+ *             result.getControl(PreReadResponseControl.DECODER,
+ *                     new DecodeOptions());
+ * Entry unmodifiedEntry = control.getEntry();
+ * </pre>
  *
  * @see PreReadRequestControl
  * @see <a href="http://tools.ietf.org/html/rfc4527">RFC 4527 - Lightweight

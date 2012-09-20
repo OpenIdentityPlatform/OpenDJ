@@ -44,6 +44,26 @@ import com.forgerock.opendj.util.Validator;
  * <p>
  * The authorization identity is specified using an authorization ID, or
  * {@code authzId}, as defined in RFC 4513 section 5.2.1.8.
+ * <p>
+ * The following excerpt shows how to get the authorization identity established
+ * when binding to the directory server.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String bindDN = ...;
+ * String bindPassword = ...;
+ *
+ * BindRequest request =
+ *         Requests.newSimpleBindRequest(bindDN, bindPassword.toCharArray())
+ *             .addControl(AuthorizationIdentityRequestControl
+ *                     .newControl(true));
+ *
+ * BindResult result = connection.bind(request);
+ * AuthorizationIdentityResponseControl control =
+ *         result.getControl(AuthorizationIdentityResponseControl.DECODER,
+ *                 new DecodeOptions());
+ * // Authorization ID returned: control.getAuthorizationID()
+ * </pre>
  *
  * @see AuthorizationIdentityRequestControl
  * @see org.forgerock.opendj.ldap.requests.WhoAmIExtendedRequest

@@ -61,6 +61,72 @@ import com.forgerock.opendj.util.Validator;
  *         cookie          OCTET STRING
  * }
  * </pre>
+ * <p>
+ * The following example demonstrates use of simple paged results to handle
+ * three entries at a time.
+ *
+ * <pre>
+ * ByteString cookie = ByteString.empty();
+ * SearchRequest request;
+ * SearchResultHandler resultHandler = new MySearchResultHandler();
+ * Result result;
+ *
+ * int page = 1;
+ * do {
+        System.out.println("# Simple paged results: Page " + page);
+ *
+ *      request = Requests.newSearchRequest(
+                "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+                .addControl(SimplePagedResultsControl.newControl(true, 3, cookie));
+ *
+ *      result = connection.search(request, resultHandler);
+ *      try {
+ *      SimplePagedResultsControl control = result.getControl(
+                SimplePagedResultsControl.DECODER, new DecodeOptions());
+        cookie = control.getCookie();
+        } catch (final DecodeException e) {
+            // Failed to decode the response control.
+        }
+ *
+ *      ++page;
+ * } while (cookie.length() != 0);
+ * </pre>
+ *
+ * The search result handler in this case displays pages of results as LDIF on
+ * standard out.
+ *
+ * <pre>
+ * private static class MySearchResultHandler implements SearchResultHandler {
+ *
+ *     {@literal @}Override
+ *     public void handleErrorResult(ErrorResultException error) {
+ *         // Ignore.
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void handleResult(Result result) {
+ *         // Ignore.
+ *     }
+ *
+ *     {@literal @}Override
+ *     public boolean handleEntry(SearchResultEntry entry) {
+ *         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+ *         try {
+ *             writer.writeEntry(entry);
+ *             writer.flush();
+ *         } catch (final IOException e) {
+ *             // The writer could not write to System.out.
+ *         }
+ *         return true;
+ *     }
+ *
+ *     {@literal @}Override
+ *     public boolean handleReference(SearchResultReference reference) {
+ *         System.out.println("Got a reference: " + reference.toString());
+ *         return false;
+ *     }
+ * }
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc2696">RFC 2696 - LDAP Control
  *      Extension for Simple Paged Results Manipulation </a>

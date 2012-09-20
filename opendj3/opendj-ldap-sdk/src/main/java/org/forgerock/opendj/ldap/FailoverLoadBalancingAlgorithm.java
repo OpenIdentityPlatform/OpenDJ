@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * underlying connection factories.
  * <p>
  * This algorithm is typically used for load-balancing <i>between</i> data
- * centers, where there is preference to always always forward connection
+ * centers, where there is preference to always forward connection
  * requests to the <i>closest available</i> data center. This algorithm
  * contrasts with the {@link RoundRobinLoadBalancingAlgorithm} which is used for
  * load-balancing <i>within</i> a data center.

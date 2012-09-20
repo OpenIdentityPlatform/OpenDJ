@@ -53,6 +53,25 @@ import com.forgerock.opendj.util.Validator;
  * processed if an assertion applied to the target entry of the operation is
  * true. It can be used to construct "test and set", "test and clear", and other
  * conditional operations.
+ * <p>
+ * The following excerpt shows how to check that no description exists on an
+ * entry before adding a description.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * connection.bind(...);
+ *
+ * String entryDN = ...;
+ * ModifyRequest request =
+ *         Requests.newModifyRequest(entryDN)
+ *             .addControl(AssertionRequestControl.newControl(
+ *                     true, Filter.valueOf("!(description=*)")))
+ *             .addModification(ModificationType.ADD, "description",
+ *                     "Created using LDAP assertion control");
+ *
+ * connection.modify(request);
+ * ...
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4528">RFC 4528 - Lightweight
  *      Directory Access Protocol (LDAP) Assertion Control </a>

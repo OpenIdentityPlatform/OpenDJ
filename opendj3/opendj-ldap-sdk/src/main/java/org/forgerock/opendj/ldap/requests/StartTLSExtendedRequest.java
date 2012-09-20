@@ -43,6 +43,25 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  * The start TLS extended request as defined in RFC 4511. The Start Transport
  * Layer Security (StartTLS) operation's purpose is to initiate installation of
  * a TLS layer.
+ * <p>
+ * Use an {@link org.forgerock.opendj.ldap.SSLContextBuilder SSLContextBuilder}
+ * when setting up LDAP options needed to use StartTLS.
+ * {@link org.forgerock.opendj.ldap.TrustManagers TrustManagers} has methods you
+ * can use to set the trust manager for the SSL context builder.
+ *
+ * <pre>
+ * LDAPOptions options = new LDAPOptions();
+ * SSLContext sslContext =
+ *         new SSLContextBuilder().setTrustManager(...).getSSLContext();
+ * options.setSSLContext(sslContext);
+ * options.setUseStartTLS(true);
+ *
+ * String host = ...;
+ * int port = ...;
+ * LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
+ * Connection connection = factory.getConnection();
+ * // Connection uses StartTLS...
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
  *      Directory Access Protocol (LDAP): The Protocol </a>

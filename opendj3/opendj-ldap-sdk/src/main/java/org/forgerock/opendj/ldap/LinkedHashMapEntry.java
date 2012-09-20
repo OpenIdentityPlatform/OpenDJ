@@ -38,8 +38,19 @@ import com.forgerock.opendj.util.Validator;
  * An implementation of the {@code Entry} interface which uses a
  * {@code LinkedHashMap} for storing attributes. Attributes are returned in the
  * same order that they were added to the entry. All operations are supported by
- * this implementation.
- * <p>
+ * this implementation. For example, you can build an entry like this:
+ *
+ * <pre>
+ * Entry entry = new LinkedHashMapEntry("cn=Bob,ou=People,dc=example,dc=com")
+ *    .addAttribute("cn", "Bob")
+ *    .addAttribute("objectclass", "top")
+ *    .addAttribute("objectclass", "person")
+ *    .addAttribute("objectclass", "organizationalPerson")
+ *    .addAttribute("objectclass", "inetOrgPerson")
+ *    .addAttribute("mail", "subgenius@example.com")
+ *    .addAttribute("sn", "Dobbs");
+ * </pre>
+ *
  * A {@code LinkedHashMapEntry} stores references to attributes which have been
  * added using the {@link #addAttribute} methods. Attributes sharing the same
  * attribute description are merged by adding the values of the new attribute to

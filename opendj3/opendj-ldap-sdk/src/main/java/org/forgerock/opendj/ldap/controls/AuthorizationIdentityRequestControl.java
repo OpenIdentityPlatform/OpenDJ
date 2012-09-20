@@ -40,6 +40,26 @@ import com.forgerock.opendj.util.Validator;
  * identity control extends the Lightweight Directory Access Protocol (LDAP)
  * bind operation with a mechanism for requesting and returning the
  * authorization identity it establishes.
+ * <p>
+ * The following excerpt shows how to get the authorization identity established
+ * when binding to the directory server.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String bindDN = ...;
+ * String bindPassword = ...;
+ *
+ * BindRequest request =
+ *         Requests.newSimpleBindRequest(bindDN, bindPassword.toCharArray())
+ *             .addControl(AuthorizationIdentityRequestControl
+ *                     .newControl(true));
+ *
+ * BindResult result = connection.bind(request);
+ * AuthorizationIdentityResponseControl control =
+ *         result.getControl(AuthorizationIdentityResponseControl.DECODER,
+ *                 new DecodeOptions());
+ * // Authorization ID returned: control.getAuthorizationID()
+ * </pre>
  *
  * @see AuthorizationIdentityResponseControl
  * @see org.forgerock.opendj.ldap.requests.WhoAmIExtendedRequest

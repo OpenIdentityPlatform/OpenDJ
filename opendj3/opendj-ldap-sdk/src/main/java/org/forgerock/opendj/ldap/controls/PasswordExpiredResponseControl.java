@@ -41,6 +41,28 @@ import com.forgerock.opendj.util.Validator;
  * password has expired and must be changed. This control always has a value
  * which is the string {@code "0"}.
  *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ * char[] password = ...;
+ *
+ * try {
+ *     connection.bind(DN, password);
+ * } catch (ErrorResultException e) {
+ *     Result result = e.getResult();
+ *     try {
+ *         PasswordExpiredResponseControl control =
+ *                 result.getControl(PasswordExpiredResponseControl.DECODER,
+ *                         new DecodeOptions());
+ *         if (!(control == null) && control.hasValue()) {
+ *             // Password expired
+ *         }
+ *     } catch (DecodeException de) {
+ *         // Failed to decode the response control.
+ *     }
+ * }
+ * </pre>
+ *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy">draft-vchu-ldap-pwd-policy
  *      - Password Policy for LDAP Directories </a>

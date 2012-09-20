@@ -57,6 +57,70 @@ import com.forgerock.opendj.util.Validator;
  * <p>
  * The content count and context ID should be used in a subsequent virtual list
  * view requests.
+ * <p>
+ * The following example demonstrates use of the virtual list view controls.
+ *
+ * <pre>
+ * ByteString contextID = ByteString.empty();
+ *
+ * // Add a window of 2 entries on either side of the first sn=Jensen entry.
+ * SearchRequest request = Requests.newSearchRequest("ou=People,dc=example,dc=com",
+ *          SearchScope.WHOLE_SUBTREE, "(sn=*)", "sn", "givenName")
+ *          .addControl(ServerSideSortRequestControl.newControl(true, new SortKey("sn")))
+ *          .addControl(VirtualListViewRequestControl.newAssertionControl(
+ *                  true, ByteString.valueOf("Jensen"), 2, 2, contextID));
+ *
+ * SearchResultHandler resultHandler = new MySearchResultHandler();
+ * Result result = connection.search(request, resultHandler);
+ *
+ * ServerSideSortResponseControl sssControl =
+ *         result.getControl(ServerSideSortResponseControl.DECODER, new DecodeOptions());
+ * if (sssControl != null &amp;&amp; sssControl.getResult() == ResultCode.SUCCESS) {
+ *     // Entries are sorted.
+ * } else {
+ *     // Entries not necessarily sorted
+ * }
+ *
+ * VirtualListViewResponseControl vlvControl =
+ *         result.getControl(VirtualListViewResponseControl.DECODER, new DecodeOptions());
+ * // Position in list: vlvControl.getTargetPosition()/vlvControl.getContentCount()
+ * </pre>
+ *
+ * The search result handler in this case displays pages of results as LDIF on
+ * standard out.
+ *
+ * <pre>
+ * private static class MySearchResultHandler implements SearchResultHandler {
+ *
+ *     {@literal @}Override
+ *     public void handleErrorResult(ErrorResultException error) {
+ *         // Ignore.
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void handleResult(Result result) {
+ *         // Ignore.
+ *     }
+ *
+ *     {@literal @}Override
+ *     public boolean handleEntry(SearchResultEntry entry) {
+ *         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+ *         try {
+ *             writer.writeEntry(entry);
+ *             writer.flush();
+ *         } catch (final IOException e) {
+ *             // The writer could not write to System.out.
+ *         }
+ *         return true;
+ *     }
+ *
+ *     {@literal @}Override
+ *     public boolean handleReference(SearchResultReference reference) {
+ *         System.out.println("Got a reference: " + reference.toString());
+ *         return false;
+ *     }
+ * }
+ * </pre>
  *
  * @see VirtualListViewRequestControl
  * @see <a href="http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv">

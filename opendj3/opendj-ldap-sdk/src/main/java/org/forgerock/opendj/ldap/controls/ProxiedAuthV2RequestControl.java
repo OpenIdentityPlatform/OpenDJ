@@ -49,6 +49,27 @@ import com.forgerock.opendj.util.Validator;
  * <p>
  * The target user is specified using an authorization ID, or {@code authzId},
  * as defined in RFC 4513 section 5.2.1.8.
+ * <p>
+ * This example shows an application replacing a description on a user entry on
+ * behalf of a directory administrator.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";          // Client app
+ * char[] password = ...;
+ * String targetDn = "uid=bjensen,ou=People,dc=example,dc=com";    // Regular user
+ * String authzId = "dn:uid=kvaughan,ou=People,dc=example,dc=com"; // Admin user
+ *
+ * ModifyRequest request =
+ *         Requests.newModifyRequest(targetDn)
+ *         .addControl(ProxiedAuthV2RequestControl.newControl(authzId))
+ *         .addModification(ModificationType.REPLACE, "description",
+ *                 "Done with proxied authz");
+ *
+ * connection.bind(bindDN, password);
+ * connection.modify(request);
+ * Entry entry = connection.readEntry(targetDn, "description");
+ * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4370">RFC 4370 - Lightweight
  *      Directory Access Protocol (LDAP) Proxied Authorization Control </a>

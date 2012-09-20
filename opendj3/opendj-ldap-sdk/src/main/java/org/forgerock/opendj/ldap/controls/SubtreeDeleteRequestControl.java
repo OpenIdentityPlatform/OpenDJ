@@ -40,6 +40,16 @@ import com.forgerock.opendj.util.Validator;
  * This control allows a client to delete an entire subtree of a container entry
  * in a single delete operation.
  *
+ * <pre>
+ * Connection connection = ...;
+ * String baseDN = ...;
+ *
+ * DeleteRequest request =
+ *         Requests.newDeleteRequest(baseDN)
+ *             .addControl(SubtreeDeleteRequestControl.newControl(true));
+ * connection.delete(request);
+ * </pre>
+ *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-armijo-ldap-treedelete">draft-armijo-ldap-treedelete
  *      - Tree Delete Control </a>

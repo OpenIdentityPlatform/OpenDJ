@@ -81,6 +81,20 @@ import com.forgerock.opendj.util.Validator;
  *        matchValue      [3] AssertionValue}
  * </pre>
  *
+ * For example Barbara Jensen's entry contains two common name values, Barbara
+ * Jensen and Babs Jensen. The following code retrieves only the latter.
+ *
+ * <pre>
+ * String DN = &quot;uid=bjensen,ou=People,dc=example,dc=com&quot;;
+ * SearchRequest request = Requests.newSearchRequest(DN,
+ *          SearchScope.BASE_OBJECT, &quot;(objectclass=*)&quot;, &quot;cn&quot;)
+ *          .addControl(MatchedValuesRequestControl
+ *                  .newControl(true, &quot;(cn=Babs Jensen)&quot;));
+ *
+ * // Get the entry, retrieving cn: Babs Jensen, not cn: Barbara Jensen
+ * SearchResultEntry entry = connection.searchSingleEntry(request);
+ * </pre>
+ *
  * @see <a href="http://tools.ietf.org/html/rfc3876">RFC 3876 - Returning
  *      Matched Values with the Lightweight Directory Access Protocol version 3
  *      (LDAPv3) </a>

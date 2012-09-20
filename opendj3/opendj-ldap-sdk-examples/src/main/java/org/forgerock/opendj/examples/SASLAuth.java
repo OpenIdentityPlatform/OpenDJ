@@ -90,10 +90,8 @@ public final class SASLAuth {
                     new LDAPConnectionFactory(host, port, getTrustAllOptions());
             connection = factory.getConnection();
             PlainSASLBindRequest request =
-                    Requests.newPlainSASLBindRequest(authcid, passwd.toCharArray());
-            if (authzid != null) {
-                request.setAuthorizationID(authzid);
-            }
+                    Requests.newPlainSASLBindRequest(authcid, passwd.toCharArray())
+                    .setAuthorizationID(authzid);
             connection.bind(request);
             System.out.println("Authenticated as " + authcid + ".");
         } catch (final ErrorResultException e) {

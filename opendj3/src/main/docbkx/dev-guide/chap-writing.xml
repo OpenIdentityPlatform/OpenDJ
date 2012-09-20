@@ -139,8 +139,7 @@
   <literal>ou=People,dc=example,dc=com</literal>.</para>
 
   <programlisting language="java">// An entry to add to the directory
-DN entryDN = DN.valueOf("cn=Bob,ou=People,dc=example,dc=com");
-Entry entry = new LinkedHashMapEntry(entryDN.toString())
+Entry entry = new LinkedHashMapEntry("cn=Bob,ou=People,dc=example,dc=com")
     .addAttribute("cn", "Bob")
     .addAttribute("objectclass", "top")
     .addAttribute("objectclass", "person")
@@ -231,7 +230,7 @@ try {
 
     // Here, entryDN contains cn=Bob,ou=People,dc=example,dc=com.
     // The second argument is the new relative distinguished name.
-    connection.modifyDN(entryDN.toString(), "cn=Ted");
+    connection.modifyDN(entryDN, "cn=Ted");
 
 } catch (final ErrorResultException e) {
     System.err.println(e.getMessage());

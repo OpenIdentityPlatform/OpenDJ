@@ -39,6 +39,22 @@ import com.forgerock.opendj.util.Validator;
 
 /**
  * Common options for LDAP client connections.
+ * <p>
+ * For example you set LDAP options when you want to use StartTLS.
+ *
+ * <pre>
+ * LDAPOptions options = new LDAPOptions();
+ * SSLContext sslContext =
+ *         new SSLContextBuilder().setTrustManager(...).getSSLContext();
+ * options.setSSLContext(sslContext);
+ * options.setUseStartTLS(true);
+ *
+ * String host = ...;
+ * int port = ...;
+ * LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
+ * Connection connection = factory.getConnection();
+ * // Connection uses StartTLS...
+ * </pre>
  */
 public final class LDAPOptions {
     private SSLContext sslContext;

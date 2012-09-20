@@ -55,6 +55,25 @@ import com.forgerock.opendj.util.Validator;
  * client to read the target entry of an update operation immediately before the
  * modifications are applied. These reads are done as an atomic part of the
  * update operation.
+ * <p>
+ * The following example gets the entry as it was before the modify operation.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String DN = ...;
+ *
+ * ModifyRequest request =
+ *         Requests.newModifyRequest(DN)
+ *         .addControl(PreReadRequestControl.newControl(true, "mail"))
+ *         .addModification(ModificationType.REPLACE,
+ *                 "mail", "modified@example.com");
+ *
+ * Result result = connection.modify(request);
+ * PreReadResponseControl control =
+ *             result.getControl(PreReadResponseControl.DECODER,
+ *                     new DecodeOptions());
+ * Entry unmodifiedEntry = control.getEntry();
+ * </pre>
  *
  * @see PreReadResponseControl
  * @see <a href="http://tools.ietf.org/html/rfc4527">RFC 4527 - Lightweight

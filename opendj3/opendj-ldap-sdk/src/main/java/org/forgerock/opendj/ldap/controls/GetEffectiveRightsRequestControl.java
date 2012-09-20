@@ -73,6 +73,31 @@ import com.forgerock.opendj.util.Validator;
  *  }
  * </pre>
  *
+ * You can use the control to retrieve effective rights during a search:
+ *
+ * <pre>
+ * String authDN = ...;
+ *
+ * SearchRequest request =
+ *         Requests.newSearchRequest(
+ *                     "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+ *                     "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo")
+ *                     .addControl(GetEffectiveRightsRequestControl.newControl(
+ *                             true, authDN, "cn"));
+ *
+ * ConnectionEntryReader reader = connection.search(request);
+ * while (reader.hasNext()) {
+ *      if (!reader.isReference()) {
+ *          SearchResultEntry entry = reader.readEntry();
+ *          // Interpret aclRights and aclRightsInfo
+ *      }
+ * }
+ * </pre>
+ *
+ * The entries returned by the search hold the {@code aclRights} and
+ * {@code aclRightsInfo} attributes with the effective rights information. You
+ * must parse the attribute options and values to interpret the information.
+ *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-ietf-ldapext-acl-model">draft-ietf-ldapext-acl-model
  *      - Access Control Model for LDAPv3 </a>

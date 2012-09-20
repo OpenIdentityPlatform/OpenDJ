@@ -65,6 +65,25 @@ import com.forgerock.opendj.util.Validator;
  * An LDIF change record reader reads change records using the LDAP Data
  * Interchange Format (LDIF) from a user defined source.
  *
+ * <p>
+ * The following example reads changes from LDIF, and writes the changes to the
+ * directory server.
+ *
+ * <pre>
+ * InputStream ldif = ...;
+ * LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);
+ *
+ * Connection connection = ...;
+ * connection.bind(...);
+ *
+ * ConnectionChangeRecordWriter writer =
+ *         new ConnectionChangeRecordWriter(connection);
+ * while (reader.hasNext()) {
+ *     ChangeRecord changeRecord = reader.readChangeRecord();
+ *     writer.writeChangeRecord(changeRecord);
+ * }
+ * </pre>
+ *
  * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP Data
  *      Interchange Format (LDIF) - Technical Specification </a>
  */

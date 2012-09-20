@@ -39,6 +39,25 @@ import javax.net.ssl.TrustManager;
  * {@link SSLContext} instances for use when securing connections with SSL or
  * the StartTLS extended operation. The {@link #getSSLContext()} should be
  * called in order to obtain the {@code SSLContext}.
+ * <p>
+ * For example, use the SSL context builder when setting up LDAP options needed
+ * to use StartTLS. {@link org.forgerock.opendj.ldap.TrustManagers
+ * TrustManagers} has methods you can use to set the trust manager for the SSL
+ * context builder.
+ *
+ * <pre>
+ * LDAPOptions options = new LDAPOptions();
+ * SSLContext sslContext =
+ *         new SSLContextBuilder().setTrustManager(...).getSSLContext();
+ * options.setSSLContext(sslContext);
+ * options.setUseStartTLS(true);
+ *
+ * String host = ...;
+ * int port = ...;
+ * LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
+ * Connection connection = factory.getConnection();
+ * // Connection uses StartTLS...
+ * </pre>
  */
 public final class SSLContextBuilder {
 

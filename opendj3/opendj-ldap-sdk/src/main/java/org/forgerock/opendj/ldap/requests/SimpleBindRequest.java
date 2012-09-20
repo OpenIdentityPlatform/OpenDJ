@@ -46,6 +46,26 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * <li>A name/password authentication mechanism using credentials consisting of
  * a name and a password.
  * </ul>
+ * {@link Requests} has methods to create a {@code SimpleBindRequest}.
+ *
+ * <pre>
+ * String bindDN = ...;
+ * char[] bindPassword = ...;
+ *
+ * SimpleBindRequest sbr = Requests.newSimpleBindRequest(bindDN, bindPassword);
+ * </pre>
+ *
+ * Alternatively, use
+ * {@link org.forgerock.opendj.ldap.Connection#bind(String, char[])
+ * Connection.bind}.
+ *
+ * <pre>
+ * Connection connection;
+ * String bindDN = ...;
+ * char[] bindPassword = ...;
+ *
+ * connection.bind(bindDN, bindPassword);
+ * </pre>
  */
 public interface SimpleBindRequest extends BindRequest {
     /**

@@ -45,6 +45,24 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * <p>
  * The authorization identity is specified using an authorization ID, or
  * {@code authzId}, as defined in RFC 4513 section 5.2.1.8.
+ * <p>
+ * The following example demonstrates use of the Who Am I? request and response.
+ *
+ * <pre>
+ * Connection connection = ...;
+ * String name = ...;
+ * char[] password = ...;
+ *
+ * Result result = connection.bind(name, password);
+ * if (result.isSuccess()) {
+ *     WhoAmIExtendedRequest request = Requests.newWhoAmIExtendedRequest();
+ *     WhoAmIExtendedResult extResult = connection.extendedRequest(request);
+ *
+ *     if (extResult.isSuccess()) {
+ *         // Authz ID: "  + extResult.getAuthorizationID());
+ *     }
+ * }
+ * </pre>
  *
  * @see org.forgerock.opendj.ldap.requests.WhoAmIExtendedRequest
  * @see org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl

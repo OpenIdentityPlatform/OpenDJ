@@ -44,6 +44,20 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * The authentication and optional authorization identity is specified using an
  * authorization ID, or {@code authzId}, as defined in RFC 4513 section 5.2.1.8.
  *
+ * <pre>
+ * String authcid = ...;        // Authentication ID, e.g. dn:&lt;dn>, u:&lt;uid>
+ * String authzid = ...;        // Authorization ID, e.g. dn:&lt;dn>, u:&lt;uid>
+ * char[] password = ...;
+ * Connection connection = ...; // Use StartTLS to protect the request
+ *
+ * PlainSASLBindRequest request =
+ *         Requests.newPlainSASLBindRequest(authcid, password)
+ *         .setAuthorizationID(authzid);
+ *
+ * connection.bind(request);
+ * // Authenticated if the connection succeeds
+ * </pre>
+ *
  * @see <a href="http://tools.ietf.org/html/rfc4616">RFC 4616 - The PLAIN Simple
  *      Authentication and Security Layer (SASL) Mechanism </a>
  * @see <a href="http://tools.ietf.org/html/rfc4513#section-5.2.1.8">RFC 4513 -
