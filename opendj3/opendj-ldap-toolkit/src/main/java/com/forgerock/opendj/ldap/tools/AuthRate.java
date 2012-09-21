@@ -484,8 +484,7 @@ public final class AuthRate extends ConsoleApplication {
         if (filterAndAttributeStrings.size() > 0) {
             // the list of trailing arguments should be structured as follow:
             // the first trailing argument is considered the filter, the other
-            // as
-            // attributes.
+            // as attributes.
             runner.filter = filterAndAttributeStrings.remove(0);
 
             // The rest are attributes
