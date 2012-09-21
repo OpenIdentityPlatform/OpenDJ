@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -123,6 +124,7 @@ public final class DSConfig extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<Integer> invoke(ConsoleApplication app)
     throws CLIException {
       try {
@@ -252,6 +254,7 @@ public final class DSConfig extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final MenuResult<Integer> invoke(ConsoleApplication app)
     throws CLIException {
       try {
@@ -650,6 +653,7 @@ public final class DSConfig extends ConsoleApplication {
 
       Comparator<SubCommand> c = new Comparator<SubCommand>() {
 
+        @Override
         public int compare(SubCommand o1, SubCommand o2) {
           return o1.getName().compareTo(o2.getName());
         }
@@ -858,6 +862,7 @@ public final class DSConfig extends ConsoleApplication {
     Comparator<RelationDefinition<?, ?>> c =
       new Comparator<RelationDefinition<?, ?>>() {
 
+      @Override
       public int compare(RelationDefinition<?, ?> rd1,
           RelationDefinition<?, ?> rd2) {
         String s1 = rd1.getUserFriendlyName().toString();
@@ -1196,7 +1201,6 @@ public final class DSConfig extends ConsoleApplication {
   }
 
   private void handleBatchFile(String[] args) {
-    BufferedReader reader = null;
     try {
       // Build a list of initial arguments,
       // removing the batch file option + its value
@@ -1216,7 +1220,7 @@ public final class DSConfig extends ConsoleApplication {
         initialArgs.remove(batchFileArgIndex);
       }
       String batchFilePath = batchFileArgument.getValue().trim();
-      reader =
+      BufferedReader reader =
               new BufferedReader(new FileReader(batchFilePath));
       String line;
       String command = "";
@@ -1239,15 +1243,20 @@ public final class DSConfig extends ConsoleApplication {
         command = command.trim();
         // string between quotes support
         command = replaceSpacesInQuotes(command);
+        String displayCommand = new String(command);
+
         // "\ " support
         command = command.replace("\\ ", "##");
+        displayCommand = displayCommand.replace("\\ ", " ");
+
         String[] fileArguments = command.split("\\s+");
         // reset command
         command = "";
         for (int ii = 0; ii < fileArguments.length; ii++) {
           fileArguments[ii] = fileArguments[ii].replace("##", " ");
-          System.out.println(fileArguments[ii]);
         }
+
+        printlnBatchProgress(displayCommand);
 
         // Append initial arguments to the file line
         List<String> allArguments = new ArrayList<String>();
@@ -1255,20 +1264,14 @@ public final class DSConfig extends ConsoleApplication {
         allArguments.addAll(initialArgs);
         String[] allArgsArray = allArguments.toArray(new String[]{});
 
-        // Build a single CLI string for display
-        StringBuffer cli = new StringBuffer();
-        for (String arg : allArgsArray) {
-          cli.append(arg + " ");
-        }
-
         int exitCode =
                 main(allArgsArray, false, getOutputStream(), getErrorStream());
         if (exitCode != 0) {
           reader.close();
           System.exit(filterExitCode(exitCode));
         }
+        printlnBatchProgress("");
       }
-
       reader.close();
 
     } catch (IOException ex) {

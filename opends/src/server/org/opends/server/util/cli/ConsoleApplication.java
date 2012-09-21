@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -222,6 +223,7 @@ public abstract class ConsoleApplication {
 
     ValidationCallback<Boolean> validator = new ValidationCallback<Boolean>() {
 
+      @Override
       public Boolean validate(ConsoleApplication app, String input) {
         String ninput = input.toLowerCase().trim();
         if (ninput.length() == 0) {
@@ -417,6 +419,19 @@ public abstract class ConsoleApplication {
     }
   }
 
+  /**
+   * Display the batch progress string to the error stream, if we are not
+   * in quiet mode
+   *
+   * @param s
+   *          The string to display
+   */
+  public final void printlnBatchProgress(String s) {
+    if (!isQuiet())
+    {
+      err.println(s);
+    }
+  }
 
   /**
    * Displays a message to the error stream indented by the specified
@@ -605,6 +620,7 @@ public abstract class ConsoleApplication {
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
     {
+      @Override
       public Integer validate(ConsoleApplication app, String input)
           throws CLIException
       {
@@ -1171,6 +1187,7 @@ public abstract class ConsoleApplication {
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
     {
+      @Override
       public Integer validate(ConsoleApplication app, String input)
           throws CLIException
       {
