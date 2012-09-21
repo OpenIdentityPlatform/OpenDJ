@@ -31,6 +31,25 @@ package com.forgerock.opendj.ldap.extensions;
  */
 interface PasswordPolicyStateOperationContainer {
     /**
+     * Returns the name of the user targeted by this password policy state
+     * operation.
+     *
+     * @return The name of the user targeted by this password policy state
+     *         operation.
+     */
+    String getTargetUser();
+
+    /**
+     * Sets the name of the user targeted by this password policy state
+     * operation.
+     *
+     * @param targetUser
+     *            The name of the user targeted by this password policy state
+     *            operation.
+     */
+    void setTargetUser(String targetUser);
+
+    /**
      * Adds an operation to this container.
      *
      * @param operation
