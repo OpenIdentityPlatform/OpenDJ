@@ -730,8 +730,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         noRebindArgument.setPropertyName("noRebind");
         if (!neverRebind) {
             argParser.addArgument(noRebindArgument);
-        } else {
-            noRebindArgument.addValue(String.valueOf(true));
         }
 
         asyncArgument =
