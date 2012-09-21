@@ -46,27 +46,24 @@ import com.forgerock.opendj.util.Validator;
 public final class GetConnectionIDExtendedResult extends
         AbstractExtendedResult<GetConnectionIDExtendedResult> {
     /**
-     * Creates a new get connection ID extended result.
+     * Creates a new get connection ID extended result with a default connection
+     * ID of -1.
      *
      * @param resultCode
      *            The result code.
-     * @param connectionID
-     *            The client connection ID.
      * @return The new get connection ID extended result.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static GetConnectionIDExtendedResult newResult(final ResultCode resultCode,
-            final int connectionID) {
+    public static GetConnectionIDExtendedResult newResult(final ResultCode resultCode) {
         Validator.ensureNotNull(resultCode);
-        return new GetConnectionIDExtendedResult(resultCode, connectionID);
+        return new GetConnectionIDExtendedResult(resultCode);
     }
 
-    private int connectionID;
+    private int connectionID = -1;
 
-    private GetConnectionIDExtendedResult(final ResultCode resultCode, final int connectionID) {
+    private GetConnectionIDExtendedResult(final ResultCode resultCode) {
         super(resultCode);
-        this.connectionID = connectionID;
     }
 
     /**

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 
@@ -40,36 +39,19 @@ import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 public final class PasswordPolicyStateExtendedResult extends
         AbstractExtendedResult<PasswordPolicyStateExtendedResult> implements
         PasswordPolicyStateOperationContainer {
-    private final String targetUser;
-
+    private String targetUser = "";
     private final List<PasswordPolicyStateOperation> operations =
             new ArrayList<PasswordPolicyStateOperation>();
 
     /**
      * Creates a new password policy state extended result with the provided
-     * result code and target user.
+     * result code.
      *
      * @param resultCode
      *            The result code.
-     * @param targetUser
-     *            The user name.
      */
-    public PasswordPolicyStateExtendedResult(final ResultCode resultCode, final DN targetUser) {
-        this(resultCode, String.valueOf(targetUser));
-    }
-
-    /**
-     * Creates a new password policy state extended result with the provided
-     * result code and target user.
-     *
-     * @param resultCode
-     *            The result code.
-     * @param targetUser
-     *            The user name.
-     */
-    public PasswordPolicyStateExtendedResult(final ResultCode resultCode, final String targetUser) {
+    public PasswordPolicyStateExtendedResult(final ResultCode resultCode) {
         super(resultCode);
-        this.targetUser = targetUser;
     }
 
     /**
@@ -98,6 +80,13 @@ public final class PasswordPolicyStateExtendedResult extends
     /**
      * {@inheritDoc}
      */
+    public String getTargetUser() {
+        return targetUser;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ByteString getValue() {
         return PasswordPolicyStateExtendedRequest.encode(targetUser, operations);
@@ -109,6 +98,14 @@ public final class PasswordPolicyStateExtendedResult extends
     @Override
     public boolean hasValue() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setTargetUser(String targetUser) {
+        this.targetUser = targetUser != null ? targetUser : "";
     }
 
     /**

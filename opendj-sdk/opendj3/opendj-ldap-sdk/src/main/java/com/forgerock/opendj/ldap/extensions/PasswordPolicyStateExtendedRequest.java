@@ -45,7 +45,6 @@ import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -56,8 +55,6 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequestDecoder;
 import org.forgerock.opendj.ldap.responses.AbstractExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
-
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class implements an LDAP extended operation that can be used to query
@@ -170,18 +167,17 @@ public final class PasswordPolicyStateExtendedRequest
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
             final ByteString requestValue = request.getValue();
-
             if ((requestValue == null) || (requestValue.length() <= 0)) {
                 throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
             }
-
             try {
                 final ASN1Reader reader = ASN1.getReader(requestValue);
                 reader.readStartSequence();
 
                 // Read the target user DN
                 final PasswordPolicyStateExtendedRequest newRequest =
-                        new PasswordPolicyStateExtendedRequest(reader.readOctetStringAsString());
+                        new PasswordPolicyStateExtendedRequest();
+                newRequest.setTargetUser(reader.readOctetStringAsString());
 
                 decodeOperations(reader, newRequest);
                 reader.readEndSequence();
@@ -214,43 +210,39 @@ public final class PasswordPolicyStateExtendedRequest
                         + resultCode.intValue());
             }
 
-            return new PasswordPolicyStateExtendedResult(resultCode, (String) null).setMatchedDN(
+            return new PasswordPolicyStateExtendedResult(resultCode).setMatchedDN(
                     matchedDN).setDiagnosticMessage(diagnosticMessage);
         }
 
         public PasswordPolicyStateExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             final ResultCode resultCode = result.getResultCode();
-            final ByteString responseValue = result.getValue();
+            final PasswordPolicyStateExtendedResult newResult =
+                    new PasswordPolicyStateExtendedResult(resultCode).setMatchedDN(
+                            result.getMatchedDN()).setDiagnosticMessage(
+                            result.getDiagnosticMessage());
 
-            if (!resultCode.isExceptional()
-                    && ((responseValue == null) || (responseValue.length() <= 0))) {
+            final ByteString responseValue = result.getValue();
+            if (!resultCode.isExceptional() && responseValue == null) {
                 throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
             }
-
-            try {
-                final ASN1Reader reader = ASN1.getReader(responseValue);
-                reader.readStartSequence();
-
-                // Read the target user DN
-                final PasswordPolicyStateExtendedResult newResult =
-                        new PasswordPolicyStateExtendedResult(resultCode, reader
-                                .readOctetStringAsString()).setMatchedDN(result.getMatchedDN())
-                                .setDiagnosticMessage(result.getDiagnosticMessage());
-
-                decodeOperations(reader, newResult);
-                reader.readEndSequence();
-
-                for (final Control control : result.getControls()) {
-                    newResult.addControl(control);
+            if (responseValue != null) {
+                try {
+                    final ASN1Reader reader = ASN1.getReader(responseValue);
+                    reader.readStartSequence();
+                    newResult.setTargetUser(reader.readOctetStringAsString());
+                    decodeOperations(reader, newResult);
+                    reader.readEndSequence();
+                } catch (final IOException ioe) {
+                    final LocalizableMessage message =
+                            ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(ioe));
+                    throw DecodeException.error(message, ioe);
                 }
-
-                return newResult;
-            } catch (final IOException ioe) {
-                final LocalizableMessage message =
-                        ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(ioe));
-                throw DecodeException.error(message, ioe);
             }
+            for (final Control control : result.getControls()) {
+                newResult.addControl(control);
+            }
+            return newResult;
         }
     }
 
@@ -260,7 +252,7 @@ public final class PasswordPolicyStateExtendedRequest
      */
     public static final String OID = "1.3.6.1.4.1.26027.1.6.1";
 
-    private final String targetUser;
+    private String targetUser = "";
 
     private final List<PasswordPolicyStateOperation> operations =
             new ArrayList<PasswordPolicyStateOperation>();
@@ -392,27 +384,10 @@ public final class PasswordPolicyStateExtendedRequest
     }
 
     /**
-     * Creates a new password policy state extended request using the provided
-     * user name.
-     *
-     * @param targetUser
-     *            The name of the user.
+     * Creates a new password policy state extended request.
      */
-    public PasswordPolicyStateExtendedRequest(final DN targetUser) {
-        Validator.ensureNotNull(targetUser);
-        this.targetUser = targetUser.toString();
-    }
-
-    /**
-     * Creates a new password policy state extended request using the provided
-     * user name.
-     *
-     * @param targetUser
-     *            The name of the user.
-     */
-    public PasswordPolicyStateExtendedRequest(final String targetUser) {
-        Validator.ensureNotNull(targetUser);
-        this.targetUser = targetUser;
+    public PasswordPolicyStateExtendedRequest() {
+        // Nothing to do.
     }
 
     /**
@@ -545,6 +520,13 @@ public final class PasswordPolicyStateExtendedRequest
     @Override
     public ExtendedResultDecoder<PasswordPolicyStateExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getTargetUser() {
+        return targetUser;
     }
 
     /**
@@ -843,6 +825,14 @@ public final class PasswordPolicyStateExtendedRequest
         operations.add(new MultiValueOperation(
                 PasswordPolicyStateOperationType.SET_PASSWORD_RESET_STATE, ByteString
                         .valueOf(String.valueOf(state))));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setTargetUser(String targetUser) {
+        this.targetUser = targetUser != null ? targetUser : "";
     }
 
     /**

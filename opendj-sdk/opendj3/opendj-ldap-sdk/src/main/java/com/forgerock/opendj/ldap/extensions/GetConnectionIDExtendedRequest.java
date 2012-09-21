@@ -80,7 +80,7 @@ public final class GetConnectionIDExtendedRequest extends
                 throw new IllegalArgumentException("No response name and value for result code "
                         + resultCode.intValue());
             }
-            return GetConnectionIDExtendedResult.newResult(resultCode, -1).setMatchedDN(matchedDN)
+            return GetConnectionIDExtendedResult.newResult(resultCode).setMatchedDN(matchedDN)
                     .setDiagnosticMessage(diagnosticMessage);
         }
 
@@ -90,30 +90,28 @@ public final class GetConnectionIDExtendedRequest extends
                 return (GetConnectionIDExtendedResult) result;
             } else {
                 final ResultCode resultCode = result.getResultCode();
-                final ByteString responseValue = result.getValue();
+                final GetConnectionIDExtendedResult newResult =
+                        GetConnectionIDExtendedResult.newResult(resultCode).setMatchedDN(
+                                result.getMatchedDN()).setDiagnosticMessage(
+                                result.getDiagnosticMessage());
 
-                if (!resultCode.isExceptional()
-                        && ((responseValue == null) || (responseValue.length() <= 0))) {
+                final ByteString responseValue = result.getValue();
+                if (!resultCode.isExceptional() && responseValue == null) {
                     throw DecodeException.error(LocalizableMessage.raw("Empty response value"));
                 }
-
-                try {
-                    final ASN1Reader reader = ASN1.getReader(responseValue);
-                    final int connectionID = (int) reader.readInteger();
-                    final GetConnectionIDExtendedResult newResult =
-                            GetConnectionIDExtendedResult.newResult(resultCode, connectionID)
-                                    .setMatchedDN(result.getMatchedDN()).setDiagnosticMessage(
-                                            result.getDiagnosticMessage());
-
-                    for (final Control control : result.getControls()) {
-                        newResult.addControl(control);
+                if (responseValue != null) {
+                    try {
+                        final ASN1Reader reader = ASN1.getReader(responseValue);
+                        newResult.setConnectionID((int) reader.readInteger());
+                    } catch (final IOException e) {
+                        throw DecodeException.error(LocalizableMessage
+                                .raw("Error decoding response value"), e);
                     }
-
-                    return newResult;
-                } catch (final IOException e) {
-                    throw DecodeException.error(LocalizableMessage
-                            .raw("Error decoding response value"), e);
                 }
+                for (final Control control : result.getControls()) {
+                    newResult.addControl(control);
+                }
+                return newResult;
             }
         }
     }
