@@ -124,8 +124,7 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
     @Override
     int getInitialConnectionFactoryIndex() {
         // A round robin pool of one connection factories is unlikely in
-        // practice
-        // and requires special treatment.
+        // practice and requires special treatment.
         if (maxIndex == 1) {
             return 0;
         }
@@ -142,9 +141,8 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
         } while (!nextIndex.compareAndSet(oldNextIndex, newNextIndex));
 
         // There's a potential, but benign, race condition here: other threads
-        // could
-        // jump in and rotate through the list before we return the connection
-        // factory.
+        // could jump in and rotate through the list before we return the
+        // connection factory.
         return newNextIndex;
     }
 
