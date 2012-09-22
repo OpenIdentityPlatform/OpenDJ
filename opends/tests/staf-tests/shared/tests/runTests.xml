@@ -56,9 +56,14 @@
         else:
           my_info['snmp jarfile']=SNMP_OPENDMK_JARFILE
         
+        #If test logs hosted on web server just use directly the url
+        if LOGS_URI.startswith('http://'):
+          base_uri = '%s/%s' % (LOGS_URI,os.path.split(local.directory)[1])
+        else:
+          base_uri = local.directory
 
         xml_create_report(PRODUCTNAME,TESTS_TYPE,my_path, \
-          DSInfo.ServerDict,my_info,local.directory,my_report)
+          DSInfo.ServerDict,my_info,base_uri,my_report)
 
         # Copy the content of results2.xml file to results_tmp.xml
         # And add an xml-stylesheet
