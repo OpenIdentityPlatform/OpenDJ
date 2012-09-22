@@ -265,7 +265,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     if (!ocs.isEmpty() && (schema != null))
     {
       ObjectClassValue ocDesc = getObjectClassDescriptor(ocs, schema);
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       sb.append("<html>");
       if (ocDesc.getStructural() != null)
       {
