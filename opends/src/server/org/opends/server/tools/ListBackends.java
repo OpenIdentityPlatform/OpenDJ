@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -475,7 +476,7 @@ public class ListBackends
       {
         table.startRow();
         table.appendCell(id);
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         TreeSet<DN> baseDNs = backends.get(id);
         boolean isFirst = true;
