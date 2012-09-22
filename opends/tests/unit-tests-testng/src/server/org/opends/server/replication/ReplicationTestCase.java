@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -584,7 +584,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       // Check that no entries have been found
       LinkedList<SearchResultEntry> entries = op.getSearchEntries();
       assertTrue(entries != null);
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       for (SearchResultEntry entry : entries)
       {
         sb.append(entry.toLDIFString());
