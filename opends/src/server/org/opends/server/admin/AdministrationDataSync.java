@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -185,7 +186,7 @@ public final class AdministrationDataSync
     }
 
     // Get the IP address of the local host.
-    String hostName = "";
+    String hostName;
     try
     {
       hostName = java.net.InetAddress.getLocalHost().getCanonicalHostName();
@@ -197,7 +198,6 @@ public final class AdministrationDataSync
     }
 
     // Look for a local server with the Ldap Port.
-    InternalSearchOperation op = null;
     String attrName = "hostname";
     AttributeType hostnameType = DirectoryServer.getAttributeType(attrName);
     if (hostnameType == null)
@@ -206,7 +206,8 @@ public final class AdministrationDataSync
     }
     try
     {
-      op = internalConnection.processSearch("cn=Servers,cn=admin data",
+      InternalSearchOperation op = internalConnection.processSearch(
+          "cn=Servers,cn=admin data",
           SearchScope.SINGLE_LEVEL, "objectclass=*");
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
