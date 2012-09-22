@@ -536,7 +536,7 @@ public class ReplicationBackend
         ReplicationServerDomain rc = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
-        baseDN = DN.decode(rc.getBaseDn().toString() + "," + BASE_DN);
+        baseDN = DN.decode(rc.getBaseDn() + "," + BASE_DN);
 
         if (includeBranches == null || includeBranches.isEmpty())
         {
@@ -792,7 +792,7 @@ public class ReplicationBackend
             UpdateMsg msg = ri.getChange();
             processChange(
                 msg, exportConfig, ldifWriter, searchOperation,
-                rsd.getBaseDn().toString());
+                rsd.getBaseDn());
             if (!ri.next())
               break;
           }
@@ -1363,7 +1363,7 @@ public class ReplicationBackend
         ReplicationServerDomain rsd = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
-        baseDN = DN.decode(rsd.getBaseDn().toString() + "," + BASE_DN);
+        baseDN = DN.decode(rsd.getBaseDn() + "," + BASE_DN);
 
             if (searchBaseDN.isDescendantOf(baseDN) ||
                 searchBaseDN.isAncestorOf(baseDN))

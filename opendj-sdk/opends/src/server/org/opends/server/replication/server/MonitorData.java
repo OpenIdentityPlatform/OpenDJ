@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -179,9 +180,12 @@ public class MonitorData
           int missingChangesLsiLsj =
             ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
 
-          mds +=
-            "+ diff("+lsjMaxCN+"-"
-                     +lsiLastCN+")="+missingChangesLsiLsj;
+          if (debugEnabled())
+          {
+            mds +=
+              "+ diff("+lsjMaxCN+"-"
+                       +lsiLastCN+")="+missingChangesLsiLsj;
+          }
 
           // Regarding a DS that is generating changes. If it is a local DS1,
           // we get its server state, store it, then retrieve server states of
@@ -197,14 +201,20 @@ public class MonitorData
             if (missingChangesLsiLsj <= 50)
             {
               missingChangesLsiLsj = 0;
-              mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
+              if (debugEnabled())
+              {
+                mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
+              }
             }
           }
 
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
-      mds += "=" + lsiMissingChanges;
+      if (debugEnabled())
+      {
+        mds += "=" + lsiMissingChanges;
+      }
       this.missingChanges.put(lsiSid,lsiMissingChanges);
     }
 
@@ -227,19 +237,26 @@ public class MonitorData
           int missingChangesLsiLsj =
             ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
 
-          mds +=
-            "+ diff("+lsjMaxCN+"-"
-                     +lsiLastCN+")="+missingChangesLsiLsj;
-
+          if (debugEnabled())
+          {
+            mds +=
+              "+ diff("+lsjMaxCN+"-"
+                       +lsiLastCN+")="+missingChangesLsiLsj;
+          }
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
-      mds += "=" + lsiMissingChanges;
+      if (debugEnabled())
+      {
+        mds += "=" + lsiMissingChanges;
+      }
       this.missingChangesRS.put(lsiSid,lsiMissingChanges);
 
       if (debugEnabled())
+      {
         TRACER.debugInfo(
           "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
+      }
     }
     }
 

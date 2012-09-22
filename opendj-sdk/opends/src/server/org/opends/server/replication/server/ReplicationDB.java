@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -125,7 +125,7 @@ public class ReplicationDB
     dbCloseLock = new ReentrantReadWriteLock(true);
 
     //
-    Cursor cursor = null;
+    Cursor cursor;
     Transaction txn = null;
     DatabaseEntry key = new DatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
@@ -315,7 +315,6 @@ public class ReplicationDB
   public ChangeNumber readFirstChange()
   {
     Cursor cursor = null;
-    String str = null;
     ChangeNumber cn = null;
 
     try
@@ -343,7 +342,7 @@ public class ReplicationDB
           return null;
         }
 
-        str = decodeUTF8(key.getData());
+        String str = decodeUTF8(key.getData());
         cn = new ChangeNumber(str);
         if (ReplicationDB.isaCounter(cn))
         {
@@ -557,7 +556,7 @@ public class ReplicationDB
   @Override
   public String toString()
   {
-    return serverId + baseDn.toString();
+    return serverId + baseDn;
   }
 
   /**
@@ -633,9 +632,9 @@ public class ReplicationDB
             {
               // We can move close to the startingChangeNumber.
               // Let's create a cursor from that point.
-              DatabaseEntry key = new DatabaseEntry();
-              DatabaseEntry data = new DatabaseEntry();
-              if (localCursor.getPrev(key, data, LockMode.DEFAULT) !=
+              DatabaseEntry aKey = new DatabaseEntry();
+              DatabaseEntry aData = new DatabaseEntry();
+              if (localCursor.getPrev(aKey, aData, LockMode.DEFAULT) !=
                 OperationStatus.SUCCESS)
               {
                 localCursor.close();

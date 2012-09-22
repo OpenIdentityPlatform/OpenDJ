@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -291,7 +291,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // look for the dbHandler that is responsible for the LDAP server which
     // generated the change.
-    DbHandler dbHandler = null;
+    DbHandler dbHandler;
     synchronized (sourceDbHandlers)
     {
       dbHandler = sourceDbHandlers.get(id);
@@ -1936,7 +1936,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
                 if (i==2)
                 {
                   Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
-                      baseDn.toString(),
+                      baseDn,
                       "directory",
                       Integer.toString(handler.getServerId()),
                       e.getMessage());
@@ -1976,7 +1976,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               if (i==2)
               {
                 Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
-                    baseDn.toString(),
+                    baseDn,
                     "replication",
                     Integer.toString(handler.getServerId()),
                     e.getMessage());
@@ -2186,7 +2186,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
         } catch (IOException e)
         {
-          logError(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID.get(baseDn.toString(),
+          logError(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID.get(baseDn,
               e.getMessage()));
         }
       }
@@ -2200,8 +2200,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           dsHandler.changeStatusForResetGenId(newGenId);
         } catch (IOException e)
         {
-          logError(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID.get(baseDn.
-              toString(),
+          logError(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID.get(baseDn,
               Integer.toString(dsHandler.getServerId()),
               e.getMessage()));
         }
@@ -2343,7 +2342,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       catch (IOException e)
       {
         logError(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER
-            .get(baseDn.toString(),
+            .get(baseDn,
                 Integer.toString(serverHandler.getServerId()),
                 e.getMessage()));
       }
@@ -3095,7 +3094,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // Publish to monitor the generation ID by replicationServerDomain
     builder = new AttributeBuilder("generation-id");
-    builder.add(baseDn.toString() + " " + generationId);
+    builder.add(baseDn + " " + generationId);
     attributes.add(builder.toAttribute());
 
     MonitorData md = getDomainMonitorData();

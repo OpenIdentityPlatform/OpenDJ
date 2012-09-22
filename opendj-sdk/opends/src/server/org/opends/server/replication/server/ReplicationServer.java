@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -403,12 +403,12 @@ public final class ReplicationServer
            * check that all replication server in the config are in the
            * connected Set. If not create the connection
            */
-          for (String serverURL : replicationServers)
+          for (String aServerURL : replicationServers)
           {
-            final int separator = serverURL.lastIndexOf(':');
-            final String portString = serverURL.substring(separator + 1);
+            final int separator = aServerURL.lastIndexOf(':');
+            final String portString = aServerURL.substring(separator + 1);
             final int port = Integer.parseInt(portString);
-            final String hostname = serverURL.substring(0, separator);
+            final String hostname = aServerURL.substring(0, separator);
             final InetAddress inetAddress;
             try
             {
@@ -433,13 +433,13 @@ public final class ReplicationServer
             }
 
             // Don't connect to a server if it is already connected.
-            final String normalizedServerURL = normalizeServerURL(serverURL);
+            final String normalizedServerURL = normalizeServerURL(aServerURL);
             if (connectedReplServers.contains(normalizedServerURL))
             {
               continue;
             }
 
-            connect(serverURL, domain.getBaseDn());
+            connect(aServerURL, domain.getBaseDn());
           }
         }
 
@@ -1697,9 +1697,7 @@ public final class ReplicationServer
         " getEligibleCN() ends with " +
         " the following domainEligibleCN for each domain :" + debugLog +
         " thus CrossDomainEligibleCN=" + eligibleCN +
-        "  ts=" +
-        (eligibleCN!=null?
-        new Date(eligibleCN.getTime()).toString(): null));
+        "  ts=" + new Date(eligibleCN.getTime()).toString());
 
     return eligibleCN;
   }
@@ -1874,7 +1872,7 @@ public final class ReplicationServer
 
         // for this domain, have the state in the replchangelog
         // where the last DraftCN update is
-        long ec =0;
+        long ec;
         if (domainsServerStateForLastSeqnum == null)
         {
           // Count changes of this domain from the beginning of the changelog

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -109,7 +109,7 @@ public class DataServerHandler extends ServerHandler
   public void changeStatusForResetGenId(long newGenId)
   throws IOException
   {
-    StatusMachineEvent event = null;
+    StatusMachineEvent event;
 
     if (newGenId == -1)
     {
@@ -192,7 +192,7 @@ public class DataServerHandler extends ServerHandler
       Message message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
           Integer.toString(replicationServerDomain.
               getReplicationServer().getServerId()),
-              getServiceId().toString(),
+              getServiceId(),
               Integer.toString(serverId),
               Long.toString(generationId),
               Long.toString(newGenId));
@@ -242,7 +242,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       // Status analyzer must only change from NORMAL_STATUS to DEGRADED_STATUS
@@ -384,7 +384,7 @@ public class DataServerHandler extends ServerHandler
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
       Message msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
-          getServiceId().toString(), Integer.toString(serverId));
+          getServiceId(), Integer.toString(serverId));
       logError(msg);
       return ServerStatus.INVALID_STATUS;
     }
@@ -499,10 +499,9 @@ public class DataServerHandler extends ServerHandler
         return;
       }
 
-      StartMsg outStartMsg = null;
       try
       {
-        outStartMsg = sendStartToRemote(protocolVersion);
+        StartMsg outStartMsg = sendStartToRemote(protocolVersion);
 
         // log
         logStartHandshakeRCVandSND(inServerStartMsg, outStartMsg);
@@ -694,8 +693,7 @@ public class DataServerHandler extends ServerHandler
   DataFormatException,
   NotSupportedOldVersionPDUException
   {
-    ReplicationMsg msg = null;
-    msg = session.receive();
+    ReplicationMsg msg = session.receive();
 
     if (msg instanceof StopMsg)
     {
@@ -719,7 +717,7 @@ public class DataServerHandler extends ServerHandler
     {
       Message message = ERR_RS_INVALID_INIT_STATUS.get(
           this.status.toString(),
-          getServiceId().toString(),
+          getServiceId(),
           Integer.toString(serverId));
       throw new DirectoryException(ResultCode.OTHER, message);
     }

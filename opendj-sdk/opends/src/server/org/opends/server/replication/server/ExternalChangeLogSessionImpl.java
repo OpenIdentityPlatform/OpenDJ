@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -33,7 +34,7 @@ import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.types.DirectoryException;
 
 /**
- * This interface defines a session used to search the external changelog
+ * This class implements a session used to search the external changelog
  * in the Directory Server.
  */
 public class ExternalChangeLogSessionImpl
@@ -41,18 +42,7 @@ public class ExternalChangeLogSessionImpl
 {
 
   ECLServerHandler handler;
-  ReplicationServer rs;
 
-  /**
-   * Create a new external changelog session.
-   * @param rs The replication server to which we will request the log.
-   * @throws DirectoryException When an error occurs.
-   */
-  public ExternalChangeLogSessionImpl(ReplicationServer rs)
-  throws DirectoryException
-  {
-    this.rs = rs;
-  }
 
   /**
    * Create a new external changelog session.
@@ -66,8 +56,6 @@ public class ExternalChangeLogSessionImpl
       StartECLSessionMsg startECLSessionMsg)
   throws DirectoryException
   {
-    this.rs = rs;
-
     this.handler = new ECLServerHandler(
         rs.getServerURL(),
         rs.getServerId(),

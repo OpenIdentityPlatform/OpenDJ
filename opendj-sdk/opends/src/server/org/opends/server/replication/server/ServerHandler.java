@@ -574,7 +574,7 @@ public abstract class ServerHandler extends MessageHandler
     ArrayList<Attribute> attributes = super.getMonitorData();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", getServiceId().toString()));
+    attributes.add(Attributes.create("domain-name", getServiceId()));
 
     // Deprecated
     attributes.add(Attributes.create("max-waiting-changes", String

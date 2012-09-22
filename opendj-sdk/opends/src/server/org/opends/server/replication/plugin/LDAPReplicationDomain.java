@@ -287,7 +287,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /**
    * The attribute name used to store the generation id in the backend.
    */
-  protected static final String REPLICATION_GENERATION_ID =
+  private static final String REPLICATION_GENERATION_ID =
     "ds-sync-generation-id";
   /**
    * The attribute name used to store the fractional include configuration in
@@ -4164,7 +4164,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (!backend.supportsLDIFImport())
       {
         Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
-            backend.getBackendID().toString());
+            backend.getBackendID());
         if (ieContext.getException() == null)
           ieContext.setException(new DirectoryException(ResultCode.OTHER,
               message));
@@ -4922,7 +4922,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (!backend.supportsLDIFExport())
     {
       Message message = ERR_INIT_EXPORT_NOT_SUPPORTED.get(
-                          backend.getBackendID().toString());
+                          backend.getBackendID());
       logError(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }

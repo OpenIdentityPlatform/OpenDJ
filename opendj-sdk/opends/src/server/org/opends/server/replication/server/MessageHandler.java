@@ -681,8 +681,8 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       if (!this.serviceId.equalsIgnoreCase(serviceId))
       {
         Message message = ERR_RS_DN_DOES_NOT_MATCH.get(
-            this.serviceId.toString(),
-            serviceId.toString());
+            this.serviceId,
+            serviceId);
         throw new DirectoryException(ResultCode.OTHER,
             message, null);
       }

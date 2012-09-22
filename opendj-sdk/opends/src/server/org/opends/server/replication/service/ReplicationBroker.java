@@ -396,7 +396,7 @@ public class ReplicationBroker
 
     // Get and compare addresses of RS1 and RS2
     String rs1 = rs1Url.substring(0, separator1);
-    InetAddress[] rs1Addresses = null;
+    InetAddress[] rs1Addresses;
     try
     {
       if (isLocalAddress(rs1))
@@ -412,7 +412,7 @@ public class ReplicationBroker
     }
 
     String rs2 = rs2Url.substring(0, separator2);
-    InetAddress[] rs2Addresses = null;
+    InetAddress[] rs2Addresses;
     try
     {
       if (isLocalAddress(rs1))
@@ -941,8 +941,7 @@ public class ReplicationBroker
                 hasSomeServerWithSameGroupId(topologyMsg.getRsList());
 
               // Really no other server with our group id ?
-              if ((tmpRsGroupId == groupId) ||
-                ((tmpRsGroupId != groupId) && !someServersWithSameGroupId))
+              if ((tmpRsGroupId == groupId) || (!someServersWithSameGroupId))
               {
                 replicationServer = session.getReadableRemoteAddress();
                 maxSendWindow = replicationServerInfo.getWindowSize();
@@ -1001,7 +1000,7 @@ public class ReplicationBroker
                     Byte.toString(groupId), Integer.toString(rsServerId),
                     replicationServerInfo.getServerURL(),
                     Byte.toString(getRsGroupId()),
-                    baseDn.toString(), Integer.toString(serverId));
+                    baseDn, Integer.toString(serverId));
                   logError(message);
                 }
                 startRSHeartBeatMonitoring();
@@ -1263,7 +1262,7 @@ public class ReplicationBroker
       String repDn = replServerInfo.getBaseDn();
       if (!(this.baseDn.equals(repDn)))
       {
-        errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(repDn.toString(),
+        errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(repDn,
             this.baseDn);
         return null;
       }
@@ -1378,8 +1377,7 @@ public class ReplicationBroker
     try
     {
       // Send our Start Session
-      StartECLSessionMsg startECLSessionMsg = null;
-      startECLSessionMsg = new StartECLSessionMsg();
+      StartECLSessionMsg startECLSessionMsg = new StartECLSessionMsg();
       startECLSessionMsg.setOperationId("-1");
       session.publish(startECLSessionMsg);
 
@@ -1428,14 +1426,14 @@ public class ReplicationBroker
   private TopologyMsg performPhaseTwoHandshake(String server,
     ServerStatus initStatus)
   {
-    TopologyMsg topologyMsg = null;
+    TopologyMsg topologyMsg;
 
     try
     {
       /*
        * Send our StartSessionMsg.
        */
-      StartSessionMsg startSessionMsg = null;
+      StartSessionMsg startSessionMsg;
       // May have created a broker with null replication domain for
       // unit test purpose.
       if (domain != null)
@@ -2828,7 +2826,7 @@ public class ReplicationBroker
     return false;
   }
 
-  private static final void debugInfo(String s)
+  private static void debugInfo(String s)
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
     TRACER.debugInfo(s);

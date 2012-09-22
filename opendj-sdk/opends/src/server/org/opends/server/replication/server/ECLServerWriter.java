@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -234,19 +234,14 @@ public class ECLServerWriter extends ServerWriter
         return;
       }
 
-      // TODO:ECL please document the details of the cases where update could
-      // be not null here
-      if (update == null)
+      try
       {
-        try
-        {
-          handler.refreshEligibleCN();
-          update = handler.takeECLUpdate();
-        }
-        catch(DirectoryException de)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        handler.refreshEligibleCN();
+        update = handler.takeECLUpdate();
+      }
+      catch(DirectoryException de)
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       if (update == null)

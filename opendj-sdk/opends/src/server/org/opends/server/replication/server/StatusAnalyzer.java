@@ -95,7 +95,7 @@ public class StatusAnalyzer extends DirectoryThread
     if (debugEnabled())
     {
       TRACER.debugInfo("Directory server status analyzer starting for dn " +
-        replicationServerDomain.getBaseDn().toString());
+        replicationServerDomain.getBaseDn());
     }
 
     boolean interrupted = false;
@@ -211,7 +211,7 @@ public class StatusAnalyzer extends DirectoryThread
       if (debugEnabled())
       {
         TRACER.debugInfo("Shutting down status analyzer for dn "
-            + replicationServerDomain.getBaseDn().toString() + " in RS "
+            + replicationServerDomain.getBaseDn() + " in RS "
             + replicationServerDomain.getReplicationServer().getServerId());
       }
     }
@@ -234,7 +234,7 @@ public class StatusAnalyzer extends DirectoryThread
         if (n >= FACTOR)
         {
           TRACER.debugInfo("Interrupting status analyzer for dn " +
-            replicationServerDomain.getBaseDn().toString() + " in RS " +
+            replicationServerDomain.getBaseDn() + " in RS " +
             replicationServerDomain.getReplicationServer().getServerId());
           this.interrupt();
         }
@@ -254,8 +254,8 @@ public class StatusAnalyzer extends DirectoryThread
     if (debugEnabled())
     {
       TRACER.debugInfo("Directory server status analyzer for dn " +
-        replicationServerDomain.getBaseDn().toString() + " changing threshold" +
-        " value to " + degradedStatusThreshold);
+        replicationServerDomain.getBaseDn() + " changing threshold value to " +
+        degradedStatusThreshold);
     }
 
     this.degradedStatusThreshold = degradedStatusThreshold;
