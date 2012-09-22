@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools.dsreplication;
 
@@ -96,7 +97,7 @@ public class LocalPurgeHistorical
     boolean applyTimeout = uData.getMaximumDuration() > 0;
 
     long startTime = TimeThread.getTime();
-    long purgeMaxTime = getTimeoutInSeconds() * 1000;
+    long purgeMaxTime = getTimeoutInSeconds() * 1000L;
 
     long endMaxTime = startTime + purgeMaxTime;
 
@@ -106,7 +107,6 @@ public class LocalPurgeHistorical
     PointAdder pointAdder = new PointAdder(app);
     pointAdder.start();
 
-    LDAPReplicationDomain domain = null;
     Class<?> cfgClass;
 
     try
@@ -166,7 +166,8 @@ public class LocalPurgeHistorical
       {
         DN dn = DN.decode(baseDN);
         // We can assume that this is an LDAP replication domain
-        domain = LDAPReplicationDomain.retrievesReplicationDomain(dn);
+        LDAPReplicationDomain domain =
+            LDAPReplicationDomain.retrievesReplicationDomain(dn);
 
         domain.purgeConflictsHistorical(null, startTime + purgeMaxTime);
       }

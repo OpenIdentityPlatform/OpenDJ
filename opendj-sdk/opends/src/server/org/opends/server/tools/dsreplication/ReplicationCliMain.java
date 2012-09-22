@@ -8043,7 +8043,7 @@ public class ReplicationCliMain extends ConsoleApplication
       domains[i] = sync.getReplicationDomain(domainNames[i]);
     }
     ReplicationDomainCfgClient domain = null;
-    for (int i=0; i<domains.length && (domain == null); i++)
+    for (int i=0; i<domains.length; i++)
     {
       if (Utils.areDnsEqual(baseDN, domains[i].getBaseDN().toString()))
       {
