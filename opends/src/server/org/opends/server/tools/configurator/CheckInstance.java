@@ -184,7 +184,7 @@ public class CheckInstance
 
       InputStreamReader reader = null;
       int c;
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final String[] cmdArgs = { "ls", "-l", conf.getAbsolutePath() };
       final StringBuilder cmd = new StringBuilder();
       for (final String arg : cmdArgs)
