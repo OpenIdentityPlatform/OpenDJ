@@ -421,7 +421,7 @@ public abstract class ConsoleApplication {
 
   /**
    * Display the batch progress string to the error stream, if we are not
-   * in quiet mode
+   * in quiet mode.
    *
    * @param s
    *          The string to display
