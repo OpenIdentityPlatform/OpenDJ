@@ -1407,11 +1407,12 @@
           'output'      : htmlFile }
       </call>
 
-      <!-- Delete the XML file -->
+      <!-- Delete the XML file
       <call function="'deleteFile'">
         { 'location' : STAXServiceMachine,
           'filename' : xmlFile }
       </call>
+-->
 
     </sequence>
 
