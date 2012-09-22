@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -92,7 +92,7 @@ public class MonitoringPublisher extends DirectoryThread
     if (debugEnabled())
     {
       TRACER.debugInfo("Monitoring publisher starting for dn "
-          + replicationServerDomain.getBaseDn().toString());
+          + replicationServerDomain.getBaseDn());
     }
 
     try
@@ -136,7 +136,7 @@ public class MonitoringPublisher extends DirectoryThread
     catch (InterruptedException e)
     {
       TRACER.debugInfo("Monitoring publisher for dn "
-          + replicationServerDomain.getBaseDn().toString()
+          + replicationServerDomain.getBaseDn()
           + " in RS "
           + replicationServerDomain.getReplicationServer()
               .getServerId()
@@ -146,7 +146,7 @@ public class MonitoringPublisher extends DirectoryThread
 
     done = true;
     TRACER.debugInfo("Monitoring publisher for dn "
-        + replicationServerDomain.getBaseDn().toString()
+        + replicationServerDomain.getBaseDn()
         + " is terminated."
         + " This is in RS "
         + replicationServerDomain.getReplicationServer()
@@ -168,7 +168,7 @@ public class MonitoringPublisher extends DirectoryThread
       if (debugEnabled())
       {
         TRACER.debugInfo("Shutting down monitoring publisher for dn " +
-          replicationServerDomain.getBaseDn().toString() + " in RS " +
+          replicationServerDomain.getBaseDn() + " in RS " +
           replicationServerDomain.getReplicationServer().getServerId());
       }
     }
@@ -191,7 +191,7 @@ public class MonitoringPublisher extends DirectoryThread
         if (n >= FACTOR)
         {
           TRACER.debugInfo("Interrupting monitoring publisher for dn " +
-            replicationServerDomain.getBaseDn().toString() + " in RS " +
+            replicationServerDomain.getBaseDn() + " in RS " +
             replicationServerDomain.getReplicationServer().getServerId());
           this.interrupt();
         }
@@ -211,7 +211,7 @@ public class MonitoringPublisher extends DirectoryThread
     if (debugEnabled())
     {
       TRACER.debugInfo("Monitoring publisher for dn " +
-        replicationServerDomain.getBaseDn().toString() +
+        replicationServerDomain.getBaseDn() +
         " changing period value to " + period);
     }
 

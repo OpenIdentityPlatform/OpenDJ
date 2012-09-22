@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -528,7 +528,7 @@ public class DbHandler implements Runnable
       ArrayList<Attribute> attributes = new ArrayList<Attribute>();
       attributes.add(Attributes.create("replicationServer-database",
           String.valueOf(serverId)));
-      attributes.add(Attributes.create("domain-name", baseDn.toString()));
+      attributes.add(Attributes.create("domain-name", baseDn));
       if (firstChange != null)
       {
         Date firstTime = new Date(firstChange.getTime());

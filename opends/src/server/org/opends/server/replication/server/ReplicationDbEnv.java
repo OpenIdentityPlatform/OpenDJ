@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.*;
@@ -167,7 +167,7 @@ public class ReplicationDbEnv
           String[] str = stringData.split(FIELD_SEPARATOR, 3);
           if (str[0].equals(GENERATION_ID_TAG))
           {
-            long generationId=-1;
+            long generationId;
 
             String baseDn;
 
