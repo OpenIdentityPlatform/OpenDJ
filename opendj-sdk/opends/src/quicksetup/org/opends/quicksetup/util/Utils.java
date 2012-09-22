@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -1978,7 +1978,7 @@ public class Utils
    */
   public static String addWordBreaks(String htmlString, int from, int spacing)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     boolean insideTag = false;
     int totalAddedChars = 0;
     int addedChars = 0;
