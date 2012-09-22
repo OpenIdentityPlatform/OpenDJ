@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -152,7 +152,7 @@ public final class ChangeNumberControlPlugin
       }
     }
     if (types.size() != 4) {
-      StringBuffer expected = new StringBuffer();
+      StringBuilder expected = new StringBuilder();
       expected.append(PluginType.POST_OPERATION_ADD.toString());
       expected.append(", ");
       expected.append(PluginType.POST_OPERATION_DELETE.toString());
@@ -161,7 +161,7 @@ public final class ChangeNumberControlPlugin
       expected.append(", ");
       expected.append(PluginType.POST_OPERATION_MODIFY_DN.toString());
 
-      StringBuffer found = new StringBuffer();
+      StringBuilder found = new StringBuilder();
       boolean first = true;
       for (PluginType t : types) {
         if (first) {
