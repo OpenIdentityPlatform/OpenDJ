@@ -661,11 +661,19 @@
           write_text_elements(service,testwareElementList)
         
         testwareElementList=[]
-        
+
+        #If test logs hosted on web server just use directly the url
+        if logsURI.startswith('http://'):
+          root_uri = ''
+          base_uri = '%s/%s' % (logsURI,os.path.split(logsDir)[1])
+        else:
+          root_uri = logsURI
+          base_uri = logsDir
+   
         # Create the id elements
         idElementList=[]
-        idElementList.append(['tests-dir',logsDir])
-        idElementList.append(['tests-url',logsURI])
+        idElementList.append(['tests-dir',base_uri])
+        idElementList.append(['tests-url',root_uri])
         idElementList.append(['mailto',SEND_MAIL_TO])
         idElementList.append(['coverage-url',coverageUrl])
 
