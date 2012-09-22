@@ -2408,7 +2408,7 @@ cn: isMemberOf
 ds-cfg-java-class: org.opends.server.extensions.IsMemberOfVirtualAttributeProvider
 ds-cfg-enabled: true
 ds-cfg-attribute-type: isMemberOf
-ds-cfg-filter: (objectClass=person)
+ds-cfg-filter: (|(objectClass=person)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfEntries))
 ds-cfg-conflict-behavior: virtual-overrides-real
 
 dn: cn=numSubordinates,cn=Virtual Attributes,cn=config
