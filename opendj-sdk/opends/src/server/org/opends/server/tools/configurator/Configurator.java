@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.tools.configurator;
 
@@ -218,7 +218,7 @@ public class Configurator extends Launcher {
       if (!groupname.hasValue()) {
         InputStreamReader reader = null;
         int c;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         cmd = "groups " + user;
         proc = Runtime.getRuntime().exec(cmd);
         proc.waitFor();
