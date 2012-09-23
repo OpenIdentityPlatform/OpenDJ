@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <refentry xml:id='modrate-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>modrate</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -349,24 +349,20 @@
   using the modrate command to write random 16-character description values
   to all entries in a sample file.</para>
   <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
-$ modrate -p 1389 -D cn=directory\ manager -w secret12
+$ modrate -p 1389 -D "cn=Directory Manager" -w password  -A -F -c 4 -t 4
  -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)"
- 'description:%2$s' -g "randstr(16)" -A -F -c 4 -t 4
------------------------------------------------------------------
-     Throughput                            Response Time         
-   (ops/second)                           (milliseconds)         
-recent  average  recent  average  99.9%  99.99%  99.999%  err/sec
------------------------------------------------------------------
- 399.0    399.0   1.546    1.546  8.917  79.764   79.764      0.0
- 541.6    470.5   1.109    1.294  8.917  181.808 181.808      0.0
- 755.2    565.4   0.747    1.050  9.828  181.808 181.808      0.0
- 786.9    620.8   0.718    0.945  10.175 114.424 181.808      0.0
-1209.3    738.3   0.469    0.789  8.917  114.424 181.808      0.0
-1255.8    824.5   0.474    0.709  8.365  79.764  181.808      0.0
-1359.1    900.8   0.430    0.649  7.610  72.218  181.808      0.0
-1294.5    950.0   0.463    0.618  7.589  81.093  181.808      0.0
-1280.0    986.6   0.471    0.596  7.533  81.093  204.701      0.0
-1301.9   1018.2   0.463    0.579  7.506  81.093  204.701      0.0
+ -g "randstr(16)" 'description:%2$s'
+--------------------------------------------------------------------------
+     Throughput                            Response Time                  
+   (ops/second)                           (milliseconds)                  
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  req/res
+--------------------------------------------------------------------------
+1085.9   1088.5  993.849  993.849  2135.220  2510.361  2510.361  0.0  2.3
+2086.7   1648.8  1963.980  1683.038  3015.025  3078.628  3215.050  0.0  1.0
+3097.3   2092.6  1332.930  1524.278  2940.131  3024.811  3215.050  0.0  1.0
+3848.3   2501.4  1045.000  1352.583  2902.235  3015.863  3215.050  0.0  1.0
+3641.2   2717.4  1106.157  1290.003  2901.379  3015.597  3215.050  0.0  1.0
+3759.4   2883.0  1065.732  1243.534  2900.400  3015.501  3215.050  0.0  1.0
 ^C</screen>
  </refsect1>
 </refentry>
