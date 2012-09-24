@@ -32,8 +32,9 @@
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
   <important>
+   <!-- Keep the highlights? Or fold this into the main list? -->
    <itemizedlist>
-    <para>OpenDJ 2.5.0-Xpress1 brings you the latest features such as:</para>
+    <para>OpenDJ 2.5.0 brings you the latest features such as:</para>
     <listitem>
      <para>Capability to delegate authentication to Microsoft Active Directory
      (pass-through authentication)</para>
@@ -56,8 +57,6 @@
      <para>Synchronization of Samba and OpenDJ passwords</para>
     </listitem>
    </itemizedlist>
-   <para>You can purchase a support subscription from ForgeRock for this
-   release.</para>
   </important>
 
   <para>Compared to the OpenDJ <?eval ${stableServerVersion}?> release, OpenDJ
@@ -65,6 +64,15 @@
   <?eval ${docTargetVersion}?> provides the following new features.</para>
   
   <itemizedlist>
+    <listitem>
+     <para>TODO: Bring this list up to date post OpenDJ 2.5.0-Xpress1.</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now sets <literal>isMemberOf</literal> on groups as well as
+     user entries (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-513"
+     >OPENDJ-513</link>).</para>
+    </listitem>
     <listitem>
      <para>Performance has been significantly improved for searches with a
      virtual attribute in the filter (<link xlink:show="new"
