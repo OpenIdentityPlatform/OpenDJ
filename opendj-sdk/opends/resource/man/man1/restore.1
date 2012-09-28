@@ -2,12 +2,12 @@
 .\"     Title: restore
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 07/17/2012
+.\"      Date: 09/28/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "RESTORE" "1" "07/17/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "RESTORE" "1" "09/28/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -212,7 +212,7 @@ An error occurred while parsing the command\-line arguments\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example schedules a restore as a task to begin immediately\&.
+The following example schedules a restore as a task to begin immediately while OpenDJ directory server is online\&.
 .sp
 .if n \{\
 .RS 4
@@ -221,6 +221,36 @@ The following example schedules a restore as a task to begin immediately\&.
 $ restore \-p 4444 \-D "cn=Directory Manager" \-w password
  \-d /path/to/OpenDJ/bak \-I 20110613080032 \-t 0
 Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following example restores data while OpenDJ is offline\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ /path/to/OpenDJ/bin/stop\-ds
+Stopping Server\&.\&.\&.
+\&.\&.\&.
+$ /path/to/OpenDJ/bin/restore \-\-backupDirectory /path/to/OpenDJ/bak/userRoot
+ \-\-listBackups
+Backup ID:          20120928102414Z
+Backup Date:        28/Sep/2012:12:24:17 +0200
+Is Incremental:     false
+Is Compressed:      false
+Is Encrypted:       false
+Has Unsigned Hash:  false
+Has Signed Hash:    false
+Dependent Upon:     none
+
+$ /path/to/OpenDJ/bin/restore \-\-backupDirectory /path/to/OpenDJ/bak/userRoot
+ \-\-backupID 20120928102414Z
+[28/Sep/2012:12:26:20 +0200] \&.\&.\&. msg=Restored: 00000000\&.jdb (size 355179)
+$ /path/to/OpenDJ/bin/start\-ds
+[28/Sep/2012:12:27:29 +0200] \&.\&.\&. The Directory Server has started successfully
 .fi
 .if n \{\
 .RE
