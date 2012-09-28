@@ -2,12 +2,12 @@
 .\"     Title: backup
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 07/17/2012
+.\"      Date: 09/28/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "BACKUP" "1" "07/17/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "BACKUP" "1" "09/28/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -242,7 +242,7 @@ An error occurred while parsing the command\-line arguments\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example backs up all user data on the server\&.
+The following example backs up all user data while the server is online\&.
 .sp
 .if n \{\
 .RS 4
@@ -256,7 +256,7 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST
 .RE
 .\}
 .PP
-The following example schedules back up of all user data every night at 2 AM, and notifies diradmin@example\&.com when finished, or on error\&.
+The following example schedules back up of all user data every night at 2 AM when the server is online, and notifies diradmin@example\&.com when finished, or on error\&.
 .sp
 .if n \{\
 .RS 4
@@ -267,6 +267,25 @@ $ backup \-p 4444 \-D "cn=Directory Manager" \-w password \-a
  \-\-completionNotify diradmin@example\&.com \-\-errorNotify diradmin@example\&.com
 Recurring Backup task BackupTask\-988d6adf\-4d65\-44bf\-8546\-6ea74a2480b0
 scheduled successfully
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following example backs up all user data while the server is offline\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ /path/to/OpenDJ/bin/stop\-ds
+Stopping Server\&.\&.\&.
+\&.\&.\&.
+$ /path/to/OpenDJ/bin/backup \-\-backupAll \-\-backupDirectory /path/to/OpenDJ/bak
+\&.\&.\&.
+[28/Sep/2012:12:14:22 +0200] \&.\&.\&. msg=The backup process completed successfully
+$ /path/to/OpenDJ/bin/start\-ds
+[28/Sep/2012:12:15:48 +0200] \&.\&.\&. The Directory Server has started successfully
 .fi
 .if n \{\
 .RE

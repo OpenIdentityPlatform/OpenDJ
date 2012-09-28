@@ -293,9 +293,30 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example schedules a restore as a task to begin
-  immediately.</para>
+  immediately while OpenDJ directory server is online.</para>
   <screen>$ restore -p 4444 -D "cn=Directory Manager" -w password
  -d /path/to/OpenDJ/bak -I 20110613080032 -t 0
 Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</screen>
+
+  <para>The following example restores data while OpenDJ is offline.</para>
+  <screen>$ /path/to/OpenDJ/bin/stop-ds
+Stopping Server...
+...
+$ /path/to/OpenDJ/bin/restore --backupDirectory /path/to/OpenDJ/bak/userRoot
+ --listBackups
+Backup ID:          20120928102414Z
+Backup Date:        28/Sep/2012:12:24:17 +0200
+Is Incremental:     false
+Is Compressed:      false
+Is Encrypted:       false
+Has Unsigned Hash:  false
+Has Signed Hash:    false
+Dependent Upon:     none
+
+$ /path/to/OpenDJ/bin/restore --backupDirectory /path/to/OpenDJ/bak/userRoot
+ --backupID 20120928102414Z
+[28/Sep/2012:12:26:20 +0200] ... msg=Restored: 00000000.jdb (size 355179)
+$ /path/to/OpenDJ/bin/start-ds
+[28/Sep/2012:12:27:29 +0200] ... The Directory Server has started successfully</screen>
  </refsect1>
 </refentry>
