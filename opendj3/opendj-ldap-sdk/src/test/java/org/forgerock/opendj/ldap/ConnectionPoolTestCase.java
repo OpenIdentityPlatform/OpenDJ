@@ -28,7 +28,14 @@
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.responses.Responses.newBindResult;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,8 +43,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -58,9 +69,23 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test
+    @Test(enabled = false)
     public void testConnectionEventListenerClose() throws Exception {
-        // TODO
+        final ConnectionFactory factory = mockConnectionFactory(mock(Connection.class));
+        final ConnectionPool pool = newFixedConnectionPool(factory, 1);
+        final Connection connection = pool.getConnection();
+        final ConnectionEventListener listener = mock(ConnectionEventListener.class);
+        connection.addConnectionEventListener(listener);
+        connection.close();
+
+        verify(listener).handleConnectionClosed();
+        verify(listener, times(0)).handleConnectionError(anyBoolean(),
+                any(ErrorResultException.class));
+        verify(listener, times(0)).handleUnsolicitedNotification(any(ExtendedResult.class));
+
+        // Get a connection again and make sure that the listener is no longer invoked.
+        pool.getConnection().close();
+        verifyNoMoreInteractions(listener);
     }
 
     /**
@@ -70,9 +95,27 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test
+    @Test(enabled = false)
     public void testConnectionEventListenerError() throws Exception {
-        // TODO
+        final Connection badConnection = mock(Connection.class);
+        when(badConnection.bind(any(BindRequest.class))).thenThrow(
+                newErrorResult(newBindResult(ResultCode.CLIENT_SIDE_SERVER_DOWN)));
+        final ConnectionFactory factory = mockConnectionFactory(badConnection);
+        final ConnectionPool pool = newFixedConnectionPool(factory, 2);
+        final Connection connection = pool.getConnection();
+        final ConnectionEventListener listener = mock(ConnectionEventListener.class);
+        connection.addConnectionEventListener(listener);
+        try {
+            connection.bind(Requests.newSimpleBindRequest("cn=test", "password".toCharArray()));
+            fail("Expected connection error");
+        } catch (final ErrorResultException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        } finally {
+            connection.close();
+        }
+        verify(listener).handleConnectionError(eq(false), any(ConnectionException.class));
+        verify(listener).handleConnectionClosed();
+        verify(listener, times(0)).handleUnsolicitedNotification(any(ExtendedResult.class));
     }
 
     /**
@@ -83,9 +126,46 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test
+    @Test(enabled = false)
     public void testConnectionEventListenerUnsolicitedNotification() throws Exception {
-        // TODO
+        final List<ConnectionEventListener> listeners = new LinkedList<ConnectionEventListener>();
+        final Connection mockConnection = mock(Connection.class);
+
+        // Handle listener registration / deregistration in mock connection.
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) throws Throwable {
+                final ConnectionEventListener listener =
+                        (ConnectionEventListener) invocation.getArguments()[0];
+                listeners.add(listener);
+                return null;
+            }
+        }).when(mockConnection).addConnectionEventListener(any(ConnectionEventListener.class));
+
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) throws Throwable {
+                final ConnectionEventListener listener =
+                        (ConnectionEventListener) invocation.getArguments()[0];
+                listeners.remove(listener);
+                return null;
+            }
+        }).when(mockConnection).removeConnectionEventListener(any(ConnectionEventListener.class));
+
+        final ConnectionFactory factory = mockConnectionFactory(mockConnection);
+        final ConnectionPool pool = newFixedConnectionPool(factory, 1);
+        final Connection connection = pool.getConnection();
+        final ConnectionEventListener listener = mock(ConnectionEventListener.class);
+        connection.addConnectionEventListener(listener);
+        assertThat(listeners).hasSize(1);
+        listeners.get(0).handleUnsolicitedNotification(
+                Responses.newGenericExtendedResult(ResultCode.OTHER));
+        verify(listener, times(0)).handleConnectionClosed();
+        verify(listener, times(0)).handleConnectionError(anyBoolean(),
+                any(ErrorResultException.class));
+        verify(listener).handleUnsolicitedNotification(any(ExtendedResult.class));
+        connection.close();
+        assertThat(listeners).hasSize(0);
     }
 
     /**
