@@ -51,13 +51,26 @@
  
   <procedure xml:id="backup-immediately">
    <title>To Back Up Data Immediately</title>
-   
+
+   <para>To perform online backup, you start backup as a task by connecting to
+   the administrative port and authenticating as a user with the
+   <literal>backend-backup</literal> privilege, and also setting a start time
+   for the task by using the <option>--start</option> option.</para>
+
+   <para>To perform offline backup when OpenDJ is stopped, you run the
+   <command>backup</command> command without connecting to the server,
+   authenticating, or requesting a backup task.</para>
+
    <step>
     <para>Use one of the following alternatives.</para>
     <stepalternatives>
      <step>
       <para>Back up only the database for Example.com, where the data
       is stored in the backend named <literal>userRoot</literal>.</para>
+
+      <para>The following example requests an online backup task that
+      starts immediately, backing up only the <literal>userRoot</literal>
+      backend.</para>
       <screen>$ backup
  --port 4444
  --bindDN "cn=Directory Manager"
@@ -69,6 +82,9 @@ Backup task 20110613143715983 scheduled to start Jun 13, 2011 2:37:15 PM CEST</s
      </step>
      <step>
       <para>Stop the server to back up Example.com data offline.</para>
+
+      <para>The following example stops OpenDJ, runs offline backup, and
+      starts the server after backup has completed.</para>
       <screen>$ stop-ds 
 Stopping Server...
 
@@ -88,6 +104,9 @@ $ start-ds
      </step>
      <step>
       <para>Back up all user data on the server.</para>
+
+      <para>The following example requests an online backup task that
+      starts immediately, backing up all backends.</para>
       <screen>$ backup
  --port 4444
  --bindDN "cn=Directory Manager"
@@ -104,7 +123,7 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</s
   <procedure xml:id="schedule-backup">
    <title>To Schedule Data Backup</title>
    
-   <para>You can schedule data backup using <command>crontab</command>
+   <para>You can schedule online data backup using <command>crontab</command>
    format.</para>
    
    <step>
@@ -138,12 +157,24 @@ scheduled successfully</screen>
   
   <procedure xml:id="restore-standalone-server">
    <title>To Restore a Stand-alone Server</title>
-  
+
+   <para>To restore OpenDJ when the server is online, you start a restore task
+   by connecting to the administrative port and authenticating as a user with
+   the <literal>backend-restore</literal> privilege, and also setting a start
+   time for the task by using the <option>--start</option> option.</para>
+
+   <para>To restore data when OpenDJ is stopped, you run the
+   <command>restore</command> command without connecting to the server,
+   authenticating, or requesting a restore task.</para>
    <step>
     <para>Use one of the following alternatives.</para>
     <stepalternatives>
      <step>
       <para>Stop the server to restore data for Example.com.</para>
+
+      <para>The following example stops OpenDJ, restores data offline from
+      one of the available backups, and then starts the server after the
+      restore is complete.</para>
       <screen>$ stop-ds
 Stopping Server...
 
@@ -168,6 +199,9 @@ $ start-ds
      </step>
      <step>
       <para>Schedule the restore as a task to begin immediately.</para>
+
+      <para>The following example requests an online restore task, scheduled
+      to start immediately.</para>
       <screen>$ restore
  --port 4444
  --bindDN "cn=Directory Manager"
