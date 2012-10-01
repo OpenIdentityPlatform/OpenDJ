@@ -36,6 +36,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1003,6 +1004,10 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testReadFileContainingInvalidURLThrowsError() throws Exception {
+        // Obtain the name of a file which is guaranteed not to exist.
+        final File file = File.createTempFile("sdk", null);
+        final String url = file.toURI().toURL().toString();
+        file.delete();
 
         // @formatter:off
         final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1017,7 +1022,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
             "sn: Jensen",
             "uid: fiona",
             "telephonenumber: +1 408 555 1212",
-            "jpegphoto:< http://www.FionaJensen.www"
+            "jpegphoto:< " + url
         );
         // @formatter:on
 
