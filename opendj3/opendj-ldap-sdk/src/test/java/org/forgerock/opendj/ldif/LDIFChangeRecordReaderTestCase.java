@@ -66,6 +66,7 @@ import org.testng.annotations.Test;
 /**
  * This class tests the LDIFChangeRecordReader functionality.
  */
+@SuppressWarnings("javadoc")
 public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
 
     /**
@@ -1502,7 +1503,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testLDIFCRRParseModifyChangeRecordEntryWithWrongChangetype() {
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
             "dn: uid=scarter,ou=People,dc=example,dc=com",
             "changetype: modify",
@@ -1519,7 +1520,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testLDIFCRRParseModifyChangeRecordEntryWithNullPairKey() {
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
             "dn: uid=scarter,ou=People,dc=example,dc=com",
             "changetype: modify",
@@ -1926,7 +1927,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     public void testChangeRecordReaderHasNoChange() throws Exception {
 
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
             "# Add a new entry without changes !",
             "dn: dc=example,dc=com"
@@ -1974,9 +1975,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testChangeRecordReaderInpuStreamDoesntAllowNull() throws Exception {
-        final InputStream is = null;
-        @SuppressWarnings({ "unused", "resource" })
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(is);
+        new LDIFChangeRecordReader((InputStream) null);
     }
 
     /**
@@ -1987,7 +1986,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordDoesntAllowNull() throws Exception {
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord("");
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord("");
     }
 
     /**
@@ -1999,7 +1998,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordDoesntAllowMultipleChangeRecords() throws Exception {
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
             "# Add a new entry",
             "dn: cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com",
@@ -2029,7 +2028,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordMalformedLDIFDNIsMissing() throws Exception {
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
             "# Add a new entry",
             "changetype: add",
@@ -2056,7 +2055,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     public void testValueOfLDIFChangeRecordMalformedLDIFContainingOnlyVersion() throws Exception {
 
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
                 "version: 1"
         );
         // @formatter:on
@@ -2074,7 +2073,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
             throws Exception {
 
         // @formatter:off
-        final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
                 "version: 1",
                 ":wrong"
         );
