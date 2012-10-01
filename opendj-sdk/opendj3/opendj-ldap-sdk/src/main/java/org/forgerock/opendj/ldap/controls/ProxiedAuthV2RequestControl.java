@@ -123,8 +123,7 @@ public final class ProxiedAuthV2RequestControl implements Control {
                     try {
                         if (reader.elementAvailable()) {
                             // Try the legacy encoding where the value is
-                            // wrapped by an
-                            // extra octet string
+                            // wrapped by an extra octet string
                             authorizationID = reader.readOctetStringAsString();
                         } else {
                             authorizationID = control.getValue().toString();
