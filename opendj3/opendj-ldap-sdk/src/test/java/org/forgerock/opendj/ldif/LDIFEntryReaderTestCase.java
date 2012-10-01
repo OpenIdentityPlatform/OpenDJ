@@ -1639,11 +1639,6 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testValueOfLDIFEntryDoesntAllowNull() throws Exception {
-        LDIFEntryReader reader = new LDIFEntryReader();
-        try {
-            reader.valueOfLDIFEntry(null);
-        } finally {
-            reader.close();
-        }
+        LDIFEntryReader.valueOfLDIFEntry((String[]) null);
     }
 }
