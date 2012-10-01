@@ -450,7 +450,7 @@ final class LDAPClientFilter extends BaseFilter {
     public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
         final Connection<?> connection = ctx.getConnection();
         if (!connection.isOpen()) {
-            // Grizzly doens't not deregister the read interest from the
+            // Grizzly doesn't not deregister the read interest from the
             // selector so closing the connection results in an EOFException.
             // Just ignore errors on closed connections.
             return;
@@ -474,7 +474,6 @@ final class LDAPClientFilter extends BaseFilter {
         final Connection<?> connection = ctx.getConnection();
         final LDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.remove(connection);
         if (ldapConnection != null) {
-            TimeoutChecker.INSTANCE.removeConnection(ldapConnection);
             final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
             ldapConnection.close(null, false, errorResult);
         }

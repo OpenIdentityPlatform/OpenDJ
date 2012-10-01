@@ -27,6 +27,9 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -47,11 +50,11 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 
 /**
@@ -60,8 +63,10 @@ import com.forgerock.opendj.util.StaticUtils;
 public class LDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
-        volatile LDAPClientContext context = null;
-        final CountDownLatch isConnected = new CountDownLatch(1);
+        final AsynchronousFutureResult<Throwable> connectionError =
+                new AsynchronousFutureResult<Throwable>(null);
+        final AsynchronousFutureResult<LDAPClientContext> context =
+                new AsynchronousFutureResult<LDAPClientContext>(null);
         final CountDownLatch isClosed = new CountDownLatch(1);
 
         MockServerConnection() {
@@ -132,7 +137,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
          */
         @Override
         public void handleConnectionError(final Throwable error) {
-            // Do nothing.
+            connectionError.handleResult(error);
         }
 
         /**
@@ -208,8 +213,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
                 throws ErrorResultException {
-            serverConnection.context = clientContext;
-            serverConnection.isConnected.countDown();
+            serverConnection.context.handleResult(clientContext);
             return serverConnection;
         }
     }
@@ -248,12 +252,10 @@ public class LDAPListenerTestCase extends SdkTestCase {
             final Connection connection =
                     new LDAPConnectionFactory(listener.getSocketAddress()).getConnection();
 
-            Assert.assertTrue(serverConnection.isConnected.await(10, TimeUnit.SECONDS));
-            Assert.assertEquals(serverConnection.isClosed.getCount(), 1);
-
+            assertThat(serverConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+            assertThat(serverConnection.isClosed.getCount()).isEqualTo(1);
             connection.close();
-
-            Assert.assertTrue(serverConnection.isClosed.await(10, TimeUnit.SECONDS));
+            assertThat(serverConnection.isClosed.await(10, TimeUnit.SECONDS)).isTrue();
         } finally {
             listener.close();
         }
@@ -321,8 +323,8 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 final Connection connection =
                         new LDAPConnectionFactory(proxyListener.getSocketAddress()).getConnection();
 
-                Assert.assertTrue(proxyServerConnection.isConnected.await(10, TimeUnit.SECONDS));
-                Assert.assertTrue(onlineServerConnection.isConnected.await(10, TimeUnit.SECONDS));
+                assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+                assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
 
                 // Wait for connect/close to complete.
                 connection.close();
@@ -412,9 +414,9 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
-                    Assert.assertTrue(proxyServerConnection.isConnected.await(10, TimeUnit.SECONDS));
-                    Assert.assertTrue(onlineServerConnection.isConnected
-                            .await(10, TimeUnit.SECONDS));
+                    assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+                    assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS))
+                            .isNotNull();
                 } finally {
                     connection.close();
                 }
@@ -500,8 +502,8 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 final Connection connection =
                         new LDAPConnectionFactory(proxyListener.getSocketAddress()).getConnection();
 
-                Assert.assertTrue(proxyServerConnection.isConnected.await(10, TimeUnit.SECONDS));
-                Assert.assertTrue(onlineServerConnection.isConnected.await(10, TimeUnit.SECONDS));
+                assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+                assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
 
                 connection.close();
 
@@ -589,9 +591,9 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
-                    Assert.assertTrue(proxyServerConnection.isConnected.await(10, TimeUnit.SECONDS));
-                    Assert.assertTrue(onlineServerConnection.isConnected
-                            .await(10, TimeUnit.SECONDS));
+                    assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+                    assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS))
+                            .isNotNull();
                 } finally {
                     connection.close();
                 }
@@ -607,6 +609,65 @@ public class LDAPListenerTestCase extends SdkTestCase {
     }
 
     /**
+     * Tests that an incoming request which is too big triggers the connection
+     * to be closed and an error notification to occur.
+     *
+     * @throws Exception
+     *             If an unexpected error occurred.
+     */
+    @Test
+    public void testMaxRequestSize() throws Exception {
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final MockServerConnectionFactory factory =
+                new MockServerConnectionFactory(serverConnection);
+        final LDAPListenerOptions options = new LDAPListenerOptions().setMaxRequestSize(2048);
+        final LDAPListener listener =
+                new LDAPListener("localhost", TestCaseUtils.findFreePort(), factory, options);
+
+        Connection connection = null;
+        try {
+            connection = new LDAPConnectionFactory(listener.getSocketAddress()).getConnection();
+
+            // Small request
+            connection.bind("cn=test", "password".toCharArray());
+            assertThat(serverConnection.context.get().isClosed()).isFalse();
+            assertThat(serverConnection.connectionError.isDone()).isFalse();
+
+            // Big but valid request.
+            final char[] password1 = new char[2000];
+            Arrays.fill(password1, 'a');
+            connection.bind("cn=test", password1);
+            assertThat(serverConnection.context.get().isClosed()).isFalse();
+            assertThat(serverConnection.connectionError.isDone()).isFalse();
+
+            // Big invalid request.
+            final char[] password2 = new char[2048];
+            Arrays.fill(password2, 'a');
+            try {
+                connection.bind("cn=test", password2);
+                fail("Big bind unexpectedly succeeded");
+            } catch (final ErrorResultException e) {
+                // Expected exception.
+                assertThat(e.getResult().getResultCode()).isEqualTo(
+                        ResultCode.CLIENT_SIDE_SERVER_DOWN);
+
+                assertThat(serverConnection.connectionError.get(10, TimeUnit.SECONDS)).isNotNull();
+                assertThat(serverConnection.connectionError.get()).isInstanceOf(
+                        DecodeException.class);
+                assertThat(((DecodeException) serverConnection.connectionError.get()).isFatal())
+                        .isTrue();
+                assertThat(serverConnection.isClosed.getCount()).isEqualTo(1);
+                assertThat(serverConnection.context.get().isClosed()).isTrue();
+            }
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+            listener.close();
+        }
+    }
+
+    /**
      * Tests server-side disconnection.
      *
      * @throws Exception
@@ -614,19 +675,16 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @Test
     public void testServerDisconnect() throws Exception {
-        final MockServerConnection onlineServerConnection = new MockServerConnection();
-        final MockServerConnectionFactory onlineServerConnectionFactory =
-                new MockServerConnectionFactory(onlineServerConnection);
-        final LDAPListener onlineServerListener =
-                new LDAPListener("localhost", TestCaseUtils.findFreePort(),
-                        onlineServerConnectionFactory);
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final MockServerConnectionFactory factory =
+                new MockServerConnectionFactory(serverConnection);
+        final LDAPListener listener =
+                new LDAPListener("localhost", TestCaseUtils.findFreePort(), factory);
 
         final Connection connection;
         try {
             // Connect and bind.
-            connection =
-                    new LDAPConnectionFactory(onlineServerListener.getSocketAddress())
-                            .getConnection();
+            connection = new LDAPConnectionFactory(listener.getSocketAddress()).getConnection();
             try {
                 connection.bind("cn=test", "password".toCharArray());
             } catch (final ErrorResultException e) {
@@ -634,33 +692,32 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 throw e;
             }
         } finally {
-            onlineServerConnection.context.disconnect();
-            onlineServerListener.close();
+            serverConnection.context.get().disconnect();
+            listener.close();
         }
 
         try {
             // Connect and bind.
             final Connection failedConnection =
-                    new LDAPConnectionFactory(onlineServerListener.getSocketAddress())
-                            .getConnection();
+                    new LDAPConnectionFactory(listener.getSocketAddress()).getConnection();
             failedConnection.close();
             connection.close();
-            Assert.fail("Connection attempt to closed listener succeeded unexpectedly");
+            fail("Connection attempt to closed listener succeeded unexpectedly");
         } catch (final ConnectionException e) {
             // Expected.
         }
 
         try {
             connection.bind("cn=test", "password".toCharArray());
-            Assert.fail("Bind attempt on closed connection succeeded unexpectedly");
+            fail("Bind attempt on closed connection succeeded unexpectedly");
         } catch (final ErrorResultException e) {
             // Expected.
-            Assert.assertFalse(connection.isValid());
-            Assert.assertFalse(connection.isClosed());
+            assertThat(connection.isValid()).isFalse();
+            assertThat(connection.isClosed()).isFalse();
         } finally {
             connection.close();
-            Assert.assertFalse(connection.isValid());
-            Assert.assertTrue(connection.isClosed());
+            assertThat(connection.isValid()).isFalse();
+            assertThat(connection.isClosed()).isTrue();
         }
     }
 }
