@@ -60,6 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the LDIFEntryReader functionality.
  */
+@SuppressWarnings("javadoc")
 public final class LDIFEntryReaderTestCase extends LDIFTestCase {
     /**
      * Provide a standard entry for the tests below.
@@ -1514,8 +1515,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testLDIFEntryReaderInpuStreamDoesntAllowNull() throws Exception {
-        final InputStream is = null;
-        LDIFEntryReader reader = new LDIFEntryReader(is);
+        new LDIFEntryReader((InputStream) null);
     }
 
     /**
@@ -1548,7 +1548,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
     public void testValueOfLDIFEntryMultipleChangeRecordFound() throws Exception {
 
         // @formatter:off
-        final Entry entry = LDIFEntryReader.valueOfLDIFEntry(
+        LDIFEntryReader.valueOfLDIFEntry(
             "#This is an example test",
             "dn: CN=John Smith,OU=Legal,DC=example,DC=com",
             "changetype: modify",
