@@ -606,6 +606,9 @@ final class LDAPServerFilter extends BaseFilter {
     // following RFCs: 5289, 4346, 3268,4132 and 4162.
     private static final Map<String, Integer> CIPHER_KEY_SIZES;
 
+    // Default maximum request size for incoming requests.
+    private static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024;
+
     private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
 
@@ -773,7 +776,8 @@ final class LDAPServerFilter extends BaseFilter {
             final int maxASN1ElementSize) {
         this.listener = listener;
         this.ldapReader = ldapReader;
-        this.maxASN1ElementSize = maxASN1ElementSize;
+        this.maxASN1ElementSize =
+                maxASN1ElementSize <= 0 ? DEFAULT_MAX_REQUEST_SIZE : maxASN1ElementSize;
     }
 
     @Override
@@ -826,6 +830,9 @@ final class LDAPServerFilter extends BaseFilter {
             while (asn1Reader.elementAvailable()) {
                 ldapReader.decode(asn1Reader, serverRequestHandler, ctx);
             }
+        } catch (IOException e) {
+            exceptionOccurred(ctx, e);
+            throw e;
         } finally {
             asn1Reader.disposeBytesRead();
         }

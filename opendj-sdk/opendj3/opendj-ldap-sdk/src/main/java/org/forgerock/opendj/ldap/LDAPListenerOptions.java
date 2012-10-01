@@ -36,8 +36,9 @@ import com.forgerock.opendj.util.Validator;
  */
 public final class LDAPListenerOptions {
 
-    private DecodeOptions decodeOptions;
     private int backlog;
+    private DecodeOptions decodeOptions;
+    private int maxRequestSize;
     private TCPNIOTransport transport;
 
     /**
@@ -46,6 +47,7 @@ public final class LDAPListenerOptions {
      */
     public LDAPListenerOptions() {
         this.backlog = 0;
+        this.maxRequestSize = 0;
         this.decodeOptions = new DecodeOptions();
         this.transport = null;
     }
@@ -59,6 +61,7 @@ public final class LDAPListenerOptions {
      */
     public LDAPListenerOptions(final LDAPListenerOptions options) {
         this.backlog = options.backlog;
+        this.maxRequestSize = options.maxRequestSize;
         this.decodeOptions = new DecodeOptions(options.decodeOptions);
         this.transport = options.transport;
     }
@@ -71,7 +74,7 @@ public final class LDAPListenerOptions {
      *
      * @return The maximum queue length for incoming connections requests.
      */
-    public final int getBacklog() {
+    public int getBacklog() {
         return backlog;
     }
 
@@ -82,8 +85,20 @@ public final class LDAPListenerOptions {
      * @return The decoding options which will be used to control how requests
      *         and responses are decoded (never {@code null}).
      */
-    public final DecodeOptions getDecodeOptions() {
+    public DecodeOptions getDecodeOptions() {
         return decodeOptions;
+    }
+
+    /**
+     * Returns the maximum request size in bytes for incoming LDAP requests. If
+     * an incoming request exceeds the limit then the connection will be aborted
+     * by the listener. If the limit is less than {@code 1} then a default value
+     * of {@code 5MB} will be used.
+     *
+     * @return The maximum request size in bytes for incoming LDAP requests.
+     */
+    public int getMaxRequestSize() {
+        return maxRequestSize;
     }
 
     /**
@@ -98,7 +113,7 @@ public final class LDAPListenerOptions {
      *         default transport factory should be used to obtain a TCP
      *         transport.
      */
-    public final TCPNIOTransport getTCPNIOTransport() {
+    public TCPNIOTransport getTCPNIOTransport() {
         return transport;
     }
 
@@ -112,7 +127,7 @@ public final class LDAPListenerOptions {
      *            The maximum queue length for incoming connections requests.
      * @return A reference to this LDAP listener options.
      */
-    public final LDAPListenerOptions setBacklog(final int backlog) {
+    public LDAPListenerOptions setBacklog(final int backlog) {
         this.backlog = backlog;
         return this;
     }
@@ -128,9 +143,24 @@ public final class LDAPListenerOptions {
      * @throws NullPointerException
      *             If {@code decodeOptions} was {@code null}.
      */
-    public final LDAPListenerOptions setDecodeOptions(final DecodeOptions decodeOptions) {
+    public LDAPListenerOptions setDecodeOptions(final DecodeOptions decodeOptions) {
         Validator.ensureNotNull(decodeOptions);
         this.decodeOptions = decodeOptions;
+        return this;
+    }
+
+    /**
+     * Sets the maximum request size in bytes for incoming LDAP requests. If an
+     * incoming request exceeds the limit then the connection will be aborted by
+     * the listener. If the limit is less than {@code 1} then a default value of
+     * {@code 5MB} will be used.
+     *
+     * @param maxRequestSize
+     *            The maximum request size in bytes for incoming LDAP requests.
+     * @return A reference to this LDAP listener options.
+     */
+    public LDAPListenerOptions setMaxRequestSize(final int maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
         return this;
     }
 
@@ -148,7 +178,7 @@ public final class LDAPListenerOptions {
      *            transport.
      * @return A reference to this connection options.
      */
-    public final LDAPListenerOptions setTCPNIOTransport(final TCPNIOTransport transport) {
+    public LDAPListenerOptions setTCPNIOTransport(final TCPNIOTransport transport) {
         this.transport = transport;
         return this;
     }

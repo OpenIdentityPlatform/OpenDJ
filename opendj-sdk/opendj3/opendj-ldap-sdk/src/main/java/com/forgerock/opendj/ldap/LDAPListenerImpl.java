@@ -81,7 +81,8 @@ public final class LDAPListenerImpl implements Closeable {
         final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
         this.defaultFilterChain =
                 FilterChainBuilder.stateless().add(new TransportFilter()).add(
-                        new LDAPServerFilter(this, new LDAPReader(decodeOptions), 0)).build();
+                        new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
+                                .getMaxRequestSize())).build();
 
         this.serverConnection = transport.bind(address, options.getBacklog());
         this.serverConnection.setProcessor(defaultFilterChain);

@@ -671,6 +671,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 // Underlying channel prob blown up. Just ignore.
             }
         }
+        TimeoutChecker.INSTANCE.removeConnection(this);
         connection.closeSilently();
 
         // Notify listeners.
