@@ -56,9 +56,9 @@
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>-a, --appendToLDIF</option></term>
+    <term><option>-a, --append</option></term>
     <listitem>
-     <para>Append an existing LDIF file rather than overwriting it.</para>
+     <para>Append to an existing database rather than overwriting it.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
