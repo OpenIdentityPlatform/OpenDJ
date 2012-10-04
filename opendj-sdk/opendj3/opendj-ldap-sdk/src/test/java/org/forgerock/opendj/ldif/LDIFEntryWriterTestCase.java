@@ -46,6 +46,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the LDIFEntryWriter functionality.
  */
+@SuppressWarnings("javadoc")
 public final class LDIFEntryWriterTestCase extends LDIFTestCase {
 
     /**
@@ -709,12 +710,12 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
     }
 
     /**
-     * Test to write an entry adding the user friendly Comment TODO
+     * Test to write an entry adding the user friendly Comment.
      *
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test
+    @Test(enabled = false)
     public void testSetAddUserFriendlyComments() throws Exception {
         final List<String> actual = new ArrayList<String>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
@@ -724,9 +725,6 @@ public final class LDIFEntryWriterTestCase extends LDIFTestCase {
         writer.setAddUserFriendlyComments(true);
         writer.writeComment0(comment);
         writer.close();
-
-        // TODO Add a test when the function will be implemented in AbstractLDIFWriter
-
     }
 
     /**

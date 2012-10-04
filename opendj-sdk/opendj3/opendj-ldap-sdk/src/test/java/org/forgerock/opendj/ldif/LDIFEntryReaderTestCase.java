@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldif;
 
 import static org.testng.Assert.assertNotNull;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -156,6 +157,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
     public void testSetExcludeBranchDoesntAllowNull() throws Exception {
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setExcludeBranch(null);
+        reader.close();
     }
 
     /**
@@ -263,6 +265,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
 
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setExcludeAttribute(null);
+        reader.close();
     }
 
     /**
@@ -477,6 +480,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
     public void testSetIncludeBranchDoesntAllowNull() throws Exception {
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setIncludeBranch(null);
+        reader.close();
     }
 
     /**
@@ -536,6 +540,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
     public void testSetIncludeFilterDoesntAllowNull() throws Exception {
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setIncludeFilter(null);
+        reader.close();
     }
 
     /**
@@ -782,7 +787,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
         final LDIFEntryReader reader = new LDIFEntryReader(strEntry);
         reader.setSchema(Schema.getDefaultSchema());
         reader.setSchemaValidationPolicy(null);
-
+        reader.close();
     }
 
     /**
@@ -888,6 +893,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
 
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setSchema(null); // must throw a NullPointerException
+        reader.close();
     }
 
     /**
@@ -1256,6 +1262,10 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
      */
     @Test()
     public void testValueOfLDIFEntryReadEntryContainingURL() throws Exception {
+
+        final File file = File.createTempFile("sdk", ".jpeg");
+        final String url = file.toURI().toURL().toString();
+
         // @formatter:off
         final LDIFEntryReader reader = new LDIFEntryReader(
                 "#A single comment",
@@ -1271,7 +1281,7 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
                 "sn: Jensen",
                 "uid: hjensen",
                 "telephonenumber: +1 408 555 1212",
-                "jpegphoto:< http://www.forgerock.com/sites/default/files/forgerock_logo.png",
+                "jpegphoto:< " + url,
                 "#This is a end line comment", "# Followed by another"
         );
         // @formatter:on
@@ -1283,18 +1293,19 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
             assertThat(entry.getAttribute("jpegphoto")).isNotEmpty();
             assertThat(entry.getAttribute("cn").firstValueAsString()).isEqualTo("Horatio Jensen");
         } finally {
+            file.delete();
             reader.close();
         }
     }
 
     /**
-     * LDIFEntryReader entry containing a reference to an external file & an
-     * invalid protocol.
+     * LDIFEntryReader entry containing a malformed URL.
      *
      * @throws Exception
      */
+    // TODO
     @Test(expectedExceptions = DecodeException.class)
-    public void testValueOfLDIFEntryReadEntryContainingURLInvalidProtocol() throws Exception {
+    public void testValueOfLDIFEntryReadEntryContainingMalformedURL() throws Exception {
 
         // @formatter:off
         final LDIFEntryReader reader = new LDIFEntryReader(
@@ -1515,7 +1526,8 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testLDIFEntryReaderInpuStreamDoesntAllowNull() throws Exception {
-        new LDIFEntryReader((InputStream) null);
+        final LDIFEntryReader reader = new LDIFEntryReader((InputStream) null);
+        reader.close();
     }
 
     /**
