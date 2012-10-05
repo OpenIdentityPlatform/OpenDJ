@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -669,7 +670,7 @@ public class DN2URI extends DatabaseContainer
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL)
           {
             if(JebFormat.findDNKeyParent(key.getData(), 0,
-                                       key.getSize()) == baseDN.length)
+                                       key.getSize()) != baseDN.length)
             {
               continue;
             }
