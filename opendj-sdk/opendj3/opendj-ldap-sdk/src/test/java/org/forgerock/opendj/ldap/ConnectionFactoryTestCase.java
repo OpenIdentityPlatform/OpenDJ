@@ -72,7 +72,6 @@ import com.forgerock.opendj.util.StaticUtils;
  * Tests the {@code ConnectionFactory} classes.
  */
 @SuppressWarnings("javadoc")
-@Test(timeOut = 10000)
 public class ConnectionFactoryTestCase extends SdkTestCase {
     // Test timeout in ms for tests which need to wait for network events.
     private static final long TEST_TIMEOUT = 30L;
@@ -246,7 +245,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories")
+    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testBlockingFutureNoHandler(ConnectionFactory factory) throws Exception {
         final FutureResult<Connection> future = factory.getConnectionAsync(null);
         final Connection con = future.get();
@@ -261,7 +260,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories")
+    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testNonBlockingFutureWithHandler(ConnectionFactory factory) throws Exception {
         // Use the handler to get the result asynchronously.
         final CountDownLatch latch = new CountDownLatch(1);
@@ -281,7 +280,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories")
+    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testSynchronousConnection(ConnectionFactory factory) throws Exception {
         final Connection con = factory.getConnection();
         assertNotNull(con);
