@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -193,6 +193,47 @@ public class SearchOperationTestCase extends OperationTestCase
                                referralEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(referralEntry.getDN()));
+
+    Entry level1Entry = TestCaseUtils.makeEntry(
+        "dn: ou=level1," + BASE,
+        "objectclass: top",
+        "objectclass: organizationalunit",
+        "ou: level1");
+    addOperation =
+        connection.processAdd(level1Entry.getDN(),
+                              level1Entry.getObjectClasses(),
+                              level1Entry.getUserAttributes(),
+                              level1Entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(level1Entry.getDN()));
+
+    Entry level2Entry = TestCaseUtils.makeEntry(
+        "dn: ou=level2,ou=level1," + BASE,
+        "objectclass: top",
+        "objectclass: organizationalunit",
+        "ou: level2");
+    addOperation =
+        connection.processAdd(level2Entry.getDN(),
+                              level2Entry.getObjectClasses(),
+                              level2Entry.getUserAttributes(),
+                              level2Entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(level2Entry.getDN()));
+
+    Entry referral2Entry = TestCaseUtils.makeEntry(
+        "dn: ou=level3,ou=level2,ou=level1," + BASE,
+        "objectclass: extensibleobject",
+        "objectclass: referral",
+        "ref: ldap://hostb/OU=People,O=MNN,C=US",
+        "ref: ldap://hostc/OU=People,O=MNN,C=US",
+        "ref: ldap://hostd/OU=People,O=MNN,C=US");
+   addOperation =
+        connection.processAdd(referral2Entry.getDN(),
+                              referral2Entry.getObjectClasses(),
+                              referral2Entry.getUserAttributes(),
+                              referral2Entry.getOperationalAttributes());
+   assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+   assertNotNull(DirectoryServer.getEntry(referral2Entry.getDN()));
   }
 
 
@@ -376,8 +417,8 @@ public class SearchOperationTestCase extends OperationTestCase
 
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(searchOperation.getEntriesSent(), 2);
-    assertEquals(searchOperation.getReferencesSent(), 1);
+    assertEquals(searchOperation.getEntriesSent(), 4);
+    assertEquals(searchOperation.getReferencesSent(), 2);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
 
     examineCompletedOperation(searchOperation);
@@ -874,6 +915,54 @@ public class SearchOperationTestCase extends OperationTestCase
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getReferencesSent(), 2);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+    examineCompletedOperation(searchOperation);
+
+    List<SearchResultReference> references =
+         searchOperation.getSearchReferences();
+    assertEquals(references.size(), 2);
+
+    // One contains 2 URLs, the other contains 3. Cannot guarantee
+    // ordering of the returned references, so just check the total is correct.
+    int urls = references.get(0).getReferralURLs().size() +
+        references.get(1).getReferralURLs().size();
+
+    assertEquals(urls, 5);
+  }
+
+  /**
+   * This does a single-level search that finds one referral object, but
+   * not the one in a deeper subtree.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSearchSingleDeepReferences() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf(BASE),
+              SearchScope.SINGLE_LEVEL,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(ou=*)"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getReferencesSent(), 1);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
     examineCompletedOperation(searchOperation);
@@ -1047,7 +1136,7 @@ public class SearchOperationTestCase extends OperationTestCase
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(searchOperation.getEntriesSent(), 3);
+    assertEquals(searchOperation.getEntriesSent(), 5);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
   }
 
