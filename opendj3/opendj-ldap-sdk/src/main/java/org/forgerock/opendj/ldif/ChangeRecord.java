@@ -29,7 +29,6 @@ package org.forgerock.opendj.ldif;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -72,6 +71,15 @@ public interface ChangeRecord extends Request {
      */
     DN getName();
 
+
+    /*
+     * Uncomment both setName methods when we require JDK7 since JDK6 fails
+     * cannot deal with multiple inheritance of covariant return types
+     * (AddRequest inherits from both ChangeRecord and Entry).
+     *
+     * See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6970851
+     */
+
     /**
      * Sets the distinguished name of the entry to be updated. The server shall
      * not perform any alias dereferencing in determining the object to be
@@ -86,7 +94,7 @@ public interface ChangeRecord extends Request {
      * @throws NullPointerException
      *             If {@code dn} was {@code null}.
      */
-    ChangeRecord setName(DN dn);
+    // ChangeRecord setName(DN dn);
 
     /**
      * Sets the distinguished name of the entry to be updated. The server shall
@@ -104,7 +112,7 @@ public interface ChangeRecord extends Request {
      * @throws NullPointerException
      *             If {@code dn} was {@code null}.
      */
-    ChangeRecord setName(String dn);
+    // ChangeRecord setName(String dn);
 
     /**
      * {@inheritDoc}
