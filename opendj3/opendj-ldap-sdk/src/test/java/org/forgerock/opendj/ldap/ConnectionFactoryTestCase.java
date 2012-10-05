@@ -245,7 +245,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories")
+    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testBlockingFutureNoHandler(ConnectionFactory factory) throws Exception {
         final FutureResult<Connection> future = factory.getConnectionAsync(null);
         final Connection con = future.get();
