@@ -279,6 +279,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
         reader.setExcludeAttribute(null);
+        reader.close();
     }
 
     /**
@@ -350,6 +351,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 new LDIFChangeRecordReader("version: 1",
                         "dn: uid=scarter,ou=People,dc=example,dc=com");
         reader.setIncludeAttribute(null);
+        reader.close();
     }
 
     /**
@@ -409,6 +411,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 new LDIFChangeRecordReader("version: 1",
                         "dn: uid=scarter,ou=People,dc=example,dc=com");
         reader.setIncludeBranch(null);
+        reader.close();
     }
 
     /**
@@ -456,6 +459,40 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
     }
 
     /**
+     * LDIFChangeRecordReader setSchemaValidationPolicy. Validate the Change
+     * Record depending of the selected policy. ChangeRecord is here NOT allowed
+     * because it contains a uid attribute which is not allowed by the
+     * SchemaValidationPolicy.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testSetSchemaValidationPolicyDefaultRejectsEntry() throws Exception {
+        // @formatter:off
+        String[] strChangeRecord = {
+            "dn: uid=user.0,ou=People,dc=example,dc=com",
+            "changetype: add",
+            "sn: Carter",
+            "objectClass: person",
+            "objectClass: top",
+            "cn: Aaccf Amar",
+            "sn: Amar",
+            "uid: user.0"
+        };
+        // @formatter:on
+
+        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(strChangeRecord);
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+
+        try {
+            reader.readChangeRecord();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
      * SetExcludeBranch doesn't allow null.
      *
      * @throws Exception
@@ -467,6 +504,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 new LDIFChangeRecordReader("version: 1",
                         "dn: uid=scarter,ou=People,dc=example,dc=com");
         reader.setExcludeBranch(null);
+        reader.close();
     }
 
     /**
@@ -481,6 +519,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 new LDIFChangeRecordReader("version: 1",
                         "dn: uid=scarter,ou=People,dc=example,dc=com");
         reader.setSchema(null);
+        reader.close();
     }
 
     /**
@@ -519,40 +558,6 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
 
         reader.close();
 
-    }
-
-    /**
-     * LDIFChangeRecordReader setSchemaValidationPolicy. Validate the Change
-     * Record depending of the selected policy. ChangeRecord is here NOT allowed
-     * because it contains a uid attribute which is not allowed by the
-     * SchemaValidationPolicy.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = DecodeException.class)
-    public void testSetSchemaValidationPolicyDefaultRejectsEntry() throws Exception {
-        // @formatter:off
-        String[] strChangeRecord = {
-            "dn: uid=user.0,ou=People,dc=example,dc=com",
-            "changetype: add",
-            "sn: Carter",
-            "objectClass: person",
-            "objectClass: top",
-            "cn: Aaccf Amar",
-            "sn: Amar",
-            "uid: user.0"
-        };
-        // @formatter:on
-
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(strChangeRecord);
-        reader.setSchema(Schema.getDefaultSchema());
-        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
-
-        try {
-            reader.readChangeRecord();
-        } finally {
-            reader.close();
-        }
     }
 
     /**
@@ -621,8 +626,8 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
         assertThat(reader.hasNext()).isTrue();
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo("dc=example,dc=com");
         AddRequest addRequest = (AddRequest) record;
-        assertThat((Object) addRequest.getName()).isEqualTo(DN.valueOf("dc=example,dc=com"));
         assertThat(addRequest.containsAttribute("objectClass", "top", "domainComponent")).isTrue();
         assertThat(addRequest.containsAttribute("dc", "example")).isTrue();
         assertThat(addRequest.getAttributeCount()).isEqualTo(2);
@@ -650,8 +655,8 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
         assertThat(reader.hasNext()).isTrue();
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo("dc=example,dc=com");
         AddRequest addRequest = (AddRequest) record;
-        assertThat((Object) addRequest.getName()).isEqualTo(DN.valueOf("dc=example,dc=com"));
         assertThat(addRequest.containsAttribute("objectClass", "top", "domainComponent")).isTrue();
         assertThat(addRequest.containsAttribute("dc", "example")).isTrue();
         assertThat(addRequest.getAttributeCount()).isEqualTo(2);
@@ -705,8 +710,8 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
         assertThat(reader.hasNext()).isTrue();
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(ModifyRequest.class);
+        assertThat(record.getName().toString()).isEqualTo("dc=example,dc=com");
         ModifyRequest modifyRequest = (ModifyRequest) record;
-        assertThat((Object) modifyRequest.getName()).isEqualTo(DN.valueOf("dc=example,dc=com"));
 
         Iterator<Modification> changes = modifyRequest.getModifications().iterator();
         Modification modification;
@@ -1040,11 +1045,15 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test()
     public void testReadFileContainingSerieOfChanges() throws Exception {
+        final File file = File.createTempFile("sdk", ".png");
+        final String url = file.toURI().toURL().toString();
+
         // @formatter:off
         final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                 "version: 1",
                 "# Add a new entry",
-                "dn: cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com",
+                "dn: cn=Fiona Jensen,",
+                " ou=Marketing, dc=airius, dc=com", // data continued from previous line
                 "changetype: add",
                 "objectclass: top",
                 "objectclass: person",
@@ -1053,7 +1062,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 "sn: Jensen",
                 "uid: fiona",
                 "telephonenumber: +1 408 555 1212",
-                "jpegphoto:< http://www.forgerock.com/sites/default/files/forgerock_logo.png",
+                "jpegphoto:< " + url,
                 "",
                 "# Delete an existing entry",
                 "dn: cn=Robert Jensen, ou=Marketing, dc=airius, dc=com",
@@ -1106,17 +1115,23 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                 DN.valueOf("ou=PD Accountants, ou=Product Development, dc=airius, dc=com"));
         assertThat(reader.hasNext()).isFalse();
 
+        file.delete();
         reader.close();
     }
 
     /**
-     * Test to read an entry containing a control. Not Yet implemented. TODO
-     * OPENDJ-185 Add support for controls in SDK LDIFReader.
+     * Test to read an entry containing a delete control.\ Control syntax is
+     * like => control : OID (criticality - optional) :(value - optional). <br>
+     * ex: control: 1.2.840.113556.1.4.805 true :cn <br>
+     * control: 1.2.840.113556.1.4.805 true ::dGVzdGluZw== <br>
+     * control: 1.2.840.113556.1.4.805 ::dGVzdGluZw== <br>
+     * etc...
      *
      * @throws Exception
      */
-    @Test(enabled = false)
-    public void testLDIFCRRParseAddChangeRecordEntryWithAControl() throws Exception {
+    @Test()
+    public void testParseChangeRecordEntryWithDeleteControl() throws Exception {
+
         // @formatter:off
         final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                     "# Delete an entry. The operation will attach the LDAPv3",
@@ -1124,23 +1139,443 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
                     "# field is \"true\" and the controlValue field is",
                     "# absent, as required by [9].",
                     "dn: ou=Product Development, dc=airius, dc=com",
-                    "control: 1.2.840.113556.1.4.805 true",
+                    "control: 1.2.840.113556.1.4.805 true :cn",
                     "changetype: delete"
         );
         // @formatter:on
 
-        assertThat(reader.hasNext()).isTrue();
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(DeleteRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.2.840.113556.1.4.805");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControl() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.1 false :cn",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
 
         reader.setSchema(Schema.getDefaultSchema());
         reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
-        // Read the entry
+        // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        AddRequest request = (AddRequest) record;
-        assertThat((Object) request.getName()).isEqualTo(
-                DN.valueOf("ou=Product Development, dc=airius, dc=com"));
-        assertThat(request.getControls()).isNotEmpty();
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
         reader.close();
+    }
+
+    /**
+     * Test to read an record containing a invalid control. Must throw an error.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testParseChangeRecordEntryWithAnInvalidControl() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.2.3.4 0 value",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        reader.readChangeRecord();
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlWithoutSpacesBetweenCriticalityValue()
+            throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.1 false:cn",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlContainingWhiteSpaces() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.1 true : sn",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("sn");
+        reader.close();
+    }
+
+    /**
+     * Record is containing a control with a base64 value.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlContainingBase64Value() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            "# This record contains a base64 value",
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "control: 2.16.840.1.113730.3.4.3 true::ZGVzY3JpcHRpb24=",
+            "changetype: delete"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(DeleteRequest.class);
+        assertThat(record.getName().toString())
+                .isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("2.16.840.1.113730.3.4.3");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("description");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a malformed base64 value.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testParseChangeRecordEntryWithAddControlMalformedBase64() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "# This record contains a control",
+                "dn: uid=scarter,ou=People,dc=example,dc=com",
+                "control: 2.16.840.1.113730.3.4.3 true:: malformedBase64",
+                "changetype: delete"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        reader.readChangeRecord();
+        reader.close();
+    }
+
+    /**
+     * Record is containing a control with a URL.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlContainingURL() throws Exception {
+        final File file = File.createTempFile("sdk", ".png");
+        final String url = file.toURI().toURL().toString();
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            "# This record contains a base64 value",
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "control: 2.16.840.1.113730.3.4.3 true:<" + url,
+            "changetype: delete"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(DeleteRequest.class);
+        assertThat(record.getName().toString())
+                .isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("2.16.840.1.113730.3.4.3");
+        // URL is fine, but the content is empty ;)
+        assertThat(record.getControls().get(0).getValue().toString()).isEmpty();
+        file.delete();
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a malformed URL.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testParseChangeRecordEntryWithAddControlMalformedURL() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "# This record contains a control",
+                "dn: uid=scarter,ou=People,dc=example,dc=com",
+                "control: 2.16.840.1.113730.3.4.3 true:<malformedURL",
+                "changetype: delete"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        reader.readChangeRecord();
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control without value.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlWithoutValue() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.1 false ", // space added
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue()).isNull();
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control without criticality.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlWithoutCriticality() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control:1.3.6.1.1.13.1 :description",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("description");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record providing by our LDIFChangeRecordWriter.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithAddControlProvidedByChangeRecordWriter()
+            throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "# This record contains a control",
+                "dn: uid=scarter,ou=People,dc=example,dc=com",
+                "control: 2.16.840.1.113730.3.4.3 true:: MAkCAQ8BAf8BAf8=",
+                "changetype: delete"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(DeleteRequest.class);
+        assertThat(record.getName().toString())
+                .isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("2.16.840.1.113730.3.4.3");
+        assertThat(record.getControls().get(0).getValue().toBase64String()).isEqualTo(
+                "MAkCAQ8BAf8BAf8=");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing a add control without value.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testParseChangeRecordEntryWithMultipleControls() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.1 false",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing",
+                "",
+                "# Modify an entry's relative distinguished name",
+                "dn: cn=Paul Jensen, ou=Product Development, dc=airius, dc=com",
+                "control: 1.3.6.1.1.13.13 false: cn", // with spaces between boolean & value
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing",
+                "",
+                "# Modify an entry's relative distinguished name",
+                "dn: cn=Paula Jensen, ou=Product Development, dc=airius, dc=com",
+                "control:1.3.6.1.1.13.13.16 :sn", // wihtout spaces between control and oid
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // 1st
+        ChangeRecord record = reader.readChangeRecord();
+        assertThat(record.getName().toString()).isEqualTo(
+                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
+        assertThat(record.getControls().get(0).getValue()).isNull();
+        //2nd
+        record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "cn=Paul Jensen, ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.13");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
+        //3rd
+        record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getName().toString()).isEqualTo(
+                "cn=Paula Jensen, ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getControls()).isNotEmpty();
+        assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.13.16");
+        assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("sn");
+        reader.close();
+    }
+
+    /**
+     * Test to read an record containing an invalid control. (pair.value is
+     * null) Must throw a DecodeException.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testParseChangeRecordEntryWithAddControlPairKeyNull() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control:",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        try {
+            reader.readChangeRecord();
+        } finally {
+            reader.close();
+        }
     }
 
     /**
@@ -1150,7 +1585,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseAddChangeRecordEntryLastLDIFLineIsNull() throws Exception {
+    public void testParseAddChangeRecordEntryLastLDIFLineIsNull() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                 "dn: uid=scarter,ou=People,dc=example,dc=com",
@@ -1176,7 +1611,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      *             if an unexpected error occurred.
      */
     @Test()
-    public void testLDIFCRRparseDeleteChangeRecordEntry() throws Exception {
+    public void testParseDeleteChangeRecordEntry() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "dn: dc=example,dc=com",
@@ -1200,7 +1635,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseDeleteChangeRecordEntryMalformedDelete() throws Exception {
+    public void testParseDeleteChangeRecordEntryMalformedDelete() throws Exception {
 
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1213,6 +1648,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
         );
         // @formatter:on
         reader.readChangeRecord();
+        reader.close();
     }
 
     /**
@@ -1222,8 +1658,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRParseModifyChangeRecordEntryDeleteMultipleValuableAttributes()
-            throws Exception {
+    public void testParseModifyChangeRecordEntryDeleteMultipleValuableAttributes() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                 "# Add new entry containing multiple attributes",
@@ -1246,6 +1681,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
         assertThat((Object) req.getName()).isEqualTo(
                 DN.valueOf("cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com"));
         assertThat(reader.hasNext()).isFalse();
+        reader.close();
     }
 
     /**
@@ -1257,7 +1693,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryDeleteMultipleValuableAttributesMalformedLDIF()
+    public void testParseModifyChangeRecordEntryDeleteMultipleValuableAttributesMalformedLDIF()
             throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1289,7 +1725,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRParseModifyChangeRecordBEREncodingRequired() throws Exception {
+    public void testParseModifyChangeRecordBEREncodingRequired() throws Exception {
         // @formatter:off
         String validcert1 = // a valid certificate but wrong can be used => no errors
                 "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV"
@@ -1348,7 +1784,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyChangeRecordBEREncodingNotRequired() throws Exception {
+    public void testParseModifyChangeRecordBEREncodingNotRequired() throws Exception {
         // @formatter:off
         final String[] strChangeRecord = {
             "version: 1",
@@ -1378,7 +1814,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRParseModifyChangeRecordEntryReplaceOk() throws Exception {
+    public void testParseModifyChangeRecordEntryReplaceOk() throws Exception {
 
         // @formatter:off
         final String[] strChangeRecord = {
@@ -1414,7 +1850,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryReplaceKOPolicyReject() throws Exception {
+    public void testParseModifyChangeRecordEntryReplaceKOPolicyReject() throws Exception {
 
         // @formatter:off
         final String[] strChangeRecord = {
@@ -1444,7 +1880,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryReplaceKOPolicyWarn() throws Exception {
+    public void testParseModifyChangeRecordEntryReplaceKOPolicyWarn() throws Exception {
 
         // @formatter:off
         final String[] strChangeRecord = {
@@ -1475,7 +1911,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryReplaceLocalizedIllegalArgumentException()
+    public void testParseModifyChangeRecordEntryReplaceLocalizedIllegalArgumentException()
             throws Exception {
 
         // @formatter:off
@@ -1506,7 +1942,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryWithWrongChangetype() {
+    public void testParseModifyChangeRecordEntryWithWrongChangetype() {
         // @formatter:off
         LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
@@ -1523,7 +1959,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public void testLDIFCRRParseModifyChangeRecordEntryWithNullPairKey() {
+    public void testParseModifyChangeRecordEntryWithNullPairKey() {
         // @formatter:off
         LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
@@ -1540,7 +1976,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRParseModifyChangeRecordEntryIncrement() throws Exception {
+    public void testParseModifyChangeRecordEntryIncrement() throws Exception {
         // @formatter:off
         final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
@@ -1567,7 +2003,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRparseModifyDNChangeRecordEntryRecordBase64NewRDN() throws Exception {
+    public void testParseModifyDNChangeRecordEntryRecordBase64NewRDN() throws Exception {
 
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1596,7 +2032,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRParseModifyDNChangeRecordEntry() throws Exception {
+    public void testParseModifyDNChangeRecordEntry() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
@@ -1627,7 +2063,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryMalformedMissedNewRDN() throws Exception {
+    public void testParseModifyDNChangeRecordEntryMalformedMissedNewRDN() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
@@ -1650,7 +2086,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryKeyMalformedEmptyNewRDN() throws Exception {
+    public void testParseModifyDNChangeRecordEntryKeyMalformedEmptyNewRDN() throws Exception {
 
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1675,7 +2111,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryKeyValueMalformedRDN() throws Exception {
+    public void testParseModifyDNChangeRecordEntryKeyValueMalformedRDN() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
@@ -1699,8 +2135,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN()
-            throws Exception {
+    public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN() throws Exception {
 
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1725,8 +2160,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN2()
-            throws Exception {
+    public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN2() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
@@ -1749,8 +2183,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN3()
-            throws Exception {
+    public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN3() throws Exception {
 
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1774,7 +2207,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRparseModifyRecordEntryDeleteOldRDNFalse() throws Exception {
+    public void testParseModifyRecordEntryDeleteOldRDNFalse() throws Exception {
 
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1805,7 +2238,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test()
-    public void testLDIFCRRparseModifyRecordEntryNewSuperior() throws Exception {
+    public void testParseModifyRecordEntryNewSuperior() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "dn: cn=scarter,ou=People,dc=example,dc=com",
@@ -1836,7 +2269,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRparseModifyRecordEntryNewSuperiorMalformed() throws Exception {
+    public void testParseModifyRecordEntryNewSuperiorMalformed() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "dn: cn=scarter,ou=People,dc=example,dc=com",
@@ -1860,7 +2293,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testLDIFCRRparseModifyRecordEntryNewSuperiorMalformed2() throws Exception {
+    public void testParseModifyRecordEntryNewSuperiorMalformed2() throws Exception {
 
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1980,7 +2413,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testChangeRecordReaderInpuStreamDoesntAllowNull() throws Exception {
-        new LDIFChangeRecordReader((InputStream) null);
+        new LDIFChangeRecordReader((InputStream) null).close();
     }
 
     /**
@@ -2002,6 +2435,10 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordDoesntAllowMultipleChangeRecords() throws Exception {
+        final File file = File.createTempFile("sdk", ".png");
+        final String url = file.toURI().toURL().toString();
+        file.delete();
+
         // @formatter:off
         LDIFChangeRecordReader.valueOfLDIFChangeRecord(
             "version: 1",
@@ -2015,7 +2452,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
             "sn: Jensen",
             "uid: fiona",
             "telephonenumber: +1 408 555 1212",
-            "jpegphotojpegphoto:< http://www.forgerock.com/sites/default/files/forgerock_logo.png",
+            "jpegphotojpegphoto:< " + url,
             "",
             "# Delete an existing entry",
             "dn: cn=Robert Jensen, ou=Marketing, dc=airius, dc=com",

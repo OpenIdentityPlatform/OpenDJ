@@ -22,11 +22,20 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
 
+import java.util.List;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ControlDecoder;
+import org.forgerock.opendj.ldap.requests.Request;
 
 /**
  * A request to modify the content of the Directory in some way. A change record
@@ -38,7 +47,7 @@ import org.forgerock.opendj.ldap.DN;
  * <li>An {@code ModifyDN} operation.
  * </ul>
  */
-public interface ChangeRecord {
+public interface ChangeRecord extends Request {
     /**
      * Applies a {@code ChangeRecordVisitor} to this {@code ChangeRecord}.
      *
@@ -62,4 +71,54 @@ public interface ChangeRecord {
      * @return The distinguished name of the entry being modified.
      */
     DN getName();
+
+    /**
+     * Sets the distinguished name of the entry to be updated. The server shall
+     * not perform any alias dereferencing in determining the object to be
+     * updated.
+     *
+     * @param dn
+     *            The the distinguished name of the entry to be updated.
+     * @return This change record.
+     * @throws UnsupportedOperationException
+     *             If this change record does not permit the distinguished name
+     *             to be set.
+     * @throws NullPointerException
+     *             If {@code dn} was {@code null}.
+     */
+    ChangeRecord setName(DN dn);
+
+    /**
+     * Sets the distinguished name of the entry to be updated. The server shall
+     * not perform any alias dereferencing in determining the object to be
+     * updated.
+     *
+     * @param dn
+     *            The the distinguished name of the entry to be updated.
+     * @return This change record.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code dn} could not be decoded using the default schema.
+     * @throws UnsupportedOperationException
+     *             If this change record does not permit the distinguished name
+     *             to be set.
+     * @throws NullPointerException
+     *             If {@code dn} was {@code null}.
+     */
+    ChangeRecord setName(String dn);
+
+    /**
+     * {@inheritDoc}
+     */
+    Request addControl(Control control);
+
+    /**
+     * {@inheritDoc}
+     */
+    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+            throws DecodeException;
+
+    /**
+     * {@inheritDoc}
+     */
+    List<Control> getControls();
 }

@@ -37,6 +37,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -51,6 +53,8 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -64,7 +68,6 @@ import com.forgerock.opendj.util.Validator;
 /**
  * An LDIF change record reader reads change records using the LDAP Data
  * Interchange Format (LDIF) from a user defined source.
- *
  * <p>
  * The following example reads changes from LDIF, and writes the changes to the
  * directory server.
@@ -138,6 +141,9 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
 
     // Poison used to indicate end of LDIF.
     private static final ChangeRecord EOF = Requests.newAddRequest(DN.rootDN());
+
+    private static final Pattern CONTROL_REGEX =
+            Pattern.compile("^\\s*(\\d+(.\\d+)*)(\\s+((true)|(false)))?\\s*(:(:)?\\s*?\\S+)?\\s*$");
 
     /**
      * Creates a new LDIF change record reader whose source is the provided
@@ -389,19 +395,34 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                     continue;
                 }
 
-                if (!record.iterator.hasNext()) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_NO_CHANGE_TYPE.get(record.lineNumber, entryDN.toString());
-                    throw DecodeException.error(message);
-                }
+                KeyValuePair pair;
+                String ldifLine;
+                List<Control> controls = null;
+                while (true) {
+                    if (!record.iterator.hasNext()) {
+                        final LocalizableMessage message =
+                                ERR_LDIF_NO_CHANGE_TYPE.get(record.lineNumber, entryDN.toString());
+                        throw DecodeException.error(message);
+                    }
 
-                final KeyValuePair pair = new KeyValuePair();
-                final String ldifLine = readLDIFRecordKeyValuePair(record, pair, false);
-                if (pair.key == null) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_MALFORMED_CHANGE_TYPE.get(record.lineNumber, entryDN
-                                    .toString(), ldifLine);
-                    throw DecodeException.error(message);
+                    pair = new KeyValuePair();
+                    ldifLine = readLDIFRecordKeyValuePair(record, pair, false);
+                    if (pair.key == null) {
+                        final LocalizableMessage message =
+                                ERR_LDIF_MALFORMED_CHANGE_TYPE.get(record.lineNumber, entryDN
+                                        .toString(), ldifLine);
+                        throw DecodeException.error(message);
+                    }
+
+                    if (!toLowerCase(pair.key).equals("control")) {
+                        break;
+                    }
+
+                    if (controls == null) {
+                        controls = new LinkedList<Control>();
+                    }
+
+                    controls.add(parseControl(entryDN, record, ldifLine, pair.value));
                 }
 
                 if (!toLowerCase(pair.key).equals("changetype")) {
@@ -425,6 +446,13 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                                         pair.value);
                         throw DecodeException.error(message);
                     }
+
+                    // Add the controls to the record.
+                    if (controls != null) {
+                        for (Control control : controls) {
+                            nextChangeRecord.addControl(control);
+                        }
+                    }
                 }
             } catch (final DecodeException e) {
                 handleMalformedRecord(record, e.getMessageObject());
@@ -432,6 +460,27 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
             }
         }
         return nextChangeRecord;
+    }
+
+    private Control parseControl(DN entryDN, LDIFRecord record, String ldifLine, String value)
+            throws DecodeException {
+
+        Matcher matcher = CONTROL_REGEX.matcher(value);
+        if (!matcher.matches()) {
+            final LocalizableMessage message =
+                    ERR_LDIF_MALFORMED_CONTROL.get(record.lineNumber, entryDN.toString(), ldifLine);
+            throw DecodeException.error(message);
+        }
+
+        String oid = matcher.group(1);
+        boolean isCritical = matcher.group(5) != null;
+        String controlValueString = matcher.group(7);
+        ByteString controlValue = null;
+        if (controlValueString != null) {
+            controlValue = parseSingleValue(record, ldifLine, entryDN,  ldifLine.indexOf(':', 8), oid);
+        }
+
+        return GenericControl.newControl(oid, isCritical, controlValue);
     }
 
     private ChangeRecord parseAddChangeRecordEntry(final DN entryDN, final String lastLDIFLine,
@@ -467,7 +516,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         if (!schemaErrors.isEmpty()) {
             handleSchemaValidationWarning(record, schemaErrors);
         }
-
         return Requests.newAddRequest(entry);
     }
 
