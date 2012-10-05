@@ -46,7 +46,6 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the LDIFEntryWriter functionality.
  */
-@SuppressWarnings("javadoc")
 public final class LDIFEntryWriterTestCase extends LDIFTestCase {
 
     /**
