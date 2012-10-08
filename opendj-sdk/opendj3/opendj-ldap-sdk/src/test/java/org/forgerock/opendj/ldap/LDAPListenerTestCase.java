@@ -213,6 +213,8 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
                 throws ErrorResultException {
+            StaticUtils.DEBUG_LOG.log(Level.INFO, "Accepting client connection ");
+            Thread.dumpStack();
             serverConnection.context.handleResult(clientContext);
             return serverConnection;
         }
@@ -223,7 +225,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        // StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
     }
 
     /**
@@ -231,7 +233,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        // StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
     }
 
     /**
@@ -345,7 +347,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(enabled=false)
     public void testLDAPListenerLoadBalanceDuringHandleBind() throws Exception {
         // Online server listener.
         final int onlineServerPort = TestCaseUtils.findFreePort();
@@ -524,7 +526,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(enabled=false)
     public void testLDAPListenerProxyDuringHandleBind() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
@@ -615,7 +617,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test
+    @Test(enabled=false)
     public void testMaxRequestSize() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
@@ -673,7 +675,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test
+    @Test(enabled=false)
     public void testServerDisconnect() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
