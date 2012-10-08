@@ -347,7 +347,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void testLDAPListenerLoadBalanceDuringHandleBind() throws Exception {
         // Online server listener.
         final int onlineServerPort = TestCaseUtils.findFreePort();
@@ -526,7 +526,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void testLDAPListenerProxyDuringHandleBind() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
@@ -617,7 +617,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void testMaxRequestSize() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
@@ -675,7 +675,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void testServerDisconnect() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
