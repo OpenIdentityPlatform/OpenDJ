@@ -34,6 +34,7 @@ import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -81,6 +82,7 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -790,6 +792,8 @@ final class LDAPServerFilter extends BaseFilter {
 
     @Override
     public NextAction handleAccept(final FilterChainContext ctx) throws IOException {
+        StaticUtils.DEBUG_LOG.log(Level.INFO, "Accepting client connection ");
+        Thread.dumpStack();
         final Connection<?> connection = ctx.getConnection();
         connection.configureBlocking(true);
         try {
