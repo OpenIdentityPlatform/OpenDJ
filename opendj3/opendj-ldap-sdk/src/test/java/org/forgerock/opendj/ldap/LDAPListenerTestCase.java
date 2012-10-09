@@ -30,7 +30,6 @@ package org.forgerock.opendj.ldap;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -51,13 +50,6 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.glassfish.grizzly.filterchain.BaseFilter;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.filterchain.NextAction;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -257,28 +249,28 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 new MockServerConnectionFactory(serverConnection);
         // final AtomicBoolean isDummyFilterInvoked = new AtomicBoolean(false);
 
-        TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
-                .setProcessor(
-                        FilterChainBuilder.stateless().add(new TransportFilter()).add(
-                                new BaseFilter() {
-                                    /**
-                                     * {@inheritDoc}
-                                     */
-                                    @Override
-                                    public NextAction handleAccept(FilterChainContext ctx)
-                                            throws IOException {
-                                        // isDummyFilterInvoked.set(true);
-                                        return super.handleAccept(ctx);
-                                    }
-                                }).build()).build();
-        transport.start();
-
-        LDAPListenerOptions options =
-                new LDAPListenerOptions().setTCPNIOTransport(transport);
+//        TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+//                .setProcessor(
+//                        FilterChainBuilder.stateless().add(new TransportFilter()).add(
+//                                new BaseFilter() {
+//                                    /**
+//                                     * {@inheritDoc}
+//                                     */
+//                                    @Override
+//                                    public NextAction handleAccept(FilterChainContext ctx)
+//                                            throws IOException {
+//                                        // isDummyFilterInvoked.set(true);
+//                                        return super.handleAccept(ctx);
+//                                    }
+//                                }).build()).build();
+//        transport.start();
+//
+//        LDAPListenerOptions options =
+//                new LDAPListenerOptions().setTCPNIOTransport(transport);
 
         final LDAPListener listener =
                 new LDAPListener("localhost", TestCaseUtils.findFreePort(),
-                        serverConnectionFactory, options);
+                        serverConnectionFactory/*, options*/);
         try {
             // Connect and close.
             final Connection connection =
