@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -256,7 +255,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory serverConnectionFactory =
                 new MockServerConnectionFactory(serverConnection);
-        final AtomicBoolean isDummyFilterInvoked = new AtomicBoolean(false);
+        // final AtomicBoolean isDummyFilterInvoked = new AtomicBoolean(false);
 
         TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
                 .setProcessor(
@@ -268,7 +267,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
                                     @Override
                                     public NextAction handleAccept(FilterChainContext ctx)
                                             throws IOException {
-                                        isDummyFilterInvoked.set(true);
+                                        // isDummyFilterInvoked.set(true);
                                         return super.handleAccept(ctx);
                                     }
                                 }).build()).build();
@@ -290,7 +289,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
             connection.close();
             assertThat(serverConnection.isClosed.await(10, TimeUnit.SECONDS)).isTrue();
         } finally {
-            StaticUtils.DEBUG_LOG.log(Level.INFO, "isDummyFilterInvoked=" + isDummyFilterInvoked.get());
+            // StaticUtils.DEBUG_LOG.log(Level.INFO, "isDummyFilterInvoked=" + isDummyFilterInvoked.get());
             listener.close();
         }
     }
