@@ -41,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -2380,7 +2381,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
      */
     @Test(expectedExceptions = NoSuchElementException.class)
     public void testChangeRecordReaderDoesntAllowNull() throws Exception {
-        List<String> cr = Arrays.asList();
+        List<String> cr = Collections.emptyList();
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(cr);
         try {
             reader.readChangeRecord();
