@@ -213,8 +213,6 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
                 throws ErrorResultException {
-            StaticUtils.DEBUG_LOG.log(Level.INFO, "Accepting client connection ");
-            Thread.dumpStack();
             serverConnection.context.handleResult(clientContext);
             return serverConnection;
         }
@@ -225,7 +223,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        // StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
     }
 
     /**
@@ -233,7 +231,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        // StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
     }
 
     /**
@@ -247,27 +245,6 @@ public class LDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory serverConnectionFactory =
                 new MockServerConnectionFactory(serverConnection);
-        // final AtomicBoolean isDummyFilterInvoked = new AtomicBoolean(false);
-
-//        TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
-//                .setProcessor(
-//                        FilterChainBuilder.stateless().add(new TransportFilter()).add(
-//                                new BaseFilter() {
-//                                    /**
-//                                     * {@inheritDoc}
-//                                     */
-//                                    @Override
-//                                    public NextAction handleAccept(FilterChainContext ctx)
-//                                            throws IOException {
-//                                        // isDummyFilterInvoked.set(true);
-//                                        return super.handleAccept(ctx);
-//                                    }
-//                                }).build()).build();
-//        transport.start();
-//
-//        LDAPListenerOptions options =
-//                new LDAPListenerOptions().setTCPNIOTransport(transport);
-
         final LDAPListener listener =
                 new LDAPListener("localhost", TestCaseUtils.findFreePort(),
                         serverConnectionFactory/*, options*/);
@@ -281,7 +258,6 @@ public class LDAPListenerTestCase extends SdkTestCase {
             connection.close();
             assertThat(serverConnection.isClosed.await(10, TimeUnit.SECONDS)).isTrue();
         } finally {
-            // StaticUtils.DEBUG_LOG.log(Level.INFO, "isDummyFilterInvoked=" + isDummyFilterInvoked.get());
             listener.close();
         }
     }
