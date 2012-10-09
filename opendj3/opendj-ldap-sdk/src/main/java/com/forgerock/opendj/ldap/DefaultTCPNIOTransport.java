@@ -62,10 +62,8 @@ final class DefaultTCPNIOTransport {
                 useWorkerThreadStrategy = Boolean.parseBoolean(useWorkerThreadsStr);
             } else {
                 // The most best performing strategy to use is the
-                // SameThreadIOStrategy,
-                // however it can only be used in cases where result listeners
-                // will not
-                // block.
+                // SameThreadIOStrategy, however it can only be used in cases
+                // where result listeners will not block.
                 useWorkerThreadStrategy = true;
             }
 
@@ -136,8 +134,7 @@ final class DefaultTCPNIOTransport {
             defaultTransport = builder.build();
 
             // FIXME: raise bug in Grizzly. We should not need to do this, but
-            // failure
-            // to do so causes many deadlocks.
+            // failure to do so causes many deadlocks.
             defaultTransport.setSelectorRunnersCount(selectorThreadCount);
 
             try {
