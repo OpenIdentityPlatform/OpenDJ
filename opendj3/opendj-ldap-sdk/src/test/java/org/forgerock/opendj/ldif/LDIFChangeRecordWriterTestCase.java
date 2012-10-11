@@ -32,8 +32,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -1433,19 +1436,25 @@ public class LDIFChangeRecordWriterTestCase extends LDIFTestCase {
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(out);
 
         // @formatter:off
-        final AddRequest changeRequest = Requests.newAddRequest(
+        final String[] lines = {
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: add",
             "sn: Carter"
-        );
-        // @ formatter:on
+        };
+        // @formatter:on
 
+        final AddRequest changeRequest = Requests.newAddRequest(lines);
         writer.writeChangeRecord(changeRequest);
         writer.close();
 
-        assertThat(out.toString()).contains("dn: cn=scarter,dc=example,dc=com");
-        assertThat(out.toString()).contains("changetype: add");
-        assertThat(out.toString()).contains("sn: Carter");
-        assertThat(out.toString().length()).isEqualTo(61); // 59 chars + 2 empty ( white line).
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                        new ByteArrayInputStream(out.toString().getBytes())));
+
+        assertThat(reader.readLine()).isEqualTo(lines[0]);
+        assertThat(reader.readLine()).isEqualTo(lines[1]);
+        assertThat(reader.readLine()).isEqualTo(lines[2]);
+        assertThat(reader.readLine()).isEqualTo("");
+        assertThat(reader.readLine()).isNull();
     }
 }
