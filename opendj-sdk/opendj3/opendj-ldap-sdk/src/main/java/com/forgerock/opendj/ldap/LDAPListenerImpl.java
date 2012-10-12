@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
@@ -83,9 +84,9 @@ public final class LDAPListenerImpl implements Closeable {
                 FilterChainBuilder.stateless().add(new TransportFilter()).add(
                         new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
                                 .getMaxRequestSize())).build();
-
-        this.serverConnection = transport.bind(address, options.getBacklog());
-        this.serverConnection.setProcessor(defaultFilterChain);
+        final TCPNIOBindingHandler bindingHandler =
+                TCPNIOBindingHandler.builder(transport).processor(defaultFilterChain).build();
+        this.serverConnection = bindingHandler.bind(address, options.getBacklog());
     }
 
     /**

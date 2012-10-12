@@ -47,9 +47,11 @@ import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.SocketConnectorHandler;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
@@ -148,8 +150,6 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             // Test shows that its much faster with non block writes but risk
             // running out of memory if the server is slow.
             connection.configureBlocking(true);
-            connection.setProcessor(defaultFilterChain);
-
             final LDAPConnection ldapConnection = new LDAPConnection(connection, options);
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
@@ -231,10 +231,12 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
+        final SocketConnectorHandler connectorHandler =
+                TCPNIOConnectorHandler.builder(transport).processor(defaultFilterChain).build();
         final AsynchronousFutureResult<Connection> future =
                 new AsynchronousFutureResult<Connection>(handler);
         final CompletionHandlerAdapter cha = new CompletionHandlerAdapter(future);
-        transport.connect(socketAddress, cha);
+        connectorHandler.connect(socketAddress, cha);
         return future;
     }
 
