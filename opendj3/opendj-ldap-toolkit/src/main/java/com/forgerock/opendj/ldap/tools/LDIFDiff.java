@@ -180,8 +180,7 @@ public final class LDIFDiff extends ConsoleApplication {
             }
 
             // Check that we are not attempting to read both the source and
-            // target
-            // from stdin.
+            // target from stdin.
             if (sourceInputStream == targetInputStream) {
                 final LocalizableMessage message = ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get();
                 println(message);
