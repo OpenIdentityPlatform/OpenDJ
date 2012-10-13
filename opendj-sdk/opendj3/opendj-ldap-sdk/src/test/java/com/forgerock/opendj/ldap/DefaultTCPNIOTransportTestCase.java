@@ -26,11 +26,12 @@
 
 package com.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 import static org.testng.Assert.assertTrue;
 
 import java.net.Socket;
+import java.net.SocketAddress;
 
-import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.testng.annotations.Test;
 
@@ -40,19 +41,24 @@ import org.testng.annotations.Test;
 public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
     /**
      * Tests the default transport.
+     * <p>
+     * FIXME: this test is disable because it does not clean up any of the
+     * connections it creates.
      *
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test()
+    @Test(enabled = false)
     public void testGetInstance() throws Exception {
         // Create a transport.
         final TCPNIOTransport transport = DefaultTCPNIOTransport.getInstance();
-        final int port = TestCaseUtils.findFreePort();
+        SocketAddress socketAddress = findFreeSocketAddress();
+        transport.bind(findFreeSocketAddress());
 
-        transport.bind(port);
         // Establish a socket connection to see if the transport factory works.
-        final Socket socket = new Socket("localhost", port);
+        final Socket socket = new Socket();
+        socket.connect(socketAddress);
+
         // Successfully connected if there is no exception.
         assertTrue(socket.isConnected());
         // Don't stop the transport because it is shared with the ldap server.

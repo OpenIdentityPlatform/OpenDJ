@@ -38,28 +38,6 @@ import java.net.SocketAddress;
  */
 public final class TestCaseUtils {
     /**
-     * The name of the system property that specifies the ldap port. Set this
-     * property when running the server if you want to use a given port number,
-     * otherwise a port is chosen randomly at test startup time.
-     */
-    public static final String PROPERTY_LDAP_PORT = "org.forgerock.opendj.test.LdapPort";
-
-    /**
-     * Port number that's used by the server. Need to be used by the test cases
-     * to create connections.
-     */
-    public static final int PORT;
-
-    static {
-        final String ldapPort = System.getProperty(PROPERTY_LDAP_PORT);
-        if (ldapPort != null) {
-            PORT = Integer.valueOf(ldapPort);
-        } else {
-            PORT = findFreePort();
-        }
-    }
-
-    /**
      * Creates a temporary text file with the specified contents. It will be
      * marked for automatic deletion when the JVM exits.
      *
@@ -81,24 +59,6 @@ public final class TestCaseUtils {
         w.close();
 
         return f.getAbsolutePath();
-    }
-
-    /**
-     * Finds a free server socket port on the local host.
-     *
-     * @return The free port.
-     */
-    public static int findFreePort() {
-        try {
-            ServerSocket serverLdapSocket = new ServerSocket();
-            serverLdapSocket.setReuseAddress(true);
-            serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
-            final int port = serverLdapSocket.getLocalPort();
-            serverLdapSocket.close();
-            return port;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -134,22 +94,13 @@ public final class TestCaseUtils {
     }
 
     /**
-     * Returns the port which the test server listens on.
-     *
-     * @return The LDAP port.
-     */
-    public static int getLdapPort() {
-        return PORT;
-    }
-
-    /**
      * Starts the test ldap server.
      *
      * @throws Exception
      *             If an error occurs when starting the server.
      */
     public static void startServer() throws Exception {
-        LDAPServer.getInstance().start(PORT);
+        LDAPServer.getInstance().start();
     }
 
     /**
@@ -157,5 +108,14 @@ public final class TestCaseUtils {
      */
     public static void stopServer() {
         LDAPServer.getInstance().stop();
+    }
+
+    /**
+     * Returns the socket address of the server.
+     *
+     * @return The socket address of the server.
+     */
+    public static SocketAddress getServerSocketAddress() {
+        return LDAPServer.getInstance().getSocketAddress();
     }
 }
