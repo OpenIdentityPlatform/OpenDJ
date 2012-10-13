@@ -242,7 +242,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(timeOut = 10000)
     public void testLDAPListenerBasic() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory serverConnectionFactory =
@@ -346,7 +346,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(timeOut = 10000)
     public void testLDAPListenerLoadBalanceDuringHandleBind() throws Exception {
         // Online server listener.
         final MockServerConnection onlineServerConnection = new MockServerConnection();
@@ -522,7 +522,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(timeOut = 10000)
     public void testLDAPListenerProxyDuringHandleBind() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
