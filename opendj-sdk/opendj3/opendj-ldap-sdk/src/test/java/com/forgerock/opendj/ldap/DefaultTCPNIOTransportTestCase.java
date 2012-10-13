@@ -48,7 +48,7 @@ public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testGetInstance() throws Exception {
         // Create a transport.
         final TCPNIOTransport transport = DefaultTCPNIOTransport.getInstance();
