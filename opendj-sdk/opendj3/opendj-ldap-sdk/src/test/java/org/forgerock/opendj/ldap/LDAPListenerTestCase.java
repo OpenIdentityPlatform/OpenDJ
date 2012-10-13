@@ -602,7 +602,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testMaxRequestSize() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
@@ -659,7 +659,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testServerDisconnect() throws Exception {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
