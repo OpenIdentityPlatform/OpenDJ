@@ -53,7 +53,7 @@ public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
         // Create a transport.
         final TCPNIOTransport transport = DefaultTCPNIOTransport.getInstance();
         SocketAddress socketAddress = findFreeSocketAddress();
-        transport.bind(findFreeSocketAddress());
+        transport.bind(socketAddress);
 
         // Establish a socket connection to see if the transport factory works.
         final Socket socket = new Socket();
