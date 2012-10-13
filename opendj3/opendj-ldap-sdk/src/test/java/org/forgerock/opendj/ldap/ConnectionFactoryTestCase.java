@@ -153,7 +153,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         factories[3][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
                         getServerSocketAddress()), Requests.newCRAMMD5SASLBindRequest("id:user",
-                        "password".toCharArray()));
+                            "password".toCharArray()));
 
         // LDAPConnectionFactory with default options
         factories[4][0] = new LDAPConnectionFactory(getServerSocketAddress());
@@ -180,8 +180,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         factories[6][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
                         getServerSocketAddress(), options), Requests.newDigestMD5SASLBindRequest(
-                        "id:user", "password".toCharArray()).setCipher(
-                        DigestMD5SASLBindRequest.CIPHER_LOW));
+                            "id:user", "password".toCharArray()).setCipher(
+                                DigestMD5SASLBindRequest.CIPHER_LOW));
 
         // Connection pool and load balancing tests.
         ConnectionFactory offlineServer1 =
