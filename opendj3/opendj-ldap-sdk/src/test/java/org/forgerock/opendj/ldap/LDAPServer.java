@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap;
 import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -615,13 +616,14 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
      * @param port
      * @exception IOException
      */
-    public synchronized void start(final int port) throws Exception {
+    public synchronized void start() throws Exception {
         if (isRunning) {
             return;
         }
         sslContext = new SSLContextBuilder().getSSLContext();
         listener =
-                new LDAPListener(port, getInstance(), new LDAPListenerOptions().setBacklog(4096));
+                new LDAPListener(TestCaseUtils.findFreeSocketAddress(), getInstance(),
+                        new LDAPListenerOptions().setBacklog(4096));
         isRunning = true;
     }
 
@@ -634,5 +636,17 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
         listener.close();
         isRunning = false;
+    }
+
+    /**
+     * Returns the socket address of the server.
+     *
+     * @return The socket address of the server.
+     */
+    public synchronized SocketAddress getSocketAddress() {
+        if (!isRunning) {
+            throw new IllegalStateException("Server is not running");
+        }
+        return listener.getSocketAddress();
     }
 }
