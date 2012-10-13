@@ -31,6 +31,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -95,6 +96,24 @@ public final class TestCaseUtils {
             final int port = serverLdapSocket.getLocalPort();
             serverLdapSocket.close();
             return port;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Finds a free server socket port on the local host.
+     *
+     * @return The free port.
+     */
+    public static SocketAddress findFreeSocketAddress() {
+        try {
+            ServerSocket serverLdapSocket = new ServerSocket();
+            serverLdapSocket.setReuseAddress(true);
+            serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+            final SocketAddress address = serverLdapSocket.getLocalSocketAddress();
+            serverLdapSocket.close();
+            return address;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
