@@ -59,7 +59,7 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  * This class tests the ConnectionEntryReader functionality.
  */
 @SuppressWarnings("javadoc")
-public class ConnectionEntryReaderTestCase extends LDIFTestCase {
+public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
 
     /**
      * Test a ConnectionEntryReader. Searching and finding entry.

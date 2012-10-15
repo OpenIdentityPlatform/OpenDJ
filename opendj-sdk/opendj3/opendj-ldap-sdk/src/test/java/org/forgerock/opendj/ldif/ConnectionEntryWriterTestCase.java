@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
  * This class tests the ConnectionEntryWriter functionality.
  */
 @SuppressWarnings("javadoc")
-public class ConnectionEntryWriterTestCase extends LDIFTestCase {
+public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
 
     /**
      * ConnectionEntryWriter writes entry to the directory server.
