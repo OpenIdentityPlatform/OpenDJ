@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the LDIFEntryWriter functionality.
  */
-public final class LDIFEntryWriterTestCase extends LDIFTestCase {
+public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
 
     /**
      * Standard entry used for the following tests.

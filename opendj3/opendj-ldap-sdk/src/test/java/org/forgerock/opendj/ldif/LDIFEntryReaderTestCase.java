@@ -62,7 +62,7 @@ import static org.mockito.Mockito.*;
  * This class tests the LDIFEntryReader functionality.
  */
 @SuppressWarnings("javadoc")
-public final class LDIFEntryReaderTestCase extends LDIFTestCase {
+public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     /**
      * Provide a standard entry for the tests below.
      *

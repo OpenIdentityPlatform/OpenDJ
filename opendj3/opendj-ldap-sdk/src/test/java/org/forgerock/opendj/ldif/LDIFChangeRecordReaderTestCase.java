@@ -69,7 +69,7 @@ import org.testng.annotations.Test;
  * This class tests the LDIFChangeRecordReader functionality.
  */
 @SuppressWarnings("javadoc")
-public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase {
+public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
 
     /**
      * Provide a standard LDIF Change Record, valid, for tests below.
