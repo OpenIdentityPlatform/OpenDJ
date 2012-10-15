@@ -108,7 +108,7 @@
     <docTargetVersion>2.5.0</docTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
-    <grizzlyFrameworkVersion>2.2.19-SNAPSHOT</grizzlyFrameworkVersion>
+    <grizzlyFrameworkVersion>2.2.19</grizzlyFrameworkVersion>
     <gaId>UA-23412190-8</gaId>
     <!--
       Release date is specified only when building the documentation
