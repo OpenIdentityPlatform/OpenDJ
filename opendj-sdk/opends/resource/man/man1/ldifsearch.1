@@ -2,12 +2,12 @@
 .\"     Title: ldifsearch
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 10/16/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDIFSEARCH" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDIFSEARCH" "1" "10/16/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -97,6 +97,40 @@ Default value: 0
 .RS 4
 Display usage information\&.
 .RE
+.SH "FILTER"
+.PP
+The filter argument is a string representation of an LDAP search filter as in
+(cn=Babs Jensen),
+(&(objectClass=Person)(|(sn=Jensen)(cn=Babs J*))), or
+(cn:caseExactMatch:=Fred Flintstone)\&.
+.SH "ATTRIBUTE"
+.PP
+The optional attribute list specifies the attributes to return in the entries found by the search\&. In addition to identifying attributes by name such as
+cn sn mail
+and so forth, you can use the following notations, too\&.
+.PP
+*
+.RS 4
+Return all user attributes such as
+cn,
+sn, and
+mail\&.
+.RE
+.PP
++
+.RS 4
+Return all operational attributes such as
+etag
+and
+pwdPolicySubentry\&.
+.RE
+.PP
+@\fIobjectclass\fR
+.RS 4
+Return all attributes of the specified object class, where
+\fIobjectclass\fR
+is one of the object classes on the entries returned by the search\&.
+.RE
 .SH "EXIT CODES"
 .PP
 0
@@ -137,6 +171,36 @@ mail: bjensen@example\&.com
 l: Cupertino
 ou: Product Development
 ou: People
+uidNumber: 1076
+gidNumber: 1000
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+You can also use
+@\fIobjectclass\fR
+notation in the attribute list to return the attributes of a particular object class\&. The following example shows how to return attributes of the
+posixAccount
+object class\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldifsearch \-\-ldifFile /path/to/Example\&.ldif
+ \-\-baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
 uidNumber: 1076
 gidNumber: 1000
 .fi

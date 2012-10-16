@@ -2,12 +2,12 @@
 .\"     Title: ldapsearch
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 10/16/2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDAPSEARCH" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDAPSEARCH" "1" "10/16/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -35,17 +35,6 @@ ldapsearch \- perform LDAP search operations
 .SH "DESCRIPTION"
 .PP
 This utility can be used to perform LDAP search operations in the directory\&.
-.PP
-In the list of attributes to return, you can specify
-*
-to return all user attributes,
-+
-to return all operational attributes, and
-@\fIobject\-class\fR
-to return all attributes associated with the
-\fIobject\-class\fR
-such as
-@person\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
@@ -320,6 +309,40 @@ Display version information
 .RS 4
 Display usage information
 .RE
+.SH "FILTER"
+.PP
+The filter argument is a string representation of an LDAP search filter as in
+(cn=Babs Jensen),
+(&(objectClass=Person)(|(sn=Jensen)(cn=Babs J*))), or
+(cn:caseExactMatch:=Fred Flintstone)\&.
+.SH "ATTRIBUTE"
+.PP
+The optional attribute list specifies the attributes to return in the entries found by the search\&. In addition to identifying attributes by name such as
+cn sn mail
+and so forth, you can use the following notations, too\&.
+.PP
+*
+.RS 4
+Return all user attributes such as
+cn,
+sn, and
+mail\&.
+.RE
+.PP
++
+.RS 4
+Return all operational attributes such as
+etag
+and
+pwdPolicySubentry\&.
+.RE
+.PP
+@\fIobjectclass\fR
+.RS 4
+Return all attributes of the specified object class, where
+\fIobjectclass\fR
+is one of the object classes on the entries returned by the search\&.
+.RE
 .SH "EXIT CODES"
 .PP
 0
@@ -395,6 +418,63 @@ uid: tjensen
 
 
 Result Code:  0 (Success)
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+You can also use
+@\fIobjectclass\fR
+notation in the attribute list to return the attributes of a particular object class\&. The following example shows how to return attributes of the
+inetOrgPerson
+object class\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" @inetorgperson
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+sn: Jensen
+roomNumber: 0209
+mail: bjensen@example\&.com
+l: Cupertino
+ou: Product Development
+ou: People
+facsimileTelephoneNumber: +1 408 555 1992
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+You can use
++
+in the attribute list to return all operational attributes, as in the following example\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" +
+dn: uid=bjensen,ou=People,dc=example,dc=com
+numSubordinates: 0
+structuralObjectClass: inetOrgPerson
+etag: 0000000073c29972
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: uid=bjensen,ou=people,dc=example,dc=com
+entryUUID: fc252fd9\-b982\-3ed6\-b42a\-c76d2546312c
 .fi
 .if n \{\
 .RE

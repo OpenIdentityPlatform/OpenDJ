@@ -119,6 +119,44 @@
   </variablelist>
  </refsect1>
  <refsect1>
+  <title>Filter</title>
+  <para>The filter argument is a string representation of an LDAP search filter
+  as in <literal>(cn=Babs Jensen)</literal>, <literal
+  >(&amp;(objectClass=Person)(|(sn=Jensen)(cn=Babs J*)))</literal>, or
+  <literal>(cn:caseExactMatch:=Fred Flintstone)</literal>.</para>
+ </refsect1>
+ <refsect1>
+  <title>Attribute</title>
+  <para>The optional attribute list specifies the attributes to return in the
+  entries found by the search. In addition to identifying attributes by name
+  such as <literal>cn sn mail</literal> and so forth, you can use the following
+  notations, too.</para>
+  <variablelist>
+   <varlistentry>
+    <term><literal>*</literal></term>
+    <listitem>
+     <para>Return all user attributes such as <literal>cn</literal>,
+     <literal>sn</literal>, and <literal>mail</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>+</literal></term>
+    <listitem>
+     <para>Return all operational attributes such as <literal>etag</literal>
+     and <literal>pwdPolicySubentry</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>@<replaceable>objectclass</replaceable></literal></term>
+    <listitem>
+     <para>Return all attributes of the specified object class, where
+     <replaceable>objectclass</replaceable> is one of the object classes
+     on the entries returned by the search.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
   <title>Exit Codes</title>
   <variablelist>
    <varlistentry>
@@ -162,5 +200,27 @@ ou: People
 uidNumber: 1076
 gidNumber: 1000
 </screen>
+
+  <para>You can also use <literal>@<replaceable
+  >objectclass</replaceable></literal> notation in the attribute list to return
+  the attributes of a particular object class. The following example shows
+  how to return attributes of the <literal>posixAccount</literal> object
+  class.</para>
+
+  <screen>$ ldifsearch --ldifFile /path/to/Example.ldif
+ --baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
+uidNumber: 1076
+gidNumber: 1000</screen>
  </refsect1>
 </refentry>
