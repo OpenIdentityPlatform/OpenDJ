@@ -387,6 +387,10 @@ Fredérique Dupont</screen>
     </listitem>
    </itemizedlist>
   </example>
+
+  <para>The following table describes the operators you can use in LDAP search
+  filters.</para>
+  <xinclude:include href="../shared/table-filter-operators.xml" />
  </section>
 
  <section xml:id="compare-ldap">
