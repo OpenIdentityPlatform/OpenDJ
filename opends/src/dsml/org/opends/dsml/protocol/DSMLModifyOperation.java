@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -141,8 +142,7 @@ public class DSMLModifyOperation
     // Set the result code and error message for the DSML response.
     modResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
-    ResultCode code = objFactory.createResultCode();
-    code.setCode(resultCode);
+    ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
     modResponse.setResultCode(code);
 
     return modResponse;

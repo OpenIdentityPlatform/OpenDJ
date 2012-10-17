@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
 
-
-import org.opends.messages.Message;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
@@ -45,8 +45,8 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DereferencePolicy;
@@ -532,8 +532,8 @@ public class DSMLSearchOperation
           // code to the client to cover possible cases.
           Message message = ERR_UNEXPECTED_CONNECTION_CLOSURE.get();
           LDAPResult result = objFactory.createLDAPResult();
-          ResultCode code = objFactory.createResultCode();
-          code.setCode(LDAPResultCode.UNAVAILABLE);
+          ResultCode code = ResultCodeFactory.create(objFactory,
+              LDAPResultCode.UNAVAILABLE);
           result.setResultCode(code);
           result.setErrorMessage(message.toString());
           searchResponse.setSearchResultDone(result);
@@ -580,8 +580,7 @@ public class DSMLSearchOperation
           resultCode = searchOp.getResultCode();
           errorMessage = searchOp.getErrorMessage();
           LDAPResult result = objFactory.createLDAPResult();
-          ResultCode code = objFactory.createResultCode();
-          code.setCode(resultCode);
+          ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
           result.setResultCode(code);
           result.setErrorMessage(errorMessage != null ? errorMessage.toString()
               : null);

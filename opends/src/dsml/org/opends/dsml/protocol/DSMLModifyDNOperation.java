@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -115,8 +116,7 @@ public class DSMLModifyDNOperation
 
     modDNResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
-    ResultCode code = objFactory.createResultCode();
-    code.setCode(resultCode);
+    ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
     modDNResponse.setResultCode(code);
 
     return modDNResponse;

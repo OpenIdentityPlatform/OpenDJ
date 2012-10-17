@@ -228,7 +228,7 @@
 			<xsd:enumeration value="noSuchObject"/>
 			<xsd:enumeration value="aliasProblem"/>
 			<xsd:enumeration value="invalidDNSyntax"/>
-			<xsd:enumeration value="aliasDerefencingProblem"/>
+			<xsd:enumeration value="aliasDereferencingProblem"/>
 			<xsd:enumeration value="inappropriateAuthentication"/>
 			<xsd:enumeration value="invalidCredentials"/>
 			<xsd:enumeration value="insufficientAccessRights"/>

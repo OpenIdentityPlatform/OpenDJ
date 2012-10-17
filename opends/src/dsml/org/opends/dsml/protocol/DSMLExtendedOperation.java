@@ -126,8 +126,7 @@ public class DSMLExtendedOperation
     extendedResponse.setResponse(value);
     extendedResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
-    ResultCode code = objFactory.createResultCode();
-    code.setCode(resultCode);
+    ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
     extendedResponse.setResultCode(code);
 
     return extendedResponse;
