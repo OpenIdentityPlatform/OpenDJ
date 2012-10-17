@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -86,7 +87,19 @@ public class DSMLExtendedOperation
 
     String requestName = extendedRequest.getRequestName();
     Object value = extendedRequest.getRequestValue();
-    ByteString asnValue = ByteString.valueOf(value.toString());
+    ByteString asnValue = null;
+    // value is optional in the request
+    if (value != null)
+    {
+      if (value instanceof byte [])
+      {
+        asnValue = ByteString.wrap((byte [])value);
+      }
+      else
+      {
+        asnValue = ByteString.valueOf(value.toString());
+      }
+    }
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ExtendedRequestProtocolOp(requestName, asnValue);
@@ -103,7 +116,14 @@ public class DSMLExtendedOperation
 
     // Set the result code and error message for the DSML response.
     extendedResponse.setResponseName(extendedOp.getOID());
-    extendedResponse.setResponse(extendedOp.getValue());
+
+    asnValue = extendedOp.getValue();
+    value = null;
+    if (asnValue != null)
+    {
+      value = asnValue.toByteArray();
+    }
+    extendedResponse.setResponse(value);
     extendedResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
