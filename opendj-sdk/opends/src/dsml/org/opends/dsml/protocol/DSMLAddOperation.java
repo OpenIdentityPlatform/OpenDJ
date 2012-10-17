@@ -23,8 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
+
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -117,8 +120,7 @@ public class DSMLAddOperation
     // Set the result code and error message for the DSML response.
     addResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
-    ResultCode code = objFactory.createResultCode();
-    code.setCode(resultCode);
+    ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
     addResponse.setResultCode(code);
 
     return addResponse;

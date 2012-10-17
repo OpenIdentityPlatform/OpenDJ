@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -106,8 +107,7 @@ public class DSMLCompareOperation
     // Set the response code and error message for the DSML response.
     compareResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);
-    ResultCode code = objFactory.createResultCode();
-    code.setCode(resultCode);
+    ResultCode code = ResultCodeFactory.create(objFactory, resultCode);
     compareResponse.setResultCode(code);
 
     if(compareOp.getMatchedDN() != null)
