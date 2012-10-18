@@ -950,7 +950,7 @@ public class LDAPSyntaxDescriptionSyntax
   private static class SubstitutionSyntax extends
           LDAPSyntaxDescriptionSyntax
   {
-    // The syntax that will subsittute the unimplemented syntax.
+    // The syntax that will substitute the unimplemented syntax.
     private AttributeSyntax<?> subSyntax;
 
     // The description of this syntax.
