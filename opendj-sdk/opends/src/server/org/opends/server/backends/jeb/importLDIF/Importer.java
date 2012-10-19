@@ -30,13 +30,11 @@ package org.opends.server.backends.jeb.importLDIF;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.DynamicConstants.BUILD_ID;
 import static org.opends.server.util.DynamicConstants.REVISION_NUMBER;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToString;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -2158,8 +2156,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     @Override
     public Void call() throws Exception
     {
-      Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
-
       ByteBuffer key = null;
       ImportIDSet insertIDSet = null;
       ImportIDSet deleteIDSet = null;
@@ -2270,15 +2266,11 @@ public final class Importer implements DiskSpaceMonitorHandler
         Message message = ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR.get(
             indexMgr.getBufferFileName(), e.getMessage());
         logError(message);
-        e.printStackTrace();
         throw e;
       }
       finally
       {
         endWriteTask();
-
-        // Clear the default exception handler.
-        Thread.setDefaultUncaughtExceptionHandler(null);
       }
       return null;
     }
@@ -5041,31 +5033,6 @@ public final class Importer implements DiskSpaceMonitorHandler
             throws DatabaseException
     {
       return environment.getStats(statsConfig);
-    }
-  }
-
-
-  /**
-   * Uncaught exception handler. Try and catch any uncaught exceptions, log
-   * them and print a stack trace.
-   */
-  private class DefaultExceptionHandler
-      implements Thread.UncaughtExceptionHandler {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-        ERR_JEB_IMPORT_UNCAUGHT_EXCEPTION.get(stackTraceToString(e));
-      logError(message);
-      System.exit(1);
     }
   }
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -196,8 +197,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
         Message message = ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr
             .getBufferFileName());
         logError(message);
-        ex.printStackTrace();
-        System.exit(1);
+        throw new RuntimeException(ex);
       }
     }
     return indexID;
