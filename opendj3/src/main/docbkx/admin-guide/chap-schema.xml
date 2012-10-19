@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-schema'
@@ -219,6 +219,109 @@ $ ldapsearch
 dn: uid=bjensen,ou=People,dc=example,dc=com
 myCustomAttribute: Testing 1, 2, 3...
 </screen>
+
+  <para>In addition to supporting the standard schema definitions that are
+  described in <link xlink:href="http://tools.ietf.org/html/rfc4512#section-4.1"
+  >RFC 4512, section 4.1</link>, OpenDJ also supports the following extensions
+  that you can use when adding your own definitions.</para>
+
+  <variablelist xml:id="general-schema-definition-extensions">
+   <title>Extensions for All Schema Definitions</title>
+
+   <indexterm>
+    <primary>Schema</primary>
+    <secondary>Schema definition extensions</secondary>
+   </indexterm>
+
+   <varlistentry>
+    <term><literal>X-ORIGIN</literal></term>
+    <listitem>
+     <para>Used to specify the origin of a schema element. Examples include
+     <literal>X-ORIGIN 'RFC 4519'</literal>, <literal>X-ORIGIN
+     'draft-ietf-ldup-subentry'</literal>, and <literal>X-ORIGIN
+     'OpenDJ Directory Server'</literal>.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>X-SCHEMA-FILE</literal></term>
+    <listitem>
+     <para>Used to specify the relative path to the schema file containing the
+     schema element such as <literal>X-SCHEMA-FILE '00-core.ldif'</literal>.
+     Schema definitions are located by default in
+     <filename>/path/to/OpenDJ/config/schema/*.ldif</filename> files.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <variablelist xml:id="attr-syntax-schema-definition-extensions">
+   <title>Extensions for Attribute Syntax Descriptions</title>
+
+   <indexterm>
+    <primary>Schema</primary>
+    <secondary>Schema definition extensions</secondary>
+   </indexterm>
+
+   <varlistentry>
+    <term><literal>X-ENUM</literal></term>
+    <listitem>
+     <para>Used to define a syntax that is an enumeration of values. The
+     following attribute syntax description defines a syntax allowing three
+     possible attribute values for example.</para>
+     <programlisting language="ldif"
+     >ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
+ X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real'
+ 'merge-real-and-virtual' ) )</programlisting>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>X-PATTERN</literal></term>
+    <listitem>
+     <para>used to define a syntax based on a regular expression pattern, where
+     valid regular expressions are those defined for <link xlink:show="new"
+     xlink:href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html"
+     ><literal>java.util.regex.Pattern</literal></link>. The following attribute
+     syntax description defines a simple, lenient SIP phone URI syntax
+     check.</para>
+     <programlisting language="ldif"
+     >ldapSyntaxes: ( simple-sip-uri-syntax-oid DESC 'Lenient SIP URI Syntax'
+ X-PATTERN '^sip:[a-zA-Z0-9.]+@[a-zA-Z0-9.]+(:[0-9]+)?$' )</programlisting>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>X-SUBST</literal></term>
+    <listitem>
+     <para>Used as a fallback to substitute a defined syntax for one that
+     OpenDJ does not implement. The following example substitutes Directory
+     String syntax, which has OID 1.3.6.1.4.1.1466.115.121.1.15, for a syntax
+     that OpenDJ does not implement.</para>
+     <programlisting language="ldif"
+     >ldapSyntaxes: ( non-implemented-syntax-oid DESC 'Not Implemented in OpenDJ'
+ X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )</programlisting>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <variablelist xml:id="attr-type-schema-definition-extensions">
+   <title>Extension for Attribute Type Descriptions</title>
+
+   <indexterm>
+    <primary>Schema</primary>
+    <secondary>Schema definition extensions</secondary>
+   </indexterm>
+
+   <varlistentry>
+    <term><literal>X-APPROX</literal></term>
+    <listitem>
+     <para><literal>X-APPROX</literal> is used to specify the approximate
+     matching rule to use for a given attribute type when not using the default,
+     which is the <link xlink:href="http://aspell.net/metaphone/"
+     xlink:show="new">double metaphone approximate match</link>.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </section>
  
  <section xml:id="schema-legacy-support">
