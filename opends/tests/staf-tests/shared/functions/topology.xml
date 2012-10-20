@@ -348,23 +348,23 @@
     
     <sequence>
       <message>
-        'Create instance in host %s at directory %s' % (dsHost,dsDir)
+        'Create an instance on remote host %s' % dsHost
       </message>
       
       <!-- ON REMOTE HOST: copy files, unzip, configure instance -->
       <!--- Delete folder if it exists on remote host-->
       <message>
-        'Delete folder %s/%s on host %s' % (dsDir,OPENDSNAME,dsHost)
+        'Delete existing instance folder %s on remote host %s' % (dsDir,dsHost)
       </message>
       <call function="'deleteFolder'">
         { 'location'   : dsHost, 
-          'foldername' : '%s/%s' % (dsDir,OPENDSNAME)
+          'foldername' : '%s' % (dsDir)
         }
       </call>
       
       <!--- Create folder on remote host -->
       <message>
-        'Create folder %s on host %s' % (dsDir,dsHost)
+        'Create new instance folder %s on remote host %s' % (dsDir,dsHost)
       </message>
       <call function="'createFolder'">
         { 'location'   : dsHost, 
@@ -372,10 +372,19 @@
         }
       </call>
 
+      <!--- Delete temporary folder on remote host -->
+      <message>
+        'Delete temporary folder %s/temp on remote host' % dsDir
+      </message>
+      <call function="'deleteFolder'">
+        { 'location'   : dsHost,
+          'foldername' : '%s/temp' % dsDir
+        }
+      </call>
       
       <!--- Delete staging data folder on remote host -->
       <message>
-        'Delete staging data folder %s/shared' % dsDir
+        'Delete staging data folder %s/testdata on remote host' % dsDir
       </message>
       <call function="'deleteFolder'">
         { 'location'   : dsHost,
@@ -385,7 +394,8 @@
             
       <!---   Copy staging data to remote host -->
       <message>
-        'Copy %s/testdata.zip to %s on %s' % (local.testdata,dsDir,dsHost)
+        'Copy %s/testdata.zip to %s on %s on remote host' \
+          % (local.testdata,dsDir,dsHost)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : '%s/testdata.zip' % local.temp,
@@ -396,7 +406,8 @@
       
       <!---   Unzip contents of staging data on remote host -->
       <message>
-        'Extract contents of test data %s on %s' % (dsDir,dsHost)
+        'Extract contents of test data %s on %s on remote host' \
+          % (dsDir,dsHost)
       </message>
       <call function="'unZipFile'">
         { 'location' : dsHost, 
