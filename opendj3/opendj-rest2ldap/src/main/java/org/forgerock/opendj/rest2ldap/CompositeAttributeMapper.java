@@ -27,26 +27,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.resource.exception.ResourceException;
-import org.forgerock.resource.provider.Context;
 
 /**
- *
+ * A collection of one or more attribute mappers whose content will be combined
+ * into a single JSON array.
  */
 public final class CompositeAttributeMapper implements AttributeMapper {
     private final List<AttributeMapper> attributeMappers = new LinkedList<AttributeMapper>();
 
     /**
      * Creates a new composite attribute mapper.
-     *
      */
     public CompositeAttributeMapper() {
         // No implementation required.
     }
 
-    public CompositeAttributeMapper addMapper(AttributeMapper mapper) {
+    /**
+     * Adds a subordinate attribute mapper to this composite attribute mapper.
+     *
+     * @param mapper
+     *            The subordinate attribute mapper.
+     * @return This composite attribute mapper.
+     */
+    public CompositeAttributeMapper addMapper(final AttributeMapper mapper) {
         attributeMappers.add(mapper);
         return this;
     }
@@ -54,8 +62,8 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
-        for (AttributeMapper attribute : attributeMappers) {
+    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
+        for (final AttributeMapper attribute : attributeMappers) {
             attribute.getLDAPAttributes(jsonAttribute, ldapAttributes);
         }
     }
@@ -63,45 +71,44 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toJson(Context c, Entry e,
-            final AttributeMapperCompletionHandler<Map<String, Object>> h) {
-        AttributeMapperCompletionHandler<Map<String, Object>> resultAccumulater =
-                new AttributeMapperCompletionHandler<Map<String, Object>>() {
-                    private final AtomicInteger latch = new AtomicInteger(attributeMappers.size());
-                    private final List<Map<String, Object>> results =
-                            new ArrayList<Map<String, Object>>(latch.get());
+    public void toJson(final ServerContext c, final Entry e,
+            final ResultHandler<Map<String, Object>> h) {
+        final ResultHandler<Map<String, Object>> resultAccumulater = new ResultHandler<Map<String, Object>>() {
+            private final AtomicInteger latch = new AtomicInteger(attributeMappers.size());
+            private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>(
+                    latch.get());
 
-                    public void onFailure(ResourceException e) {
-                        // Ensure that handler is only invoked once.
-                        if (latch.getAndSet(0) > 0) {
-                            h.onFailure(e);
-                        }
+            public void handleError(final ResourceException e) {
+                // Ensure that handler is only invoked once.
+                if (latch.getAndSet(0) > 0) {
+                    h.handleError(e);
+                }
+            }
+
+            public void handleResult(final Map<String, Object> result) {
+                synchronized (this) {
+                    results.add(result);
+                }
+                if (latch.decrementAndGet() == 0) {
+                    final Map<String, Object> mergeResult;
+                    switch (results.size()) {
+                    case 0:
+                        mergeResult = Collections.<String, Object> emptyMap();
+                        break;
+                    case 1:
+                        mergeResult = results.get(0);
+                        break;
+                    default:
+                        mergeResult = new LinkedHashMap<String, Object>();
+                        mergeJsonValues(results, mergeResult);
+                        break;
                     }
+                    h.handleResult(mergeResult);
+                }
+            }
+        };
 
-                    public void onSuccess(Map<String, Object> result) {
-                        synchronized (this) {
-                            results.add(result);
-                        }
-                        if (latch.decrementAndGet() == 0) {
-                            final Map<String, Object> mergeResult;
-                            switch (results.size()) {
-                            case 0:
-                                mergeResult = Collections.<String, Object> emptyMap();
-                                break;
-                            case 1:
-                                mergeResult = results.get(0);
-                                break;
-                            default:
-                                mergeResult = new LinkedHashMap<String, Object>();
-                                mergeJsonValues(results, mergeResult);
-                                break;
-                            }
-                            h.onSuccess(mergeResult);
-                        }
-                    }
-                };
-
-        for (AttributeMapper mapper : attributeMappers) {
+        for (final AttributeMapper mapper : attributeMappers) {
             mapper.toJson(c, e, resultAccumulater);
         }
     }
@@ -109,24 +116,10 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
+    public void toLDAP(final ServerContext c, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * Merge the provided list of JSON values into a single value.
-     *
-     * @param srcValues
-     *            The source values.
-     * @param dstValue
-     *            The destination value, into which which the values should be
-     *            merged.
-     */
-    private void mergeJsonValues(List<Map<String, Object>> srcValues, Map<String, Object> dstValue) {
-        for (Map<String, Object> value : srcValues) {
-            mergeJsonValue(value, dstValue);
-        }
     }
 
     /**
@@ -139,30 +132,47 @@ public final class CompositeAttributeMapper implements AttributeMapper {
      *            merged.
      */
     @SuppressWarnings("unchecked")
-    private void mergeJsonValue(Map<String, Object> srcValue, Map<String, Object> dstValue) {
-        for (Map.Entry<String, Object> record : srcValue.entrySet()) {
-            String key = record.getKey();
-            Object newValue = record.getValue();
+    private void mergeJsonValue(final Map<String, Object> srcValue,
+            final Map<String, Object> dstValue) {
+        for (final Map.Entry<String, Object> record : srcValue.entrySet()) {
+            final String key = record.getKey();
+            final Object newValue = record.getValue();
             Object existingValue = dstValue.get(key);
             if (existingValue == null) {
                 // Value is new, so just add it.
                 dstValue.put(key, newValue);
-            } else if (existingValue instanceof Map && newValue instanceof Map) {
+            } else if ((existingValue instanceof Map) && (newValue instanceof Map)) {
                 // Merge two maps - create a new Map, in case the existing one
                 // is unmodifiable.
-                existingValue =
-                        new LinkedHashMap<String, Object>((Map<String, Object>) existingValue);
+                existingValue = new LinkedHashMap<String, Object>(
+                        (Map<String, Object>) existingValue);
                 mergeJsonValue((Map<String, Object>) newValue, (Map<String, Object>) existingValue);
-            } else if (existingValue instanceof List && newValue instanceof List) {
+            } else if ((existingValue instanceof List) && (newValue instanceof List)) {
                 // Merge two lists- create a new List, in case the existing one
                 // is unmodifiable.
-                List<Object> tmp = new ArrayList<Object>((List<Object>) existingValue);
+                final List<Object> tmp = new ArrayList<Object>((List<Object>) existingValue);
                 tmp.addAll((List<Object>) newValue);
                 existingValue = tmp;
             }
 
             // Replace the existing value.
             dstValue.put(key, newValue);
+        }
+    }
+
+    /**
+     * Merge the provided list of JSON values into a single value.
+     *
+     * @param srcValues
+     *            The source values.
+     * @param dstValue
+     *            The destination value, into which which the values should be
+     *            merged.
+     */
+    private void mergeJsonValues(final List<Map<String, Object>> srcValues,
+            final Map<String, Object> dstValue) {
+        for (final Map<String, Object> value : srcValues) {
+            mergeJsonValue(value, dstValue);
         }
     }
 }

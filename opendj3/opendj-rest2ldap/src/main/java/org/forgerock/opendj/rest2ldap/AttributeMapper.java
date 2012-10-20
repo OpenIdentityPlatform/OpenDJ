@@ -22,12 +22,14 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.resource.provider.Context;
 
 /**
- *
+ * An attribute mapper is responsible for converting JSON values to and from
+ * LDAP attributes.
  */
 public interface AttributeMapper {
 
@@ -38,6 +40,7 @@ public interface AttributeMapper {
      * <p>
      * Implementations should only add the names of attributes found in the LDAP
      * entry directly associated with the resource.
+     *
      * @param jsonAttribute
      *            The name of the resource attribute requested by the client.
      * @param ldapAttributes
@@ -56,10 +59,13 @@ public interface AttributeMapper {
      * requests.
      *
      * @param c
+     *            The server context.
      * @param e
+     *            The LDAP entry to be converted to JSON.
      * @param h
+     *            The result handler.
      */
-    void toJson(Context c, Entry e, AttributeMapperCompletionHandler<Map<String, Object>> h);
+    void toJson(ServerContext c, Entry e, ResultHandler<Map<String, Object>> h);
 
     /**
      * Transforms JSON content in the provided JSON value to LDAP attributes,
@@ -70,10 +76,13 @@ public interface AttributeMapper {
      * requests.
      *
      * @param c
+     *            The server context.
      * @param v
+     *            The JSON value to be converted to LDAP attributes.
      * @param h
+     *            The result handler.
      */
-    void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h);
+    void toLDAP(ServerContext c, JsonValue v, ResultHandler<List<Attribute>> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).

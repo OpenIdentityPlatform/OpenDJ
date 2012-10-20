@@ -27,47 +27,32 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.resource.provider.Context;
 
 /**
  *
  */
 public final class DefaultAttributeMapper implements AttributeMapper {
 
+    private final Map<String, String> excludedAttributes = new LinkedHashMap<String, String>();
     // All user attributes by default.
     private final Map<String, String> includedAttributes = new LinkedHashMap<String, String>();
-    private final Map<String, String> excludedAttributes = new LinkedHashMap<String, String>();
 
     public DefaultAttributeMapper() {
         // No implementation required.
     }
 
-    public DefaultAttributeMapper includeAttribute(String... attributes) {
-        for (String attribute : attributes) {
-            includedAttributes.put(toLowerCase(attribute), attribute);
-        }
-        return this;
-    }
-
-    public DefaultAttributeMapper excludeAttribute(String... attributes) {
-        for (String attribute : attributes) {
+    public DefaultAttributeMapper excludeAttribute(final String... attributes) {
+        for (final String attribute : attributes) {
             excludedAttributes.put(toLowerCase(attribute), attribute);
         }
         return this;
     }
 
-    public void getLDAPAttributes(Set<String> ldapAttributes) {
-        if (!includedAttributes.isEmpty()) {
-            ldapAttributes.addAll(includedAttributes.values());
-        } else {
-            // All user attributes.
-            ldapAttributes.add("*");
-        }
-    }
-
-    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         switch (jsonAttribute.size()) {
         case 0:
             // Requested everything.
@@ -79,7 +64,7 @@ public final class DefaultAttributeMapper implements AttributeMapper {
             }
             break;
         default:
-            String name = jsonAttribute.get(0);
+            final String name = jsonAttribute.get(0);
             if (isIncludedAttribute(name)) {
                 ldapAttributes.add(name);
             }
@@ -87,19 +72,41 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         }
     }
 
-    public void toJson(Context c, Entry e, AttributeMapperCompletionHandler<Map<String, Object>> h) {
-        Map<String, Object> result = new LinkedHashMap<String, Object>(e.getAttributeCount());
-        for (Attribute a : e.getAllAttributes()) {
-            String name = getAttributeName(a);
+    public void getLDAPAttributes(final Set<String> ldapAttributes) {
+        if (!includedAttributes.isEmpty()) {
+            ldapAttributes.addAll(includedAttributes.values());
+        } else {
+            // All user attributes.
+            ldapAttributes.add("*");
+        }
+    }
+
+    public DefaultAttributeMapper includeAttribute(final String... attributes) {
+        for (final String attribute : attributes) {
+            includedAttributes.put(toLowerCase(attribute), attribute);
+        }
+        return this;
+    }
+
+    public void toJson(final ServerContext c, final Entry e,
+            final ResultHandler<Map<String, Object>> h) {
+        final Map<String, Object> result = new LinkedHashMap<String, Object>(e.getAttributeCount());
+        for (final Attribute a : e.getAllAttributes()) {
+            final String name = getAttributeName(a);
             if (isIncludedAttribute(name)) {
                 result.put(name, attributeToJson(a));
             }
         }
-        h.onSuccess(result);
+        h.handleResult(result);
     }
 
-    private boolean isIncludedAttribute(String name) {
-        String lowerName = toLowerCase(name);
+    public void toLDAP(final ServerContext c, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
+        // TODO:
+    }
+
+    private boolean isIncludedAttribute(final String name) {
+        final String lowerName = toLowerCase(name);
 
         // Ignore the requested attribute if it has been excluded.
         if (excludedAttributes.containsKey(lowerName)) {
@@ -112,9 +119,5 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         }
 
         return false;
-    }
-
-    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
-        // TODO:
     }
 }
