@@ -25,19 +25,21 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.resource.exception.ResourceException;
-import org.forgerock.resource.provider.Context;
 
 /**
- *
+ * An attribute mapper which will wrap the results of the provided mapper as a
+ * complex JSON object.
  */
 public class ComplexAttributeMapper implements AttributeMapper {
 
-    private final String normalizedJsonAttributeName;
     private final String jsonAttributeName;
     private final AttributeMapper mapper;
+    private final String normalizedJsonAttributeName;
 
     /**
      * Creates a new complex attribute mapper which will wrap the results of the
@@ -49,7 +51,7 @@ public class ComplexAttributeMapper implements AttributeMapper {
      *            The mapper which should be used to provide the contents of the
      *            complex attribute.
      */
-    public ComplexAttributeMapper(String jsonAttributeName, AttributeMapper mapper) {
+    public ComplexAttributeMapper(final String jsonAttributeName, final AttributeMapper mapper) {
         this.jsonAttributeName = jsonAttributeName;
         this.mapper = mapper;
         this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
@@ -58,9 +60,9 @@ public class ComplexAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         if (attributeMatchesPointer(jsonAttribute)) {
-            JsonPointer relativePointer = jsonAttribute.relativePointer();
+            final JsonPointer relativePointer = jsonAttribute.relativePointer();
             mapper.getLDAPAttributes(relativePointer, ldapAttributes);
         }
     }
@@ -68,33 +70,33 @@ public class ComplexAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toJson(Context c, Entry e,
-            final AttributeMapperCompletionHandler<Map<String, Object>> h) {
-        AttributeMapperCompletionHandler<Map<String, Object>> wrapper =
-                new AttributeMapperCompletionHandler<Map<String, Object>>() {
+    public void toJson(final ServerContext c, final Entry e,
+            final ResultHandler<Map<String, Object>> h) {
+        final ResultHandler<Map<String, Object>> wrapper = new ResultHandler<Map<String, Object>>() {
 
-                    public void onSuccess(Map<String, Object> result) {
-                        Map<String, Object> complexResult =
-                                Collections.singletonMap(jsonAttributeName, (Object) result);
-                        h.onSuccess(complexResult);
-                    }
+            public void handleError(final ResourceException e) {
+                h.handleError(e);
+            }
 
-                    public void onFailure(ResourceException e) {
-                        h.onFailure(e);
-                    }
-                };
+            public void handleResult(final Map<String, Object> result) {
+                final Map<String, Object> complexResult = Collections.singletonMap(
+                        jsonAttributeName, (Object) result);
+                h.handleResult(complexResult);
+            }
+        };
         mapper.toJson(c, e, wrapper);
     }
 
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
+    public void toLDAP(final ServerContext c, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }
 
-    private boolean attributeMatchesPointer(JsonPointer resourceAttribute) {
+    private boolean attributeMatchesPointer(final JsonPointer resourceAttribute) {
         return resourceAttribute.isEmpty()
                 || toLowerCase(resourceAttribute.get(0)).equals(normalizedJsonAttributeName);
     }

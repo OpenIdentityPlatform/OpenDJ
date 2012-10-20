@@ -22,9 +22,10 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.resource.provider.Context;
 
 /**
  *
@@ -36,7 +37,7 @@ public class ReferenceAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes) {
+    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         // TODO Auto-generated method stub
 
     }
@@ -44,7 +45,7 @@ public class ReferenceAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toJson(Context c, Entry e, AttributeMapperCompletionHandler<Map<String, Object>> h) {
+    public void toJson(final ServerContext c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         // TODO Auto-generated method stub
 
     }
@@ -52,7 +53,7 @@ public class ReferenceAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(Context c, JsonValue v, AttributeMapperCompletionHandler<List<Attribute>> h) {
+    public void toLDAP(final ServerContext c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }

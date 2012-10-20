@@ -41,7 +41,8 @@ final class Utils {
     private static final Function<ByteString, Object, Attribute> BYTESTRING_TO_JSON =
             new Function<ByteString, Object, Attribute>() {
                 public Object apply(final ByteString value, final Attribute a) {
-                    Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
+                    final Syntax syntax =
+                            a.getAttributeDescription().getAttributeType().getSyntax();
                     if (syntax.equals(getBooleanSyntax())) {
                         return Functions.byteStringToBoolean().apply(value, null);
                     } else if (syntax.equals(getIntegerSyntax())) {
@@ -58,37 +59,15 @@ final class Utils {
                 }
             };
 
-    // Prevent instantiation.
-    private Utils() {
-        // No implementation required.
-    }
-
-    private static <T> List<T> asList(Collection<T> c) {
-        if (c instanceof List) {
-            return (List<T>) c;
-        } else {
-            List<T> result = new ArrayList<T>(c.size());
-            result.addAll(c);
-            return result;
-        }
+    static Object attributeToJson(final Attribute a) {
+        final Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, a);
+        final boolean isSingleValued =
+                a.getAttributeDescription().getAttributeType().isSingleValue();
+        return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
 
     static Function<ByteString, Object, Attribute> byteStringToJson() {
         return BYTESTRING_TO_JSON;
-    }
-
-    static Object attributeToJson(Attribute a) {
-        Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, a);
-        boolean isSingleValued = a.getAttributeDescription().getAttributeType().isSingleValue();
-        return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
-    }
-
-    static String getAttributeName(Attribute a) {
-        return a.getAttributeDescription().withoutOption("binary").toString();
-    }
-
-    static String toLowerCase(String s) {
-        return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
     }
 
     static <T> T ensureNotNull(final T object) {
@@ -103,6 +82,27 @@ final class Utils {
             throw new NullPointerException(message);
         }
         return object;
+    }
+
+    static String getAttributeName(final Attribute a) {
+        return a.getAttributeDescription().withoutOption("binary").toString();
+    }
+
+    static String toLowerCase(final String s) {
+        return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
+    }
+
+    private static <T> List<T> asList(final Collection<T> c) {
+        if (c instanceof List) {
+            return (List<T>) c;
+        } else {
+            return new ArrayList<T>(c);
+        }
+    }
+
+    // Prevent instantiation.
+    private Utils() {
+        // No implementation required.
     }
 
 }

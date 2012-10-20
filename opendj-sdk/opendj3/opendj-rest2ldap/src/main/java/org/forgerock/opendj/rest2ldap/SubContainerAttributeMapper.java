@@ -16,7 +16,6 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,51 +28,32 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
- * An attribute mapper which maps a single JSON attribute to a fixed value.
+ *
  */
-public class ConstantAttributeMapper implements AttributeMapper {
+public class SubContainerAttributeMapper implements AttributeMapper {
 
-    private final String jsonAttributeName;
-    private final Object jsonAttributeValue;
-
-    /**
-     * Creates a new constant attribute mapper which maps a single JSON
-     * attribute to a fixed value.
-     *
-     * @param attributeName
-     *            The name of the simple JSON attribute.
-     * @param attributeValue
-     *            The value of the simple JSON attribute.
-     */
-    public ConstantAttributeMapper(final String attributeName, final Object attributeValue) {
-        this.jsonAttributeName = attributeName;
-        this.jsonAttributeValue = attributeValue;
-    }
+    // private final EntryContainer referencedContainer;
 
     /**
      * {@inheritDoc}
      */
     public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
-        // Nothing to do.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void toJson(final ServerContext c, final Entry e,
-            final ResultHandler<Map<String, Object>> h) {
-        // FIXME: how do we know if the user requested it???
-        final Map<String, Object> result = Collections.singletonMap(jsonAttributeName,
-                jsonAttributeValue);
-        h.handleResult(result);
+        // TODO Auto-generated method stub
 
     }
 
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(final ServerContext c, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
+    public void toJson(final ServerContext c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void toLDAP(final ServerContext c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }
