@@ -184,7 +184,7 @@
         ServerRevision='unknown'
         ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
 
-        # The jdmkrt.jar can be included in the OpenDS archive
+        # The jdmkrt.jar can be included in the OpenDJ archive
         if not PRODUCTNAME.startswith('OpenDJ'):
           ServerSNMPJarFile='addons/jdmkrt.jar'
         else:
