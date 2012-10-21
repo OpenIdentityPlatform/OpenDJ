@@ -31,7 +31,7 @@
   #@TestMarker          Backend Backup Tests
   #@TestName            Backup: Backup 001
   #@TestID              Backup 001
-  #@TestPurpose         Backup the data in OpenDS.
+  #@TestPurpose         Backup the data in OpenDJ.
   #@TestPreamble
   #@TestSteps           Client calls backup with the parameters
                         default backendID, and backupDirectory
@@ -47,7 +47,7 @@
           <call function="'testCase_Preamble'"/>
 
           <message>
-            'Backend Backup 001: Create a backup of the data in OpenDS'
+            'Backend Backup 001: Create a backup of the data in OpenDJ'
           </message>
 
           <call function="'backup'">
@@ -73,7 +73,7 @@
   #@TestMarker          Backend Backup Tests
   #@TestName            Backup: Backup 002
   #@TestID              Backup 002
-  #@TestPurpose         Create an incremental backup of the data in OpenDS.
+  #@TestPurpose         Create an incremental backup of the data in OpenDJ.
   #@TestPreamble
   #@TestSteps           Client calls backup with the parameters
                         default backendID, backupDir, and incremental
@@ -86,7 +86,7 @@
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-            'Backend Backup 002 Create an incremental backup of the data in OpenDS'
+            'Backend Backup 002 Create an incremental backup of the data in OpenDJ'
           </message>
           <call function="'backup'">
             { 'backupDir'   : '%s/backends/backup1' % remote.temp,
@@ -113,7 +113,7 @@
   #@TestMarker          Backend Backup Tests
   #@TestName            Backup: Backup 003
   #@TestID              Backup 003
-  #@TestPurpose         Create a backup of the data in OpenDS with a backup id.
+  #@TestPurpose         Create a backup of the data in OpenDJ with a backup id.
   #@TestPreamble
   #@TestSteps           Client calls backup with the parameters
                         default backendID, backupDir, and backupID
@@ -126,7 +126,7 @@
       <sequence>
         <call function="'testCase_Preamble'"/>
         <message>
-        'Backend Backup 003: Create a backup of the data in OpenDS with a backup id'
+        'Backend Backup 003: Create a backup of the data in OpenDJ with a backup id'
         </message>
 
         <call function="'backup'">
@@ -155,7 +155,7 @@
   #@TestMarker          Backend Backup Tests
   #@TestName            Backup: Backup 004
   #@TestID              Backup 004
-  #@TestPurpose         Create an incremental backup of the data in OpenDS with a backup id.
+  #@TestPurpose         Create an incremental backup of the data in OpenDJ with a backup id.
   #@TestPreamble
   #@TestSteps           Client calls backup with the parameters
                         default backendID, backupDir, incremental, and backupID
@@ -168,7 +168,7 @@
         <sequence>
           <call function="'testCase_Preamble'" />
           <message>
-            'Backend Backup 004: Create an incremental backup of the data in OpenDS with a backup id'
+            'Backend Backup 004: Create an incremental backup of the data in OpenDJ with a backup id'
           </message>
           <call function="'backup'">
             { 'backupDir'   : '%s/backends/backup2' % remote.temp,
@@ -197,7 +197,7 @@
   #@TestMarker          Backend Backup Tests
   #@TestName            Backup: Backup 005
   #@TestID              Backup 005
-  #@TestPurpose         Create a compressed backup of the data in OpenDS.
+  #@TestPurpose         Create a compressed backup of the data in OpenDJ.
   #@TestPreamble
   #@TestSteps           Client calls backup with the parameters
                         default backendID, backupDir, and compress
@@ -210,7 +210,7 @@
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-            'Backend Backup 005: Create a compressed backup of the data in OpenDS'
+            'Backend Backup 005: Create a compressed backup of the data in OpenDJ'
           </message>
           <call function="'backup'">
             { 'backupDir'   : '%s/backends/backup1' % remote.temp,
