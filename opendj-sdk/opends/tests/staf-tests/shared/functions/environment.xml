@@ -178,6 +178,7 @@
         MultimasterSync = 'Multimaster Synchronization'
         MultimasterType = 'multimaster'
 
+        # TODO: this test flow for replication tests needs moving out to configuration
         # Replication execution mode variables: if not defined, set "random"
         # values:
         #   (day of the month % 4) == 0 --> (split servers, eclmode n/a)
@@ -395,6 +396,8 @@
       <message>'source.data      = %s' % source.data</message>
       <message>'local.data       = %s' % local.data</message>
       <message>'remote.data      = %s' % remote.data</message>
+      <message>'local.temp       = %s' % local.temp</message>
+      <message>'remote.temp      = %s' % remote.temp</message>
                         
       <return>
         local.directory
