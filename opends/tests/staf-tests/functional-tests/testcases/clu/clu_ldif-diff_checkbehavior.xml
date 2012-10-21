@@ -99,7 +99,7 @@
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : sourceldif ,
-                  'outputLdif' : '%s/ldif-diff_nodiffs.out' % remote.temp
+                  'outputLdif' : '%s/clu/ldif-diff_nodiffs.out' % remote.temp
                   }
                 </call>
                 
@@ -136,7 +136,7 @@
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/ldif-diff_withdiffs.out' % remote.temp ,
+                  'outputLdif' : '%s/clu/ldif-diff_withdiffs.out' % remote.temp ,
                   'expectedRC' : 1 ,
                   'knownIssue' : '2641'
                   }
@@ -174,7 +174,7 @@
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/ldif-diff.out' % remote.temp ,
+                  'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp ,
                   'expectedRC' : 'noCheck'
                   }
                 </call>
@@ -182,7 +182,7 @@
                 <call function="'compareFile'">
                   {
                   'outputFile' : 'ldif-diff.out' ,
-                  'outputPath' : remote.temp ,
+                  'outputPath' : '%s/clu' % remote.temp ,
                   'refFile'    : 'ldif-diff.ref',
                   'knownIssue' : '3111'
                   }
@@ -221,7 +221,7 @@
                   {
                   'sourceLdif'         : sourceldif ,
                   'targetLdif'         : targetldif ,
-                  'outputLdif'         : '%s/ldif-diff_singlevalue.out' \
+                  'outputLdif'         : '%s/clu/ldif-diff_singlevalue.out' \
                                          % remote.temp ,
                   'singleValueChanges' : 'True' ,           
                   'expectedRC'         : 'noCheck'
@@ -231,7 +231,7 @@
                 <call function="'compareFile'">
                   { 
                   'outputFile' : 'ldif-diff_singlevalue.out' ,
-                  'outputPath' : remote.temp ,
+                  'outputPath' : '%s/clu' % remote.temp ,
                   'refFile'    : 'ldif-diff_singlevalue.ref' ,
                   'knownIssue' : '3111'
                   }

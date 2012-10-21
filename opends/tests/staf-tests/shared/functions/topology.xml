@@ -372,23 +372,13 @@
         }
       </call>
 
-      <!--- Delete temporary folder on remote host -->
+      <!--- Create folder on remote host -->
       <message>
-        'Delete temporary folder %s/temp on remote host' % dsDir
+        'Create new instance temp folder %s/temp on remote host %s' % (dsDir,dsHost)
       </message>
-      <call function="'deleteFolder'">
-        { 'location'   : dsHost,
+      <call function="'createFolder'">
+        { 'location'   : dsHost, 
           'foldername' : '%s/temp' % dsDir
-        }
-      </call>
-      
-      <!--- Delete staging data folder on remote host -->
-      <message>
-        'Delete staging data folder %s/testdata on remote host' % dsDir
-      </message>
-      <call function="'deleteFolder'">
-        { 'location'   : dsHost,
-          'foldername' : '%s/testdata' % dsDir
         }
       </call>
             

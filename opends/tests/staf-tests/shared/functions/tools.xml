@@ -103,6 +103,7 @@
     <sequence>
       <!-- Build the Command -->
       <script>
+        foldersToCreate = []
         STAFCmdParamsList=[]
         STAFCmdParams=''
         
@@ -117,6 +118,7 @@
           STAFCmdParamsList.append('-t %s' % templateFile)
         
         if ldifFile:
+          foldersToCreate.append(os.path.dirname(ldifFile))
           STAFCmdParamsList.append('-o %s' % ldifFile)
         
         if randomSeed:
@@ -127,6 +129,17 @@
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+
       <call function="'runCommand'">
         { 'name'      : 'Make Ldif Script',
           'location'  : location,
@@ -381,6 +394,7 @@
     <sequence>
       <!-- Build the Command -->
       <script>
+        foldersToCreate = []
         STAFCmdParamsList=[]
         STAFCmdParams=''
         
@@ -398,6 +412,7 @@
           STAFCmdParamsList.append('-t %s' % targetLdif)
         
         if outputLdif:
+          foldersToCreate.append(os.path.dirname(outputLdif))
           STAFCmdParamsList.append('-o %s' % outputLdif)
         
         if ignoreAttrsFile:
@@ -415,9 +430,14 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
       <message>
-        'Running command:\n %s %s\nlocation: %s\nworkdir: %s' \
-        % (STAFCmd,STAFCmdParams,location,dsBinPath)
+        '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
     
       <process name="'LDIF Diff Script'">
@@ -590,6 +610,7 @@
     <sequence>
       <!-- Build the Command -->
       <script>
+        foldersToCreate = []
         STAFCmdParamsList=[]
         STAFCmdParams=''
         
@@ -604,6 +625,7 @@
           STAFCmdParamsList.append('-s %s' % sourceLdif)
         
         if targetLdif:
+          foldersToCreate.append(os.path.dirname(targetLdif))
           STAFCmdParamsList.append('-t %s' % targetLdif)
         
         if changesLdif:
@@ -614,6 +636,17 @@
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+
       <call function="'runCommand'">
         { 'name'      : 'LDIF Modify Script',
           'location'  : location,
@@ -1727,6 +1760,7 @@
     <sequence>
       <!-- Build the Command -->
       <script>
+        foldersToCreate = []
         STAFCmdParamsList=[]
         STAFCmdParams=''
         
@@ -1744,6 +1778,7 @@
           STAFCmdParamsList.append('-t %s' % targetLdif)
         
         if outputLdif:
+          foldersToCreate.append(os.path.dirname(outputLdif))
           STAFCmdParamsList.append('-o %s' % outputLdif)
         
         if overwriteExisting:
@@ -1757,6 +1792,16 @@
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+
+      <call function="'createMultiFolders'">
+        { 'location'    : location,
+          'folderslist' : foldersToCreate
+        }
+      </call>
+
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
       
       <call function="'runCommand'">
         { 
