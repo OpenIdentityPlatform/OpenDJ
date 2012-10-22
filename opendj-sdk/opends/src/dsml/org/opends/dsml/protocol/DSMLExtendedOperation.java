@@ -41,6 +41,7 @@ import org.opends.server.tools.LDAPConnection;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
+import org.w3c.dom.Element;
 
 
 /**
@@ -91,13 +92,27 @@ public class DSMLExtendedOperation
     // value is optional in the request
     if (value != null)
     {
+      /*
+       * The processing of the value is tricky, because the schema defines
+       * the requestValue with type="xsd:anyType".
+       *
+       * Consequently if we have:
+       * <requestValue xsi:type="xsd:base64Binary">(base64)</requestValue>
+       * then JAXB returns us a byte [] containing the decoded data.
+       */
       if (value instanceof byte [])
       {
         asnValue = ByteString.wrap((byte [])value);
       }
       else
       {
-        asnValue = ByteString.valueOf(value.toString());
+        /*
+         * On the other hand if we have:
+         * <requestValue>arbitrary text</requestValue>
+         * then we get an Element which we have to extract the text from.
+         */
+        Element content = (Element)value;
+        asnValue = ByteString.valueOf(content.getTextContent());
       }
     }
 
