@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import java.util.ArrayList;
@@ -27,15 +26,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.json.resource.ServerContext;
-import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
- * A collection of one or more attribute mappers whose content will be combined
- * into a single JSON array.
+ * An attribute mapper which combines the results of a set of subordinate
+ * attribute mappers into a single JSON object.
  */
 public final class CompositeAttributeMapper implements AttributeMapper {
     private final List<AttributeMapper> attributeMappers = new LinkedList<AttributeMapper>();
@@ -62,6 +61,7 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         for (final AttributeMapper attribute : attributeMappers) {
             attribute.getLDAPAttributes(jsonAttribute, ldapAttributes);
@@ -71,13 +71,15 @@ public final class CompositeAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toJson(final ServerContext c, final Entry e,
+    @Override
+    public void toJSON(final ServerContext c, final Entry e,
             final ResultHandler<Map<String, Object>> h) {
         final ResultHandler<Map<String, Object>> resultAccumulater = new ResultHandler<Map<String, Object>>() {
             private final AtomicInteger latch = new AtomicInteger(attributeMappers.size());
             private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>(
                     latch.get());
 
+            @Override
             public void handleError(final ResourceException e) {
                 // Ensure that handler is only invoked once.
                 if (latch.getAndSet(0) > 0) {
@@ -85,6 +87,7 @@ public final class CompositeAttributeMapper implements AttributeMapper {
                 }
             }
 
+            @Override
             public void handleResult(final Map<String, Object> result) {
                 if (result != null && !result.isEmpty()) {
                     synchronized (this) {
@@ -111,13 +114,14 @@ public final class CompositeAttributeMapper implements AttributeMapper {
         };
 
         for (final AttributeMapper mapper : attributeMappers) {
-            mapper.toJson(c, e, resultAccumulater);
+            mapper.toJSON(c, e, resultAccumulater);
         }
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void toLDAP(final ServerContext c, final JsonValue v,
             final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
