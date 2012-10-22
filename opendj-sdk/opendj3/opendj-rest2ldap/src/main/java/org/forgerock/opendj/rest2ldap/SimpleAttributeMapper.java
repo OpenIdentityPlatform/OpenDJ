@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
@@ -35,7 +34,8 @@ import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Functions;
 
 /**
- *
+ * An attribute mapper which maps a single JSON attribute to a single LDAP
+ * attribute.
  */
 public class SimpleAttributeMapper implements AttributeMapper {
 
@@ -43,7 +43,7 @@ public class SimpleAttributeMapper implements AttributeMapper {
     private Object defaultValue = null;
     private boolean forceSingleValued = false;
 
-    private boolean isReadOnly = false;
+    // private boolean isReadOnly = false;
     private final String jsonAttributeName;
     private final String ldapAttributeName;
     private final String normalizedJsonAttributeName;
@@ -74,7 +74,65 @@ public class SimpleAttributeMapper implements AttributeMapper {
         this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
     }
 
-    public SimpleAttributeMapper forceSingleValued(final boolean singleValued) {
+    /**
+     * Sets the decoder which will be used for converting LDAP attribute values
+     * to JSON values.
+     *
+     * @param f
+     *            The function to use for decoding LDAP attribute values.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper decoder(final Function<ByteString, ?, Void> f) {
+        this.decoder = f;
+        return this;
+    }
+
+    /**
+     * Sets the default JSON value which should be substituted when the LDAP
+     * attribute is not found in the LDAP entry.
+     *
+     * @param defaultValue
+     *            The default JSON value.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper defaultJSONValue(final Object defaultValue) {
+        this.defaultValue = defaultValue;
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
+        if (attributeMatchesPointer(jsonAttribute)) {
+            ldapAttributes.add(ldapAttributeName);
+        }
+    }
+
+    /**
+     * Prevents the LDAP attribute from being updated.
+     *
+     * @param readOnly
+     *            {@code true} if the LDAP attribute is read-only.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper readOnly(final boolean readOnly) {
+        // TODO: enforcement policy: ignore, warn, or reject.
+        // this.isReadOnly = readOnly;
+        return this;
+    }
+
+    /**
+     * Forces a multi-valued LDAP attribute to be represented as a single-valued
+     * JSON value, rather than an array of values.
+     *
+     * @param singleValued
+     *            {@code true} if the LDAP attribute should be treated as a
+     *            single-valued attribute.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper singleValued(final boolean singleValued) {
         this.forceSingleValued = singleValued;
         return this;
     }
@@ -82,25 +140,13 @@ public class SimpleAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
-        if (attributeMatchesPointer(jsonAttribute)) {
-            ldapAttributes.add(ldapAttributeName);
-        }
-    }
-
-    public SimpleAttributeMapper isReadOnly(final boolean readOnly) {
-        this.isReadOnly = readOnly;
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void toJson(final ServerContext c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+    @Override
+    public void toJSON(final ServerContext c, final Entry e,
+            final ResultHandler<Map<String, Object>> h) {
         final Attribute a = e.getAttribute(ldapAttributeName);
         if (a != null) {
-            final Function<ByteString, ?, Void> f =
-                    decoder == null ? Functions.fixedFunction(byteStringToJson(), a) : decoder;
+            final Function<ByteString, ?, Void> f = decoder == null ? Functions.fixedFunction(
+                    byteStringToJson(), a) : decoder;
             final Object value;
             if (forceSingleValued || a.getAttributeDescription().getAttributeType().isSingleValue()) {
                 value = a.parse().as(f, defaultValue);
@@ -116,19 +162,11 @@ public class SimpleAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toLDAP(final ServerContext c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
+    @Override
+    public void toLDAP(final ServerContext c, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
-    }
-
-    public SimpleAttributeMapper withDecoder(final Function<ByteString, ?, Void> f) {
-        this.decoder = f;
-        return this;
-    }
-
-    public SimpleAttributeMapper withDefaultValue(final Object defaultValue) {
-        this.defaultValue = defaultValue;
-        return this;
     }
 
     private boolean attributeMatchesPointer(final JsonPointer resourceAttribute) {

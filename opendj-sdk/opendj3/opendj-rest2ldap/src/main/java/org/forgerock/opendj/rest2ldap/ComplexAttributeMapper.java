@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
@@ -25,15 +24,15 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.json.resource.ServerContext;
-import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
- * An attribute mapper which will wrap the results of the provided mapper as a
- * complex JSON object.
+ * An attribute mapper which maps a single JSON attribute to the result of
+ * another attribute mapper.
  */
 public class ComplexAttributeMapper implements AttributeMapper {
 
@@ -60,6 +59,7 @@ public class ComplexAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         if (attributeMatchesPointer(jsonAttribute)) {
             final JsonPointer relativePointer = jsonAttribute.relativePointer();
@@ -70,26 +70,30 @@ public class ComplexAttributeMapper implements AttributeMapper {
     /**
      * {@inheritDoc}
      */
-    public void toJson(final ServerContext c, final Entry e,
+    @Override
+    public void toJSON(final ServerContext c, final Entry e,
             final ResultHandler<Map<String, Object>> h) {
         final ResultHandler<Map<String, Object>> wrapper = new ResultHandler<Map<String, Object>>() {
 
+            @Override
             public void handleError(final ResourceException e) {
                 h.handleError(e);
             }
 
+            @Override
             public void handleResult(final Map<String, Object> result) {
                 final Map<String, Object> complexResult = Collections.singletonMap(
                         jsonAttributeName, (Object) result);
                 h.handleResult(complexResult);
             }
         };
-        mapper.toJson(c, e, wrapper);
+        mapper.toJSON(c, e, wrapper);
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void toLDAP(final ServerContext c, final JsonValue v,
             final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub

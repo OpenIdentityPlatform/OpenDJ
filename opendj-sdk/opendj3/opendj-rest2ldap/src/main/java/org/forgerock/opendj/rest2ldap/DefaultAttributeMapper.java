@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.attributeToJson;
@@ -33,7 +32,8 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
- *
+ * An attribute mapper that directly maps a configurable selection of attributes
+ * to and from LDAP without any transformation.
  */
 public final class DefaultAttributeMapper implements AttributeMapper {
 
@@ -41,10 +41,21 @@ public final class DefaultAttributeMapper implements AttributeMapper {
     // All user attributes by default.
     private final Map<String, String> includedAttributes = new LinkedHashMap<String, String>();
 
+    /**
+     * Creates a new default attribute mapper which will map all user attributes
+     * to JSON by default.
+     */
     public DefaultAttributeMapper() {
         // No implementation required.
     }
 
+    /**
+     * Excludes one or more LDAP attributes from this mapping.
+     *
+     * @param attributes
+     *            The attributes to be excluded.
+     * @return This attribute mapper.
+     */
     public DefaultAttributeMapper excludeAttribute(final String... attributes) {
         for (final String attribute : attributes) {
             excludedAttributes.put(toLowerCase(attribute), attribute);
@@ -52,6 +63,7 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         return this;
     }
 
+    @Override
     public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
         switch (jsonAttribute.size()) {
         case 0:
@@ -72,15 +84,13 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         }
     }
 
-    public void getLDAPAttributes(final Set<String> ldapAttributes) {
-        if (!includedAttributes.isEmpty()) {
-            ldapAttributes.addAll(includedAttributes.values());
-        } else {
-            // All user attributes.
-            ldapAttributes.add("*");
-        }
-    }
-
+    /**
+     * Includes one or more LDAP attributes in this mapping.
+     *
+     * @param attributes
+     *            The attributes to be included.
+     * @return This attribute mapper.
+     */
     public DefaultAttributeMapper includeAttribute(final String... attributes) {
         for (final String attribute : attributes) {
             includedAttributes.put(toLowerCase(attribute), attribute);
@@ -88,7 +98,8 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         return this;
     }
 
-    public void toJson(final ServerContext c, final Entry e,
+    @Override
+    public void toJSON(final ServerContext c, final Entry e,
             final ResultHandler<Map<String, Object>> h) {
         final Map<String, Object> result = new LinkedHashMap<String, Object>(e.getAttributeCount());
         for (final Attribute a : e.getAllAttributes()) {
@@ -100,6 +111,7 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         h.handleResult(result);
     }
 
+    @Override
     public void toLDAP(final ServerContext c, final JsonValue v,
             final ResultHandler<List<Attribute>> h) {
         // TODO:

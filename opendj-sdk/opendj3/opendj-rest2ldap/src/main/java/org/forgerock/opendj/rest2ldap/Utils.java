@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
@@ -34,35 +33,37 @@ import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
- *
+ * Internal utility methods.
  */
 final class Utils {
 
+    // @Checkstyle:off
     private static final Function<ByteString, Object, Attribute> BYTESTRING_TO_JSON =
             new Function<ByteString, Object, Attribute>() {
-                public Object apply(final ByteString value, final Attribute a) {
-                    final Syntax syntax =
-                            a.getAttributeDescription().getAttributeType().getSyntax();
-                    if (syntax.equals(getBooleanSyntax())) {
-                        return Functions.byteStringToBoolean().apply(value, null);
-                    } else if (syntax.equals(getIntegerSyntax())) {
-                        return Functions.byteStringToLong().apply(value, null);
-                    } else if (syntax.equals(getGeneralizedTimeSyntax())) {
-                        return DatatypeConverter.printDateTime(Functions
-                                .byteStringToGeneralizedTime().apply(value, null).toCalendar());
-                    } else if (syntax.isHumanReadable()) {
-                        return Functions.byteStringToString().apply(value, null);
-                    } else {
-                        // Base 64 encoded binary.
-                        return DatatypeConverter.printBase64Binary(value.toByteArray());
-                    }
-                }
-            };
+        @Override
+        public Object apply(final ByteString value, final Attribute a) {
+            final Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
+            if (syntax.equals(getBooleanSyntax())) {
+                return Functions.byteStringToBoolean().apply(value, null);
+            } else if (syntax.equals(getIntegerSyntax())) {
+                return Functions.byteStringToLong().apply(value, null);
+            } else if (syntax.equals(getGeneralizedTimeSyntax())) {
+                return DatatypeConverter.printDateTime(Functions.byteStringToGeneralizedTime()
+                        .apply(value, null).toCalendar());
+            } else if (syntax.isHumanReadable()) {
+                return Functions.byteStringToString().apply(value, null);
+            } else {
+                // Base 64 encoded binary.
+                return DatatypeConverter.printBase64Binary(value.toByteArray());
+            }
+        }
+    };
+    // @Checkstyle:on
 
     static Object attributeToJson(final Attribute a) {
         final Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, a);
-        final boolean isSingleValued =
-                a.getAttributeDescription().getAttributeType().isSingleValue();
+        final boolean isSingleValued = a.getAttributeDescription().getAttributeType()
+                .isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
 

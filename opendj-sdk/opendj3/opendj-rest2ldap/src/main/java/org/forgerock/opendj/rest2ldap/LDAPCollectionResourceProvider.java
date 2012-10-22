@@ -9,11 +9,10 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import java.util.Collection;
@@ -26,7 +25,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.resource.*;
+import org.forgerock.json.resource.ActionRequest;
+import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.CreateRequest;
+import org.forgerock.json.resource.DeleteRequest;
+import org.forgerock.json.resource.NotSupportedException;
+import org.forgerock.json.resource.PatchRequest;
+import org.forgerock.json.resource.QueryRequest;
+import org.forgerock.json.resource.QueryResult;
+import org.forgerock.json.resource.QueryResultHandler;
+import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.Resource;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ServerContext;
+import org.forgerock.json.resource.UncategorizedException;
+import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
@@ -41,19 +55,27 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
 /**
- *
+ * A {@code CollectionResourceProvider} implementation which maps a JSON
+ * resource collection to LDAP entries beneath a base DN.
  */
 public class LDAPCollectionResourceProvider implements CollectionResourceProvider {
-    private final AttributeMapper attributeMapper;
-    private final EntryContainer entryContainer;
-
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
+    private final AttributeMapper attributeMapper;
+
+    private final EntryContainer entryContainer;
 
     /**
      * Creates a new LDAP resource.
+     *
+     * @param container
+     *            The LDAP entry container.
+     * @param mapper
+     *            The attribute mapper which will be used for mapping LDAP
+     *            attributes to JSON attributes.
      */
-    public LDAPCollectionResourceProvider(final EntryContainer container, final AttributeMapper mapper) {
+    public LDAPCollectionResourceProvider(final EntryContainer container,
+            final AttributeMapper mapper) {
         this.entryContainer = container;
         this.attributeMapper = mapper;
     }
@@ -62,8 +84,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void actionCollection(ServerContext context, ActionRequest request,
-            ResultHandler<JsonValue> handler) {
+    public void actionCollection(final ServerContext context, final ActionRequest request,
+            final ResultHandler<JsonValue> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
@@ -71,8 +93,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void actionInstance(ServerContext context, String resourceId, ActionRequest request,
-            ResultHandler<JsonValue> handler) {
+    public void actionInstance(final ServerContext context, final String resourceId,
+            final ActionRequest request, final ResultHandler<JsonValue> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
@@ -80,8 +102,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void createInstance(ServerContext context, CreateRequest request,
-            ResultHandler<Resource> handler) {
+    public void createInstance(final ServerContext context, final CreateRequest request,
+            final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
@@ -89,8 +111,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void deleteInstance(ServerContext context, String resourceId, DeleteRequest request,
-            ResultHandler<Resource> handler) {
+    public void deleteInstance(final ServerContext context, final String resourceId,
+            final DeleteRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
@@ -98,8 +120,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void patchInstance(ServerContext context, String resourceId, PatchRequest request,
-            ResultHandler<Resource> handler) {
+    public void patchInstance(final ServerContext context, final String resourceId,
+            final PatchRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
@@ -118,6 +140,62 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
             private final AtomicReference<ResourceException> pendingResult = new AtomicReference<ResourceException>();
             private final AtomicBoolean resultSent = new AtomicBoolean();
 
+            @Override
+            public boolean handleEntry(final SearchResultEntry entry) {
+                /*
+                 * Search result entries will be returned before the search
+                 * result/error so the only reason pendingResult will be
+                 * non-null is if a mapping error has occurred.
+                 */
+                if (pendingResult.get() != null) {
+                    return false;
+                }
+
+                // TODO: should the resource or the container define the ID
+                // mapping?
+                final String id = entryContainer.getIDFromEntry(entry);
+                final String revision = entryContainer.getEtagFromEntry(entry);
+                final ResultHandler<Map<String, Object>> mapHandler = new ResultHandler<Map<String, Object>>() {
+                    @Override
+                    public void handleError(final ResourceException e) {
+                        pendingResult.compareAndSet(null, e);
+                        pendingResourceCount.decrementAndGet();
+                        completeIfNecessary();
+                    }
+
+                    @Override
+                    public void handleResult(final Map<String, Object> result) {
+                        final Resource resource = new Resource(id, revision, new JsonValue(result));
+                        handler.handleResource(resource);
+                        pendingResourceCount.decrementAndGet();
+                        completeIfNecessary();
+                    }
+                };
+
+                pendingResourceCount.incrementAndGet();
+                attributeMapper.toJSON(context, entry, mapHandler);
+                return true;
+            }
+
+            @Override
+            public void handleErrorResult(final ErrorResultException error) {
+                pendingResult.compareAndSet(null, adaptErrorResult(error));
+                completeIfNecessary();
+            }
+
+            @Override
+            public boolean handleReference(final SearchResultReference reference) {
+                // TODO: should this be classed as an error since rest2ldap
+                // assumes entries are all colocated?
+                return true;
+            }
+
+            @Override
+            public void handleResult(final Result result) {
+                pendingResult.compareAndSet(null, SUCCESS);
+                completeIfNecessary();
+            }
+
             /*
              * Close out the query result set if there are no more pending
              * resources and the LDAP result has been received.
@@ -134,56 +212,6 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                     }
                 }
             }
-
-            public boolean handleEntry(final SearchResultEntry entry) {
-                /*
-                 * Search result entries will be returned before the search
-                 * result/error so the only reason pendingResult will be
-                 * non-null is if a mapping error has occurred.
-                 */
-                if (pendingResult.get() != null) {
-                    return false;
-                }
-
-                // TODO: should the resource or the container define the ID
-                // mapping?
-                final String id = entryContainer.getIDFromEntry(entry);
-                final String revision = entryContainer.getEtagFromEntry(entry);
-                final ResultHandler<Map<String, Object>> mapHandler = new ResultHandler<Map<String, Object>>() {
-                    public void handleError(final ResourceException e) {
-                        pendingResult.compareAndSet(null, e);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
-                    }
-
-                    public void handleResult(final Map<String, Object> result) {
-                        Resource resource = new Resource(id, revision, new JsonValue(result));
-                        handler.handleResource(resource);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
-                    }
-                };
-
-                pendingResourceCount.incrementAndGet();
-                attributeMapper.toJson(context, entry, mapHandler);
-                return true;
-            }
-
-            public void handleErrorResult(final ErrorResultException error) {
-                pendingResult.compareAndSet(null, adaptErrorResult(error));
-                completeIfNecessary();
-            }
-
-            public boolean handleReference(final SearchResultReference reference) {
-                // TODO: should this be classed as an error since rest2ldap
-                // assumes entries are all colocated?
-                return true;
-            }
-
-            public void handleResult(final Result result) {
-                pendingResult.compareAndSet(null, SUCCESS);
-                completeIfNecessary();
-            }
         };
         entryContainer.listEntries(context, requestedLDAPAttributes, searchHandler);
     }
@@ -193,32 +221,39 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      */
     @Override
     public void readInstance(final ServerContext context, final String resourceId,
-            ReadRequest request, final ResultHandler<Resource> handler) {
+            final ReadRequest request, final ResultHandler<Resource> handler) {
         // TODO: Determine the set of LDAP attributes that need to be read.
         final Set<JsonPointer> requestedAttributes = new LinkedHashSet<JsonPointer>();
         final Collection<String> requestedLDAPAttributes = getRequestedLDAPAttributes(requestedAttributes);
 
-        final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler = new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+        // @Checkstyle:off
+        final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
+                new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+            @Override
             public void handleErrorResult(final ErrorResultException error) {
                 handler.handleError(adaptErrorResult(error));
             }
 
+            @Override
             public void handleResult(final SearchResultEntry entry) {
                 final String revision = entryContainer.getEtagFromEntry(entry);
                 final ResultHandler<Map<String, Object>> mapHandler = new ResultHandler<Map<String, Object>>() {
+                    @Override
                     public void handleError(final ResourceException e) {
                         handler.handleError(e);
                     }
 
+                    @Override
                     public void handleResult(final Map<String, Object> result) {
-                        Resource resource = new Resource(resourceId, revision,
-                                new JsonValue(result));
+                        final Resource resource = new Resource(resourceId, revision, new JsonValue(
+                                result));
                         handler.handleResult(resource);
                     }
                 };
-                attributeMapper.toJson(context, entry, mapHandler);
+                attributeMapper.toJSON(context, entry, mapHandler);
             }
         };
+        // @Checkstyle:on
         entryContainer.readEntry(context, resourceId, requestedLDAPAttributes, searchHandler);
     }
 
@@ -226,8 +261,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * {@inheritDoc}
      */
     @Override
-    public void updateInstance(ServerContext context, String resourceId, UpdateRequest request,
-            ResultHandler<Resource> handler) {
+    public void updateInstance(final ServerContext context, final String resourceId,
+            final UpdateRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 

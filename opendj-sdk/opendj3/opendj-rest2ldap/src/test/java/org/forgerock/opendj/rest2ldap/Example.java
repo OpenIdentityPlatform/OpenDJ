@@ -34,13 +34,21 @@ import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
 
 /**
- * Example
+ * Example.
  */
 public class Example {
 
     private static final Logger LOGGER = Logger.getLogger(Example.class.getName());
     private static final int PORT = 18890;
 
+    /**
+     * REST 2 LDAP example application.
+     *
+     * @param args
+     *            Command line arguments.
+     * @throws Exception
+     *             If an unexpected error occurred.
+     */
     public static void main(final String[] args) throws Exception {
         // All LDAP resources will use this connection factory.
         final ConnectionFactory ldapFactory = newAuthenticatedConnectionFactory(
@@ -55,18 +63,18 @@ public class Example {
 
         // Create user resource.
         final AttributeMapper userMapper = new CompositeAttributeMapper().addMapper(
-                new SimpleAttributeMapper("id", "entryUUID").forceSingleValued(true)).addMapper(
+                new SimpleAttributeMapper("id", "entryUUID").singleValued(true)).addMapper(
                 new DefaultAttributeMapper().includeAttribute("uid", "isMemberOf",
                         "modifyTimestamp")).addMapper(
                 new ComplexAttributeMapper("name", new DefaultAttributeMapper().includeAttribute(
                         "cn", "sn", "givenName"))).addMapper(
                 new ComplexAttributeMapper("contactInformation", new CompositeAttributeMapper()
                         .addMapper(
-                                new SimpleAttributeMapper("telephoneNumber").withDecoder(
-                                        Functions.byteStringToString()).forceSingleValued(true))
+                                new SimpleAttributeMapper("telephoneNumber").decoder(
+                                        Functions.byteStringToString()).singleValued(true))
                         .addMapper(
                                 new SimpleAttributeMapper("emailAddress", "mail")
-                                        .forceSingleValued(true))));
+                                        .singleValued(true))));
         final LDAPCollectionResourceProvider userResource = new LDAPCollectionResourceProvider(
                 userContainer, userMapper);
 
@@ -77,7 +85,7 @@ public class Example {
                 groupContainer, groupMapper);
 
         // Create the router.
-        Router router = new Router();
+        final Router router = new Router();
         router.addRoute(RoutingMode.EQUALS, "/users", userResource);
         router.addRoute(RoutingMode.EQUALS, "/groups", groupResource);
 
