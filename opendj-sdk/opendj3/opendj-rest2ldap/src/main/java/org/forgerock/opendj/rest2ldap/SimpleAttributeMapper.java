@@ -107,8 +107,9 @@ public class SimpleAttributeMapper implements AttributeMapper {
             } else {
                 value = a.parse().asSetOf(f, defaultValue);
             }
-            final Map<String, Object> result = Collections.singletonMap(jsonAttributeName, value);
-            h.handleResult(result);
+            h.handleResult(Collections.singletonMap(jsonAttributeName, value));
+        } else {
+            h.handleResult(null);
         }
     }
 

@@ -86,8 +86,10 @@ public final class CompositeAttributeMapper implements AttributeMapper {
             }
 
             public void handleResult(final Map<String, Object> result) {
-                synchronized (this) {
-                    results.add(result);
+                if (result != null && !result.isEmpty()) {
+                    synchronized (this) {
+                        results.add(result);
+                    }
                 }
                 if (latch.decrementAndGet() == 0) {
                     final Map<String, Object> mergeResult;
