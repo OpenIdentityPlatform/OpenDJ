@@ -38,48 +38,41 @@
         This module includes APIs for implementing REST to LDAP gateways.
     </description>
     <packaging>jar</packaging>
-    <repositories>
-        <repository>
-            <id>maven-restlet</id>
-            <name>Public online Restlet repository</name>
-            <url>http://maven.restlet.org</url>
-        </repository>
-    </repositories>
+    <properties>
+        <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-ldap-sdk</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-build-tools</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-fluent</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${forgerockRestVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${forgerockRestVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.forgerock</groupId>
+            <artifactId>forgerock-build-tools</artifactId>
+            <version>${forgerockBuildToolsVersion}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-servlet</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>${forgerockRestVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-http-servlet</artifactId>
-            <version>2.3-SNAPSHOT</version>
+            <version>${grizzlyFrameworkVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

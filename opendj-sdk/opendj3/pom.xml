@@ -94,10 +94,7 @@
   <modules>
     <module>opendj-ldap-sdk</module>
     <module>opendj-ldap-toolkit</module>
-    <!--
-    <module>opendj-ldap-sync</module>
     <module>opendj-rest2ldap</module>
-    -->
     <module>opendj-ldap-sdk-examples</module>
   </modules>
   <properties>
