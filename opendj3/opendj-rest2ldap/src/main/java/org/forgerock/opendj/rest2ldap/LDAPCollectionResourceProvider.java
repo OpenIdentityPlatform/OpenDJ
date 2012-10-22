@@ -127,7 +127,7 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                     final ResourceException result = pendingResult.get();
                     if (result != null && resultSent.compareAndSet(false, true)) {
                         if (result == SUCCESS) {
-                            handler.handleResult(null);
+                            handler.handleResult(new QueryResult());
                         } else {
                             handler.handleError(result);
                         }

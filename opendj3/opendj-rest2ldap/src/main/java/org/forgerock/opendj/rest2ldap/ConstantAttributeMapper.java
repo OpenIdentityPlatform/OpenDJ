@@ -63,9 +63,7 @@ public class ConstantAttributeMapper implements AttributeMapper {
     public void toJson(final ServerContext c, final Entry e,
             final ResultHandler<Map<String, Object>> h) {
         // FIXME: how do we know if the user requested it???
-        final Map<String, Object> result = Collections.singletonMap(jsonAttributeName,
-                jsonAttributeValue);
-        h.handleResult(result);
+        h.handleResult(Collections.singletonMap(jsonAttributeName, jsonAttributeValue));
 
     }
 
