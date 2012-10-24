@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
   <function name="copyFile">
@@ -66,9 +66,13 @@
       <script>
         destfolder = os.path.dirname(destfile)
       </script>
-      
+
+      <message>
+        'Checking for folder %s.' % destfolder
+      </message>
+
       <call function="'createFolder'">
-        { 'location'   : location,
+        { 'location'   : remotehost,
           'foldername' : '%s' % destfolder
         }
       </call>      
@@ -482,6 +486,10 @@
     </function-map-args>
 
     <sequence>
+
+      <message>
+        'Creating folder %s. on %s' % (foldername,location)
+      </message>
 
       <stafcmd name="'STAF Command: Create Folder'">
         <location>'%s' % location</location>
