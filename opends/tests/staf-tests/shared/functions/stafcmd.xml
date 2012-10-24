@@ -27,7 +27,7 @@
  !      Portions Copyright 2011-2012 ForgeRock AS.
  ! -->
 <stax>
-  <function name="copyFile">
+  <function name="copyFile" scope="local">
     <function-prolog>
       This function copies a source file to destination file to host
     </function-prolog>
@@ -46,21 +46,24 @@
       </function-arg-def>
       <function-arg-def name="srcfile" type="required">
         <function-arg-description>
-          The name of the source fule
+          The name of the source file
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
       <function-arg-def name="destfile" type="required">
         <function-arg-description>
-          The name of the destination fule
+          The name of the destination file
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <script>
+        myLocation=location
+      </script>
       <message>
         'Copy file %s:%s to %s:%s.' \
-        % (location,srcfile,remotehost,destfile)
+          % (myLocation,srcfile,remotehost,destfile)
       </message>
 
       <script>
@@ -68,19 +71,21 @@
       </script>
 
       <message>
-        'Checking for folder %s.' % destfolder
+        'Checking for parent folder %s on host %s.' % (destfolder,remotehost)
       </message>
 
       <call function="'createFolder'">
         { 'location'   : remotehost,
           'foldername' : '%s' % destfolder
         }
-      </call>      
+      </call>
 
       <stafcmd name="'STAF Command: Copy File'">
-        <location>'%s' % location</location>
+        <location>'%s' % myLocation</location>
         <service>'fs'</service>
-        <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcfile,destfile,remotehost) </request>
+        <request>
+          'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcfile,destfile,remotehost)
+        </request>
       </stafcmd>
       <script>
         cmdRC=RC
@@ -428,14 +433,14 @@
       <if expr="RC == 48">
         <sequence>
           <message log="1">
-            'Folder does not exist, do not delete it.'
+            'Folder %s does not exist, do not delete it.' % foldername
           </message>
           <return>0</return>
         </sequence>
         <else>
           <sequence>
             <message log="1">
-              'Folder exists, will delete it'
+              'Folder %s exists, will delete it and all contents.' % foldername
             </message>
           </sequence>
         </else>
@@ -488,7 +493,7 @@
     <sequence>
 
       <message>
-        'Creating folder %s. on %s' % (foldername,location)
+        'Creating folder %s on %s' % (foldername,location)
       </message>
 
       <stafcmd name="'STAF Command: Create Folder'">
