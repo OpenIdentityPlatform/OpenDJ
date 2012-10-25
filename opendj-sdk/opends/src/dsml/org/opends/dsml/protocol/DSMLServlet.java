@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.dsml.protocol;
 
@@ -39,6 +39,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -97,6 +98,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String TRUSTSTOREPASSWORD = "ldap.truststore.password";
   private static final String TRUSTALLCERTS = "ldap.trustall";
   private static final String USEHTTPAUTHZID = "ldap.authzidtypeisid";
+  private static final String EXOPSTRINGPREFIX = "ldap.exop.string.";
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -134,6 +136,8 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePasswordValue;
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
+  private HashSet<String> exopStrings = new HashSet<String>();
+
   /**
    * This method will be called by the Servlet Container when
    * this servlet is being placed into service.
@@ -171,6 +175,24 @@ public class DSMLServlet extends HttpServlet {
 
       useHTTPAuthzID = Boolean.valueOf(
           config.getServletContext().getInitParameter(USEHTTPAUTHZID));
+
+      /*
+       * Find all the param-names matching the pattern:
+       * ldap.exop.string.1.2.3.4.5
+       * and if the value's true then mark that OID (1.2.3.4.5) as one returning
+       * a string value.
+       */
+      Enumeration<String> names = config.getServletContext()
+          .getInitParameterNames();
+      while (names.hasMoreElements())
+      {
+        String name = names.nextElement().toString();
+        if (name.startsWith(EXOPSTRINGPREFIX) &&
+            Boolean.valueOf(config.getServletContext().getInitParameter(name)))
+        {
+          exopStrings.add(name.substring(EXOPSTRINGPREFIX.length()));
+        }
+      }
 
       if(jaxbContext==null)
         jaxbContext = JAXBContext.newInstance(PKG_NAME,
@@ -545,7 +567,8 @@ public class DSMLServlet extends HttpServlet {
       } else if (request instanceof ExtendedRequest) {
         // Process the extended request.
         ExtendedRequest er = (ExtendedRequest) request;
-        DSMLExtendedOperation eo = new DSMLExtendedOperation(connection);
+        DSMLExtendedOperation eo = new DSMLExtendedOperation(connection,
+            exopStrings);
         ExtendedResponse extendedResponse = eo.doOperation(objFactory, er);
         return objFactory.createBatchResponseExtendedResponse(extendedResponse);
 
