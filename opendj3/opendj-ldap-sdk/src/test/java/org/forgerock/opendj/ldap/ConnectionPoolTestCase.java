@@ -373,7 +373,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testSkipStaleConnectionsOnGetWhenAtCapacity() throws Exception {
         // Setup.
         final Connection connection1 = mock(Connection.class);

@@ -233,12 +233,9 @@ final class FixedConnectionPool implements ConnectionPool {
                 // The connection may have been disconnected by the remote
                 // server, but the server may still be available. In order to
                 // avoid leaving pending futures hanging indefinitely, we should
-                // try to reconnect immediately.
-
-                // Close the dead connection.
+                // try to reconnect immediately. No need to release/acquire
+                // currentPoolSize.
                 connection.close();
-
-                // Try to get a new connection to replace it.
                 factory.getConnectionAsync(connectionResultHandler);
 
                 if (DEBUG_LOG.isLoggable(Level.FINE)) {
@@ -543,11 +540,7 @@ final class FixedConnectionPool implements ConnectionPool {
 
         @SuppressWarnings("unchecked")
         AsynchronousFutureResult<Connection> getWaitingFuture() {
-            if (value instanceof AsynchronousFutureResult) {
-                return (AsynchronousFutureResult<Connection>) value;
-            } else {
-                throw new IllegalStateException();
-            }
+            return (AsynchronousFutureResult<Connection>) value;
         }
 
         boolean isWaitingFuture() {
@@ -656,6 +649,13 @@ final class FixedConnectionPool implements ConnectionPool {
                 } else {
                     // Close the stale connection and try again.
                     connection.close();
+                    currentPoolSize.release();
+
+                    if (DEBUG_LOG.isLoggable(Level.FINE)) {
+                        DEBUG_LOG.fine(String.format("Connection no longer valid. "
+                                + "currentPoolSize=%d, poolSize=%d", poolSize
+                                - currentPoolSize.availablePermits(), poolSize));
+                    }
                 }
             } else {
                 // Grow the pool if needed.
