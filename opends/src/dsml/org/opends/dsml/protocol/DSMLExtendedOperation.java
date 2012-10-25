@@ -30,6 +30,7 @@ package org.opends.dsml.protocol;
 
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -51,16 +52,38 @@ import org.w3c.dom.Element;
 public class DSMLExtendedOperation
 {
   private LDAPConnection connection;
+  private Set<String> stringResponses;
 
   /**
    * Create an instance with the specified LDAP connection.
    *
    * @param connection    The LDAP connection to send the request on.
+   * @param stringResponses The OIDs of any operations that have results that
+   *                        should be returned as strings instead of binary.
    */
-  public DSMLExtendedOperation(LDAPConnection connection)
+  public DSMLExtendedOperation(LDAPConnection connection,
+      Set<String> stringResponses)
   {
     this.connection = connection;
+    this.stringResponses = stringResponses;
   }
+
+
+
+  /**
+   * Determine if the response to a given LDAP extended operation (specified by
+   * OID) should be treated as a string. The default is binary.
+   *
+   * @param oid The OID of the extended operation.
+   * @return <CODE>true</CODE> if the extended operation is known to return a
+   *         string, <CODE>false</CODE> otherwise.
+   */
+  public boolean responseIsString(String oid)
+  {
+    return stringResponses.contains(oid);
+  }
+
+
 
   /**
    * Perform the LDAP EXTENDED operation and send the result back to the
@@ -132,11 +155,18 @@ public class DSMLExtendedOperation
     // Set the result code and error message for the DSML response.
     extendedResponse.setResponseName(extendedOp.getOID());
 
-    asnValue = extendedOp.getValue();
+    ByteString rawValue = extendedOp.getValue();
     value = null;
-    if (asnValue != null)
+    if (rawValue != null)
     {
-      value = asnValue.toByteArray();
+      if (responseIsString(requestName))
+      {
+        value = rawValue.toString();
+      }
+      else
+      {
+        value = rawValue.toByteArray();
+      }
     }
     extendedResponse.setResponse(value);
     extendedResponse.setErrorMessage(
