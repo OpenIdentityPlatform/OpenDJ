@@ -27,6 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
@@ -59,7 +60,6 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -81,19 +81,19 @@ final class FixedConnectionPool implements ConnectionPool {
             // Connection attempt failed, so decrease the pool size.
             currentPoolSize.release();
 
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-                StaticUtils.DEBUG_LOG.fine(String.format("Connection attempt failed: "
-                        + error.getMessage() + " currentPoolSize=%d, poolSize=%d", poolSize
+            if (DEBUG_LOG.isLoggable(Level.FINE)) {
+                DEBUG_LOG.fine(String.format("Connection attempt failed: " + error.getMessage()
+                        + " currentPoolSize=%d, poolSize=%d", poolSize
                         - currentPoolSize.availablePermits(), poolSize));
             }
 
             QueueElement holder;
             synchronized (queue) {
-                if (queue.isEmpty() || !queue.getFirst().isWaitingFuture()) {
+                if (hasWaitingFutures()) {
+                    holder = queue.removeFirst();
+                } else {
                     // No waiting futures.
                     return;
-                } else {
-                    holder = queue.removeFirst();
                 }
             }
 
@@ -106,8 +106,8 @@ final class FixedConnectionPool implements ConnectionPool {
          */
         @Override
         public void handleResult(final Connection connection) {
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-                StaticUtils.DEBUG_LOG.fine(String.format("Connection attempt succeeded: "
+            if (DEBUG_LOG.isLoggable(Level.FINE)) {
+                DEBUG_LOG.fine(String.format("Connection attempt succeeded: "
                         + " currentPoolSize=%d, poolSize=%d", poolSize
                         - currentPoolSize.availablePermits(), poolSize));
             }
@@ -125,11 +125,9 @@ final class FixedConnectionPool implements ConnectionPool {
     private final class PooledConnection implements Connection, ConnectionEventListener {
         private final Connection connection;
         private ErrorResultException error = null;
-
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
         private boolean isDisconnectNotification = false;
         private List<ConnectionEventListener> listeners = null;
-        // Guarded by stateLock.
         private final Object stateLock = new Object();
 
         private PooledConnection(final Connection connection) {
@@ -243,8 +241,8 @@ final class FixedConnectionPool implements ConnectionPool {
                 // Try to get a new connection to replace it.
                 factory.getConnectionAsync(connectionResultHandler);
 
-                if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-                    StaticUtils.DEBUG_LOG.fine(String.format("Connection no longer valid. "
+                if (DEBUG_LOG.isLoggable(Level.FINE)) {
+                    DEBUG_LOG.fine(String.format("Connection no longer valid. "
                             + "currentPoolSize=%d, poolSize=%d", poolSize
                             - currentPoolSize.availablePermits(), poolSize));
                 }
@@ -558,17 +556,10 @@ final class FixedConnectionPool implements ConnectionPool {
     }
 
     private final ResultHandler<Connection> connectionResultHandler = new ConnectionResultHandler();
-
     private final Semaphore currentPoolSize;
-
     private final ConnectionFactory factory;
-
-    // Guarded by queue.
     private boolean isClosed = false;
-
     private final int poolSize;
-
-    // Guarded by queue.
     private final LinkedList<QueueElement> queue = new LinkedList<QueueElement>();
 
     /**
@@ -601,14 +592,14 @@ final class FixedConnectionPool implements ConnectionPool {
             // Remove any connections which are waiting in the queue as these
             // can be closed immediately.
             idleConnections = new LinkedList<Connection>();
-            while (!queue.isEmpty() && !queue.getFirst().isWaitingFuture()) {
+            while (hasWaitingConnections()) {
                 final QueueElement holder = queue.removeFirst();
                 idleConnections.add(holder.getWaitingConnection());
             }
         }
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-            StaticUtils.DEBUG_LOG.fine(String.format(
+        if (DEBUG_LOG.isLoggable(Level.FINE)) {
+            DEBUG_LOG.fine(String.format(
                     "Connection pool is closing: currentPoolSize=%d, poolSize=%d", poolSize
                             - currentPoolSize.availablePermits(), poolSize));
         }
@@ -645,11 +636,11 @@ final class FixedConnectionPool implements ConnectionPool {
                     throw new IllegalStateException("FixedConnectionPool is already closed");
                 }
 
-                if (queue.isEmpty() || queue.getFirst().isWaitingFuture()) {
+                if (hasWaitingConnections()) {
+                    holder = queue.removeFirst();
+                } else {
                     holder = new QueueElement(handler);
                     queue.add(holder);
-                } else {
-                    holder = queue.removeFirst();
                 }
             }
 
@@ -706,12 +697,19 @@ final class FixedConnectionPool implements ConnectionPool {
         currentPoolSize.release();
         connection.close();
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-            StaticUtils.DEBUG_LOG.fine(String.format(
-                    "Closing connection because connection pool is closing: "
-                            + " currentPoolSize=%d, poolSize=%d", poolSize
-                            - currentPoolSize.availablePermits(), poolSize));
+        if (DEBUG_LOG.isLoggable(Level.FINE)) {
+            DEBUG_LOG.fine(String.format("Closing connection because connection pool is closing: "
+                    + " currentPoolSize=%d, poolSize=%d", poolSize
+                    - currentPoolSize.availablePermits(), poolSize));
         }
+    }
+
+    private boolean hasWaitingConnections() {
+        return !queue.isEmpty() && !queue.getFirst().isWaitingFuture();
+    }
+
+    private boolean hasWaitingFutures() {
+        return !queue.isEmpty() && queue.getFirst().isWaitingFuture();
     }
 
     private void publishConnection(final Connection connection) {
@@ -719,7 +717,10 @@ final class FixedConnectionPool implements ConnectionPool {
         boolean connectionPoolIsClosing = false;
 
         synchronized (queue) {
-            if (queue.isEmpty() || !queue.getFirst().isWaitingFuture()) {
+            if (hasWaitingFutures()) {
+                connectionPoolIsClosing = isClosed;
+                holder = queue.removeFirst();
+            } else {
                 if (isClosed) {
                     connectionPoolIsClosing = true;
                     holder = null;
@@ -728,9 +729,6 @@ final class FixedConnectionPool implements ConnectionPool {
                     queue.add(holder);
                     return;
                 }
-            } else {
-                connectionPoolIsClosing = isClosed;
-                holder = queue.removeFirst();
             }
         }
 
@@ -744,9 +742,9 @@ final class FixedConnectionPool implements ConnectionPool {
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
                 holder.getWaitingFuture().handleErrorResult(e);
 
-                if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-                    StaticUtils.DEBUG_LOG.fine(String.format("Connection attempt failed: "
-                            + e.getMessage() + " currentPoolSize=%d, poolSize=%d", poolSize
+                if (DEBUG_LOG.isLoggable(Level.FINE)) {
+                    DEBUG_LOG.fine(String.format("Connection attempt failed: " + e.getMessage()
+                            + " currentPoolSize=%d, poolSize=%d", poolSize
                             - currentPoolSize.availablePermits(), poolSize));
                 }
             }
