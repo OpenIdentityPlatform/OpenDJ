@@ -366,6 +366,58 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         pool.close();
     }
 
+    /**
+     * Verifies that a fully allocated pool whose connections are stale due to
+     * idle timeouts still allocates new connections.
+     *
+     * @throws Exception
+     *             If an unexpected error occurred.
+     */
+    @Test(enabled = false)
+    public void testSkipStaleConnectionsOnGetWhenAtCapacity() throws Exception {
+        // Setup.
+        final Connection connection1 = mock(Connection.class);
+        when(connection1.isValid()).thenReturn(true);
+
+        final Connection connection2 = mock(Connection.class);
+        when(connection2.isValid()).thenReturn(true);
+
+        final BindRequest bind3 =
+                Requests.newSimpleBindRequest("cn=test2", "password".toCharArray());
+        final Connection connection3 = mock(Connection.class);
+        when(connection3.bind(bind3)).thenReturn(Responses.newBindResult(ResultCode.SUCCESS));
+        when(connection3.isValid()).thenReturn(true);
+
+        final ConnectionFactory factory =
+                mockConnectionFactory(connection1, connection2, connection3);
+        final ConnectionPool pool = Connections.newFixedConnectionPool(factory, 2);
+
+        // Fully allocate the pool.
+        final Connection pc1 = pool.getConnection();
+        final Connection pc2 = pool.getConnection();
+        pc1.close();
+        pc2.close();
+
+        /*
+         * Simulate remote disconnect of connection1 and connection2. The next
+         * connection attempt should return connection3.
+         */
+        when(connection1.isValid()).thenReturn(false);
+        when(connection2.isValid()).thenReturn(false);
+        final Connection pc3 = pool.getConnection();
+
+        // Check that returned connection routes request to connection3.
+        assertThat(pc3.isValid()).isTrue();
+        verify(connection1).close();
+        verify(connection2).close();
+        assertThat(pc3.bind(bind3).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+        verify(factory, times(3)).getConnection();
+        verify(connection3).bind(bind3);
+
+        pc3.close();
+        pool.close();
+    }
+
     private Connection mockConnection(final List<ConnectionEventListener> listeners) {
         final Connection mockConnection = mock(Connection.class);
 
