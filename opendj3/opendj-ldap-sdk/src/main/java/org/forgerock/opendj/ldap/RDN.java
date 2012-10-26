@@ -72,8 +72,7 @@ import com.forgerock.opendj.util.SubstringReader;
 public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
     // A constant holding a special RDN having zero AVAs and which always
-    // compares
-    // greater than any other RDN other than itself.
+    // compares greater than any other RDN other than itself.
     private static final RDN MAX_VALUE = new RDN(new AVA[0], "");
 
     /**
