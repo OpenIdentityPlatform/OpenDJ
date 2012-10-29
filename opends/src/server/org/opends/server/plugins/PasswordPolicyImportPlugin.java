@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -376,8 +376,7 @@ policyLoop:
                   String.valueOf(entry.getDN()), String.valueOf(policyDN));
               logError(message);
             }
-
-            if (authPolicy.isPasswordPolicy())
+            else if (authPolicy.isPasswordPolicy())
             {
               policy = (PasswordPolicy) authPolicy;
             }
