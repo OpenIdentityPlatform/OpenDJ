@@ -262,7 +262,7 @@ attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
 -
 add: objectClasses
 objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
- ILIARY MAY classOfService $ diskQuota $ mailQuota X-ORIGIN 'OpenDJ Doc
+ ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
  umentation Examples' )
 
 $ ldapmodify
