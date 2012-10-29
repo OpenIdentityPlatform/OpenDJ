@@ -1303,7 +1303,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    // TODO
     @Test(expectedExceptions = DecodeException.class)
     public void testValueOfLDIFEntryReadEntryContainingMalformedURL() throws Exception {
 
