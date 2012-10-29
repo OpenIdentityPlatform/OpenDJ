@@ -291,7 +291,7 @@ $ start-ds
 ... The Directory Server has started successfully</screen>
    </step>
    <step>
-    <para>Reinitialize replication on the replica.</para>
+    <para>Reset replication metadata on the replica.</para>
     <screen>$ dsreplication
  post-external-initialization
  --adminUID admin
