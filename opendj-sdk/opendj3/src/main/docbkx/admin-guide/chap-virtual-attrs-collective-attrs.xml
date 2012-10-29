@@ -243,25 +243,26 @@ description: Served by OpenDJ.Example.com
 dn: cn=schema
 changetype: modify
 add: attributeTypes
+attributeTypes: ( example-class-of-service-attribute-type NAME 'classOfService
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnore
+ SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+add: attributeTypes
 attributeTypes: ( example-class-of-service-disk-quota NAME 'diskQuota
  ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
- IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-
- VALUE USAGE userApplications X-ORIGIN 'OpenDJ Documentation Examples' )
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
 -
 add: attributeTypes
 attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
  ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
- IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-
- VALUE USAGE userApplications X-ORIGIN 'OpenDJ Documentation Examples' )
--
-delete: objectClasses
-objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
- ILIARY MAY classOfService X-ORIGIN 'OpenDJ Doc
- umentation Examples' )
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
 -
 add: objectClasses
 objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
- ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
+ ILIARY MAY classOfService $ diskQuota $ mailQuota X-ORIGIN 'OpenDJ Doc
  umentation Examples' )
 
 $ ldapmodify
