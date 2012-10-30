@@ -454,7 +454,9 @@ public class DSMLSearchOperation
    *          The object factory for this operation.
    * @param searchRequest
    *          The search request for this operation.
-   * @return The result of the add operation.
+   * @param controls
+   *          Any required controls (e.g. for proxy authz).
+   * @return The result of the search operation.
    * @throws IOException
    *           If an I/O problem occurs.
    * @throws LDAPException
@@ -462,7 +464,9 @@ public class DSMLSearchOperation
    *           element.
    */
   public SearchResponse doSearch(ObjectFactory objFactory,
-      SearchRequest searchRequest) throws IOException, LDAPException
+      SearchRequest searchRequest,
+      List<org.opends.server.types.Control> controls)
+  throws IOException, LDAPException
   {
     SearchResponse searchResponse = objFactory.createSearchResponse();
     searchResponse.setRequestID(searchRequest.getRequestID());
@@ -514,7 +518,7 @@ public class DSMLSearchOperation
     try
     {
       LDAPMessage msg =
-        new LDAPMessage(DSMLServlet.nextMessageID(), protocolOp);
+        new LDAPMessage(DSMLServlet.nextMessageID(), protocolOp, controls);
       connection.getLDAPWriter().writeMessage(msg);
 
       byte opType;

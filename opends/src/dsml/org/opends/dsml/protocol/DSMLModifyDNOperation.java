@@ -30,6 +30,7 @@ package org.opends.dsml.protocol;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.tools.LDAPConnection;
@@ -68,6 +69,7 @@ public class DSMLModifyDNOperation
    *
    * @param  objFactory       The object factory for this operation.
    * @param  modifyDNRequest  The modify DN request for this operation.
+   * @param  controls         Any required controls (e.g. for proxy authz).
    *
    * @return  The result of the modify DN operation.
    *
@@ -80,7 +82,8 @@ public class DSMLModifyDNOperation
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
-        ModifyDNRequest modifyDNRequest)
+        ModifyDNRequest modifyDNRequest,
+        List<org.opends.server.types.Control> controls)
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult modDNResponse = objFactory.createLDAPResult();
@@ -103,7 +106,8 @@ public class DSMLModifyDNOperation
     }
 
     // Create and send the LDAP request to the server.
-    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
+        controls);
     connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.
