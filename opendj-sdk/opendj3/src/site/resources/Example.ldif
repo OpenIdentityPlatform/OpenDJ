@@ -171,7 +171,8 @@ sn: Barnes
 roomnumber: 2290
 homeDirectory: /home/abarnes
 mail: abarnes@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1119
@@ -185,6 +186,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: abergin
+departmentNumber: 4000
 #classOfService: bronze
 userpassword: inflict
 facsimiletelephonenumber: +1 408 555 7472
@@ -195,7 +197,7 @@ sn: Bergin
 roomnumber: 3472
 homeDirectory: /home/abergin
 mail: abergin@example.com
-l: Cupertino
+l: San Francisco
 ou: Product Testing
 ou: People
 uidNumber: 1005
@@ -219,7 +221,8 @@ sn: Chassin
 roomnumber: 0466
 homeDirectory: /home/achassin
 mail: achassin@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1027
@@ -243,7 +246,8 @@ sn: Hall
 roomnumber: 3050
 homeDirectory: /home/ahall
 mail: ahall@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1103
@@ -267,7 +271,8 @@ sn: Hel
 roomnumber: 0572
 homeDirectory: /home/ahel
 mail: ahel@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1066
@@ -291,7 +296,8 @@ sn: Hunter
 roomnumber: 1213
 homeDirectory: /home/ahunter
 mail: ahunter@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1106
@@ -315,7 +321,8 @@ sn: Jensen
 roomnumber: 0784
 homeDirectory: /home/ajensen
 mail: ajensen@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1095
@@ -339,7 +346,8 @@ sn: Knutson
 roomnumber: 4736
 homeDirectory: /home/aknutson
 mail: aknutson@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1112
@@ -363,7 +371,8 @@ sn: Langdon
 roomnumber: 2254
 homeDirectory: /home/alangdon
 mail: alangdon@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1133
@@ -387,7 +396,8 @@ sn: Lutz
 roomnumber: 1327
 homeDirectory: /home/alutz
 mail: alutz@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1025
@@ -411,7 +421,8 @@ sn: Shelton
 roomnumber: 1987
 homeDirectory: /home/ashelton
 mail: ashelton@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1060
@@ -435,7 +446,8 @@ sn: Walker
 roomnumber: 0061
 homeDirectory: /home/awalker
 mail: awalker@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1136
@@ -459,7 +471,8 @@ sn: White
 roomnumber: 0142
 homeDirectory: /home/awhite
 mail: awhite@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1082
@@ -483,7 +496,8 @@ sn: Worrell
 roomnumber: 3966
 homeDirectory: /home/aworrell
 mail: aworrell@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1108
@@ -507,7 +521,8 @@ sn: Francis
 roomnumber: 3743
 homeDirectory: /home/bfrancis
 mail: bfrancis@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1139
@@ -531,7 +546,8 @@ sn: Free
 roomnumber: 3307
 homeDirectory: /home/bfree
 mail: bfree@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1056
@@ -555,7 +571,8 @@ sn: Hall
 roomnumber: 2758
 homeDirectory: /home/bhal2
 mail: bhal2@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1024
@@ -579,7 +596,8 @@ sn: Hall
 roomnumber: 2511
 homeDirectory: /home/bhall
 mail: bhall@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1017
@@ -603,7 +621,8 @@ sn: Jablonski
 roomnumber: 0906
 homeDirectory: /home/bjablons
 mail: bjablons@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1020
@@ -627,7 +646,8 @@ sn: Jensen
 roomnumber: 4294
 homeDirectory: /home/bjense2
 mail: bjense2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1101
@@ -652,9 +672,11 @@ sn: Jensen
 roomnumber: 0209
 homeDirectory: /home/bjensen
 mail: bjensen@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
+preferredLanguage: en, ko;q=0.8
 uidNumber: 1076
 gidNumber: 1000
 
@@ -676,7 +698,8 @@ sn: Maddox
 roomnumber: 2207
 homeDirectory: /home/bmaddox
 mail: bmaddox@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1083
@@ -700,7 +723,8 @@ sn: Parker
 roomnumber: 1148
 homeDirectory: /home/bparker
 mail: bparker@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1146
@@ -724,7 +748,8 @@ sn: Plante
 roomnumber: 4654
 homeDirectory: /home/bplante
 mail: bplante@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1044
@@ -748,7 +773,8 @@ sn: Rentz
 roomnumber: 0617
 homeDirectory: /home/brentz
 mail: brentz@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1048
@@ -772,7 +798,8 @@ sn: Rigden
 roomnumber: 1643
 homeDirectory: /home/brigden
 mail: brigden@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1142
@@ -796,7 +823,8 @@ sn: Schneider
 roomnumber: 4471
 homeDirectory: /home/bschneid
 mail: bschneid@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1046
@@ -820,7 +848,8 @@ sn: Talbot
 roomnumber: 1205
 homeDirectory: /home/btalbo2
 mail: btalbo2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1026
@@ -844,7 +873,8 @@ sn: Talbot
 roomnumber: 3532
 homeDirectory: /home/btalbot
 mail: btalbot@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1018
@@ -868,7 +898,8 @@ sn: Walker
 roomnumber: 3529
 homeDirectory: /home/bwalker
 mail: bwalker@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1038
@@ -892,7 +923,8 @@ sn: Alexander
 roomnumber: 2884
 homeDirectory: /home/calexand
 mail: calexand@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1070
@@ -916,7 +948,8 @@ sn: Harvey
 roomnumber: 4583
 homeDirectory: /home/charvey
 mail: charvey@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1131
@@ -940,7 +973,8 @@ sn: Newport
 roomnumber: 0056
 homeDirectory: /home/cnewport
 mail: cnewport@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1150
@@ -954,6 +988,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: cschmith
+departmentNumber: 2001
 #classOfService: gold
 userpassword: hypotenuse
 facsimiletelephonenumber: +1 408 555 4774
@@ -964,7 +999,7 @@ sn: Schmith
 roomnumber: 0416
 homeDirectory: /home/cschmith
 mail: cschmith@example.com
-l: Santa Clara
+l: Lysaker
 ou: Human Resources
 ou: People
 uidNumber: 1010
@@ -988,7 +1023,8 @@ sn: Wallace
 roomnumber: 0349
 homeDirectory: /home/cwallace
 mail: cwallace@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1041
@@ -1012,7 +1048,8 @@ sn: Akers
 roomnumber: 4944
 homeDirectory: /home/dakers
 mail: dakers@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1088
@@ -1036,7 +1073,8 @@ sn: Cope
 roomnumber: 1737
 homeDirectory: /home/dcope
 mail: dcope@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1126
@@ -1060,7 +1098,8 @@ sn: Langdon
 roomnumber: 3263
 homeDirectory: /home/dlangdon
 mail: dlangdon@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1111
@@ -1084,7 +1123,8 @@ sn: Lanoway
 roomnumber: 3540
 homeDirectory: /home/dlanoway
 mail: dlanoway@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1117
@@ -1108,7 +1148,8 @@ sn: Miller
 roomnumber: 4135
 homeDirectory: /home/dmiller
 mail: dmiller@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1006
@@ -1132,7 +1173,8 @@ sn: Rose
 roomnumber: 4012
 homeDirectory: /home/drose
 mail: drose@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1134
@@ -1156,7 +1198,8 @@ sn: Smith
 roomnumber: 0368
 homeDirectory: /home/dsmith
 mail: dsmith@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1049
@@ -1180,7 +1223,8 @@ sn: Swain
 roomnumber: 4396
 homeDirectory: /home/dswain
 mail: dswain@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1102
@@ -1204,7 +1248,8 @@ sn: Thorud
 roomnumber: 1128
 homeDirectory: /home/dthorud
 mail: dthorud@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1051
@@ -1228,7 +1273,8 @@ sn: Ward
 roomnumber: 3927
 homeDirectory: /home/dward
 mail: dward@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1090
@@ -1252,7 +1298,8 @@ sn: Alexander
 roomnumber: 2434
 homeDirectory: /home/ealexand
 mail: ealexand@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1147
@@ -1276,7 +1323,8 @@ sn: Cruse
 roomnumber: 4233
 homeDirectory: /home/ecruse
 mail: ecruse@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1143
@@ -1300,7 +1348,8 @@ sn: Johnson
 roomnumber: 3737
 homeDirectory: /home/ejohnson
 mail: ejohnson@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1036
@@ -1324,7 +1373,8 @@ sn: Kohler
 roomnumber: 2721
 homeDirectory: /home/ekohler
 mail: ekohler@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1052
@@ -1348,7 +1398,8 @@ sn: Lott
 roomnumber: 3906
 homeDirectory: /home/elott
 mail: elott@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1149
@@ -1372,7 +1423,8 @@ sn: Walker
 roomnumber: 2295
 homeDirectory: /home/ewalker
 mail: ewalker@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1140
@@ -1396,7 +1448,8 @@ sn: Ward
 roomnumber: 4874
 homeDirectory: /home/eward
 mail: eward@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1129
@@ -1420,7 +1473,8 @@ sn: Albers
 roomnumber: 1439
 homeDirectory: /home/falbers
 mail: falbers@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1062
@@ -1444,7 +1498,8 @@ sn: Farmer
 roomnumber: 1269
 homeDirectory: /home/gfarmer
 mail: gfarmer@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1007
@@ -1468,7 +1523,8 @@ sn: Jensen
 roomnumber: 4609
 homeDirectory: /home/gjensen
 mail: gjensen@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1081
@@ -1492,7 +1548,8 @@ sn: Triplett
 roomnumber: 4023
 homeDirectory: /home/gtriplet
 mail: gtriplet@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1033
@@ -1516,7 +1573,8 @@ sn: Tyler
 roomnumber: 0312
 homeDirectory: /home/gtyler
 mail: gtyler@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1099
@@ -1540,7 +1598,8 @@ sn: Miller
 roomnumber: 4304
 homeDirectory: /home/hmiller
 mail: hmiller@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1028
@@ -1564,7 +1623,8 @@ sn: Bourke
 roomnumber: 0034
 homeDirectory: /home/jbourke
 mail: jbourke@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1116
@@ -1588,7 +1648,8 @@ sn: Brown
 roomnumber: 4224
 homeDirectory: /home/jbrown
 mail: jbrown@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1085
@@ -1612,7 +1673,8 @@ sn: Burrell
 roomnumber: 4926
 homeDirectory: /home/jburrell
 mail: jburrell@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1067
@@ -1636,7 +1698,8 @@ sn: Campaigne
 roomnumber: 1377
 homeDirectory: /home/jcampai2
 mail: jcampai2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1029
@@ -1660,7 +1723,8 @@ sn: Campaigne
 roomnumber: 4385
 homeDirectory: /home/jcampaig
 mail: jcampaig@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1023
@@ -1684,7 +1748,8 @@ sn: Cruse
 roomnumber: 0083
 homeDirectory: /home/jcruse
 mail: jcruse@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1071
@@ -1708,7 +1773,8 @@ sn: Falena
 roomnumber: 1917
 homeDirectory: /home/jfalena
 mail: jfalena@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1034
@@ -1732,7 +1798,8 @@ sn: Goldstein
 roomnumber: 1454
 homeDirectory: /home/jgoldste
 mail: jgoldste@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1107
@@ -1756,7 +1823,8 @@ sn: Hunter
 roomnumber: 4856
 homeDirectory: /home/jhunter
 mail: jhunter@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1059
@@ -1780,7 +1848,8 @@ sn: Jensen
 roomnumber: 4882
 homeDirectory: /home/jjensen
 mail: jjensen@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1086
@@ -1804,7 +1873,8 @@ sn: Lange
 roomnumber: 3798
 homeDirectory: /home/jlange
 mail: jlange@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1077
@@ -1828,7 +1898,8 @@ sn: Lutz
 roomnumber: 3541
 homeDirectory: /home/jlut2
 mail: jlut2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1123
@@ -1852,7 +1923,8 @@ sn: Lutz
 roomnumber: 2544
 homeDirectory: /home/jlutz
 mail: jlutz@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1110
@@ -1876,7 +1948,8 @@ sn: McFarland
 roomnumber: 2359
 homeDirectory: /home/jmcFarla
 mail: jmcFarla@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1021
@@ -1900,7 +1973,8 @@ sn: Muffly
 roomnumber: 0997
 homeDirectory: /home/jmuffly
 mail: jmuffly@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1104
@@ -1924,7 +1998,8 @@ sn: Rentz
 roomnumber: 4405
 homeDirectory: /home/jrent2
 mail: jrent2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1127
@@ -1948,7 +2023,8 @@ sn: Rentz
 roomnumber: 3025
 homeDirectory: /home/jrentz
 mail: jrentz@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1093
@@ -1972,7 +2048,8 @@ sn: Reuter
 roomnumber: 2942
 homeDirectory: /home/jreuter
 mail: jreuter@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1015
@@ -1996,7 +2073,8 @@ sn: Vaughan
 roomnumber: 1734
 homeDirectory: /home/jvaughan
 mail: jvaughan@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1138
@@ -2020,7 +2098,8 @@ sn: Vedder
 roomnumber: 3445
 homeDirectory: /home/jvedder
 mail: jvedder@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1151
@@ -2034,6 +2113,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: jwalker
+departmentNumber: 4001
 #classOfService: silver
 userpassword: dogleg
 facsimiletelephonenumber: +1 408 555 1992
@@ -2044,7 +2124,7 @@ sn: Walker
 roomnumber: 3915
 homeDirectory: /home/jwalker
 mail: jwalker@example.com
-l: Cupertino
+l: San Francisco
 ou: Product Testing
 ou: People
 uidNumber: 1012
@@ -2068,7 +2148,8 @@ sn: Wallace
 roomnumber: 1033
 homeDirectory: /home/jwallace
 mail: jwallace@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1011
@@ -2092,7 +2173,8 @@ sn: Carter
 roomnumber: 2320
 homeDirectory: /home/kcarter
 mail: kcarter@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1072
@@ -2116,7 +2198,8 @@ sn: Cope
 roomnumber: 3040
 homeDirectory: /home/kcope
 mail: kcope@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1118
@@ -2140,7 +2223,8 @@ sn: Jensen
 roomnumber: 1944
 homeDirectory: /home/kjensen
 mail: kjensen@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1039
@@ -2164,7 +2248,8 @@ sn: Mcinnis
 roomnumber: 4312
 homeDirectory: /home/kmcinnis
 mail: kmcinnis@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1113
@@ -2188,7 +2273,8 @@ sn: Schmith
 roomnumber: 2221
 homeDirectory: /home/kschmith
 mail: kschmith@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1096
@@ -2202,6 +2288,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: kvaughan
+departmentNumber: 2000
 #classOfService: silver
 userpassword: bribery
 facsimiletelephonenumber: +1 408 555 3372
@@ -2212,9 +2299,10 @@ sn: Vaughan
 roomnumber: 2871
 homeDirectory: /home/kvaughan
 mail: kvaughan@example.com
-l: Sunnyvale
+l: Bristol
 ou: Human Resources
 ou: People
+preferredLanguage: en, ja;q=0.5
 uidNumber: 1004
 gidNumber: 1000
 
@@ -2226,6 +2314,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: kwinters
+departmentNumber: 3000
 #classOfService: silver
 userpassword: forsook
 facsimiletelephonenumber: +1 408 555 1992
@@ -2236,7 +2325,7 @@ sn: Winters
 roomnumber: 4178
 homeDirectory: /home/kwinters
 mail: kwinters@example.com
-l: Santa Clara
+l: Lysaker
 ou: Product Development
 ou: People
 uidNumber: 1008
@@ -2260,7 +2349,8 @@ sn: Campbell
 roomnumber: 2073
 homeDirectory: /home/lcampbel
 mail: lcampbel@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1053
@@ -2284,7 +2374,8 @@ sn: Labonte
 roomnumber: 2854
 homeDirectory: /home/llabonte
 mail: llabonte@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1022
@@ -2308,7 +2399,8 @@ sn: Rentz
 roomnumber: 2203
 homeDirectory: /home/lrentz
 mail: lrentz@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1137
@@ -2332,7 +2424,8 @@ sn: Stockton
 roomnumber: 0169
 homeDirectory: /home/lstockto
 mail: lstockto@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1115
@@ -2356,7 +2449,8 @@ sn: Ulrich
 roomnumber: 0985
 homeDirectory: /home/lulrich
 mail: lulrich@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1030
@@ -2380,7 +2474,8 @@ sn: Carter
 roomnumber: 3819
 homeDirectory: /home/mcarter
 mail: mcarter@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1087
@@ -2404,7 +2499,8 @@ sn: Jablonski
 roomnumber: 3160
 homeDirectory: /home/mjablons
 mail: mjablons@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1124
@@ -2428,7 +2524,8 @@ sn: Langdon
 roomnumber: 4471
 homeDirectory: /home/mlangdon
 mail: mlangdon@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1031
@@ -2452,7 +2549,8 @@ sn: Lott
 roomnumber: 0498
 homeDirectory: /home/mlott
 mail: mlott@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1040
@@ -2476,7 +2574,8 @@ sn: Mcinnis
 roomnumber: 4818
 homeDirectory: /home/mmcinnis
 mail: mmcinnis@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1061
@@ -2500,7 +2599,8 @@ sn: Reuter
 roomnumber: 1356
 homeDirectory: /home/mreuter
 mail: mreuter@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1098
@@ -2524,7 +2624,8 @@ sn: Schneider
 roomnumber: 3153
 homeDirectory: /home/mschneid
 mail: mschneid@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1063
@@ -2548,7 +2649,8 @@ sn: Talbot
 roomnumber: 1415
 homeDirectory: /home/mtalbot
 mail: mtalbot@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1084
@@ -2572,7 +2674,8 @@ sn: Tyler
 roomnumber: 2701
 homeDirectory: /home/mtyler
 mail: mtyler@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1148
@@ -2596,7 +2699,8 @@ sn: Vaughan
 roomnumber: 4508
 homeDirectory: /home/mvaughan
 mail: mvaughan@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1122
@@ -2620,7 +2724,8 @@ sn: Ward
 roomnumber: 1707
 homeDirectory: /home/mward
 mail: mward@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1019
@@ -2644,7 +2749,8 @@ sn: White
 roomnumber: 3088
 homeDirectory: /home/mwhite
 mail: mwhite@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1080
@@ -2668,7 +2774,8 @@ sn: Chassin
 roomnumber: 4524
 homeDirectory: /home/pchassin
 mail: pchassin@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1125
@@ -2692,7 +2799,8 @@ sn: Cruse
 roomnumber: 3967
 homeDirectory: /home/pcruse
 mail: pcruse@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1064
@@ -2716,7 +2824,8 @@ sn: Hunt
 roomnumber: 0087
 homeDirectory: /home/phun2
 mail: phun2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1121
@@ -2740,7 +2849,8 @@ sn: Hunt
 roomnumber: 1183
 homeDirectory: /home/phunt
 mail: phunt@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1074
@@ -2764,7 +2874,8 @@ sn: Lorig
 roomnumber: 1276
 homeDirectory: /home/plorig
 mail: plorig@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1094
@@ -2788,7 +2899,8 @@ sn: Olfield
 roomnumber: 1376
 homeDirectory: /home/polfield
 mail: polfield@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1135
@@ -2812,7 +2924,8 @@ sn: Rigden
 roomnumber: 1271
 homeDirectory: /home/prigden
 mail: prigden@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1037
@@ -2836,7 +2949,8 @@ sn: Rose
 roomnumber: 0542
 homeDirectory: /home/prose
 mail: prose@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1058
@@ -2860,7 +2974,8 @@ sn: Shelton
 roomnumber: 2918
 homeDirectory: /home/pshelton
 mail: pshelton@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1092
@@ -2884,7 +2999,8 @@ sn: Tyler
 roomnumber: 0327
 homeDirectory: /home/ptyler
 mail: ptyler@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1069
@@ -2908,7 +3024,8 @@ sn: Worrell
 roomnumber: 2449
 homeDirectory: /home/pworrell
 mail: pworrell@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1097
@@ -2932,7 +3049,8 @@ sn: Bannister
 roomnumber: 0983
 homeDirectory: /home/rbannist
 mail: rbannist@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1043
@@ -2956,7 +3074,8 @@ sn: Daugherty
 roomnumber: 0194
 homeDirectory: /home/rdaugherty
 mail: rdaugherty@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1014
@@ -2980,7 +3099,8 @@ sn: Fish
 roomnumber: 2317
 homeDirectory: /home/rfish
 mail: rfish@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1073
@@ -3004,7 +3124,8 @@ sn: Fisher
 roomnumber: 1579
 homeDirectory: /home/rfisher
 mail: rfisher@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1132
@@ -3028,7 +3149,8 @@ sn: Francis
 roomnumber: 3482
 homeDirectory: /home/rfrancis
 mail: rfrancis@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1079
@@ -3052,7 +3174,8 @@ sn: Hunt
 roomnumber: 0718
 homeDirectory: /home/rhunt
 mail: rhunt@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1145
@@ -3076,7 +3199,8 @@ sn: Jensen
 roomnumber: 1984
 homeDirectory: /home/rjense2
 mail: rjense2@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
 ou: Product Testing
 ou: People
 uidNumber: 1144
@@ -3100,7 +3224,8 @@ sn: Jensen
 roomnumber: 2631
 homeDirectory: /home/rjensen
 mail: rjensen@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1120
@@ -3124,7 +3249,8 @@ sn: Mills
 roomnumber: 3823
 homeDirectory: /home/rmills
 mail: rmills@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1045
@@ -3148,7 +3274,8 @@ sn: Schneider
 roomnumber: 4183
 homeDirectory: /home/rschneid
 mail: rschneid@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1075
@@ -3172,7 +3299,8 @@ sn: Ulrich
 roomnumber: 1282
 homeDirectory: /home/rulrich
 mail: rulrich@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1078
@@ -3196,7 +3324,8 @@ sn: Carter
 roomnumber: 2013
 homeDirectory: /home/scarte2
 mail: scarte2@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1050
@@ -3210,6 +3339,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: scarter
+departmentNumber: 1000
 #classOfService: gold
 userpassword: sprain
 facsimiletelephonenumber: +1 408 555 9751
@@ -3220,7 +3350,7 @@ sn: Carter
 roomnumber: 4612
 homeDirectory: /home/scarter
 mail: scarter@example.com
-l: Sunnyvale
+l: Bristol
 ou: Accounting
 ou: People
 uidNumber: 1002
@@ -3244,7 +3374,8 @@ sn: Farmer
 roomnumber: 0019
 homeDirectory: /home/sfarmer
 mail: sfarmer@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1089
@@ -3268,7 +3399,8 @@ sn: Kelleher
 roomnumber: 1608
 homeDirectory: /home/skellehe
 mail: skellehe@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Payroll
 ou: People
 uidNumber: 1047
@@ -3292,7 +3424,8 @@ sn: Lee
 roomnumber: 1806
 homeDirectory: /home/slee
 mail: slee@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1055
@@ -3316,7 +3449,8 @@ sn: Mason
 roomnumber: 4971
 homeDirectory: /home/smason
 mail: smason@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1068
@@ -3340,7 +3474,8 @@ sn: Peterson
 roomnumber: 3073
 homeDirectory: /home/speterso
 mail: speterso@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1035
@@ -3364,7 +3499,8 @@ sn: Triplett
 roomnumber: 3083
 homeDirectory: /home/striplet
 mail: striplet@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1032
@@ -3388,7 +3524,8 @@ sn: Clow
 roomnumber: 4376
 homeDirectory: /home/tclow
 mail: tclow@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1013
@@ -3412,7 +3549,8 @@ sn: Couzens
 roomnumber: 3994
 homeDirectory: /home/tcouzens
 mail: tcouzens@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1114
@@ -3436,7 +3574,8 @@ sn: Cruse
 roomnumber: 4191
 homeDirectory: /home/tcruse
 mail: tcruse@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1128
@@ -3460,7 +3599,8 @@ sn: James
 roomnumber: 0730
 homeDirectory: /home/tjames
 mail: tjames@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1141
@@ -3484,7 +3624,8 @@ sn: Jensen
 roomnumber: 4717
 homeDirectory: /home/tjensen
 mail: tjensen@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1105
@@ -3508,7 +3649,8 @@ sn: Kelly
 roomnumber: 3107
 homeDirectory: /home/tkelly
 mail: tkelly@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 uidNumber: 1065
 gidNumber: 1000
@@ -3531,7 +3673,8 @@ sn: Labonte
 roomnumber: 1426
 homeDirectory: /home/tlabonte
 mail: tlabonte@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1054
@@ -3555,7 +3698,8 @@ sn: Mason
 roomnumber: 1124
 homeDirectory: /home/tmason
 mail: tmason@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1016
@@ -3569,6 +3713,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: tmorris
+departmentNumber: 1001
 #classOfService: gold
 userpassword: irrefutable
 facsimiletelephonenumber: +1 408 555 8473
@@ -3579,7 +3724,7 @@ sn: Morris
 roomnumber: 4117
 homeDirectory: /home/tmorris
 mail: tmorris@example.com
-l: Santa Clara
+l: Lysaker
 ou: Accounting
 ou: People
 uidNumber: 1003
@@ -3603,7 +3748,8 @@ sn: Pierce
 roomnumber: 1383
 homeDirectory: /home/tpierce
 mail: tpierce@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1042
@@ -3617,6 +3763,7 @@ objectClass: organizationalPerson
 objectClass: posixAccount
 objectClass: top
 uid: trigden
+departmentNumber: 3001
 #classOfService: gold
 userpassword: sensitive
 facsimiletelephonenumber: +1 408 555 8473
@@ -3627,7 +3774,7 @@ sn: Rigden
 roomnumber: 3584
 homeDirectory: /home/trigden
 mail: trigden@example.com
-l: Santa Clara
+l: Lysaker
 ou: Product Development
 ou: People
 uidNumber: 1009
@@ -3651,7 +3798,8 @@ sn: Schmith
 roomnumber: 4607
 homeDirectory: /home/tschmith
 mail: tschmith@example.com
-l: Cupertino
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1100
@@ -3675,7 +3823,8 @@ sn: Schneider
 roomnumber: 2292
 homeDirectory: /home/tschneid
 mail: tschneid@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1057
@@ -3699,7 +3848,8 @@ sn: Tully
 roomnumber: 3924
 homeDirectory: /home/ttully
 mail: ttully@example.com
-l: Sunnyvale
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1130
@@ -3723,7 +3873,8 @@ sn: Ward
 roomnumber: 2238
 homeDirectory: /home/tward
 mail: tward@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
 ou: Human Resources
 ou: People
 uidNumber: 1091
@@ -3747,7 +3898,8 @@ sn: Lutz
 roomnumber: 4912
 homeDirectory: /home/wlutz
 mail: wlutz@example.com
-l: Santa Clara
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
 ou: Accounting
 ou: People
 uidNumber: 1109
@@ -3772,7 +3924,8 @@ sn: Dupont
 roomNumber: 0042
 homeDirectory: /home/fdupont
 mail: fdupont@example.fr
-l: Paris
+l: Montbonnot
+manager: uid=kwinters, ou=People, dc=example,dc=com
 ou: Product Development
 ou: People
 uidNumber: 1110
@@ -3823,6 +3976,30 @@ objectClass: organizationalUnit
 objectClass: top
 ou: Apps
 
+dn: cn=Inherit Department Number From Manager,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromDNCollectiveAttributeSubentry
+cn: Inherit Department Number From Manager
+subtreeSpecification: { base "ou=People" }
+inheritFromDNAttribute: manager
+inheritAttribute: departmentNumber
+
+dn: cn=Inherit From Locality,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromRDNCollectiveAttributeSubentry
+cn: Inherit From Locality
+subtreeSpecification: { base "ou=People" }
+inheritFromBaseRDN: ou=Locations
+inheritFromRDNAttribute: l
+inheritFromRDNType: l
+inheritAttribute: preferredLanguage
+inheritAttribute: street
+collectiveConflictBehavior: real-overrides-virtual
+
 dn: cn=My App,ou=Apps,dc=example,dc=com
 cn: My App
 objectClass: person
@@ -3832,6 +4009,43 @@ objectClass: top
 sn: App
 userPassword: password
 ds-privilege-name: proxied-auth
+
+dn: ou=Locations,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Locations
+
+dn: l=Bristol,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Bristol
+street: 60 Queen Square
+preferredLanguage: en-gb
+
+dn: l=Montbonnot,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Montbonnot
+street: 55 Rue Blaise Pascal
+preferredLanguage: fr
+
+dn: l=Lysaker,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Lysaker
+street: Lysaker Torg 2
+preferredLanguage: no
+
+dn: l=San Francisco,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: San Francisco
+street: 500 3rd Street
+preferredLanguage: en
 
 # Create a new base DN, dc=ref,dc=com, before importing these entries:
 dn: dc=ref,dc=com
