@@ -30,6 +30,7 @@ package org.opends.dsml.protocol;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -72,6 +73,7 @@ public class DSMLDeleteOperation
    *
    * @param  objFactory     The object factory for this operation.
    * @param  deleteRequest  The delete request for this operation.
+   * @param  controls       Any required controls (e.g. for proxy authz).
    *
    * @return  The result of the delete operation.
    *
@@ -84,7 +86,8 @@ public class DSMLDeleteOperation
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
-        DelRequest deleteRequest)
+        DelRequest deleteRequest,
+        List<org.opends.server.types.Control> controls)
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult delResponse = objFactory.createLDAPResult();
@@ -93,7 +96,8 @@ public class DSMLDeleteOperation
     // Create and send the LDAP delete request to the server.
     ByteString dnStr = ByteString.valueOf(deleteRequest.getDn());
     ProtocolOp op = new DeleteRequestProtocolOp(dnStr);
-    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
+        controls);
     connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.

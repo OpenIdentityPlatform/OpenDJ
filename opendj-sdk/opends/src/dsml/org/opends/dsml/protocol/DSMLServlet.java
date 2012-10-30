@@ -29,7 +29,12 @@ package org.opends.dsml.protocol;
 
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static org.opends.server.protocols.ldap.LDAPResultCode.
+  CLIENT_SIDE_CONNECT_ERROR;
 import static org.opends.server.util.ServerConstants.SASL_MECHANISM_PLAIN;
+import static org.opends.messages.CoreMessages.
+  INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR;
+import static org.opends.messages.CoreMessages.INFO_RESULT_AUTHORIZATION_DENIED;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -38,9 +43,11 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -61,14 +68,23 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.opends.messages.Message;
+import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.ldap.LDAPConstants;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.Base64;
 
 import org.w3c.dom.Document;
@@ -137,6 +153,7 @@ public class DSMLServlet extends HttpServlet {
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
   private HashSet<String> exopStrings = new HashSet<String>();
+  private org.opends.server.types.Control proxyAuthzControl = null;
 
   /**
    * This method will be called by the Servlet Container when
@@ -222,6 +239,81 @@ public class DSMLServlet extends HttpServlet {
     }
   }
 
+
+
+  /**
+   * Check if using the proxy authz control will work, by using it to read
+   * the Root DSE.
+   *
+   * @param connection The authenticated LDAP connection used to check.
+   * @param authorizationID The authorization ID, in the format
+   *                        "u:&lt;userid&gt;" or "dn:&lt;DN&gt;".
+   * @return a configured proxy authz control.
+   * @throws  LDAPConnectionException  If an error occurs during the check.
+   *
+   */
+  private org.opends.server.types.Control checkAuthzControl(
+      LDAPConnection connection, String authorizationID)
+      throws LDAPConnectionException
+  {
+    LinkedHashSet<String>attributes = new LinkedHashSet<String>(1);
+    attributes.add("1.1");
+    ArrayList<org.opends.server.types.Control> controls =
+        new ArrayList<org.opends.server.types.Control>(1);
+    org.opends.server.types.Control proxyAuthzControl =
+        new ProxiedAuthV2Control(true, ByteString.valueOf(authorizationID));
+    controls.add(proxyAuthzControl);
+
+    try
+    {
+      SearchRequestProtocolOp protocolOp = new SearchRequestProtocolOp(
+          ByteString.wrap(new byte[]{}), SearchScope.BASE_OBJECT,
+          DereferencePolicy.NEVER_DEREF_ALIASES,
+          0, 0,
+          true, LDAPFilter.decode("(objectClass=*)"), attributes);
+      byte opType;
+      LDAPMessage msg =
+        new LDAPMessage(DSMLServlet.nextMessageID(), protocolOp, controls);
+      connection.getLDAPWriter().writeMessage(msg);
+      do {
+        LDAPMessage responseMessage = connection.getLDAPReader().
+            readMessage();
+        opType = responseMessage.getProtocolOpType();
+        switch (opType)
+        {
+        case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
+          switch (responseMessage.getSearchResultDoneProtocolOp().
+              getResultCode())
+          {
+            default:
+              Message m = INFO_RESULT_AUTHORIZATION_DENIED.get();
+              throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR,
+                  null);
+            case LDAPResultCode.SUCCESS:
+              return proxyAuthzControl;
+          }
+        }
+      } while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
+    }
+    catch (LDAPException le)
+    {
+      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, le);
+    }
+    catch (ASN1Exception ae)
+    {
+      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null,
+          ae);
+    }
+    catch (IOException ie)
+    {
+      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ie);
+    }
+    throw new LDAPConnectionException(Message.EMPTY);
+  }
+
   /**
    * The HTTP POST operation. This servlet expects a SOAP message
    * with a DSML request payload.
@@ -280,14 +372,14 @@ public class DSMLServlet extends HttpServlet {
     Enumeration en = req.getHeaderNames();
     String bindDN = null;
     String bindPassword = null;
-    boolean authorizationInHeader = false;
-    boolean authorizationIsID = false;
+    boolean authenticationInHeader = false;
+    boolean authenticationIsID = false;
     while (en.hasMoreElements()) {
       String headerName = (String) en.nextElement();
       String headerVal = req.getHeader(headerName);
       if (headerName.equalsIgnoreCase("authorization")) {
         if (headerVal.startsWith("Basic ")) {
-          authorizationInHeader = true;
+          authenticationInHeader = true;
           String authorization = headerVal.substring(6).trim();
           try {
             String unencoded = new String(Base64.decode(authorization));
@@ -298,7 +390,7 @@ public class DSMLServlet extends HttpServlet {
                 connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
                 connOptions.addSASLProperty(
                     "authid=u:" + unencoded.substring(0, colon).trim());
-                authorizationIsID = true;
+                authenticationIsID = true;
               }
               else
               {
@@ -307,7 +399,7 @@ public class DSMLServlet extends HttpServlet {
               bindPassword = unencoded.substring(colon + 1);
             }
           } catch (ParseException ex) {
-            // DN:password parsing error
+            // user/DN:password parsing error
             batchResponses.add(
               createErrorResponse(
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
@@ -322,8 +414,8 @@ public class DSMLServlet extends HttpServlet {
       }
     }
 
-    if ( ! authorizationInHeader ) {
-      // if no authorization, set default user
+    if ( ! authenticationInHeader ) {
+      // if no authentication, set default user from web.xml
       if (userDN != null)
       {
         bindDN = userDN;
@@ -346,7 +438,7 @@ public class DSMLServlet extends HttpServlet {
       }
     } else {
       // otherwise if DN or password is null, send back an error
-      if (((!authorizationIsID && (bindDN == null)) || bindPassword == null)
+      if (((!authenticationIsID && (bindDN == null)) || bindPassword == null)
          && batchResponses.isEmpty()) {
         batchResponses.add(
               createErrorResponse(
@@ -389,16 +481,49 @@ public class DSMLServlet extends HttpServlet {
                                                        String.valueOf(e)));
         }
         if ( batchRequestElement != null ) {
+          boolean authzInBind = false;
+          boolean authzInControl = false;
           batchRequest = batchRequestElement.getValue();
 
+          /*
+           *  Process optional authRequest (i.e. use authz)
+           */
+          if (batchRequest.authRequest != null) {
+            if (authenticationIsID == true) {
+              // If we are using SASL, then use the bind authz.
+              connOptions.addSASLProperty("authzid=" +
+                  batchRequest.authRequest.getPrincipal());
+              authzInBind = true;
+            } else {
+              // If we are using simple then we have to do some work after
+              // the bind.
+              authzInControl = true;
+            }
+          }
           // set requestID in response
           batchResponse.setRequestID(batchRequest.getRequestID());
 
           boolean connected = false;
+
           if ( connection == null ) {
             connection = new LDAPConnection(hostName, port, connOptions);
             try {
+
               connection.connectToHost(bindDN, bindPassword);
+              if (authzInControl)
+              {
+                proxyAuthzControl = checkAuthzControl(connection,
+                    batchRequest.authRequest.getPrincipal());
+              }
+              if (authzInBind || authzInControl)
+              {
+                LDAPResult authResponse = objFactory.createLDAPResult();
+                ResultCode code = ResultCodeFactory.create(objFactory,
+                    LDAPResultCode.SUCCESS);
+                authResponse.setResultCode(code);
+                batchResponses.add(
+                    objFactory.createBatchResponseAuthResponse(authResponse));
+              }
               connected = true;
             } catch (LDAPConnectionException e) {
               // if connection failed, return appropriate error response
@@ -534,7 +659,7 @@ public class DSMLServlet extends HttpServlet {
 
   /**
    * Performs the LDAP operation and sends back the result (if any). In case
-   * of error, an error reponse is returned.
+   * of error, an error response is returned.
    *
    * @param connection a connected connection
    * @param request the JAXB request to perform
@@ -544,59 +669,67 @@ public class DSMLServlet extends HttpServlet {
    */
   private JAXBElement<?> performLDAPRequest(LDAPConnection connection,
                                             DsmlMessage request) {
+    ArrayList<org.opends.server.types.Control> controls =
+        new ArrayList<org.opends.server.types.Control>(1);
+    if (proxyAuthzControl != null)
+    {
+      controls.add(proxyAuthzControl);
+    }
     try {
       if (request instanceof SearchRequest) {
         // Process the search request.
         SearchRequest sr = (SearchRequest) request;
         DSMLSearchOperation ds = new DSMLSearchOperation(connection);
-        SearchResponse searchResponse = ds.doSearch(objFactory, sr);
-
+        SearchResponse searchResponse = ds.doSearch(objFactory, sr, controls);
         return objFactory.createBatchResponseSearchResponse(searchResponse);
       } else if (request instanceof AddRequest) {
         // Process the add request.
         AddRequest ar = (AddRequest) request;
         DSMLAddOperation addOp = new DSMLAddOperation(connection);
-        LDAPResult addResponse = addOp.doOperation(objFactory, ar);
+        LDAPResult addResponse = addOp.doOperation(objFactory, ar, controls);
         return objFactory.createBatchResponseAddResponse(addResponse);
       } else if (request instanceof AbandonRequest) {
         // Process the abandon request.
         AbandonRequest ar = (AbandonRequest) request;
         DSMLAbandonOperation ao = new DSMLAbandonOperation(connection);
-        LDAPResult abandonResponse = ao.doOperation(objFactory, ar);
+        LDAPResult abandonResponse = ao.doOperation(objFactory, ar, controls);
         return null;
       } else if (request instanceof ExtendedRequest) {
         // Process the extended request.
         ExtendedRequest er = (ExtendedRequest) request;
         DSMLExtendedOperation eo = new DSMLExtendedOperation(connection,
             exopStrings);
-        ExtendedResponse extendedResponse = eo.doOperation(objFactory, er);
+        ExtendedResponse extendedResponse = eo.doOperation(objFactory, er,
+            controls);
         return objFactory.createBatchResponseExtendedResponse(extendedResponse);
 
       } else if (request instanceof DelRequest) {
         // Process the delete request.
         DelRequest dr = (DelRequest) request;
         DSMLDeleteOperation delOp = new DSMLDeleteOperation(connection);
-        LDAPResult delResponse = delOp.doOperation(objFactory, dr);
+        LDAPResult delResponse = delOp.doOperation(objFactory, dr, controls);
         return objFactory.createBatchResponseDelResponse(delResponse);
       } else if (request instanceof CompareRequest) {
         // Process the compare request.
         CompareRequest cr = (CompareRequest) request;
         DSMLCompareOperation compareOp =
                 new DSMLCompareOperation(connection);
-        LDAPResult compareResponse = compareOp.doOperation(objFactory, cr);
+        LDAPResult compareResponse = compareOp.doOperation(objFactory, cr,
+            controls);
         return objFactory.createBatchResponseCompareResponse(compareResponse);
       } else if (request instanceof ModifyDNRequest) {
         // Process the Modify DN request.
         ModifyDNRequest mr = (ModifyDNRequest) request;
         DSMLModifyDNOperation moddnOp =
                 new DSMLModifyDNOperation(connection);
-        LDAPResult moddnResponse = moddnOp.doOperation(objFactory, mr);
+        LDAPResult moddnResponse = moddnOp.doOperation(objFactory, mr,
+            controls);
         return objFactory.createBatchResponseModDNResponse(moddnResponse);
       } else if (request instanceof ModifyRequest) {
         // Process the Modify request.
         ModifyRequest modr = (ModifyRequest) request;
         DSMLModifyOperation modOp = new DSMLModifyOperation(connection);
-        LDAPResult modResponse = modOp.doOperation(objFactory, modr);
+        LDAPResult modResponse = modOp.doOperation(objFactory, modr, controls);
         return objFactory.createBatchResponseModifyResponse(modResponse);
       } else if (request instanceof AuthRequest) {
         // Process the Auth request.

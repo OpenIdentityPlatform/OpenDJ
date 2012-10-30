@@ -71,6 +71,7 @@ public class DSMLAddOperation
    *
    * @param  objFactory  The object factory for this operation.
    * @param  addRequest  The add request for this operation.
+   * @param  controls    Any required controls (e.g. for proxy authz).
    *
    * @return  The result of the add operation.
    *
@@ -83,7 +84,8 @@ public class DSMLAddOperation
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
-        AddRequest addRequest)
+        AddRequest addRequest,
+        List<org.opends.server.types.Control> controls)
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult addResponse = objFactory.createLDAPResult();
@@ -107,7 +109,8 @@ public class DSMLAddOperation
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new AddRequestProtocolOp(dnStr, attributes);
-    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
+        controls);
     connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.

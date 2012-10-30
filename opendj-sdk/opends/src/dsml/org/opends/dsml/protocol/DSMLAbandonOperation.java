@@ -23,10 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
 import java.io.IOException;
+import java.util.List;
+
 import org.opends.messages.Message;
 
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
@@ -62,6 +65,7 @@ public class DSMLAbandonOperation
    *
    * @param  objFactory      The object factory for this operation.
    * @param  abandonRequest  The abandon request for this operation.
+   * @param  controls        Any required controls (e.g. for proxy authz).
    *
    * @return  The result of the abandon operation.
    *
@@ -71,7 +75,8 @@ public class DSMLAbandonOperation
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
-        AbandonRequest abandonRequest)
+        AbandonRequest abandonRequest,
+        List<org.opends.server.types.Control> controls)
     throws LDAPException, IOException
   {
     LDAPResult abandonResponse = objFactory.createLDAPResult();
@@ -89,7 +94,8 @@ public class DSMLAbandonOperation
 
     // Create and send an LDAP request to the server.
     ProtocolOp op = new AbandonRequestProtocolOp(abandonId);
-    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
+        controls);
     connection.getLDAPWriter().writeMessage(msg);
 
     return abandonResponse;

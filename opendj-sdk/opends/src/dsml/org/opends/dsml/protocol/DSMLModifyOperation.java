@@ -73,8 +73,9 @@ public class DSMLModifyOperation
    *
    * @param  objFactory     The object factory for this operation.
    * @param  modifyRequest  The modify request for this operation.
+   * @param  controls       Any required controls (e.g. for proxy authz).
    *
-   * @return  The result of the add operation.
+   * @return  The result of the modify operation.
    *
    * @throws  IOException  If an I/O problem occurs.
    *
@@ -85,7 +86,8 @@ public class DSMLModifyOperation
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
-        ModifyRequest modifyRequest)
+        ModifyRequest modifyRequest,
+        List<org.opends.server.types.Control> controls)
         throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult modResponse = objFactory.createLDAPResult();
@@ -128,7 +130,8 @@ public class DSMLModifyOperation
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ModifyRequestProtocolOp(dnStr, modifications);
-    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
+        controls);
     connection.getLDAPWriter().writeMessage(msg);
 
     // Read and parse the LDAP response from the server.
