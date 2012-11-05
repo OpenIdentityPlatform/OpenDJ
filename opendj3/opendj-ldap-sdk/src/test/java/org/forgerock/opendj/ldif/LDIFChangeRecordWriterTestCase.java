@@ -1323,6 +1323,9 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
         );
         // @formatter:on
 
+        final File file = File.createTempFile("sdk", null);
+        final String url = file.toURI().toURL().toString();
+
         // @formatter:off
         final AddRequest changeRequest5 = Requests.newAddRequest(
             "version: 1",
@@ -1336,7 +1339,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             "sn: Jensen",
             "uid: fiona",
             "telephonenumber: +1 408 555 1212",
-            "jpegphoto:< http://www.forgerock.com/sites/default/files/forgerock_logo.png"
+            "jpegphoto:< " + url
         );
         // @formatter:on
 
@@ -1352,6 +1355,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
         assertThat(actual.get(0)).isEqualTo("dn: uid=scarter,ou=People,dc=example,dc=com");
         assertThat(actual.get(actual.size() - 1)).isEqualTo("");
 
+        file.delete();
     }
 
     /**
