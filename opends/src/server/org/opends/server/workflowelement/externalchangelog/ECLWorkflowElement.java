@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -87,6 +88,7 @@ public class ECLWorkflowElement extends
   {
     this.replicationServer =rs;
     super.initialize(ECL_WORKFLOW_ELEMENT, ECL_WORKFLOW_ELEMENT);
+    super.setPrivate(true);
     DirectoryServer.registerWorkflowElement(this);
   }
 
@@ -149,7 +151,7 @@ public class ECLWorkflowElement extends
    *                               operation
    */
   @SuppressWarnings("unchecked")
-  public static final <O extends Operation,L> void
+  public static <O extends Operation,L> void
               attachLocalOperation (O globalOperation, L currentLocalOperation)
   {
     List<?> existingAttachment =
