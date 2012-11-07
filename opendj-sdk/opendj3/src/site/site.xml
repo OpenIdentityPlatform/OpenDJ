@@ -50,8 +50,8 @@
    <item name="FAQ" href="faq.html" />
    <item name="Wiki" href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home" />
    <item name="Mailing Lists" href="mail-lists.html" />
-   <item name="Support" href="http://forgerock.com/subscriptions.html" />
-   <item name="Partners" href="http://forgerock.com/partners.html" />
+   <item name="Support" href="http://forgerock.com/what-we-offer/subscriptions/" />
+   <item name="Partners" href="http://forgerock.com/partners/" />
   </menu>
 
   <menu name="OpenDJ Directory Server">
