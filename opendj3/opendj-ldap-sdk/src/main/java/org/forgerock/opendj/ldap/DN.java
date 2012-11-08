@@ -27,19 +27,24 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_DN_TYPE_NOT_FOUND;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.TreeSet;
 import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 import com.forgerock.opendj.util.Validator;
 
@@ -799,4 +804,135 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         }
         return stringValue;
     }
+
+    /**
+     * Returns the normalized string representation of a DN.
+     *
+     * @return The normalized string representation of the provided DN.
+     */
+    public String toNormalizedString() {
+        final StringBuilder builder = new StringBuilder(this.size());
+        if (rdn() == null) {
+            return builder.toString();
+        }
+
+        int i = this.size() - 1;
+        normalizeRDN(builder, parent(i).rdn());
+        for (i--; i >= 0; i--) {
+            final RDN rdn = parent(i).rdn();
+            // Only add a separator if the RDN is not RDN.maxValue().
+            if (rdn.size() != 0) {
+                builder.append('\u0000');
+            }
+            normalizeRDN(builder, rdn);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Returns the normalized string representation of a RDN.
+     *
+     * @param builder
+     *            The StringBuilder to use to construct the normalized string.
+     * @param rdn
+     *            The RDN.
+     * @return The normalized string representation of the provided RDN.
+     */
+    private static StringBuilder normalizeRDN(final StringBuilder builder, final RDN rdn) {
+        final int sz = rdn.size();
+        switch (sz) {
+        case 0:
+            // Handle RDN.maxValue().
+            builder.append('\u0001');
+            break;
+        case 1:
+            normalizeAVA(builder, rdn.getFirstAVA());
+            break;
+        default:
+            // Need to sort the AVAs before comparing.
+            TreeSet<AVA> a = new TreeSet<AVA>();
+            for (AVA ava : rdn) {
+                a.add(ava);
+            }
+            Iterator<AVA> i = a.iterator();
+            // Normalize the first AVA.
+            normalizeAVA(builder, i.next());
+            while (i.hasNext()) {
+                builder.append('\u0001');
+                normalizeAVA(builder, i.next());
+            }
+            break;
+        }
+        return builder;
+    }
+
+    /**
+     * Returns the normalized string representation of an AVA.
+     *
+     * @param builder
+     *            The StringBuilder to use to construct the normalized string.
+     * @param ava
+     *            The AVA.
+     * @return The normalized string representation of the provided AVA.
+     */
+    private static StringBuilder normalizeAVA(final StringBuilder builder, final AVA ava) {
+        ByteString value = ava.getAttributeValue();
+        final MatchingRule matchingRule = ava.getAttributeType().getEqualityMatchingRule();
+        if (matchingRule != null) {
+            try {
+                value = matchingRule.normalizeAttributeValue(ava.getAttributeValue());
+            } catch (final DecodeException de) {
+                // Ignore - we'll drop back to the user provided value.
+            }
+        }
+
+        if (!ava.getAttributeType().getNames().iterator().hasNext()) {
+            builder.append(ava.getAttributeType().getOID());
+            builder.append("=#");
+            StaticUtils.toHex(value, builder);
+        } else {
+            final String name = ava.getAttributeType().getNameOrOID();
+            // Normalizing.
+            StaticUtils.toLowerCase(name, builder);
+
+            builder.append("=");
+
+            final Syntax syntax = ava.getAttributeType().getSyntax();
+            if (!syntax.isHumanReadable()) {
+                builder.append("#");
+                StaticUtils.toHex(value, builder);
+            } else {
+                final String str = value.toString();
+                if (str.length() == 0) {
+                    return builder;
+                }
+                char c = str.charAt(0);
+                int startPos = 0;
+                if ((c == ' ') || (c == '#')) {
+                    builder.append('\\');
+                    builder.append(c);
+                    startPos = 1;
+                }
+                final int length = str.length();
+                for (int si = startPos; si < length; si++) {
+                    c = str.charAt(si);
+                    if (c < ' ') {
+                        for (final byte b : getBytes(String.valueOf(c))) {
+                            builder.append('\\');
+                            builder.append(StaticUtils.byteToLowerHex(b));
+                        }
+                    } else {
+                        if ((c == ' ' && si == length - 1)
+                                || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
+                                        || c == '=' || c == '>' || c == '\\' || c == '\u0000')) {
+                            builder.append('\\');
+                        }
+                        builder.append(c);
+                    }
+                }
+            }
+        }
+        return builder;
+    }
+
 }

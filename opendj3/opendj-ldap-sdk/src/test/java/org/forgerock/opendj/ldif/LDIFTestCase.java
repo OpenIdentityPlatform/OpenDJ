@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldif;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -202,12 +203,12 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
 
         // @formatter:off
         final EntryReader reader = new LDIFEntryReader(
-                "dn: uid=user.0,ou=People,dc=example,dc=com",
-                "objectClass: person",
-                "objectClass: inetorgperson",
-                "objectClass: organizationalperson",
-                "objectClass: top",
-                "uid: user.0"
+            "dn: uid=user.0,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "objectClass: inetorgperson",
+            "objectClass: organizationalperson",
+            "objectClass: top",
+            "uid: user.0"
         );
         // @formatter:on
 
@@ -306,7 +307,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test(expectedExceptions = NoSuchElementException.class)
     public final void testLdifSearchWithSchemaMatchFullAttributesTypeOnly() throws Exception {
 
         // @formatter:off
@@ -335,13 +336,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             assertThat(entry.getAttribute("uid")).isNotNull();
             assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
             assertThat(entry.getAttribute("uid")).isEmpty();
-
-            try {
-                assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
-            } catch (NoSuchElementException ex) {
-                // No values, only type.
-                // Expected exception on entry.getAttribute("uid").firstValueAsString()
-            }
+            // The following assert throws an exception because no values contained in, only type.
+            assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
         }
         resultReader.close();
     }
@@ -470,7 +466,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test(expectedExceptions = NoSuchElementException.class)
     public final void testLdifSearchWithSchemaMatchSpecifiedAttributeTypeOnly() throws Exception {
 
         // @formatter:off
@@ -496,12 +492,9 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             assertThat(entry.getAttributeCount()).isEqualTo(1);
             assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
             assertThat(entry.getAttribute("uid")).isEmpty();
-            try {
-                assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
-            } catch (NoSuchElementException ex) {
-                // No values, only type.
-                // Expected exception on entry.getAttribute("uid").firstValueAsString()
-            }
+            // The following assert throws an exception because no values contained in, only type.
+            assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
+
         }
         resultReader.close();
     }
@@ -637,7 +630,10 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "objectClass: person",
             "objectClass: inetorgperson"
         );
-        final Entry e1 = new LinkedHashMapEntry("dn: uid=user.1,ou=People,dc=example,dc=com", "objectClass: person");
+        final Entry e1 = new LinkedHashMapEntry(
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: person"
+        );
         // @formatter:on
 
         final SortedMap<DN, Entry> sourceEntries = new TreeMap<DN, Entry>();
@@ -646,10 +642,9 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         final Iterator<Entry> sourceIterator = sourceEntries.values().iterator();
 
         final EntryReader resultReader = LDIF.newEntryIteratorReader(sourceIterator);
-        Entry entry = null;
         int cCount = 0;
         while (resultReader.hasNext()) {
-            entry = resultReader.readEntry();
+            final Entry entry = resultReader.readEntry();
             assertThat(entry.getName().toString()).isNotNull();
             assertThat(entry.getName().toString()).contains("ou=People,dc=example,dc=com");
             assertThat(entry.getAttributeCount()).isGreaterThanOrEqualTo(1);
@@ -862,7 +857,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         assertThat(cr).isInstanceOf(ModifyRequest.class);
 
         // @formatter:off
-        /* Expected : 2 add / 1 delete.
+        /* Expected : 2 add / 1 delete - output :
          * dn: uid=newuser,ou=People,dc=example,dc=com
          * changetype: modify
          * add: userPassword
@@ -1025,6 +1020,199 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
+     * Differences between two short ldif examples.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifDiffEntriesShortExamples() throws Exception {
+
+        // @formatter:off
+        final LDIFEntryReader source = new LDIFEntryReader(
+                "dn: uid=user.0,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aaccf",
+                "sn: Amar",
+                "cn: Aaccf Amar",
+                "initials: APA",
+                "employeeNumber: 0",
+                "uid: user.0",
+                "mail: user.0@example.com",
+                "description: This is the description for Aaccf Amar.",
+                "",
+                "dn: uid=user.1,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aaren",
+                "sn: Atp",
+                "cn: Aaren Atp",
+                "initials: AFA",
+                "employeeNumber: 1",
+                "uid: user.1",
+                "mail: user.1@example.com",
+                "description: This is the description for Aaren Atp.",
+                "",
+                "dn: uid=user.2,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aarika",
+                "sn: Atpco",
+                "cn: Aarika Atpco",
+                "initials: AVA",
+                "employeeNumber: 2",
+                "uid: user.2",
+                "mail: user.2@example.com",
+                "description: This is the description for Aarika Atpco.",
+                "",
+                "dn: uid=user.3,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aaron",
+                "sn: Atrc",
+                "cn: Aaron Atrc",
+                "initials: ATA",
+                "employeeNumber: 3",
+                "uid: user.3",
+                "mail: user.3@example.com",
+                "description: This is the description for Aaron Atrc.",
+                "",
+                "dn: uid=user.4,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aartjan",
+                "sn: Aalders",
+                "cn: Aartjan Aalders",
+                "initials: AAA",
+                "employeeNumber: 4",
+                "uid: user.4",
+                "mail: user.4@example.com",
+                "description: This is the description for Aartjan Aalders."
+        );
+
+        final LDIFEntryReader target = new LDIFEntryReader(
+                "dn: uid=user.0,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Amar", // diff
+                "sn: Amar",
+                "cn: Aaccf Amar",
+                "initials: APA",
+                "employeeNumber: 55", // diff
+                "uid: user.0",
+                "mail: user.0@example.com",
+                "description: This is the description for Aaccf Amar.",
+                "work-phone: 650/506-0666", // diff
+                "",
+                "dn: uid=user.1,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aaren",
+                "sn: Atp",
+                "cn: Aaren Atp",
+                "initials: AFA",
+                "employeeNumber: 1",
+                "uid: user.1",
+                "mail: aaren@example.com", // diff
+                "description: This is the description for Aaren Atp.",
+                "",
+                "dn: uid=user.2,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aarika",
+                "sn: Atpco",
+                "cn: Aarika Atpco",
+                "initials: AVA",
+                "employeeNumber: 2",
+                "uid: user.2",
+                "mail: user.2@example.com", // diff (delete description)
+                "",
+                "dn: uid=user.3,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aaron",
+                "sn: Atrc",
+                "cn: Aaron Atrc",
+                "initials: ATA",
+                "employeeNumber: 3",
+                "uid: user.999", // diff
+                "mail: user.999@example.com", // diff
+                "description: This is the description for Aaron Atrc.",
+                "",
+                "dn: uid=user.4,ou=People,dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: person",
+                "objectClass: organizationalperson",
+                "objectClass: inetorgperson",
+                "givenName: Aartjan",
+                "sn: Aalders",
+                "cn: Aartjan Aalders",
+                "initials: AAA",
+                "employeeNumber: 4",
+                "uid: user.4",
+                "mail: user.4@example.com",
+                "description: This is the description for Aartjan Aalders."
+        );
+        // @formatter:on
+
+        final ChangeRecordReader reader = LDIF.diff(source, target);
+        assertThat(reader.hasNext()).isTrue();
+        ChangeRecord cr = reader.readChangeRecord();
+        assertThat(cr.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(cr instanceof ModifyRequest);
+        assertThat(((ModifyRequest) cr).getModifications()).isNotEmpty();
+        // 1st entry : 2 add/delete + 1 add(work-phone)
+        assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(5);
+        // 2nd entry : 1 add/delete
+        cr = reader.readChangeRecord();
+        assertThat(cr.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        assertThat(cr instanceof ModifyRequest);
+        assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(2);
+        // 3rd entry : 1 delete
+        cr = reader.readChangeRecord();
+        assertThat(cr.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+        assertThat(cr instanceof ModifyRequest);
+        assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(1);
+        assertThat(((ModifyRequest) cr).getModifications().get(0).getModificationType().toString())
+                .isEqualTo("delete");
+        assertThat(
+                ((ModifyRequest) cr).getModifications().get(0).getAttribute()
+                        .getAttributeDescriptionAsString()).isEqualTo("description");
+        // 4th entry : 2 add/delete
+        cr = reader.readChangeRecord();
+        assertThat(cr.getName().toString()).isEqualTo("uid=user.3,ou=People,dc=example,dc=com");
+        assertThat(cr instanceof ModifyRequest);
+        assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(4);
+        // 5th entry : 0 modifications
+        cr = reader.readChangeRecord();
+        assertThat(cr.getName().toString()).isEqualTo("uid=user.4,ou=People,dc=example,dc=com");
+        assertThat(cr instanceof ModifyRequest);
+        assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(0);
+        assertThat(reader.hasNext()).isFalse();
+
+        reader.close();
+        target.close();
+    }
+
+    /**
      * Diff between two same entries : no modifications expected.
      *
      * @throws Exception
@@ -1081,13 +1269,12 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test the patch function. Apply simple patch to replace/add data to the
-     * input.
+     * Create a patch without any differences with the original.
      *
      * @throws Exception
      */
     @Test()
-    public final void testLdifPatch() throws Exception {
+    public final void testLdifPatchAddNoDiff() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
             "dn: uid=scarter,ou=People,dc=example,dc=com",
@@ -1095,6 +1282,1012 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "sn: new user",
             "mail: mail@mailme.org"
         );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: add",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(3); // objectclass - sn - mail
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * The patch add successfully an attribute 'manager' to the entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchAddDiff() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: add",
+            "add: manager",
+            "manager: uid=joneill,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5); // objectclass - sn - mail
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * The patch add two new entries to the original.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchAddDiffNewEntry() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=joneill,ou=People,dc=example,dc=com",
+            "changetype: add",
+            "add: manager",
+            "manager: uid=hamond,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "",
+            "dn: uid=djackson,ou=People,dc=example,dc=com",
+            "changetype: add",
+            "add: manager",
+            "manager: uid=joneill,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString())
+                .isEqualTo("uid=djackson,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=joneill,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(3);
+        reader.close();
+    }
+
+    /**
+     * Try to modify an nonexistent entry. The patch throw an error via the
+     * listener which is in RejectedChangeRecordListener.OVERWRITE.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchAddModifyNonExistantEntryDoNothing() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: cn=Lisa Jangles,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "add: telephonenumber",
+            "telephonenumber: (408) 555-2468"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(3);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Testing to delete in entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchDeleteEntry() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: delete"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Testing to delete in entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchDeleteEntryAmongSeveral() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "uid: user.1",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2",
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaron",
+            "sn: Atrc",
+            "cn: Aaron Atrc",
+            "uid: user.3"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "changetype: delete"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.3,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Testing to delete attributes in an entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchDeleteAttributesEntry() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Carter",
+            "sn: Sam",
+            "cn: Sam Carter",
+            "uid: scarter",
+            "mail: user.1@mail.com",
+            "postalAdress: 42 Shepherd Street",
+            "work-phone: 650/506-7000",
+            "work-phone: 650/506-0666",
+            "home-fax: 650-7001"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "delete: work-phone",
+            "work-phone: 650/506-0666",
+            "-",
+            "delete: home-fax"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(8);
+        assertThat(entry.getAttribute("work-phone").firstValueAsString()).isEqualTo("650/506-7000");
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Modifying an entry : add
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyEntry() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "add: work-phone",
+            "work-phone: 650/506-7000"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * The patch attempts to modify the dn adding uppercase.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDNEntryUppercaseUid() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: scarter",
+            "",
+            "dn: uid=djackson,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: djackson"
+
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: uid=Scarter",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        // does not work with a single entry && ...
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString())
+                .isEqualTo("uid=djackson,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=Scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4); //The patch create uid attribute on the selected entry.
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Attemp to modify the entry adding uppercase in cn.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDNEntryUpperCaseDnNameSurname() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: cn=sam carter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: scarter",
+            "",
+            "dn: uid=djackson,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: djackson"
+
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: cn=sam carter,ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: cn=Sam Carter",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        // does not work with a single entry && ...
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "cn=Sam Carter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString())
+                .isEqualTo("uid=djackson,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4); //The patch create uid attribute on the selected entry.
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * The patch attempts to modify a rdn of a specific entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDNEntry() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: scarter",
+            "",
+            "dn: uid=djackson,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "uid: djackson"
+
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: uid=Susan Jacobs",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        // does not work with a single entry && ...
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString())
+                .isEqualTo("uid=djackson,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=Susan Jacobs,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4); //The patch create uid attribute on the selected entry.
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    @Test()
+    public final void testLdifPatchModifyDnEntry2() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "uid: user.1",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2",
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaron",
+            "sn: Atrc",
+            "cn: Aaron Atrc",
+            "uid: user.3"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: uid=user.22",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.22,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.3,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Rename a branch : from ou=People,dc=example,dc=com to ou=Human
+     * Resources,dc=example,dc=com.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDnEntryBranch() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: organizationalunit",
+            "ou: People",
+            "",
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "uid: user.1",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2",
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaron",
+            "sn: Atrc",
+            "cn: Aaron Atrc",
+            "uid: user.3",
+            "",
+            "dn: uid=user.4,ou=People,dc=example,dc=org",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Allan",
+            "sn: Zorg",
+            "cn: Allan Zorg",
+            "uid: user.4"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAllAttributes("ou").iterator().next().firstValueAsString()).isEqualTo(
+                "Human Resources");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.1,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.2,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.3,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.4,ou=People,dc=example,dc=org");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Rename a branch : from ou=People,dc=example,dc=com to ou=Human
+     * Resources,dc=example,dc=com. In this example deleteoldrdn is set to 0.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDnEntryBranchKeepsOldRdn() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: organizationalunit",
+            "ou: People",
+            "",
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "uid: user.1",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2",
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaron",
+            "sn: Atrc",
+            "cn: Aaron Atrc",
+            "uid: user.3",
+            "",
+            "dn: uid=user.4,ou=People,dc=example,dc=org",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Allan",
+            "sn: Zorg",
+            "cn: Allan Zorg",
+            "uid: user.4"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "deleteoldrdn: 0"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAllAttributes("ou").iterator().next().firstValueAsString()).isEqualTo(
+                "People");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.1,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.2,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.3,ou=Human Resources,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.4,ou=People,dc=example,dc=org");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Moves an entry.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchModifyDnEntryNewSuperior() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "uid: user.1",
+            "mail: user.1@mail.com",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "# moves the entry from ou=People, dc=example,dc=com to Marketing",
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: uid=user.1",
+            "deleteoldrdn: 1",
+            "newsuperior: ou=Marketing,dc=example,dc=com"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo(
+                "uid=user.1,ou=Marketing,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(6);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Apply simple patch to replace/add data to the input.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchAddReplace() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "replace:sn",
+            "sn: scarter",
+            "-",
+            "add: manager",
+            "manager: uid=joneill,ou=People,dc=example,dc=com"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4); // objectclass - sn - mail - manager
+        assertThat(entry.getAttribute("manager").firstValueAsString()).isEqualTo(
+                "uid=joneill,ou=People,dc=example,dc=com");
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Replace / add postalAdress.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchAddReplaceLanguageTagExample() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "postalAdress;lang-en: Shepherd Street"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "replace: postalAdress;lang-fr",
+            "postalAdress;lang-fr: 355 avenue Leon Blum",
+            "-",
+            "replace: postalAdress;lang-en",
+            "postalAdress;lang-en: 42 Shepherd Street"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(5); // objectclass - sn - mail - manager - postalAdress
+        assertThat(entry.getAttribute("postalAdress;lang-fr").firstValueAsString()).isEqualTo(
+                "355 avenue Leon Blum");
+        assertThat(entry.getAttribute("postalAdress;lang-en").firstValueAsString()).isEqualTo(
+                "42 Shepherd Street");
+        assertThat(reader.hasNext()).isFalse();
+        reader.close();
+    }
+
+    /**
+     * Test some changes : add/replace/delete...
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchVariousChanges() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "",
+            "dn: uid=user.0,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaccf",
+            "sn: Amar",
+            "cn: Aaccf Amar",
+            "",
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaren",
+            "sn: Atp",
+            "cn: Aaren Atp",
+            "mail: AarenAtp@mail.org",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco",
+            "description:: ZnVubnkgZGVzY3JpcHRpb24gISA6RA==",
+            "mail:: QWFyaWthQXRwY29AbWFpbC5vcmc=",
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Kadja",
+            "sn: Atpcol",
+            "cn: Kadja Atpcol"
+        );
+        // @formatter:on
+
+        final File file = File.createTempFile("sdk", ".png");
+        final String url = file.toURI().toURL().toString();
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "replace:sn",
+            "sn: scarter",
+            "-",
+            "add: manager",
+            "manager: uid=joneill,ou=People,dc=example,dc=com",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "replace:description",
+            "description:: QWFyaWthIEF0cGNvIGRlc2NyaXB0aW9uIDogbG9yZW0gaXBzdW0uLi4=",
+            "-",
+            "add: jpegphoto",
+            "jpegphoto:< " + url,
+            "",
+            "dn: uid=user.3,ou=People,dc=example,dc=com",
+            "changetype: delete"
+        );
+        // @formatter:on
+
+        final EntryReader reader = LDIF.patch(input, patch);
+
+        Entry entry = reader.readEntry();
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getAttribute("manager").firstValueAsString()).isEqualTo(
+                "uid=joneill,ou=People,dc=example,dc=com");
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getAttributeCount()).isEqualTo(5);
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getAttributeCount()).isEqualTo(7);
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
+                "AarikaAtpco@mail.org");
+        assertThat(entry.getAttribute("description").firstValueAsString()).isEqualTo(
+                "Aarika Atpco description : lorem ipsum...");
+        assertThat(entry.getAttribute("jpegphoto")).isNotEmpty();
+        assertThat(reader.hasNext()).isFalse();
+
+        file.delete();
+        reader.close();
+    }
+
+    /**
+     * An example for illustrate an LDIFChangeRecordReader containing changes on
+     * previous ldif.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testLdifPatchContainingChanges() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "",
+            "dn: uid=user.0,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaccf",
+            "sn: Amar",
+            "cn: Aaccf Amar",
+            "",
+            "dn: uid=user.1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aaren",
+            "sn: Atp",
+            "cn: Aaren Atp",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Aarika",
+            "sn: Atpco",
+            "cn: Aarika Atpco"
+        );
+        // @formatter:on
 
         // @formatter:off
         final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
@@ -1104,18 +2297,98 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                 "sn: scarter",
                 "-",
                 "add: manager",
-                "manager: uid=joneill,ou=People,dc=example,dc=com"
+                "manager: uid=joneill,ou=People,dc=example,dc=com",
+                "",
+                "dn: uid=user.0,ou=People,dc=example,dc=com",
+                "changetype: modify",
+                "replace:sn",
+                "sn: Amarr",
+                "-",
+                "delete: givenName",
+                "",
+                "dn: uid=user.1,ou=People,dc=example,dc=com",
+                "changetype: modify",
+                "replace:givenName",
+                "givenName: Aarwen",
+                "-",
+                "add: manager",
+                "manager: uid=joneill,ou=People,dc=example,dc=com",
+                "-",
+                "add: mail",
+                "mail: Aarwen@mail.com",
+                "-",
+                "add: fax",
+                "fax: 555 555-5555",
+                "-",
+                "add: description",
+                "description:: QWFyd2VuIGRlc2NyaXB0aW9uLg=="
         );
         // @formatter:on
 
-        // @formatter:on
         final EntryReader reader = LDIF.patch(input, patch);
+
         Entry entry = reader.readEntry();
         assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
-        assertThat(entry.getAttributeCount()).isEqualTo(4); // objectclass - sn - mail - manager
+        // Attr. list : objectclass - sn - mail - manager
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
         assertThat(entry.getAttribute("manager").firstValueAsString()).isEqualTo(
                 "uid=joneill,ou=People,dc=example,dc=com");
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        // Attr. list : objectclass - sn - cn
+        assertThat(entry.getAttributeCount()).isEqualTo(3);
+        assertThat(reader.hasNext()).isTrue();
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        // Attr. list : objectclass - sn - cn - givenName - manager - mail - fax - description
+        assertThat(entry.getAttributeCount()).isEqualTo(8);
+        assertThat(entry.getAttribute("description").firstValueAsString()).isEqualTo(
+                "Aarwen description.");
+        assertThat(reader.hasNext()).isTrue();
+        // Last entry, no modification on it.
+        entry = reader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+        // Attr. list : objectClass - givenname - sn - cn
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(reader.hasNext()).isFalse();
         reader.close();
+    }
+
+    /**
+     * Try to apply a patch which data are not valid. Exception expected.
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test(expectedExceptions = DecodeException.class)
+    public final void testLdifPatchInvalidChangeRecord() throws Exception {
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+                "dn: uid=scarter,ou=People,dc=example,dc=com",
+                "changetype: modif\u0000",
+                "replace:sn",
+                "sn: scarter",
+                "-",
+                "add: manager\u0000",
+                "manager: uid=joneill,ou=People,dc=example,dc=com"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch);
+            reader.readEntry();
+        } finally {
+            reader.close();
+        }
     }
 
     /**
@@ -1128,5 +2401,4 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     public final void testLdifPatchDoesntAllowNull() throws Exception {
         LDIF.patch(null, null);
     }
-
 }
