@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -64,6 +64,10 @@ public class CharacterSetPasswordValidator
   // required for each.
   private HashMap<String,Integer> characterSets;
 
+  // A mapping between the character ranges and the minimum number of characters
+  // required for each.
+  private HashMap<String,Integer> characterRanges;
+
 
 
   /**
@@ -90,8 +94,9 @@ public class CharacterSetPasswordValidator
     configuration.addCharacterSetChangeListener(this);
     currentConfig = configuration;
 
-    // Make sure that each of the character set definitions are acceptable.
-    characterSets = processCharacterSets(configuration);
+    // Make sure that each of the character set and range definitions are
+    // acceptable.
+    processCharacterSetsAndRanges(configuration, true);
   }
 
 
@@ -123,7 +128,8 @@ public class CharacterSetPasswordValidator
 
     // Process the provided password.
     String password = newPassword.toString();
-    HashMap<String,Integer> counts = new HashMap<String,Integer>();
+    HashMap<String,Integer> setCounts = new HashMap<String,Integer>();
+    HashMap<String,Integer> rangeCounts = new HashMap<String,Integer>();
     for (int i=0; i < password.length(); i++)
     {
       char c = password.charAt(i);
@@ -132,21 +138,47 @@ public class CharacterSetPasswordValidator
       {
         if (characterSet.indexOf(c) >= 0)
         {
-          Integer count = counts.get(characterSet);
+          Integer count = setCounts.get(characterSet);
           if (count == null)
           {
-            counts.put(characterSet, 1);
+            setCounts.put(characterSet, 1);
           }
           else
           {
-            counts.put(characterSet, count+1);
+            setCounts.put(characterSet, count+1);
           }
 
           found = true;
           break;
         }
       }
+      if (!found)
+      {
+        for (String characterRange : characterRanges.keySet())
+        {
+          int rangeStart = 0;
+          while (rangeStart < characterRange.length())
+          {
+            if (characterRange.charAt(rangeStart) <= c
+                && c <= characterRange.charAt(rangeStart+2))
+            {
+              Integer count = rangeCounts.get(characterRange);
+              if (count == null)
+              {
+                rangeCounts.put(characterRange, 1);
+              }
+              else
+              {
+                rangeCounts.put(characterRange, count+1);
+              }
 
+              found = true;
+              break;
+            }
+            rangeStart += 3;
+          }
+        }
+      }
       if ((! found) && (! config.isAllowUnclassifiedCharacters()))
       {
         invalidReason.append(ERR_CHARSET_VALIDATOR_ILLEGAL_CHARACTER.get(
@@ -161,7 +193,7 @@ public class CharacterSetPasswordValidator
     for (String characterSet : characterSets.keySet())
     {
       int minimumCount = characterSets.get(characterSet);
-      Integer passwordCount = counts.get(characterSet);
+      Integer passwordCount = setCounts.get(characterSet);
       if (minimumCount > 0)
       {
         // Mandatory character set.
@@ -183,6 +215,33 @@ public class CharacterSetPasswordValidator
           usedOptionalCharacterSets++;
         }
       }
+    }
+    for (String characterRange : characterRanges.keySet())
+    {
+      int minimumCount = characterRanges.get(characterRange);
+      Integer passwordCount = rangeCounts.get(characterRange);
+      if (minimumCount > 0)
+      {
+        // Mandatory character set.
+        mandatoryCharacterSets++;
+        if ((passwordCount == null) || (passwordCount < minimumCount))
+        {
+          invalidReason
+              .append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_RANGE
+                  .get(characterRange, minimumCount));
+          return false;
+        }
+      }
+      else
+      {
+        // Optional character set.
+        optionalCharacterSets++;
+        if (passwordCount != null)
+        {
+          usedOptionalCharacterSets++;
+        }
+      }
+
     }
 
     // Check minimum optional character sets are present.
@@ -215,6 +274,19 @@ public class CharacterSetPasswordValidator
             builder.append('\'');
           }
         }
+        for (String characterRange : characterRanges.keySet())
+        {
+          if (characterRanges.get(characterRange) == 0)
+          {
+            if (builder.length() > 0)
+            {
+              builder.append(", ");
+            }
+            builder.append('\'');
+            builder.append(characterRange);
+            builder.append('\'');
+          }
+        }
 
         invalidReason
             .append(ERR_CHARSET_VALIDATOR_TOO_FEW_OPTIONAL_CHAR_SETS
@@ -235,21 +307,20 @@ public class CharacterSetPasswordValidator
    * definitions and associated minimum counts from them.
    *
    * @param  configuration  the configuration for this password validator.
-   *
-   * @return  The mapping between strings of character set values and the
-   *          minimum number of characters required from those sets.
-   *
+   * @param  apply <CODE>true</CODE> if the configuration is being applied,
+   *         <CODE>false</CODE> if it is just being validated.
    * @throws  ConfigException  If any of the character set definitions cannot be
    *                           parsed, or if there are any characters present in
    *                           multiple sets.
    */
-  private HashMap<String,Integer>
-               processCharacterSets(
-                    CharacterSetPasswordValidatorCfg configuration)
+  private void processCharacterSetsAndRanges(
+                    CharacterSetPasswordValidatorCfg configuration,
+                    boolean apply)
           throws ConfigException
   {
-    HashMap<String,Integer> characterSets  = new HashMap<String,Integer>();
-    HashSet<Character>      usedCharacters = new HashSet<Character>();
+    HashMap<String,Integer> characterSets   = new HashMap<String,Integer>();
+    HashMap<String,Integer> characterRanges = new HashMap<String,Integer>();
+    HashSet<Character>      usedCharacters  = new HashSet<Character>();
     int mandatoryCharacterSets = 0;
 
     for (String definition : configuration.getCharacterSet())
@@ -257,12 +328,12 @@ public class CharacterSetPasswordValidator
       int colonPos = definition.indexOf(':');
       if (colonPos <= 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_COLON.get(definition);
+        Message message = ERR_CHARSET_VALIDATOR_NO_SET_COLON.get(definition);
         throw new ConfigException(message);
       }
       else if (colonPos == (definition.length() - 1))
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_CHARS.get(definition);
+        Message message = ERR_CHARSET_VALIDATOR_NO_SET_CHARS.get(definition);
         throw new ConfigException(message);
       }
 
@@ -273,13 +344,15 @@ public class CharacterSetPasswordValidator
       }
       catch (Exception e)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_COUNT.get(definition);
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
+            .get(definition);
         throw new ConfigException(message);
       }
 
       if (minCount < 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_COUNT.get(definition);
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
+            .get(definition);
         throw new ConfigException(message);
       }
 
@@ -305,8 +378,86 @@ public class CharacterSetPasswordValidator
       }
     }
 
+    // Check the ranges
+    for (String definition : configuration.getCharacterSetRanges())
+    {
+      int colonPos = definition.indexOf(':');
+      if (colonPos <= 0)
+      {
+        Message message = ERR_CHARSET_VALIDATOR_NO_RANGE_COLON.get(definition);
+        throw new ConfigException(message);
+      }
+      else if (colonPos == (definition.length() - 1))
+      {
+        Message message = ERR_CHARSET_VALIDATOR_NO_RANGE_CHARS.get(definition);
+        throw new ConfigException(message);
+      }
+
+      int minCount;
+      try
+      {
+        minCount = Integer.parseInt(definition.substring(0, colonPos));
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
+            .get(definition);
+        throw new ConfigException(message);
+      }
+
+      if (minCount < 0)
+      {
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
+            .get(definition);
+        throw new ConfigException(message);
+      }
+
+      String characterRange = definition.substring(colonPos+1);
+      /*
+       * Ensure we have a number of valid range specifications which are
+       * each 3 chars long.
+       * e.g. "a-zA-Z0-9"
+       */
+      int rangeOffset = 0;
+      while (rangeOffset < characterRange.length())
+      {
+        if (rangeOffset > characterRange.length() - 3)
+        {
+          Message message = ERR_CHARSET_VALIDATOR_SHORT_RANGE
+              .get(definition, characterRange.substring(rangeOffset));
+          throw new ConfigException(message);
+        }
+
+        if (characterRange.charAt(rangeOffset+1) != '-')
+        {
+          Message message = ERR_CHARSET_VALIDATOR_MALFORMED_RANGE
+              .get(definition, characterRange
+                  .substring(rangeOffset,rangeOffset+3));
+          throw new ConfigException(message);
+        }
+
+        if (characterRange.charAt(rangeOffset) >=
+            characterRange.charAt(rangeOffset+2))
+        {
+          Message message = ERR_CHARSET_VALIDATOR_UNSORTED_RANGE
+              .get(definition, characterRange
+                  .substring(rangeOffset, rangeOffset+3));
+          throw new ConfigException(message);
+        }
+
+        rangeOffset += 3;
+      }
+
+      characterRanges.put(characterRange, minCount);
+
+      if (minCount > 0)
+      {
+        mandatoryCharacterSets++;
+      }
+    }
+
     // Validate min-character-sets if necessary.
-    int optionalCharacterSets = characterSets.size()
+    int optionalCharacterSets = characterSets.size() + characterRanges.size()
         - mandatoryCharacterSets;
     if (optionalCharacterSets > 0
         && configuration.getMinCharacterSets() != null)
@@ -320,7 +471,7 @@ public class CharacterSetPasswordValidator
         throw new ConfigException(message);
       }
 
-      if (minCharacterSets > characterSets.size())
+      if (minCharacterSets > (characterSets.size() + characterRanges.size()))
       {
         Message message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_BIG
             .get(minCharacterSets);
@@ -328,7 +479,11 @@ public class CharacterSetPasswordValidator
       }
     }
 
-    return characterSets;
+    if (apply)
+    {
+      this.characterSets = characterSets;
+      this.characterRanges = characterRanges;
+    }
   }
 
 
@@ -358,7 +513,7 @@ public class CharacterSetPasswordValidator
     // we'll accept the new configuration.
     try
     {
-      processCharacterSets(configuration);
+      processCharacterSetsAndRanges(configuration, false);
     }
     catch (ConfigException ce)
     {
@@ -386,7 +541,7 @@ public class CharacterSetPasswordValidator
     // activate the new configuration.
     try
     {
-      characterSets = processCharacterSets(configuration);
+      processCharacterSetsAndRanges(configuration, true);
       currentConfig = configuration;
     }
     catch (Exception e)
