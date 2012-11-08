@@ -28,19 +28,29 @@ package org.forgerock.opendj.ldif;
 import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_DELETE;
 import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFY;
 import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Attributes;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -58,8 +68,12 @@ import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.Schema;
+
+import com.forgerock.opendj.ldap.LDAPUtils;
 
 /**
  * This class contains common utility methods for creating and manipulating
@@ -75,6 +89,26 @@ public final class LDIF {
         public Entry readEntry() { return iterator.next(); }
     }
     // @formatter:on
+
+    /**
+     * Comparator ordering the DN ASC.
+     */
+    private static final Comparator<byte[][]> DN_ORDER2 = new Comparator<byte[][]>() {
+        public int compare(byte[][] b1, byte[][] b2) {
+            return DN_ORDER.compare(b1[0], b2[0]);
+        }
+    };
+
+    /**
+     * Comparator ordering the DN ASC.
+     */
+    private static final Comparator<byte[]> DN_ORDER = new Comparator<byte[]>() {
+        public int compare(byte[] b1, byte[] b2) {
+            final ByteString bs = ByteString.valueOf(b1);
+            final ByteString bs2 = ByteString.valueOf(b2);
+            return bs.compareTo(bs2);
+        }
+    };
 
     /**
      * Copies the content of {@code input} to {@code output}. This method does
@@ -137,10 +171,11 @@ public final class LDIF {
      */
     public static ChangeRecordReader diff(final EntryReader source, final EntryReader target)
             throws IOException {
-        final SortedMap<DN, Entry> sourceEntries = readEntries(source);
-        final SortedMap<DN, Entry> targetEntries = readEntries(target);
-        final Iterator<Entry> sourceIterator = sourceEntries.values().iterator();
-        final Iterator<Entry> targetIterator = targetEntries.values().iterator();
+
+        final List<byte[][]> source2 = readEntriesAsList(source);
+        final List<byte[][]> target2 = readEntriesAsList(target);
+        final Iterator<byte[][]> sourceIterator = source2.iterator();
+        final Iterator<byte[][]> targetIterator = target2.iterator();
 
         return new ChangeRecordReader() {
             private Entry sourceEntry = nextEntry(sourceIterator);
@@ -201,11 +236,13 @@ public final class LDIF {
                 }
             }
 
-            private Entry nextEntry(final Iterator<Entry> i) {
-                return i.hasNext() ? i.next() : null;
+            private Entry nextEntry(final Iterator<byte[][]> i) throws IOException {
+                if (i.hasNext()) {
+                    return decodeEntry(i.next()[1]);
+                }
+                return null;
             }
         };
-
     }
 
     /**
@@ -240,6 +277,12 @@ public final class LDIF {
      * <b>NOTE:</b> this method reads the content of {@code input} into memory
      * before applying the changes, and is therefore not suited for use in cases
      * where a very large number of entries are to be patched.
+     * <p>
+     * <b>NOTE:</b> this method will not perform modifications required in order
+     * to maintain referential integrity. In particular, if an entry references
+     * another entry using a DN valued attribute and the referenced entry is
+     * deleted, then the DN reference will not be removed. The same applies to
+     * renamed entries and their references.
      *
      * @param input
      *            The entry reader containing the set of entries to be patched.
@@ -264,6 +307,12 @@ public final class LDIF {
      * <b>NOTE:</b> this method reads the content of {@code input} into memory
      * before applying the changes, and is therefore not suited for use in cases
      * where a very large number of entries are to be patched.
+     * <p>
+     * <b>NOTE:</b> this method will not perform modifications required in order
+     * to maintain referential integrity. In particular, if an entry references
+     * another entry using a DN valued attribute and the referenced entry is
+     * deleted, then the DN reference will not be removed. The same applies to
+     * renamed entries and their references.
      *
      * @param input
      *            The entry reader containing the set of entries to be patched.
@@ -278,10 +327,12 @@ public final class LDIF {
      */
     public static EntryReader patch(final EntryReader input, final ChangeRecordReader patch,
             final RejectedChangeRecordListener listener) throws IOException {
-        final SortedMap<DN, Entry> entries = readEntries(input);
+        final SortedMap<byte[], byte[]> entries = readEntriesAsMap(input);
 
         while (patch.hasNext()) {
             final ChangeRecord change = patch.readChangeRecord();
+            final DN changeDN = change.getName();
+            final byte[] changeNormDN = getBytes(change.getName().toNormalizedString());
 
             final DecodeException de =
                     change.accept(new ChangeRecordVisitor<DecodeException, Void>() {
@@ -289,17 +340,19 @@ public final class LDIF {
                         @Override
                         public DecodeException visitChangeRecord(final Void p,
                                 final AddRequest change) {
-                            final Entry existingEntry = entries.get(change.getName());
-                            if (existingEntry != null) {
+
+                            if (entries.get(changeNormDN) != null) {
+                                final Entry existingEntry = decodeEntry(entries.get(changeNormDN));
                                 try {
                                     final Entry entry =
                                             listener.handleDuplicateEntry(change, existingEntry);
-                                    entries.put(entry.getName(), entry);
+                                    entries.put(getBytes(entry.getName().toNormalizedString()),
+                                            encodeEntry(entry)[1]);
                                 } catch (final DecodeException e) {
                                     return e;
                                 }
                             } else {
-                                entries.put(change.getName(), change);
+                                entries.put(changeNormDN, encodeEntry(change)[1]);
                             }
                             return null;
                         }
@@ -307,7 +360,7 @@ public final class LDIF {
                         @Override
                         public DecodeException visitChangeRecord(final Void p,
                                 final DeleteRequest change) {
-                            if (!entries.containsKey(change.getName())) {
+                            if (entries.get(changeNormDN) == null) {
                                 try {
                                     listener.handleRejectedChangeRecord(change,
                                             REJECTED_CHANGE_FAIL_DELETE.get(change.getName()
@@ -319,10 +372,12 @@ public final class LDIF {
                                 try {
                                     if (change.getControl(SubtreeDeleteRequestControl.DECODER,
                                             new DecodeOptions()) != null) {
-                                        entries.subMap(change.getName(),
-                                                change.getName().child(RDN.maxValue())).clear();
+                                        entries.subMap(
+                                                getBytes(change.getName().toNormalizedString()),
+                                                getBytes(change.getName().child(RDN.maxValue())
+                                                        .toNormalizedString())).clear();
                                     } else {
-                                        entries.remove(change.getName());
+                                        entries.remove(changeNormDN);
                                     }
                                 } catch (final DecodeException e) {
                                     return e;
@@ -335,7 +390,7 @@ public final class LDIF {
                         @Override
                         public DecodeException visitChangeRecord(final Void p,
                                 final ModifyDNRequest change) {
-                            if (!entries.containsKey(change.getName())) {
+                            if (entries.get(changeNormDN) == null) {
                                 try {
                                     listener.handleRejectedChangeRecord(change,
                                             REJECTED_CHANGE_FAIL_MODIFYDN.get(change.getName()
@@ -345,7 +400,7 @@ public final class LDIF {
                                 }
                             } else {
                                 // Calculate the old and new DN.
-                                final DN oldDN = change.getName();
+                                final DN oldDN = changeDN;
 
                                 DN newSuperior = change.getNewSuperior();
                                 if (newSuperior == null) {
@@ -357,51 +412,72 @@ public final class LDIF {
                                 final DN newDN = newSuperior.child(change.getNewRDN());
 
                                 // Move the renamed entries into a separate map
-                                // in order to
-                                // avoid cases where the renamed subtree
-                                // overlaps.
-                                final SortedMap<DN, Entry> renamedEntries =
-                                        new TreeMap<DN, Entry>();
-                                final Iterator<Map.Entry<DN, Entry>> i =
-                                        entries.subMap(change.getName(),
-                                                change.getName().child(RDN.maxValue())).entrySet()
-                                                .iterator();
-                                while (i.hasNext()) {
-                                    final Map.Entry<DN, Entry> e = i.next();
-                                    i.remove();
+                                // in order to avoid cases where the renamed subtree overlaps.
+                                final SortedMap<byte[], byte[]> renamedEntries =
+                                        new TreeMap<byte[], byte[]>(DN_ORDER);
 
-                                    final DN renamedDN = e.getKey().rename(oldDN, newDN);
-                                    final Entry entry = e.getValue().setName(renamedDN);
-                                    renamedEntries.put(renamedDN, entry);
+                                // @formatter:off
+                                final Iterator<Map.Entry<byte[], byte[]>> i =
+                                    entries.subMap(changeNormDN,
+                                        getBytes((changeDN.child(RDN.maxValue())).
+                                                toNormalizedString())).entrySet().iterator();
+                                // @formatter:on
+
+                                while (i.hasNext()) {
+                                    final Map.Entry<byte[], byte[]> e = i.next();
+                                    final Entry entry = decodeEntry(e.getValue());
+                                    final DN renamedDN = entry.getName().rename(oldDN, newDN);
+                                    entry.setName(renamedDN);
+                                    renamedEntries.put(getBytes(renamedDN.toNormalizedString()),
+                                            encodeEntry(entry)[1]);
+                                    i.remove();
                                 }
 
-                                // Modify the target entry.
-                                final Entry entry = entries.values().iterator().next();
+                                // Modify target entry
+                                final Entry targetEntry =
+                                        decodeEntry(renamedEntries.values().iterator().next());
+
                                 if (change.isDeleteOldRDN()) {
                                     for (final AVA ava : oldDN.rdn()) {
-                                        entry.removeAttribute(ava.toAttribute(), null);
+                                        targetEntry.removeAttribute(ava.toAttribute(), null);
                                     }
                                 }
                                 for (final AVA ava : newDN.rdn()) {
-                                    entry.addAttribute(ava.toAttribute());
+                                    targetEntry.addAttribute(ava.toAttribute());
                                 }
 
+                                renamedEntries.remove(getBytes(targetEntry.getName()
+                                        .toNormalizedString()));
+                                renamedEntries.put(getBytes(targetEntry.getName()
+                                        .toNormalizedString()), encodeEntry(targetEntry)[1]);
+
                                 // Add the renamed entries.
-                                for (final Entry renamedEntry : renamedEntries.values()) {
-                                    final Entry existingEntry = entries.get(renamedEntry.getName());
-                                    if (existingEntry != null) {
+                                final Iterator<byte[]> j = renamedEntries.values().iterator();
+                                while (j.hasNext()) {
+                                    final Entry renamedEntry = decodeEntry(j.next());
+                                    final byte[] existingEntryDn =
+                                            entries.get(getBytes(renamedEntry.getName()
+                                                    .toNormalizedString()));
+
+                                    if (existingEntryDn != null) {
+                                        final Entry existingEntry = decodeEntry(existingEntryDn);
                                         try {
                                             final Entry tmp =
                                                     listener.handleDuplicateEntry(change,
                                                             existingEntry, renamedEntry);
-                                            entries.put(tmp.getName(), tmp);
+                                            entries.put(
+                                                    getBytes(tmp.getName().toNormalizedString()),
+                                                    encodeEntry(tmp)[1]);
                                         } catch (final DecodeException e) {
                                             return e;
                                         }
                                     } else {
-                                        entries.put(renamedEntry.getName(), renamedEntry);
+                                        entries.put(getBytes(renamedEntry.getName()
+                                                .toNormalizedString()),
+                                                encodeEntry(renamedEntry)[1]);
                                     }
                                 }
+                                renamedEntries.clear();
                             }
                             return null;
                         }
@@ -409,7 +485,7 @@ public final class LDIF {
                         @Override
                         public DecodeException visitChangeRecord(final Void p,
                                 final ModifyRequest change) {
-                            if (!entries.containsKey(change.getName())) {
+                            if (entries.get(changeNormDN) == null) {
                                 try {
                                     listener.handleRejectedChangeRecord(change,
                                             REJECTED_CHANGE_FAIL_MODIFY.get(change.getName()
@@ -418,7 +494,7 @@ public final class LDIF {
                                     return e;
                                 }
                             } else {
-                                final Entry entry = entries.get(change.getName());
+                                final Entry entry = decodeEntry(entries.get(changeNormDN));
                                 for (final Modification modification : change.getModifications()) {
                                     final ModificationType modType =
                                             modification.getModificationType();
@@ -434,6 +510,7 @@ public final class LDIF {
                                                 + "\": modification type not supported");
                                     }
                                 }
+                                entries.put(changeNormDN, encodeEntry(entry)[1]);
                             }
                             return null;
                         }
@@ -446,7 +523,7 @@ public final class LDIF {
         }
 
         return new EntryReader() {
-            private final Iterator<Entry> iterator = entries.values().iterator();
+            private final Iterator<byte[]> iterator = entries.values().iterator();
 
             @Override
             public void close() throws IOException {
@@ -464,7 +541,7 @@ public final class LDIF {
 
             @Override
             public Entry readEntry() throws IOException {
-                return iterator.next();
+                return decodeEntry(iterator.next());
             }
         };
     }
@@ -612,13 +689,59 @@ public final class LDIF {
         };
     }
 
-    private static SortedMap<DN, Entry> readEntries(final EntryReader reader) throws IOException {
-        final SortedMap<DN, Entry> entries = new TreeMap<DN, Entry>();
+    private static List<byte[][]> readEntriesAsList(final EntryReader reader) throws IOException {
+        final List<byte[][]> entries = new ArrayList<byte[][]>();
+
         while (reader.hasNext()) {
             final Entry entry = reader.readEntry();
-            entries.put(entry.getName(), entry);
+            entries.add(encodeEntry(entry));
         }
+        // Sorting the list by DN
+        Collections.sort(entries, DN_ORDER2);
+
         return entries;
+    }
+
+    private static TreeMap<byte[], byte[]> readEntriesAsMap(final EntryReader reader)
+            throws IOException {
+        final TreeMap<byte[], byte[]> entries = new TreeMap<byte[], byte[]>(DN_ORDER);
+
+        while (reader.hasNext()) {
+            final Entry entry = reader.readEntry();
+            final byte[][] bEntry = encodeEntry(entry);
+            entries.put(bEntry[0], bEntry[1]);
+        }
+
+        return entries;
+    }
+
+    private static SearchResultEntry decodeEntry(final byte[] asn1EntryFormat) {
+        final ASN1Reader readerASN1 = ASN1.getReader(asn1EntryFormat);
+        try {
+            final SearchResultEntry sr =
+                    LDAPUtils.decodeSearchResultEntry(readerASN1, new DecodeOptions());
+            readerASN1.close();
+            return sr;
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private static byte[][] encodeEntry(final Entry entry) {
+        final byte[][] bEntry = new byte[2][];
+
+        final ByteStringBuilder bsb = new ByteStringBuilder();
+        final ASN1Writer writer = ASN1.getWriter(bsb);
+        // Store normalized DN
+        bEntry[0] = getBytes(entry.getName().toNormalizedString());
+        try {
+            // Store ASN1 representation of the entry.
+            LDAPUtils.encodeSearchResultEntry(writer, Responses.newSearchResultEntry(entry));
+            bEntry[1] = bsb.toByteArray();
+            return bEntry;
+        } catch (final IOException ioe) {
+            throw new IllegalStateException(ioe);
+        }
     }
 
     // Prevent instantiation.
