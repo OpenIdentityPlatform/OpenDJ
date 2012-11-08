@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -137,6 +137,31 @@ public class CharacterSetPasswordValidatorTestCase
               "CharacterSetPasswordValidator",
          "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
+         "ds-cfg-character-set: 0:0123456789",
+         "ds-cfg-allow-unclassified-characters: true",
+         "ds-cfg-min-character-sets: 2",
+         "",
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 0:0-9",
+         "ds-cfg-allow-unclassified-characters: true",
+         "ds-cfg-min-character-sets: 1",
+         "",
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:A-Z\u13a0-\u13f4",
          "ds-cfg-character-set: 0:0123456789",
          "ds-cfg-allow-unclassified-characters: true",
          "ds-cfg-min-character-sets: 2");
@@ -324,7 +349,131 @@ public class CharacterSetPasswordValidatorTestCase
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-character-set: 0:0123456789",
          "ds-cfg-allow-unclassified-characters: true",
-         "ds-cfg-min-character-sets: 3");
+         "ds-cfg-min-character-sets: 3",
+         "",
+         // Malformed character range definition -- no colon.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: malformed",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character range definition -- colon first.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: :malformed",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- colon last.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- non-integer count.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: noninteger:a-z",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- negative count.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: -1:a-z",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- incomplete range.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:a-",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- incomplete first
+         // of multiple ranges.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:a-A-Z",
+         "ds-cfg-allow-unclassified-characters: true",
+         "",
+         // Malformed character ranges definition -- incomplete last
+         // of multiple ranges.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:a-zA",
+         "ds-cfg-allow-unclassified-characters: malformed",
+         "",
+         // Malformed character ranges definition -- unsorted range.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:z-a",
+         "ds-cfg-allow-unclassified-characters: true",
+         "ds-cfg-min-character-sets: 0",
+         "",
+         // Malformed character ranges definition -- no minus.
+         "dn: cn=Character Set,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-character-set-password-validator",
+         "cn: Character Set",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "CharacterSetPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-character-set-ranges: 1:a_z",
+         "ds-cfg-allow-unclassified-characters: true",
+         "ds-cfg-min-character-sets: 1");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -689,6 +838,48 @@ public class CharacterSetPasswordValidatorTestCase
              "ds-cfg-min-character-sets: 2",
              "ds-cfg-allow-unclassified-characters: false"),
         "abc123ABC",
+        true
+      },
+
+      // 3 optional ranges (one is Thai), must use two.
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Character Set,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-character-set-password-validator",
+             "cn: Character Set",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "CharacterSetPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-character-set-ranges: 0:a-zA-Z",
+             "ds-cfg-character-set-ranges: 0:0-9",
+             "ds-cfg-character-set-ranges: 0:\u0e01-\u0e5b",
+             "ds-cfg-min-character-sets: 2",
+             "ds-cfg-allow-unclassified-characters: false"),
+        "abcABC",
+        false
+      },
+
+      // 3 optional ranges (one is Thai), must use two.
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Character Set,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-character-set-password-validator",
+             "cn: Character Set",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "CharacterSetPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-character-set-ranges: 0:a-zA-Z",
+             "ds-cfg-character-set-ranges: 0:0-9",
+             "ds-cfg-character-set-ranges: 0:\u0e01-\u0e5b",
+             "ds-cfg-min-character-sets: 2",
+             "ds-cfg-allow-unclassified-characters: false"),
+        "abc\u0e17ABC",
         true
       },
     };
