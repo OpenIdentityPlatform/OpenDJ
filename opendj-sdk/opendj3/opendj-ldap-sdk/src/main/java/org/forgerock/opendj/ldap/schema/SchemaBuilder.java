@@ -95,8 +95,8 @@ public final class SchemaBuilder {
     // Constructs a search request for retrieving the subschemaSubentry
     // attribute from the named entry.
     private static SearchRequest getReadSchemaForEntrySearchRequest(final DN dn) {
-        return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, Filter
-                .objectClassPresent(), SUBSCHEMA_SUBENTRY_ATTRS);
+        return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, Filter.objectClassPresent(),
+                SUBSCHEMA_SUBENTRY_ATTRS);
     }
 
     // Constructs a search request for retrieving the named subschema
@@ -324,8 +324,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("sup")) {
                     // This specifies the name or OID of the superior attribute
@@ -350,27 +349,22 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("syntax")) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
-                    // by
-                    // an open curly brace, an integer definition, and a close
+                    // by an open curly brace, an integer definition, and a close
                     // curly brace to suggest the minimum number of characters
                     // that should be allowed in values of that type. This
                     // implementation will ignore any such length because it
-                    // does
-                    // not impose any practical limit on the length of attribute
+                    // does not impose any practical limit on the length of attribute
                     // values.
                     syntax = SchemaUtils.readOIDLen(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.equalsIgnoreCase("single-definition")) {
                     // This indicates that attributes of this type are allowed
-                    // to
-                    // have at most one definition. We do not need any more
+                    // to have at most one definition. We do not need any more
                     // parsing for this token.
                     isSingleValue = true;
                 } else if (tokenName.equalsIgnoreCase("single-value")) {
                     // This indicates that attributes of this type are allowed
-                    // to
-                    // have at most one value. We do not need any more parsing
-                    // for
-                    // this token.
+                    // to have at most one value. We do not need any more parsing
+                    // for this token.
                     isSingleValue = true;
                 } else if (tokenName.equalsIgnoreCase("collective")) {
                     // This indicates that attributes of this type are
@@ -385,8 +379,7 @@ public final class SchemaBuilder {
                     isNoUserModification = true;
                 } else if (tokenName.equalsIgnoreCase("usage")) {
                     // This specifies the usage string for this attribute type.
-                    // It
-                    // should be followed by one of the strings
+                    // It should be followed by one of the strings
                     // "userApplications", "directoryOperation",
                     // "distributedOperation", or "dSAOperation".
                     int length = 0;
@@ -417,8 +410,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -627,8 +619,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("aux")) {
                     auxiliaryClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
@@ -644,8 +635,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -856,8 +846,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("form")) {
                     nameForm = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
@@ -866,8 +855,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -1021,23 +1009,20 @@ public final class SchemaBuilder {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.equalsIgnoreCase("desc")) {
                     // This specifies the description for the matching rule. It
-                    // is
-                    // an arbitrary string of characters enclosed in single
+                    // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the matching rule should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("syntax")) {
                     syntax = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -1199,16 +1184,14 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("applies")) {
                     attributes = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -1368,8 +1351,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("oc")) {
                     structuralClass = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
@@ -1382,8 +1364,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -1560,8 +1541,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
+                    // parsing for this token.
                     isObsolete = true;
                 } else if (tokenName.equalsIgnoreCase("sup")) {
                     superiorClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
@@ -1573,13 +1553,11 @@ public final class SchemaBuilder {
                     objectClassType = ObjectClassType.ABSTRACT;
                 } else if (tokenName.equalsIgnoreCase("structural")) {
                     // This indicates that this is a structural objectclass. We
-                    // do
-                    // not need any more parsing for this token.
+                    // do not need any more parsing for this token.
                     objectClassType = ObjectClassType.STRUCTURAL;
                 } else if (tokenName.equalsIgnoreCase("auxiliary")) {
                     // This indicates that this is an auxiliary objectclass. We
-                    // do
-                    // not need any more parsing for this token.
+                    // do not need any more parsing for this token.
                     objectClassType = ObjectClassType.AUXILIARY;
                 } else if (tokenName.equalsIgnoreCase("must")) {
                     requiredAttributes =
@@ -1590,8 +1568,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -2142,8 +2119,7 @@ public final class SchemaBuilder {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -2249,19 +2225,17 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Specifies whether or not the JPEG Photo syntax should allow values
-     * which do not conform to the JFIF or Exif specifications.
+     * Specifies whether or not the JPEG Photo syntax should allow values which
+     * do not conform to the JFIF or Exif specifications.
      * <p>
      * By default this compatibility option is set to {@code true}.
      *
      * @param allowMalformedJPEGPhotos
-     *            {@code true} if the JPEG Photo syntax should allow
-     *            values which do not conform to the JFIF or Exif
-     *            specifications.
+     *            {@code true} if the JPEG Photo syntax should allow values
+     *            which do not conform to the JFIF or Exif specifications.
      * @return A reference to this {@code SchemaBuilder}.
      */
-    public SchemaBuilder allowMalformedJPEGPhotos(
-            final boolean allowMalformedJPEGPhotos) {
+    public SchemaBuilder allowMalformedJPEGPhotos(final boolean allowMalformedJPEGPhotos) {
         lazyInitBuilder();
 
         this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
@@ -2510,15 +2484,13 @@ public final class SchemaBuilder {
     public Schema toSchema() {
         // If this schema builder was initialized from another schema and no
         // modifications have been made since then we can simply return the
-        // original
-        // schema.
+        // original schema.
         if (copyOnWriteSchema != null) {
             return copyOnWriteSchema;
         }
 
         // We still need to ensure that this builder has been initialized
-        // (otherwise
-        // some fields may still be null).
+        // (otherwise some fields may still be null).
         lazyInitBuilder();
 
         final String localSchemaName;
@@ -2899,7 +2871,7 @@ public final class SchemaBuilder {
             final List<DITContentRule> rules = name2ContentRules.get(lowerName);
             if (rules != null && rules.contains(rule)) {
                 if (rules.size() <= 1) {
-                    name2AttributeTypes.remove(lowerName);
+                    name2ContentRules.remove(lowerName);
                 } else {
                     rules.remove(rule);
                 }
@@ -3012,8 +2984,7 @@ public final class SchemaBuilder {
         }
 
         // Attribute types need special processing because they have
-        // hierarchical
-        // dependencies.
+        // hierarchical dependencies.
         final List<AttributeType> invalidAttributeTypes = new LinkedList<AttributeType>();
         for (final AttributeType attributeType : numericOID2AttributeTypes.values()) {
             attributeType.validate(schema, invalidAttributeTypes, warnings);
