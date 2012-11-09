@@ -183,6 +183,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
      */
     @Test
     public void testCopyOnWriteWithChanges() {
+
         final Schema baseSchema = Schema.getCoreSchema();
         final Schema schema =
                 new SchemaBuilder(baseSchema).addAttributeType(
@@ -196,6 +197,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(schema.getSchemaName()).isEqualTo(baseSchema.getSchemaName());
         assertThat(schema.allowMalformedNamesAndOptions()).isEqualTo(
                 baseSchema.allowMalformedNamesAndOptions());
+
     }
 
     /**
