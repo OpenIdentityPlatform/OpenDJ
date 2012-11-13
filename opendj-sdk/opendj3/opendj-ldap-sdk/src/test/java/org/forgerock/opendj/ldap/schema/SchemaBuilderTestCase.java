@@ -375,9 +375,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testSchemaBuilderDoesntAllowNullEntry() throws Exception {
-        final Entry e = null;
-        @SuppressWarnings("unused")
-        final SchemaBuilder builder = new SchemaBuilder(e);
+        new SchemaBuilder((Entry) null);
     }
 
     /**
@@ -415,9 +413,8 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(e.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES)).isNull();
         assertThat(e.getAttribute(Schema.ATTR_NAME_FORMS)).isNull();
 
+        builder.addSchema(Schema.getCoreSchema(), false);
         Schema schema = builder.toSchema();
-        // Need to add the core schema for the standards attributes.
-        schema = Schema.getCoreSchema();
 
         assertThat(schema.getAttributeType("myCustomAttribute")).isNotNull();
         assertThat(schema.getAttributeType("myCustomAttribute").getNameOrOID()).isEqualTo(
@@ -427,7 +424,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(schema.getAttributeType("myCustomAttribute").getUsage().toString()).isEqualTo(
                 "userApplications");
 
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotNull();
+        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
     }
 
     /**
@@ -463,6 +460,8 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(e.getAttribute(Schema.ATTR_OBJECT_CLASSES)).isNotNull();
 
         Schema schema = builder.toSchema();
+        // Warnings expected.
+        assertThat(schema.getWarnings()).isNotEmpty();
         assertThat(schema.getAttributeType("myCustomAttribute")).isNotNull();
     }
 
@@ -502,7 +501,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         Schema schema = builder.toSchema();
         // No warnings
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getSyntaxes()).isNotNull();
+        assertThat(schema.getSyntaxes()).isNotEmpty();
         assertThat(schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.15").getDescription()).isEqualTo(
                 "Add a new ldapsyntax");
     }
@@ -530,7 +529,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         final Entry e = new LinkedHashMapEntry(strEntry);
         final SchemaBuilder builder = new SchemaBuilder();
         builder.addSchema(Schema.getCoreSchema(), false);
-        builder.addSchema(e, true);
+        builder.addSchema(e, false);
 
         assertThat(e.getAttribute(Schema.ATTR_LDAP_SYNTAXES)).isNotNull();
         assertThat(e.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES)).isNull();
@@ -567,7 +566,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         final Entry e = new LinkedHashMapEntry(strEntry);
         final SchemaBuilder builder = new SchemaBuilder();
         builder.addSchema(Schema.getCoreSchema(), false);
-        builder.addSchema(e, true);
+        builder.addSchema(e, false);
 
         assertThat(e.getAttribute(Schema.ATTR_LDAP_SYNTAXES)).isNull();
         assertThat(e.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES)).isNull();
@@ -580,7 +579,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
 
         Schema schema = builder.toSchema();
 
-        assertThat(schema.getMatchingRuleUses()).isNotNull();
+        assertThat(schema.getMatchingRuleUses()).isNotEmpty();
         assertThat(schema.getMatchingRuleUse("bitStringMatch").toString()).isEqualTo(
                 "( 2.5.13.16 NAME 'bitStringMatch' APPLIES ( givenName $ surname ) )");
         // The schema do not contain warnings.
@@ -609,7 +608,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         final Entry e = new LinkedHashMapEntry(strEntry);
         final SchemaBuilder builder = new SchemaBuilder();
         builder.addSchema(Schema.getCoreSchema(), false);
-        builder.addSchema(e, true);
+        builder.addSchema(e, false);
 
         assertThat(e.getAttribute(Schema.ATTR_LDAP_SYNTAXES)).isNull();
         assertThat(e.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES)).isNull();
@@ -662,7 +661,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
 
         Schema schema = builder.toSchema();
 
-        assertThat(schema.getMatchingRuleUses()).isNotNull();
+        assertThat(schema.getMatchingRules()).isNotEmpty();
         assertThat(schema.getMatchingRule("bitStringMatch").toString()).isEqualTo(
                 "( 2.5.13.16 NAME 'bitStringMatch' SYNTAX 1.3.6.1.4.1.1466.115.121.1.6 )");
         // The schema do not contain warnings.
@@ -745,7 +744,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
 
         Schema schema = builder.toSchema();
 
-        assertThat(schema.getDITContentRules()).isNotNull();
+        assertThat(schema.getDITContentRules()).isNotEmpty();
         assertThat(schema.getDITContentRule("2.5.6.4").toString())
                 .isEqualTo(
                         "( 2.5.6.4 DESC 'content rule for organization' NOT ( x121Address $ telexNumber ) )");
@@ -927,7 +926,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(schema.getAttributeType("myCustomAttribute").getDescription().toString())
                 .isEqualTo("A short description");
 
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotNull();
+        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
     }
 
     /**
@@ -963,8 +962,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
                 "userApplications");
         assertThat(schema.getAttributeType("myCustomAttribute").getDescription().toString())
                 .isEqualTo("A short description");
-
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotNull();
+        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
     }
 
     /**
@@ -1497,7 +1495,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
             new SchemaBuilder(Schema.getDefaultSchema())
                 .addMatchingRuleUse(
                     "( 2.5.13.16 NAME 'bitStringMatch' APPLIES ( givenName $ name ) )", true)
-                .addMatchingRuleUse(// from RFC 4517
+                .addMatchingRuleUse(
                     "( 2.5.13.16 NAME 'bitStringMatch' APPLIES ( givenName $ surname ) )", true)
                 .toSchema();
         // @formatter:on
@@ -1599,7 +1597,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         boolean isRemoved = scBuild.removeAttributeType("myCustomAttribute");
         assertThat(isRemoved).isTrue();
         Schema schema = scBuild.toSchema();
-        // The following line throws an exception.:
+        // The following line throws an exception :
         assertThat(schema.getAttributeType("myCustomAttribute")).isNull();
     }
 
@@ -1961,6 +1959,7 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(sc.getDITStuctureRules()).isEmpty();
         assertThat(sc.getNameForms()).isNotNull();
         assertThat(sc.getNameForms()).isEmpty();
+
 
         connection.close();
     }
