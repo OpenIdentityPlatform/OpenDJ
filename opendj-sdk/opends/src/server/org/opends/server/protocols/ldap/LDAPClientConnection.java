@@ -161,7 +161,12 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     public int read(ByteBuffer byteBuffer) throws IOException
     {
-      return clientChannel.read(byteBuffer);
+      int bytesRead = clientChannel.read(byteBuffer);
+      if (bytesRead > 0 && keepStats)
+      {
+        statTracker.updateBytesRead(bytesRead);
+      }
+      return bytesRead;
     }
 
     public boolean isOpen()
@@ -182,7 +187,11 @@ public final class LDAPClientConnection extends ClientConnection implements
       try
       {
         int bytesToWrite = byteBuffer.remaining();
-        clientChannel.write(byteBuffer);
+        int bytesWritten = clientChannel.write(byteBuffer);
+        if (bytesWritten > 0 && keepStats)
+        {
+          statTracker.updateBytesWritten(bytesWritten);
+        }
         if (!byteBuffer.hasRemaining())
         {
           return bytesToWrite;
@@ -208,10 +217,15 @@ public final class LDAPClientConnection extends ClientConnection implements
           while (byteBuffer.hasRemaining()
               && (System.currentTimeMillis() < stopTime))
           {
-            if (clientChannel.write(byteBuffer) < 0)
+            bytesWritten = clientChannel.write(byteBuffer);
+            if (bytesWritten < 0)
             {
               // The client connection has been closed.
               throw new ClosedChannelException();
+            }
+            if (bytesWritten > 0 && keepStats)
+            {
+              statTracker.updateBytesWritten(bytesWritten);
             }
           }
 
@@ -250,11 +264,15 @@ public final class LDAPClientConnection extends ClientConnection implements
               SelectionKey k = iterator.next();
               if (k.isWritable())
               {
-                int bytesWritten = clientChannel.write(byteBuffer);
+                bytesWritten = clientChannel.write(byteBuffer);
                 if (bytesWritten < 0)
                 {
                   // The client connection has been closed.
                   throw new ClosedChannelException();
+                }
+                if (bytesWritten > 0 && keepStats)
+                {
+                  statTracker.updateBytesWritten(bytesWritten);
                 }
 
                 iterator.remove();
@@ -960,9 +978,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       if (keepStats)
       {
-        // TODO hard-coded for now, flush probably needs to
-        // return how many bytes were flushed.
-        statTracker.updateMessageWritten(message, 4096);
+        statTracker.updateMessageWritten(message);
       }
     }
     catch (Exception e)

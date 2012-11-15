@@ -491,6 +491,20 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
 
   /**
+   * Updates the appropriate set of counters to indicate that the
+   * specified number of bytes have been written to the client.
+   *
+   * @param bytesWritten
+   *          The number of bytes written to the client.
+   */
+  public void updateBytesWritten(int bytesWritten)
+  {
+     this.bytesWritten.getAndAdd(bytesWritten);
+  }
+
+
+
+  /**
    * Updates the appropriate set of counters based on the provided
    * message that has been read from the client.
    *
@@ -562,12 +576,9 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *
    * @param message
    *          The message that was written to the client.
-   * @param bytesWritten
-   *          The size of the message written in bytes.
    */
-  public void updateMessageWritten(LDAPMessage message, int bytesWritten)
+  public void updateMessageWritten(LDAPMessage message)
   {
-      this.bytesWritten.getAndAdd(bytesWritten);
       messagesWritten.getAndIncrement();
 
       switch (message.getProtocolOp().getType())
