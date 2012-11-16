@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2012 ForgeRock AS
   ! -->
 <adm:managed-object name="change-number-control-plugin"
   plural-name="change-number-control-plugins" package="org.opends.server.admin.std"
@@ -38,7 +39,7 @@
     The <adm:user-friendly-name /> returns the change number generated
     by the Multi-Master Replication subsystem when :
      - the Multi-Master Replication is configured and enabled
-     - the request is a write operation (add, delete, moidfy, moddn)
+     - the request is a write operation (add, delete, modify, moddn)
      - the control is part of a request.
     If all of the above are true, the response contains a control response
     with a string representing the change number.
