@@ -98,10 +98,10 @@ public class DSMLAddOperation
     for(DsmlAttr attr : addList)
     {
       ArrayList<ByteString> values = new ArrayList<ByteString>();
-      List<String> vals = attr.getValue();
-      for(String val : vals)
+      List<Object> vals = attr.getValue();
+      for(Object val : vals)
       {
-        values.add(ByteString.valueOf(val));
+        values.add(ByteStringUtility.convertValue(val));
       }
       LDAPAttribute ldapAttribute = new LDAPAttribute(attr.getName(), values);
       attributes.add(ldapAttribute);
