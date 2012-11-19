@@ -1313,7 +1313,11 @@
 
     <mkdir dir="${dsml.gen.dir}/org/opends/dsml/protocol" />
     <xjc target="${dsml.gen.dir}" schema="${dsml.dir}/schema/DSMLv2.xsd"
-         removeOldOutput="yes" package="org.opends.dsml.protocol">
+         removeOldOutput="yes" package="org.opends.dsml.protocol"
+         binding="${dsml.dir}/schema/bindings.xjb">
+      <!-- Don't generate package-info.java as it conflicts with
+           the one in src/dsml -->
+      <arg value="-npa"/>
       <produces dir="${dsml.gen.dir}/org/opends/dsml/protocol"
            includes="* impl/*" />
     </xjc>

@@ -91,7 +91,8 @@ public class DSMLCompareOperation
     // Read the attribute name and value for the compare request.
     AttributeValueAssertion attrValAssertion = compareRequest.getAssertion();
     String attrName = attrValAssertion.getName();
-    ByteString attrValue = ByteString.valueOf(attrValAssertion.getValue());
+    Object assertion = attrValAssertion.getValue();
+    ByteString attrValue = ByteStringUtility.convertValue(assertion);
     ByteString dnStr = ByteString.valueOf(compareRequest.getDn());
 
     // Create and send the LDAP compare request to the server.

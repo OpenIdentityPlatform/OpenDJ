@@ -93,9 +93,10 @@ public class DSMLSearchOperation
    * @throws LDAPException
    *           an LDAPException is thrown if the creation of a filter
    *           component fails.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createANDFilter(FilterSet filterSet)
-      throws LDAPException
+      throws LDAPException, IOException
   {
     List<JAXBElement<?>> list = filterSet.getFilterGroup();
     ArrayList<RawFilter> filters = new ArrayList<RawFilter>(list.size());
@@ -118,11 +119,13 @@ public class DSMLSearchOperation
    *          filter.
    * @return a new Approximate search filter with the provided
    *         information.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createApproximateFilter(AttributeValueAssertion ava)
+    throws IOException
   {
-    return LDAPFilter.createApproximateFilter(ava.getName(), ByteString
-        .valueOf(ava.getValue()));
+    return LDAPFilter.createApproximateFilter(ava.getName(),
+        ByteStringUtility.convertValue(ava.getValue()));
   }
 
 
@@ -135,11 +138,13 @@ public class DSMLSearchOperation
    *          the attribute value assertion for this Equality filter.
    * @return a new Equality search filter with the provided
    *         information.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createEqualityFilter(AttributeValueAssertion ava)
+    throws IOException
   {
-    return LDAPFilter.createEqualityFilter(ava.getName(), ByteString
-        .valueOf(ava.getValue()));
+    return LDAPFilter.createEqualityFilter(ava.getName(),
+        ByteStringUtility.convertValue(ava.getValue()));
   }
 
 
@@ -152,11 +157,14 @@ public class DSMLSearchOperation
    *          the matching rule assertion for this Extensible filter.
    * @return a new Extensible search filter with the provided
    *         information.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createExtensibleFilter(MatchingRuleAssertion mra)
+    throws IOException
   {
     return LDAPFilter.createExtensibleFilter(mra.getMatchingRule(), mra
-        .getName(), ByteString.valueOf(mra.getValue()), mra.isDnAttributes());
+        .getName(), ByteStringUtility.convertValue(mra.getValue()),
+        mra.isDnAttributes());
   }
 
 
@@ -170,12 +178,14 @@ public class DSMLSearchOperation
    *          filter.
    * @return a new GreaterOrEqual search filter with the provided
    *         information.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createGreaterOrEqualFilter(
       AttributeValueAssertion ava)
+    throws IOException
   {
-    return LDAPFilter.createGreaterOrEqualFilter(ava.getName(), ByteString
-        .valueOf(ava.getValue()));
+    return LDAPFilter.createGreaterOrEqualFilter(ava.getName(),
+        ByteStringUtility.convertValue(ava.getValue()));
   }
 
 
@@ -189,11 +199,13 @@ public class DSMLSearchOperation
    *          filter.
    * @return a new LessOrEqual search filter with the provided
    *         information.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createLessOrEqualFilter(AttributeValueAssertion ava)
+    throws IOException
   {
-    return LDAPFilter.createLessOrEqualFilter(ava.getName(), ByteString
-        .valueOf(ava.getValue()));
+    return LDAPFilter.createLessOrEqualFilter(ava.getName(),
+        ByteStringUtility.convertValue(ava.getValue()));
   }
 
 
@@ -207,8 +219,10 @@ public class DSMLSearchOperation
    * @throws LDAPException
    *           an LDAPException is thrown if the creation of the
    *           provided filter fails.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
-  private static LDAPFilter createNOTFilter(Filter filter) throws LDAPException
+  private static LDAPFilter createNOTFilter(Filter filter)
+    throws LDAPException, IOException
   {
     return LDAPFilter.createNOTFilter(createFilter(filter));
   }
@@ -226,9 +240,10 @@ public class DSMLSearchOperation
    * @throws LDAPException
    *           an LDAPException is thrown if the creation of a filter
    *           component fails.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createORFilter(FilterSet filterSet)
-      throws LDAPException
+      throws LDAPException, IOException
   {
     List<JAXBElement<?>> list = filterSet.getFilterGroup();
     ArrayList<RawFilter> filters = new ArrayList<RawFilter>(list.size());
@@ -271,17 +286,19 @@ public class DSMLSearchOperation
    *          the substring filter for this Substring filter.
    * @return a new Substring search filter with the provided
    *         information.
+   * @throws LDAPException if the filter could not be decoded.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createSubstringFilter(SubstringFilter sf)
-        throws LDAPException
+        throws LDAPException, IOException
   {
-    List<String> anys = sf.getAny();
-    ArrayList<ByteString> subAnyElements = new ArrayList<ByteString>(anys
+    List<Object> anyo = sf.getAny();
+    ArrayList<ByteString> subAnyElements = new ArrayList<ByteString>(anyo
         .size());
 
-    for (String s : anys)
+    for (Object o : anyo)
     {
-      subAnyElements.add(ByteString.valueOf(s));
+      subAnyElements.add(ByteStringUtility.convertValue(o));
     }
     if(sf.getInitial() == null && subAnyElements.isEmpty()
             && sf.getFinal()==null)
@@ -289,9 +306,12 @@ public class DSMLSearchOperation
       Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
-    return LDAPFilter.createSubstringFilter(sf.getName(), sf.getInitial()==null?
-      null:ByteString.valueOf(sf.getInitial()), subAnyElements,
-      sf.getFinal()==null?null:ByteString.valueOf(sf.getFinal()));
+    return LDAPFilter.createSubstringFilter(sf.getName(),
+        sf.getInitial() == null ? null : ByteStringUtility
+            .convertValue(sf.getInitial()),
+        subAnyElements,
+        sf.getFinal() == null ? null : ByteStringUtility
+            .convertValue(sf.getFinal()));
   }
 
 
@@ -310,9 +330,10 @@ public class DSMLSearchOperation
    * @throws LDAPException
    *           an LDAPException is thrown if the creation of the
    *           targeted filter fails.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
   private static LDAPFilter createFilter(JAXBElement<?> xmlElement)
-      throws LDAPException
+      throws LDAPException, IOException
   {
     LDAPFilter result = null;
 
@@ -395,8 +416,10 @@ public class DSMLSearchOperation
    * @throws LDAPException
    *           an LDAPException is thrown if the creation of the
    *           targeted filter fails.
+   * @throws IOException if a value is an anyURI and cannot be fetched.
    */
-  private static LDAPFilter createFilter(Filter filter) throws LDAPException
+  private static LDAPFilter createFilter(Filter filter)
+    throws LDAPException, IOException
   {
 
     LDAPFilter result = null;
@@ -561,11 +584,11 @@ public class DSMLSearchOperation
             DsmlAttr dsmlAttr = objFactory.createDsmlAttr();
 
             dsmlAttr.setName(nm);
-            List<String> dsmlAttrVal = dsmlAttr.getValue();
+            List<Object> dsmlAttrVal = dsmlAttr.getValue();
             ArrayList<ByteString> vals = attr.getValues();
             for (ByteString val : vals)
             {
-              dsmlAttrVal.add(val.toString());
+              dsmlAttrVal.add(val);
             }
             attrList.add(dsmlAttr);
           }

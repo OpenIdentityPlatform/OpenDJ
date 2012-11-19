@@ -124,6 +124,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String AUTHENTICATION_FAILED = "authenticationFailed";
   private static final String COULD_NOT_CONNECT = "couldNotConnect";
   private static final String GATEWAY_INTERNAL_ERROR = "gatewayInternalError";
+  private static final String UNRESOLVABLE_URI = "unresolvableURI";
 
   private static final String UNKNOWN_ERROR = "Unknown error";
 
@@ -199,11 +200,10 @@ public class DSMLServlet extends HttpServlet {
        * and if the value's true then mark that OID (1.2.3.4.5) as one returning
        * a string value.
        */
-      Enumeration<String> names = config.getServletContext()
-          .getInitParameterNames();
+      Enumeration names = config.getServletContext().getInitParameterNames();
       while (names.hasMoreElements())
       {
-        String name = names.nextElement().toString();
+        String name = (String) names.nextElement();
         if (name.startsWith(EXOPSTRINGPREFIX) &&
             Boolean.valueOf(config.getServletContext().getInitParameter(name)))
         {
@@ -650,6 +650,8 @@ public class DSMLServlet extends HttpServlet {
       }
     } else if ( t instanceof LDAPConnectionException ) {
       errorResponse.setType(COULD_NOT_CONNECT);
+    } else if ( t instanceof IOException ) {
+      errorResponse.setType(UNRESOLVABLE_URI);
     } else {
       errorResponse.setType(GATEWAY_INTERNAL_ERROR);
     }
