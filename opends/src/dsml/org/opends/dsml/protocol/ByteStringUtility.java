@@ -28,7 +28,6 @@ package org.opends.dsml.protocol;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 
 import org.opends.server.types.ByteString;
@@ -51,7 +50,7 @@ public class ByteStringUtility
    * @throws IOException if any problems occurred retrieving an anyURI value.
    */
   public static ByteString convertValue(Object obj)
-      throws IOException, MalformedURLException
+      throws IOException
   {
     ByteString bs = null;
     if (obj != null)
