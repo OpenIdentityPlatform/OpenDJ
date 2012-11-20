@@ -26,6 +26,9 @@
  *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
+
+
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -69,20 +72,20 @@ import org.opends.server.util.StaticUtils;
 
 
 /**
- * This class defines a connection handler that will be used for
- * communicating with clients over LDAP. It is actually implemented in
- * two parts: as a connection handler and one or more request
- * handlers. The connection handler is responsible for accepting new
- * connections and registering each of them with a request handler.
- * The request handlers then are responsible for reading requests from
- * the clients and parsing them as operations. A single request
- * handler may be used, but having multiple handlers might provide
- * better performance in a multi-CPU system.
+ * This class defines a connection handler that will be used for communicating
+ * with clients over LDAP. It is actually implemented in two parts: as a
+ * connection handler and one or more request handlers. The connection handler
+ * is responsible for accepting new connections and registering each of them
+ * with a request handler. The request handlers then are responsible for reading
+ * requests from the clients and parsing them as operations. A single request
+ * handler may be used, but having multiple handlers might provide better
+ * performance in a multi-CPU system.
  */
 public final class LDAPConnectionHandler extends
     ConnectionHandler<LDAPConnectionHandlerCfg> implements
     ConfigurationChangeListener<LDAPConnectionHandlerCfg>,
-    ServerShutdownListener, AlertGenerator {
+    ServerShutdownListener, AlertGenerator
+{
 
   /**
    * Task run periodically by the connection finalizer.
@@ -104,13 +107,14 @@ public final class LDAPConnectionHandler extends
       synchronized (connectionFinalizerLock)
       {
         List<Runnable> tmp = connectionFinalizerActiveJobQueue;
-        connectionFinalizerActiveJobQueue =
-            connectionFinalizerPendingJobQueue;
+        connectionFinalizerActiveJobQueue = connectionFinalizerPendingJobQueue;
         connectionFinalizerPendingJobQueue = tmp;
       }
 
     }
   }
+
+
 
   /**
    * The tracer object for the debug logger.
@@ -121,12 +125,13 @@ public final class LDAPConnectionHandler extends
    * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
-    "org.opends.server.protocols.ldap.LDAPConnectionHandler";
+      "org.opends.server.protocols.ldap.LDAPConnectionHandler";
 
   /**
    * Default friendly name for the LDAP connection handler.
    */
-  private static final String DEFAULT_FRIENDLY_NAME = "LDAP Connection Handler";
+  private static final String DEFAULT_FRIENDLY_NAME =
+      "LDAP Connection Handler";
 
   // The current configuration state.
   private LDAPConnectionHandlerCfg currentConfig;
@@ -204,7 +209,7 @@ public final class LDAPConnectionHandler extends
   // The protocol used by this connection handler.
   private String protocol;
 
-// Queueing strategy
+  // Queueing strategy
   private final QueueingStrategy queueingStrategy;
 
   // The condition variable that will be used by the start method
@@ -215,32 +220,34 @@ public final class LDAPConnectionHandler extends
   // The friendly name of this connection handler.
   private String friendlyName;
 
-  //SSL instance name used in context creation.
+  // SSL instance name used in context creation.
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-  //SSL context.
+  // SSL context.
   private SSLContext sslContext;
   private boolean sslConfig = false;
 
   /**
    * Connection finalizer thread.
    * <p>
-   * This thread is defers closing clients for approximately 100ms. This
-   * gives the client a chance to close the connection themselves before
-   * the server thus avoiding leaving the server side in the TIME WAIT
-   * state.
+   * This thread is defers closing clients for approximately 100ms. This gives
+   * the client a chance to close the connection themselves before the server
+   * thus avoiding leaving the server side in the TIME WAIT state.
    */
   private final Object connectionFinalizerLock = new Object();
   private ScheduledExecutorService connectionFinalizer;
   private List<Runnable> connectionFinalizerActiveJobQueue;
   private List<Runnable> connectionFinalizerPendingJobQueue;
 
+
+
   /**
-   * Creates a new instance of this LDAP connection handler. It must
-   * be initialized before it may be used.
+   * Creates a new instance of this LDAP connection handler. It must be
+   * initialized before it may be used.
    */
-  public LDAPConnectionHandler() {
-   this(new WorkQueueStrategy(), null); // Use name from configuration.
+  public LDAPConnectionHandler()
+  {
+    this(new WorkQueueStrategy(), null); // Use name from configuration.
   }
 
 
@@ -255,8 +262,7 @@ public final class LDAPConnectionHandler extends
    *          The name of of this connection handler, or {@code null} if the
    *          name should be taken from the configuration.
    */
-  public LDAPConnectionHandler(QueueingStrategy strategy,
-      String friendlyName)
+  public LDAPConnectionHandler(QueueingStrategy strategy, String friendlyName)
   {
     super(friendlyName != null ? friendlyName : DEFAULT_FRIENDLY_NAME
         + " Thread");
@@ -269,36 +275,31 @@ public final class LDAPConnectionHandler extends
   }
 
 
+
   /**
-   * Indicates whether this connection handler should allow
-   * interaction with LDAPv2 clients.
+   * Indicates whether this connection handler should allow interaction with
+   * LDAPv2 clients.
    *
-   * @return <CODE>true</CODE> if LDAPv2 is allowed, or <CODE>false</CODE>
-   *         if not.
+   * @return <CODE>true</CODE> if LDAPv2 is allowed, or <CODE>false</CODE> if
+   *         not.
    */
-  public boolean allowLDAPv2() {
+  public boolean allowLDAPv2()
+  {
     return currentConfig.isAllowLDAPV2();
   }
 
 
 
   /**
-   * Indicates whether this connection handler should allow the use of
-   * the StartTLS extended operation.
+   * Indicates whether this connection handler should allow the use of the
+   * StartTLS extended operation.
    *
-   * @return <CODE>true</CODE> if StartTLS is allowed, or <CODE>false</CODE>
-   *         if not.
+   * @return <CODE>true</CODE> if StartTLS is allowed, or <CODE>false</CODE> if
+   *         not.
    */
-  public boolean allowStartTLS() {
-    if (currentConfig.isAllowStartTLS()) {
-      if (currentConfig.isUseSSL()) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
+  public boolean allowStartTLS()
+  {
+    return currentConfig.isAllowStartTLS() && !currentConfig.isUseSSL();
   }
 
 
@@ -307,7 +308,8 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      LDAPConnectionHandlerCfg config) {
+      LDAPConnectionHandlerCfg config)
+  {
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
@@ -324,8 +326,10 @@ public final class LDAPConnectionHandler extends
     // * num request handler
 
     // Clear the stat tracker if LDAPv2 is being enabled.
-    if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2()) {
-      if (config.isAllowLDAPV2()) {
+    if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2())
+    {
+      if (config.isAllowLDAPV2())
+      {
         statTracker.clearStatistics();
       }
     }
@@ -333,14 +337,13 @@ public final class LDAPConnectionHandler extends
     // Apply the changes.
     currentConfig = config;
     enabled = config.isEnabled();
-    allowedClients = config.getAllowedClient().toArray(
-        new AddressMask[0]);
-    deniedClients = config.getDeniedClient().toArray(
-        new AddressMask[0]);
-    //Reconfigure SSL context if needed.
-    if (config.isUseSSL() || config.isAllowStartTLS()) {
-            sslConfig = true;
+    allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
+    deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
 
+    // Reconfigure SSL context if needed.
+    if (config.isUseSSL() || config.isAllowStartTLS())
+    {
+      sslConfig = true;
     }
 
     if (config.isAllowLDAPV2())
@@ -352,8 +355,7 @@ public final class LDAPConnectionHandler extends
       DirectoryServer.deregisterSupportedLDAPVersion(2, this);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
@@ -362,29 +364,32 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public void finalizeConnectionHandler(Message finalizeReason) {
+  public void finalizeConnectionHandler(Message finalizeReason)
+  {
     shutdownRequested = true;
     currentConfig.removeLDAPChangeListener(this);
 
     if (connMonitor != null)
     {
-      String lowerName =
-          toLowerCase(connMonitor.getMonitorInstanceName());
+      String lowerName = toLowerCase(connMonitor.getMonitorInstanceName());
       DirectoryServer.deregisterMonitorProvider(lowerName);
     }
 
-    if (statTracker != null) {
-      String lowerName =
-        toLowerCase(statTracker.getMonitorInstanceName());
+    if (statTracker != null)
+    {
+      String lowerName = toLowerCase(statTracker.getMonitorInstanceName());
       DirectoryServer.deregisterMonitorProvider(lowerName);
     }
 
     DirectoryServer.deregisterSupportedLDAPVersion(2, this);
     DirectoryServer.deregisterSupportedLDAPVersion(3, this);
 
-    try {
+    try
+    {
       selector.wakeup();
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -412,22 +417,21 @@ public final class LDAPConnectionHandler extends
 
 
   /**
-   * Retrieves information about the set of alerts that this generator
-   * may produce. The map returned should be between the notification
-   * type for a particular notification and the human-readable
-   * description for that notification. This alert generator must not
-   * generate any alerts with types that are not contained in this
-   * list.
+   * Retrieves information about the set of alerts that this generator may
+   * produce. The map returned should be between the notification type for a
+   * particular notification and the human-readable description for that
+   * notification. This alert generator must not generate any alerts with types
+   * that are not contained in this list.
    *
-   * @return Information about the set of alerts that this generator
-   *         may produce.
+   * @return Information about the set of alerts that this generator may
+   *         produce.
    */
-  public LinkedHashMap<String, String> getAlerts() {
+  public LinkedHashMap<String, String> getAlerts()
+  {
     LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
 
-    alerts
-        .put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
-            ALERT_DESCRIPTION_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
+    alerts.put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
+        ALERT_DESCRIPTION_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
     alerts.put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR,
         ALERT_DESCRIPTION_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR);
 
@@ -437,47 +441,49 @@ public final class LDAPConnectionHandler extends
 
 
   /**
-   * Retrieves the fully-qualified name of the Java class for this
-   * alert generator implementation.
+   * Retrieves the fully-qualified name of the Java class for this alert
+   * generator implementation.
    *
-   * @return The fully-qualified name of the Java class for this alert
-   *         generator implementation.
+   * @return The fully-qualified name of the Java class for this alert generator
+   *         implementation.
    */
-  public String getClassName() {
+  public String getClassName()
+  {
     return CLASS_NAME;
   }
 
 
 
   /**
-   * Retrieves the set of active client connections that have been
-   * established through this connection handler.
+   * Retrieves the set of active client connections that have been established
+   * through this connection handler.
    *
-   * @return The set of active client connections that have been
-   *         established through this connection handler.
+   * @return The set of active client connections that have been established
+   *         through this connection handler.
    */
   @Override
-  public Collection<ClientConnection> getClientConnections() {
-    LinkedList<ClientConnection> connectionList =
-      new LinkedList<ClientConnection>();
-    for (LDAPRequestHandler requestHandler : requestHandlers) {
+  public Collection<ClientConnection> getClientConnections()
+  {
+    List<ClientConnection> connectionList = new LinkedList<ClientConnection>();
+    for (LDAPRequestHandler requestHandler : requestHandlers)
+    {
       connectionList.addAll(requestHandler.getClientConnections());
     }
-
     return connectionList;
   }
 
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this alert
-   * generator is associated.
+   * Retrieves the DN of the configuration entry with which this alert generator
+   * is associated.
    *
-   * @return The DN of the configuration entry with which this alert
-   *         generator is associated.
+   * @return The DN of the configuration entry with which this alert generator
+   *         is associated.
    */
   @Override
-  public DN getComponentEntryDN() {
+  public DN getComponentEntryDN()
+  {
     return currentConfig.dn();
   }
 
@@ -487,37 +493,38 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public String getConnectionHandlerName() {
+  public String getConnectionHandlerName()
+  {
     return handlerName;
   }
 
 
 
   /**
-   * Retrieves the set of enabled SSL cipher suites configured for
-   * this connection handler.
+   * Retrieves the set of enabled SSL cipher suites configured for this
+   * connection handler.
    *
-   * @return The set of enabled SSL cipher suites configured for this
-   *         connection handler.
+   * @return The set of enabled SSL cipher suites configured for this connection
+   *         handler.
    */
-  public String[] getEnabledSSLCipherSuites() {
+  public String[] getEnabledSSLCipherSuites()
+  {
     return enabledSSLCipherSuites;
   }
 
 
 
   /**
-   * Retrieves the set of enabled SSL protocols configured for this
-   * connection handler.
+   * Retrieves the set of enabled SSL protocols configured for this connection
+   * handler.
    *
-   * @return The set of enabled SSL protocols configured for this
-   *         connection handler.
+   * @return The set of enabled SSL protocols configured for this connection
+   *         handler.
    */
-  public String[] getEnabledSSLProtocols() {
+  public String[] getEnabledSSLProtocols()
+  {
     return enabledSSLProtocols;
   }
-
-
 
 
 
@@ -525,20 +532,22 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public Collection<HostPort> getListeners() {
+  public Collection<HostPort> getListeners()
+  {
     return listeners;
   }
 
 
 
   /**
-   * Retrieves the port on which this connection handler is listening
-   * for client connections.
+   * Retrieves the port on which this connection handler is listening for client
+   * connections.
    *
-   * @return The port on which this connection handler is listening
-   *         for client connections.
+   * @return The port on which this connection handler is listening for client
+   *         connections.
    */
-  public int getListenPort() {
+  public int getListenPort()
+  {
     return listenPort;
   }
 
@@ -548,37 +557,39 @@ public final class LDAPConnectionHandler extends
    * Retrieves the maximum length of time in milliseconds that attempts to write
    * to LDAP client connections should be allowed to block.
    *
-   * @return  The maximum length of time in milliseconds that attempts to write
-   *          to LDAP client connections should be allowed to block, or zero if
-   *          there should not be any limit imposed.
+   * @return The maximum length of time in milliseconds that attempts to write
+   *         to LDAP client connections should be allowed to block, or zero if
+   *         there should not be any limit imposed.
    */
-  public long getMaxBlockedWriteTimeLimit() {
+  public long getMaxBlockedWriteTimeLimit()
+  {
     return currentConfig.getMaxBlockedWriteTimeLimit();
   }
 
 
 
   /**
-   * Retrieves the maximum ASN.1 element value length that will be
-   * allowed by this connection handler.
+   * Retrieves the maximum ASN.1 element value length that will be allowed by
+   * this connection handler.
    *
-   * @return The maximum ASN.1 element value length that will be
-   *         allowed by this connection handler.
+   * @return The maximum ASN.1 element value length that will be allowed by this
+   *         connection handler.
    */
-  public int getMaxRequestSize() {
+  public int getMaxRequestSize()
+  {
     return (int) currentConfig.getMaxRequestSize();
   }
 
 
 
   /**
-   * Retrieves the size in bytes of the LDAP response message
-   * write buffer defined for this connection handler.
+   * Retrieves the size in bytes of the LDAP response message write buffer
+   * defined for this connection handler.
    *
-   * @return The size in bytes of the LDAP response
-   *         message write buffer.
+   * @return The size in bytes of the LDAP response message write buffer.
    */
-  public int getBufferSize() {
+  public int getBufferSize()
+  {
     return (int) currentConfig.getBufferSize();
   }
 
@@ -588,7 +599,8 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public String getProtocol() {
+  public String getProtocol()
+  {
     return protocol;
   }
 
@@ -597,39 +609,34 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public String getShutdownListenerName() {
+  public String getShutdownListenerName()
+  {
     return handlerName;
   }
 
 
 
-
-
-
   /**
-   * Retrieves the SSL client authentication policy for this
-   * connection handler.
+   * Retrieves the SSL client authentication policy for this connection handler.
    *
-   * @return The SSL client authentication policy for this connection
-   *         handler.
+   * @return The SSL client authentication policy for this connection handler.
    */
-  public SSLClientAuthPolicy getSSLClientAuthPolicy() {
+  public SSLClientAuthPolicy getSSLClientAuthPolicy()
+  {
     return sslClientAuthPolicy;
   }
 
 
 
   /**
-   * Retrieves the set of statistics maintained by this connection
-   * handler.
+   * Retrieves the set of statistics maintained by this connection handler.
    *
-   * @return The set of statistics maintained by this connection
-   *         handler.
+   * @return The set of statistics maintained by this connection handler.
    */
-  public LDAPStatistics getStatTracker() {
+  public LDAPStatistics getStatTracker()
+  {
     return statTracker;
   }
-
 
 
 
@@ -638,18 +645,20 @@ public final class LDAPConnectionHandler extends
    */
   @Override
   public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
-         throws ConfigException, InitializationException
+      throws ConfigException, InitializationException
   {
     if (friendlyName == null)
     {
-      friendlyName = config.dn().getRDN().getAttributeValue(0)
-          .toString();
+      friendlyName = config.dn().getRDN().getAttributeValue(0).toString();
     }
 
     // Open the selector.
-    try {
+    try
+    {
       selector = Selector.open();
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -660,19 +669,17 @@ public final class LDAPConnectionHandler extends
       throw new InitializationException(message, e);
     }
 
-     protocol = "LDAP";
+    protocol = "LDAP";
 
     // Save this configuration for future reference.
     currentConfig = config;
     enabled = config.isEnabled();
     requestHandlerIndex = 0;
-    allowedClients = config.getAllowedClient().toArray(
-        new AddressMask[0]);
-    deniedClients = config.getDeniedClient().toArray(
-        new AddressMask[0]);
-    //Setup SSL context if needed.
-    if (config.isUseSSL() || config.isAllowStartTLS())
-        sslConfig=true;
+    allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
+    deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
+
+    // Setup SSL context if needed.
+    if (config.isUseSSL() || config.isAllowStartTLS()) sslConfig = true;
 
     // Save properties that cannot be dynamically modified.
     allowReuseAddress = config.isAllowTCPReuseAddress();
@@ -682,12 +689,12 @@ public final class LDAPConnectionHandler extends
     numRequestHandlers = getNumRequestHandlers(config);
 
     // Construct a unique name for this connection handler, and put
-    // together the
-    // set of listeners.
+    // together the set of listeners.
     listeners = new LinkedList<HostPort>();
     StringBuilder nameBuffer = new StringBuilder();
     nameBuffer.append(friendlyName);
-    for (InetAddress a : listenAddresses) {
+    for (InetAddress a : listenAddresses)
+    {
       listeners.add(new HostPort(a.getHostAddress(), listenPort));
       nameBuffer.append(" ");
       nameBuffer.append(a.getHostAddress());
@@ -698,20 +705,25 @@ public final class LDAPConnectionHandler extends
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    for (InetAddress a : listenAddresses) {
-      try {
-        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress)) {
-          throw new IOException(
-            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+    for (InetAddress a : listenAddresses)
+    {
+      try
+      {
+        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress))
+        {
+          throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
         }
-      } catch (IOException e) {
-        if (debugEnabled()) {
+      }
+      catch (IOException e)
+      {
+        if (debugEnabled())
+        {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
-          String.valueOf(config.dn()), a.getHostAddress(),
-          listenPort, getExceptionMessage(e));
+            String.valueOf(config.dn()), a.getHostAddress(), listenPort,
+            getExceptionMessage(e));
         logError(message);
         throw new InitializationException(message);
       }
@@ -723,26 +735,25 @@ public final class LDAPConnectionHandler extends
 
     // Create and start a connection finalizer thread for this
     // connection handler.
-    connectionFinalizer =
-        Executors
-            .newSingleThreadScheduledExecutor(new DirectoryThread.Factory(
-                "LDAP Connection Finalizer for connection handler "
-                    + toString()));
+    connectionFinalizer = Executors
+        .newSingleThreadScheduledExecutor(new DirectoryThread.Factory(
+            "LDAP Connection Finalizer for connection handler " + toString()));
 
     connectionFinalizerActiveJobQueue = new ArrayList<Runnable>();
     connectionFinalizerPendingJobQueue = new ArrayList<Runnable>();
 
     connectionFinalizer.scheduleWithFixedDelay(
-        new ConnectionFinalizerRunnable(), 100, 100,
-        TimeUnit.MILLISECONDS);
+        new ConnectionFinalizerRunnable(), 100, 100, TimeUnit.MILLISECONDS);
 
     // Create and start the request handlers.
     requestHandlers = new LDAPRequestHandler[numRequestHandlers];
-    for (int i = 0; i < numRequestHandlers; i++) {
+    for (int i = 0; i < numRequestHandlers; i++)
+    {
       requestHandlers[i] = new LDAPRequestHandler(this, i);
     }
 
-    for (int i = 0; i < numRequestHandlers; i++) {
+    for (int i = 0; i < numRequestHandlers; i++)
+    {
       requestHandlers[i].start();
     }
 
@@ -771,29 +782,36 @@ public final class LDAPConnectionHandler extends
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    if ((currentConfig == null) ||
-      (!currentConfig.isEnabled() && config.isEnabled())) {
-      for (InetAddress a : config.getListenAddress()) {
-        try {
+    if ((currentConfig == null)
+        || (!currentConfig.isEnabled() && config.isEnabled()))
+    {
+      for (InetAddress a : config.getListenAddress())
+      {
+        try
+        {
           if (StaticUtils.isAddressInUse(a, config.getListenPort(),
-            config.isAllowTCPReuseAddress())) {
-            throw new IOException(
-              ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+              config.isAllowTCPReuseAddress()))
+          {
+            throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get()
+                .toString());
           }
-        } catch (IOException e) {
-          if (debugEnabled()) {
+        }
+        catch (IOException e)
+        {
+          if (debugEnabled())
+          {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
-            String.valueOf(config.dn()), a.getHostAddress(),
-            config.getListenPort(), getExceptionMessage(e));
+              String.valueOf(config.dn()), a.getHostAddress(),
+              config.getListenPort(), getExceptionMessage(e));
           unacceptableReasons.add(message);
           return false;
         }
@@ -808,8 +826,8 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      LDAPConnectionHandlerCfg config,
-      List<Message> unacceptableReasons) {
+      LDAPConnectionHandlerCfg config, List<Message> unacceptableReasons)
+  {
     // All validation is performed by the admin framework.
     return true;
   }
@@ -817,14 +835,13 @@ public final class LDAPConnectionHandler extends
 
 
   /**
-   * Indicates whether this connection handler should maintain usage
-   * statistics.
+   * Indicates whether this connection handler should maintain usage statistics.
    *
-   * @return <CODE>true</CODE> if this connection handler should
-   *         maintain usage statistics, or <CODE>false</CODE> if
-   *         not.
+   * @return <CODE>true</CODE> if this connection handler should maintain usage
+   *         statistics, or <CODE>false</CODE> if not.
    */
-  public boolean keepStats() {
+  public boolean keepStats()
+  {
     return currentConfig.isKeepStats();
   }
 
@@ -833,20 +850,27 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(Message reason) {
+  public void processServerShutdown(Message reason)
+  {
     shutdownRequested = true;
 
-    try {
-      for (LDAPRequestHandler requestHandler : requestHandlers) {
-        try {
+    try
+    {
+      for (LDAPRequestHandler requestHandler : requestHandlers)
+      {
+        try
+        {
           requestHandler.processServerShutdown(reason);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
         }
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
     }
   }
-
 
 
 
@@ -867,7 +891,9 @@ public final class LDAPConnectionHandler extends
       try
       {
         waitListen.wait();
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e)
+      {
         // If something interrupted the start its probably better
         // to return ASAP.
       }
@@ -875,29 +901,37 @@ public final class LDAPConnectionHandler extends
   }
 
 
+
   /**
-   * Operates in a loop, accepting new connections and ensuring that
-   * requests on those connections are handled properly.
+   * Operates in a loop, accepting new connections and ensuring that requests on
+   * those connections are handled properly.
    */
   @Override
-  public void run() {
+  public void run()
+  {
     setName(handlerName);
     boolean listening = false;
 
-    while (!shutdownRequested) {
+    while (!shutdownRequested)
+    {
       // If this connection handler is not enabled, then just sleep
       // for a bit and check again.
-      if (!enabled) {
-        if (listening) {
+      if (!enabled)
+      {
+        if (listening)
+        {
           cleanUpSelector();
           listening = false;
 
           logError(NOTE_LDAP_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
-        try {
+        try
+        {
           Thread.sleep(1000);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
         }
 
         continue;
@@ -907,37 +941,42 @@ public final class LDAPConnectionHandler extends
       // for the first time since startup or since we were previously
       // disabled. Make sure to start with a clean selector and then
       // create all the listeners.
-      try {
+      try
+      {
         cleanUpSelector();
 
         int numRegistered = 0;
-        for (InetAddress a : listenAddresses) {
-          try {
+        for (InetAddress a : listenAddresses)
+        {
+          try
+          {
             ServerSocketChannel channel = ServerSocketChannel.open();
             channel.socket().setReuseAddress(allowReuseAddress);
-            channel.socket().bind(
-                new InetSocketAddress(a, listenPort), backlog);
+            channel.socket()
+                .bind(new InetSocketAddress(a, listenPort), backlog);
             channel.configureBlocking(false);
             channel.register(selector, SelectionKey.OP_ACCEPT);
             numRegistered++;
 
             logError(NOTE_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
-          } catch (Exception e) {
+          }
+          catch (Exception e)
+          {
             if (debugEnabled())
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.
-                get(String.valueOf(currentConfig.dn()), a.getHostAddress(),
-                    listenPort, stackTraceToSingleLineString(e)));
+            logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(
+                String.valueOf(currentConfig.dn()), a.getHostAddress(),
+                listenPort, stackTraceToSingleLineString(e)));
           }
         }
 
         // At this point, the connection Handler either started
         // correctly or failed to start but the start process
         // should be notified and resume its work in any cases.
-        synchronized(waitListen)
+        synchronized (waitListen)
         {
           waitListen.notify();
         }
@@ -945,9 +984,10 @@ public final class LDAPConnectionHandler extends
         // If none of the listeners were created successfully, then
         // consider the connection handler disabled and require
         // administrative action before trying again.
-        if (numRegistered == 0) {
-          logError(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(
-                  String.valueOf(currentConfig.dn())));
+        if (numRegistered == 0)
+        {
+          logError(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(String
+              .valueOf(currentConfig.dn())));
 
           enabled = false;
           continue;
@@ -959,45 +999,50 @@ public final class LDAPConnectionHandler extends
         // then accepting them as they come in.
         boolean lastIterationFailed = false;
         int selectorState;
-        while (enabled && (!shutdownRequested)) {
-          try {
+        while (enabled && (!shutdownRequested))
+        {
+          try
+          {
             selectorState = selector.select();
 
             // We can't rely on return value of select to deterine if any keys
             // are ready.
             // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4850373
-            Iterator<SelectionKey> iterator = selector
-                .selectedKeys().iterator();
+            Iterator<SelectionKey> iterator = selector.selectedKeys()
+                .iterator();
 
-            while (iterator.hasNext()) {
+            while (iterator.hasNext())
+            {
               SelectionKey key = iterator.next();
               iterator.remove();
-              if (key.isAcceptable()) {
+              if (key.isAcceptable())
+              {
                 // Accept the new client connection.
                 ServerSocketChannel serverChannel = (ServerSocketChannel) key
                     .channel();
-                SocketChannel clientChannel = serverChannel
-                    .accept();
-                if(clientChannel != null)
+                SocketChannel clientChannel = serverChannel.accept();
+                if (clientChannel != null)
                 {
                   acceptConnection(clientChannel);
                 }
               }
 
-              if(selectorState == 0 && enabled && (!shutdownRequested) &&
-                  debugEnabled())
+              if (selectorState == 0 && enabled && (!shutdownRequested)
+                  && debugEnabled())
               {
                 // Selected keys was non empty but select() returned 0.
                 // Log warning and hope it blocks on the next select() call.
-                TRACER.debugWarning("Selector.select() returned 0. " +
-                    "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
+                TRACER.debugWarning("Selector.select() returned 0. "
+                    + "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
                     selector.selectedKeys().size(), key.interestOps(),
                     key.readyOps());
               }
             }
 
             lastIterationFailed = false;
-          } catch (Exception e) {
+          }
+          catch (Exception e)
+          {
             if (debugEnabled())
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -1006,43 +1051,49 @@ public final class LDAPConnectionHandler extends
             logError(ERR_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(
                 String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
 
-            if (lastIterationFailed) {
+            if (lastIterationFailed)
+            {
               // The last time through the accept loop we also
               // encountered a failure. Rather than enter a potential
               // infinite loop of failures, disable this acceptor and
               // log an error.
-              Message message =
-                ERR_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.
-                    get(String.valueOf(currentConfig.dn()),
-                        stackTraceToSingleLineString(e));
+              Message message = ERR_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
+                  .get(String.valueOf(currentConfig.dn()),
+                      stackTraceToSingleLineString(e));
               logError(message);
 
-              DirectoryServer
-                  .sendAlertNotification(
-                      this,
-                      ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
-                          message);
+              DirectoryServer.sendAlertNotification(this,
+                  ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
+                  message);
 
               enabled = false;
 
-              try {
+              try
+              {
                 cleanUpSelector();
-              } catch (Exception e2) {
               }
-            } else {
+              catch (Exception e2)
+              {
+              }
+            }
+            else
+            {
               lastIterationFailed = true;
             }
           }
         }
 
-        if (shutdownRequested) {
+        if (shutdownRequested)
+        {
           cleanUpSelector();
           selector.close();
           listening = false;
           enabled = false;
         }
 
-      } catch (Exception e) {
+      }
+      catch (Exception e)
+      {
         if (debugEnabled())
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -1052,18 +1103,20 @@ public final class LDAPConnectionHandler extends
         // only thing we can do here is log a message, send an alert,
         // and disable the selector until an administrator can figure
         // out what's going on.
-        Message message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR.
-            get(String.valueOf(currentConfig.dn()),
+        Message message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR
+            .get(String.valueOf(currentConfig.dn()),
                 stackTraceToSingleLineString(e));
         logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-            ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR,
-                message);
+            ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR, message);
 
-        try {
+        try
+        {
           cleanUpSelector();
-        } catch (Exception e2) {
+        }
+        catch (Exception e2)
+        {
         }
 
         enabled = false;
@@ -1071,17 +1124,17 @@ public final class LDAPConnectionHandler extends
     }
   }
 
+
+
   private void acceptConnection(SocketChannel clientChannel)
       throws DirectoryException
   {
     try
     {
-      clientChannel.socket().setKeepAlive(
-          currentConfig.isUseTCPKeepAlive());
-      clientChannel.socket().setTcpNoDelay(
-          currentConfig.isUseTCPNoDelay());
+      clientChannel.socket().setKeepAlive(currentConfig.isUseTCPKeepAlive());
+      clientChannel.socket().setTcpNoDelay(currentConfig.isUseTCPNoDelay());
     }
-    catch(SocketException se)
+    catch (SocketException se)
     {
       // TCP error occured because conneciton reset/closed? In any case,
       // just close it and ignore.
@@ -1090,29 +1143,30 @@ public final class LDAPConnectionHandler extends
       {
         clientChannel.close();
       }
-      catch(Exception e)
+      catch (Exception e)
       {
         // Ignore any exceptions while closing the channel.
       }
       return;
     }
 
-    LDAPClientConnection clientConnection  =
-        createClientConnection(clientChannel);
     // Check to see if the core server rejected the
     // connection (e.g., already too many connections
     // established).
-    if (clientConnection.getConnectionID() < 0) {
+    LDAPClientConnection clientConnection =
+        createClientConnection(clientChannel);
+    if (clientConnection.getConnectionID() < 0)
+    {
       // The connection will have already been closed.
       return;
     }
 
-    InetAddress clientAddr = clientConnection
-        .getRemoteAddress();
+    InetAddress clientAddr = clientConnection.getRemoteAddress();
     // Check to see if the client is on the denied list.
     // If so, then reject it immediately.
     if ((deniedClients.length > 0)
-        && AddressMask.maskListContains(clientAddr, deniedClients)) {
+        && AddressMask.maskListContains(clientAddr, deniedClients))
+    {
       clientConnection.disconnect(
           DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
@@ -1125,7 +1179,8 @@ public final class LDAPConnectionHandler extends
     // there is whether the client is on that list. If
     // not, then reject the connection.
     if ((allowedClients.length > 0)
-        && (!AddressMask.maskListContains(clientAddr, allowedClients))) {
+        && (!AddressMask.maskListContains(clientAddr, allowedClients)))
+    {
       clientConnection.disconnect(
           DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
@@ -1139,14 +1194,15 @@ public final class LDAPConnectionHandler extends
     // connection so invoke the post-connect plugins and
     // register the client connection with a request
     // handler.
-    try {
+    try
+    {
       PluginConfigManager pluginManager = DirectoryServer
           .getPluginConfigManager();
       PluginResult.PostConnect pluginResult = pluginManager
           .invokePostConnectPlugins(clientConnection);
-      if (!pluginResult.continueProcessing()) {
-        clientConnection.disconnect(
-            pluginResult.getDisconnectReason(),
+      if (!pluginResult.continueProcessing())
+      {
+        clientConnection.disconnect(pluginResult.getDisconnectReason(),
             pluginResult.sendDisconnectNotification(),
             pluginResult.getErrorMessage());
         return;
@@ -1154,87 +1210,101 @@ public final class LDAPConnectionHandler extends
 
       LDAPRequestHandler requestHandler =
           requestHandlers[requestHandlerIndex++];
-      if (requestHandlerIndex >= numRequestHandlers) {
+      if (requestHandlerIndex >= numRequestHandlers)
+      {
         requestHandlerIndex = 0;
       }
       requestHandler.registerClient(clientConnection);
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
-          INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.
-              get(clientConnection.getClientHostPort(),
-                  clientConnection.getServerHostPort(),
-                  getExceptionMessage(e));
+      Message message = INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
+          clientConnection.getClientHostPort(),
+          clientConnection.getServerHostPort(), getExceptionMessage(e));
       logError(message);
 
-      clientConnection.disconnect(
-          DisconnectReason.SERVER_ERROR, currentConfig
-              .isSendRejectionNotice(), message);
+      clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
+          currentConfig.isSendRejectionNotice(), message);
     }
   }
 
+
+
   /**
-   * Appends a string representation of this connection handler to the
-   * provided buffer.
+   * Appends a string representation of this connection handler to the provided
+   * buffer.
    *
    * @param buffer
    *          The buffer to which the information should be appended.
    */
   @Override
-  public void toString(StringBuilder buffer) {
+  public void toString(StringBuilder buffer)
+  {
     buffer.append(handlerName);
   }
 
 
 
   /**
-   * Indicates whether this connection handler should use SSL to
-   * communicate with clients.
+   * Indicates whether this connection handler should use SSL to communicate
+   * with clients.
    *
    * @return {@code true} if this connection handler should use SSL to
    *         communicate with clients, or {@code false} if not.
    */
-  public boolean useSSL() {
+  public boolean useSSL()
+  {
     return currentConfig.isUseSSL();
   }
 
 
 
   /**
-   * Cleans up the contents of the selector, closing any server socket
-   * channels that might be associated with it. Any connections that
-   * might have been established through those channels should not be
-   * impacted.
+   * Cleans up the contents of the selector, closing any server socket channels
+   * that might be associated with it. Any connections that might have been
+   * established through those channels should not be impacted.
    */
-  private void cleanUpSelector() {
-    try {
+  private void cleanUpSelector()
+  {
+    try
+    {
       Iterator<SelectionKey> iterator = selector.keys().iterator();
-      while (iterator.hasNext()) {
+      while (iterator.hasNext())
+      {
         SelectionKey key = iterator.next();
 
-        try {
+        try
+        {
           key.cancel();
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
-        try {
+        try
+        {
           key.channel().close();
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -1249,85 +1319,105 @@ public final class LDAPConnectionHandler extends
    *
    * @return The queueing strategy.
    */
-  public QueueingStrategy getQueueingStrategy() {
+  public QueueingStrategy getQueueingStrategy()
+  {
     return queueingStrategy;
   }
 
-  private LDAPClientConnection
-  createClientConnection(SocketChannel socketChannel)
-  throws DirectoryException {
-      if(sslConfig) {
-          configSSL(currentConfig);
-          sslConfig=false;
-      }
-      LDAPClientConnection c = new LDAPClientConnection(this, socketChannel,
-                                                        getProtocol());
-      return c;
+
+
+  private LDAPClientConnection createClientConnection(
+      SocketChannel socketChannel) throws DirectoryException
+  {
+    if (sslConfig)
+    {
+      configSSL(currentConfig);
+      sslConfig = false;
+    }
+    LDAPClientConnection c = new LDAPClientConnection(this, socketChannel,
+        getProtocol());
+    return c;
   }
+
+
 
   /**
-   * Creates a TLS Byte Channel instance using the specified LDAP
-   * client connection and socket channel.
+   * Creates a TLS Byte Channel instance using the specified LDAP client
+   * connection and socket channel.
    *
-   * @param c The client connection to use in the creation.
-   * @param socketChannel The socket channel to use in the creation.
+   * @param c
+   *          The client connection to use in the creation.
+   * @param socketChannel
+   *          The socket channel to use in the creation.
    * @return A TLS Byte Channel instance.
-   * @throws DirectoryException If the channel cannot be created.
+   * @throws DirectoryException
+   *           If the channel cannot be created.
    */
-  public TLSByteChannel
-  getTLSByteChannel(LDAPClientConnection c, ByteChannel socketChannel)
-                  throws DirectoryException {
-         return(TLSByteChannel.getTLSByteChannel(currentConfig, c,
-                                                    sslContext,
-                                                    socketChannel));
+  public TLSByteChannel getTLSByteChannel(LDAPClientConnection c,
+      ByteChannel socketChannel) throws DirectoryException
+  {
+    return (TLSByteChannel.getTLSByteChannel(currentConfig, c, sslContext,
+        socketChannel));
   }
 
+
+
   private void configSSL(LDAPConnectionHandlerCfg config)
-  throws DirectoryException {
-      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      try {
-          String alias = config.getSSLCertNickname();
-          if (config.isUseSSL()) {
-            protocol = "LDAPS";
-          }
-          DN keyMgrDN = config.getKeyManagerProviderDN();
-          DN trustMgrDN = config.getTrustManagerProviderDN();
-          KeyManagerProvider<?> keyManagerProvider =
-              DirectoryServer.getKeyManagerProvider(keyMgrDN);
-          if (keyManagerProvider == null)
-              keyManagerProvider = new NullKeyManagerProvider();
-          TrustManagerProvider<?> trustManagerProvider =
-              DirectoryServer.getTrustManagerProvider(trustMgrDN);
-          if (trustManagerProvider == null)
-              trustManagerProvider = new NullTrustManagerProvider();
-          sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-          if (alias == null) {
-              sslContext.init(keyManagerProvider.getKeyManagers(),
-                      trustManagerProvider.getTrustManagers(), null);
-          } else {
-              sslContext.init(SelectableCertificateKeyManager.wrap(
-                      keyManagerProvider.getKeyManagers(), alias),
-                      trustManagerProvider.getTrustManagers(), null);
-          }
-      } catch (NoSuchAlgorithmException nsae) {
-          if (debugEnabled())
-              TRACER.debugCaught(DebugLogLevel.ERROR, nsae);
-          Message message =  ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.
-                                                get(getExceptionMessage(nsae));
-          throw new DirectoryException(resCode, message, nsae);
-      } catch (KeyManagementException kme) {
-          if (debugEnabled())
-              TRACER.debugCaught(DebugLogLevel.ERROR, kme);
-          Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
-                                                 .get(getExceptionMessage(kme));
-          throw new DirectoryException(resCode, message, kme);
-      } catch (DirectoryException de) {
-          if (debugEnabled())
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
-                                                 .get(getExceptionMessage(de));
-          throw new DirectoryException(resCode, message, de);
+      throws DirectoryException
+  {
+    ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+    try
+    {
+      String alias = config.getSSLCertNickname();
+      if (config.isUseSSL())
+      {
+        protocol = "LDAPS";
       }
+      DN keyMgrDN = config.getKeyManagerProviderDN();
+      DN trustMgrDN = config.getTrustManagerProviderDN();
+      KeyManagerProvider<?> keyManagerProvider = DirectoryServer
+          .getKeyManagerProvider(keyMgrDN);
+      if (keyManagerProvider == null)
+        keyManagerProvider = new NullKeyManagerProvider();
+      TrustManagerProvider<?> trustManagerProvider = DirectoryServer
+          .getTrustManagerProvider(trustMgrDN);
+      if (trustManagerProvider == null)
+        trustManagerProvider = new NullTrustManagerProvider();
+      sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+      if (alias == null)
+      {
+        sslContext.init(keyManagerProvider.getKeyManagers(),
+            trustManagerProvider.getTrustManagers(), null);
+      }
+      else
+      {
+        sslContext.init(
+            SelectableCertificateKeyManager.wrap(
+                keyManagerProvider.getKeyManagers(), alias),
+            trustManagerProvider.getTrustManagers(), null);
+      }
+    }
+    catch (NoSuchAlgorithmException nsae)
+    {
+      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, nsae);
+      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+          .get(getExceptionMessage(nsae));
+      throw new DirectoryException(resCode, message, nsae);
+    }
+    catch (KeyManagementException kme)
+    {
+      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, kme);
+      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+          .get(getExceptionMessage(kme));
+      throw new DirectoryException(resCode, message, kme);
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+          .get(getExceptionMessage(de));
+      throw new DirectoryException(resCode, message, de);
+    }
   }
 
 
@@ -1335,7 +1425,8 @@ public final class LDAPConnectionHandler extends
   /**
    * Enqueue a connection finalizer which will be invoked after a short delay.
    *
-   * @param r The connection finalizer runnable.
+   * @param r
+   *          The connection finalizer runnable.
    */
   void registerConnectionFinalizer(Runnable r)
   {
@@ -1354,6 +1445,7 @@ public final class LDAPConnectionHandler extends
   }
 
 
+
   // Determine the number of request handlers.
   private int getNumRequestHandlers(LDAPConnectionHandlerCfg configuration)
   {
@@ -1363,8 +1455,8 @@ public final class LDAPConnectionHandler extends
       int cpus = Runtime.getRuntime().availableProcessors();
       int value = Math.max(2, cpus / 2);
 
-      Message message = INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS
-          .get(friendlyName, value);
+      Message message = INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS.get(
+          friendlyName, value);
       logError(message);
 
       return value;
