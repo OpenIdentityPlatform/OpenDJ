@@ -1318,6 +1318,7 @@
       <!-- Don't generate package-info.java as it conflicts with
            the one in src/dsml -->
       <arg value="-npa"/>
+      <arg value="-verbose" />
       <produces dir="${dsml.gen.dir}/org/opends/dsml/protocol"
            includes="* impl/*" />
     </xjc>
