@@ -30,13 +30,10 @@ package org.opends.server.admin;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
-import java.io.IOException;
-import java.security.KeyStoreException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -172,15 +169,11 @@ public final class AdministrationConnector implements
       AdministrationConnectorCfg configuration) throws ConfigException,
       InitializationException
   {
-
     this.config = configuration;
 
     // Create a fake LDAP connection handler configuration
     LDAPConnectionHandlerCfg ldapConnectionHandlerCfg =
       new FakeLDAPConnectionHandlerCfg(config);
-
-    createSelfSignedCertifIfNeeded();
-
 
     // Administration Connector uses the LDAP connection handler
     // implementation
@@ -604,20 +597,26 @@ public final class AdministrationConnector implements
 
   /**
    * Creates a self-signed JKS certificate if needed.
+   *
+   * @throws InitializationException
+   *           If an unexpected error occurred whilst trying to create the
+   *           certificate.
    */
-  private void createSelfSignedCertifIfNeeded() throws InitializationException
+  public static void createSelfSignedCertificateIfNeeded()
+      throws InitializationException
   {
-
     try
     {
+      RootCfg root = ServerManagementContext.getInstance()
+          .getRootConfiguration();
+      AdministrationConnectorCfg config = root.getAdministrationConnector();
 
       // Check if certificate generation is needed
       String certAlias = config.getSSLCertNickname();
-      KeyManagerProviderCfg keyMgrConfig =
-        getAdminConnectorKeyManagerConfig(config.getKeyManagerProvider());
-
-      TrustManagerProviderCfg trustMgrConfig =
-        getAdminConnectorTrustManagerConfig(config.getTrustManagerProvider());
+      KeyManagerProviderCfg keyMgrConfig = root.getKeyManagerProvider(config
+          .getKeyManagerProvider());
+      TrustManagerProviderCfg trustMgrConfig = root
+          .getTrustManagerProvider(config.getTrustManagerProvider());
 
       if (!(keyMgrConfig instanceof FileBasedKeyManagerProviderCfg)
           || !(trustMgrConfig instanceof FileBasedTrustManagerProviderCfg))
@@ -747,54 +746,20 @@ public final class AdministrationConnector implements
       File f = new File(tempCertPath);
       f.delete();
     }
-    catch (ConfigException e)
+    catch (InitializationException e)
     {
-      handleCertifExceptions(e);
+      throw e;
     }
-    catch (KeyStoreException e)
+    catch (Exception e)
     {
-      handleCertifExceptions(e);
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      Message message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
+      logError(message);
+      throw new InitializationException(message);
     }
-    catch (IOException e)
-    {
-      handleCertifExceptions(e);
-    }
-    catch (CertificateEncodingException e)
-    {
-      handleCertifExceptions(e);
-    }
-  }
-
-
-
-  private void handleCertifExceptions(Exception e)
-      throws InitializationException
-  {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
-    Message message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
-    logError(message);
-    throw new InitializationException(message);
-  }
-
-
-
-  private KeyManagerProviderCfg getAdminConnectorKeyManagerConfig(String name)
-      throws ConfigException
-  {
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
-    return root.getKeyManagerProvider(name);
-  }
-
-
-
-  private TrustManagerProviderCfg getAdminConnectorTrustManagerConfig(
-      String name) throws ConfigException
-  {
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
-    return root.getTrustManagerProvider(name);
   }
 
 

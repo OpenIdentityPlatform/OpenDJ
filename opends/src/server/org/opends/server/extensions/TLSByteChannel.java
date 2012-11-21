@@ -39,13 +39,10 @@ import java.nio.channels.ClosedChannelException;
 import java.security.cert.Certificate;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.net.ssl.*;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
-import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
@@ -443,32 +440,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  /**
-   * Create an TLS byte channel instance using the specified LDAP connection
-   * configuration, client connection, SSL context and socket channel
-   * parameters.
-   *
-   * @param config
-   *          The LDAP connection configuration.
-   * @param c
-   *          The client connection.
-   * @param sslContext
-   *          The SSL context.
-   * @param socketChannel
-   *          The socket channel.
-   * @return A TLS capable byte channel.
-   */
-  public static TLSByteChannel getTLSByteChannel(
-      final LDAPConnectionHandlerCfg config, final ClientConnection c,
-      final SSLContext sslContext, final ByteChannel socketChannel)
-  {
-    return new TLSByteChannel(config, c, socketChannel, sslContext);
-  }
-
-
-
   private final ByteChannelImpl pimpl = new ByteChannelImpl();
   private final ByteChannel channel;
   private final SSLEngine sslEngine;
@@ -485,55 +456,20 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  private TLSByteChannel(final LDAPConnectionHandlerCfg config,
-      final ClientConnection c, final ByteChannel channel,
-      final SSLContext sslContext)
+  /**
+   * Creates an TLS byte channel instance using the specified LDAP connection
+   * configuration, client connection, SSL context and socket channel
+   * parameters.
+   *
+   * @param channel
+   *          The underlying channel.
+   * @param sslEngine
+   *          The SSL engine to use.
+   */
+  public TLSByteChannel(final ByteChannel channel, final SSLEngine sslEngine)
   {
-
     this.channel = channel;
-
-    // getHostName could potentially be very expensive and could block
-    // the connection handler for several minutes. (See issue 4229)
-    // Accepting new connections should be done in a seperate thread to
-    // avoid blocking new connections. Just remove for now to prevent
-    // potential DoS attacks. SSL sessions will not be reused and some
-    // cipher suites (such as Kerberos) will not work.
-
-    // String hostName = socketChannel.socket().getInetAddress().getHostName();
-    // int port = socketChannel.socket().getPort();
-    // sslEngine = sslContext.createSSLEngine(hostName, port);
-
-    sslEngine = sslContext.createSSLEngine();
-    sslEngine.setUseClientMode(false);
-
-    final Set<String> protocols = config.getSSLProtocol();
-    if (!protocols.isEmpty())
-    {
-      sslEngine.setEnabledProtocols(protocols.toArray(new String[0]));
-    }
-
-    final Set<String> ciphers = config.getSSLCipherSuite();
-    if (!ciphers.isEmpty())
-    {
-      sslEngine.setEnabledCipherSuites(ciphers.toArray(new String[0]));
-    }
-
-    switch (config.getSSLClientAuthPolicy())
-    {
-    case DISABLED:
-      sslEngine.setNeedClientAuth(false);
-      sslEngine.setWantClientAuth(false);
-      break;
-    case REQUIRED:
-      sslEngine.setWantClientAuth(true);
-      sslEngine.setNeedClientAuth(true);
-      break;
-    case OPTIONAL:
-    default:
-      sslEngine.setNeedClientAuth(false);
-      sslEngine.setWantClientAuth(true);
-      break;
-    }
+    this.sslEngine = sslEngine;
 
     // Allocate read/write buffers.
     final SSLSession session = sslEngine.getSession();

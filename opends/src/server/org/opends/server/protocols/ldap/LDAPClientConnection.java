@@ -55,6 +55,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.net.ssl.SSLException;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
@@ -496,8 +498,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     if (connectionHandler.useSSL())
     {
-      enableSSL(connectionHandler.getTLSByteChannel(this,
-          timeoutClientChannel));
+      enableSSL(connectionHandler.getTLSByteChannel(timeoutClientChannel));
     }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
@@ -1615,7 +1616,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      if (asn1Reader.hasRemainingData())
+      if (asn1Reader.hasRemainingData() || (e instanceof SSLException))
       {
         // The connection failed, but there was an unread partial message so
         // interpret this as an IO error.
@@ -2536,7 +2537,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     try
     {
       TLSByteChannel tlsByteChannel =
-          connectionHandler.getTLSByteChannel(this, timeoutClientChannel);
+          connectionHandler.getTLSByteChannel(timeoutClientChannel);
       setTLSPendingProvider(tlsByteChannel);
     }
     catch (DirectoryException de)

@@ -57,6 +57,7 @@ import javax.management.MBeanServerFactory;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageDescriptor;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -1252,27 +1253,22 @@ public final class DirectoryServer
       entryCacheConfigManager = new EntryCacheConfigManager();
       entryCacheConfigManager.initializeDefaultEntryCache();
 
-      // Initialize the administration connector.
+      // Initialize the administration connector self signed certificate if
+      // needed and do this before initializing the key managers so that it is
+      // picked up.
       if (startConnectionHandlers)
       {
-        initializeAdministrationConnector();
+        AdministrationConnector.createSelfSignedCertificateIfNeeded();
       }
 
-        // Initialize the key manager provider.
+      // Initialize the key manager provider.
       keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
       keyManagerProviderConfigManager.initializeKeyManagerProviders();
-
-
-      // Initialize the extension.
-      extensionConfigManager = new ExtensionConfigManager();
-      extensionConfigManager.initializeExtensions();
-
 
       // Initialize the trust manager provider.
       trustManagerProviderConfigManager =
            new TrustManagerProviderConfigManager();
       trustManagerProviderConfigManager.initializeTrustManagerProviders();
-
 
       // Initialize the certificate mapper.
       certificateMapperConfigManager = new CertificateMapperConfigManager();
@@ -1359,6 +1355,12 @@ public final class DirectoryServer
 
       // Load and initialize the user plugins.
       pluginConfigManager.initializeUserPlugins(null);
+
+
+      // Initialize the extensions.
+      extensionConfigManager = new ExtensionConfigManager();
+      extensionConfigManager.initializeExtensions();
+
 
       // Initialize any synchronization providers that may be defined.
       if (!environmentConfig.disableSynchronization())
@@ -2733,27 +2735,6 @@ public final class DirectoryServer
       connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
     }
     connectionHandlerConfigManager.initializeConnectionHandlerConfig();
-  }
-
-
-
-  /**
-   * Initializes the administration connector for the Directory Server.
-   *
-   * @throws  ConfigException  If a configuration problem is identified while
-   *                           initializing the administration connector.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the administration connector that is not
-   *                                   related to the server configuration.
-   */
-  public void initializeAdministrationConnector()
-         throws ConfigException, InitializationException
-  {
-    if (connectionHandlerConfigManager == null) {
-      connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
-    }
-    connectionHandlerConfigManager.initializeAdministrationConnectorConfig();
   }
 
 
