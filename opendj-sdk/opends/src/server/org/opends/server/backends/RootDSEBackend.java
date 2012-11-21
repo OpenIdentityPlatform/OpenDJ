@@ -30,20 +30,27 @@ package org.opends.server.backends;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -53,7 +60,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
@@ -511,9 +517,24 @@ public class RootDSEBackend
   /**
    * Retrieves the root DSE entry for the Directory Server.
    *
-   * @return  The root DSE entry for the Directory Server.
+   * @return The root DSE entry for the Directory Server.
    */
   public Entry getRootDSE()
+  {
+    return getRootDSE(null);
+  }
+
+
+
+  /**
+   * Retrieves the root DSE entry for the Directory Server.
+   *
+   * @param connection
+   *          The client connection, or {@code null} if there is no associated
+   *          client connection.
+   * @return The root DSE entry for the Directory Server.
+   */
+  public Entry getRootDSE(ClientConnection connection)
   {
     HashMap<AttributeType,List<Attribute>> dseUserAttrs =
          new HashMap<AttributeType,List<Attribute>>();
@@ -523,119 +544,143 @@ public class RootDSEBackend
 
 
     // Add the "namingContexts" attribute.
-    Attribute publicNamingContextAttr =
-         createDNAttribute(ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
-                           DirectoryServer.getPublicNamingContexts().keySet());
-    ArrayList<Attribute> publicNamingContextAttrs = new ArrayList<Attribute>(1);
-    publicNamingContextAttrs.add(publicNamingContextAttr);
-    if (showAllAttributes ||
-        (! publicNamingContextAttr.getAttributeType().isOperational()))
+    final Collection<DN> namingContexts;
+    if (connection == null)
     {
-      dseUserAttrs.put(publicNamingContextAttr.getAttributeType(),
-                       publicNamingContextAttrs);
+      namingContexts = DirectoryServer.getPublicNamingContexts().keySet();
     }
     else
     {
-      dseOperationalAttrs.put(publicNamingContextAttr.getAttributeType(),
-                              publicNamingContextAttrs);
+      namingContexts = new LinkedList<DN>();
+      for (WorkflowTopologyNode node : connection.getNetworkGroup()
+          .getNamingContexts().getPublicNamingContexts())
+      {
+        namingContexts.add(node.getBaseDN());
+      }
+    }
+
+    Attribute publicNamingContextAttr = createDNAttribute(ATTR_NAMING_CONTEXTS,
+        ATTR_NAMING_CONTEXTS_LC, namingContexts);
+    if (!publicNamingContextAttr.isEmpty())
+    {
+      List<Attribute> publicNamingContextAttrs = new ArrayList<Attribute>(1);
+      publicNamingContextAttrs.add(publicNamingContextAttr);
+      if (showAllAttributes
+          || (!publicNamingContextAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(publicNamingContextAttr.getAttributeType(),
+            publicNamingContextAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(publicNamingContextAttr.getAttributeType(),
+            publicNamingContextAttrs);
+      }
     }
 
 
     // Add the "ds-private-naming-contexts" attribute.
-    Attribute privateNamingContextAttr =
-         createDNAttribute(ATTR_PRIVATE_NAMING_CONTEXTS,
-                           ATTR_PRIVATE_NAMING_CONTEXTS,
-                           DirectoryServer.getPrivateNamingContexts().keySet());
-    ArrayList<Attribute> privateNamingContextAttrs =
-         new ArrayList<Attribute>(1);
-    privateNamingContextAttrs.add(privateNamingContextAttr);
-    if (showAllAttributes ||
-        (! privateNamingContextAttr.getAttributeType().isOperational()))
+    Attribute privateNamingContextAttr = createDNAttribute(
+        ATTR_PRIVATE_NAMING_CONTEXTS, ATTR_PRIVATE_NAMING_CONTEXTS,
+        DirectoryServer.getPrivateNamingContexts().keySet());
+    if (!privateNamingContextAttr.isEmpty())
     {
-      dseUserAttrs.put(privateNamingContextAttr.getAttributeType(),
-                       privateNamingContextAttrs);
+      List<Attribute> privateNamingContextAttrs = new ArrayList<Attribute>(1);
+      privateNamingContextAttrs.add(privateNamingContextAttr);
+      if (showAllAttributes
+          || (!privateNamingContextAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(privateNamingContextAttr.getAttributeType(),
+            privateNamingContextAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(privateNamingContextAttr.getAttributeType(),
+            privateNamingContextAttrs);
+      }
     }
-    else
-    {
-      dseOperationalAttrs.put(privateNamingContextAttr.getAttributeType(),
-                              privateNamingContextAttrs);
-    }
-
 
     // Add the "supportedControl" attribute.
-    Attribute supportedControlAttr =
-         createAttribute(ATTR_SUPPORTED_CONTROL, ATTR_SUPPORTED_CONTROL_LC,
-                         DirectoryServer.getSupportedControls());
-    ArrayList<Attribute> supportedControlAttrs = new ArrayList<Attribute>(1);
-    supportedControlAttrs.add(supportedControlAttr);
-    if (showAllAttributes ||
-        (! supportedControlAttr.getAttributeType().isOperational()))
+    Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL,
+        ATTR_SUPPORTED_CONTROL_LC, DirectoryServer.getSupportedControls());
+    if (!supportedControlAttr.isEmpty())
     {
-      dseUserAttrs.put(supportedControlAttr.getAttributeType(),
-                       supportedControlAttrs);
+      List<Attribute> supportedControlAttrs = new ArrayList<Attribute>(1);
+      supportedControlAttrs.add(supportedControlAttr);
+      if (showAllAttributes
+          || (!supportedControlAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedControlAttr.getAttributeType(),
+            supportedControlAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedControlAttr.getAttributeType(),
+            supportedControlAttrs);
+      }
     }
-    else
-    {
-      dseOperationalAttrs.put(supportedControlAttr.getAttributeType(),
-                              supportedControlAttrs);
-    }
-
 
     // Add the "supportedExtension" attribute.
-    Attribute supportedExtensionAttr =
-         createAttribute(ATTR_SUPPORTED_EXTENSION, ATTR_SUPPORTED_EXTENSION_LC,
-                         DirectoryServer.getSupportedExtensions().keySet());
-    ArrayList<Attribute> supportedExtensionAttrs = new ArrayList<Attribute>(1);
-    supportedExtensionAttrs.add(supportedExtensionAttr);
-    if (showAllAttributes ||
-        (! supportedExtensionAttr.getAttributeType().isOperational()))
+    Attribute supportedExtensionAttr = createAttribute(
+        ATTR_SUPPORTED_EXTENSION, ATTR_SUPPORTED_EXTENSION_LC, DirectoryServer
+            .getSupportedExtensions().keySet());
+    if (!supportedExtensionAttr.isEmpty())
     {
-      dseUserAttrs.put(supportedExtensionAttr.getAttributeType(),
-                       supportedExtensionAttrs);
+      List<Attribute> supportedExtensionAttrs = new ArrayList<Attribute>(1);
+      supportedExtensionAttrs.add(supportedExtensionAttr);
+      if (showAllAttributes
+          || (!supportedExtensionAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedExtensionAttr.getAttributeType(),
+            supportedExtensionAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedExtensionAttr.getAttributeType(),
+            supportedExtensionAttrs);
+      }
     }
-    else
-    {
-      dseOperationalAttrs.put(supportedExtensionAttr.getAttributeType(),
-                              supportedExtensionAttrs);
-    }
-
 
     // Add the "supportedFeature" attribute.
-    Attribute supportedFeatureAttr =
-         createAttribute(ATTR_SUPPORTED_FEATURE, ATTR_SUPPORTED_FEATURE_LC,
-                         DirectoryServer.getSupportedFeatures());
-    ArrayList<Attribute> supportedFeatureAttrs = new ArrayList<Attribute>(1);
-    supportedFeatureAttrs.add(supportedFeatureAttr);
-    if (showAllAttributes ||
-        (! supportedFeatureAttr.getAttributeType().isOperational()))
+    Attribute supportedFeatureAttr = createAttribute(ATTR_SUPPORTED_FEATURE,
+        ATTR_SUPPORTED_FEATURE_LC, DirectoryServer.getSupportedFeatures());
+    if (!supportedFeatureAttr.isEmpty())
     {
-      dseUserAttrs.put(supportedFeatureAttr.getAttributeType(),
-                       supportedFeatureAttrs);
-    }
-    else
-    {
-      dseOperationalAttrs.put(supportedFeatureAttr.getAttributeType(),
-                              supportedFeatureAttrs);
+      List<Attribute> supportedFeatureAttrs = new ArrayList<Attribute>(1);
+      supportedFeatureAttrs.add(supportedFeatureAttr);
+      if (showAllAttributes
+          || (!supportedFeatureAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedFeatureAttr.getAttributeType(),
+            supportedFeatureAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedFeatureAttr.getAttributeType(),
+            supportedFeatureAttrs);
+      }
     }
 
 
     // Add the "supportedSASLMechanisms" attribute.
-    Attribute supportedSASLMechAttr =
-         createAttribute(ATTR_SUPPORTED_SASL_MECHANISMS,
-                         ATTR_SUPPORTED_SASL_MECHANISMS_LC,
-                         DirectoryServer.getSupportedSASLMechanisms().keySet());
-    ArrayList<Attribute> supportedSASLMechAttrs = new ArrayList<Attribute>(1);
-    supportedSASLMechAttrs.add(supportedSASLMechAttr);
-    if (showAllAttributes ||
-        (! supportedSASLMechAttr.getAttributeType().isOperational()))
+    Attribute supportedSASLMechAttr = createAttribute(
+        ATTR_SUPPORTED_SASL_MECHANISMS, ATTR_SUPPORTED_SASL_MECHANISMS_LC,
+        DirectoryServer.getSupportedSASLMechanisms().keySet());
+    if (!supportedSASLMechAttr.isEmpty())
     {
-      dseUserAttrs.put(supportedSASLMechAttr.getAttributeType(),
-                       supportedSASLMechAttrs);
-    }
-    else
-    {
-      dseOperationalAttrs.put(supportedSASLMechAttr.getAttributeType(),
-                              supportedSASLMechAttrs);
+      List<Attribute> supportedSASLMechAttrs = new ArrayList<Attribute>(1);
+      supportedSASLMechAttrs.add(supportedSASLMechAttr);
+      if (showAllAttributes
+          || (!supportedSASLMechAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedSASLMechAttr.getAttributeType(),
+            supportedSASLMechAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedSASLMechAttr.getAttributeType(),
+            supportedSASLMechAttrs);
+      }
     }
 
 
@@ -649,26 +694,28 @@ public class RootDSEBackend
          createAttribute(ATTR_SUPPORTED_LDAP_VERSION,
                          ATTR_SUPPORTED_LDAP_VERSION_LC,
                          versionStrings);
-    ArrayList<Attribute> supportedLDAPVersionAttrs =
-         new ArrayList<Attribute>(1);
-    supportedLDAPVersionAttrs.add(supportedLDAPVersionAttr);
-    if (showAllAttributes ||
-        (! supportedLDAPVersionAttr.getAttributeType().isOperational()))
+    if (!supportedLDAPVersionAttr.isEmpty())
     {
-      dseUserAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
-                       supportedLDAPVersionAttrs);
-    }
-    else
-    {
-      dseOperationalAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
-                              supportedLDAPVersionAttrs);
+      List<Attribute> supportedLDAPVersionAttrs = new ArrayList<Attribute>(1);
+      supportedLDAPVersionAttrs.add(supportedLDAPVersionAttr);
+      if (showAllAttributes
+          || (!supportedLDAPVersionAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
+            supportedLDAPVersionAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
+            supportedLDAPVersionAttrs);
+      }
     }
 
 
     // Add the "supportedAuthPasswordSchemes" attribute.
     Set<String> authPWSchemes =
          DirectoryServer.getAuthPasswordStorageSchemes().keySet();
-    if (! authPWSchemes.isEmpty())
+    if (!authPWSchemes.isEmpty())
     {
       Attribute supportedAuthPWSchemesAttr =
            createAttribute(ATTR_SUPPORTED_AUTH_PW_SCHEMES,
@@ -689,6 +736,77 @@ public class RootDSEBackend
       }
     }
 
+
+    // Obtain TLS protocol and cipher support.
+    Collection<String> supportedTlsProtocols;
+    Collection<String> supportedTlsCiphers;
+    if (connection != null)
+    {
+      // Only return the list of enabled protocols / ciphers for the connection
+      // handler to which the client is connected.
+      supportedTlsProtocols = connection.getConnectionHandler()
+          .getEnabledSSLProtocols();
+      supportedTlsCiphers = connection.getConnectionHandler()
+          .getEnabledSSLCipherSuites();
+    }
+    else
+    {
+      try
+      {
+        final SSLContext context = SSLContext.getDefault();
+        final SSLParameters parameters = context.getSupportedSSLParameters();
+        supportedTlsProtocols = Arrays.asList(parameters.getProtocols());
+        supportedTlsCiphers = Arrays.asList(parameters.getCipherSuites());
+      }
+      catch (Exception e)
+      {
+        // A default SSL context should always be available.
+        supportedTlsProtocols = Collections.emptyList();
+        supportedTlsCiphers = Collections.emptyList();
+      }
+    }
+
+    // Add the "supportedTLSProtocols" attribute.
+    Attribute supportedTLSProtocolsAttr = createAttribute(
+        ATTR_SUPPORTED_TLS_PROTOCOLS, ATTR_SUPPORTED_TLS_PROTOCOLS_LC,
+        supportedTlsProtocols);
+    if (!supportedTLSProtocolsAttr.isEmpty())
+    {
+      List<Attribute> supportedTLSProtocolsAttrs = new ArrayList<Attribute>(1);
+      supportedTLSProtocolsAttrs.add(supportedTLSProtocolsAttr);
+      if (showAllAttributes
+          || (!supportedTLSProtocolsAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedTLSProtocolsAttr.getAttributeType(),
+            supportedTLSProtocolsAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedTLSProtocolsAttr.getAttributeType(),
+            supportedTLSProtocolsAttrs);
+      }
+    }
+
+    // Add the "supportedTLSCiphers" attribute.
+    Attribute supportedTLSCiphersAttr = createAttribute(
+        ATTR_SUPPORTED_TLS_CIPHERS, ATTR_SUPPORTED_TLS_CIPHERS_LC,
+        supportedTlsCiphers);
+    if (!supportedTLSCiphersAttr.isEmpty())
+    {
+      List<Attribute> supportedTLSCiphersAttrs = new ArrayList<Attribute>(1);
+      supportedTLSCiphersAttrs.add(supportedTLSCiphersAttr);
+      if (showAllAttributes
+          || (!supportedTLSCiphersAttr.getAttributeType().isOperational()))
+      {
+        dseUserAttrs.put(supportedTLSCiphersAttr.getAttributeType(),
+            supportedTLSCiphersAttrs);
+      }
+      else
+      {
+        dseOperationalAttrs.put(supportedTLSCiphersAttr.getAttributeType(),
+            supportedTLSCiphersAttrs);
+      }
+    }
 
     // Add all the standard "static" attributes.
     for (Attribute a : staticDSEAttributes)
@@ -766,33 +884,6 @@ public class RootDSEBackend
     Entry e = new Entry(rootDSEDN, dseObjectClasses, dseUserAttrs,
                         dseOperationalAttrs);
     e.processVirtualAttributes();
-    return e;
-  }
-
-
-
-  /**
-   * Retrieves the root DSE entry for the given network group.
-   *
-   * @param   ng  The network group for which we want the root DSE entry
-   * @return  The root DSE entry for the given network group.
-   */
-  public Entry getRootDSE(NetworkGroup ng)
-  {
-    Entry e = getRootDSE();
-
-    // Simply replace the list of naming contexts with those known by
-    // the provided network group.
-    TreeSet<DN> dn = new TreeSet<DN>();
-    for (WorkflowTopologyNode node :
-        ng.getNamingContexts().getPublicNamingContexts()) {
-      dn.add(node.getBaseDN());
-    }
-
-    Attribute publicNamingContextAttr =
-         createDNAttribute(ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC, dn);
-
-    e.replaceAttribute(publicNamingContextAttr);
     return e;
   }
 
@@ -1041,8 +1132,7 @@ public class RootDSEBackend
     switch (searchOperation.getScope())
     {
       case BASE_OBJECT:
-        Entry dseEntry = getRootDSE(
-            searchOperation.getClientConnection().getNetworkGroup());
+        Entry dseEntry = getRootDSE(searchOperation.getClientConnection());
         if (filter.matchesEntry(dseEntry))
         {
           searchOperation.returnEntry(dseEntry, null);

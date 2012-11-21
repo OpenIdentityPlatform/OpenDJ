@@ -40,14 +40,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.*;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -175,12 +175,6 @@ public final class LDAPConnectionHandler extends
   // server.
   private AddressMask[] deniedClients;
 
-  // The set of SSL cipher suites that should be allowed.
-  private String[] enabledSSLCipherSuites;
-
-  // The set of SSL protocols that should be allowed.
-  private String[] enabledSSLProtocols;
-
   // The index to the request handler that will be used for the next
   // connection accepted by the server.
   private int requestHandlerIndex;
@@ -223,9 +217,10 @@ public final class LDAPConnectionHandler extends
   // SSL instance name used in context creation.
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-  // SSL context.
+  // SSL context and engine - the engine is used for obtaining default SSL
+  // parameters.
   private SSLContext sslContext;
-  private boolean sslConfig = false;
+  private SSLEngine sslEngine;
 
   /**
    * Connection finalizer thread.
@@ -340,10 +335,25 @@ public final class LDAPConnectionHandler extends
     allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
     deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
 
-    // Reconfigure SSL context if needed.
+    // Reconfigure SSL if needed.
+    protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
     if (config.isUseSSL() || config.isAllowStartTLS())
     {
-      sslConfig = true;
+      try
+      {
+        sslContext = createSSLContext(config);
+        sslEngine = createSSLEngine(config, sslContext);
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        messages.add(e.getMessageObject());
+        return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
+            messages);
+      }
     }
 
     if (config.isAllowLDAPV2())
@@ -501,29 +511,37 @@ public final class LDAPConnectionHandler extends
 
 
   /**
-   * Retrieves the set of enabled SSL cipher suites configured for this
-   * connection handler.
-   *
-   * @return The set of enabled SSL cipher suites configured for this connection
-   *         handler.
+   * {@inheritDoc}
    */
-  public String[] getEnabledSSLCipherSuites()
+  public Collection<String> getEnabledSSLCipherSuites()
   {
-    return enabledSSLCipherSuites;
+    if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
+    {
+      final SSLEngine engine = sslEngine;
+      if (engine != null)
+      {
+        return Arrays.asList(engine.getEnabledCipherSuites());
+      }
+    }
+    return super.getEnabledSSLCipherSuites();
   }
 
 
 
   /**
-   * Retrieves the set of enabled SSL protocols configured for this connection
-   * handler.
-   *
-   * @return The set of enabled SSL protocols configured for this connection
-   *         handler.
+   * {@inheritDoc}
    */
-  public String[] getEnabledSSLProtocols()
+  public Collection<String> getEnabledSSLProtocols()
   {
-    return enabledSSLProtocols;
+    if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
+    {
+      final SSLEngine engine = sslEngine;
+      if (engine != null)
+      {
+        return Arrays.asList(engine.getEnabledProtocols());
+      }
+    }
+    return super.getEnabledSSLProtocols();
   }
 
 
@@ -669,8 +687,6 @@ public final class LDAPConnectionHandler extends
       throw new InitializationException(message, e);
     }
 
-    protocol = "LDAP";
-
     // Save this configuration for future reference.
     currentConfig = config;
     enabled = config.isEnabled();
@@ -678,8 +694,24 @@ public final class LDAPConnectionHandler extends
     allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
     deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
 
-    // Setup SSL context if needed.
-    if (config.isUseSSL() || config.isAllowStartTLS()) sslConfig = true;
+    // Configure SSL if needed.
+    protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
+    if (config.isUseSSL() || config.isAllowStartTLS())
+    {
+      try
+      {
+        sslContext = createSSLContext(config);
+        sslEngine = createSSLEngine(config, sslContext);
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new InitializationException(e.getMessageObject());
+      }
+    }
 
     // Save properties that cannot be dynamically modified.
     allowReuseAddress = config.isAllowTCPReuseAddress();
@@ -786,11 +818,11 @@ public final class LDAPConnectionHandler extends
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
 
-    // Attempt to bind to the listen port on all configured addresses to
-    // verify whether the connection handler will be able to start.
     if ((currentConfig == null)
         || (!currentConfig.isEnabled() && config.isEnabled()))
     {
+      // Attempt to bind to the listen port on all configured addresses to
+      // verify whether the connection handler will be able to start.
       for (InetAddress a : config.getListenAddress())
       {
         try
@@ -817,7 +849,31 @@ public final class LDAPConnectionHandler extends
         }
       }
     }
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+
+    if (config.isEnabled())
+    {
+      // Check that the SSL configuration is valid.
+      if (config.isUseSSL() || config.isAllowStartTLS())
+      {
+        try
+        {
+          SSLContext sslContext = createSSLContext(config);
+          createSSLEngine(config, sslContext);
+        }
+        catch (DirectoryException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          unacceptableReasons.add(e.getMessageObject());
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
 
@@ -828,8 +884,7 @@ public final class LDAPConnectionHandler extends
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config, List<Message> unacceptableReasons)
   {
-    // All validation is performed by the admin framework.
-    return true;
+    return isConfigurationAcceptable(config, unacceptableReasons);
   }
 
 
@@ -1153,8 +1208,8 @@ public final class LDAPConnectionHandler extends
     // Check to see if the core server rejected the
     // connection (e.g., already too many connections
     // established).
-    LDAPClientConnection clientConnection =
-        createClientConnection(clientChannel);
+    LDAPClientConnection clientConnection = new LDAPClientConnection(this,
+        clientChannel, getProtocol());
     if (clientConnection.getConnectionID() < 0)
     {
       // The connection will have already been closed.
@@ -1326,97 +1381,126 @@ public final class LDAPConnectionHandler extends
 
 
 
-  private LDAPClientConnection createClientConnection(
-      SocketChannel socketChannel) throws DirectoryException
-  {
-    if (sslConfig)
-    {
-      configSSL(currentConfig);
-      sslConfig = false;
-    }
-    LDAPClientConnection c = new LDAPClientConnection(this, socketChannel,
-        getProtocol());
-    return c;
-  }
-
-
-
   /**
-   * Creates a TLS Byte Channel instance using the specified LDAP client
-   * connection and socket channel.
+   * Creates a TLS Byte Channel instance using the specified socket channel.
    *
-   * @param c
-   *          The client connection to use in the creation.
-   * @param socketChannel
+   * @param channel
    *          The socket channel to use in the creation.
    * @return A TLS Byte Channel instance.
    * @throws DirectoryException
    *           If the channel cannot be created.
    */
-  public TLSByteChannel getTLSByteChannel(LDAPClientConnection c,
-      ByteChannel socketChannel) throws DirectoryException
+  public TLSByteChannel getTLSByteChannel(ByteChannel channel)
+      throws DirectoryException
   {
-    return (TLSByteChannel.getTLSByteChannel(currentConfig, c, sslContext,
-        socketChannel));
+    SSLEngine sslEngine = createSSLEngine(currentConfig, sslContext);
+    return new TLSByteChannel(channel, sslEngine);
   }
 
 
 
-  private void configSSL(LDAPConnectionHandlerCfg config)
-      throws DirectoryException
+  private SSLEngine createSSLEngine(LDAPConnectionHandlerCfg config,
+      SSLContext sslContext) throws DirectoryException
   {
-    ResultCode resCode = DirectoryServer.getServerErrorResultCode();
     try
     {
-      String alias = config.getSSLCertNickname();
-      if (config.isUseSSL())
+      SSLEngine sslEngine = sslContext.createSSLEngine();
+      sslEngine.setUseClientMode(false);
+
+      final Set<String> protocols = config.getSSLProtocol();
+      if (!protocols.isEmpty())
       {
-        protocol = "LDAPS";
+        sslEngine.setEnabledProtocols(protocols.toArray(new String[0]));
       }
+
+      final Set<String> ciphers = config.getSSLCipherSuite();
+      if (!ciphers.isEmpty())
+      {
+        sslEngine.setEnabledCipherSuites(ciphers.toArray(new String[0]));
+      }
+
+      switch (config.getSSLClientAuthPolicy())
+      {
+      case DISABLED:
+        sslEngine.setNeedClientAuth(false);
+        sslEngine.setWantClientAuth(false);
+        break;
+      case REQUIRED:
+        sslEngine.setWantClientAuth(true);
+        sslEngine.setNeedClientAuth(true);
+        break;
+      case OPTIONAL:
+      default:
+        sslEngine.setNeedClientAuth(false);
+        sslEngine.setWantClientAuth(true);
+        break;
+      }
+
+      return sslEngine;
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+          .get(getExceptionMessage(e));
+      throw new DirectoryException(resCode, message, e);
+    }
+  }
+
+
+
+  private SSLContext createSSLContext(LDAPConnectionHandlerCfg config)
+      throws DirectoryException
+  {
+    try
+    {
       DN keyMgrDN = config.getKeyManagerProviderDN();
-      DN trustMgrDN = config.getTrustManagerProviderDN();
       KeyManagerProvider<?> keyManagerProvider = DirectoryServer
           .getKeyManagerProvider(keyMgrDN);
       if (keyManagerProvider == null)
+      {
         keyManagerProvider = new NullKeyManagerProvider();
-      TrustManagerProvider<?> trustManagerProvider = DirectoryServer
-          .getTrustManagerProvider(trustMgrDN);
-      if (trustManagerProvider == null)
-        trustManagerProvider = new NullTrustManagerProvider();
-      sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+      }
+
+      String alias = config.getSSLCertNickname();
+      KeyManager[] keyManagers;
       if (alias == null)
       {
-        sslContext.init(keyManagerProvider.getKeyManagers(),
-            trustManagerProvider.getTrustManagers(), null);
+        keyManagers = keyManagerProvider.getKeyManagers();
       }
       else
       {
-        sslContext.init(
-            SelectableCertificateKeyManager.wrap(
-                keyManagerProvider.getKeyManagers(), alias),
-            trustManagerProvider.getTrustManagers(), null);
+        keyManagers = SelectableCertificateKeyManager.wrap(
+            keyManagerProvider.getKeyManagers(), alias);
       }
+
+      DN trustMgrDN = config.getTrustManagerProviderDN();
+      TrustManagerProvider<?> trustManagerProvider = DirectoryServer
+          .getTrustManagerProvider(trustMgrDN);
+      if (trustManagerProvider == null)
+      {
+        trustManagerProvider = new NullTrustManagerProvider();
+      }
+
+      SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+      sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(),
+          null);
+      return sslContext;
     }
-    catch (NoSuchAlgorithmException nsae)
+    catch (Exception e)
     {
-      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, nsae);
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
-          .get(getExceptionMessage(nsae));
-      throw new DirectoryException(resCode, message, nsae);
-    }
-    catch (KeyManagementException kme)
-    {
-      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, kme);
-      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
-          .get(getExceptionMessage(kme));
-      throw new DirectoryException(resCode, message, kme);
-    }
-    catch (DirectoryException de)
-    {
-      if (debugEnabled()) TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
-          .get(getExceptionMessage(de));
-      throw new DirectoryException(resCode, message, de);
+          .get(getExceptionMessage(e));
+      throw new DirectoryException(resCode, message, e);
     }
   }
 

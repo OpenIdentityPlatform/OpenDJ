@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -39,6 +40,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.admin.AdministrationConnector;
@@ -80,8 +82,8 @@ public class ConnectionHandlerConfigManager implements
 
   // The mapping between configuration entry DNs and their
   // corresponding connection handler implementations.
-  private ConcurrentHashMap<DN, ConnectionHandler> connectionHandlers =
-        new ConcurrentHashMap<DN, ConnectionHandler>();
+  private final Map<DN, ConnectionHandler<?>> connectionHandlers =
+        new ConcurrentHashMap<DN, ConnectionHandler<?>>();
 
 
 
@@ -251,7 +253,7 @@ public class ConnectionHandlerConfigManager implements
     // deregister and stop it. We'll try to leave any established
     // connections alone if possible.
     DN dn = configuration.dn();
-    ConnectionHandler connectionHandler = connectionHandlers.get(dn);
+    ConnectionHandler<?> connectionHandler = connectionHandlers.get(dn);
     if (connectionHandler != null) {
       DirectoryServer.deregisterConnectionHandler(connectionHandler);
       connectionHandlers.remove(dn);
@@ -280,7 +282,11 @@ public class ConnectionHandlerConfigManager implements
    */
   public void initializeConnectionHandlerConfig()
       throws ConfigException, InitializationException {
-    connectionHandlers = new ConcurrentHashMap<DN, ConnectionHandler>();
+    // Clear the set of connection handlers in case of in-core restart.
+    connectionHandlers.clear();
+
+    // Initialize the admin connector.
+    initializeAdministrationConnectorConfig();
 
     // Get the root configuration which acts as the parent of all
     // connection handlers.
@@ -325,20 +331,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  /**
-   * Initializes the configuration associated with the Directory
-   * Server administration connector. This should only be called at
-   * Directory Server startup.
-   *
-   * @throws ConfigException
-   *           If a critical configuration problem prevents the
-   *           administration connector initialization from succeeding.
-   * @throws InitializationException
-   *           If a problem occurs while initializing the administration
-   *           connector that is not related to the server
-   *           configuration.
-   */
-  public void initializeAdministrationConnectorConfig()
+  private void initializeAdministrationConnectorConfig()
     throws ConfigException, InitializationException {
 
     RootCfg root =
@@ -417,6 +410,7 @@ public class ConnectionHandlerConfigManager implements
         .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to a connection handler.
+    @SuppressWarnings("rawtypes")
     Class<? extends ConnectionHandler> theClass;
     ConnectionHandler<?> connectionHandler;
 
@@ -475,7 +469,8 @@ public class ConnectionHandlerConfigManager implements
         .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to a connection handler.
-    ConnectionHandler connectionHandler = null;
+    ConnectionHandler<?> connectionHandler = null;
+    @SuppressWarnings("rawtypes")
     Class<? extends ConnectionHandler> theClass;
     try {
       connectionHandler = connectionHandlers.get(config.dn());

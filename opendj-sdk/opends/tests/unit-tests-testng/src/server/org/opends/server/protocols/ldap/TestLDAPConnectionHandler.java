@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.protocols.ldap;
@@ -110,8 +111,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LinkedHashMap<String,String> alerts = LDAPConnHandler.getAlerts();
     String c=LDAPConnHandler.getClassName();
     DN dn = LDAPConnHandler.getComponentEntryDN();
-    String[] cips = LDAPConnHandler.getEnabledSSLCipherSuites();
-    String[] protos = LDAPConnHandler.getEnabledSSLProtocols();
+    Collection<String> cips = LDAPConnHandler.getEnabledSSLCipherSuites();
+    Collection<String> protos = LDAPConnHandler.getEnabledSSLProtocols();
     int maxReqSize = LDAPConnHandler.getMaxRequestSize();
     String shutListName=LDAPConnHandler.getShutdownListenerName();
     SSLClientAuthPolicy policy = LDAPConnHandler.getSSLClientAuthPolicy();

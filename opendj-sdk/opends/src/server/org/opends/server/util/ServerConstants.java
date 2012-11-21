@@ -573,6 +573,42 @@ public final class ServerConstants
 
 
   /**
+   * The name of the standard attribute that is used to specify the versions of
+   * the TLS protocol supported by the server, formatted in camel case.
+   */
+  public static final String ATTR_SUPPORTED_TLS_PROTOCOLS =
+      "supportedTLSProtocols";
+
+
+
+  /**
+   * The name of the standard attribute that is used to specify the versions of
+   * the TLS protocol supported by the server, formatted in lower case.
+   */
+  public static final String ATTR_SUPPORTED_TLS_PROTOCOLS_LC =
+      "supportedtlsprotocols";
+
+
+
+  /**
+   * The name of the standard attribute that is used to specify the the TLS
+   * ciphers supported by the server, formatted in camel case.
+   */
+  public static final String ATTR_SUPPORTED_TLS_CIPHERS =
+      "supportedTLSCiphers";
+
+
+
+  /**
+   * The name of the standard attribute that is used to specify the the TLS
+   * ciphers supported by the server, formatted in lower case.
+   */
+  public static final String ATTR_SUPPORTED_TLS_CIPHERS_LC =
+      "supportedtlsciphers";
+
+
+
+  /**
    * The name of the attribute that is used to specify the time that the
    * Directory Server started, formatted in camel case.
    */

@@ -23,18 +23,26 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 
 import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -184,6 +192,44 @@ public class SystemInfoMonitorProvider
       attrs.add(createAttribute("jvmArguments", argList.toString()));
     }
 
+    // Get the list of supported SSL protocols and ciphers.
+    Collection<String> supportedTlsProtocols;
+    Collection<String> supportedTlsCiphers;
+    try
+    {
+      final SSLContext context = SSLContext.getDefault();
+      final SSLParameters parameters = context.getSupportedSSLParameters();
+      supportedTlsProtocols = Arrays.asList(parameters.getProtocols());
+      supportedTlsCiphers = Arrays.asList(parameters.getCipherSuites());
+    }
+    catch (Exception e)
+    {
+      // A default SSL context should always be available.
+      supportedTlsProtocols = Collections.emptyList();
+      supportedTlsCiphers = Collections.emptyList();
+    }
+
+
+    // Add the "supportedTLSProtocols" attribute.
+    AttributeType supportedTLSProtocolsAttrType = DirectoryServer
+        .getDefaultAttributeType(ATTR_SUPPORTED_TLS_PROTOCOLS);
+    AttributeBuilder builder = new AttributeBuilder(
+        supportedTLSProtocolsAttrType);
+    for (String value : supportedTlsProtocols)
+    {
+      builder.add(value);
+    }
+    attrs.add(builder.toAttribute());
+
+    // Add the "supportedTLSCiphers" attribute.
+    AttributeType supportedTLSCiphersAttrType = DirectoryServer
+        .getDefaultAttributeType(ATTR_SUPPORTED_TLS_CIPHERS);
+    builder = new AttributeBuilder(supportedTLSCiphersAttrType);
+    for (String value : supportedTlsCiphers)
+    {
+      builder.add(value);
+    }
+    attrs.add(builder.toAttribute());
 
     return attrs;
   }

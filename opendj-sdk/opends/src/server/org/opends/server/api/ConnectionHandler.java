@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -30,6 +31,7 @@ import org.opends.messages.Message;
 
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.opends.server.admin.std.server.*;
@@ -106,6 +108,37 @@ public abstract class ConnectionHandler
    *          connection handler.
    */
   public abstract String getConnectionHandlerName();
+
+
+
+  /**
+   * Retrieves an unmodifiable set of enabled SSL cipher suites configured for
+   * this connection handler, if applicable. Implementations must return an
+   * empty set if use of SSL/TLS is not possible.
+   *
+   * @return The set of enabled SSL cipher suites configured for this connection
+   *         handler.
+   */
+  public Collection<String> getEnabledSSLCipherSuites()
+  {
+    return Collections.emptyList();
+  }
+
+
+
+  /**
+   * Retrieves the set of enabled SSL protocols configured for this connection
+   * handler. Implementations must return an empty set if use of SSL/TLS is not
+   * possible.
+   *
+   * @return The set of enabled SSL protocols configured for this connection
+   *         handler.
+   */
+  public Collection<String> getEnabledSSLProtocols()
+  {
+    return Collections.emptyList();
+  }
+
 
 
    /**
