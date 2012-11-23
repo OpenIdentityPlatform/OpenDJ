@@ -211,6 +211,9 @@ public class DSMLServlet extends HttpServlet {
         }
       }
 
+      // allow the use of anyURI values in adds and modifies
+      System.setProperty("mapAnyUriToUri", "true");
+
       if(jaxbContext==null)
         jaxbContext = JAXBContext.newInstance(PKG_NAME,
                 this.getClass().getClassLoader());
