@@ -27,11 +27,13 @@
 
 package org.forgerock.opendj.ldap;
 
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
@@ -263,5 +265,74 @@ public class FilterTestCase extends SdkTestCase {
         entry.addAttribute("objectclass", "top,person");
         final Matcher matcher = equal.matcher();
         assertTrue(matcher.matches(entry).toBoolean());
+    }
+
+    @DataProvider
+    public Object[][] getAssertionValues() {
+        // Use List for assertion values instead of an array because a List has a
+        // String representation which can be displayed by debuggers, etc.
+
+        // @formatter:off
+        return new Object[][] {
+            {
+                "(objectClass=*)", asList(), "(objectClass=*)"
+            },
+            {
+                "(objectClass=*)", asList("dummy"), "(objectClass=*)"
+            },
+            {
+                "(objectClass=*)", asList("dummy", "dummy"), "(objectClass=*)"
+            },
+            {
+                "(cn=%s)", asList("dummy"), "(cn=dummy)"
+            },
+            {
+                "(|(cn=%s)(uid=user.%s))", asList("alice", (Object) 1234), "(|(cn=alice)(uid=user.1234))"
+            },
+            {
+                "(|(cn=%1$s)(sn=%1$s))", asList("alice"), "(|(cn=alice)(sn=alice))"
+            },
+            // Check escaping.
+            {
+                "(cn=%s)", asList("*"), "(cn=\\2A)"
+            },
+            {
+                "(|(cn=%1$s)(sn=%1$s))", asList("alice)(objectClass=*"),
+                "(|(cn=alice\\29\\28objectClass=\\2A)(sn=alice\\29\\28objectClass=\\2A))"
+            },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "getAssertionValues")
+    public void testValueOfTemplate(String template, List<?> assertionValues, String expected)
+            throws Exception {
+        Filter filter = Filter.valueOf(template, assertionValues.toArray());
+        assertEquals(filter.toString(), expected);
+    }
+
+    @DataProvider
+    public Object[][] getEscapeAssertionValues() {
+        // @formatter:off
+        return new Object[][] {
+            {
+                "dummy", "dummy"
+            },
+            {
+                1234, "1234"
+            },
+            {
+                "*", "\\2A"
+            },
+            {
+                "alice)(objectClass=*", "alice\\29\\28objectClass=\\2A"
+            },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "getEscapeAssertionValues")
+    public void testEscapeAssertionValue(Object unescaped, String expected) throws Exception {
+        assertEquals(Filter.escapeAssertionValue(unescaped), expected);
     }
 }
