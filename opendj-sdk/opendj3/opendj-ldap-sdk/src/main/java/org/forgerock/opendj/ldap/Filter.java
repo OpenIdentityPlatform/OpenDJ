@@ -544,6 +544,50 @@ public final class Filter {
     }
 
     /**
+     * Returns the LDAP string representation of the provided filter assertion
+     * value in a form suitable for substitution directly into a filter string.
+     * This method may be useful in cases where a filter is to be constructed
+     * from a filter template using {@code String#format(String, Object...)}.
+     * The following example illustrates two approaches to constructing an
+     * equality filter:
+     *
+     * <pre>
+     * // This may contain user input.
+     * String assertionValue = ...;
+     *
+     * // Using the equality filter constructor:
+     * Filter filter = Filter.equality("cn", assertionValue);
+     *
+     * // Using a String template:
+     * String filterTemplate = "(cn=%s)";
+     * String filterString = String.format(filterTemplate,
+     *                                     Filter.escapeAssertionValue(assertionValue));
+     * Filter filter = Filter.valueOf(filterString);
+     * </pre>
+     * If {@code assertionValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * <p>
+     * <b>Note:</b> assertion values do not and should not be escaped before
+     * passing them to constructors like {@link #equality(String, Object)}.
+     * Escaping is only required when creating filter strings.
+     * <p>
+     * <b>Note:</b>
+     * @param assertionValue
+     *            The assertion value.
+     * @return The LDAP string representation of the provided filter assertion
+     *         value in a form suitable for substitution directly into a filter
+     *         string.
+     */
+    public static String escapeAssertionValue(final Object assertionValue) {
+        Validator.ensureNotNull(assertionValue);
+        final ByteString bytes = ByteString.valueOf(assertionValue);
+        final StringBuilder builder = new StringBuilder(bytes.length());
+        valueToFilterString(builder, bytes);
+        return builder.toString();
+    }
+
+    /**
      * Creates a new {@code extensible match} filter.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
@@ -869,6 +913,43 @@ public final class Filter {
                     ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(string, String.valueOf(e));
             throw new LocalizedIllegalArgumentException(message);
         }
+    }
+
+    /**
+     * Creates a new filter using the provided filter template and unescaped
+     * assertion values. This method first escapes each of the assertion values
+     * and then substitutes them into the template using
+     * {@link String#format(String, Object...)}. Finally, the formatted string
+     * is parsed as an LDAP filter using {@link #valueOf(String)}.
+     * <p>
+     * This method may be useful in cases where the structure of a filter is not
+     * known at compile time, for example, it may be obtained from a
+     * configuration file. Example usage:
+     *
+     * <pre>
+     * String template = &quot;(|(cn=%s)(uid=user.%s))&quot;;
+     * Filter filter = Filter.valueOf(template, &quot;alice&quot;, 123);
+     * </pre>
+     *
+     * Any assertion values which are not instances of {@code ByteString} will
+     * be converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * @param template
+     *            The filter template.
+     * @param assertionValues
+     *            The assertion values to be substituted into the template.
+     * @return The formatted template parsed as a {@code Filter}.
+     * @throws LocalizedIllegalArgumentException
+     *             If the formatted template is not a valid LDAP string
+     *             representation of a filter.
+     */
+    public static Filter valueOf(final String template, final Object... assertionValues) {
+        final String[] assertionValueStrings = new String[assertionValues.length];
+        for (int i = 0; i < assertionValues.length; i++) {
+            assertionValueStrings[i] = escapeAssertionValue(assertionValues[i]);
+        }
+        final String filterString = String.format(template, (Object[]) assertionValueStrings);
+        return valueOf(filterString);
     }
 
     // Converts an assertion value to a substring filter.
