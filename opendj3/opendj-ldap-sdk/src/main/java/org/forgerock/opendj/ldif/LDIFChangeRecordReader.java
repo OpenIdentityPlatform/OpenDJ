@@ -107,6 +107,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public static ChangeRecord valueOfLDIFChangeRecord(final String... ldifLines) {
         // LDIF change record reader is tolerant to missing change types.
+        @SuppressWarnings("resource")
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldifLines);
         try {
             if (!reader.hasNext()) {

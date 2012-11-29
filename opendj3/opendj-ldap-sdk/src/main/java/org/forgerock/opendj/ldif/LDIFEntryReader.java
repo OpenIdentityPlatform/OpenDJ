@@ -74,6 +74,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      *             If {@code ldifLines} was {@code null}.
      */
     public static Entry valueOfLDIFEntry(final String... ldifLines) {
+        @SuppressWarnings("resource")
         final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
         try {
             if (!reader.hasNext()) {
