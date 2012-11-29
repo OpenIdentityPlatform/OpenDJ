@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * Class for organizing options into logical groups when arguement usage is
  * printed. To use an argument group, create an instance and use
- * {@link ArgumentParser#addArgument(Argument, ArgumentGroup)}
+ * {@code ArgumentParser#addArgument(Argument, ArgumentGroup)}
  * when adding arguments for to the parser.
  */
 final class ArgumentGroup implements Comparable<ArgumentGroup> {

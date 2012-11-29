@@ -30,6 +30,8 @@ package com.forgerock.opendj.util;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -1140,6 +1142,24 @@ public final class StaticUtils {
             return "ff";
         default:
             return "??";
+        }
+    }
+
+    /**
+     * Closes the provided resources ignoring any errors which occurred.
+     *
+     * @param resources
+     *            The resources to be closed, which may be {@code null}.
+     */
+    public static void closeSilently(Closeable... resources) {
+        for (Closeable r : resources) {
+            try {
+                if (r != null) {
+                    r.close();
+                }
+            } catch (IOException ignored) {
+                // Ignore.
+            }
         }
     }
 

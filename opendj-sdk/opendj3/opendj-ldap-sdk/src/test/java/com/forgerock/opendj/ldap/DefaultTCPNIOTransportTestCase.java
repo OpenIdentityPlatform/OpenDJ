@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -57,10 +58,14 @@ public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
 
         // Establish a socket connection to see if the transport factory works.
         final Socket socket = new Socket();
-        socket.connect(socketAddress);
+        try {
+            socket.connect(socketAddress);
 
-        // Successfully connected if there is no exception.
-        assertTrue(socket.isConnected());
-        // Don't stop the transport because it is shared with the ldap server.
+            // Successfully connected if there is no exception.
+            assertTrue(socket.isConnected());
+            // Don't stop the transport because it is shared with the ldap server.
+        } finally {
+            socket.close();
+        }
     }
 }

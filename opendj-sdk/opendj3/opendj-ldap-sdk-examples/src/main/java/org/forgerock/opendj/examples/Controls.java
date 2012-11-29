@@ -94,6 +94,7 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  * specific credentials to connect, and ensure that your application has access
  * to use the LDAP controls needed.
  */
+@SuppressWarnings("resource")
 public final class Controls {
 
     /**

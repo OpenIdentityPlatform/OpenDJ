@@ -30,6 +30,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -220,6 +221,7 @@ public final class LDAPSearch extends ConsoleApplication {
         return verbose.isPresent();
     }
 
+    @SuppressWarnings("resource")
     private int run(final String[] args, final boolean returnMatchingEntries) {
         // Create the command-line argument parser for use with this
         // program.
@@ -833,10 +835,8 @@ public final class LDAPSearch extends ConsoleApplication {
             // We don't actually need to open a connection or perform the
             // search, so we're done. We should return 0 to either mean that the
             // processing was successful or that there were no matching entries,
-            // based
-            // on countEntries.isPresent() (but in either case the return value
-            // should
-            // be zero).
+            // based on countEntries.isPresent() (but in either case the return value
+            // should be zero).
             return 0;
         }
 
@@ -946,7 +946,7 @@ public final class LDAPSearch extends ConsoleApplication {
         } catch (final ErrorResultException ere) {
             return Utils.printErrorMessage(this, ere);
         } finally {
-            connection.close();
+            closeSilently(ldifWriter, connection);
         }
 
         return 0;

@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Test {@code Entry}.
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "resource" })
 public final class EntryTestCase extends SdkTestCase {
 
     private static interface EntryFactory {

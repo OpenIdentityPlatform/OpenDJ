@@ -60,7 +60,7 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  * Unit test for AbstractAsynchronousConnection. The tests verify that all
  * synchronous operation methods delegate to the equivalent asynchronous method.
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "resource" })
 public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     private final class MockConnection extends AbstractAsynchronousConnection {
