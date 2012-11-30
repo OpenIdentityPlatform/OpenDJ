@@ -148,6 +148,35 @@ public final class AVA implements Comparable<AVA> {
         return new AVA(attribute, value);
     }
 
+    static void escapeAttributeValue(final String str, final StringBuilder builder) {
+        if (str.length() > 0) {
+            char c = str.charAt(0);
+            int startPos = 0;
+            if ((c == ' ') || (c == '#')) {
+                builder.append('\\');
+                builder.append(c);
+                startPos = 1;
+            }
+            final int length = str.length();
+            for (int si = startPos; si < length; si++) {
+                c = str.charAt(si);
+                if (c < ' ') {
+                    for (final byte b : getBytes(String.valueOf(c))) {
+                        builder.append('\\');
+                        builder.append(StaticUtils.byteToLowerHex(b));
+                    }
+                } else {
+                    if ((c == ' ' && si == length - 1)
+                            || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
+                            || c == '=' || c == '>' || c == '\\' || c == '\u0000')) {
+                        builder.append('\\');
+                    }
+                    builder.append(c);
+                }
+            }
+        }
+    }
+
     private static void appendHexChars(final SubstringReader reader,
             final StringBuilder valueBuffer, final StringBuilder hexBuffer) throws DecodeException {
         final int length = hexBuffer.length();
@@ -720,34 +749,7 @@ public final class AVA implements Comparable<AVA> {
                 builder.append("#");
                 StaticUtils.toHex(attributeValue, builder);
             } else {
-                final String str = attributeValue.toString();
-                if (str.length() == 0) {
-                    return builder;
-                }
-                char c = str.charAt(0);
-                int startPos = 0;
-                if ((c == ' ') || (c == '#')) {
-                    builder.append('\\');
-                    builder.append(c);
-                    startPos = 1;
-                }
-                final int length = str.length();
-                for (int si = startPos; si < length; si++) {
-                    c = str.charAt(si);
-                    if (c < ' ') {
-                        for (final byte b : getBytes(String.valueOf(c))) {
-                            builder.append('\\');
-                            builder.append(StaticUtils.byteToLowerHex(b));
-                        }
-                    } else {
-                        if ((c == ' ' && si == length - 1)
-                                || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
-                                        || c == '=' || c == '>' || c == '\\' || c == '\u0000')) {
-                            builder.append('\\');
-                        }
-                        builder.append(c);
-                    }
-                }
+                escapeAttributeValue(attributeValue.toString(), builder);
             }
         }
         return builder;

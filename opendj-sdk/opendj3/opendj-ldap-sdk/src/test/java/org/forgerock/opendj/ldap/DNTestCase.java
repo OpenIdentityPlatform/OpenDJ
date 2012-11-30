@@ -979,4 +979,35 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(DN.valueOf(dn).rename(DN.valueOf(fromDN), DN.valueOf(toDN)), DN
                 .valueOf(expectedDN));
     }
+
+    /**
+     * Tests the {@link DN#format(String, Object...)} method.
+     */
+    @Test
+    public void testFormatNoEscape() {
+        DN actual = DN.format("deviceId=%s,uid=%s,dc=test", 123, "bjensen");
+        DN expected = DN.valueOf("dc=test").child("uid", "bjensen").child("deviceId", 123);
+        assertEquals(actual, expected);
+        assertEquals(actual.toString(), "deviceId=123,uid=bjensen,dc=test");
+    }
+
+    /**
+     * Tests the {@link DN#format(String, Object...)} method.
+     */
+    @Test
+    public void testFormatEscape() {
+        DN actual = DN.format("uid=%s,dc=test", "#cn=foo+sn=bar");
+        DN expected = DN.valueOf("dc=test").child("uid", "#cn=foo+sn=bar");
+        assertEquals(actual, expected);
+        assertEquals(actual.toString(), "uid=\\#cn\\=foo\\+sn\\=bar,dc=test");
+    }
+
+    /**
+     * Tests the {@link DN#escapeAttributeValue(Object)} method.
+     */
+    @Test
+    public void testEscapeAttributeValue() {
+        String actual = DN.escapeAttributeValue("#cn=foo+sn=bar");
+        assertEquals(actual, "\\#cn\\=foo\\+sn\\=bar");
+    }
 }
