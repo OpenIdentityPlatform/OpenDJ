@@ -66,6 +66,9 @@ import com.forgerock.opendj.util.Validator;
  * import static org.forgerock.opendj.Filter.*;
  *
  * Filter filter = and(equality("cn", "bjensen"), greaterOrEqual("age", 21));
+ *
+ * // Alternatively use a filter template:
+ * Filter filter = Filter.format("(&(cn=%s)(age>=%s))", "bjensen", 21);
  * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
@@ -564,20 +567,20 @@ public final class Filter {
      *                                     Filter.escapeAssertionValue(assertionValue));
      * Filter filter = Filter.valueOf(filterString);
      * </pre>
+     *
      * If {@code assertionValue} is not an instance of {@code ByteString} then
      * it will be converted using the {@link ByteString#valueOf(Object)} method.
-     *
      * <p>
      * <b>Note:</b> assertion values do not and should not be escaped before
      * passing them to constructors like {@link #equality(String, Object)}.
      * Escaping is only required when creating filter strings.
-     * <p>
-     * <b>Note:</b>
+     *
      * @param assertionValue
      *            The assertion value.
      * @return The LDAP string representation of the provided filter assertion
      *         value in a form suitable for substitution directly into a filter
      *         string.
+     * @see #format(String, Object...)
      */
     public static String escapeAssertionValue(final Object assertionValue) {
         Validator.ensureNotNull(assertionValue);
@@ -881,6 +884,7 @@ public final class Filter {
      * @throws LocalizedIllegalArgumentException
      *             If {@code string} is not a valid LDAP string representation
      *             of a filter.
+     * @see #format(String, Object...)
      */
     public static Filter valueOf(final String string) {
         Validator.ensureNotNull(string);
@@ -928,7 +932,7 @@ public final class Filter {
      *
      * <pre>
      * String template = &quot;(|(cn=%s)(uid=user.%s))&quot;;
-     * Filter filter = Filter.valueOf(template, &quot;alice&quot;, 123);
+     * Filter filter = Filter.format(template, &quot;alice&quot;, 123);
      * </pre>
      *
      * Any assertion values which are not instances of {@code ByteString} will
@@ -942,8 +946,9 @@ public final class Filter {
      * @throws LocalizedIllegalArgumentException
      *             If the formatted template is not a valid LDAP string
      *             representation of a filter.
+     * @see #escapeAssertionValue(Object)
      */
-    public static Filter valueOf(final String template, final Object... assertionValues) {
+    public static Filter format(final String template, final Object... assertionValues) {
         final String[] assertionValueStrings = new String[assertionValues.length];
         for (int i = 0; i < assertionValues.length; i++) {
             assertionValueStrings[i] = escapeAssertionValue(assertionValues[i]);

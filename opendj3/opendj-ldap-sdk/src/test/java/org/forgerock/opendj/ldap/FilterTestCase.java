@@ -307,7 +307,7 @@ public class FilterTestCase extends SdkTestCase {
     @Test(dataProvider = "getAssertionValues")
     public void testValueOfTemplate(String template, List<?> assertionValues, String expected)
             throws Exception {
-        Filter filter = Filter.valueOf(template, assertionValues.toArray());
+        Filter filter = Filter.format(template, assertionValues.toArray());
         assertEquals(filter.toString(), expected);
     }
 

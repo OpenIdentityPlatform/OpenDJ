@@ -86,6 +86,113 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             };
 
     /**
+     * Returns the LDAP string representation of the provided DN attribute value
+     * in a form suitable for substitution directly into a DN string. This
+     * method may be useful in cases where a DN is to be constructed from a DN
+     * template using {@code String#format(String, Object...)}. The following
+     * example illustrates two approaches to constructing a DN:
+     *
+     * <pre>
+     * // This may contain user input.
+     * String attributeValue = ...;
+     *
+     * // Using the equality filter constructor:
+     * DN dn = DN.valueOf("ou=people,dc=example,dc=com").child("uid", attributeValue);
+     *
+     * // Using a String template:
+     * String dnTemplate = "uid=%s,ou=people,dc=example,dc=com";
+     * String dnString = String.format(dnTemplate,
+     *                                 DN.escapeAttributeValue(attributeValue));
+     * DN dn = DN.valueOf(dnString);
+     * </pre>
+     *
+     * <b>Note:</b> attribute values do not and should not be escaped before
+     * passing them to constructors like {@link #child(String, Object)}.
+     * Escaping is only required when creating DN strings.
+     *
+     * @param attributeValue
+     *            The attribute value.
+     * @return The LDAP string representation of the provided filter assertion
+     *         value in a form suitable for substitution directly into a filter
+     *         string.
+     */
+    public static String escapeAttributeValue(final Object attributeValue) {
+        Validator.ensureNotNull(attributeValue);
+        final String s = String.valueOf(attributeValue);
+        final StringBuilder builder = new StringBuilder(s.length());
+        AVA.escapeAttributeValue(s, builder);
+        return builder.toString();
+    }
+
+    /**
+     * Creates a new DN using the provided DN template and unescaped attribute
+     * values using the default schema. This method first escapes each of the
+     * attribute values and then substitutes them into the template using
+     * {@link String#format(String, Object...)}. Finally, the formatted string
+     * is parsed as an LDAP DN using {@link #valueOf(String)}.
+     * <p>
+     * This method may be useful in cases where the structure of a DN is not
+     * known at compile time, for example, it may be obtained from a
+     * configuration file. Example usage:
+     *
+     * <pre>
+     * String template = &quot;uid=%s,ou=people,dc=example,dc=com&quot;;
+     * DN dn = DN.format(template, &quot;bjensen&quot;);
+     * </pre>
+     *
+     * @param template
+     *            The DN template.
+     * @param attributeValues
+     *            The attribute values to be substituted into the template.
+     * @return The formatted template parsed as a {@code DN}.
+     * @throws LocalizedIllegalArgumentException
+     *             If the formatted template is not a valid LDAP string
+     *             representation of a DN.
+     * @see #escapeAttributeValue(Object)
+     */
+    public static DN format(final String template, final Object... attributeValues) {
+        return format(template, Schema.getDefaultSchema(), attributeValues);
+    }
+
+    /**
+     * Creates a new DN using the provided DN template and unescaped attribute
+     * values using the provided schema. This method first escapes each of the
+     * attribute values and then substitutes them into the template using
+     * {@link String#format(String, Object...)}. Finally, the formatted string
+     * is parsed as an LDAP DN using {@link #valueOf(String)}.
+     * <p>
+     * This method may be useful in cases where the structure of a DN is not
+     * known at compile time, for example, it may be obtained from a
+     * configuration file. Example usage:
+     *
+     * <pre>
+     * String template = &quot;uid=%s,ou=people,dc=example,dc=com&quot;;
+     * DN dn = DN.format(template, &quot;bjensen&quot;);
+     * </pre>
+     *
+     * @param template
+     *            The DN template.
+     * @param schema
+     *            The schema to use when parsing the DN.
+     * @param attributeValues
+     *            The attribute values to be substituted into the template.
+     * @return The formatted template parsed as a {@code DN}.
+     * @throws LocalizedIllegalArgumentException
+     *             If the formatted template is not a valid LDAP string
+     *             representation of a DN.
+     * @see #escapeAttributeValue(Object)
+     */
+    public static DN format(final String template, final Schema schema,
+            final Object... attributeValues) {
+        final String[] attributeValueStrings = new String[attributeValues.length];
+        for (int i = 0; i < attributeValues.length; i++) {
+            attributeValueStrings[i] = escapeAttributeValue(attributeValues[i]);
+        }
+        final String dnString = String.format(template, (Object[]) attributeValueStrings);
+        return valueOf(dnString, schema);
+    }
+
+    /**
      * Returns the Root DN. The Root DN does not contain and RDN components and
      * is superior to all other DNs.
      *
@@ -107,6 +214,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             DN.
      * @throws NullPointerException
      *             If {@code dn} was {@code null}.
+     * @see #format(String, Object...)
      */
     public static DN valueOf(final String dn) {
         return valueOf(dn, Schema.getDefaultSchema());
@@ -126,6 +234,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             DN.
      * @throws NullPointerException
      *             If {@code dn} or {@code schema} was {@code null}.
+     * @see #format(String, Schema, Object...)
      */
     public static DN valueOf(final String dn, final Schema schema) {
         Validator.ensureNotNull(dn, schema);
