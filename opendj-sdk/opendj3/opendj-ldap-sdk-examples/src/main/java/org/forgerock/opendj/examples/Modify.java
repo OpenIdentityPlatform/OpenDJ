@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
  *  &lt;host> &lt;port> &lt;username> &lt;password> [&lt;ldifFile>]
  * </pre>
  */
+@SuppressWarnings("resource")
 public final class Modify {
     /**
      * Main method.
