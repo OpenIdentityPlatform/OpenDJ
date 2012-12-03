@@ -29,7 +29,7 @@ DOC_QUICK_REFERENCE_GUIDE=http://opendj.forgerock.org/doc/admin-guide/index.html
 # The Administration Guide reference
 ADMINISTRATION_GUIDE_URL=http://opendj.forgerock.org/doc/admin-guide/index.html
 
-# The version qualifier string for the Directory Server.  It should be blank
+# The version qualifier string for the Directory Server. It should be blank
 # for the first official release with a new major, minor, and point version
 # number but may include additional text like "BETA1" or "HOTFIX2" for updates
 # that do not warrant incrementing the version number.
