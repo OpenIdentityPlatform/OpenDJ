@@ -31,6 +31,7 @@ package org.opends.server.types;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 
@@ -56,6 +57,20 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *         sequence.
    */
   ByteSequenceReader asReader();
+
+
+
+  /**
+   * Returns a {@link ByteBuffer} which can be used to read data from this
+   * byte sequence.
+   * <p>
+   * <b>NOTE:</b> any concurrent changes to the underlying byte
+   * sequence (if mutable) may cause unexpected results.
+   *
+   * @return The {@link ByteBuffer} which can be used to read data from this
+   * byte sequence.
+   */
+  ByteBuffer asByteBuffer();
 
 
 

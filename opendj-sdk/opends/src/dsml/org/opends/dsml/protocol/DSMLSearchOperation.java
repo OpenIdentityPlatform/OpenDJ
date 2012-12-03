@@ -588,7 +588,7 @@ public class DSMLSearchOperation
             ArrayList<ByteString> vals = attr.getValues();
             for (ByteString val : vals)
             {
-              dsmlAttrVal.add(val);
+              dsmlAttrVal.add(ByteStringUtility.convertByteString(val));
             }
             attrList.add(dsmlAttr);
           }

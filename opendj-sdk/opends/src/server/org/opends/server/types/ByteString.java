@@ -792,4 +792,15 @@ public final class ByteString implements ByteSequence
   {
     return toString(buffer, offset, length);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ByteBuffer asByteBuffer()
+  {
+    return ByteBuffer.wrap(buffer, offset, length).asReadOnlyBuffer();
+  }
 }

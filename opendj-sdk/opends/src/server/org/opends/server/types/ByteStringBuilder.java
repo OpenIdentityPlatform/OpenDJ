@@ -308,6 +308,17 @@ public final class ByteStringBuilder implements ByteSequence
       // Protect against reallocation: use builder's buffer.
       return ByteString.toString(buffer, subOffset, subLength);
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ByteBuffer asByteBuffer()
+    {
+      return ByteBuffer.wrap(buffer, subOffset, subLength);
+    }
   }
 
   // Used for tracing exceptions.
@@ -1279,5 +1290,16 @@ public final class ByteStringBuilder implements ByteSequence
 
     // Still unsuccessful. Give up.
     return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ByteBuffer asByteBuffer()
+  {
+    return ByteBuffer.wrap(buffer, 0, length);
   }
 }
