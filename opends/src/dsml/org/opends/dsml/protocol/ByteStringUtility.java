@@ -29,6 +29,10 @@ package org.opends.dsml.protocol;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -36,10 +40,13 @@ import org.w3c.dom.Element;
 
 /**
  * A utility class to assist in converting DsmlValues (in Objects) into
- * the required ByteStrings.
+ * the required ByteStrings, and back again.
  */
 public class ByteStringUtility
 {
+  // Non-lossy UTF-8 converter object.
+  private static final Charset UTF8 = Charset.forName("UTF-8");
+
   /**
    * Returns a ByteString from a DsmlValue Object.
    *
@@ -79,7 +86,10 @@ public class ByteStringUtility
         }
         finally
         {
-          is.close();
+          if (is != null)
+          {
+            is.close();
+          }
         }
       }
       else if (obj instanceof Element)
@@ -91,4 +101,27 @@ public class ByteStringUtility
     return bs;
   }
 
+  /**
+   * Returns a DsmlValue (Object) from an LDAP ByteString. The conversion is
+   * simplistic - try and convert it to UTF-8 and if that fails return a byte[].
+   *
+   * @param bs the ByteString returned from LDAP.
+   * @return a String or a byte[].
+   */
+  public static Object convertByteString(ByteString bs)
+  {
+    try
+    {
+      CharsetDecoder decoder = UTF8.newDecoder();
+      decoder.onMalformedInput(CodingErrorAction.REPORT);
+      decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+      decoder.reset();
+      CharBuffer chars = decoder.decode(bs.asByteBuffer());
+      return chars.toString();
+    }
+    catch (Exception e)
+    {
+      return bs.toByteArray();
+    }
+  }
 }

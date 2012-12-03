@@ -69,18 +69,6 @@ node="//xsd:complexType[@name='DsmlModification']/xsd:sequence/xsd:element[@name
    <baseType name="java.lang.Object"/>
   </property>
  </bindings>
- <!--
- <bindings node="//xsd:complexType[@name='ResultCode']">
-  <property>
-   <baseType name="org.opends.dsml.protocol.SafeResultCode"/>
-  </property>
- </bindings>
- <bindings node="//xsd:complexType[@name='LDAPResult']/xsd:complexContent/xsd:extension[@base='DsmlMessage']/xsd:sequence/xsd:element[@name='resultCode']">
-  <property>
-    <baseType name="org.opends.dsml.protocol.SafeResultCode"/>
-  </property>
- </bindings>
- -->
  <bindings node="//xsd:complexType[@name='ExtendedRequest']/xsd:complexContent/xsd:extension[@base='DsmlMessage']/xsd:sequence/xsd:element[@name='requestValue']">
   <property>
    <baseType name="java.lang.Object"/>
