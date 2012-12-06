@@ -251,7 +251,7 @@ sn: Jensen</screen>
      <para>Replace <literal>\</literal> with <literal>\5c</literal>.</para>
     </listitem>
     <listitem>
-     <para>Replace NUL (0x00) with <literal>\2a</literal>.</para>
+     <para>Replace NUL (0x00) with <literal>\00</literal>.</para>
     </listitem>
    </itemizedlist>
 
