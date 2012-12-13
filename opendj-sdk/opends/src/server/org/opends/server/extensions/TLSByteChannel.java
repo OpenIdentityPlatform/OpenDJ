@@ -192,6 +192,18 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
+    // It seems that the SSL engine does not remember if an error has already
+    // occurred so we must cache it here and rethrow. See OPENDJ-652.
+    private void abortOnSSLException() throws IOException
+    {
+      if (sslException != null)
+      {
+        throw sslException;
+      }
+    }
+
+
+
     private void doHandshake(final boolean isReading) throws IOException
     {
       // This lock is probably unnecessary since tasks can be run in parallel,
@@ -244,33 +256,26 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       {
         // Read SSL packets until some unwrapped data is produced or no more
         // data is available on the underlying channel.
-        boolean needRead = true;
-        int read = 0;
         while (true)
         {
-          // Read wrapped data if needed.
-          if (needRead)
-          {
-            recvWrappedBuffer.compact(); // Prepare for append.
-            read = channel.read(recvWrappedBuffer);
-            recvWrappedBuffer.flip(); // Restore for read.
-            if (read < 0)
-            {
-              // Peer abort?
-              sslEngine.closeInbound();
-              return -1;
-            }
-          }
-          else
-          {
-            needRead = true;
-          }
-
-          // Unwrap.
+          // Unwrap any remaining data in the buffer.
+          abortOnSSLException();
           recvUnwrappedBuffer.compact(); // Prepare for append.
-          final SSLEngineResult result = sslEngine.unwrap(recvWrappedBuffer,
-              recvUnwrappedBuffer);
-          recvUnwrappedBuffer.flip(); // Restore for read.
+          final SSLEngineResult result;
+          try
+          {
+            result = sslEngine.unwrap(recvWrappedBuffer, recvUnwrappedBuffer);
+          }
+          catch (final SSLException e)
+          {
+            // Save the error - see abortOnSSLException().
+            sslException = e;
+            throw e;
+          }
+          finally
+          {
+            recvUnwrappedBuffer.flip(); // Restore for read.
+          }
 
           switch (result.getStatus())
           {
@@ -283,7 +288,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
             newRecvUnwrappedBuffer.put(recvUnwrappedBuffer);
             newRecvUnwrappedBuffer.flip();
             recvUnwrappedBuffer = newRecvUnwrappedBuffer;
-            needRead = false;
             break; // Retry unwrap.
           case BUFFER_UNDERFLOW:
             // Not enough data was read. This either means that the inbound
@@ -291,29 +295,27 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
             final int newPktSize = sslEngine.getSession().getPacketBufferSize();
             if (newPktSize > recvWrappedBuffer.capacity())
             {
-              // Increase the buffer size and reread.
+              // Increase the buffer size.
               final ByteBuffer newRecvWrappedBuffer = ByteBuffer
                   .allocate(newPktSize);
               newRecvWrappedBuffer.put(recvWrappedBuffer);
               newRecvWrappedBuffer.flip();
               recvWrappedBuffer = newRecvWrappedBuffer;
-              break;
             }
-            else if (read == 0)
+            // Read wrapped data from underlying channel.
+            recvWrappedBuffer.compact(); // Prepare for append.
+            final int read = channel.read(recvWrappedBuffer);
+            recvWrappedBuffer.flip(); // Restore for read.
+            if (read <= 0)
             {
-              // Not enough data is available to read a complete SSL packet.
-              return 0;
+              // Not enough data is available to read a complete SSL packet, or
+              // channel closed.
+              return read;
             }
-            else
-            {
-              // The channel read may only partially fill the buffer due to
-              // buffering in the underlying channel layer, so try reading again
-              // until we are sure that we are unable to proceed.
-              break;
-            }
+            // Loop and unwrap.
+            break;
           case CLOSED:
             // Peer sent SSL close notification.
-            sslEngine.closeInbound();
             return -1;
           default: // OK
             if (recvUnwrappedBuffer.hasRemaining())
@@ -325,30 +327,9 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
             {
               // No application data was read, but if we are handshaking then
               // try to continue.
-              if (result.getHandshakeStatus() == HandshakeStatus.NEED_UNWRAP
-                  && !recvWrappedBuffer.hasRemaining() && read == 0)
-              {
-                // Not enough data is available to continue handshake.
-                return 0;
-              }
-              else
-              {
-                // Continue handshake.
-                doHandshake(true /* isReading */);
-              }
+              doHandshake(true /* isReading */);
             }
-            else if (read == 0)
-            {
-              // No data available and not handshaking.
-              return 0;
-            }
-            else
-            {
-              // The channel read may only partially fill the buffer due to
-              // buffering in the underlying channel layer, so try reading again
-              // until we are sure that we are unable to proceed.
-              break;
-            }
+            break;
           }
         }
       }
@@ -366,8 +347,19 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
         // Repeat while there is overflow.
         while (true)
         {
-          final SSLEngineResult result = sslEngine.wrap(unwrappedData,
-              sendWrappedBuffer);
+          abortOnSSLException();
+          final SSLEngineResult result;
+          try
+          {
+            result = sslEngine.wrap(unwrappedData, sendWrappedBuffer);
+          }
+          catch (SSLException e)
+          {
+            // Save the error - see abortOnSSLException().
+            sslException = e;
+            throw e;
+          }
+
           switch (result.getStatus())
           {
           case BUFFER_OVERFLOW:
@@ -381,7 +373,9 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
             break; // Retry.
           case BUFFER_UNDERFLOW:
             // This should not happen for sends.
-            throw new SSLException("Got unexpected underflow while wrapping");
+            sslException =
+              new SSLException("Got unexpected underflow while wrapping");
+            throw sslException;
           case CLOSED:
             throw new ClosedChannelException();
           default: // OK
@@ -444,6 +438,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   private final ByteChannel channel;
   private final SSLEngine sslEngine;
 
+  private volatile SSLException sslException = null;
   private ByteBuffer recvWrappedBuffer;
   private ByteBuffer recvUnwrappedBuffer;
   private ByteBuffer sendWrappedBuffer;
