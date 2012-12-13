@@ -304,7 +304,89 @@ $ dsconfig
    </step>
   </procedure>
  </section>
- 
+
+ <section xml:id="tls-protocols-cipher-suites">
+  <title>TLS Protocols &amp; Cipher Suites</title>
+  <indexterm>
+   <primary>TLS</primary>
+  </indexterm>
+
+  <para>By default OpenDJ supports the SSL and TLS protocols and the cipher
+  suites supported by the underlying Java virtual machine. For details see the
+  documentation for the Java virtual machine in which you run OpenDJ. For Oracle
+  Java, see the <citetitle>Java Cryptography Architecture Oracle Providers
+  Documentation</citetitle> for the <link xlink:show="new"
+  xlink:href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider"
+  >The <literal>SunJSSE</literal> Provider</link>.</para>
+
+  <para>To list the available protocols and cipher suites, read the
+  <literal>supportedTLSProtocols</literal> and
+  <literal>supportedTLSCiphers</literal> attributes of the root DSE. Install
+  unlimited strength Java cryptography extensions for stronger ciphers.</para>
+
+  <screen
+  >$ ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)"
+ supportedTLSCiphers supportedTLSProtocols
+dn:
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_MD5
+supportedTLSCiphers: TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+supportedTLSProtocols: SSLv2Hello
+supportedTLSProtocols: SSLv3
+supportedTLSProtocols: TLSv1
+supportedTLSProtocols: TLSv1.1
+supportedTLSProtocols: TLSv1.2
+</screen>
+
+  <para>You can restrict the list of protocols and cipher suites used by setting
+  the <literal>ssl-protocol</literal> and <literal>ssl-cipher-suite</literal>
+  connection handler properties to include only the protocols or cipher suites
+  you want.</para>
+
+  <para>For example, to restrict the cipher suites to
+  <literal>TLS_EMPTY_RENEGOTIATION_INFO_SCSV</literal> and
+  <literal>TLS_RSA_WITH_AES_256_CBC_SHA</literal> use the <command>dsconfig
+  set-connection-handler-prop</command> command as shown in the following
+  example.</para>
+
+  <screen>$ dsconfig
+   set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --add ssl-cipher-suite:TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+ --add ssl-cipher-suite:TLS_RSA_WITH_AES_256_CBC_SHA
+ --no-prompt
+ --trustAll</screen>
+ </section>
+
   <section xml:id="setup-dsml">
   <title>DSML Client Access</title>
   <indexterm><primary>DSML</primary></indexterm>
