@@ -31,8 +31,6 @@ import static com.forgerock.opendj.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTIO
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLContext;
@@ -241,9 +239,9 @@ final class LDAPServerFilter extends BaseFilter {
             final SSLEngine sslEngine = SSLUtils.getSSLEngine(connection);
             if (sslEngine != null) {
                 final String cipherString = sslEngine.getSession().getCipherSuite();
-                for (final Map.Entry<String, Integer> mapEntry : CIPHER_KEY_SIZES.entrySet()) {
-                    if (cipherString.indexOf(mapEntry.getKey()) >= 0) {
-                        ssf = mapEntry.getValue();
+                for (final Object[] cipher : CIPHER_KEY_SIZES) {
+                    if (cipherString.indexOf((String) cipher[0]) >= 0) {
+                        ssf = (Integer) cipher[1];
                         break;
                     }
                 }
@@ -604,7 +602,28 @@ final class LDAPServerFilter extends BaseFilter {
 
     // Map of cipher phrases to effective key size (bits). Taken from the
     // following RFCs: 5289, 4346, 3268,4132 and 4162.
-    private static final Map<String, Integer> CIPHER_KEY_SIZES;
+    // @formatter:off
+    private static final Object[][] CIPHER_KEY_SIZES = {
+        { "_WITH_AES_256_CBC_",      256 },
+        { "_WITH_CAMELLIA_256_CBC_", 256 },
+        { "_WITH_AES_256_GCM_",      256 },
+        { "_WITH_3DES_EDE_CBC_",     112 },
+        { "_WITH_AES_128_GCM_",      128 },
+        { "_WITH_SEED_CBC_",         128 },
+        { "_WITH_CAMELLIA_128_CBC_", 128 },
+        { "_WITH_AES_128_CBC_",      128 },
+        { "_WITH_IDEA_CBC_",         128 },
+        { "_WITH_RC4_128_",          128 },
+        { "_WITH_FORTEZZA_CBC_",     96 },
+        { "_WITH_DES_CBC_",          56 },
+        { "_WITH_RC4_56_",           56 },
+        { "_WITH_RC2_CBC_40_",       40 },
+        { "_WITH_DES_CBC_40_",       40 },
+        { "_WITH_RC4_40_",           40 },
+        { "_WITH_DES40_CBC_",        40 },
+        { "_WITH_NULL_",             0 },
+    };
+    // @formatter:on
 
     // Default maximum request size for incoming requests.
     private static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024;
@@ -617,28 +636,10 @@ final class LDAPServerFilter extends BaseFilter {
 
     private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
 
-    static {
-        CIPHER_KEY_SIZES = new LinkedHashMap<String, Integer>();
-        CIPHER_KEY_SIZES.put("_WITH_AES_256_CBC_", 256);
-        CIPHER_KEY_SIZES.put("_WITH_CAMELLIA_256_CBC_", 256);
-        CIPHER_KEY_SIZES.put("_WITH_AES_256_GCM_", 256);
-        CIPHER_KEY_SIZES.put("_WITH_3DES_EDE_CBC_", 112);
-        CIPHER_KEY_SIZES.put("_WITH_AES_128_GCM_", 128);
-        CIPHER_KEY_SIZES.put("_WITH_SEED_CBC_", 128);
-        CIPHER_KEY_SIZES.put("_WITH_CAMELLIA_128_CBC_", 128);
-        CIPHER_KEY_SIZES.put("_WITH_AES_128_CBC_", 128);
-        CIPHER_KEY_SIZES.put("_WITH_IDEA_CBC_", 128);
-        CIPHER_KEY_SIZES.put("_WITH_DES_CBC_", 56);
-        CIPHER_KEY_SIZES.put("_WITH_RC2_CBC_40_", 40);
-        CIPHER_KEY_SIZES.put("_WITH_RC4_40_", 40);
-        CIPHER_KEY_SIZES.put("_WITH_DES40_CBC_", 40);
-        CIPHER_KEY_SIZES.put("_WITH_NULL_", 0);
-    }
-
     private final LDAPReader ldapReader;
-
     private final LDAPListenerImpl listener;
     private final int maxASN1ElementSize;
+
     private final AbstractLDAPMessageHandler<FilterChainContext> serverRequestHandler =
             new AbstractLDAPMessageHandler<FilterChainContext>() {
                 @Override
