@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap;
 import java.net.InetSocketAddress;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
@@ -82,13 +83,27 @@ public interface LDAPClientContext {
     InetSocketAddress getPeerAddress();
 
     /**
-     * Returns the strongest cipher strength currently in use by the underlying
-     * connection.
+     * Returns the cipher strength, in bits, currently in use by the underlying
+     * connection. This value is analogous to the
+     * {@code javax.servlet.request.key_size} property defined in the Servlet
+     * specification (section 3.8 "SSL Attributes"). It provides no indication
+     * of the relative strength of different cipher algorithms, their known
+     * weaknesses, nor the strength of other cryptographic information used
+     * during SSL/TLS negotiation.
      *
-     * @return The strongest cipher strength currently in use by the underlying
+     * @return The cipher strength, in bits, currently in use by the underlying
      *         connection.
      */
     int getSecurityStrengthFactor();
+
+    /**
+     * Returns the SSL session currently in use by the underlying connection, or
+     * {@code null} if SSL/TLS is not enabled.
+     *
+     * @return The SSL session currently in use by the underlying connection, or
+     *         {@code null} if SSL/TLS is not enabled.
+     */
+    SSLSession getSSLSession();
 
     /**
      * Returns {@code true} if the underlying connection has been closed as a
