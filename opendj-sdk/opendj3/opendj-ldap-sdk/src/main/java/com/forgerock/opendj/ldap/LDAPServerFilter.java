@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
@@ -235,24 +236,24 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public int getSecurityStrengthFactor() {
-            int ssf = 0;
-            final SSLEngine sslEngine = SSLUtils.getSSLEngine(connection);
-            if (sslEngine != null) {
-                final String cipherString = sslEngine.getSession().getCipherSuite();
+            final SSLSession sslSession = getSSLSession();
+            if (sslSession != null) {
+                final String cipherString = sslSession.getCipherSuite();
                 for (final Object[] cipher : CIPHER_KEY_SIZES) {
                     if (cipherString.indexOf((String) cipher[0]) >= 0) {
-                        ssf = (Integer) cipher[1];
-                        break;
+                        return (Integer) cipher[1];
                     }
                 }
             }
-
-            return ssf;
+            return 0;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
+        public SSLSession getSSLSession() {
+            final SSLEngine sslEngine = SSLUtils.getSSLEngine(connection);
+            return sslEngine != null ? sslEngine.getSession() : null;
+        }
+
         @Override
         public boolean isClosed() {
             return isClosed.get();
