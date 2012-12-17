@@ -136,12 +136,14 @@ final class LDAPClientFilter extends BaseFilter {
                                         return;
                                     }
                                 } catch (final ErrorResultException e) {
+                                    ldapConnection.setBindOrStartTLSInProgress(false);
                                     future.adaptErrorResult(e.getResult());
                                     return;
                                 } catch (final IOException e) {
                                     // FIXME: I18N need to have a better error
                                     // message.
                                     // FIXME: Is this the best result code?
+                                    ldapConnection.setBindOrStartTLSInProgress(false);
                                     final Result errorResult =
                                             Responses
                                                     .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
