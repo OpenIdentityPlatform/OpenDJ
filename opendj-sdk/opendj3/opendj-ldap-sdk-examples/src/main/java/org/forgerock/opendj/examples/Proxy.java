@@ -452,11 +452,13 @@ public final class Proxy {
             final int remotePort = Integer.parseInt(args[i + 1]);
 
             factories.add(Connections.newFixedConnectionPool(Connections
-                    .newAuthenticatedConnectionFactory(new LDAPConnectionFactory(remoteAddress,
-                            remotePort), Requests.newSimpleBindRequest(proxyDN, proxyPassword
-                            .toCharArray())), Integer.MAX_VALUE));
-            bindFactories.add(Connections.newFixedConnectionPool(new LDAPConnectionFactory(
-                    remoteAddress, remotePort), Integer.MAX_VALUE));
+                    .newAuthenticatedConnectionFactory(Connections
+                            .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
+                                    remotePort)), Requests.newSimpleBindRequest(proxyDN,
+                            proxyPassword.toCharArray())), Integer.MAX_VALUE));
+            bindFactories.add(Connections.newFixedConnectionPool(Connections
+                    .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
+                            remotePort)), Integer.MAX_VALUE));
         }
         final RoundRobinLoadBalancingAlgorithm algorithm =
                 new RoundRobinLoadBalancingAlgorithm(factories);
