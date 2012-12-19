@@ -4313,7 +4313,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.95
   SUP ds-cfg-password-validator
   STRUCTURAL
   MUST ds-cfg-test-reversed-password
-  MAY ds-cfg-match-attribute
+  MAY ( ds-cfg-match-attribute $
+        ds-cfg-check-substrings $
+        ds-cfg-min-substring-length )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.96
   NAME 'ds-cfg-character-set-password-validator'

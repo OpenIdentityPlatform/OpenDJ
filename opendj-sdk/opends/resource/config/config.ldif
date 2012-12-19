@@ -1644,6 +1644,7 @@ cn: Attribute Value
 ds-cfg-java-class: org.opends.server.extensions.AttributeValuePasswordValidator
 ds-cfg-enabled: true
 ds-cfg-test-reversed-password: true
+ds-cfg-check-substrings: true
 
 dn: cn=Character Set,cn=Password Validators,cn=config
 objectClass: top

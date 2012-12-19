@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock, AS.
  */
 package org.opends.server.extensions;
 
@@ -131,7 +132,17 @@ public class AttributeValuePasswordValidatorTestCase
          "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
          "ds-cfg-enabled: true",
-         "ds-cfg-test-reversed-password: false");
+         "ds-cfg-test-reversed-password: false",
+         "",
+         "dn: cn=Attribute Value,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-attribute-value-password-validator",
+         "cn: Attribute Value",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "AttributeValuePasswordValidator",
+         "ds-cfg-check-substrings: false",
+         "ds-cfg-enabled: true");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -286,7 +297,7 @@ public class AttributeValuePasswordValidatorTestCase
       },
 
       // Default configuration, with a password that matches the reverse of an
-      // existing attribute value with reverwse matching enabled
+      // existing attribute value with reverse matching enabled
       new Object[]
       {
         TestCaseUtils.makeEntry(
@@ -304,7 +315,7 @@ public class AttributeValuePasswordValidatorTestCase
       },
 
       // Default configuration, with a password that matches the reverse of an
-      // existing attribute value with reverwse matching disabled
+      // existing attribute value with reverse matching disabled
       new Object[]
       {
         TestCaseUtils.makeEntry(
@@ -362,6 +373,25 @@ public class AttributeValuePasswordValidatorTestCase
              "ds-cfg-test-reversed-password: true"),
         "test.user",
         true
+      },
+
+      // Default configuration, with a password that contains a substring
+      // from one of the attributes in the entry.
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Attribute Value,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-attribute-value-password-validator",
+             "cn: Attribute Value",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "AttributeValuePasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-test-reversed-password: true"),
+        "test.user99",
+        false
       },
     };
   }
