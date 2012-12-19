@@ -35,12 +35,14 @@ import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -70,6 +72,11 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private JTextField name;
   private JLabel lParentDN;
   private JTextField parentDN;
+  private JLabel lPassword;
+  private JPasswordField password = Utilities.createPasswordField(25);
+  private JLabel lconfirmPassword;
+  private JPasswordField confirmPassword = Utilities.createPasswordField(25);
+  private JLabel lPasswordInfo;
   private JButton browse;
   private JLabel dn;
 
@@ -78,10 +85,6 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
   private CustomSearchResult entryToDuplicate;
   private String rdnAttribute;
-
-  private JLabel entryHasPasswordWarning;
-
-  private final static String DEFAULT_PASSWORD_VALUE = "password";
 
   /**
    * Default constructor.
@@ -136,20 +139,20 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     entryToDuplicate = null;
     super.controller = controller;
 
-    DN parentDN;
-    String rdn;
+    DN aParentDN;
+    String aRdn;
     try
     {
       DN nodeDN = DN.decode(node.getDN());
       if (nodeDN.isNullDN())
       {
-        parentDN = nodeDN;
-        rdn = "(1)";
+        aParentDN = nodeDN;
+        aRdn = "(1)";
       }
       else
       {
-        parentDN = nodeDN.getParent();
-        rdn = nodeDN.getRDN().getAttributeValue(0).toString()+"-1";
+        aParentDN = nodeDN.getParent();
+        aRdn = nodeDN.getRDN().getAttributeValue(0).toString()+"-1";
       }
     }
     catch (DirectoryException de)
@@ -157,8 +160,10 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       throw new IllegalStateException("Unexpected error decoding dn: '"+
           node.getDN()+"' error: "+de, de);
     }
-    this.parentDN.setText(parentDN.toString());
-    this.name.setText(rdn);
+    parentDN.setText(aParentDN.toString());
+    name.setText(aRdn);
+    password.setText("");
+    confirmPassword.setText("");
 
     readEntry(node);
   }
@@ -244,15 +249,43 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
     });
 
+    gbc.gridwidth = 1;
+    gbc.weightx = 0.0;
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
-    Message msg = INFO_CTRL_PANEL_ENTRY_TO_DUPLICATE_HAS_PASSWORD_WARNING.get(
-        DEFAULT_PASSWORD_VALUE);
-    entryHasPasswordWarning = Utilities.createDefaultLabel();
-    Utilities.setWarningLabel(entryHasPasswordWarning, msg);
+    lPassword = Utilities.createPrimaryLabel(
+              INFO_CTRL_PANEL_DUPLICATE_ENTRY_NEWPASSWORD_LABEL.get());
+    add(lPassword, gbc);
+    gbc.weightx = 1.0;
+    gbc.gridwidth = 2;
+    gbc.weighty = 0.0;
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    add(password, gbc);
+
+    gbc.gridwidth = 1;
+    gbc.weightx = 0.0;
+    gbc.gridx = 0;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    lconfirmPassword = Utilities.createPrimaryLabel(
+              INFO_CTRL_PANEL_DUPLICATE_ENTRY_CONFIRMNEWPASSWORD_LABEL.get());
+    add(lconfirmPassword, gbc);
+    gbc.weightx = 1.0;
+    gbc.gridwidth = 2;
+    gbc.weighty = 0.0;
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    add(confirmPassword, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    lPasswordInfo = Utilities.createInlineHelpLabel(
+            INFO_CTRL_PANEL_DUPLICATE_ENTRY_PASSWORD_INFO.get());
     gbc.gridwidth = 3;
-    add(entryHasPasswordWarning, gbc);
+    add(lPasswordInfo, gbc);
 
     gbc.gridwidth = 1;
     gbc.gridx = 0;
@@ -325,6 +358,15 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       setPrimaryInvalid(lParentDN);
     }
 
+    char[] pwd1 = password.getPassword();
+    char[] pwd2 = confirmPassword.getPassword();
+    String sPwd1 = new String(pwd1);
+    String sPwd2 = new String(pwd2);
+    if (!sPwd1.equals(sPwd2))
+    {
+          errors.add(ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get());
+    }
+
     if (errors.size() == origSize)
     {
       try
@@ -356,7 +398,11 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       if (attrName.equalsIgnoreCase(ServerConstants.ATTR_USER_PASSWORD))
       {
         sb.append("\n");
-        sb.append(attrName+": "+DEFAULT_PASSWORD_VALUE);
+        String pwd = new String(password.getPassword());
+        if (!pwd.isEmpty())
+        {
+          sb.append(attrName+": " + pwd);
+        }
       }
       else if (!attrName.equalsIgnoreCase(rdnAttribute))
       {
@@ -493,7 +539,13 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
             rdnAttribute = dn.getRDN().getAttributeType(0).getNameOrOID();
 
             updateDNValue();
-            entryHasPasswordWarning.setVisible(hasPassword());
+            Boolean hasPassword = !sr.getAttributeValues(
+                    ServerConstants.ATTR_USER_PASSWORD).isEmpty();
+            lPassword.setVisible(hasPassword);
+            password.setVisible(hasPassword);
+            lconfirmPassword.setVisible(hasPassword);
+            confirmPassword.setVisible(hasPassword);
+            lPasswordInfo.setVisible(hasPassword);
             displayMainPanel();
             setEnabledOK(true);
           }
@@ -520,12 +572,6 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     {
       dn.setText(","+parentDN.getText().trim());
     }
-  }
-
-  private boolean hasPassword()
-  {
-    return !entryToDuplicate.getAttributeValues(
-        ServerConstants.ATTR_USER_PASSWORD).isEmpty();
   }
 
   private void sleepIfRequired(long sleepTime, long startTime)
