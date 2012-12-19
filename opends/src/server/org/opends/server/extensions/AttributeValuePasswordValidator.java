@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock, AS.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -96,6 +97,39 @@ public class AttributeValuePasswordValidator
 
 
   /**
+   * Search for substrings of the password in an Attribute. The search is
+   * case-insensitive.
+   *
+   * @param password the password
+   * @param minSubstringLength the minimum substring length to check
+   * @param a the attribute to search
+   * @return true if an attribute value matches a substring of the password,
+   * false otherwise.
+   */
+  private boolean containsSubstring(String password, int minSubstringLength,
+      Attribute a)
+  {
+    final int passwordLength = password.length();
+
+    for (int i = 0; i < passwordLength; i++)
+    {
+      for (int j = i + minSubstringLength; j <= passwordLength; j++)
+      {
+        Attribute substring = Attributes.create(a.getAttributeType(),
+            password.substring(i, j));
+        for (AttributeValue val : a)
+        {
+          if (substring.contains(val))
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override()
@@ -113,6 +147,17 @@ public class AttributeValuePasswordValidator
     String password = newPassword.toString();
     String reversed = new StringBuilder(password).reverse().toString();
 
+    // Check to see if we should verify the whole password or the substrings.
+    int minSubstringLength = password.length();
+    if (config.isCheckSubstrings())
+    {
+      // We apply the minimal substring length only if the provided value
+      // is smaller then the actual password length
+      if (config.getMinSubstringLength() < password.length())
+      {
+        minSubstringLength = config.getMinSubstringLength();
+      }
+    }
 
     // If we should check a specific set of attributes, then do that now.
     // Otherwise, check all user attributes.
@@ -136,7 +181,9 @@ public class AttributeValuePasswordValidator
       for (Attribute a : attrList)
       {
         if (a.contains(vf) ||
-            (config.isTestReversedPassword() && a.contains(vr)))
+            (config.isTestReversedPassword() && a.contains(vr)) ||
+            (config.isCheckSubstrings() &&
+                containsSubstring(password, minSubstringLength, a)))
         {
 
           invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());
