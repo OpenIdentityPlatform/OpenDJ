@@ -805,7 +805,7 @@ for a detailed log of this operation.</screen>
  --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
- --provider-name "MultimasterSynchronization"
+ --provider-name "Multimaster Synchronization"
  --domain-name "dc=example,dc=com"
  --set group-id:1
  --trustAll
