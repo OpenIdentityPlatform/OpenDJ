@@ -76,13 +76,15 @@
   pool of the maximum size you specify.</para>
 
   <programlisting language="java"
->final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
+>final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;~&gt;();
 
-factories.add(Connections.newFixedConnectionPool(
-       Connections.newAuthenticatedConnectionFactory(
-           new LDAPConnectionFactory(remoteAddress,remotePort),
-           Requests.newSimpleBindRequest(proxyDN, proxyPassword.toCharArray())),
-       Integer.MAX_VALUE));</programlisting>
+factories.add(Connections.newFixedConnectionPool(Connections
+        .newAuthenticatedConnectionFactory(Connections
+                .newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                        remoteAddress, remotePort)),
+                        Requests.newSimpleBindRequest(proxyDN,
+                                proxyPassword.toCharArray())),
+                                Integer.MAX_VALUE));</programlisting>
 
   <para>Connections are returned to the pool when you <literal>close()</literal>
   them. Notice that <literal>Connections</literal> also provides methods to
