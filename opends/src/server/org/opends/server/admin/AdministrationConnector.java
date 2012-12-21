@@ -457,7 +457,7 @@ public final class AdministrationConnector implements
      */
     public SortedSet<String> getSSLCipherSuite()
     {
-      return ADMIN_SSL_CIPHER_SUITE;
+      return config.getSSLCipherSuite();
     }
 
 
@@ -477,7 +477,7 @@ public final class AdministrationConnector implements
      */
     public SortedSet<String> getSSLProtocol()
     {
-      return ADMIN_SSL_PROTOCOL;
+      return config.getSSLProtocol();
     }
 
 
