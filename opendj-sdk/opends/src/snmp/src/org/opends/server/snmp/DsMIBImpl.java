@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
@@ -43,7 +44,7 @@ import org.opends.server.types.DebugLogLevel;
 
 
 /**
- * The class reprents the "DsMIB" group implementation.
+ * The class represents the "DsMIB" group implementation.
  * The group is defined with the following oid: 1.3.6.1.2.1.66.
  */
 public class DsMIBImpl extends DsMIB implements NotificationListener {
@@ -73,18 +74,24 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
 
   /**
    * List of DsTableEntries.
+   * SNMP dsTable contains the list of Directory Servers
    */
   private Hashtable<ObjectName, DsEntry> dsTableEntries =
           new Hashtable<ObjectName, DsEntry>();
 
   /**
-   * List of DsIntTableEntries.
+   * List of DsApplIfOpsTableEntries.
+   * SNMP dsAppIfOpsTable provides summary statistics on the accesses
+   * operations and errors for each application protocol interface
+   * of a Directory Server
    */
   private Hashtable<ObjectName, DsEntry> dsApplIfOpsTableEntries =
           new Hashtable<ObjectName, DsEntry>();
 
-   /**
+  /**
    * List of DsIntTableEntries.
+   * SNMP dsIntTable provides some useful information on the
+   * interactions of the monitored DS with peer DS
    */
   private Hashtable<ObjectName, DsEntry> dsIntTableEntries =
           new Hashtable<ObjectName, DsEntry>();
@@ -246,7 +253,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
       DsTableEntryImpl entry = new DsTableEntryImpl(
               this.mib, this.server, this.applIndex);
 
-      // if the entry alreday exists nothing to do
+      // if the entry already exists nothing to do
       if ((this.dsTableEntries.containsKey(entry.getObjectName())) ||
               (entry == null)) {
         return true;

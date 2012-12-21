@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
@@ -112,7 +113,7 @@ public class SNMPMonitor {
   /**
    * Gets the Connection Handlers Statistics MBean.
    * @return the Set of Connection Handlers Statistics.
-   *     If Statistics do not exixist then an empty Set is returned
+   *         If Statistics do not exist then an empty Set is returned
    */
   public Set<ObjectName> getConnectionHandlersStatistics() {
     Set<ObjectName> results = new HashSet<ObjectName>();
@@ -180,7 +181,8 @@ public class SNMPMonitor {
       for (Iterator iter = monitorObjects.iterator(); iter.hasNext();) {
         ObjectName name = (ObjectName) iter.next();
         if ((name.getCanonicalName().contains("Connection_Handler")) &&
-                (!(name.getCanonicalName().endsWith("_Statistics")))) {
+                (!(name.getCanonicalName().endsWith("_Statistics"))) &&
+                (name.getKeyProperty("Rdn3") == null)) {
           results.add(name);
         }
       }
@@ -197,8 +199,8 @@ public class SNMPMonitor {
    * Returns the ObjectName of the Statistics Connection Handler name.
    * corresponding to the Connection Handler name
    * @param connectionHandlerName The connection handler name
-   * @return the ObjectName of the statistics ObjectName, null if the statistics
-   * could not be found
+   * @return the ObjectName of the statistics ObjectName,
+   *         null if the statistics could not be found
    */
   public ObjectName getConnectionHandlerStatistics(
           ObjectName connectionHandlerName) {

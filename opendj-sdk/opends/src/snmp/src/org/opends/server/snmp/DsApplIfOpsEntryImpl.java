@@ -64,7 +64,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   private ObjectName connectionHandlerName;
   /**
-   * SNMPMonitor representing the gateway beetween SNMP MBeans and cn=monitor
+   * SNMPMonitor representing the gateway between SNMP MBeans and cn=monitor
    * MBeans.
    */
   private SNMPMonitor monitor;
@@ -130,7 +130,6 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     } else {
       return 0L;
     }
-
   }
 
   /**
@@ -150,7 +149,6 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     } else {
       return 0L;
     }
-
   }
 
   /**
@@ -170,7 +168,6 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     } else {
       return 0L;
     }
-
   }
 
   /**
@@ -355,7 +352,6 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
         }
         return null;
       }
-      return this.entryName;
     }
     return this.entryName;
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
@@ -56,7 +57,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
      */
     private DsMIBImpl dsMibGroup = null;
     /**
-     * ObjectName of the Current Direcotry Server MIB.
+     * ObjectName of the Current Directory Server MIB.
      */
     private ObjectName mibObName;
     /**
@@ -67,7 +68,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
     /**
      * Creates the Current Directory Server MIB.
      * @param registeredMBean indicates if the SNMP MBean has to register
-     * in the Direcotry Server MBeanServer
+     * in the Directory Server MBeanServer
      * @param mibName of the Directory Server MIB
      */
     public DIRECTORY_SERVER_MIBImpl(boolean registeredMBean,
