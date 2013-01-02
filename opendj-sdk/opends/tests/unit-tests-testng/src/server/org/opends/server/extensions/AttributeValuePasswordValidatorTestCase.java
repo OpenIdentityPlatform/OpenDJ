@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock, AS.
+ *      Portions Copyright 2012-2013 ForgeRock, AS.
  */
 package org.opends.server.extensions;
 
@@ -142,6 +142,7 @@ public class AttributeValuePasswordValidatorTestCase
          "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
          "ds-cfg-check-substrings: false",
+         "ds-cfg-test-reversed-password: true",
          "ds-cfg-enabled: true");
 
     Object[][] array = new Object[entries.size()][1];
