@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -214,7 +214,8 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
   @AfterClass
   public void cleanUp() throws Exception {
-    TestCaseUtils.disableBackend(beID);
+      TestCaseUtils.clearJEBackend(false, beID, "dc=vlvtest,dc=com");
+      TestCaseUtils.disableBackend(beID);
   }
 
   /**
