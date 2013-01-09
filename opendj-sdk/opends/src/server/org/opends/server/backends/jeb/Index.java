@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -458,9 +458,9 @@ public class Index extends DatabaseContainer
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
           TRACER.debugInfo("Index entry exceeded in index %s. " +
-              "Limit: %d. ID list size: %d.\nKey:",
+              "Limit: %d. ID list size: %d.\nKey:%s",
               name, indexEntryLimit, entryIDList.size(),
-              builder);
+              builder.toString());
 
         }
       }
@@ -510,8 +510,9 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError("The expected key does not exist in the " +
-              "index %s.\nKey:%s", name, builder.toString());
+          TRACER.debugError(
+                  "The expected key does not exist in the index %s.\nKey:%s ",
+                  name, builder.toString());
         }
       }
 
@@ -565,8 +566,9 @@ public class Index extends DatabaseContainer
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError("The expected key does not exist in the " +
-                "index %s.\nKey:%s", name, builder.toString());
+            TRACER.debugError(
+                  "The expected key does not exist in the index %s.\nKey:%s ",
+                  name, builder.toString());
           }
 
           setTrusted(txn, false);
@@ -636,9 +638,9 @@ public class Index extends DatabaseContainer
               StringBuilder builder = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
               TRACER.debugInfo("Index entry exceeded in index %s. " +
-                  "Limit: %d. ID list size: %d.\nKey:",
+                  "Limit: %d. ID list size: %d.\nKey:%s",
                   name, indexEntryLimit, idCountDelta + addedIDs.size(),
-                  builder);
+                  builder.toString());
 
             }
           }
@@ -687,8 +689,9 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError("The expected key does not exist in the " +
-              "index %s.\nKey:%s", name, builder.toString());
+          TRACER.debugError(
+                "The expected key does not exist in the index %s.\nKey:%s",
+                name, builder.toString());
         }
 
         setTrusted(txn, false);
@@ -792,8 +795,9 @@ public class Index extends DatabaseContainer
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError("The expected key does not exist in the " +
-                "index %s.\nKey:%s", name, builder.toString());
+            TRACER.debugError(
+                  "The expected key does not exist in the index %s.\nKey:%s",
+                  name, builder.toString());
           }
 
           setTrusted(txn, false);
@@ -875,8 +879,9 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError("The expected key does not exist in the " +
-              "index %s.\nKey:%s", name, builder.toString());
+          TRACER.debugError(
+                "The expected key does not exist in the index %s.\nKey:%s",
+                name, builder.toString());
         }
 
         setTrusted(txn, false);

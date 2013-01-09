@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -194,7 +194,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
   private String databasePrefix;
   /**
-   * This class is responsible for managing the configuraiton for attribute
+   * This class is responsible for managing the configuration for attribute
    * indexes used within this entry container.
    */
   public class AttributeJEIndexCfgManager implements
@@ -330,8 +330,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
-      OrderingMatchingRule[] orderingRules =
-        new OrderingMatchingRule[sortAttrs.length];
       boolean[] ascending = new boolean[sortAttrs.length];
       for(int i = 0; i < sortAttrs.length; i++)
       {
@@ -370,7 +368,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           return false;
         }
         sortKeys[i] = new SortKey(attrType, ascending[i]);
-        orderingRules[i] = attrType.getOrderingMatchingRule();
       }
 
       return true;
@@ -490,20 +487,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     this.env = env;
     this.rootContainer = rootContainer;
 
-    StringBuilder builder = new StringBuilder(databasePrefix.length());
-    for (int i = 0; i < databasePrefix.length(); i++)
-    {
-      char ch = databasePrefix.charAt(i);
-      if (Character.isLetterOrDigit(ch))
-      {
-        builder.append(ch);
-      }
-      else
-      {
-        builder.append('_');
-      }
-    }
-    this.databasePrefix = builder.toString();
+    this.databasePrefix = preparePrefix(databasePrefix);
 
     // Instantiate the attribute indexes.
     attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
@@ -552,25 +536,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if (config.isSubordinateIndexesEnabled())
       {
-        id2children = new Index(databasePrefix + "_"
-            + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
-            config.getIndexEntryLimit(), 0, true, env, this);
-        id2children.open();
-        if (!id2children.isTrusted())
-        {
-          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
-              .getName()));
-        }
-
-        id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
-            new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
-            env, this);
-        id2subtree.open();
-        if (!id2subtree.isTrusted())
-        {
-          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD
-              .get(id2subtree.getName()));
-        }
+        openSubordinateIndexes();
       }
       else
       {
@@ -946,30 +912,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (searchScope == SearchScope.BASE_OBJECT)
     {
       // Fetch the base entry.
-      Entry baseEntry = null;
-      try
-      {
-        baseEntry = getEntry(aBaseDN);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      // The base entry must exist for a successful result.
-      if (baseEntry == null)
-      {
-        // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
-
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
-        DN matchedDN = getMatchedDN(aBaseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, matchedDN, null);
-      }
+      Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
 
       if (!isManageDsaITOperation(searchOperation))
       {
@@ -1253,30 +1196,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (pageRequest == null || pageRequest.getCookie().length() == 0)
     {
       // Fetch the base entry.
-      Entry baseEntry = null;
-      try
-      {
-        baseEntry = getEntry(aBaseDN);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      // The base entry must exist for a successful result.
-      if (baseEntry == null)
-      {
-        // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
-
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
-        DN matchedDN = getMatchedDN(aBaseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, matchedDN, null);
-      }
+      Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
 
       if (!manageDsaIT)
       {
@@ -1712,30 +1632,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         searchOperation.getReferencesSent() == 0)
     {
       // Fetch the base entry if it exists.
-      Entry baseEntry = null;
-      try
-      {
-        baseEntry = getEntry(aBaseDN);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      // The base entry must exist for a successful result.
-      if (baseEntry == null)
-      {
-        // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(aBaseDN, searchScope);
-
-        Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
-        DN matchedDN = getMatchedDN(aBaseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, matchedDN, null);
-      }
+      Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
 
       if (!manageDsaIT)
       {
@@ -3211,30 +3108,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     for (AttributeIndex index : attrIndexMap.values())
     {
       // Check whether any modifications apply to this indexed attribute.
-      boolean attributeModified = false;
-      AttributeType indexAttributeType = index.getAttributeType();
-      Iterable<AttributeType> subTypes =
-        DirectoryServer.getSchema().getSubTypes(indexAttributeType);
-
-      for (Modification mod : mods)
-      {
-        Attribute modAttr = mod.getAttribute();
-        AttributeType modAttrType = modAttr.getAttributeType();
-        if (modAttrType.equals(indexAttributeType))
-        {
-          attributeModified = true;
-          break;
-        }
-        for(AttributeType subType : subTypes)
-        {
-          if(modAttrType.equals(subType))
-          {
-            attributeModified = true;
-            break;
-          }
-        }
-      }
-      if (attributeModified)
+      if (isAttributeModified(index, mods))
       {
         index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
       }
@@ -3267,30 +3141,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     for (AttributeIndex index : attrIndexMap.values())
     {
       // Check whether any modifications apply to this indexed attribute.
-      boolean attributeModified = false;
-      AttributeType indexAttributeType = index.getAttributeType();
-      Iterable<AttributeType> subTypes =
-        DirectoryServer.getSchema().getSubTypes(indexAttributeType);
-
-      for (Modification mod : mods)
-      {
-        Attribute modAttr = mod.getAttribute();
-        AttributeType modAttrType = modAttr.getAttributeType();
-        if (modAttrType.equals(indexAttributeType))
-        {
-          attributeModified = true;
-          break;
-        }
-        for(AttributeType subType : subTypes)
-        {
-          if(modAttrType.equals(subType))
-          {
-            attributeModified = true;
-            break;
-          }
-        }
-      }
-      if (attributeModified)
+      if (isAttributeModified(index, mods))
       {
         index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
       }
@@ -3660,20 +3511,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
 
-    StringBuilder builder = new StringBuilder(newDatabasePrefix.length());
-    for (int i = 0; i < newDatabasePrefix.length(); i++)
-    {
-      char ch = newDatabasePrefix.charAt(i);
-      if (Character.isLetterOrDigit(ch))
-      {
-        builder.append(ch);
-      }
-      else
-      {
-        builder.append('_');
-      }
-    }
-    newDatabasePrefix = builder.toString();
+    newDatabasePrefix = preparePrefix(newDatabasePrefix);
 
     // close the containers.
     for(DatabaseContainer db : databases)
@@ -3799,25 +3637,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         if (cfg.isSubordinateIndexesEnabled())
         {
           // Re-enabling subordinate indexes.
-          id2children = new Index(databasePrefix + "_"
-              + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
-              config.getIndexEntryLimit(), 0, true, env, this);
-          id2children.open();
-          if (!id2children.isTrusted())
-          {
-            logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
-                .getName()));
-          }
-
-          id2subtree = new Index(databasePrefix + "_" +ID2SUBTREE_DATABASE_NAME,
-              new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
-              env, this);
-          id2subtree.open();
-          if (!id2subtree.isTrusted())
-          {
-            logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD
-                .get(id2subtree.getName()));
-          }
+          openSubordinateIndexes();
         }
         else
         {
@@ -4132,10 +3952,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * Finds an existing entry whose DN is the closest ancestor of a given baseDN.
    *
-   * @param baseDN  the DN for which we are searching a matched DN
-   * @return the DN of the closest ancestor of the baseDN
+   * @param baseDN  the DN for which we are searching a matched DN.
+   * @return the DN of the closest ancestor of the baseDN.
    * @throws DirectoryException If an error prevented the check of an
-   * existing entry from being performed
+   * existing entry from being performed.
    */
   private DN getMatchedDN(DN baseDN)
   throws DirectoryException
@@ -4153,6 +3973,133 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     return matchedDN;
   }
+
+  /**
+   * Opens the id2children and id2subtree indexes.
+   */
+  private void openSubordinateIndexes()
+  {
+    id2children = new Index(databasePrefix + "_"
+          + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
+          config.getIndexEntryLimit(), 0, true, env, this);
+    id2children.open();
+    if (!id2children.isTrusted())
+    {
+      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
+              .getName()));
+    }
+    id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
+            new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
+            env, this);
+    id2subtree.open();
+    if (!id2subtree.isTrusted())
+    {
+      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2subtree.getName()));
+    }
+  }
+
+
+  /**
+   * Checks if any modifications apply to this indexed attribute.
+   * @param index the indexed attributes.
+   * @param mods the modifications to check for.
+   * @return true if any apply, false otherwise.
+   */
+  private boolean isAttributeModified(AttributeIndex index,
+                                      List<Modification> mods)
+  {
+    boolean attributeModified = false;
+    AttributeType indexAttributeType = index.getAttributeType();
+    Iterable<AttributeType> subTypes =
+            DirectoryServer.getSchema().getSubTypes(indexAttributeType);
+
+    for (Modification mod : mods)
+    {
+      Attribute modAttr = mod.getAttribute();
+      AttributeType modAttrType = modAttr.getAttributeType();
+      if (modAttrType.equals(indexAttributeType))
+      {
+        attributeModified = true;
+        break;
+      }
+      for(AttributeType subType : subTypes)
+      {
+        if(modAttrType.equals(subType))
+        {
+          attributeModified = true;
+          break;
+        }
+      }
+    }
+    return attributeModified;
+  }
+
+
+  /**
+   * Fetch the base Entry of the EntryContainer.
+   * @param baseDN the DN for the base entry
+   * @param searchScope the scope under which this is fetched.
+   *                    Scope is used for referral processing.
+   * @return the Entry matching the baseDN.
+   * @throws DirectoryException if the baseDN doesn't exist.
+   */
+  private Entry fetchBaseEntry(DN baseDN, SearchScope searchScope)
+          throws DirectoryException
+  {
+    // Fetch the base entry.
+    Entry baseEntry = null;
+    try
+    {
+      baseEntry = getEntry(baseDN);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    // The base entry must exist for a successful result.
+    if (baseEntry == null)
+    {
+      // Check for referral entries above the base entry.
+      dn2uri.targetEntryReferrals(baseDN, searchScope);
+
+      Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
+      DN matchedDN = getMatchedDN(baseDN);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+            message, matchedDN, null);
+    }
+
+    return baseEntry;
+  }
+
+
+  /**
+   * Transform a database prefix string to one usable by the DB.
+   * @param databasePrefix the database prefix
+   * @return a new string when non letter or digit characters
+   *         have been replaced with underscore
+   */
+  private String preparePrefix(String databasePrefix)
+  {
+    StringBuilder builder = new StringBuilder(databasePrefix.length());
+    for (int i = 0; i < databasePrefix.length(); i++)
+    {
+      char ch = databasePrefix.charAt(i);
+      if (Character.isLetterOrDigit(ch))
+      {
+        builder.append(ch);
+      }
+      else
+      {
+        builder.append('_');
+      }
+    }
+    return builder.toString();
+  }
+
 
   /**
    * Get the exclusive lock.
