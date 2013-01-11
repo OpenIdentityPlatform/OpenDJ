@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  *
  */
 package org.opends.server.protocols.ldap;
@@ -32,6 +32,7 @@ package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
 
@@ -41,12 +42,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.OperationType;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -181,6 +177,16 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   }
 
 
+  /**
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public ObjectClass getMonitorObjectClass()
+  {
+      return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLERSTATS, true);
+  }
+
 
   /**
    * Retrieves a set of attributes containing monitor data that should
@@ -251,12 +257,16 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
 
     // Construct the list of attributes to return.
+    /* TODO : the attribute names should be constant (in ServerConstants.java
+     *        and associated with their objectclass
+     *        OC_MONITOR_CONNHANDLERSTATS
+     */
     attrs.add(createAttribute("connectionsEstablished", String
         .valueOf(tmpConnectionsEstablished)));
     attrs.add(createAttribute("connectionsClosed", String
         .valueOf(tmpConnectionsClosed)));
-    attrs
-        .add(createAttribute("bytesRead", String.valueOf(tmpBytesRead)));
+    attrs.add(createAttribute("bytesRead", String
+        .valueOf(tmpBytesRead)));
     attrs.add(createAttribute("bytesWritten", String
         .valueOf(tmpBytesWritten)));
     attrs.add(createAttribute("ldapMessagesRead", String
@@ -302,9 +312,9 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     attrs.add(createAttribute("searchRequests", String
         .valueOf(tmpSearchRequests)));
     attrs.add(createAttribute("searchOneRequests", String
-            .valueOf(tmpSearchOneRequests)));
+        .valueOf(tmpSearchOneRequests)));
     attrs.add(createAttribute("searchSubRequests", String
-            .valueOf(tmpSearchSubRequests)));
+        .valueOf(tmpSearchSubRequests)));
     attrs.add(createAttribute("searchResultEntries", String
         .valueOf(tmpSearchEntries)));
     attrs.add(createAttribute("searchResultReferences", String
@@ -389,7 +399,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
     return attrs;
   }
-
 
 
   /**
