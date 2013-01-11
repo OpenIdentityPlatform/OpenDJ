@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2012 ForgeRock AS
+ *      Portions Copyright 2010-2013 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -1055,7 +1055,12 @@ public final class ServerConstants
    */
   public static final String OC_MONITOR_CONNHANDLER =
        "ds-connectionhandler-monitor-entry";
-
+  /**
+   * The name of the custom objectclass that will be included in connection
+   * handler statistics monitor entries.
+   */
+  public static final String OC_MONITOR_CONNHANDLERSTATS =
+          "ds-connectionhandler-statistics-monitor-entry";
 
 
   /**
