@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -31,6 +31,7 @@ import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -51,6 +52,8 @@ import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindClient;
@@ -85,6 +88,23 @@ import com.forgerock.opendj.util.Validator;
  * LDAP connection implementation.
  */
 final class LDAPConnection extends AbstractAsynchronousConnection implements Connection {
+    /**
+     * A dummy SSL client engine configurator as SSLFilter only needs client
+     * config. This prevents Grizzly from needlessly using JVM defaults which
+     * may be incorrectly configured.
+     */
+    private static final SSLEngineConfigurator DUMMY_SSL_ENGINE_CONFIGURATOR;
+    static {
+        try {
+            DUMMY_SSL_ENGINE_CONFIGURATOR =
+                    new SSLEngineConfigurator(new SSLContextBuilder().setTrustManager(
+                            TrustManagers.distrustAll()).getSSLContext());
+        } catch (GeneralSecurityException e) {
+            // This should never happen.
+            throw new IllegalStateException("Unable to create Dummy SSL Engine Configurator", e);
+        }
+    }
+
     private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(false);
     private final org.glassfish.grizzly.Connection<?> connection;
     private final LDAPWriter ldapWriter = new LDAPWriter();
@@ -791,7 +811,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                     .toArray(new String[protocols.size()]));
             sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null
                     : cipherSuites.toArray(new String[cipherSuites.size()]));
-            final SSLFilter sslFilter = new SSLFilter(null, sslEngineConfigurator);
+            final SSLFilter sslFilter =
+                    new SSLFilter(DUMMY_SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
             installFilter(sslFilter);
             sslFilter.handshake(connection, completionHandler);
         }

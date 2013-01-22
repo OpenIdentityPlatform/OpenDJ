@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -31,6 +31,7 @@ import static com.forgerock.opendj.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTIO
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLContext;
@@ -46,6 +47,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -220,7 +223,7 @@ final class LDAPServerFilter extends BaseFilter {
                 sslEngineConfigurator.setEnabledProtocols(protocols);
                 sslEngineConfigurator.setWantClientAuth(wantClientAuth);
                 sslEngineConfigurator.setNeedClientAuth(needClientAuth);
-                installFilter(new SSLFilter(sslEngineConfigurator, null));
+                installFilter(new SSLFilter(sslEngineConfigurator, DUMMY_SSL_ENGINE_CONFIGURATOR));
             }
         }
 
@@ -636,6 +639,23 @@ final class LDAPServerFilter extends BaseFilter {
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPServerConnection");
 
     private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
+
+    /**
+     * A dummy SSL client engine configurator as SSLFilter only needs server
+     * config. This prevents Grizzly from needlessly using JVM defaults which
+     * may be incorrectly configured.
+     */
+    private static final SSLEngineConfigurator DUMMY_SSL_ENGINE_CONFIGURATOR;
+    static {
+        try {
+            DUMMY_SSL_ENGINE_CONFIGURATOR =
+                    new SSLEngineConfigurator(new SSLContextBuilder().setTrustManager(
+                            TrustManagers.distrustAll()).getSSLContext());
+        } catch (GeneralSecurityException e) {
+            // This should never happen.
+            throw new IllegalStateException("Unable to create Dummy SSL Engine Configurator", e);
+        }
+    }
 
     private final LDAPReader ldapReader;
     private final LDAPListenerImpl listener;
