@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
@@ -166,31 +167,16 @@ public final class LDAPSyntaxDescription
 
 
   /**
-   * Creates a new instance of this ldap syntax based on the
-   * definition string.  It will also preserve other state
-   * information associated with this ldap syntax that is not
-   * included in the definition string (e.g., the name of the schema
-   * file with which it is associated).
-   *
-   * @return  The new instance of this ldap syntax based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while
-   *                              attempting to create a new ldap
-   *                              syntax instance from the definition
-   *                              string.
+   * {@inheritDoc}
    */
-  public LDAPSyntaxDescription recreateFromDefinition()
+  public LDAPSyntaxDescription recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     LDAPSyntaxDescription ls =
             LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(value,
             schema, false);
     ls.setSchemaFile(getSchemaFile());
-
     return ls;
   }
 

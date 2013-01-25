@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -120,7 +120,7 @@ public final class Schema
 
   // The set of attribute syntaxes for this schema, mapped between the
   // OID for the syntax and the syntax itself.
-  private ConcurrentHashMap<String,AttributeSyntax> syntaxes;
+  private ConcurrentHashMap<String,AttributeSyntax<?>> syntaxes;
 
   // The entire set of matching rules for this schema, mapped between
   // the lowercase names and OID for the definition and the matching
@@ -246,7 +246,7 @@ public final class Schema
   {
     attributeTypes = new ConcurrentHashMap<String,AttributeType>();
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
-    syntaxes = new ConcurrentHashMap<String,AttributeSyntax>();
+    syntaxes = new ConcurrentHashMap<String,AttributeSyntax<?>>();
     matchingRules = new ConcurrentHashMap<String,MatchingRule>();
     approximateMatchingRules =
          new ConcurrentHashMap<String,ApproximateMatchingRule>();
@@ -406,8 +406,14 @@ public final class Schema
         }
       }
 
-      attributeTypes.put(toLowerCase(attributeType.getOID()),
-                         attributeType);
+      AttributeType old = attributeTypes.put(
+          toLowerCase(attributeType.getOID()), attributeType);
+      if (old != null && old != attributeType)
+      {
+        // Mark the old attribute type as stale so that caches (such as
+        // compressed schema) can detect changes.
+        old.setDirty();
+      }
 
       for (String name : attributeType.getNormalizedNames())
       {
@@ -446,8 +452,13 @@ public final class Schema
   {
     synchronized (attributeTypes)
     {
-      attributeTypes.remove(toLowerCase(attributeType.getOID()),
-                            attributeType);
+      if (attributeTypes.remove(toLowerCase(attributeType.getOID()),
+          attributeType))
+      {
+        // Mark the old attribute type as stale so that caches (such as
+        // compressed schema) can detect changes.
+        attributeType.setDirty();
+      }
 
       for (String name : attributeType.getNormalizedNames())
       {
@@ -693,8 +704,14 @@ public final class Schema
         }
       }
 
-      objectClasses.put(toLowerCase(objectClass.getOID()),
-                        objectClass);
+      ObjectClass old = objectClasses.put(toLowerCase(objectClass.getOID()),
+          objectClass);
+      if (old != null && old != objectClass)
+      {
+        // Mark the old object class as stale so that caches (such as compressed
+        // schema) can detect changes.
+        old.setDirty();
+      }
 
       for (String name : objectClass.getNormalizedNames())
       {
@@ -725,8 +742,12 @@ public final class Schema
   {
     synchronized (objectClasses)
     {
-      objectClasses.remove(toLowerCase(objectClass.getOID()),
-                           objectClass);
+      if (objectClasses.remove(toLowerCase(objectClass.getOID()), objectClass))
+      {
+        // Mark the old object class as stale so that caches (such as
+        // compressed schema) can detect changes.
+        objectClass.setDirty();
+      }
 
       for (String name : objectClass.getNormalizedNames())
       {
@@ -770,7 +791,7 @@ public final class Schema
    *
    * @return  The attribute syntax definitions for this schema.
    */
-  public ConcurrentHashMap<String,AttributeSyntax> getSyntaxes()
+  public ConcurrentHashMap<String,AttributeSyntax<?>> getSyntaxes()
   {
     return syntaxes;
   }
@@ -816,7 +837,7 @@ public final class Schema
    * @return  The requested attribute syntax, or <CODE>null</CODE> if
    *          no syntax is registered with the provided OID.
    */
-  public AttributeSyntax getSyntax(String lowerName)
+  public AttributeSyntax<?> getSyntax(String lowerName)
   {
     return syntaxes.get(lowerName);
   }
@@ -838,7 +859,7 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerSyntax(AttributeSyntax syntax,
+  public void registerSyntax(AttributeSyntax<?> syntax,
                              boolean overwriteExisting)
          throws DirectoryException
   {
@@ -849,7 +870,7 @@ public final class Schema
         String oid = toLowerCase(syntax.getOID());
         if (syntaxes.containsKey(oid))
         {
-          AttributeSyntax conflictingSyntax = syntaxes.get(oid);
+          AttributeSyntax<?> conflictingSyntax = syntaxes.get(oid);
 
           Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
               get(syntax.getSyntaxName(), oid,
@@ -882,7 +903,7 @@ public final class Schema
    * @param  syntax  The attribute syntax to deregister with this
    *                 schema.
    */
-  public void deregisterSyntax(AttributeSyntax syntax)
+  public void deregisterSyntax(AttributeSyntax<?> syntax)
   {
     synchronized (syntaxes)
     {
@@ -3160,7 +3181,7 @@ public final class Schema
         if ((at.getSuperiorType() != null) &&
             at.getSuperiorType().equals(t))
         {
-          AttributeType newAT = at.recreateFromDefinition();
+          AttributeType newAT = at.recreateFromDefinition(this);
           deregisterAttributeType(at);
           registerAttributeType(newAT, true);
           rebuildDependentElements(at, depth+1);
@@ -3172,7 +3193,7 @@ public final class Schema
         if (oc.getRequiredAttributes().contains(t) ||
             oc.getOptionalAttributes().contains(t))
         {
-          ObjectClass newOC = oc.recreateFromDefinition();
+          ObjectClass newOC = oc.recreateFromDefinition(this);
           deregisterObjectClass(oc);
           registerObjectClass(newOC, true);
           rebuildDependentElements(oc, depth+1);
@@ -3186,7 +3207,7 @@ public final class Schema
           if (nf.getRequiredAttributes().contains(t) ||
               nf.getOptionalAttributes().contains(t))
           {
-            NameForm newNF = nf.recreateFromDefinition();
+            NameForm newNF = nf.recreateFromDefinition(this);
             deregisterNameForm(nf);
             registerNameForm(newNF, true);
             rebuildDependentElements(nf, depth+1);
@@ -3200,7 +3221,7 @@ public final class Schema
             dcr.getOptionalAttributes().contains(t) ||
             dcr.getProhibitedAttributes().contains(t))
         {
-          DITContentRule newDCR = dcr.recreateFromDefinition();
+          DITContentRule newDCR = dcr.recreateFromDefinition(this);
           deregisterDITContentRule(dcr);
           registerDITContentRule(newDCR, true);
           rebuildDependentElements(dcr, depth+1);
@@ -3211,7 +3232,7 @@ public final class Schema
       {
         if (mru.getAttributes().contains(t))
         {
-          MatchingRuleUse newMRU = mru.recreateFromDefinition();
+          MatchingRuleUse newMRU = mru.recreateFromDefinition(this);
           deregisterMatchingRuleUse(mru);
           registerMatchingRuleUse(newMRU, true);
           rebuildDependentElements(mru, depth+1);
@@ -3226,7 +3247,7 @@ public final class Schema
       {
         if (oc.getSuperiorClasses().contains(c))
         {
-          ObjectClass newOC = oc.recreateFromDefinition();
+          ObjectClass newOC = oc.recreateFromDefinition(this);
           deregisterObjectClass(oc);
           registerObjectClass(newOC, true);
           rebuildDependentElements(oc, depth+1);
@@ -3240,7 +3261,7 @@ public final class Schema
         {
           if (nf != null)
           {
-            NameForm newNF = nf.recreateFromDefinition();
+            NameForm newNF = nf.recreateFromDefinition(this);
             deregisterNameForm(nf);
             registerNameForm(newNF, true);
             rebuildDependentElements(nf, depth+1);
@@ -3253,7 +3274,7 @@ public final class Schema
         if (dcr.getStructuralClass().equals(c) ||
             dcr.getAuxiliaryClasses().contains(c))
         {
-          DITContentRule newDCR = dcr.recreateFromDefinition();
+          DITContentRule newDCR = dcr.recreateFromDefinition(this);
           deregisterDITContentRule(dcr);
           registerDITContentRule(newDCR, true);
           rebuildDependentElements(dcr, depth+1);
@@ -3266,7 +3287,7 @@ public final class Schema
       DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
       if (dsr != null)
       {
-        DITStructureRule newDSR = dsr.recreateFromDefinition();
+        DITStructureRule newDSR = dsr.recreateFromDefinition(this);
         deregisterDITStructureRule(dsr);
         registerDITStructureRule(newDSR, true);
         rebuildDependentElements(dsr, depth+1);
@@ -3279,7 +3300,7 @@ public final class Schema
       {
         if (dsr.getSuperiorRules().contains(d))
         {
-          DITStructureRule newDSR = dsr.recreateFromDefinition();
+          DITStructureRule newDSR = dsr.recreateFromDefinition(this);
           deregisterDITStructureRule(dsr);
           registerDITStructureRule(newDSR, true);
           rebuildDependentElements(dsr, depth+1);

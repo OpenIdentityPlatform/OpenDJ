@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -218,27 +219,14 @@ public final class NameForm
 
 
   /**
-   * Creates a new instance of this name form based on the definition
-   * string.  It will also preserve other state information associated
-   * with this name form that is not included in the definition string
-   * (e.g., the name of the schema file with which it is associated).
-   *
-   * @return  The new instance of this name form based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new name form instance
-   *                              from the definition string.
+   * {@inheritDoc}
    */
-  public NameForm recreateFromDefinition()
+  public NameForm recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     NameForm nf = NameFormSyntax.decodeNameForm(value, schema, false);
     nf.setSchemaFile(getSchemaFile());
-
     return nf;
   }
 

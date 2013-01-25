@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -126,6 +126,9 @@ public final class AttributeType
 
   // The substring matching rule for this attribute type.
   private final SubstringMatchingRule substringMatchingRule;
+
+  // True once this attribute type has been removed from the schema.
+  private volatile boolean isDirty = false;
 
 
 
@@ -431,31 +434,17 @@ public final class AttributeType
   }
 
   /**
-   * Creates a new instance of this attribute type based on the
-   * definition string.  It will also preserve other state information
-   * associated with this attribute type that is not included in the
-   * definition string (e.g., the name of the schema file with which
-   * it is associated).
-   *
-   * @return  The new instance of this attribute type based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new attribute type
-   *                              instance from the definition string.
+   * {@inheritDoc}
    */
-  public AttributeType recreateFromDefinition()
+  public AttributeType recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryServer.getSchema();
-
     AttributeType at =
          AttributeTypeSyntax.decodeAttributeType(value, schema,
                                               false);
     at.setSchemaFile(getSchemaFile());
     at.mayHaveSubordinateTypes = mayHaveSubordinateTypes;
-
     return at;
   }
 
@@ -771,6 +760,34 @@ public final class AttributeType
   public int compareTo(AttributeType o) {
     return getNormalizedPrimaryNameOrOID().compareTo(
       o.getNormalizedPrimaryNameOrOID());
+  }
+
+
+
+  /**
+   * Marks this attribute type as dirty, indicating that it has been removed or
+   * replaced in the schema.
+   *
+   * @return A reference to this attribute type.
+   */
+  public AttributeType setDirty()
+  {
+    isDirty = true;
+    return this;
+  }
+
+
+
+  /**
+   * Returns {@code true} if this attribute type has been removed or replaced in
+   * the schema.
+   *
+   * @return {@code true} if this attribute type has been removed or replaced in
+   *         the schema.
+   */
+  public boolean isDirty()
+  {
+    return isDirty;
   }
 }
 

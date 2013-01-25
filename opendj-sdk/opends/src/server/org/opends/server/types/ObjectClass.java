@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -105,6 +106,9 @@ public final class ObjectClass
 
   // The definition string used to create this objectclass.
   private final String definition;
+
+  // True once this object class has been removed from the schema.
+  private volatile boolean isDirty = false;
 
 
 
@@ -312,29 +316,15 @@ public final class ObjectClass
 
 
   /**
-   * Creates a new instance of this objectclass based on the
-   * definition string.  It will also preserve other state information
-   * associated with this objectclass that is not included in the
-   * definition string (e.g., the name of the schema file with which
-   * it is associated).
-   *
-   * @return  The new instance of this objectclass based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new objectclass instance
-   *                              from the definition string.
+   * {@inheritDoc}
    */
-  public ObjectClass recreateFromDefinition()
+  public ObjectClass recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     ObjectClass oc = ObjectClassSyntax.decodeObjectClass(value,
                                             schema, false);
     oc.setSchemaFile(getSchemaFile());
-
     return oc;
   }
 
@@ -608,4 +598,32 @@ public final class ObjectClass
       }
     }
   }
+
+
+
+  /**
+   * Marks this object class as dirty, indicating that it has been removed or
+   * replaced in the schema.
+   *
+   * @return A reference to this object class.
+   */
+  public ObjectClass setDirty()
+  {
+    isDirty = true;
+    return this;
   }
+
+
+
+  /**
+   * Returns {@code true} if this object class has been removed or replaced in
+   * the schema.
+   *
+   * @return {@code true} if this object class has been removed or replaced in
+   *         the schema.
+   */
+  public boolean isDirty()
+  {
+    return isDirty;
+  }
+}

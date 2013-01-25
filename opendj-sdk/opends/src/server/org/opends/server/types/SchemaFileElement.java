@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -88,25 +89,24 @@ public interface SchemaFileElement
 
 
   /**
-   * Creates a new instance of this schema element based on the
-   * definition from the schema file.  The new instance should also
-   * be created with all appropriate state information that may not
-   * be directly represented in the schema definition (e.g., the name
-   * of the schema file containing the definition).
-   * <BR><BR>
-   * Whenever an existing schema file element is modified with the
-   * server online, this method will be invoked to recreate any
-   * schema elements that might have been dependent upon the
-   * modified element.
+   * Creates a new instance of this schema element based on the definition from
+   * the schema file. The new instance should also be created with all
+   * appropriate state information that may not be directly represented in the
+   * schema definition (e.g., the name of the schema file containing the
+   * definition). <BR>
+   * <BR>
+   * Whenever an existing schema file element is modified with the server
+   * online, this method will be invoked to recreate any schema elements that
+   * might have been dependent upon the modified element.
    *
-   * @return  A new instance of this schema element based on the
-   *          definition.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create the new instance of this
-   *                              schema element.
+   * @param schema
+   *          The schema which should be used for resolving dependencies.
+   * @return A new instance of this schema element based on the definition.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to create the new instance
+   *           of this schema element.
    */
-  public SchemaFileElement recreateFromDefinition()
+  public SchemaFileElement recreateFromDefinition(Schema schema)
          throws DirectoryException;
 }
 

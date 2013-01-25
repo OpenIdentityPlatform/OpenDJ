@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 import java.util.List;
@@ -411,7 +412,7 @@ public final class DirectoryConfig
    * @return  The set of attribute syntaxes defined in the Directory
    *          Server.
    */
-  public static Map<String,AttributeSyntax>
+  public static Map<String,AttributeSyntax<?>>
        getAttributeSyntaxes()
   {
     return DirectoryServer.getAttributeSyntaxes();
