@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2012 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -3681,11 +3681,11 @@ public final class DirectoryServer
       String oid        = lowerName + "-oid";
       String definition = "( " + oid + " NAME '" + name + "' ABSTRACT )";
 
+      // Temporary object classes are immediately dirty.
       objectClass = new ObjectClass(definition, name,
-                                    Collections.singleton(name), oid, null,
-                                    Collections.singleton(getTopObjectClass()),
-                                    null, null,
-                                    ObjectClassType.ABSTRACT, false, null);
+          Collections.singleton(name), oid, null,
+          Collections.singleton(getTopObjectClass()), null, null,
+          ObjectClassType.ABSTRACT, false, null).setDirty();
     }
 
     return objectClass;
@@ -3936,10 +3936,11 @@ public final class DirectoryServer
     String definition = "( " + oid + " NAME '" + name + "' SYNTAX " +
                         syntax.getOID() + " )";
 
+    // Temporary attribute types are immediately dirty.
     return new AttributeType(definition, name, Collections.singleton(name),
                              oid, null, null, syntax,
                              AttributeUsage.USER_APPLICATIONS, false, false,
-                             false, false);
+                             false, false).setDirty();
   }
 
 
@@ -3947,9 +3948,10 @@ public final class DirectoryServer
   /**
    * Retrieves the set of attribute syntaxes defined in the Directory Server.
    *
-   * @return  The set of attribute syntaxes defined in the Directory Server.
+   * @return The set of attribute syntaxes defined in the Directory Server.
    */
-  public static ConcurrentHashMap<String,AttributeSyntax> getAttributeSyntaxes()
+  public static ConcurrentHashMap<String,
+                                  AttributeSyntax<?>> getAttributeSyntaxes()
   {
     return directoryServer.schema.getSyntaxes();
   }

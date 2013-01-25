@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -202,30 +203,16 @@ public final class MatchingRuleUse
 
 
   /**
-   * Creates a new instance of this matching rule use based on the
-   * definition string.  It will also preserve other state information
-   * associated with this matching rule use that is not included in
-   * the definition string (e.g., the name of the schema file with
-   * which it is associated).
-   *
-   * @return  The new instance of this matching rule use based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new matching rule use
-   *                              instance from the definition string.
+   * {@inheritDoc}
    */
-  public MatchingRuleUse recreateFromDefinition()
+  public MatchingRuleUse recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     MatchingRuleUse mru =
          MatchingRuleUseSyntax.decodeMatchingRuleUse(value, schema,
                                                      false);
     mru.setSchemaFile(getSchemaFile());
-
     return mru;
   }
 

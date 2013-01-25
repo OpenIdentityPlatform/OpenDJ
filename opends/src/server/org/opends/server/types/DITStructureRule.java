@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -202,30 +203,16 @@ public final class DITStructureRule
 
 
   /**
-   * Creates a new instance of this DIT structure rule based on the
-   * definition string.  It will also preserve other state information
-   * associated with this DIT structure rule that is not included in
-   * the definition string (e.g., the name of the schema file with
-   * which it is associated).
-   *
-   * @return  The new instance of this DIT structure rule based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new DIT structure rule
-   *                              instance from the definition string.
+   * {@inheritDoc}
    */
-  public DITStructureRule recreateFromDefinition()
+  public DITStructureRule recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     DITStructureRule dsr =
          DITStructureRuleSyntax.decodeDITStructureRule(value, schema,
                                                        false);
     dsr.setSchemaFile(getSchemaFile());
-
     return dsr;
   }
 

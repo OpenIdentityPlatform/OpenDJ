@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -66,6 +66,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import static org.testng.Assert.*;
 
 import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
+import static org.opends.server.TestCaseUtils.applyModifications;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 
@@ -1298,7 +1299,7 @@ public class ModifyOperationTestCase
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
     retrieveFailedOperationElements(modifyOperation);
   }
 
@@ -5164,7 +5165,7 @@ responseLoop:
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    String certificateValue = 
+    String certificateValue =
       "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV" +
       "BAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRpb25lMRwwGgYDVQQLExNQcm9kdWN0IERl" +
       "dmVsb3BtZW50MRQwEgYDVQQDEwtCYWJzIEplbnNlbjAeFw0xMjA1MDIxNjM0MzVa" +
@@ -5177,8 +5178,8 @@ responseLoop:
       "hvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYE" +
       "FLlZD3aKDa8jdhzoByOFMAJDs2osMB8GA1UdIwQYMBaAFLlZD3aKDa8jdhzoByOF" +
       "MAJDs2osMA0GCSqGSIb3DQEBBQUAA4GBAE5vccY8Ydd7by2bbwiDKgQqVyoKrkUg" +
-      "6CD0WRmc2pBeYX2z94/PWO5L3Fx+eIZh2wTxScF+FdRWJzLbUaBuClrxuy0Y5ifj" + 
-      "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" + 
+      "6CD0WRmc2pBeYX2z94/PWO5L3Fx+eIZh2wTxScF+FdRWJzLbUaBuClrxuy0Y5ifj" +
+      "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
@@ -5205,5 +5206,109 @@ responseLoop:
     assertEquals(Base64.encode(a.iterator().next().getValue()), certificateValue);
   }
 
+
+
+  /**
+   * Tests to ensure that the compressed schema is refreshed after an object
+   * class is changed (OPENDJ-169).
+   *
+   * @param baseDN
+   *          The base DN to use.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testCompressedSchemaRefresh(String baseDN) throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry("dn: cn=Test User," + baseDN,
+        "objectClass: top", "objectClass: person",
+        "objectClass: organizationalPerson", "sn: User", "cn: Test User");
+
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+        entry.getObjectClasses(), entry.getUserAttributes(),
+        entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    // First check that adding "dc" fails because it is not allowed by
+    // inetOrgPerson.
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
+    LDAPAttribute attr = new LDAPAttribute("dc", values);
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.ADD, attr));
+    ModifyOperation modifyOperation = conn.processModify(
+        ByteString.valueOf("cn=Test User," + baseDN), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
+
+    assertEquals(
+        applyModifications(
+            false,
+            "dn: cn=schema",
+            "changetype: modify",
+            "delete: objectclasses",
+            "objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )"
+                + "  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )"
+                + "  X-ORIGIN 'RFC 4519' )",
+            "-",
+            "add: objectclasses",
+            "objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )"
+                + "  MAY ( dc $ userPassword $ telephoneNumber $ seeAlso $ description )"
+                + "  X-ORIGIN 'RFC 4519' )"), 0, "Schema update failed");
+    try
+    {
+      // Modify existing entry.
+      modifyOperation = conn.processModify(
+          ByteString.valueOf("cn=Test User," + baseDN), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+      // Add new entry and modify.
+      entry = TestCaseUtils.makeEntry("dn: cn=Test User2," + baseDN,
+          "objectClass: top", "objectClass: person",
+          "objectClass: organizationalPerson", "sn: User2", "cn: Test User2");
+
+      addOperation = conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+          entry.getUserAttributes(), entry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+      modifyOperation = conn.processModify(
+          ByteString.valueOf("cn=Test User2," + baseDN), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+    finally
+    {
+      assertEquals(
+          applyModifications(
+              false,
+              "dn: cn=schema",
+              "changetype: modify",
+              "delete: objectclasses",
+              "objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )"
+                  + "  MAY ( dc $ userPassword $ telephoneNumber $ seeAlso $ description )"
+                  + "  X-ORIGIN 'RFC 4519' )",
+              "-",
+              "add: objectclasses",
+              "objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )"
+                  + "  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )"
+                  + "  X-ORIGIN 'RFC 4519' )"), 0, "Schema update failed");
+
+      // Add new entry and modify (this time it should fail).
+      entry = TestCaseUtils.makeEntry("dn: cn=Test User3," + baseDN,
+          "objectClass: top", "objectClass: person",
+          "objectClass: organizationalPerson", "sn: User3", "cn: Test User3");
+      addOperation = conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+          entry.getUserAttributes(), entry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+      modifyOperation = conn.processModify(
+          ByteString.valueOf("cn=Test User3," + baseDN), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
+    }
+
+  }
 }
 

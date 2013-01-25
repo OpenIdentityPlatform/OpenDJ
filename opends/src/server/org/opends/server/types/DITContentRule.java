@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -252,30 +253,16 @@ public final class DITContentRule
 
 
   /**
-   * Creates a new instance of this DIT content rule based on the
-   * definition string.  It will also preserve other state information
-   * associated with this DIT content rule that is not included in the
-   * definition string (e.g., the name of the schema file with which
-   * it is associated).
-   *
-   * @return  The new instance of this DIT content rule based on the
-   *          definition string.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to create a new DIT content rule
-   *                              instance from the definition string.
+   * {@inheritDoc}
    */
-  public DITContentRule recreateFromDefinition()
+  public DITContentRule recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
     ByteString value  = ByteString.valueOf(definition);
-    Schema     schema = DirectoryConfig.getSchema();
-
     DITContentRule dcr =
          DITContentRuleSyntax.decodeDITContentRule(value, schema,
                                                    false);
     dcr.setSchemaFile(getSchemaFile());
-
     return dcr;
   }
 
