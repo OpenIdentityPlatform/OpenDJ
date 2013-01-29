@@ -28,6 +28,7 @@ package org.forgerock.opendj.adapter.server2x;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -390,7 +391,12 @@ public class StaticUtilsTestCase extends ForgeRockTestCase {
         final PlainSASLBindRequest request =
                 Requests.newPlainSASLBindRequest("u:user.0", ("password").toCharArray());
 
-        final String serverName = InetAddress.getLoopbackAddress().getCanonicalHostName();
+        String serverName = null;
+        try {
+            serverName = InetAddress.getByName(null).getCanonicalHostName();
+        } catch (UnknownHostException e) {
+            // nothing to do.
+        }
         final BindClient bindClient = request.createBindClient(serverName);
         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
         final org.opends.server.types.ByteString expectedValue =
@@ -410,7 +416,12 @@ public class StaticUtilsTestCase extends ForgeRockTestCase {
         final CRAMMD5SASLBindRequest request =
                 Requests.newCRAMMD5SASLBindRequest("u:user.2", ("password").toCharArray());
 
-        final String serverName = InetAddress.getLoopbackAddress().getCanonicalHostName();
+        String serverName = null;
+        try {
+            serverName = InetAddress.getByName(null).getCanonicalHostName();
+        } catch (UnknownHostException e) {
+            // nothing to do.
+        }
         final BindClient bindClient = request.createBindClient(serverName);
         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
         final org.opends.server.types.ByteString expectedValue =
