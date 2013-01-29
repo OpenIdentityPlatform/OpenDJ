@@ -27,6 +27,7 @@
 package org.forgerock.opendj.adapter.server2x;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.AbstractSynchronousConnection;
@@ -339,7 +340,12 @@ public final class Adapters {
                                     .wrap(((SimpleBindRequest) request).getPassword()), to(request
                                     .getControls()));
                 } else if (request instanceof SASLBindRequest) {
-                    String serverName = InetAddress.getLoopbackAddress().getCanonicalHostName();
+                    String serverName = null;
+                    try {
+                        serverName = InetAddress.getByName(null).getCanonicalHostName();
+                    } catch (UnknownHostException e) {
+                        // nothing to do.
+                    }
                     BindClient bindClient = request.createBindClient(serverName);
                     do {
                         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
