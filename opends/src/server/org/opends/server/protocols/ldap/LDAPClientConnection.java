@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2012 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -2480,6 +2480,13 @@ public final class LDAPClientConnection extends ClientConnection implements
     buffer.append(operationsInProgress.size());
     buffer.append("\"");
 
+    int countPSearch = getPersistentSearches().size();
+    if (countPSearch > 0)
+    {
+      buffer.append("\" persistentSearches=\"");
+      buffer.append(countPSearch);
+      buffer.append("\"");
+    }
     return buffer.toString();
   }
 
