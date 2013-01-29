@@ -1,0 +1,47 @@
+dn: cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: admin data
+entryUUID: 46e489f6-1f92-3120-990f-54a178e95b21
+
+dn: cn=instance keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: instance keys
+entryUUID: 66ceef12-f0d6-355e-9e9b-9bdcfe536d8c
+
+dn: cn=secret keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: secret keys
+entryUUID: 26176404-8825-3f77-9efd-c52bd4061f3b
+
+dn: cn=Administrators,cn=admin data
+objectClass: top
+objectClass: groupofurls
+description: Group of identities which have full access.
+cn: Administrators
+memberURL: ldap:///cn=Administrators,cn=admin data??one?(objectclass=*)
+entryUUID: 80faa47a-77d6-3c78-a3c1-ea6ccbd2f735
+
+dn: cn=Server Groups,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Server Groups
+entryUUID: 9ee2aa25-d738-31fc-9fde-145fe9a53ae0
+
+dn: cn=all-servers,cn=Server Groups,cn=admin data
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: all-servers
+entryUUID: 00450d2d-26b0-3d92-b9e8-f616539697fa
+
+dn: ds-cfg-key-id=81CBCFAE9071CC6EE714E6335A66D8A7,cn=instance keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-instance-key
+ds-cfg-public-key-certificate;binary:: MIIB8TCCAVqgAwIBAgIEOhnIwDANBgkqhkiG9w0BAQUFADA9MRswGQYDVQQKExJPcGVuREogQ2VydGlmaWNhdGUxHjAcBgNVBAMTFXZpb2xldHRlLU9wdGlQbGV4LTk5MDAeFw0xMjEyMTgxNTQxMDFaFw0zMjEyMTMxNTQxMDFaMD0xGzAZBgNVBAoTEk9wZW5ESiBDZXJ0aWZpY2F0ZTEeMBwGA1UEAxMVdmlvbGV0dGUtT3B0aVBsZXgtOTkwMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDKwnHXiWOCCbjlsrPz2EYub5VY9If+cytTbAW/5N9jE7ggmmigwahsONq4RP+vgV5hFcuK5ubjI9pP07cUTpVaNYRLEds3GYIkahQqVZbfCdsjzP5c/DAEyy4IUQmcOOcUXDZStxNexly7jvkm/k8ikaBiBXtfZaAV9KFi2PVHlwIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAE9cpVnnnidbsBeRipSnsSr7xDV0d64UP5Je1Sr9R8IgoMcyPoX+mTvhwHuqYddL7nHK0H7JTSjJ83fs+NtPwHmGI0eHvsqKOKzgGUU7qxTYgZdd4tV4/qpe8wyMWLKFBKlIrGud3kvO88yH+hVZ/0K+n4b1ER9FgEWYFSva4buh
+ds-cfg-key-id: 81CBCFAE9071CC6EE714E6335A66D8A7
+creatorsName: cn=Internal Client,cn=Root DNs,cn=config
+createTimestamp: 20121218164903Z
+entryUUID: 93458591-36e0-4c3b-96d8-328c1c66b0bf
+
