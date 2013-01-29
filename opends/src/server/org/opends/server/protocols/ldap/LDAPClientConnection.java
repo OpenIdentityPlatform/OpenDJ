@@ -2483,7 +2483,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     int countPSearch = getPersistentSearches().size();
     if (countPSearch > 0)
     {
-      buffer.append("\" persistentSearches=\"");
+      buffer.append(" persistentSearches=\"");
       buffer.append(countPSearch);
       buffer.append("\"");
     }
