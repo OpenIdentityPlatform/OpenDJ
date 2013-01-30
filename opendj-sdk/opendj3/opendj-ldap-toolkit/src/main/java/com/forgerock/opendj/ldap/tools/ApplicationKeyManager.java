@@ -90,7 +90,7 @@ final class ApplicationKeyManager implements X509KeyManager {
             }
         }
 
-        // Have some fallbacks to choose the provider and algorith of the
+        // Have some fallbacks to choose the provider and algorithm of the
         // key manager. First see if the user wanted to use something
         // specific, then try with the SunJSSE provider and SunX509
         // algorithm. Finally, fallback to the default algorithm of the JVM.
@@ -117,7 +117,7 @@ final class ApplicationKeyManager implements X509KeyManager {
                  * manager.
                  */
                 for (final KeyManager km : kms) {
-                    if (kms[i] instanceof X509KeyManager) {
+                    if (km instanceof X509KeyManager) {
                         keyManager = (X509KeyManager) km;
                         break;
                     }
