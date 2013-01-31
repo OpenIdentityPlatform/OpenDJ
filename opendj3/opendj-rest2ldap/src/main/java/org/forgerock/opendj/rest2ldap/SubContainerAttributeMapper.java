@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -22,9 +22,9 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
 
 /**
  * An attribute mapper which inlines LDAP attributes from subordinate LDAP
@@ -38,7 +38,16 @@ public class SubContainerAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
+    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+            final Set<String> ldapAttributes) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void getLDAPFilter(final Context c, final FilterType type,
+            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
+            final ResultHandler<Filter> h) {
         // TODO Auto-generated method stub
 
     }
@@ -47,8 +56,7 @@ public class SubContainerAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void toJSON(final ServerContext c, final Entry e,
-            final ResultHandler<Map<String, Object>> h) {
+    public void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         // TODO Auto-generated method stub
 
     }
@@ -57,8 +65,7 @@ public class SubContainerAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void toLDAP(final ServerContext c, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
+    public void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }

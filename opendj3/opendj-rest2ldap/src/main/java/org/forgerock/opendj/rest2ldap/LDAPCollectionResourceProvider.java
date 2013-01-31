@@ -11,12 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
+import static org.forgerock.opendj.rest2ldap.Utils.transform;
+
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +36,8 @@ import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
 import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchRequest;
+import org.forgerock.json.resource.QueryFilter;
+import org.forgerock.json.resource.QueryFilterVisitor;
 import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResult;
 import org.forgerock.json.resource.QueryResultHandler;
@@ -47,6 +54,8 @@ import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.TimeoutResultException;
@@ -62,8 +71,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
     private final AttributeMapper attributeMapper;
-
     private final EntryContainer entryContainer;
+    private final Config config = new Config();
 
     /**
      * Creates a new LDAP resource.
@@ -131,13 +140,12 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
     @Override
     public void queryCollection(final ServerContext context, final QueryRequest request,
             final QueryResultHandler handler) {
-        final Set<JsonPointer> requestedAttributes = new LinkedHashSet<JsonPointer>();
-        final Collection<String> requestedLDAPAttributes = getRequestedLDAPAttributes(requestedAttributes);
-
         // List the entries.
+        final Context c = wrap(context);
         final SearchResultHandler searchHandler = new SearchResultHandler() {
             private final AtomicInteger pendingResourceCount = new AtomicInteger();
-            private final AtomicReference<ResourceException> pendingResult = new AtomicReference<ResourceException>();
+            private final AtomicReference<ResourceException> pendingResult =
+                    new AtomicReference<ResourceException>();
             private final AtomicBoolean resultSent = new AtomicBoolean();
 
             @Override
@@ -155,25 +163,27 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                 // mapping?
                 final String id = entryContainer.getIDFromEntry(entry);
                 final String revision = entryContainer.getEtagFromEntry(entry);
-                final ResultHandler<Map<String, Object>> mapHandler = new ResultHandler<Map<String, Object>>() {
-                    @Override
-                    public void handleError(final ResourceException e) {
-                        pendingResult.compareAndSet(null, e);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
-                    }
+                final ResultHandler<Map<String, Object>> mapHandler =
+                        new ResultHandler<Map<String, Object>>() {
+                            @Override
+                            public void handleError(final ResourceException e) {
+                                pendingResult.compareAndSet(null, e);
+                                pendingResourceCount.decrementAndGet();
+                                completeIfNecessary();
+                            }
 
-                    @Override
-                    public void handleResult(final Map<String, Object> result) {
-                        final Resource resource = new Resource(id, revision, new JsonValue(result));
-                        handler.handleResource(resource);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
-                    }
-                };
+                            @Override
+                            public void handleResult(final Map<String, Object> result) {
+                                final Resource resource =
+                                        new Resource(id, revision, new JsonValue(result));
+                                handler.handleResource(resource);
+                                pendingResourceCount.decrementAndGet();
+                                completeIfNecessary();
+                            }
+                        };
 
                 pendingResourceCount.incrementAndGet();
-                attributeMapper.toJSON(context, entry, mapHandler);
+                attributeMapper.toJSON(c, entry, mapHandler);
                 return true;
             }
 
@@ -213,7 +223,24 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                 }
             }
         };
-        entryContainer.listEntries(context, requestedLDAPAttributes, searchHandler);
+
+        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
+        getLDAPFilter(c, request.getQueryFilter(), new ResultHandler<Filter>() {
+            @Override
+            public void handleError(final ResourceException error) {
+                handler.handleError(error);
+            }
+
+            @Override
+            public void handleResult(final Filter ldapFilter) {
+                // Avoid performing a search if the filter could not be mapped or if it will never match.
+                if (ldapFilter == null || ldapFilter == c.getConfig().getFalseFilter()) {
+                    handler.handleResult(new QueryResult());
+                } else {
+                    entryContainer.listEntries(c, ldapFilter, ldapAttributes, searchHandler);
+                }
+            }
+        });
     }
 
     /**
@@ -222,39 +249,39 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
     @Override
     public void readInstance(final ServerContext context, final String resourceId,
             final ReadRequest request, final ResultHandler<Resource> handler) {
-        // TODO: Determine the set of LDAP attributes that need to be read.
-        final Set<JsonPointer> requestedAttributes = new LinkedHashSet<JsonPointer>();
-        final Collection<String> requestedLDAPAttributes = getRequestedLDAPAttributes(requestedAttributes);
-
+        final Context c = wrap(context);
         // @Checkstyle:off
         final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
                 new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                handler.handleError(adaptErrorResult(error));
-            }
-
-            @Override
-            public void handleResult(final SearchResultEntry entry) {
-                final String revision = entryContainer.getEtagFromEntry(entry);
-                final ResultHandler<Map<String, Object>> mapHandler = new ResultHandler<Map<String, Object>>() {
                     @Override
-                    public void handleError(final ResourceException e) {
-                        handler.handleError(e);
+                    public void handleErrorResult(final ErrorResultException error) {
+                        handler.handleError(adaptErrorResult(error));
                     }
 
                     @Override
-                    public void handleResult(final Map<String, Object> result) {
-                        final Resource resource = new Resource(resourceId, revision, new JsonValue(
-                                result));
-                        handler.handleResult(resource);
+                    public void handleResult(final SearchResultEntry entry) {
+                        final String revision = entryContainer.getEtagFromEntry(entry);
+                        final ResultHandler<Map<String, Object>> mapHandler =
+                                new ResultHandler<Map<String, Object>>() {
+                                    @Override
+                                    public void handleError(final ResourceException e) {
+                                        handler.handleError(e);
+                                    }
+
+                                    @Override
+                                    public void handleResult(final Map<String, Object> result) {
+                                        final Resource resource =
+                                                new Resource(resourceId, revision, new JsonValue(
+                                                        result));
+                                        handler.handleResult(resource);
+                                    }
+                                };
+                        attributeMapper.toJSON(c, entry, mapHandler);
                     }
                 };
-                attributeMapper.toJSON(context, entry, mapHandler);
-            }
-        };
         // @Checkstyle:on
-        entryContainer.readEntry(context, resourceId, requestedLDAPAttributes, searchHandler);
+        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
+        entryContainer.readEntry(c, resourceId, ldapAttributes, searchHandler);
     }
 
     /**
@@ -299,27 +326,217 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
 
     /**
      * Determines the set of LDAP attributes to request in an LDAP read (search,
-     * post-read), based on the provided set of JSON pointers.
+     * post-read), based on the provided list of JSON pointers.
      *
      * @param requestedAttributes
-     *            The set of resource attributes to be read.
+     *            The list of resource attributes to be read.
      * @return The set of LDAP attributes associated with the resource
      *         attributes.
      */
-    private Collection<String> getRequestedLDAPAttributes(final Set<JsonPointer> requestedAttributes) {
+    private Collection<String> getLDAPAttributes(final Context c,
+            final Collection<JsonPointer> requestedAttributes) {
         final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
             requestedLDAPAttributes = new LinkedHashSet<String>();
-            attributeMapper.getLDAPAttributes(new JsonPointer(), requestedLDAPAttributes);
+            attributeMapper.getLDAPAttributes(c, new JsonPointer(), requestedLDAPAttributes);
         } else {
             // Partial read.
             requestedLDAPAttributes = new LinkedHashSet<String>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributes(requestedAttribute, requestedLDAPAttributes);
+                attributeMapper.getLDAPAttributes(c, requestedAttribute, requestedLDAPAttributes);
             }
         }
         return requestedLDAPAttributes;
     }
 
+    private void getLDAPFilter(final Context c, final QueryFilter queryFilter,
+            final ResultHandler<Filter> h) {
+        final QueryFilterVisitor<Void, ResultHandler<Filter>> visitor =
+                new QueryFilterVisitor<Void, ResultHandler<Filter>>() {
+                    @Override
+                    public Void visitAndFilter(final ResultHandler<Filter> p,
+                            final List<QueryFilter> subFilters) {
+                        final ResultHandler<Filter> handler =
+                                accumulate(subFilters.size(), transform(
+                                        new Function<List<Filter>, Filter, Void>() {
+                                            @Override
+                                            public Filter apply(final List<Filter> value,
+                                                    final Void p) {
+                                                // Check for unmapped filter components and optimize.
+                                                final Iterator<Filter> i = value.iterator();
+                                                while (i.hasNext()) {
+                                                    final Filter f = i.next();
+                                                    if (f == null) {
+                                                        // Filter component did not match any attribute mappers.
+                                                        return c.getConfig().getFalseFilter();
+                                                    } else if (f == c.getConfig().getFalseFilter()) {
+                                                        return c.getConfig().getFalseFilter();
+                                                    } else if (f == c.getConfig().getTrueFilter()) {
+                                                        i.remove();
+                                                    }
+                                                }
+                                                switch (value.size()) {
+                                                case 0:
+                                                    return c.getConfig().getTrueFilter();
+                                                case 1:
+                                                    return value.get(0);
+                                                default:
+                                                    return Filter.and(value);
+                                                }
+                                            }
+                                        }, p));
+                        for (final QueryFilter subFilter : subFilters) {
+                            subFilter.accept(this, handler);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitBooleanLiteralFilter(final ResultHandler<Filter> p,
+                            final boolean value) {
+                        p.handleResult(value ? c.getConfig().getTrueFilter() : c.getConfig()
+                                .getFalseFilter());
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitContainsFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.CONTAINS, field, null,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitEqualsFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.EQUAL_TO, field, null,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitExtendedMatchFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final String operator,
+                            final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.EXTENDED, field, operator,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitGreaterThanFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.GREATER_THAN, field, null,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitGreaterThanOrEqualToFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.GREATER_THAN_OR_EQUAL_TO,
+                                field, null, valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitLessThanFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.LESS_THAN, field, null,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitLessThanOrEqualToFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.LESS_THAN_OR_EQUAL_TO, field,
+                                null, valueAssertion, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitNotFilter(final ResultHandler<Filter> p,
+                            final QueryFilter subFilter) {
+                        subFilter.accept(this, transform(new Function<Filter, Filter, Void>() {
+                            @Override
+                            public Filter apply(final Filter value, final Void p) {
+                                if (value == null) {
+                                    // Filter component did not match any attribute mappers.
+                                    return c.getConfig().getTrueFilter();
+                                } else if (value == c.getConfig().getFalseFilter()) {
+                                    return c.getConfig().getTrueFilter();
+                                } else if (value == c.getConfig().getTrueFilter()) {
+                                    return c.getConfig().getFalseFilter();
+                                } else {
+                                    return Filter.not(value);
+                                }
+                            }
+                        }, p));
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitOrFilter(final ResultHandler<Filter> p,
+                            final List<QueryFilter> subFilters) {
+                        final ResultHandler<Filter> handler =
+                                accumulate(subFilters.size(), transform(
+                                        new Function<List<Filter>, Filter, Void>() {
+                                            @Override
+                                            public Filter apply(final List<Filter> value,
+                                                    final Void p) {
+                                                // Check for unmapped filter components and optimize.
+                                                final Iterator<Filter> i = value.iterator();
+                                                while (i.hasNext()) {
+                                                    final Filter f = i.next();
+                                                    if (f == null) {
+                                                        // Filter component did not match any attribute mappers.
+                                                        i.remove();
+                                                    } else if (f == c.getConfig().getFalseFilter()) {
+                                                        i.remove();
+                                                    } else if (f == c.getConfig().getTrueFilter()) {
+                                                        return c.getConfig().getTrueFilter();
+                                                    }
+                                                }
+                                                switch (value.size()) {
+                                                case 0:
+                                                    return c.getConfig().getFalseFilter();
+                                                case 1:
+                                                    return value.get(0);
+                                                default:
+                                                    return Filter.or(value);
+                                                }
+                                            }
+                                        }, p));
+                        for (final QueryFilter subFilter : subFilters) {
+                            subFilter.accept(this, handler);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitPresentFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field) {
+                        attributeMapper.getLDAPFilter(c, FilterType.PRESENT, field, null, null, p);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitStartsWithFilter(final ResultHandler<Filter> p,
+                            final JsonPointer field, final Object valueAssertion) {
+                        attributeMapper.getLDAPFilter(c, FilterType.STARTS_WITH, field, null,
+                                valueAssertion, p);
+                        return null;
+                    }
+
+                };
+        // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
+        queryFilter.accept(visitor, h);
+    }
+
+    private Context wrap(ServerContext context) {
+        return new Context(config, context);
+    }
 }

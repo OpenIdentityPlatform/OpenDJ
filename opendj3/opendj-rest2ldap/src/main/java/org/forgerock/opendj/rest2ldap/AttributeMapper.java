@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -22,9 +22,9 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
 
 /**
  * An attribute mapper is responsible for converting JSON values to and from
@@ -40,13 +40,48 @@ public interface AttributeMapper {
      * Implementations should only add the names of attributes found in the LDAP
      * entry directly associated with the resource.
      *
+     * @param c
+     *            The context.
      * @param jsonAttribute
      *            The name of the resource attribute requested by the client.
      * @param ldapAttributes
      *            The set into which the required LDAP attribute names should be
      *            put.
      */
-    void getLDAPAttributes(JsonPointer jsonAttribute, Set<String> ldapAttributes);
+    void getLDAPAttributes(Context c, JsonPointer jsonAttribute, Set<String> ldapAttributes);
+
+    /**
+     * Transforms the provided REST comparison filter parameters to an LDAP
+     * filter representation, invoking a completion handler once the
+     * transformation has completed.
+     * <p>
+     * If this attribute mapper is not responsible for mapping the provided JSON
+     * attribute then the result handler's {@link ResultHandler#handleResult
+     * handleResult} method must be invoked with the value {@code null}. If this
+     * attribute mapper is responsible for mapping the JSON attribute, but an
+     * error occurred while constructing the LDAP filter, then the result
+     * handler's {@link ResultHandler#handleError handleError} method must be
+     * invoked with an appropriate exception indicating the problem which
+     * occurred.
+     *
+     * @param c
+     *            The context.
+     * @param type
+     *            The type of REST comparison filter.
+     * @param jsonAttribute
+     *            The name of the resource attribute to be filtered.
+     * @param operator
+     *            The name of the extended operator to use for the comparison,
+     *            or {@code null} if {@code type} is not
+     *            {@link FilterType#EXTENDED}.
+     * @param valueAssertion
+     *            The value assertion, or {@code null} if {@code type} is
+     *            {@link FilterType#PRESENT}.
+     * @param h
+     *            The result handler.
+     */
+    void getLDAPFilter(Context c, FilterType type, JsonPointer jsonAttribute, String operator,
+            Object valueAssertion, ResultHandler<Filter> h);
 
     /**
      * Transforms attributes contained in the provided LDAP entry to JSON
@@ -58,13 +93,13 @@ public interface AttributeMapper {
      * requests.
      *
      * @param c
-     *            The server context.
+     *            The context.
      * @param e
      *            The LDAP entry to be converted to JSON.
      * @param h
      *            The result handler.
      */
-    void toJSON(ServerContext c, Entry e, ResultHandler<Map<String, Object>> h);
+    void toJSON(Context c, Entry e, ResultHandler<Map<String, Object>> h);
 
     /**
      * Transforms JSON content in the provided JSON value to LDAP attributes,
@@ -75,16 +110,15 @@ public interface AttributeMapper {
      * requests.
      *
      * @param c
-     *            The server context.
+     *            The context.
      * @param v
      *            The JSON value to be converted to LDAP attributes.
      * @param h
      *            The result handler.
      */
-    void toLDAP(ServerContext c, JsonValue v, ResultHandler<List<Attribute>> h);
+    void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).
-    // TODO: methods for creating filters createLDAPEqualityFilter().
     // TODO: methods for creating sort controls.
 }

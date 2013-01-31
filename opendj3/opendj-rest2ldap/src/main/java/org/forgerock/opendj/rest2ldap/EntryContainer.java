@@ -11,13 +11,12 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
 import java.util.Collection;
 
-import org.forgerock.json.resource.Context;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
@@ -119,6 +118,7 @@ public final class EntryContainer {
     // FIXME: make this configurable, also allow use of DN.
     private static final String UUID_ATTRIBUTE = "entryUUID";
 
+    // TODO: support template variables.
     private final DN baseDN;
 
     private final ConnectionFactory factory;
@@ -164,27 +164,30 @@ public final class EntryContainer {
      *
      * @param context
      *            The request context.
+     * @param filter
+     *            The LDAP search filter.
      * @param attributes
      *            The list of LDAP attributes to be returned.
      * @param handler
      *            The search result handler.
      */
-    public void listEntries(final Context context, final Collection<String> attributes,
-            final SearchResultHandler handler) {
+    public void listEntries(final Context context, final Filter filter,
+            final Collection<String> attributes, final SearchResultHandler handler) {
         final String[] tmp = getSearchAttributes(attributes);
-        final ConnectionCompletionHandler<Result> outerHandler = new ConnectionCompletionHandler<Result>(
-                handler) {
+        final ConnectionCompletionHandler<Result> outerHandler =
+                new ConnectionCompletionHandler<Result>(handler) {
 
-            @Override
-            public void handleResult(final Connection connection) {
-                final SearchRequestCompletionHandler innerHandler = new SearchRequestCompletionHandler(
-                        connection, handler);
-                final SearchRequest request = Requests.newSearchRequest(baseDN,
-                        SearchScope.SINGLE_LEVEL, Filter.objectClassPresent(), tmp);
-                connection.searchAsync(request, null, innerHandler);
-            }
+                    @Override
+                    public void handleResult(final Connection connection) {
+                        final SearchRequestCompletionHandler innerHandler =
+                                new SearchRequestCompletionHandler(connection, handler);
+                        final SearchRequest request =
+                                Requests.newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, filter,
+                                        tmp);
+                        connection.searchAsync(request, null, innerHandler);
+                    }
 
-        };
+                };
 
         factory.getConnectionAsync(outerHandler);
     }
@@ -208,16 +211,17 @@ public final class EntryContainer {
         final ConnectionCompletionHandler<SearchResultEntry> outerHandler =
                 new ConnectionCompletionHandler<SearchResultEntry>(handler) {
 
-            @Override
-            public void handleResult(final Connection connection) {
-                final RequestCompletionHandler<SearchResultEntry> innerHandler =
-                        new RequestCompletionHandler<SearchResultEntry>(connection, handler);
-                final SearchRequest request = Requests.newSearchRequest(baseDN,
-                        SearchScope.SINGLE_LEVEL, Filter.equality(UUID_ATTRIBUTE, id), tmp);
-                connection.searchSingleEntryAsync(request, innerHandler);
-            }
+                    @Override
+                    public void handleResult(final Connection connection) {
+                        final RequestCompletionHandler<SearchResultEntry> innerHandler =
+                                new RequestCompletionHandler<SearchResultEntry>(connection, handler);
+                        final SearchRequest request =
+                                Requests.newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter
+                                        .equality(UUID_ATTRIBUTE, id), tmp);
+                        connection.searchSingleEntryAsync(request, innerHandler);
+                    }
 
-        };
+                };
         // @Checkstyle:on
         factory.getConnectionAsync(outerHandler);
     }
