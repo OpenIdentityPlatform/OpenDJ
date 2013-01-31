@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-ldap-operations'
@@ -1132,5 +1132,595 @@ Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
    </step>
   </procedure>
+ </section>
+
+ <section xml:id="client-cert-auth">
+  <title>Authenticating Using a Certificate</title>
+  <indexterm><primary>Certificates</primary></indexterm>
+  <indexterm><primary>StartTLS</primary></indexterm>
+  <indexterm><primary>SSL</primary></indexterm>
+
+  <para>One alternative to simple binds with user name/password combinations
+  consists in storing a digital certificate on the user entry, and then using
+  the certificate as credentials during the bind. You can use this mechanism for
+  example to let applications bind without using passwords.</para>
+
+  <para>Simply by setting up a secure connection with a certificate, the client
+  is in effect authenticating to the server. The server must close the
+  connection if it cannot trust the client certificate. However, the process
+  of establishing a secure connection does not in itself identify the client
+  to OpenDJ directory server.</para>
+
+  <para>Instead when binding with a certificate, the client must request the
+  SASL External mechanism by which OpenDJ directory server maps the certificate
+  to the client entry in the directory. When it finds a match, OpenDJ sets the
+  authorization identity for the connection to that of the client, and the bind
+  is successful.</para>
+
+  <para>For the whole process of authenticating with a certificate to work
+  smoothly, OpenDJ and the client must trust each others' certificates, the
+  client certificate must be stored on the client entry in the directory, and
+  OpenDJ must be configured to map the certificate to the client entry.</para>
+
+  <procedure xml:id="add-client-cert">
+   <title>To Add Certificate Information to an Entry</title>
+
+   <para>Before trying to bind to OpenDJ directory server using a certificate,
+   create a certificate, and then add the certificate attributes to the
+   entry.</para>
+
+   <para><link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   xlink:show="new">Example.ldif</link> includes an entry for
+   <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>. Examples in this
+   section use that entry, and use the Java <command>keytool</command> command
+   to manage the certificate.</para>
+
+   <step>
+    <para>Create a certificate using the DN of the client entry as the
+    distinguished name string.</para>
+
+    <screen>$ keytool
+ -genkey
+ -alias myapp-cert
+ -keyalg rsa
+ -dname "cn=My App,ou=Apps,dc=example,dc=com"
+ -keystore keystore
+ -storepass changeit
+ -keypass changeit</screen>
+   </step>
+
+   <step>
+    <para>Get the certificate signed.</para>
+
+    <para>If you cannot get the certificate signed by a Certificate Authority,
+    self-sign the certificate.</para>
+
+    <screen>$ keytool
+ -selfcert
+ -alias myapp-cert
+ -validity 7300
+ -keystore keystore
+ -storepass changeit
+ -keypass changeit</screen>
+   </step>
+
+   <step>
+    <para>Make note of the certificate fingerprints.</para>
+
+    <para>Later in this procedure you update the client application entry with
+    the MD5 fingerprint, which in this example is
+    <literal>48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37</literal>.</para>
+    <screen>$ keytool
+ -list
+ -v
+ -alias myapp-cert
+ -keystore keystore
+ -storepass changeit
+Alias name: myapp-cert
+Creation date: Jan 18, 2013
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 5ae2277
+Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
+Certificate fingerprints:
+	 MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+	 SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
+	 SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
+0010: C9 6B 32 95                                        .k2.
+]
+]</screen>
+   </step>
+
+   <step>
+    <para>Export the certificate to a file in binary format.</para>
+
+    <screen>$ keytool
+ -export
+ -alias myapp-cert
+ -keystore keystore
+ -storepass changeit
+ -keypass changeit
+ -file myapp-cert.crt
+Certificate stored in file &lt;/path/to/myapp-cert.crt&gt;</screen>
+   </step>
+
+   <step>
+    <para>Modify the entry to add attributes related to the certificate.</para>
+
+    <para>By default, you need the <literal>userCertificate</literal>
+    value.</para>
+
+    <para>If you want OpenDJ to map the certificate to its fingerprint, use
+    <literal>ds-certificate-fingerprint</literal>. This example uses the MD5
+    fingerprint, which corresponds to the default setting for the Fingerprint
+    Certificate Mapper.</para>
+
+    <para>If you want to map the certificate subject DN to an attribute of the
+    entry, use <literal>ds-certificate-subject-dn</literal>.</para>
+
+    <screen>$ cat addcert.ldif
+dn: cn=My App,ou=Apps,dc=example,dc=com
+changetype: modify
+add: objectclass
+objectclass: ds-certificate-user
+-
+add: ds-certificate-fingerprint
+ds-certificate-fingerprint: 48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+-
+add: ds-certificate-subject-dn
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+-
+add: userCertificate;binary
+userCertificate;binary:&lt;file:///path/to/myapp-cert.crt
+
+$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename addcert.ldif
+Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
+MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com</screen>
+   </step>
+
+   <step>
+    <para>Check your work.</para>
+
+    <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ "(cn=My App)"
+dn: cn=My App,ou=Apps,dc=example,dc=com
+ds-certificate-fingerprint: 4B:F5:CF:2C:2D:B3:86:14:FF:43:A8:37:17:DD:E7:55
+userCertificate;binary:: MIIDOzCCAiOgAwIBAgIESfC6IjANBgkqhkiG9w0BAQsFADBOMRMwEQY
+ KCZImiZPyLGQBGRYDY29tMRcwFQYKCZImiZPyLGQBGRYHZXhhbXBsZTENMAsGA1UECxMEQXBwczEPMA
+ 0GA1UEAxMGTXkgQXBwMB4XDTEzMDExNzE3MTEwM1oXDTEzMDQxNzE3MTEwM1owTjETMBEGCgmSJomT8
+ ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1wbGUxDTALBgNVBAsTBEFwcHMxDzANBgNVBAMT
+ Bk15IEFwcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJQYq+jG4ZQdNkyBT4OQBZ0sFkl
+ X5o2yBViDMGl1sSWIRGLpFwu6iq1chndPBJYTC+FkT66yEEOwWOpSfcYdFHkMQP0qp5A8mgP6bYkeH1
+ ROvQ1nhLs0ILuksR10CVIQ5b1zv6bGEFhA9gSKmpHfQOSt9PXq8+kuz+4RgZk9Il28tgDNMm91wSJr7
+ kqi5g7a2a7Io5s9L2FeLhVSBYwinWQnASk8nENrhcE0hHkrpGsaxdhIQBQQvm+SRC0dI4E9iwBGI3Lw
+ lV3a4KTa5DlYD6cDREI6B8XlSdc1DaIhwC8CbsE0WJQoCERSURdjkuHrPck6f69HKUFRiC7JMT3dFbs
+ CAwEAAaMhMB8wHQYDVR0OBBYEFFTAxZxzN4VL8jvTN/1FCqvJazKVMA0GCSqGSIb3DQEBCwUAA4IBAQ
+ BXsAIEw7I5XUzLFHvXb2N0hmW/Vmhb/Vlv9LTT8JcCRJy4zaiyS9Q+Sp9zQUkrXauFnNAhJLwpAymjZ
+ MCOq1Th1bw9LnIzbccPQ/1+ZHLKDU5pgnc5BcvaV6Zl6COLLH2OOt0XMZ/OrODBV1M6STfhChqcowff
+ xp72pWMQe+kpZfzjeDBk4kK2hUNTZsimB9qRyrDAMCIXdmdmFv1o07orxjy8c/6S1329swiiVqFckBR
+ aXIa8wCcXjpQbZacDODeKk6wZIKxw4miLg1YByCMa7vkUfz+Jj+JHgbHjyoT/G82mtDbX02chLgXbDm
+ xJPFN3mwAC7NEkSPbqd35nJlf3
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: ds-certificate-user
+objectClass: top
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+cn: My App
+sn: App</screen>
+   </step>
+
+   <step>
+    <para>When using a self-signed certificate, import the client certificate
+    into the trust store for OpenDJ.</para>
+
+    <para>When the client presents its certificate to OpenDJ, by default OpenDJ
+    has to be able to trust the client certificate before it can accept the
+    connection.</para>
+
+    <screen>$ keytool
+ -import
+ -alias myapp-cert
+ -file /path/to/myapp-cert.crt
+ -keystore /path/to/OpenDJ/config/truststore
+ -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 5ae2277
+Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
+Certificate fingerprints:
+	 MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+	 SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
+	 SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
+0010: C9 6B 32 95                                        .k2.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+   </step>
+
+   <step>
+    <para>When using a certificate signed by a CA whose certificate is not
+    delivered with the Java runtime environment<footnote>
+     <para><filename>$JAVA_HOME/jre/lib/security/cacerts</filename> holds the
+     certificates for many CAs. To get the full list, use the following
+     command.</para>
+     <screen>$ keytool
+ -list
+ -v
+ -keystore $JAVA_HOME/jre/lib/security/cacerts
+ -storepass changeit</screen></footnote>, import the CA certificate either
+     into the Java runtime environment trust store, or into the OpenDJ trust
+     store as shown in the following example.</para>
+
+    <screen>$ keytool
+ -import
+ -alias ca-cert
+ -file ca.crt
+ -keystore /path/to/OpenDJ/config/truststore
+ -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+Owner: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Issuer: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Serial number: d4586ea05c878b0c
+Valid from: Tue Jan 29 09:30:31 CET 2013 until: Mon Jan 24 09:30:31 CET 2033
+Certificate fingerprints:
+	 MD5:  8A:83:61:9B:E7:18:A2:21:CE:92:94:96:59:68:60:FA
+	 SHA1: 01:99:18:38:3A:57:D7:92:7B:D6:03:8C:7B:E4:1D:37:45:0E:29:DA
+	 SHA256: 5D:20:F1:86:CC:CD:64:50:1E:54:...:DF:15:43:07:69:44:00:FB:36:CF
+	 Signature algorithm name: SHA1withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+[EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR]
+SerialNumber: [    d4586ea0 5c878b0c]
+]
+
+#2: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+   </step>
+
+   <step>
+    <para>If you updated the OpenDJ trust store to add a certificate, restart
+    OpenDJ to make sure it reads the updated trust store and can recognize the
+    certificate.</para>
+
+    <screen>$ stop-ds --restart
+Stopping Server...
+...
+... The Directory Server has started successfully</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="config-cert-mappers">
+   <title>To Configure Certificate Mappers</title>
+
+   <variablelist>
+    <para>OpenDJ uses certificate mappers during binds to establish a mapping
+     between a client certificate and the entry that corresponds to that
+     certificate. The certificate mappers provided out of the box include the
+     following.</para>
+
+    <varlistentry>
+     <term>Fingerprint Certificate Mapper</term>
+     <listitem>
+      <para>Looks for the MD5 (default) or SHA1 certificate fingerprint in an
+      attribute of the entry (default:
+      <literal>ds-certificate-fingerprint</literal>).</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>Subject Attribute To User Attribute Mapper</term>
+     <listitem>
+      <para>Looks for a match between an attribute of the certificate subject
+      and an attribute of the entry (default: match <literal>cn</literal> in
+      the certificate to <literal>cn</literal> on the entry, or match
+      <literal>e</literal> in the certificate to <literal>mail</literal> on
+      the entry).</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>Subject DN to User Attribute Certificate Mapper</term>
+     <listitem>
+      <para>Looks for the certificate subject DN in an attribute of the entry
+      (default: <literal>ds-certificate-subject-dn</literal>).</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>Subject Equals DN Certificate Mapper</term>
+     <listitem>
+      <para>Looks for an entry whose DN matches the certificate subject DN.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+
+   <para>If the default configurations for the certificate mappers are
+   acceptable, you do not need to change them. They are enabled by
+   default.</para>
+
+   <para>The following steps demonstrate how to change the Fingerprint Mapper
+   default algorithm of MD5 to SHA1.</para>
+
+   <step>
+    <para>List the certificate mappers to retrieve the correct name.</para>
+
+    <screen width="83">$ dsconfig
+ list-certificate-mappers
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+Certificate Mapper                  : Type                                : enabled
+------------------------------------:-------------------------------------:--------
+Fingerprint Mapper                  : fingerprint                         : true
+Subject Attribute to User Attribute : subject-attribute-to-user-attribute : true
+Subject DN to User Attribute        : subject-dn-to-user-attribute        : true
+Subject Equals DN                   : subject-equals-dn                   : true</screen>
+   </step>
+
+   <step>
+    <para>Examine the current configuration.</para>
+
+    <screen>$ dsconfig
+ get-certificate-mapper-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --mapper-name "Fingerprint Mapper"
+
+Property              : Value(s)
+----------------------:---------------------------
+enabled               : true
+fingerprint-algorithm : md5
+fingerprint-attribute : ds-certificate-fingerprint
+user-base-dn          : -</screen>
+   </step>
+
+   <step>
+    <para>Change the configuration as necessary.</para>
+
+    <screen>$ dsconfig
+ set-certificate-mapper-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --mapper-name "Fingerprint Mapper"
+ --set fingerprint-algorithm:sha1
+ --no-prompt</screen>
+   </step>
+
+   <step>
+    <para>Set the External SASL Mechanism Handler to use the appropriate
+    certificate mapper (default: Subject Equals DN).</para>
+
+    <para>Clients applications use the SASL External mechanism during the bind
+    to have OpenDJ set the authorization identifier based on the entry that
+    matches the client certificate.</para>
+
+    <screen>$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name External
+ --set certificate-mapper:"Fingerprint Mapper"
+ --no-prompt</screen>
+   </step>
+  </procedure>
+
+  <example xml:id="auth-with-client-cert"><?dbfo keep-together="auto"?>
+   <title>Authenticate With Client Certificate</title>
+
+   <para>Instead of providing a bind DN and password as for simple
+   authentication, use the SASL EXTERNAL authentication mechanism, and provide
+   the certificate. As a test with example data you can try an anonymous search,
+   and then try with certificate-based authentication.</para>
+
+   <para>Before you try this example, make sure OpenDJ is set up to accept
+   StartTLS from clients, and that you have set up the client certificate
+   as described above. Next, create a password .pin file for your client key
+   store.</para>
+
+   <screen>$ echo changeit &gt; keystore.pin
+$ chmod 400 keystore.pin</screen>
+
+   <para>Also, if OpenDJ directory server uses a certificate for StartTLS that
+   was not signed by a well-known CA, import the appropriate certificate into
+   the client key store, which can then double as a trust store. For example,
+   if OpenDJ uses a self-signed certificate, import the server certificate into
+   the key store.</para>
+
+   <screen>$ keytool
+ -export
+ -alias server-cert
+ -file server-cert.crt
+ -keystore /path/to/OpenDJ/config/keystore
+ -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+$ keytool
+ -import
+ -trustcacerts
+ -alias server-cert
+ -file server-cert.crt
+ -keystore keystore
+ -storepass `cat keystore.pin`</screen>
+
+   <para>If OpenDJ directory server uses a CA-signed certificate, but the CA is
+   not well known, import the CA certificate into your keystore.</para>
+
+   <screen>$ keytool
+ -import
+ -trustcacerts
+ -alias ca-cert
+ -file ca-cert.crt
+ -keystore keystore
+ -storepass `cat keystore.pin`</screen>
+
+   <para>Now that you can try the example, notice that OpenDJ does not return
+   the <literal>userPassword</literal> value for an anonymous search.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ --useStartTLS
+ --trustStorePath keystore
+ --trustStorePasswordFile keystore.pin
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+</screen>
+
+   <para>OpenDJ does let users read the values of their own
+   <literal>userPassword</literal> attributes after they bind
+   successfully.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ --useStartTLS
+ --useSASLExternal
+ --certNickName myapp-cert
+ --keyStorePath keystore
+ --keyStorePasswordFile keystore.pin
+ --trustStorePath keystore
+ --trustStorePasswordFile keystore.pin
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==</screen>
+
+   <para>You can also try the same test with other certificate mappers.</para>
+
+   <screen># Fingerprint mapper
+$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name External
+ --set certificate-mapper:"Fingerprint Mapper"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ --useStartTLS
+ --useSASLExternal
+ --certNickName myapp-cert
+ --keyStorePath keystore
+ --keyStorePasswordFile keystore.pin
+ --trustStorePath keystore
+ --trustStorePasswordFile keystore.pin
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+
+# Subject Attribute to User Attribute mapper
+$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name External
+ --set certificate-mapper:"Subject Attribute to User Attribute"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ --useStartTLS
+ --useSASLExternal
+ --certNickName myapp-cert
+ --keyStorePath keystore
+ --keyStorePasswordFile keystore.pin
+ --trustStorePath keystore
+ --trustStorePasswordFile keystore.pin
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+
+# Subject DN to User Attribute mapper
+$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name External
+ --set certificate-mapper:"Subject DN to User Attribute"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN dc=example,dc=com
+ --useStartTLS
+ --useSASLExternal
+ --certNickName myapp-cert
+ --keyStorePath keystore
+ --keyStorePasswordFile keystore.pin
+ --trustStorePath keystore
+ --trustStorePasswordFile keystore.pin
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==</screen>
+  </example>
  </section>
 </chapter>
