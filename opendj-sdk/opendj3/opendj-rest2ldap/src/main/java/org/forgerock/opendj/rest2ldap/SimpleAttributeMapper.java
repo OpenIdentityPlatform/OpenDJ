@@ -11,11 +11,12 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
+import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.Collections;
@@ -26,10 +27,10 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Functions;
 
@@ -104,9 +105,25 @@ public class SimpleAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void getLDAPAttributes(final JsonPointer jsonAttribute, final Set<String> ldapAttributes) {
-        if (attributeMatchesPointer(jsonAttribute)) {
+    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+            final Set<String> ldapAttributes) {
+        if (jsonAttribute.isEmpty() || matches(jsonAttribute)) {
             ldapAttributes.add(ldapAttributeName);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void getLDAPFilter(final Context c, final FilterType type,
+            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
+            final ResultHandler<Filter> h) {
+        if (matches(jsonAttribute)) {
+            h.handleResult(toFilter(c, type, ldapAttributeName, valueAssertion));
+        } else {
+            // This attribute mapper cannot handle the provided filter component.
+            h.handleResult(null);
         }
     }
 
@@ -141,12 +158,11 @@ public class SimpleAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void toJSON(final ServerContext c, final Entry e,
-            final ResultHandler<Map<String, Object>> h) {
+    public void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         final Attribute a = e.getAttribute(ldapAttributeName);
         if (a != null) {
-            final Function<ByteString, ?, Void> f = decoder == null ? Functions.fixedFunction(
-                    byteStringToJson(), a) : decoder;
+            final Function<ByteString, ?, Void> f =
+                    decoder == null ? Functions.fixedFunction(byteStringToJson(), a) : decoder;
             final Object value;
             if (forceSingleValued || a.getAttributeDescription().getAttributeType().isSingleValue()) {
                 value = a.parse().as(f, defaultValue);
@@ -163,15 +179,14 @@ public class SimpleAttributeMapper implements AttributeMapper {
      * {@inheritDoc}
      */
     @Override
-    public void toLDAP(final ServerContext c, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
+    public void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
 
     }
 
-    private boolean attributeMatchesPointer(final JsonPointer resourceAttribute) {
-        return resourceAttribute.isEmpty()
-                || toLowerCase(resourceAttribute.get(0)).equals(normalizedJsonAttributeName);
+    private boolean matches(final JsonPointer jsonAttribute) {
+        return !jsonAttribute.isEmpty()
+                && toLowerCase(jsonAttribute.get(0)).equals(normalizedJsonAttributeName);
     }
 
 }

@@ -9,9 +9,9 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyrighted [year] [name of copyright owner]".
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright © 2012 ForgeRock AS. All rights reserved.
+ * Copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.rest2ldap;
@@ -22,7 +22,6 @@ import static org.forgerock.opendj.ldap.Connections.newAuthenticatedConnectionFa
 import java.util.logging.Logger;
 
 import org.forgerock.json.resource.Router;
-import org.forgerock.json.resource.RoutingMode;
 import org.forgerock.json.resource.servlet.HttpServlet;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
@@ -86,8 +85,8 @@ public class Example {
 
         // Create the router.
         final Router router = new Router();
-        router.addRoute(RoutingMode.EQUALS, "/users", userResource);
-        router.addRoute(RoutingMode.EQUALS, "/groups", groupResource);
+        router.addRoute("/users", userResource);
+        router.addRoute("/groups", groupResource);
 
         final org.forgerock.json.resource.ConnectionFactory resourceFactory = newInternalConnectionFactory(router);
         final HttpServer httpServer = HttpServer.createSimpleServer("./", PORT);
