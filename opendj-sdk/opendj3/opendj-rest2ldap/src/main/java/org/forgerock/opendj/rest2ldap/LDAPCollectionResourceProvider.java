@@ -51,14 +51,21 @@ import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
+import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
@@ -68,25 +75,120 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * resource collection to LDAP entries beneath a base DN.
  */
 public class LDAPCollectionResourceProvider implements CollectionResourceProvider {
+
+    private abstract class AbstractRequestCompletionHandler<R,
+            H extends org.forgerock.opendj.ldap.ResultHandler<? super R>>
+            implements org.forgerock.opendj.ldap.ResultHandler<R> {
+        final Connection connection;
+        final H resultHandler;
+
+        AbstractRequestCompletionHandler(final Connection connection, final H resultHandler) {
+            this.connection = connection;
+            this.resultHandler = resultHandler;
+        }
+
+        @Override
+        public final void handleErrorResult(final ErrorResultException error) {
+            connection.close();
+            resultHandler.handleErrorResult(error);
+        }
+
+        @Override
+        public final void handleResult(final R result) {
+            connection.close();
+            resultHandler.handleResult(result);
+        }
+
+    }
+
+    private abstract class ConnectionCompletionHandler<R> implements
+            org.forgerock.opendj.ldap.ResultHandler<Connection> {
+        private final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler;
+
+        ConnectionCompletionHandler(
+                final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler) {
+            this.resultHandler = resultHandler;
+        }
+
+        @Override
+        public final void handleErrorResult(final ErrorResultException error) {
+            resultHandler.handleErrorResult(error);
+        }
+
+        @Override
+        public abstract void handleResult(Connection connection);
+
+    }
+
+    private final class RequestCompletionHandler<R> extends
+            AbstractRequestCompletionHandler<R, org.forgerock.opendj.ldap.ResultHandler<? super R>> {
+        RequestCompletionHandler(final Connection connection,
+                final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler) {
+            super(connection, resultHandler);
+        }
+    }
+
+    private final class SearchRequestCompletionHandler extends
+            AbstractRequestCompletionHandler<Result, SearchResultHandler> implements
+            SearchResultHandler {
+
+        SearchRequestCompletionHandler(final Connection connection,
+                final SearchResultHandler resultHandler) {
+            super(connection, resultHandler);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public final boolean handleEntry(final SearchResultEntry entry) {
+            return resultHandler.handleEntry(entry);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public final boolean handleReference(final SearchResultReference reference) {
+            return resultHandler.handleReference(reference);
+        }
+
+    }
+
+    // FIXME: make this configurable.
+    private static final String ETAG_ATTRIBUTE = "etag";
+
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
+
+    // FIXME: make this configurable, also allow use of DN.
+    private static final String UUID_ATTRIBUTE = "entryUUID";
+
     private final AttributeMapper attributeMapper;
-    private final EntryContainer entryContainer;
-    private final Config config = new Config();
+    private final DN baseDN; // TODO: support template variables.
+    private final Config config;
+    private final ConnectionFactory factory;
 
     /**
      * Creates a new LDAP resource.
      *
-     * @param container
-     *            The LDAP entry container.
+     * @param baseDN
+     *            The parent of all entries contained in this LDAP collection.
      * @param mapper
      *            The attribute mapper which will be used for mapping LDAP
      *            attributes to JSON attributes.
+     * @param factory
+     *            The LDAP connection factory which will be used for performing
+     *            LDAP operations.
+     * @param config
+     *            Common configuration options.
      */
-    public LDAPCollectionResourceProvider(final EntryContainer container,
-            final AttributeMapper mapper) {
-        this.entryContainer = container;
+    public LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
+            final ConnectionFactory factory, final Config config) {
+        this.baseDN = baseDN;
         this.attributeMapper = mapper;
+        this.factory = factory;
+        this.config = config;
     }
 
     /**
@@ -140,8 +242,10 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
     @Override
     public void queryCollection(final ServerContext context, final QueryRequest request,
             final QueryResultHandler handler) {
-        // List the entries.
         final Context c = wrap(context);
+        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
+
+        // The handler which will be invoked for each LDAP search result.
         final SearchResultHandler searchHandler = new SearchResultHandler() {
             private final AtomicInteger pendingResourceCount = new AtomicInteger();
             private final AtomicReference<ResourceException> pendingResult =
@@ -161,8 +265,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
 
                 // TODO: should the resource or the container define the ID
                 // mapping?
-                final String id = entryContainer.getIDFromEntry(entry);
-                final String revision = entryContainer.getEtagFromEntry(entry);
+                final String id = getIDFromEntry(entry);
+                final String revision = getEtagFromEntry(entry);
                 final ResultHandler<Map<String, Object>> mapHandler =
                         new ResultHandler<Map<String, Object>>() {
                             @Override
@@ -224,8 +328,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
             }
         };
 
-        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
-        getLDAPFilter(c, request.getQueryFilter(), new ResultHandler<Filter>() {
+        // The handler which will be invoked once the LDAP filter has been transformed.
+        final ResultHandler<Filter> filterHandler = new ResultHandler<Filter>() {
             @Override
             public void handleError(final ResourceException error) {
                 handler.handleError(error);
@@ -234,13 +338,32 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
             @Override
             public void handleResult(final Filter ldapFilter) {
                 // Avoid performing a search if the filter could not be mapped or if it will never match.
-                if (ldapFilter == null || ldapFilter == c.getConfig().getFalseFilter()) {
+                if (ldapFilter == null || ldapFilter == c.getConfig().falseFilter()) {
                     handler.handleResult(new QueryResult());
                 } else {
-                    entryContainer.listEntries(c, ldapFilter, ldapAttributes, searchHandler);
+                    final String[] tmp = getSearchAttributes(ldapAttributes);
+                    final ConnectionCompletionHandler<Result> outerHandler =
+                            new ConnectionCompletionHandler<Result>(searchHandler) {
+
+                                @Override
+                                public void handleResult(final Connection connection) {
+                                    final SearchRequestCompletionHandler innerHandler =
+                                            new SearchRequestCompletionHandler(connection,
+                                                    searchHandler);
+                                    final SearchRequest request =
+                                            Requests.newSearchRequest(baseDN,
+                                                    SearchScope.SINGLE_LEVEL, ldapFilter, tmp);
+                                    connection.searchAsync(request, null, innerHandler);
+                                }
+
+                            };
+
+                    factory.getConnectionAsync(outerHandler);
                 }
             }
-        });
+        };
+
+        getLDAPFilter(c, request.getQueryFilter(), filterHandler);
     }
 
     /**
@@ -250,7 +373,10 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
     public void readInstance(final ServerContext context, final String resourceId,
             final ReadRequest request, final ResultHandler<Resource> handler) {
         final Context c = wrap(context);
-        // @Checkstyle:off
+        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
+        final String[] tmp = getSearchAttributes(ldapAttributes);
+
+        // The handler which will be invoked for the LDAP search result.
         final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
                 new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
                     @Override
@@ -260,7 +386,7 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
 
                     @Override
                     public void handleResult(final SearchResultEntry entry) {
-                        final String revision = entryContainer.getEtagFromEntry(entry);
+                        final String revision = getEtagFromEntry(entry);
                         final ResultHandler<Map<String, Object>> mapHandler =
                                 new ResultHandler<Map<String, Object>>() {
                                     @Override
@@ -279,9 +405,25 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                         attributeMapper.toJSON(c, entry, mapHandler);
                     }
                 };
-        // @Checkstyle:on
-        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
-        entryContainer.readEntry(c, resourceId, ldapAttributes, searchHandler);
+
+        // The handler which will be invoked
+        final ConnectionCompletionHandler<SearchResultEntry> outerHandler =
+                new ConnectionCompletionHandler<SearchResultEntry>(searchHandler) {
+
+                    @Override
+                    public void handleResult(final Connection connection) {
+                        final RequestCompletionHandler<SearchResultEntry> innerHandler =
+                                new RequestCompletionHandler<SearchResultEntry>(connection,
+                                        searchHandler);
+                        final SearchRequest request =
+                                Requests.newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter
+                                        .equality(UUID_ATTRIBUTE, resourceId), tmp);
+                        connection.searchSingleEntryAsync(request, innerHandler);
+                    }
+
+                };
+
+        factory.getConnectionAsync(outerHandler);
     }
 
     /**
@@ -322,6 +464,28 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
             resourceResultCode = ResourceException.INTERNAL_ERROR;
         }
         return ResourceException.getException(resourceResultCode, null, error.getMessage(), error);
+    }
+
+    /**
+     * Returns the ETag for the provided entry.
+     *
+     * @param entry
+     *            The entry.
+     * @return The ETag.
+     */
+    private String getEtagFromEntry(final Entry entry) {
+        return entry.parseAttribute(ETAG_ATTRIBUTE).asString();
+    }
+
+    /**
+     * Returns the resource ID for the provided entry.
+     *
+     * @param entry
+     *            The entry.
+     * @return The resource ID.
+     */
+    private String getIDFromEntry(final Entry entry) {
+        return entry.parseAttribute(UUID_ATTRIBUTE).asString();
     }
 
     /**
@@ -369,16 +533,16 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                                                     final Filter f = i.next();
                                                     if (f == null) {
                                                         // Filter component did not match any attribute mappers.
-                                                        return c.getConfig().getFalseFilter();
-                                                    } else if (f == c.getConfig().getFalseFilter()) {
-                                                        return c.getConfig().getFalseFilter();
-                                                    } else if (f == c.getConfig().getTrueFilter()) {
+                                                        return c.getConfig().falseFilter();
+                                                    } else if (f == c.getConfig().falseFilter()) {
+                                                        return c.getConfig().falseFilter();
+                                                    } else if (f == c.getConfig().trueFilter()) {
                                                         i.remove();
                                                     }
                                                 }
                                                 switch (value.size()) {
                                                 case 0:
-                                                    return c.getConfig().getTrueFilter();
+                                                    return c.getConfig().trueFilter();
                                                 case 1:
                                                     return value.get(0);
                                                 default:
@@ -395,8 +559,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                     @Override
                     public Void visitBooleanLiteralFilter(final ResultHandler<Filter> p,
                             final boolean value) {
-                        p.handleResult(value ? c.getConfig().getTrueFilter() : c.getConfig()
-                                .getFalseFilter());
+                        p.handleResult(value ? c.getConfig().trueFilter() : c.getConfig()
+                                .falseFilter());
                         return null;
                     }
 
@@ -465,11 +629,11 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                             public Filter apply(final Filter value, final Void p) {
                                 if (value == null) {
                                     // Filter component did not match any attribute mappers.
-                                    return c.getConfig().getTrueFilter();
-                                } else if (value == c.getConfig().getFalseFilter()) {
-                                    return c.getConfig().getTrueFilter();
-                                } else if (value == c.getConfig().getTrueFilter()) {
-                                    return c.getConfig().getFalseFilter();
+                                    return c.getConfig().trueFilter();
+                                } else if (value == c.getConfig().falseFilter()) {
+                                    return c.getConfig().trueFilter();
+                                } else if (value == c.getConfig().trueFilter()) {
+                                    return c.getConfig().falseFilter();
                                 } else {
                                     return Filter.not(value);
                                 }
@@ -494,15 +658,15 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                                                     if (f == null) {
                                                         // Filter component did not match any attribute mappers.
                                                         i.remove();
-                                                    } else if (f == c.getConfig().getFalseFilter()) {
+                                                    } else if (f == c.getConfig().falseFilter()) {
                                                         i.remove();
-                                                    } else if (f == c.getConfig().getTrueFilter()) {
-                                                        return c.getConfig().getTrueFilter();
+                                                    } else if (f == c.getConfig().trueFilter()) {
+                                                        return c.getConfig().trueFilter();
                                                     }
                                                 }
                                                 switch (value.size()) {
                                                 case 0:
-                                                    return c.getConfig().getFalseFilter();
+                                                    return c.getConfig().falseFilter();
                                                 case 1:
                                                     return value.get(0);
                                                 default:
@@ -536,7 +700,16 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
         queryFilter.accept(visitor, h);
     }
 
-    private Context wrap(ServerContext context) {
+    private String[] getSearchAttributes(final Collection<String> attributes) {
+        // FIXME: who is responsible for adding the UUID and etag attributes to
+        // this search?
+        final String[] tmp = attributes.toArray(new String[attributes.size() + 2]);
+        tmp[tmp.length - 2] = UUID_ATTRIBUTE;
+        tmp[tmp.length - 1] = ETAG_ATTRIBUTE;
+        return tmp;
+    }
+
+    private Context wrap(final ServerContext context) {
         return new Context(config, context);
     }
 }
