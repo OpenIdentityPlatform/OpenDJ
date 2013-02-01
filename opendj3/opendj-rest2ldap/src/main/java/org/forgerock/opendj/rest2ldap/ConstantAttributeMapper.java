@@ -69,20 +69,20 @@ public class ConstantAttributeMapper implements AttributeMapper {
         if (jsonAttribute.size() == 1 && jsonAttribute.get(0).equalsIgnoreCase(jsonAttributeName)) {
             final Filter filter;
             if (type == FilterType.PRESENT) {
-                filter = c.getConfig().getTrueFilter();
+                filter = c.getConfig().trueFilter();
             } else if (jsonAttributeValue instanceof String && valueAssertion instanceof String) {
                 final String v1 = toLowerCase((String) jsonAttributeValue);
                 final String v2 = toLowerCase((String) valueAssertion);
                 switch (type) {
                 case CONTAINS:
                     filter =
-                            v1.contains(v2) ? c.getConfig().getTrueFilter() : c.getConfig()
-                                    .getFalseFilter();
+                            v1.contains(v2) ? c.getConfig().trueFilter() : c.getConfig()
+                                    .falseFilter();
                     break;
                 case STARTS_WITH:
                     filter =
-                            v1.startsWith(v2) ? c.getConfig().getTrueFilter() : c.getConfig()
-                                    .getFalseFilter();
+                            v1.startsWith(v2) ? c.getConfig().trueFilter() : c.getConfig()
+                                    .falseFilter();
                     break;
                 default:
                     filter = compare(c, type, v1, v2);
@@ -98,7 +98,7 @@ public class ConstantAttributeMapper implements AttributeMapper {
                 filter = compare(c, type, v1, v2);
             } else {
                 // This attribute mapper is a candidate but it does not match.
-                filter = c.getConfig().getFalseFilter();
+                filter = c.getConfig().falseFilter();
             }
             h.handleResult(filter);
         } else {
@@ -130,30 +130,30 @@ public class ConstantAttributeMapper implements AttributeMapper {
         final Filter filter;
         switch (type) {
         case EQUAL_TO:
-            filter = v1.equals(v2) ? c.getConfig().getTrueFilter() : c.getConfig().getFalseFilter();
+            filter = v1.equals(v2) ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
             break;
         case GREATER_THAN:
             filter =
-                    v1.compareTo(v2) > 0 ? c.getConfig().getTrueFilter() : c.getConfig()
-                            .getFalseFilter();
+                    v1.compareTo(v2) > 0 ? c.getConfig().trueFilter() : c.getConfig()
+                            .falseFilter();
             break;
         case GREATER_THAN_OR_EQUAL_TO:
             filter =
-                    v1.compareTo(v2) >= 0 ? c.getConfig().getTrueFilter() : c.getConfig()
-                            .getFalseFilter();
+                    v1.compareTo(v2) >= 0 ? c.getConfig().trueFilter() : c.getConfig()
+                            .falseFilter();
             break;
         case LESS_THAN:
             filter =
-                    v1.compareTo(v2) < 0 ? c.getConfig().getTrueFilter() : c.getConfig()
-                            .getFalseFilter();
+                    v1.compareTo(v2) < 0 ? c.getConfig().trueFilter() : c.getConfig()
+                            .falseFilter();
             break;
         case LESS_THAN_OR_EQUAL_TO:
             filter =
-                    v1.compareTo(v2) <= 0 ? c.getConfig().getTrueFilter() : c.getConfig()
-                            .getFalseFilter();
+                    v1.compareTo(v2) <= 0 ? c.getConfig().trueFilter() : c.getConfig()
+                            .falseFilter();
             break;
         default:
-            filter = c.getConfig().getFalseFilter(); // Not supported.
+            filter = c.getConfig().falseFilter(); // Not supported.
             break;
         }
         return filter;

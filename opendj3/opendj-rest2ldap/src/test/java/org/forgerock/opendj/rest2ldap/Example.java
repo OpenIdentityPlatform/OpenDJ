@@ -50,50 +50,52 @@ public class Example {
      */
     public static void main(final String[] args) throws Exception {
         // All LDAP resources will use this connection factory.
-        final ConnectionFactory ldapFactory = newAuthenticatedConnectionFactory(
-                new LDAPConnectionFactory("localhost", 1389), Requests.newSimpleBindRequest(
-                        "cn=directory manager", "password".toCharArray()));
-
-        // Create two entry containers whose members reference each other.
-        final EntryContainer userContainer = new EntryContainer(DN
-                .valueOf("ou=people,dc=example,dc=com"), ldapFactory);
-        final EntryContainer groupContainer = new EntryContainer(DN
-                .valueOf("ou=groups,dc=example,dc=com"), ldapFactory);
+        final ConnectionFactory ldapFactory =
+                newAuthenticatedConnectionFactory(new LDAPConnectionFactory("localhost", 1389),
+                        Requests.newSimpleBindRequest("cn=directory manager", "password"
+                                .toCharArray()));
 
         // Create user resource.
-        final AttributeMapper userMapper = new CompositeAttributeMapper().addMapper(
-                new SimpleAttributeMapper("id", "entryUUID").singleValued(true)).addMapper(
-                new DefaultAttributeMapper().includeAttribute("uid", "isMemberOf",
-                        "modifyTimestamp")).addMapper(
-                new ComplexAttributeMapper("name", new DefaultAttributeMapper().includeAttribute(
-                        "cn", "sn", "givenName"))).addMapper(
-                new ComplexAttributeMapper("contactInformation", new CompositeAttributeMapper()
-                        .addMapper(
-                                new SimpleAttributeMapper("telephoneNumber").decoder(
-                                        Functions.byteStringToString()).singleValued(true))
-                        .addMapper(
-                                new SimpleAttributeMapper("emailAddress", "mail")
-                                        .singleValued(true))));
-        final LDAPCollectionResourceProvider userResource = new LDAPCollectionResourceProvider(
-                userContainer, userMapper);
+        final AttributeMapper userMapper =
+                new CompositeAttributeMapper().addMapper(
+                        new SimpleAttributeMapper("id", "entryUUID").singleValued(true)).addMapper(
+                        new DefaultAttributeMapper().includeAttribute("uid", "isMemberOf",
+                                "modifyTimestamp")).addMapper(
+                        new ComplexAttributeMapper("name", new DefaultAttributeMapper()
+                                .includeAttribute("cn", "sn", "givenName"))).addMapper(
+                        new ComplexAttributeMapper("contactInformation",
+                                new CompositeAttributeMapper().addMapper(
+                                        new SimpleAttributeMapper("telephoneNumber").decoder(
+                                                Functions.byteStringToString()).singleValued(true))
+                                        .addMapper(
+                                                new SimpleAttributeMapper("emailAddress", "mail")
+                                                        .singleValued(true))));
+
+        final LDAPCollectionResourceProvider userResource =
+                new LDAPCollectionResourceProvider(DN.valueOf("ou=people,dc=example,dc=com"),
+                        userMapper, ldapFactory, Config.defaultConfig());
 
         // Create group resource.
-        final AttributeMapper groupMapper = new DefaultAttributeMapper().includeAttribute("cn",
-                "ou", "description", "uniquemember");
-        final LDAPCollectionResourceProvider groupResource = new LDAPCollectionResourceProvider(
-                groupContainer, groupMapper);
+        final AttributeMapper groupMapper =
+                new DefaultAttributeMapper().includeAttribute("cn", "ou", "description",
+                        "uniquemember");
+
+        final LDAPCollectionResourceProvider groupResource =
+                new LDAPCollectionResourceProvider(DN.valueOf("ou=groups,dc=example,dc=com"),
+                        groupMapper, ldapFactory, Config.defaultConfig());
 
         // Create the router.
         final Router router = new Router();
         router.addRoute("/users", userResource);
         router.addRoute("/groups", groupResource);
 
-        final org.forgerock.json.resource.ConnectionFactory resourceFactory = newInternalConnectionFactory(router);
+        final org.forgerock.json.resource.ConnectionFactory resourceFactory =
+                newInternalConnectionFactory(router);
         final HttpServer httpServer = HttpServer.createSimpleServer("./", PORT);
         try {
             final WebappContext ctx = new WebappContext("example", "/example");
-            final ServletRegistration reg = ctx.addServlet("managed", new HttpServlet(
-                    resourceFactory));
+            final ServletRegistration reg =
+                    ctx.addServlet("managed", new HttpServlet(resourceFactory));
             reg.addMapping("/managed/*");
             ctx.deploy(httpServer);
 

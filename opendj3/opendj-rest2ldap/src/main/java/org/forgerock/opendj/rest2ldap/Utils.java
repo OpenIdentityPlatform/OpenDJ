@@ -173,7 +173,7 @@ final class Utils {
             break;
         case EXTENDED:
         default:
-            filter = c.getConfig().getFalseFilter(); // Not supported.
+            filter = c.getConfig().falseFilter(); // Not supported.
             break;
         }
         return filter;

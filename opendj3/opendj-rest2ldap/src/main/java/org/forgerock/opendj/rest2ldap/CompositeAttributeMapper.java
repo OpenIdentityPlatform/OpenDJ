@@ -91,10 +91,10 @@ public final class CompositeAttributeMapper implements AttributeMapper {
                                     if (f == null) {
                                         // No mapping so remove.
                                         i.remove();
-                                    } else if (f == c.getConfig().getFalseFilter()) {
-                                        return c.getConfig().getFalseFilter();
-                                    } else if (f == c.getConfig().getTrueFilter()) {
-                                        return c.getConfig().getTrueFilter();
+                                    } else if (f == c.getConfig().falseFilter()) {
+                                        return c.getConfig().falseFilter();
+                                    } else if (f == c.getConfig().trueFilter()) {
+                                        return c.getConfig().trueFilter();
                                     }
                                 }
                                 switch (value.size()) {
