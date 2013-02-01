@@ -400,6 +400,7 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                         return null;
                     }
 
+                    @Override
                     public Void visitContainsFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
                         attributeMapper.getLDAPFilter(c, FilterType.CONTAINS, field, null,
@@ -522,6 +523,7 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                         return null;
                     }
 
+                    @Override
                     public Void visitStartsWithFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
                         attributeMapper.getLDAPFilter(c, FilterType.STARTS_WITH, field, null,
