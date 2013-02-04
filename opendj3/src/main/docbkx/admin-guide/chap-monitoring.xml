@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-monitoring'
@@ -376,8 +376,8 @@ example-20110623030000000  Backup  Waiting on start time</screen>
   
   <para>By default the file-based logs are subject to rotation and retention
   policies that you can list with <command>dsconfig
-  list-rotation-policies</command> and <command>dsconfig
-  list-retention-policies</command>.</para>
+  list-log-rotation-policies</command> and <command>dsconfig
+  list-log-retention-policies</command>.</para>
   
   <section xml:id="log-filtering">
    <title>Log Filtering</title>
