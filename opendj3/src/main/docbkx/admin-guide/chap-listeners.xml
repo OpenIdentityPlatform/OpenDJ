@@ -641,6 +641,100 @@ $ dsconfig
   </procedure>
  </section>
 
+ <section xml:id="restrict-ldap-clients">
+  <title>Restricting LDAP Client Access</title>
+  <indexterm><primary>Access control</primary></indexterm>
+
+  <para>Using the OpenDJ directory server global configuration properties, you
+  can add global restrictions on how clients access the server. These settings
+  are per server, and so much be set independently on each server in replication
+  topology.</para>
+
+  <para>These global settings are fairly coarse-grained. For a full discussion
+  of the rich set of administrative privileges and fine-grained access control
+  instructions that OpenDJ supports, see the chapter on <link
+  xlink:href="admin-guide#chap-privileges-acis"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+  Privileges &amp; Access Control</citetitle></link>.</para>
+
+  <variablelist>
+   <para>Consider the following global configuration settings.</para>
+
+   <varlistentry>
+    <term><literal>bind-with-dn-requires-password</literal></term>
+    <listitem>
+     <para>Whether the directory server should reject any simple bind request
+     that contains a DN but no password. Default: <literal>true</literal></para>
+     <para>To change this setting use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set bind-with-dn-requires-password:false
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>max-allowed-client-connections</literal></term>
+    <listitem>
+     <para>Restricts the number of concurrent client connections to the
+     directory server. Default: 0, meaning no limit is set</para>
+     <para>To set a limit of 32768 use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set max-allowed-client-connections:32768
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>reject-unauthenticated-requests</literal></term>
+    <listitem>
+     <para>Rejects any request (other than bind or StartTLS requests) received
+     from a client that has not yet been authenticated, whose last
+     authentication attempt was unsuccessful, or whose last authentication
+     attempt used anonymous authentication. Default: <literal>false</literal></para>
+     <para>To shut down anonymous binds use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set reject-unauthenticated-requests:true
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>return-bind-error-messages</literal></term>
+    <listitem>
+     <para>Does not restrict access, but by default prevents OpenDJ directory
+     server from returning extra information about why a bind failed, as that
+     information could be used by an attacker. Instead, the information is
+     written to the server errors log. Default: <literal>false</literal></para>
+     <para>To have OpenDJ return additional information about why a bind failed
+     use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set return-bind-error-messages:true
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+
  <section xml:id="tls-protocols-cipher-suites">
   <title>TLS Protocols &amp; Cipher Suites</title>
   <indexterm>
