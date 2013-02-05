@@ -29,7 +29,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Monitoring Servers</title>
+ <title>Monitoring, Logging, &amp; Alerts</title>
  
  <para>This chapter describes the monitoring capabilities that OpenDJ
  implements, and shows how to configure them.</para>
@@ -364,21 +364,86 @@ example-20110623030000000  Backup  Waiting on start time</screen>
   The design allows for custom log publishers, however, which could publish
   the logs elsewhere besides a file.</para>
   
-  <para>Each log can also be associated with a <firstterm>log rotation
-  policy</firstterm>, and a <firstterm>log retention policy</firstterm>. The
-  former can specify when, after how much time, or at what maximum size a log
-  is rotated. The latter can specify a maximum number or size of logs to
-  retain, or an amount of free disk space to maintain. The design allows
-  for custom policies as well.</para>
-  
   <para>For debug logging, you also set a <firstterm>debug target</firstterm>
   to control what gets logged.</para>
-  
-  <para>By default the file-based logs are subject to rotation and retention
-  policies that you can list with <command>dsconfig
-  list-log-rotation-policies</command> and <command>dsconfig
-  list-log-retention-policies</command>.</para>
-  
+
+  <section xml:id="log-rotation">
+   <title>Log Rotation &amp; Retention</title>
+
+   <para>Each file-based log can be associated with a <firstterm>log rotation
+   policy</firstterm>, and a <firstterm>log retention policy</firstterm>. The
+   former can specify when, after how much time, or at what maximum size a log
+   is rotated. The latter can specify a maximum number or size of logs to
+   retain, or an amount of free disk space to maintain. The design allows
+   for custom policies as well.</para>
+
+   <para>By default the file-based logs are subject to rotation and retention
+   policies that you can list with <command>dsconfig
+   list-log-rotation-policies</command> and <command>dsconfig
+   list-log-retention-policies</command>.</para>
+
+   <para>For example, view the log rotation policies with the following
+   command.</para>
+
+   <screen width="101">$ dsconfig
+ list-log-rotation-policies
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+
+Log Rotation Policy                 : Type       : file-size-limit : rotation-interval : time-of-day
+------------------------------------:------------:-----------------:-------------------:------------
+24 Hours Time Limit Rotation Policy : time-limit : -               : 1 d               : -
+7 Days Time Limit Rotation Policy   : time-limit : -               : 1 w               : -
+Fixed Time Rotation Policy          : fixed-time : -               : -                 : 2359
+Size Limit Rotation Policy          : size-limit : 100 mb          : -                 : -</screen>
+
+   <para>View the log retention policies with the following command.</para>
+
+   <screen width="105">$ dsconfig
+ list-log-retention-policies
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+
+Log Retention Policy             : Type            : disk-space-used : free-disk-space : number-of-files
+---------------------------------:-----------------:-----------------:-----------------:----------------
+File Count Retention Policy      : file-count      : -               : -               : 10
+Free Disk Space Retention Policy : free-disk-space : -               : 500 mb          : -
+Size Limit Retention Policy      : size-limit      : 500 mb          : -               : -</screen>
+
+   <para>Use the <command>dsconfig get-log-publisher-prop</command> command to
+   examine the policies that apply to a particular logger.</para>
+
+   <screen>$ dsconfig
+ get-log-publisher-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --property retention-policy
+ --property rotation-policy
+Property         : Value(s)
+-----------------:-------------------------------------------------------------
+retention-policy : File Count Retention Policy
+rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                 : Policy</screen>
+
+   <para>In other words, by default OpenDJ keeps 10 access log files, rotating
+   the access log each day, or when the log size reaches 100 MB.</para>
+
+   <para>The <command>dsconfig</command> command offers a number of subcommands
+   for creating and deleting log rotation and retention policies, and for
+   setting policy properties. You can update which policies apply to a logger
+   by using the <command>dsconfig set-log-publisher-prop</command>
+   command.</para>
+  </section>
+
   <section xml:id="log-filtering">
    <title>Log Filtering</title>
    <indexterm>
