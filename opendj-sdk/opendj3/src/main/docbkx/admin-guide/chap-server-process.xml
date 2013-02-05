@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-server-process'
@@ -85,6 +85,15 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
     <screen>C:\Users\Mark&gt; OpenDJ\bat\windows-service.bat --enableService</screen>
    </listitem>
   </itemizedlist>
+
+  <para>By default OpenDJ saves a compressed version of the server
+  configuration used on successful startup. This ensures that the server
+  provides a "last known good" configuration, which can be used as a reference
+  or copied into the active configuration if the server fails to start with the
+  current active configuration. It is possible, though not usually recommended,
+  to turn this behavior off by changing the global server setting
+  <literal>save-config-on-successful-startup</literal> to
+  <literal>false</literal>.</para>
  </section>
  
  <section xml:id="stop-server">

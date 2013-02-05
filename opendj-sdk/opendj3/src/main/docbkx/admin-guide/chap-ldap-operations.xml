@@ -1132,6 +1132,15 @@ Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
    </step>
   </procedure>
+
+  <para>If you need to map authorization identifiers using the
+  <literal>u:</literal> form rather than using <literal>dn:</literal>, you can
+  set the identity mapper with the global configuration setting,
+  <literal>proxied-authorization-identity-mapper</literal>. For example, if you
+  get UID values from the client, such as <literal>bjensen</literal>, you can
+  use the Exact Match Identity Mapper to match those to DNs based on an
+  attribute of the entry. Use the <command>dsconfig</command> command
+  interactively to investigate the settings you need.</para>
  </section>
 
  <section xml:id="client-cert-auth">

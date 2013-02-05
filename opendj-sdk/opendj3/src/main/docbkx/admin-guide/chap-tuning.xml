@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-tuning'
@@ -222,7 +222,21 @@
   <para>All three commands show you information about the response time
   distributions, and allow you to perform tests at specific levels of
   throughput.</para>
- 
+
+  <para>If you need additional precision when evaluating response times, use
+  the global configuration setting <literal>etime-resolution</literal> to
+  change elapsed processing time resolution from milliseconds (default) to
+  nanoseconds.</para>
+
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set etime-resolution:nanoseconds
+ --no-prompt</screen>
+
   <para>For more extensive testing, try the <link
   xlink:href="http://slamd.com/">SLAMD Distributed Load Generation
   Engine</link>. SLAMD is built to test more than just directory, but is
@@ -451,6 +465,20 @@ Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</
  --set enabled:true
  --trustAll
  --no-prompt</screen>
+
+   <para>You can use the global setting, <literal>entry-cache-preload</literal>,
+   to force OpenDJ to load the entry cache as part of server startup.</para>
+
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set entry-cache-preload:true
+ --no-prompt</screen>
+
+   <para>By default, OpenDJ does not pre-load the entry cache.</para>
   </section>
   
   <section xml:id="perf-logging">
