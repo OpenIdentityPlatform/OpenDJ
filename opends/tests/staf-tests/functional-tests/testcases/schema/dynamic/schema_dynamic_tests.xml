@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 
 <stax>
@@ -391,7 +392,143 @@
           <call function="'testCase_Postamble'"/>
         </finally>
       </try>
-    </testcase>        
+    </testcase>       
+  </function>
+
+<!-- Test case: Modifying Existing Custom Objectclass -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Dynamic Schema Tests
+    #@TestName                  Modifying Existing Custom Objectclass
+    #@TestIssue                 None
+    #@TestPurpose               To verify modification of custom objectclasses is dynamic.
+    #@TestPreamble              none
+    #@TestStep                  Modify an existing custom objectclass by adding a new
+                                custom attribute (optional attribute).
+                                Then try adding to an entry (which require the custom objectclass)
+                                this new custom attributes, it should works.
+    #@TestPostamble             none
+    #@TestResult                Success if OpenDS returns 0
+-->        
+  <function name="schema_dynamic_005" scope="local">
+
+    <testcase name="getTestCaseName('Modifying Existing Custom Objectclass')">
+      <try>        
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+  
+          <message>
+             'Schema: Modifying Existing Custom Objectclass'
+          </message>
+  
+          <!-- Add attribute addschema4AT -->
+          <!-- Add objectclass addschema4OC with optional attribute addschema4AT -->
+          <!-- Add objectclass addschema5OC with inherits from objectclass addschema4OC -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'modifyEntry',
+              'functionMessage'   : 'Add two custom objectclasses (with inheritance) and add a custom attribute to the parent one.',
+              'functionException' : 'LDAP.ModifyException'               ,
+              'functionArguments' : { 'dsInstanceHost'    : server.host ,
+                                      'dsInstancePort'    : server.port ,
+                                      'dsInstanceDn'      : server.dn ,
+                                      'dsInstancePswd'    : server.password ,
+                                      'entryToBeModified' : '%s/schema/ldifs/updateSchema4.ldif'
+                                                            % remote.data }
+            }
+          </call>
+
+          <!-- Add entry which depends on objectclass addschema4OC -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry',
+              'functionMessage'   : 'Add an entry that uses the parent custom objectclass.',
+              'functionException' : 'LDAP.AddException',
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/dynamic_schema5.ldif'
+                                                          % remote.data}
+            }
+          </call>
+
+          <!-- Add entry which depends on objectclass addschema5OC -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry',
+              'functionMessage'   : 'Add an entry that uses the child custom objectclass.',
+              'functionException' : 'LDAP.AddException',
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/dynamic_schema6.ldif'
+                                                          % remote.data}
+            }
+          </call>
+
+          <!-- Add attribute addschema5AT -->
+          <!-- Add attribute addschema5AT (as optional) to the objectclass addschema4OC -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'modifyEntry',
+              'functionMessage'   : 'Add a second custom attribute to the parent custom objectclass.',
+              'functionException' : 'LDAP.ModifyException',
+              'functionArguments' : { 'dsInstanceHost'    : server.host ,
+                                      'dsInstancePort'    : server.port ,
+                                      'dsInstanceDn'      : server.dn ,
+                                      'dsInstancePswd'    : server.password ,
+                                      'entryToBeModified' : '%s/schema/ldifs/updateSchema5.ldif'
+                                                            % remote.data }
+            }
+          </call>
+
+          <!-- Modify entry which depends on objectclass addschema4OC by adding attribute addschema5AT -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'modifyEntry',
+              'functionMessage'   : 'Modify entry which depends on the parent custom objectclass by adding the new custom attribute.',
+              'functionArguments' : { 'dsInstanceHost'    : server.host ,
+                                      'dsInstancePort'    : server.port ,
+                                      'dsInstanceDn'      : server.dn ,
+                                      'dsInstancePswd'    : server.password ,
+                                      'entryToBeModified' : '%s/schema/ldifs/dynamic_schema7.ldif'
+                                                            % remote.data }
+            }
+          </call>
+          
+           <!-- Modify entry which depends on objectclass addschema5OC by adding attribute addschema5AT -->
+          <call function="'runFunction'">
+            { 'functionName'      : 'modifyEntry',
+              'functionMessage'   : 'Modify entry which depends on the child custom objectclass by adding the new custom attribute.',
+              'functionException' : 'LDAP.ModifyException',
+              'functionArguments' : { 'dsInstanceHost'    : server.host ,
+                                      'dsInstancePort'    : server.port ,
+                                      'dsInstanceDn'      : server.dn ,
+                                      'dsInstancePswd'    : server.password ,
+                                      'entryToBeModified' : '%s/schema/ldifs/dynamic_schema8.ldif'
+                                                            % remote.data }
+            }
+          </call>
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>       
   </function>
 
 </stax>
