@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -32,6 +32,7 @@ package org.opends.server.protocols.internal;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -79,7 +80,7 @@ public final class InternalClientConnection
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * The protocol verison string that will be used for internal bind
+   * The protocol version string that will be used for internal bind
    * operations.  Since this is modeled after LDAPv3 binds, it will
    * use a version number string of "3".
    */
@@ -100,11 +101,8 @@ public final class InternalClientConnection
   // The static connection for root-based connections.
   private static InternalClientConnection rootConnection;
 
-  // The empty operation list for this connection.
-  private LinkedList<Operation> operationList;
-
   // The connection ID for this client connection.
-  private long connectionID;
+  private final long connectionID;
 
 
 
@@ -218,7 +216,6 @@ public final class InternalClientConnection
     }
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<Operation>();
   }
 
 
@@ -257,7 +254,6 @@ public final class InternalClientConnection
     super.setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<Operation>();
   }
 
 
@@ -599,7 +595,7 @@ public final class InternalClientConnection
   @Override()
   public void setIdleTimeLimit(long idleTimeLimit)
   {
-    // No implementation rqeuired.  We never want to set a nonzero
+    // No implementation required.  We never want to set a nonzero
     // idle time limit for internal client connections.
   }
 
@@ -608,7 +604,7 @@ public final class InternalClientConnection
   /**
    * Specifies the time limit that will be enforced for searches
    * performed using this client connection.  This method does nothing
-   * because connection-level tim elimits will never be enforced for
+   * because connection-level time limits will never be enforced for
    * internal client connections.
    *
    * @param  timeLimit  The time limit that will be enforced for
@@ -785,7 +781,7 @@ public final class InternalClientConnection
    *
    * @param  entryDN                The entry DN for the add
    *                                operation.
-   * @param  objectClasses          The set of objectclasses for the
+   * @param  objectClasses          The set of object classes for the
    *                                add operation.
    * @param  userAttributes         The set of user attributes for the
    *                                add operation.
@@ -814,7 +810,7 @@ public final class InternalClientConnection
    *
    * @param  entryDN                The entry DN for the add
    *                                operation.
-   * @param  objectClasses          The set of objectclasses for the
+   * @param  objectClasses          The set of object classes for the
    *                                add operation.
    * @param  userAttributes         The set of user attributes for the
    *                                add operation.
@@ -2718,7 +2714,7 @@ public final class InternalClientConnection
   @Override()
   public Collection<Operation> getOperationsInProgress()
   {
-    return operationList;
+    return Collections.emptyList();
   }
 
 
@@ -2850,7 +2846,7 @@ public final class InternalClientConnection
    * Retrieves a one-line summary of this client connection in a form
    * that is suitable for including in the monitor entry for the
    * associated connection handler.  It should be in a format that is
-   * both humand readable and machine parseable (e.g., a
+   * both human readable and machine parseable (e.g., a
    * space-delimited name-value list, with quotes around the values).
    *
    * @return  A one-line summary of this client connection in a form
