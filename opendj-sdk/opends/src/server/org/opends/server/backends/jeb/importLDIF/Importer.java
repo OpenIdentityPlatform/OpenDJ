@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -1846,8 +1846,11 @@ public final class Importer implements DiskSpaceMonitorHandler
         indexBuffer = getNewIndexBuffer();
         indexBufferMap.put(indexKey, indexBuffer);
       }
-      else if (!indexBuffer.isSpaceAvailable(key, entryID.longValue()))
+
+      if (!indexBuffer.isSpaceAvailable(key, entryID.longValue()))
       {
+        // TODO Make sure the new indexBuffer has enough space for the
+        // key and ID. cf Bug OPENDJ-746
         indexBuffer.setComparator(comparator);
         indexBuffer.setIndexKey(indexKey);
         bufferSortService.submit(new SortTask(indexBuffer));
