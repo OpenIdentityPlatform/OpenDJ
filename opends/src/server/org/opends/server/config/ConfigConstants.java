@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -4331,6 +4331,13 @@ public final class ConfigConstants
    */
   public static final String ATTR_REBUILD_INDEX =
        NAME_PREFIX_TASK + "rebuild-index";
+
+  /**
+   * The name of the attribute in an rebuild task definition that specifies the
+   * degraded index which needs to be clear.
+   */
+  public static final String ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE =
+      ATTR_REBUILD_INDEX + "-clear-degraded-state";
 
 
   /**
