@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -39,7 +39,8 @@ public class RebuildConfig
   /**
    * Identifies how indexes will be selected for rebuild.
    */
-  public static enum RebuildMode {
+  public static enum RebuildMode
+  {
     /**
      * Rebuild all indexes, including system indexes.
      */
@@ -70,8 +71,10 @@ public class RebuildConfig
 
   private String tmpDirectory;
 
+  private boolean isClearDegradedState;
+
   /**
-   * Create a new rebuild configuraiton.
+   * Create a new rebuild configuration.
    */
   public RebuildConfig()
   {
@@ -80,6 +83,7 @@ public class RebuildConfig
 
   /**
    * Get the base DN to rebuild.
+   *
    * @return The base DN to rebuild.
    */
   public DN getBaseDN()
@@ -89,7 +93,9 @@ public class RebuildConfig
 
   /**
    * Set the base DN to rebuild.
-   * @param baseDN The base DN to rebuild.
+   *
+   * @param baseDN
+   *          The base DN to rebuild.
    */
   public void setBaseDN(DN baseDN)
   {
@@ -109,34 +115,35 @@ public class RebuildConfig
   /**
    * Add an index to be rebuilt into the configuration. Duplicate index names
    * will be ignored. Adding an index that causes a mix of complete and partial
-   * rebuild for the same attribute index in the configuration will remove
-   * the partial and just keep the complete attribute index name.
-   * (ie. uid and uid.presence).
+   * rebuild for the same attribute index in the configuration will remove the
+   * partial and just keep the complete attribute index name. (ie. uid and
+   * uid.presence).
    *
-   * @param index The index to add.
+   * @param index
+   *          The index to add.
    */
   public void addRebuildIndex(String index)
   {
     String[] newIndexParts = index.split("\\.");
 
-    for(String s : new ArrayList<String>(rebuildList))
+    for (String s : new ArrayList<String>(rebuildList))
     {
       String[] existingIndexParts = s.split("\\.");
-      if(existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
+      if (existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
       {
-        if(newIndexParts.length == 1 && existingIndexParts.length == 1)
+        if (newIndexParts.length == 1 && existingIndexParts.length == 1)
         {
           return;
         }
-        else if(newIndexParts.length > 1 && existingIndexParts.length == 1)
+        else if (newIndexParts.length > 1 && existingIndexParts.length == 1)
         {
           return;
         }
-        else if(newIndexParts.length == 1 && existingIndexParts.length > 1)
+        else if (newIndexParts.length == 1 && existingIndexParts.length > 1)
         {
           rebuildList.remove(s);
         }
-        else if(newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
+        else if (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
         {
           return;
         }
@@ -150,36 +157,37 @@ public class RebuildConfig
    * Check the given config for conflicts with this config. A conflict is
    * detected if both configs specify the same indexType/database to be rebuilt.
    *
-   * @param config The rebuild config to check against.
+   * @param config
+   *          The rebuild config to check against.
    * @return the name of the indexType causing the conflict or null if no
    *         conflict is detected.
    */
   public String checkConflicts(RebuildConfig config)
   {
     //If they specify different base DNs, no conflicts can occur.
-    if(this.baseDN.equals(config.baseDN))
+    if (this.baseDN.equals(config.baseDN))
     {
-      for(String thisIndex : this.rebuildList)
+      for (String thisIndex : this.rebuildList)
       {
-        for(String thatIndex : config.rebuildList)
+        for (String thatIndex : config.rebuildList)
         {
           String[] existingIndexParts = thisIndex.split("\\.");
           String[] newIndexParts = thatIndex.split("\\.");
-          if(existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
+          if (existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
           {
-            if(newIndexParts.length == 1 && existingIndexParts.length == 1)
+            if (newIndexParts.length == 1 && existingIndexParts.length == 1)
             {
               return thatIndex;
             }
-            else if(newIndexParts.length > 1 && existingIndexParts.length == 1)
+            else if (newIndexParts.length > 1 && existingIndexParts.length == 1)
             {
               return thatIndex;
             }
-            else if(newIndexParts.length == 1 && existingIndexParts.length > 1)
+            else if (newIndexParts.length == 1 && existingIndexParts.length > 1)
             {
               return thatIndex;
             }
-            else if(newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
+            else if (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
             {
               return thatIndex;
             }
@@ -198,17 +206,17 @@ public class RebuildConfig
    */
   public boolean includesSystemIndex()
   {
-    for(String index : rebuildList)
+    for (String index : rebuildList)
     {
-      if(index.equalsIgnoreCase("id2entry"))
+      if (index.equalsIgnoreCase("id2entry"))
       {
         return true;
       }
-      if(index.equalsIgnoreCase("dn2id"))
+      if (index.equalsIgnoreCase("dn2id"))
       {
         return true;
       }
-      if(index.equalsIgnoreCase("dn2uri"))
+      if (index.equalsIgnoreCase("dn2uri"))
       {
         return true;
       }
@@ -217,11 +225,11 @@ public class RebuildConfig
     return false;
   }
 
-
   /**
    * Set the temporary directory to the specified path.
    *
-   * @param path The path to set the temporary directory to.
+   * @param path
+   *          The path to set the temporary directory to.
    */
   public void setTmpDirectory(String path)
   {
@@ -231,18 +239,18 @@ public class RebuildConfig
   /**
    * Return the temporary directory path.
    *
-   * @return  The temporary directory string.
+   * @return The temporary directory string.
    */
   public String getTmpDirectory()
   {
     return tmpDirectory;
   }
 
-
   /**
    * Sets the rebuild mode.
    *
-   * @param mode The new rebuild mode.
+   * @param mode
+   *          The new rebuild mode.
    */
   public void setRebuildMode(RebuildMode mode)
   {
@@ -259,5 +267,27 @@ public class RebuildConfig
     return rebuildMode;
   }
 
+  /**
+   * Returns {@code true} if indexes should be forcefully marked as valid even
+   * if they are currently degraded.
+   *
+   * @return {@code true} if index should be forcefully marked as valid.
+   */
+  public boolean isClearDegradedState()
+  {
+    return isClearDegradedState;
+  }
+
+  /**
+   * Sets the 'clear degraded index' status.
+   *
+   * @param isClearDegradedState
+   *          {@code true} if indexes should be forcefully marked as valid even
+   *          if they are currently degraded.
+   */
+  public void isClearDegradedState(boolean isClearDegradedState)
+  {
+    this.isClearDegradedState = isClearDegradedState;
+  }
 
 }

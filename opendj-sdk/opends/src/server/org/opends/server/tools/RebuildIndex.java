@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -41,6 +41,7 @@ import org.opends.server.config.ConfigException;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -85,6 +86,7 @@ public class RebuildIndex extends TaskTool
   private StringArgument  tmpDirectory            = null;
   private BooleanArgument rebuildAll              = null;
   private BooleanArgument rebuildDegraded         = null;
+  private BooleanArgument clearDegradedState      = null;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -203,6 +205,10 @@ public class RebuildIndex extends TaskTool
                     INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get());
       argParser.addArgument(rebuildDegraded);
 
+      clearDegradedState =
+          new BooleanArgument("clearDegradedState", null, "clearDegradedState",
+                   INFO_REBUILDINDEX_DESCRIPTION_CLEAR_DEGRADED_STATE.get());
+      argParser.addArgument(clearDegradedState);
 
       tmpDirectory =
            new StringArgument("tmpdirectory", null, "tmpdirectory", false,
@@ -557,6 +563,9 @@ public class RebuildIndex extends TaskTool
     }
     else
     {
+      if(clearDegradedState.isPresent()) {
+        rebuildConfig.isClearDegradedState(true);
+      }
       rebuildConfig.setRebuildMode(RebuildMode.USER_DEFINED);
     }
 
@@ -659,6 +668,15 @@ public class RebuildIndex extends TaskTool
       values.add(ByteString.valueOf(REBUILD_DEGRADED));
       attributes.add(
               new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+    }
+
+    if (clearDegradedState.getValue() != null &&
+        !clearDegradedState.getValue().equals(
+            clearDegradedState.getDefaultValue())) {
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf("true"));
+      attributes.add(
+            new LDAPAttribute(ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE, values));
     }
   }
 
