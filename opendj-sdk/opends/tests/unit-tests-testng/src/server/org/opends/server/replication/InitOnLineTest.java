@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -121,15 +121,11 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * A "person" entry
    */
-  protected Entry personEntry;
   protected Entry taskInitFromS2;
   protected Entry taskInitTargetS2;
   protected Entry taskInitTargetAll;
 
-  SocketSession ssSession = null;
-  boolean ssShutdownRequested = false;
   protected String[] updatedEntries;
-  boolean externalDS = false;
   private static final int server1ID = 1;
   private static final int server2ID = 2;
   private static final int server3ID = 3;
@@ -481,7 +477,7 @@ public class InitOnLineTest extends ReplicationTestCase
                    + "cn: "+useri+"_cn"+"\n"
                    + "sn: "+useri+"_sn"+"\n"
                    + "uid: "+useri+"_uid"+"\n"
-                   + "telephonenumber:: "+ Base64.encode(
+                   + "description:: "+ Base64.encode(
                        new String(bigAttributeValue).getBytes())+"\n"
                    + "entryUUID: 21111111-1111-1111-1111-"+useri+
                    filler.substring(0, 12-useri.length())+"\n"
@@ -492,7 +488,7 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /*
-   * Creates entries necessary to the test.
+   * Creates one  user entry necessary to the test.
    */
   private String newLDIFEntry(int entryCnt)
   {
@@ -514,11 +510,11 @@ public class InitOnLineTest extends ReplicationTestCase
             + "cn: "+useri+"_cn"+"\n"
             + "sn: "+useri+"_sn"+"\n"
             + "uid: "+useri+"_uid"+"\n"
-            + "telephonenumber:: "+ Base64.encode(
+            + "description:: "+ Base64.encode(
                 new String(bigAttributeValue).getBytes())+"\n"
-                + "entryUUID: 21111111-1111-1111-1111-"+useri+
+            + "entryUUID: 21111111-1111-1111-1111-"+useri+
                 filler.substring(0, 12-useri.length())+"\n"
-                + "\n";
+            + "\n";
 
   }
 
@@ -769,7 +765,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Test steps :
    * - create a task 'InitFromS2' in S1
    * - make S2 export its entries
-   * - test that S1 has succesfully imported the entries and completed the task.
+   * - test that S1 has successfully imported the entries and completed the task.
    *
    * TODO: Error case: make S2 crash/disconnect in the middle of the export
    * and test that, on S1 side, the task ends with an error.
@@ -833,7 +829,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Tests the export side of the Initialize task
    * Test steps :
    * - add entries in S1, make S2 publish InitRequest
-   * - test that S1 has succesfully exported the entries (by receiving them
+   * - test that S1 has successfully exported the entries (by receiving them
    *   on S2 side).
    */
   @Test(enabled=true, groups="slow")
@@ -881,7 +877,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Test steps :
    * - add entries in S1 and create a task 'InitTargetS2' in S1
    * - wait task completed
-   * - test that S2 has succesfully received the entries
+   * - test that S2 has successfully received the entries
    */
   @Test(enabled=true, groups="slow")
   public void initializeTargetExport() throws Exception
@@ -932,7 +928,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Test steps :
    * - addEntries in S1, create a task 'InitAll' in S1
    * - wait task completed on S1
-   * - test that S2 and S3 have succesfully imported the entries.
+   * - test that S2 and S3 have successfully imported the entries.
    *
    * TODO: Error case: make S1 crash in the middle of the export and test that
    * the task ends with an error. State of the backend on both S2 and S3: ?
