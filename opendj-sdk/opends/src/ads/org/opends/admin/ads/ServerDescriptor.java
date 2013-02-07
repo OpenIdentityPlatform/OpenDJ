@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portion Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.admin.ads;
@@ -1176,7 +1177,7 @@ public class ServerDescriptor
     }
 
     ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
     new String[] {
       "ds-cfg-replication-port", "ds-cfg-replication-server",
@@ -1184,7 +1185,7 @@ public class ServerDescriptor
     });
     filter = "(objectclass=ds-cfg-replication-server)";
 
-    jndiName = new LdapName("cn=Replication Server,cn=Multimaster "+
+    jndiName = new LdapName("cn=Multimaster "+
         "Synchronization,cn=Synchronization Providers,cn=config");
 
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
