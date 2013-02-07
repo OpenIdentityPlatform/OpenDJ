@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-change-certs'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Changing Server Certificates</title>
+ <indexterm><primary>Certificates</primary></indexterm>
+
+ <para>OpenDJ uses key stores (for private keys) and trust stores (for
+ public, signed certificates). Up to three sets of key stores are used,
+ as shown in the following illustration.</para>
+
+ <mediaobject xml:id="figure-keystores">
+  <imageobject>
+   <imagedata fileref="images/keystores.png" format="PNG" />
+  </imageobject>
+  <caption><para>OpenDJ uses different sets of public and private keys for
+  different secure connections.</para></caption>
+ </mediaobject>
+
+ <itemizedlist>
+  <para>By default the key stores are located in the
+  <filename>/path/to/OpenDJ/config</filename> directory.</para>
+
+  <listitem>
+   <para>The <filename>keystore</filename> and <filename>truststore</filename>
+   hold keys for securing connections with client applications.</para>
+  </listitem>
+
+  <listitem>
+   <para>The <filename>admin-keystore</filename> and
+   <filename>admin-truststore</filename> hold keys for securing administrative
+   connections, such as those used when connecting with the
+   <command>dsconfig</command> command.</para>
+  </listitem>
+
+  <listitem>
+   <para>The <filename>ads-truststore</filename> holds keys for securing
+   replication connections with other OpenDJ servers in the replication
+   topology.</para>
+  </listitem>
+ </itemizedlist>
+
+ <variablelist>
+  <para>Each key store has a specific purpose.</para>
+
+  <varlistentry>
+   <term><filename>admin-keystore</filename></term>
+   <listitem>
+    <para>This Java Key Store holds the private key corresponding to the
+    administrative certificate, <literal>admin-cert</literal>, used
+    to protect communications on the administration port, and for replication.
+    The password is stored in <filename>admin-keystore.pin</filename>.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>admin-truststore</filename></term>
+   <listitem>
+    <para>This Java Key Store holds the public administrative certificate,
+    <literal>admin-cert</literal>, corresponding to the private key having the
+    same alias in the <filename>admin-keystore</filename>. The password is the
+    same as for the <filename>admin-keystore</filename>, in other words the
+    string in <filename>admin-keystore.pin</filename>.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>ads-truststore</filename></term>
+   <listitem>
+    <para>This Java Key Store holds public keys of all servers
+    participating in the replication topology including the current server,
+    and also holds the private key of the current server. The password is
+    stored in <filename>ads-truststore.pin</filename>.</para>
+
+    <para>Do not change this key store directly.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>keystore</filename></term>
+   <listitem>
+    <para>This Java Key Store holds the private key corresponding to the
+    server certificate used to protect TLS/SSL communications with client
+    applications. The password is stored in
+    <filename>keystore.pin</filename>.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>truststore</filename></term>
+   <listitem>
+    <para>This Java Key Store holds the public server certificate
+    corresponding to the private key having the same alias in the
+    <filename>keystore</filename>. The password is the same as for the
+    <filename>keystore</filename>, in other words the string in
+    <filename>keystore.pin</filename>.</para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+
+ <tip>
+  <para>Examples in this chapter use self-signed certificates, but you can
+  also use CA-signed certificates.</para>
+
+  <para>When importing a certificate (<command>keytool -import</command>)
+  signed by a well-known CA, use the <option>-trustcacerts</option> option
+  to trust the CA certificates delivered with the Java runtime
+  environment.</para>
+ </tip>
+
+ <procedure xml:id="replace-key-pair">
+  <title>To Replace a Server Key Pair</title>
+
+  <para>This procedure shows how to replace a server key pair in the
+  <filename>admin-truststore</filename> and corresponding private key in the
+  <filename>admin-keystore</filename>.</para>
+
+  <para>The examples also apply when replacing a key pair in the
+  <filename>keystore</filename> and <filename>truststore</filename>, provided
+  that you change they keystore and PIN names in the commands.</para>
+
+  <para>This procedure does not apply for replication key pairs. Instead, see
+  <xref linkend="replace-ads-cert" />.</para>
+
+  <step>
+   <para>List information about the contents of the key store and trust store
+   whose contents you want to replace.</para>
+
+   <screen>$ cd /path/to/OpenDJ/config
+$ keytool -list -v -keystore admin-keystore -storepass `cat admin-keystore.pin`</screen>
+  </step>
+
+  <step>
+   <para>Remove the certificate to replace from the keystore and from the
+   trust store.</para>
+
+   <screen>$ keytool
+ -delete
+ -alias admin-cert
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`
+$ keytool
+ -delete
+ -alias admin-cert
+ -keystore admin-truststore
+ -storepass `cat admin-keystore.pin`</screen>
+  </step>
+
+  <step>
+   <para>Generate the private key, storing it in the key store.</para>
+
+   <screen>$ keytool
+ -genkey
+ -alias admin-cert
+ -keyalg RSA
+ -dname
+ "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate"
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`
+ -keypass `cat admin-keystore.pin`</screen>
+   <para>You might choose to make the key valid for 20 years with
+   <option>-validity 7300</option>.</para>
+  </step>
+
+  <step>
+   <para>Self-sign what you generated.</para>
+
+   <screen>$ keytool
+ -selfcert
+ -alias admin-cert
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`</screen>
+
+   <para>Alternatively, request and install a CA-signed certificate as
+   described in the section on <link
+   xlink:href="admin-guide#setup-server-cert"
+   xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Preparing For Secure Communications</citetitle></link>.</para>
+  </step>
+
+  <step>
+   <para>Export the certificate from the key store.</para>
+
+   <screen>$ keytool
+ -export
+ -alias admin-cert
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`
+ -file admin-cert.crt
+Certificate stored in file &lt;admin-cert.crt&gt;</screen>
+  </step>
+
+  <step>
+   <para>Import the certificate into the trust store.</para>
+
+   <screen>$ keytool
+ -import
+ -alias admin-cert
+ -keystore admin-truststore
+ -storepass `cat admin-keystore.pin`
+ -file admin-cert.crt
+Owner: CN=opendj.example.com,
+ O=Administration Connector Self-Signed Certificate
+Issuer: CN=opendj.example.com,
+ O=Administration Connector Self-Signed Certificate
+Serial number: 4e0321c6
+Valid from: Thu Jun 23 13:21:42 CEST 2011 until: Wed Sep 21 13:21:42 CEST 2011
+Certificate fingerprints:
+  MD5:  5C:4B:CC:9A:37:E2:71:BD:C4:86:8E:FC:D4:37:39:57
+  SHA1: 70:D0:36:0D:EB:0D:AC:45:6D:A4:EF:8A:8E:CB:C7:04:7D:3A:EE:6E
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+  </step>
+
+  <step>
+   <para>Restart OpenDJ to make sure it reloads the key stores.</para>
+
+   <screen>$ stop-ds --restart</screen>
+  </step>
+
+  <step>
+   <para>If you have client applications trusting the self-signed certificate,
+   have them import the new one (<filename>admin-cert.crt</filename> in this
+   example).</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="replace-ads-cert">
+  <title>To Replace the Key Pair Used for Replication</title>
+
+  <para>Follow these steps to replace the key pair that is used to
+  secure replication connections.</para>
+
+  <step>
+   <para>Delete the key pair used by this server to secure replication
+   connections.</para>
+
+   <para>The change is replicated across the topology.</para>
+
+   <substeps>
+    <step>
+     <para>Identify the key ID of the certificate used by this server
+     by searching the administrative data using the host name and
+     administration port for this server.</para>
+
+     <para>The server in this example is installed on
+     <literal>opendj.example.com</literal> with administration port
+     4444.</para>
+
+     <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN "cn=admin data"
+ "(cn=opendj.example.com:4444)" ds-cfg-key-id
+dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
+ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
+
+     <para>The key ID in this case is
+     <literal>4F2F97979A7C05162CF64C9F73AF66ED</literal>.</para>
+    </step>
+
+    <step>
+     <para>Using the key ID, delete the certificate.</para>
+
+     <screen width="81">$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,cn=instance keys,cn=admin data
+changetype: delete
+
+Processing DELETE request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
+ cn=instance keys,cn=admin data
+DELETE operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED
+ ,cn=instance keys,cn=admin data</screen>
+    </step>
+   </substeps>
+  </step>
+
+  <step>
+   <para>Generate a new key pair for the server.</para>
+
+   <para>The changes you perform are replicated across the topology.</para>
+
+   <para>OpenDJ has an <literal>ads-certificate</literal> and private
+   key, which is a local copy of the key pair used to secure replication
+   connections.</para>
+
+   <para>To generate the new key pair, you remove the
+   <literal>ads-certificate</literal> key pair, prompt OpenDJ to
+   generate a new <literal>ads-certificate</literal> key pair, and
+   then add a copy to the administrative data using the MD5 fingerprint
+   of the certificate to define the RDN.</para>
+
+   <substeps>
+    <step>
+     <para>Delete the <literal>ads-certificate</literal> entry.</para>
+
+     <screen>$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+changetype: delete
+
+Processing DELETE request for ds-cfg-key-id=ads-certificate,cn=ads-truststore
+DELETE operation successful for DN ds-cfg-key-id=ads-certificate,
+ cn=ads-truststore</screen>
+   </step>
+
+   <step>
+    <para>Prompt OpenDJ to generate a new, self-signed
+    <literal>ads-certificate</literal> key pair.</para>
+
+    <para>You do this by adding an <literal>ads-certificate</literal> entry
+    with object class <literal>ds-cfg-self-signed-cert-request</literal>.</para>
+
+    <screen>$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+changetype: add
+objectclass: ds-cfg-self-signed-cert-request
+
+Processing ADD request for ds-cfg-key-id=ads-certificate,cn=ads-truststore
+ADD operation successful for DN ds-cfg-key-id=ads-certificate,cn=ads-truststore</screen>
+   </step>
+
+   <step>
+    <para>Retrieve the <literal>ads-certificate</literal> entry.</para>
+
+    <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN cn=ads-truststore
+ "(ds-cfg-key-id=ads-certificate)"
+dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+ds-cfg-key-id: ads-certificate
+ds-cfg-public-key-certificate;binary:: MIIB6zCCAVSgAwIBAgIEDKSUFjANBgkqhkiG9w0BA
+ QUFADA6MRswGQYDVQQKExJPcGVuREogQ2VydGlmaWNhdGUxGzAZBgNVBAMTEm9wZW5hbS5leGFtcGxl
+ LmNvbTAeFw0xMzAyMDcxMDMwMzNaFw0zMzAyMDIxMDMwMzNaMDoxGzAZBgNVBAoTEk9wZW5ESiBDZXJ
+ 0aWZpY2F0ZTEbMBkGA1UEAxMSb3BlbmFtLmV4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNAD
+ CBiQKBgQCfGLAiUOz4sC8CM9T5DPTk9V9ErNC8N59XwBt1aN7UjhQl4/JZZsetubtUrZBLS9cRrnYdZ
+ cpFgLQNEmXifS+PdZ0DJkaLNFmd8ZX0spX8++fb4SkkggkmNRmi1fccDQ/DHMlwl7kk884lXummrzcD
+ GbZ7p4vnY7y7GmD1vZSP+wIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAJciUzUP8T8A9VV6dQB0SYCNG1o
+ 7IvpE7jGVZh6KvM0m5sBNX3wPbTVJQNij3TDm8nx6yhi6DUkpiAZfz/OBL5k+WSw80TjpIZ2+klhP1s
+ srsST4Um4fHzDZXOXHR6NM83XxZBsR6MazYecL8CiGwnYW2AeBapzbAnGn1J831q1q
+objectClass: top
+objectClass: ds-cfg-instance-key</screen>
+   </step>
+
+   <step>
+    <para>Retrieve the MD5 fingerprint of the
+    <literal>ads-certificate</literal>.</para>
+
+    <para>In this example, the MD5 fingerprint is
+    <literal>07:35:80:D8:F3:CE:E1:39:9C:D0:73:DB:6C:FA:CC:1C</literal>.</para>
+
+    <screen>$ keytool
+ -list
+ -v
+ -alias ads-certificate
+ -keystore /path/to/OpenDJ/config/ads-truststore
+ -storepass `cat /path/to/OpenDJ/config/ads-truststore.pin`
+Alias name: ads-certificate
+Creation date: Feb 7, 2013
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+Issuer: CN=opendj.example.com, O=OpenDJ Certificate
+Serial number: ca49416
+Valid from: Thu Feb 07 11:30:33 CET 2013 until: Wed Feb 02 11:30:33 CET 2033
+Certificate fingerprints:
+	 MD5:  07:35:80:D8:F3:CE:E1:39:9C:D0:73:DB:6C:FA:CC:1C
+	 SHA1: 56:30:F6:79:AA:C0:BD:61:88:3E:FB:38:38:9D:84:70:0B:E4:43:57
+	 SHA256: A8:4B:81:EE:30:2A:0C:09:2E:...:C1:41:F5:AB:19:C6:EE:AB:50:64
+	 Signature algorithm name: SHA1withRSA
+	 Version: 3</screen>
+   </step>
+
+   <step>
+    <para>Using the MD5 fingerprint and the certificate entry, prepare LDIF
+    to update <literal>cn=admin data</literal> with the new server
+    certificate.</para>
+
+    <screen>$ cat /path/to/update-server-cert.ldif
+dn: ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,cn=instance keys,
+ cn=admin data
+changetype: add
+ds-cfg-key-id: 073580D8F3CEE1399CD073DB6CFACC1C
+ds-cfg-public-key-certificate;binary:: MIIB6zCCAVSgAwIBAgIEDKSUFjANBgkqhkiG9w0BA
+ QUFADA6MRswGQYDVQQKExJPcGVuREogQ2VydGlmaWNhdGUxGzAZBgNVBAMTEm9wZW5hbS5leGFtcGxl
+ LmNvbTAeFw0xMzAyMDcxMDMwMzNaFw0zMzAyMDIxMDMwMzNaMDoxGzAZBgNVBAoTEk9wZW5ESiBDZXJ
+ 0aWZpY2F0ZTEbMBkGA1UEAxMSb3BlbmFtLmV4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNAD
+ CBiQKBgQCfGLAiUOz4sC8CM9T5DPTk9V9ErNC8N59XwBt1aN7UjhQl4/JZZsetubtUrZBLS9cRrnYdZ
+ cpFgLQNEmXifS+PdZ0DJkaLNFmd8ZX0spX8++fb4SkkggkmNRmi1fccDQ/DHMlwl7kk884lXummrzcD
+ GbZ7p4vnY7y7GmD1vZSP+wIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAJciUzUP8T8A9VV6dQB0SYCNG1o
+ 7IvpE7jGVZh6KvM0m5sBNX3wPbTVJQNij3TDm8nx6yhi6DUkpiAZfz/OBL5k+WSw80TjpIZ2+klhP1s
+ srsST4Um4fHzDZXOXHR6NM83XxZBsR6MazYecL8CiGwnYW2AeBapzbAnGn1J831q1q
+objectClass: top
+objectClass: ds-cfg-instance-key
+
+dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
+changetype: modify
+replace: ds-cfg-key-id
+ds-cfg-key-id: 073580D8F3CEE1399CD073DB6CFACC1C
+
+</screen>
+    </step>
+
+    <step>
+     <para>Update the administrative data, causing OpenDJ to create a
+     copy of the new <literal>ads-certificate</literal> with its MD5 signature
+     as the alias in the <filename>ads-truststore</filename>.</para>
+
+     <screen>$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename /path/to/update-server-cert.ldif
+Processing ADD request for ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,
+ cn=instance keys,cn=admin data
+ADD operation successful for DN ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,
+ cn=instance keys,cn=admin data
+Processing MODIFY request for cn=opendj.example.com:4444,cn=Servers,
+ cn=admin data
+MODIFY operation successful for DN cn=opendj.example.com:4444,cn=Servers,
+ cn=admin data</screen>
+    </step>
+   </substeps>
+  </step>
+
+  <step>
+   <para>Force OpenDJ to reopen replication connections using the new key
+   pair.</para>
+
+   <para>Stop replication temporarily and then start it again as described
+   in the <citetitle>Administration Guide</citetitle> section on <link
+   xlink:href="admin-guide#configure-repl"
+   xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Configuring Replication</citetitle></link>.</para>
+
+   <screen>$ dsconfig
+ set-synchronization-provider-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set enabled:false
+ --no-prompt
+$ dsconfig
+ set-synchronization-provider-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set enabled:true
+ --no-prompt</screen>
+  </step>
+ </procedure>
+</chapter>
