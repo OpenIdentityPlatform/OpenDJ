@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -107,7 +107,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     {
       return returnCode;
     }
-  };
+  }
 
   final private static String DEFAULT_JAVA_HOME_PROP_NAME = "default.java-home";
   final private static String DEFAULT_JAVA_ARGS_PROP_NAME = "default.java-args";
@@ -246,7 +246,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
 
     Properties properties = new Properties();
-    BufferedReader reader = null;
+    BufferedReader reader;
     String propertiesFile = argParser.propertiesFileArg.getValue();
     try
     {
@@ -269,7 +269,7 @@ public class JavaPropertiesTool extends ConsoleApplication
 
     String destinationFile = argParser.destinationFileArg.getValue();
 
-    BufferedWriter writer = null;
+    BufferedWriter writer;
     try
     {
       File f = new File(destinationFile);
@@ -565,7 +565,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           buf.append(
           s+"then"+EOL+
           s+"  TEMP=\""+value+"/bin/java\""+EOL+
-          s+"  if test -f ${TEMP}"+EOL+
+          s+"  if test -f \"${TEMP}\""+EOL+
           s+"  then"+EOL+
           s+"    OPENDJ_JAVA_BIN=\""+value+"/bin/java\""+EOL+
           s+"    export OPENDJ_JAVA_BIN"+EOL+
@@ -599,9 +599,9 @@ public class JavaPropertiesTool extends ConsoleApplication
           buf.append(
               "  then"+EOL+
               "    TEMP=\""+defaultJavaHome+"/bin/java\""+EOL+
-              "    if test -f ${TEMP}"+EOL+
+              "    if test -f \"${TEMP}\""+EOL+
               "    then"+EOL+
-              "      OPENDJ_JAVA_BIN=${TEMP}"+EOL+
+              "      OPENDJ_JAVA_BIN=\"${TEMP}\""+EOL+
               "      export OPENDJ_JAVA_BIN"+EOL+
               "    fi"+EOL);
         }
@@ -638,19 +638,19 @@ public class JavaPropertiesTool extends ConsoleApplication
         // No properties added: this is required not to break the script
         buf.append(
             "  then"+EOL+
-            "  OPENDJ_JAVA_BIN=${OPENDJ_JAVA_BIN}"+EOL);
+            "  OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_BIN}\""+EOL);
       }
       buf.append(
           "      else"+EOL+
-          "        OPENDJ_JAVA_BIN=${OPENDJ_JAVA_HOME}/bin/java"+EOL+
+          "        OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\""+EOL+
           "        export OPENDJ_JAVA_BIN"+EOL+
           "      fi"+EOL+
           "    else"+EOL+
-          "      OPENDJ_JAVA_BIN=${OPENDS_JAVA_BIN}"+EOL+
+          "      OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_BIN}\""+EOL+
           "      export OPENDJ_JAVA_BIN"+EOL+
           "    fi"+EOL+
           "  else"+EOL+
-          "    OPENDJ_JAVA_BIN=${OPENDS_JAVA_HOME}/bin/java"+EOL+
+          "    OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
           "    export OPENDJ_JAVA_BIN"+EOL+
           "  fi"+EOL+
 
