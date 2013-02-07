@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2006-2009 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2013 ForgeRock AS
 
 
 # Capture the current working directory so that we can change to it later.
@@ -92,7 +92,7 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
-${OPENDJ_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
@@ -119,7 +119,7 @@ then
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	${OPENDJ_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+  	"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
     EC=${?}
