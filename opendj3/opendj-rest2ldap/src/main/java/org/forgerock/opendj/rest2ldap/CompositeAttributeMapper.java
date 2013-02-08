@@ -121,7 +121,31 @@ final class CompositeAttributeMapper extends AttributeMapper {
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO Auto-generated method stub
+        final ResultHandler<List<Attribute>> handler =
+                accumulate(attributeMappers.size(), transform(
+                        new Function<List<List<Attribute>>, List<Attribute>, Void>() {
+                            @Override
+                            public List<Attribute> apply(final List<List<Attribute>> value,
+                                    final Void p) {
+                                switch (value.size()) {
+                                case 0:
+                                    return Collections.emptyList();
+                                case 1:
+                                    return value.get(0) != null ? value.get(0) : Collections
+                                            .<Attribute> emptyList();
+                                default:
+                                    List<Attribute> attributes =
+                                            new ArrayList<Attribute>(value.size());
+                                    for (List<Attribute> a : value) {
+                                        attributes.addAll(a);
+                                    }
+                                    return attributes;
+                                }
+                            }
+                        }, h));
+        for (final AttributeMapper mapper : attributeMappers) {
+            mapper.toLDAP(c, v, handler);
+        }
     }
 
     @SuppressWarnings("unchecked")

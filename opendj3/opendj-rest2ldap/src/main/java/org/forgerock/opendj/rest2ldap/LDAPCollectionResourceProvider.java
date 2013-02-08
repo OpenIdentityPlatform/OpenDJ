@@ -15,10 +15,12 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,6 +58,8 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
@@ -64,7 +68,12 @@ import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
+import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
+import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -161,8 +170,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private final NameStrategy nameStrategy;
 
     LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
-            final ConnectionFactory factory, final Config config, final NameStrategy nameStrategy,
-            final MVCCStrategy mvccStrategy) {
+            final ConnectionFactory factory, final NameStrategy nameStrategy,
+            final MVCCStrategy mvccStrategy, final Config config) {
         this.baseDN = baseDN;
         this.attributeMapper = mapper;
         this.factory = factory;
@@ -186,25 +195,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     @Override
     public void createInstance(final ServerContext context, final CreateRequest request,
             final ResultHandler<Resource> handler) {
-        // We will support three use-cases:
-        //
-        // 1) client provided: the RDN is derived from the ID
-        // 2) client provided: the RDN is derived from a JSON attribute, the ID maps to a user attribute
-        // 3) server provided: the RDN is derived from a JSON attribute
-        //
-        // Procedure:
-        //
-        // 1) Generate LDAP attributes and create entry
-        // 2) Apply ID mapper: create RDN from entry/ID, store ID in entry
-        // 3) Create add request
-        // 4) Add post read control if policy rfc
-        // 5) Do add request
-        // 6) If add failed then return error
-        // 7) If policy is rfc then return entry
-        // 8) If policy is search then read entry
-        //
         final Context c = wrap(context);
-        final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
         attributeMapper.toLDAP(c, request.getContent(), new ResultHandler<List<Attribute>>() {
             @Override
             public void handleError(final ResourceException error) {
@@ -213,10 +204,16 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
             @Override
             public void handleResult(final List<Attribute> result) {
+                final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
                 for (final Attribute attribute : result) {
                     addRequest.addAttribute(attribute);
                 }
-                nameStrategy.setResourceId(c, baseDN, request.getNewResourceId(), addRequest);
+                nameStrategy.setResourceId(c, getBaseDN(c), request.getNewResourceId(), addRequest);
+                if (config.readOnUpdatePolicy() == USE_READ_ENTRY_CONTROLS) {
+                    final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
+                    addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
+                }
+                applyUpdate(c, addRequest, handler);
             }
         });
     }
@@ -374,24 +371,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
                     @Override
                     public void handleResult(final SearchResultEntry entry) {
-                        final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
-                        final ResultHandler<Map<String, Object>> mapHandler =
-                                new ResultHandler<Map<String, Object>>() {
-                                    @Override
-                                    public void handleError(final ResourceException e) {
-                                        handler.handleError(e);
-                                    }
-
-                                    @Override
-                                    public void handleResult(final Map<String, Object> result) {
-                                        final Resource resource =
-                                                new Resource(resourceId, revision, new JsonValue(
-                                                        result));
-                                        handler.handleResult(resource);
-                                    }
-                                };
-                        attributeMapper.toJSON(c, entry, mapHandler);
+                        adaptEntry(c, entry, handler);
                     }
+
                 };
 
         // The handler which will be invoked
@@ -419,6 +401,27 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public void updateInstance(final ServerContext context, final String resourceId,
             final UpdateRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
+    }
+
+    private void adaptEntry(final Context c, final Entry entry,
+            final ResultHandler<Resource> handler) {
+        final String actualResourceId = nameStrategy.getResourceId(c, entry);
+        final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
+        final ResultHandler<Map<String, Object>> mapHandler =
+                new ResultHandler<Map<String, Object>>() {
+                    @Override
+                    public void handleError(final ResourceException e) {
+                        handler.handleError(e);
+                    }
+
+                    @Override
+                    public void handleResult(final Map<String, Object> result) {
+                        final Resource resource =
+                                new Resource(actualResourceId, revision, new JsonValue(result));
+                        handler.handleResult(resource);
+                    }
+                };
+        attributeMapper.toJSON(c, entry, mapHandler);
     }
 
     /**
@@ -675,5 +678,80 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
     private Context wrap(final ServerContext context) {
         return new Context(config, context);
+    }
+
+    private org.forgerock.opendj.ldap.ResultHandler<Result> postUpdateHandler(final Context c,
+            final ResultHandler<Resource> handler) {
+        // The handler which will be invoked for the LDAP add result.
+        final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
+                new org.forgerock.opendj.ldap.ResultHandler<Result>() {
+                    @Override
+                    public void handleErrorResult(final ErrorResultException error) {
+                        handler.handleError(adaptErrorResult(error));
+                    }
+
+                    @Override
+                    public void handleResult(final Result result) {
+                        // FIXME: handle USE_SEARCH policy.
+                        Entry entry;
+                        try {
+                            PostReadResponseControl postReadControl =
+                                    result.getControl(PostReadResponseControl.DECODER, config
+                                            .decodeOptions());
+                            if (postReadControl != null) {
+                                entry = postReadControl.getEntry();
+                            } else {
+                                PreReadResponseControl preReadControl =
+                                        result.getControl(PreReadResponseControl.DECODER, config
+                                                .decodeOptions());
+                                if (preReadControl != null) {
+                                    entry = preReadControl.getEntry();
+                                } else {
+                                    entry = null;
+                                }
+                            }
+                        } catch (DecodeException e) {
+                            // FIXME: log something?
+                            entry = null;
+                        }
+                        if (entry != null) {
+                            adaptEntry(c, entry, handler);
+                        } else {
+                            final Resource resource =
+                                    new Resource(null, null, new JsonValue(Collections.emptyMap()));
+                            handler.handleResult(resource);
+                        }
+                    }
+
+                };
+        return resultHandler;
+    }
+
+    private void applyUpdate(final Context c, final Request request,
+            final ResultHandler<Resource> handler) {
+        final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
+                postUpdateHandler(c, handler);
+        final ConnectionCompletionHandler<Result> outerHandler =
+                new ConnectionCompletionHandler<Result>(resultHandler) {
+
+                    @Override
+                    public void handleResult(final Connection connection) {
+                        final RequestCompletionHandler<Result> innerHandler =
+                                new RequestCompletionHandler<Result>(connection, resultHandler);
+                        // FIXME: simplify this once we have Connection#applyChange()
+                        if (request instanceof AddRequest) {
+                            connection.addAsync((AddRequest) request, null, innerHandler);
+                        } else if (request instanceof org.forgerock.opendj.ldap.requests.DeleteRequest) {
+                            connection.deleteAsync(
+                                    (org.forgerock.opendj.ldap.requests.DeleteRequest) request,
+                                    null, innerHandler);
+                        } else if (request instanceof ModifyRequest) {
+                            connection.modifyAsync((ModifyRequest) request, null, innerHandler);
+                        } else {
+                            throw new IllegalStateException();
+                        }
+                    }
+                };
+        factory.getConnectionAsync(outerHandler);
     }
 }

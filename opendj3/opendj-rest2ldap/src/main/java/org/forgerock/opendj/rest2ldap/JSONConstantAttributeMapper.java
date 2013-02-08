@@ -32,20 +32,11 @@ import org.forgerock.opendj.ldap.Filter;
 /**
  * An attribute mapper which maps a single JSON attribute to a fixed value.
  */
-final class ConstantAttributeMapper extends AttributeMapper {
+final class JSONConstantAttributeMapper extends AttributeMapper {
     private final String jsonAttributeName;
     private final Object jsonAttributeValue;
 
-    /**
-     * Creates a new constant attribute mapper which maps a single JSON
-     * attribute to a fixed value.
-     *
-     * @param attributeName
-     *            The name of the simple JSON attribute.
-     * @param attributeValue
-     *            The value of the simple JSON attribute.
-     */
-    ConstantAttributeMapper(final String attributeName, final Object attributeValue) {
+    JSONConstantAttributeMapper(final String attributeName, final Object attributeValue) {
         this.jsonAttributeName = attributeName;
         this.jsonAttributeValue = attributeValue;
     }
@@ -109,7 +100,7 @@ final class ConstantAttributeMapper extends AttributeMapper {
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO Auto-generated method stub
+        h.handleResult(Collections.<Attribute>emptyList());
     }
 
     private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,

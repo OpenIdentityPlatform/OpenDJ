@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
 import java.util.Arrays;
@@ -52,14 +53,71 @@ public final class Rest2LDAP {
      */
     public static final class Builder {
         private DN baseDN; // TODO: support template variables.
-        private Config config = Config.defaultConfig();
         private ConnectionFactory factory;
         private final List<AttributeMapper> mappers = new LinkedList<AttributeMapper>();
         private MVCCStrategy mvccStrategy = mvccUsingEtag();
         private NameStrategy nameStrategy = nameByEntryUUID("uid");
+        private Filter falseFilter = Filter.present("1.1");
+        private Schema schema = Schema.getDefaultSchema();
+        private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
+        private Filter trueFilter = Filter.objectClassPresent();
 
         Builder() {
             // No implementation required.
+        }
+
+        /**
+         * Sets the schema which should be used when attribute types and
+         * controls.
+         *
+         * @param schema
+         *            The schema which should be used when attribute types and
+         *            controls.
+         * @return A reference to this builder.
+         */
+        public Builder schema(final Schema schema) {
+            this.schema = ensureNotNull(schema);
+            return this;
+        }
+
+        /**
+         * Sets the absolute false filter which should be used when querying the
+         * LDAP server.
+         *
+         * @param filter
+         *            The absolute false filter.
+         * @return A reference to this builder.
+         */
+        public Builder falseFilter(final Filter filter) {
+            this.trueFilter = ensureNotNull(filter);
+            return this;
+        }
+
+        /**
+         * Sets the policy which should be used in order to read an entry before
+         * it is deleted, or after it is added or modified.
+         *
+         * @param policy
+         *            The policy which should be used in order to read an entry
+         *            before it is deleted, or after it is added or modified.
+         * @return A reference to this builder.
+         */
+        public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
+            this.readOnUpdatePolicy = ensureNotNull(policy);
+            return this;
+        }
+
+        /**
+         * Sets the absolute true filter which should be used when querying the
+         * LDAP server.
+         *
+         * @param filter
+         *            The absolute true filter.
+         * @return A reference to this builder.
+         */
+        public Builder trueFilter(final Filter filter) {
+            this.trueFilter = ensureNotNull(filter);
+            return this;
         }
 
         public Builder baseDN(final DN dn) {
@@ -80,14 +138,9 @@ public final class Rest2LDAP {
             if (mappers.isEmpty()) {
                 throw new IllegalStateException("No mappings provided");
             }
-            return new LDAPCollectionResourceProvider(baseDN, mapOf(mappers), factory, config,
-                    nameStrategy, mvccStrategy);
-        }
-
-        public Builder config(final Config config) {
-            ensureNotNull(config);
-            this.config = config;
-            return this;
+            return new LDAPCollectionResourceProvider(baseDN, mapOf(mappers), factory,
+                    nameStrategy, mvccStrategy, new Config(trueFilter, falseFilter,
+                            readOnUpdatePolicy, schema));
         }
 
         public Builder factory(final ConnectionFactory factory) {
@@ -254,8 +307,19 @@ public final class Rest2LDAP {
         return new ComplexAttributeMapper(jsonAttribute, mapOf(mappers));
     }
 
-    public static AttributeMapper mapConstant(final String attribute, final Object attributeValue) {
-        return new ConstantAttributeMapper(attribute, attributeValue);
+    public static AttributeMapper mapJSONConstant(final String attribute,
+            final Object attributeValue) {
+        return new JSONConstantAttributeMapper(attribute, attributeValue);
+    }
+
+    public static AttributeMapper mapLDAPConstant(final String attribute,
+            final Object attributeValue) {
+        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValue);
+    }
+
+    public static AttributeMapper mapLDAPConstant(final AttributeDescription attribute,
+            final Object attributeValue) {
+        return new LDAPConstantAttributeMapper(attribute, attributeValue);
     }
 
     public static MVCCStrategy mvccUsingAttribute(final AttributeDescription attribute) {
