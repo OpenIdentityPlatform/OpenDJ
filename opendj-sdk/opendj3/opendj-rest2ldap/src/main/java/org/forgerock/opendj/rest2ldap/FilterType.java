@@ -20,7 +20,7 @@ import org.forgerock.json.resource.QueryFilter;
 /**
  * An enumeration of the commons REST query comparison filter types.
  */
-public enum FilterType {
+enum FilterType {
 
     /**
      * Substring filter.
