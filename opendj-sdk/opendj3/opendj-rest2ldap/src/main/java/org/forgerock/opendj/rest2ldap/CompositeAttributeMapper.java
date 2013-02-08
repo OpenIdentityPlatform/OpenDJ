@@ -19,10 +19,10 @@ import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,46 +39,27 @@ import org.forgerock.opendj.ldap.Function;
  * An attribute mapper which combines the results of a set of subordinate
  * attribute mappers into a single JSON object.
  */
-public final class CompositeAttributeMapper implements AttributeMapper {
-    private final List<AttributeMapper> attributeMappers = new LinkedList<AttributeMapper>();
+final class CompositeAttributeMapper extends AttributeMapper {
+    private final List<AttributeMapper> attributeMappers;
 
     /**
      * Creates a new composite attribute mapper.
      */
-    public CompositeAttributeMapper() {
-        // No implementation required.
+    CompositeAttributeMapper(final Collection<AttributeMapper> mappers) {
+        this.attributeMappers = new ArrayList<AttributeMapper>(mappers);
     }
 
-    /**
-     * Adds a subordinate attribute mapper to this composite attribute mapper.
-     *
-     * @param mapper
-     *            The subordinate attribute mapper.
-     * @return This composite attribute mapper.
-     */
-    public CompositeAttributeMapper addMapper(final AttributeMapper mapper) {
-        attributeMappers.add(mapper);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+    void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
             final Set<String> ldapAttributes) {
         for (final AttributeMapper attribute : attributeMappers) {
             attribute.getLDAPAttributes(c, jsonAttribute, ldapAttributes);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPFilter(final Context c, final FilterType type,
-            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
+            final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         final ResultHandler<Filter> handler =
                 accumulate(attributeMappers.size(), transform(
                         new Function<List<Filter>, Filter, Void>() {
@@ -113,11 +94,8 @@ public final class CompositeAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         final ResultHandler<Map<String, Object>> handler =
                 accumulate(attributeMappers.size(), transform(
                         new Function<List<Map<String, Object>>, Map<String, Object>, Void>() {
@@ -141,11 +119,8 @@ public final class CompositeAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
+    void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
     }
 

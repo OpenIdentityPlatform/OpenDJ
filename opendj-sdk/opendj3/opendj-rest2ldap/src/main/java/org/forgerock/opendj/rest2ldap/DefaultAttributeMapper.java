@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.Filter;
  * An attribute mapper that directly maps a configurable selection of attributes
  * to and from LDAP without any transformation.
  */
-public final class DefaultAttributeMapper implements AttributeMapper {
+final class DefaultAttributeMapper extends AttributeMapper {
     // All user attributes by default.
     private final Map<String, String> excludedAttributes = new LinkedHashMap<String, String>();
     private final Map<String, String> includedAttributes = new LinkedHashMap<String, String>();
@@ -45,7 +45,7 @@ public final class DefaultAttributeMapper implements AttributeMapper {
      * Creates a new default attribute mapper which will map all user attributes
      * to JSON by default.
      */
-    public DefaultAttributeMapper() {
+    DefaultAttributeMapper() {
         // No implementation required.
     }
 
@@ -56,18 +56,15 @@ public final class DefaultAttributeMapper implements AttributeMapper {
      *            The attributes to be excluded.
      * @return This attribute mapper.
      */
-    public DefaultAttributeMapper excludeAttribute(final String... attributes) {
+    DefaultAttributeMapper excludeAttribute(final String... attributes) {
         for (final String attribute : attributes) {
             excludedAttributes.put(toLowerCase(attribute), attribute);
         }
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+    void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
             final Set<String> ldapAttributes) {
         switch (jsonAttribute.size()) {
         case 0:
@@ -88,13 +85,9 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPFilter(final Context c, final FilterType type,
-            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
+            final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         if (jsonAttribute.size() == 1 && isIncludedAttribute(jsonAttribute.get(0))) {
             h.handleResult(toFilter(c, type, jsonAttribute.get(0), valueAssertion));
         } else {
@@ -110,18 +103,17 @@ public final class DefaultAttributeMapper implements AttributeMapper {
      *            The attributes to be included.
      * @return This attribute mapper.
      */
-    public DefaultAttributeMapper includeAttribute(final String... attributes) {
+    DefaultAttributeMapper includeAttribute(final String... attributes) {
         for (final String attribute : attributes) {
             includedAttributes.put(toLowerCase(attribute), attribute);
         }
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+        // FIXME: this will leave out attributes which were not included in the LDAP entry. We should
+        // ensure that JSON attributes are present, even if they are null or an empty array.
         final Map<String, Object> result = new LinkedHashMap<String, Object>(e.getAttributeCount());
         for (final Attribute a : e.getAllAttributes()) {
             final String name = getAttributeName(a);
@@ -132,11 +124,8 @@ public final class DefaultAttributeMapper implements AttributeMapper {
         h.handleResult(result);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
+    void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO:
     }
 

@@ -30,7 +30,15 @@ import org.forgerock.opendj.ldap.Filter;
  * An attribute mapper is responsible for converting JSON values to and from
  * LDAP attributes.
  */
-public interface AttributeMapper {
+public abstract class AttributeMapper {
+    /*
+     * This interface is an abstract class so that methods can be made package
+     * private until API is finalized.
+     */
+
+    AttributeMapper() {
+        // Nothing to do.
+    }
 
     /**
      * Adds the names of the LDAP attributes required by this attribute mapper
@@ -48,7 +56,7 @@ public interface AttributeMapper {
      *            The set into which the required LDAP attribute names should be
      *            put.
      */
-    void getLDAPAttributes(Context c, JsonPointer jsonAttribute, Set<String> ldapAttributes);
+    abstract void getLDAPAttributes(Context c, JsonPointer jsonAttribute, Set<String> ldapAttributes);
 
     /**
      * Transforms the provided REST comparison filter parameters to an LDAP
@@ -80,8 +88,8 @@ public interface AttributeMapper {
      * @param h
      *            The result handler.
      */
-    void getLDAPFilter(Context c, FilterType type, JsonPointer jsonAttribute, String operator,
-            Object valueAssertion, ResultHandler<Filter> h);
+    abstract void getLDAPFilter(Context c, FilterType type, JsonPointer jsonAttribute,
+            String operator, Object valueAssertion, ResultHandler<Filter> h);
 
     /**
      * Transforms attributes contained in the provided LDAP entry to JSON
@@ -99,7 +107,7 @@ public interface AttributeMapper {
      * @param h
      *            The result handler.
      */
-    void toJSON(Context c, Entry e, ResultHandler<Map<String, Object>> h);
+    abstract void toJSON(Context c, Entry e, ResultHandler<Map<String, Object>> h);
 
     /**
      * Transforms JSON content in the provided JSON value to LDAP attributes,
@@ -116,7 +124,7 @@ public interface AttributeMapper {
      * @param h
      *            The result handler.
      */
-    void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h);
+    abstract void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).

@@ -31,6 +31,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
@@ -85,12 +86,11 @@ final class Utils {
     }
 
     // @Checkstyle:off
-    private static final Function<ByteString, Object, Attribute> BYTESTRING_TO_JSON =
-            new Function<ByteString, Object, Attribute>() {
+    private static final Function<ByteString, Object, AttributeDescription> BYTESTRING_TO_JSON =
+            new Function<ByteString, Object, AttributeDescription>() {
                 @Override
-                public Object apply(final ByteString value, final Attribute a) {
-                    final Syntax syntax =
-                            a.getAttributeDescription().getAttributeType().getSyntax();
+                public Object apply(final ByteString value, final AttributeDescription ad) {
+                    final Syntax syntax = ad.getAttributeType().getSyntax();
                     if (syntax.equals(getBooleanSyntax())) {
                         return Functions.byteStringToBoolean().apply(value, null);
                     } else if (syntax.equals(getIntegerSyntax())) {
@@ -112,7 +112,8 @@ final class Utils {
     }
 
     static Object attributeToJson(final Attribute a) {
-        final Function<ByteString, Object, Void> f = Functions.fixedFunction(BYTESTRING_TO_JSON, a);
+        final Function<ByteString, Object, Void> f =
+                Functions.fixedFunction(BYTESTRING_TO_JSON, a.getAttributeDescription());
         final boolean isSingleValued =
                 a.getAttributeDescription().getAttributeType().isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
@@ -120,7 +121,7 @@ final class Utils {
 
     // @Checkstyle:on
 
-    static Function<ByteString, Object, Attribute> byteStringToJson() {
+    static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
         return BYTESTRING_TO_JSON;
     }
 

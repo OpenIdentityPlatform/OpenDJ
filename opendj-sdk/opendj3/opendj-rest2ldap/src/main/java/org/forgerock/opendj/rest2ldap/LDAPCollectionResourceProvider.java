@@ -49,13 +49,13 @@ import org.forgerock.json.resource.ServerContext;
 import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.AssertionFailureException;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
+import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -74,7 +75,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * A {@code CollectionResourceProvider} implementation which maps a JSON
  * resource collection to LDAP entries beneath a base DN.
  */
-public class LDAPCollectionResourceProvider implements CollectionResourceProvider {
+final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
 
     private abstract class AbstractRequestCompletionHandler<R,
             H extends org.forgerock.opendj.ldap.ResultHandler<? super R>>
@@ -137,17 +138,11 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
             super(connection, resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public final boolean handleEntry(final SearchResultEntry entry) {
             return resultHandler.handleEntry(entry);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public final boolean handleReference(final SearchResultReference reference) {
             return resultHandler.handleReference(reference);
@@ -155,95 +150,93 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
 
     }
 
-    // FIXME: make this configurable.
-    private static final String ETAG_ATTRIBUTE = "etag";
-
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
-
-    // FIXME: make this configurable, also allow use of DN.
-    private static final String UUID_ATTRIBUTE = "entryUUID";
 
     private final AttributeMapper attributeMapper;
     private final DN baseDN; // TODO: support template variables.
     private final Config config;
     private final ConnectionFactory factory;
+    private final MVCCStrategy mvccStrategy;
+    private final NameStrategy nameStrategy;
 
-    /**
-     * Creates a new LDAP resource.
-     *
-     * @param baseDN
-     *            The parent of all entries contained in this LDAP collection.
-     * @param mapper
-     *            The attribute mapper which will be used for mapping LDAP
-     *            attributes to JSON attributes.
-     * @param factory
-     *            The LDAP connection factory which will be used for performing
-     *            LDAP operations.
-     * @param config
-     *            Common configuration options.
-     */
-    public LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
-            final ConnectionFactory factory, final Config config) {
+    LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
+            final ConnectionFactory factory, final Config config, final NameStrategy nameStrategy,
+            final MVCCStrategy mvccStrategy) {
         this.baseDN = baseDN;
         this.attributeMapper = mapper;
         this.factory = factory;
         this.config = config;
+        this.nameStrategy = nameStrategy;
+        this.mvccStrategy = mvccStrategy;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void actionCollection(final ServerContext context, final ActionRequest request,
             final ResultHandler<JsonValue> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void actionInstance(final ServerContext context, final String resourceId,
             final ActionRequest request, final ResultHandler<JsonValue> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void createInstance(final ServerContext context, final CreateRequest request,
             final ResultHandler<Resource> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+        // We will support three use-cases:
+        //
+        // 1) client provided: the RDN is derived from the ID
+        // 2) client provided: the RDN is derived from a JSON attribute, the ID maps to a user attribute
+        // 3) server provided: the RDN is derived from a JSON attribute
+        //
+        // Procedure:
+        //
+        // 1) Generate LDAP attributes and create entry
+        // 2) Apply ID mapper: create RDN from entry/ID, store ID in entry
+        // 3) Create add request
+        // 4) Add post read control if policy rfc
+        // 5) Do add request
+        // 6) If add failed then return error
+        // 7) If policy is rfc then return entry
+        // 8) If policy is search then read entry
+        //
+        final Context c = wrap(context);
+        final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
+        attributeMapper.toLDAP(c, request.getContent(), new ResultHandler<List<Attribute>>() {
+            @Override
+            public void handleError(final ResourceException error) {
+                handler.handleError(error);
+            }
+
+            @Override
+            public void handleResult(final List<Attribute> result) {
+                for (final Attribute attribute : result) {
+                    addRequest.addAttribute(attribute);
+                }
+                nameStrategy.setResourceId(c, baseDN, request.getNewResourceId(), addRequest);
+            }
+        });
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void deleteInstance(final ServerContext context, final String resourceId,
             final DeleteRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void patchInstance(final ServerContext context, final String resourceId,
             final PatchRequest request, final ResultHandler<Resource> handler) {
         handler.handleError(new NotSupportedException("Not yet implemented"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void queryCollection(final ServerContext context, final QueryRequest request,
             final QueryResultHandler handler) {
         final Context c = wrap(context);
-        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
 
         // The handler which will be invoked for each LDAP search result.
         final SearchResultHandler searchHandler = new SearchResultHandler() {
@@ -263,10 +256,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                     return false;
                 }
 
-                // TODO: should the resource or the container define the ID
-                // mapping?
-                final String id = getIDFromEntry(entry);
-                final String revision = getEtagFromEntry(entry);
+                final String id = nameStrategy.getResourceId(c, entry);
+                final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
                 final ResultHandler<Map<String, Object>> mapHandler =
                         new ResultHandler<Map<String, Object>>() {
                             @Override
@@ -341,7 +332,6 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                 if (ldapFilter == null || ldapFilter == c.getConfig().falseFilter()) {
                     handler.handleResult(new QueryResult());
                 } else {
-                    final String[] tmp = getSearchAttributes(ldapAttributes);
                     final ConnectionCompletionHandler<Result> outerHandler =
                             new ConnectionCompletionHandler<Result>(searchHandler) {
 
@@ -350,9 +340,12 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                                     final SearchRequestCompletionHandler innerHandler =
                                             new SearchRequestCompletionHandler(connection,
                                                     searchHandler);
+                                    final String[] attributes =
+                                            getLDAPAttributes(c, request.getFieldFilters());
                                     final SearchRequest request =
-                                            Requests.newSearchRequest(baseDN,
-                                                    SearchScope.SINGLE_LEVEL, ldapFilter, tmp);
+                                            Requests.newSearchRequest(getBaseDN(c),
+                                                    SearchScope.SINGLE_LEVEL, ldapFilter,
+                                                    attributes);
                                     connection.searchAsync(request, null, innerHandler);
                                 }
 
@@ -366,15 +359,10 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
         getLDAPFilter(c, request.getQueryFilter(), filterHandler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void readInstance(final ServerContext context, final String resourceId,
             final ReadRequest request, final ResultHandler<Resource> handler) {
         final Context c = wrap(context);
-        final Collection<String> ldapAttributes = getLDAPAttributes(c, request.getFieldFilters());
-        final String[] tmp = getSearchAttributes(ldapAttributes);
 
         // The handler which will be invoked for the LDAP search result.
         final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
@@ -386,7 +374,7 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
 
                     @Override
                     public void handleResult(final SearchResultEntry entry) {
-                        final String revision = getEtagFromEntry(entry);
+                        final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
                         final ResultHandler<Map<String, Object>> mapHandler =
                                 new ResultHandler<Map<String, Object>>() {
                                     @Override
@@ -415,9 +403,10 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                         final RequestCompletionHandler<SearchResultEntry> innerHandler =
                                 new RequestCompletionHandler<SearchResultEntry>(connection,
                                         searchHandler);
+                        final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
                         final SearchRequest request =
-                                Requests.newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter
-                                        .equality(UUID_ATTRIBUTE, resourceId), tmp);
+                                nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
+                                        .addAttribute(attributes);
                         connection.searchSingleEntryAsync(request, innerHandler);
                     }
 
@@ -426,9 +415,6 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
         factory.getConnectionAsync(outerHandler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void updateInstance(final ServerContext context, final String resourceId,
             final UpdateRequest request, final ResultHandler<Resource> handler) {
@@ -466,26 +452,8 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
         return ResourceException.getException(resourceResultCode, null, error.getMessage(), error);
     }
 
-    /**
-     * Returns the ETag for the provided entry.
-     *
-     * @param entry
-     *            The entry.
-     * @return The ETag.
-     */
-    private String getEtagFromEntry(final Entry entry) {
-        return entry.parseAttribute(ETAG_ATTRIBUTE).asString();
-    }
-
-    /**
-     * Returns the resource ID for the provided entry.
-     *
-     * @param entry
-     *            The entry.
-     * @return The resource ID.
-     */
-    private String getIDFromEntry(final Entry entry) {
-        return entry.parseAttribute(UUID_ATTRIBUTE).asString();
+    private DN getBaseDN(final Context context) {
+        return baseDN;
     }
 
     /**
@@ -497,8 +465,9 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
      * @return The set of LDAP attributes associated with the resource
      *         attributes.
      */
-    private Collection<String> getLDAPAttributes(final Context c,
+    private String[] getLDAPAttributes(final Context c,
             final Collection<JsonPointer> requestedAttributes) {
+        // Get all the LDAP attributes required by the attribute mappers.
         final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
@@ -511,7 +480,11 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                 attributeMapper.getLDAPAttributes(c, requestedAttribute, requestedLDAPAttributes);
             }
         }
-        return requestedLDAPAttributes;
+
+        // Get the LDAP attributes required by the Etag and name stategies.
+        nameStrategy.getLDAPAttributes(c, requestedLDAPAttributes);
+        mvccStrategy.getLDAPAttributes(c, requestedLDAPAttributes);
+        return requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
     }
 
     private void getLDAPFilter(final Context c, final QueryFilter queryFilter,
@@ -698,15 +671,6 @@ public class LDAPCollectionResourceProvider implements CollectionResourceProvide
                 };
         // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
         queryFilter.accept(visitor, h);
-    }
-
-    private String[] getSearchAttributes(final Collection<String> attributes) {
-        // FIXME: who is responsible for adding the UUID and etag attributes to
-        // this search?
-        final String[] tmp = attributes.toArray(new String[attributes.size() + 2]);
-        tmp[tmp.length - 2] = UUID_ATTRIBUTE;
-        tmp[tmp.length - 1] = ETAG_ATTRIBUTE;
-        return tmp;
     }
 
     private Context wrap(final ServerContext context) {
