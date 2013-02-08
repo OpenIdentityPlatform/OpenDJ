@@ -18,13 +18,17 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Connections.newAuthenticatedConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.collection;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.map;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapAllOf;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapComplex;
 
 import java.util.logging.Logger;
 
+import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.servlet.HttpServlet;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -55,39 +59,25 @@ public class Example {
                         Requests.newSimpleBindRequest("cn=directory manager", "password"
                                 .toCharArray()));
 
-        // Create user resource.
-        final AttributeMapper userMapper =
-                new CompositeAttributeMapper().addMapper(
-                        new SimpleAttributeMapper("id", "entryUUID").singleValued(true)).addMapper(
-                        new DefaultAttributeMapper().includeAttribute("uid", "isMemberOf",
-                                "modifyTimestamp")).addMapper(
-                        new ComplexAttributeMapper("name", new DefaultAttributeMapper()
-                                .includeAttribute("cn", "sn", "givenName"))).addMapper(
-                        new ComplexAttributeMapper("contactInformation",
-                                new CompositeAttributeMapper().addMapper(
-                                        new SimpleAttributeMapper("telephoneNumber").decoder(
-                                                Functions.byteStringToString()).singleValued(true))
-                                        .addMapper(
-                                                new SimpleAttributeMapper("emailAddress", "mail")
-                                                        .singleValued(true))));
-
-        final LDAPCollectionResourceProvider userResource =
-                new LDAPCollectionResourceProvider(DN.valueOf("ou=people,dc=example,dc=com"),
-                        userMapper, ldapFactory, Config.defaultConfig());
-
-        // Create group resource.
-        final AttributeMapper groupMapper =
-                new DefaultAttributeMapper().includeAttribute("cn", "ou", "description",
-                        "uniquemember");
-
-        final LDAPCollectionResourceProvider groupResource =
-                new LDAPCollectionResourceProvider(DN.valueOf("ou=groups,dc=example,dc=com"),
-                        groupMapper, ldapFactory, Config.defaultConfig());
-
         // Create the router.
         final Router router = new Router();
-        router.addRoute("/users", userResource);
-        router.addRoute("/groups", groupResource);
+
+        // Create user resource.
+        CollectionResourceProvider users =
+                collection().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com").map(
+                        map("id", "entryUUID").singleValued(true),
+                        mapAllOf("uid", "isMemberOf", "modifyTimestamp"),
+                        mapComplex("name", mapAllOf("cn", "sn", "givenName")),
+                        mapComplex("contactInformation", map("telephoneNumber").decoder(
+                                Functions.byteStringToString()).singleValued(true), map(
+                                "emailAddress", "mail").singleValued(true))).build();
+        router.addRoute("/users", users);
+
+        // Create group resource.
+        CollectionResourceProvider groups =
+                collection().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com").map(
+                        mapAllOf("cn", "ou", "description", "uniquemember")).build();
+        router.addRoute("/groups", groups);
 
         final org.forgerock.json.resource.ConnectionFactory resourceFactory =
                 newInternalConnectionFactory(router);

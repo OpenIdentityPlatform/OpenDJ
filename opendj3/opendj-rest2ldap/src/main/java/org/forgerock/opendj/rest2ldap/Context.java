@@ -24,7 +24,7 @@ public final class Context {
     private final Config config;
     private final ServerContext context;
 
-    Context(Config config, ServerContext context) {
+    Context(final Config config, final ServerContext context) {
         this.config = config;
         this.context = context;
     }

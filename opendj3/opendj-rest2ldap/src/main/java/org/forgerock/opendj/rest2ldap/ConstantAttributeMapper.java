@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.Filter;
 /**
  * An attribute mapper which maps a single JSON attribute to a fixed value.
  */
-public class ConstantAttributeMapper implements AttributeMapper {
+final class ConstantAttributeMapper extends AttributeMapper {
     private final String jsonAttributeName;
     private final Object jsonAttributeValue;
 
@@ -45,27 +45,20 @@ public class ConstantAttributeMapper implements AttributeMapper {
      * @param attributeValue
      *            The value of the simple JSON attribute.
      */
-    public ConstantAttributeMapper(final String attributeName, final Object attributeValue) {
+    ConstantAttributeMapper(final String attributeName, final Object attributeValue) {
         this.jsonAttributeName = attributeName;
         this.jsonAttributeValue = attributeValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+    void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
             final Set<String> ldapAttributes) {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPFilter(final Context c, final FilterType type,
-            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
+            final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         if (jsonAttribute.size() == 1 && jsonAttribute.get(0).equalsIgnoreCase(jsonAttributeName)) {
             final Filter filter;
             if (type == FilterType.PRESENT) {
@@ -107,26 +100,20 @@ public class ConstantAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         // FIXME: how do we know if the user requested it???
         h.handleResult(Collections.singletonMap(jsonAttributeName, jsonAttributeValue));
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
+    void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
     }
 
-    private <T extends Comparable<T>> Filter compare(Context c, final FilterType type, final T v1,
-            final T v2) {
+    private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,
+            final T v1, final T v2) {
         final Filter filter;
         switch (type) {
         case EQUAL_TO:
@@ -134,8 +121,7 @@ public class ConstantAttributeMapper implements AttributeMapper {
             break;
         case GREATER_THAN:
             filter =
-                    v1.compareTo(v2) > 0 ? c.getConfig().trueFilter() : c.getConfig()
-                            .falseFilter();
+                    v1.compareTo(v2) > 0 ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
             break;
         case GREATER_THAN_OR_EQUAL_TO:
             filter =
@@ -144,8 +130,7 @@ public class ConstantAttributeMapper implements AttributeMapper {
             break;
         case LESS_THAN:
             filter =
-                    v1.compareTo(v2) < 0 ? c.getConfig().trueFilter() : c.getConfig()
-                            .falseFilter();
+                    v1.compareTo(v2) < 0 ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
             break;
         case LESS_THAN_OR_EQUAL_TO:
             filter =

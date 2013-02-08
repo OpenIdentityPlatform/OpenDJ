@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.Filter;
  * An attribute mapper which maps a single JSON attribute to the result of
  * another attribute mapper.
  */
-public class ComplexAttributeMapper implements AttributeMapper {
+final class ComplexAttributeMapper extends AttributeMapper {
 
     private final String jsonAttributeName;
     private final AttributeMapper mapper;
@@ -50,17 +50,14 @@ public class ComplexAttributeMapper implements AttributeMapper {
      *            The mapper which should be used to provide the contents of the
      *            complex attribute.
      */
-    public ComplexAttributeMapper(final String jsonAttributeName, final AttributeMapper mapper) {
+    ComplexAttributeMapper(final String jsonAttributeName, final AttributeMapper mapper) {
         this.jsonAttributeName = jsonAttributeName;
         this.mapper = mapper;
         this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+    void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
             final Set<String> ldapAttributes) {
         if (jsonAttribute.isEmpty() || matches(jsonAttribute)) {
             final JsonPointer relativePointer = jsonAttribute.relativePointer();
@@ -68,13 +65,9 @@ public class ComplexAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void getLDAPFilter(final Context c, final FilterType type,
-            final JsonPointer jsonAttribute, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
+            final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         if (matches(jsonAttribute)) {
             final JsonPointer relativePointer = jsonAttribute.relativePointer();
             mapper.getLDAPFilter(c, type, relativePointer, operator, valueAssertion, h);
@@ -84,12 +77,8 @@ public class ComplexAttributeMapper implements AttributeMapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toJSON(final Context c, final Entry e,
-            final ResultHandler<Map<String, Object>> h) {
+    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         final ResultHandler<Map<String, Object>> wrapper =
                 new ResultHandler<Map<String, Object>>() {
 
@@ -108,12 +97,8 @@ public class ComplexAttributeMapper implements AttributeMapper {
         mapper.toJSON(c, e, wrapper);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void toLDAP(final Context c, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
+    void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         // TODO Auto-generated method stub
     }
 
