@@ -20,7 +20,7 @@ import org.forgerock.json.resource.ServerContext;
 /**
  * Common context information passed to containers and mappers.
  */
-public final class Context {
+final class Context {
     private final Config config;
     private final ServerContext context;
 
