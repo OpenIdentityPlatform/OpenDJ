@@ -99,7 +99,11 @@ final class ComplexAttributeMapper extends AttributeMapper {
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO Auto-generated method stub
+        if (v.isDefined(jsonAttributeName)) {
+            mapper.toLDAP(c, v.get(jsonAttributeName), h);
+        } else {
+            mapper.toLDAP(c, new JsonValue(Collections.emptyMap()), h);
+        }
     }
 
     private boolean matches(final JsonPointer jsonAttribute) {

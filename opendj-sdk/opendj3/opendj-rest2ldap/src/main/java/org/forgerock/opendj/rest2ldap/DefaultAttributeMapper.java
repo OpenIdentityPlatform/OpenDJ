@@ -20,6 +20,9 @@ import static org.forgerock.opendj.rest2ldap.Utils.getAttributeName;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +30,11 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 
@@ -126,7 +132,50 @@ final class DefaultAttributeMapper extends AttributeMapper {
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO:
+        if (v.isMap()) {
+            List<Attribute> result = new ArrayList<Attribute>(v.size());
+            for (Map.Entry<String, Object> field : v.asMap().entrySet()) {
+                final AttributeDescription ad;
+                try {
+                    ad = AttributeDescription.valueOf(field.getKey(), c.getConfig().schema());
+                } catch (Exception e) {
+                    // FIXME: improve error message.
+                    h.handleError(new BadRequestException("The field " + field.getKey()
+                            + " is invalid"));
+                    return;
+                }
+                Object value = field.getValue();
+                if (isJSONPrimitive(value)) {
+                    result.add(Attributes.singletonAttribute(ad, value));
+                } else if (value instanceof Collection<?>) {
+                    Attribute a =
+                            c.getConfig().decodeOptions().getAttributeFactory().newAttribute(ad);
+                    for (Object o : (Collection<?>) value) {
+                        if (isJSONPrimitive(o)) {
+                            a.add(o);
+                        } else {
+                            // FIXME: improve error message.
+                            h.handleError(new BadRequestException("The field " + field.getKey()
+                                    + " is invalid"));
+                            return;
+                        }
+                    }
+                    result.add(a);
+                } else {
+                    // FIXME: improve error message.
+                    h.handleError(new BadRequestException("The field " + field.getKey()
+                            + " is invalid"));
+                    return;
+                }
+            }
+            h.handleResult(result);
+        } else {
+            h.handleResult(Collections.<Attribute> emptyList());
+        }
+    }
+
+    private boolean isJSONPrimitive(Object value) {
+        return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 
     private boolean isIncludedAttribute(final String name) {
