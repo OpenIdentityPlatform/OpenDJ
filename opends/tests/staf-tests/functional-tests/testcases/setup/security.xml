@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -72,7 +73,7 @@
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
-          'port'  : 8524,
+          'port'  : 8554,
         }
       </call>
       <script>SEC_I1_ADMIN_PORT = STAXResult</script>
@@ -104,7 +105,7 @@
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
-          'port'  : 8624,
+          'port'  : 8654,
         }
       </call>
       <script>SEC_I2_ADMIN_PORT = STAXResult</script>
@@ -213,7 +214,8 @@
           <script>
             c = '%s/setup%s' % (SEC_I1_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt --ldapPort %s' % (SEC_I1_PORT))
+            p.append('--cli --hostname %s' % (STAF_REMOTE_HOSTNAME))
+            p.append('--no-prompt --ldapPort %s' % (SEC_I1_PORT))
             p.append('--ldapsPort %s' % SEC_I1_SPORT)
             p.append('--adminConnectorPort %s' % SEC_I1_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
@@ -351,7 +353,8 @@
           <script>
             c = '%s/setup%s' % (SEC_I2_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt --ldapPort %s' % (SEC_I2_PORT))
+            p.append('--cli --hostname %s' % (STAF_REMOTE_HOSTNAME))
+            p.append('--no-prompt --ldapPort %s' % (SEC_I2_PORT))
             p.append('--ldapsPort %s' % SEC_I2_SPORT)
             p.append('--adminConnectorPort %s' % SEC_I2_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
@@ -870,9 +873,9 @@
           <script>
             c = '%s/uninstall%s' % (SEC_I1_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --referencedHostName %s' % STAF_REMOTE_HOSTNAME)
             p.append('--adminUID admin --bindPassword %s' % DM_PW)
-            p.append('--remove-all')
+            p.append('--remove-all --no-prompt')
             p.append('--trustStorePath %s' % MY_KEYSTORE)
             p.append('--trustStorePassword secret12')
             p = ' '.join(p)
