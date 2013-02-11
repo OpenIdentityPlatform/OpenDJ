@@ -54,70 +54,17 @@ public final class Rest2LDAP {
     public static final class Builder {
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
+        private final Filter falseFilter = Filter.present("1.1");
         private final List<AttributeMapper> mappers = new LinkedList<AttributeMapper>();
-        private MVCCStrategy mvccStrategy = mvccUsingEtag();
-        private NameStrategy nameStrategy = nameByEntryUUID("uid");
-        private Filter falseFilter = Filter.present("1.1");
-        private Schema schema = Schema.getDefaultSchema();
+        private MVCCStrategy mvccStrategy;
+        private NameStrategy nameStrategy;
         private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
+        private Schema schema = Schema.getDefaultSchema();
         private Filter trueFilter = Filter.objectClassPresent();
 
         Builder() {
-            // No implementation required.
-        }
-
-        /**
-         * Sets the schema which should be used when attribute types and
-         * controls.
-         *
-         * @param schema
-         *            The schema which should be used when attribute types and
-         *            controls.
-         * @return A reference to this builder.
-         */
-        public Builder schema(final Schema schema) {
-            this.schema = ensureNotNull(schema);
-            return this;
-        }
-
-        /**
-         * Sets the absolute false filter which should be used when querying the
-         * LDAP server.
-         *
-         * @param filter
-         *            The absolute false filter.
-         * @return A reference to this builder.
-         */
-        public Builder falseFilter(final Filter filter) {
-            this.trueFilter = ensureNotNull(filter);
-            return this;
-        }
-
-        /**
-         * Sets the policy which should be used in order to read an entry before
-         * it is deleted, or after it is added or modified.
-         *
-         * @param policy
-         *            The policy which should be used in order to read an entry
-         *            before it is deleted, or after it is added or modified.
-         * @return A reference to this builder.
-         */
-        public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
-            this.readOnUpdatePolicy = ensureNotNull(policy);
-            return this;
-        }
-
-        /**
-         * Sets the absolute true filter which should be used when querying the
-         * LDAP server.
-         *
-         * @param filter
-         *            The absolute true filter.
-         * @return A reference to this builder.
-         */
-        public Builder trueFilter(final Filter filter) {
-            this.trueFilter = ensureNotNull(filter);
-            return this;
+            useEtagAttribute();
+            useServerEntryUUIDNaming("uid");
         }
 
         public Builder baseDN(final DN dn) {
@@ -149,6 +96,19 @@ public final class Rest2LDAP {
             return this;
         }
 
+        /**
+         * Sets the absolute false filter which should be used when querying the
+         * LDAP server.
+         *
+         * @param filter
+         *            The absolute false filter.
+         * @return A reference to this builder.
+         */
+        public Builder falseFilter(final Filter filter) {
+            this.trueFilter = ensureNotNull(filter);
+            return this;
+        }
+
         public Builder map(final AttributeMapper... mappers) {
             ensureNotNull(mappers);
             this.mappers.addAll(Arrays.asList(mappers));
@@ -161,16 +121,98 @@ public final class Rest2LDAP {
             return this;
         }
 
-        public Builder with(final MVCCStrategy strategy) {
-            ensureNotNull(strategy);
-            this.mvccStrategy = strategy;
+        /**
+         * Sets the policy which should be used in order to read an entry before
+         * it is deleted, or after it is added or modified.
+         *
+         * @param policy
+         *            The policy which should be used in order to read an entry
+         *            before it is deleted, or after it is added or modified.
+         * @return A reference to this builder.
+         */
+        public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
+            this.readOnUpdatePolicy = ensureNotNull(policy);
             return this;
         }
 
-        public Builder with(final NameStrategy strategy) {
-            ensureNotNull(strategy);
-            this.nameStrategy = strategy;
+        /**
+         * Sets the schema which should be used when attribute types and
+         * controls.
+         *
+         * @param schema
+         *            The schema which should be used when attribute types and
+         *            controls.
+         * @return A reference to this builder.
+         */
+        public Builder schema(final Schema schema) {
+            this.schema = ensureNotNull(schema);
             return this;
+        }
+
+        /**
+         * Sets the absolute true filter which should be used when querying the
+         * LDAP server.
+         *
+         * @param filter
+         *            The absolute true filter.
+         * @return A reference to this builder.
+         */
+        public Builder trueFilter(final Filter filter) {
+            this.trueFilter = ensureNotNull(filter);
+            return this;
+        }
+
+        public Builder useClientDNNaming(final AttributeType attribute) {
+            this.nameStrategy = new DNNameStrategy(attribute);
+            return this;
+        }
+
+        public Builder useClientDNNaming(final String attribute) {
+            return useClientDNNaming(Schema.getDefaultSchema().getAttributeType(attribute));
+        }
+
+        public Builder useClientNaming(final AttributeType dnAttribute,
+                final AttributeDescription idAttribute) {
+            this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, false);
+            return this;
+        }
+
+        public Builder useClientNaming(final String dnAttribute, final String idAttribute) {
+            return useClientNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute),
+                    AttributeDescription.valueOf(idAttribute));
+        }
+
+        public Builder useEtagAttribute() {
+            return useEtagAttribute("etag");
+        }
+
+        public Builder useEtagAttribute(final AttributeDescription attribute) {
+            this.mvccStrategy = new AttributeMVCCStrategy(attribute);
+            return this;
+        }
+
+        public Builder useEtagAttribute(final String attribute) {
+            return useEtagAttribute(AttributeDescription.valueOf(attribute));
+        }
+
+        public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
+            return useServerNaming(dnAttribute, AttributeDescription
+                    .create(getEntryUUIDAttributeType()));
+        }
+
+        public Builder useServerEntryUUIDNaming(final String dnAttribute) {
+            return useServerEntryUUIDNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute));
+        }
+
+        public Builder useServerNaming(final AttributeType dnAttribute,
+                final AttributeDescription idAttribute) {
+            this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, true);
+            return this;
+        }
+
+        public Builder useServerNaming(final String dnAttribute, final String idAttribute) {
+            return useServerNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute),
+                    AttributeDescription.valueOf(idAttribute));
         }
     }
 
@@ -182,13 +224,13 @@ public final class Rest2LDAP {
         }
 
         @Override
-        String getRevisionFromEntry(final Context c, final Entry entry) {
-            return entry.parseAttribute(ldapAttribute).asString();
+        void getLDAPAttributes(final Context c, final Set<String> ldapAttributes) {
+            ldapAttributes.add(ldapAttribute.toString());
         }
 
         @Override
-        void getLDAPAttributes(final Context c, final Set<String> ldapAttributes) {
-            ldapAttributes.add(ldapAttribute.toString());
+        String getRevisionFromEntry(final Context c, final Entry entry) {
+            return entry.parseAttribute(ldapAttribute).asString();
         }
     }
 
@@ -272,6 +314,10 @@ public final class Rest2LDAP {
 
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static SimpleAttributeMapper map(final AttributeDescription attribute) {
         return map(attribute.toString(), attribute);
     }
@@ -312,66 +358,14 @@ public final class Rest2LDAP {
         return new JSONConstantAttributeMapper(attribute, attributeValue);
     }
 
-    public static AttributeMapper mapLDAPConstant(final String attribute,
-            final Object attributeValue) {
-        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValue);
-    }
-
     public static AttributeMapper mapLDAPConstant(final AttributeDescription attribute,
             final Object attributeValue) {
         return new LDAPConstantAttributeMapper(attribute, attributeValue);
     }
 
-    public static MVCCStrategy mvccUsingAttribute(final AttributeDescription attribute) {
-        return new AttributeMVCCStrategy(attribute);
-    }
-
-    public static MVCCStrategy mvccUsingAttribute(final String attribute) {
-        return mvccUsingAttribute(AttributeDescription.valueOf(attribute));
-    }
-
-    public static MVCCStrategy mvccUsingEtag() {
-        return mvccUsingAttribute("etag");
-    }
-
-    public static NameStrategy nameByClient(final AttributeType dnAttribute,
-            final AttributeDescription idAttribute) {
-        return new AttributeNameStrategy(dnAttribute, idAttribute, false);
-    }
-
-    public static NameStrategy nameByClient(final String dnAttribute, final String idAttribute) {
-        return nameByClient(Schema.getDefaultSchema().getAttributeType(dnAttribute),
-                AttributeDescription.valueOf(idAttribute));
-    }
-
-    public static NameStrategy nameByDN(final AttributeType attribute) {
-        return new DNNameStrategy(attribute);
-    }
-
-    public static NameStrategy nameByDN(final String attribute) {
-        return nameByDN(Schema.getDefaultSchema().getAttributeType(attribute));
-    }
-
-    public static NameStrategy nameByEntryUUID(final AttributeType dnAttribute) {
-        return nameByServer(dnAttribute, AttributeDescription.create(getEntryUUIDAttributeType()));
-    }
-
-    public static NameStrategy nameByEntryUUID(final String dnAttribute) {
-        return nameByEntryUUID(Schema.getDefaultSchema().getAttributeType(dnAttribute));
-    }
-
-    public static NameStrategy nameByServer(final AttributeType dnAttribute,
-            final AttributeDescription idAttribute) {
-        return new AttributeNameStrategy(dnAttribute, idAttribute, true);
-    }
-
-    public static NameStrategy nameByServer(final String dnAttribute, final String idAttribute) {
-        return nameByServer(Schema.getDefaultSchema().getAttributeType(dnAttribute),
-                AttributeDescription.valueOf(idAttribute));
-    }
-
-    public static Builder collection() {
-        return new Builder();
+    public static AttributeMapper mapLDAPConstant(final String attribute,
+            final Object attributeValue) {
+        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValue);
     }
 
     private static AttributeMapper mapOf(final Collection<AttributeMapper> mappers) {

@@ -24,7 +24,7 @@ import org.forgerock.opendj.ldap.Entry;
  * A multi-version concurrency control strategy is responsible for ensuring that
  * clients can perform atomic updates to LDAP resources.
  */
-public abstract class MVCCStrategy {
+abstract class MVCCStrategy {
     /*
      * This interface is an abstract class so that methods can be made package
      * private until API is finalized.
