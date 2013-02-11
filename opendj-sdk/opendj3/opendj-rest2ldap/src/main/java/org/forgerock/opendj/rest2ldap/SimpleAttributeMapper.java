@@ -15,7 +15,15 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
+import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
+import static org.forgerock.opendj.rest2ldap.Utils.jsonToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
@@ -27,6 +35,7 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -34,7 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
-import org.forgerock.opendj.ldap.Functions;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 
 /**
  * An attribute mapper which maps a single JSON attribute to a single LDAP
@@ -43,8 +52,10 @@ import org.forgerock.opendj.ldap.Functions;
 public final class SimpleAttributeMapper extends AttributeMapper {
 
     private Function<ByteString, ?, Void> decoder = null;
-    private Object defaultValue = null;
-    private Collection<Object> defaultValues = Collections.emptySet();
+    private Object defaultJSONValue = null;
+    private Collection<Object> defaultJSONValues = Collections.emptySet();
+    private ByteString defaultLDAPValue = null;
+    private Function<Object, ByteString, Void> encoder = null;
     private boolean forceSingleValued = false;
 
     // private boolean isReadOnly = false;
@@ -90,9 +101,34 @@ public final class SimpleAttributeMapper extends AttributeMapper {
      * @return This attribute mapper.
      */
     public SimpleAttributeMapper defaultJSONValue(final Object defaultValue) {
-        this.defaultValue = defaultValue;
-        this.defaultValues =
-                defaultValue != null ? Collections.singleton(defaultValue) : Collections.emptySet();
+        this.defaultJSONValue = defaultValue;
+        this.defaultJSONValues = defaultValue != null ? singleton(defaultValue) : emptySet();
+        return this;
+    }
+
+    /**
+     * Sets the default LDAP value which should be substituted when the JSON
+     * attribute is not found in the JSON value.
+     *
+     * @param defaultValue
+     *            The default LDAP value.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper defaultLDAPValue(final Object defaultValue) {
+        this.defaultLDAPValue = defaultValue != null ? ByteString.valueOf(defaultValue) : null;
+        return this;
+    }
+
+    /**
+     * Sets the encoder which will be used for converting JSON values to LDAP
+     * attribute values.
+     *
+     * @param f
+     *            The function to use for encoding LDAP attribute values.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper encoder(final Function<Object, ByteString, Void> f) {
+        this.encoder = f;
         return this;
     }
 
@@ -145,21 +181,44 @@ public final class SimpleAttributeMapper extends AttributeMapper {
     @Override
     void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
         final Function<ByteString, ?, Void> f =
-                decoder == null ? Functions.fixedFunction(byteStringToJson(), ldapAttributeName)
-                        : decoder;
+                decoder == null ? fixedFunction(byteStringToJson(), ldapAttributeName) : decoder;
         final Object value;
         if (forceSingleValued || ldapAttributeName.getAttributeType().isSingleValue()) {
-            value = e.parseAttribute(ldapAttributeName).as(f, defaultValue);
+            value = e.parseAttribute(ldapAttributeName).as(f, defaultJSONValue);
         } else {
-            value = e.parseAttribute(ldapAttributeName).asSetOf(f, defaultValues);
+            value = e.parseAttribute(ldapAttributeName).asSetOf(f, defaultJSONValues);
         }
-        h.handleResult(Collections.singletonMap(jsonAttributeName, value));
+        h.handleResult(singletonMap(jsonAttributeName, value));
     }
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO Auto-generated method stub
-
+        if (v.isMap()) {
+            final Object value = v.get(jsonAttributeName).getObject();
+            try {
+                final List<Attribute> result;
+                if (value != null) {
+                    final Function<Object, ByteString, Void> f =
+                            encoder != null ? encoder : fixedFunction(jsonToByteString(),
+                                    ldapAttributeName);
+                    result = singletonList(jsonToAttribute(value, ldapAttributeName, f));
+                } else if (defaultLDAPValue != null) {
+                    result =
+                            singletonList((Attribute) new LinkedAttribute(ldapAttributeName,
+                                    defaultLDAPValue));
+                } else {
+                    result = emptyList();
+                }
+                h.handleResult(result);
+            } catch (final Exception e) {
+                // FIXME: improve error message.
+                h.handleError(new BadRequestException("The field " + jsonAttributeName
+                        + " is invalid"));
+                return;
+            }
+        } else {
+            h.handleResult(Collections.<Attribute> emptyList());
+        }
     }
 
     private boolean matches(final JsonPointer jsonAttribute) {

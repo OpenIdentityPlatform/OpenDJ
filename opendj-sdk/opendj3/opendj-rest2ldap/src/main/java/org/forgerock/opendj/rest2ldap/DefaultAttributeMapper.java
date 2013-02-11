@@ -17,11 +17,11 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.attributeToJson;
 import static org.forgerock.opendj.rest2ldap.Utils.getAttributeName;
+import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +34,6 @@ import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 
@@ -138,33 +137,11 @@ final class DefaultAttributeMapper extends AttributeMapper {
                 if (!isIncludedAttribute(field.getKey())) {
                     continue;
                 }
-                final AttributeDescription ad;
                 try {
-                    ad = AttributeDescription.valueOf(field.getKey(), c.getConfig().schema());
+                    final AttributeDescription ad =
+                            AttributeDescription.valueOf(field.getKey(), c.getConfig().schema());
+                    result.add(jsonToAttribute(field.getValue(), ad));
                 } catch (final Exception e) {
-                    // FIXME: improve error message.
-                    h.handleError(new BadRequestException("The field " + field.getKey()
-                            + " is invalid"));
-                    return;
-                }
-                final Object value = field.getValue();
-                if (isJSONPrimitive(value)) {
-                    result.add(Attributes.singletonAttribute(ad, value));
-                } else if (value instanceof Collection<?>) {
-                    final Attribute a =
-                            c.getConfig().decodeOptions().getAttributeFactory().newAttribute(ad);
-                    for (final Object o : (Collection<?>) value) {
-                        if (isJSONPrimitive(o)) {
-                            a.add(o);
-                        } else {
-                            // FIXME: improve error message.
-                            h.handleError(new BadRequestException("The field " + field.getKey()
-                                    + " is invalid"));
-                            return;
-                        }
-                    }
-                    result.add(a);
-                } else {
                     // FIXME: improve error message.
                     h.handleError(new BadRequestException("The field " + field.getKey()
                             + " is invalid"));
@@ -191,9 +168,5 @@ final class DefaultAttributeMapper extends AttributeMapper {
         }
 
         return false;
-    }
-
-    private boolean isJSONPrimitive(final Object value) {
-        return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 }

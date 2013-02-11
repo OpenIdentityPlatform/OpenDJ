@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Attributes.singletonAttribute;
 
 import java.util.Collections;
@@ -29,6 +30,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 
 /**
  * An attribute mapper which maps a single LDAP attribute to a fixed value.
@@ -37,8 +39,16 @@ final class LDAPConstantAttributeMapper extends AttributeMapper {
     private final List<Attribute> attributes;
 
     LDAPConstantAttributeMapper(final AttributeDescription attributeName,
-            final Object attributeValue) {
-        attributes = Collections.singletonList(singletonAttribute(attributeName, attributeValue));
+            final Object... attributeValues) {
+        if (attributeValues.length == 1) {
+            attributes = singletonList(singletonAttribute(attributeName, attributeValues[0]));
+        } else {
+            Attribute attribute = new LinkedAttribute(attributeName);
+            for (Object o : attributeValues) {
+                attribute.add(o);
+            }
+            attributes = singletonList(attribute);
+        }
     }
 
     @Override

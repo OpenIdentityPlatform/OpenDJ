@@ -359,13 +359,13 @@ public final class Rest2LDAP {
     }
 
     public static AttributeMapper mapLDAPConstant(final AttributeDescription attribute,
-            final Object attributeValue) {
-        return new LDAPConstantAttributeMapper(attribute, attributeValue);
+            final Object... attributeValues) {
+        return new LDAPConstantAttributeMapper(attribute, attributeValues);
     }
 
     public static AttributeMapper mapLDAPConstant(final String attribute,
-            final Object attributeValue) {
-        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValue);
+            final Object... attributeValues) {
+        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValues);
     }
 
     private static AttributeMapper mapOf(final Collection<AttributeMapper> mappers) {

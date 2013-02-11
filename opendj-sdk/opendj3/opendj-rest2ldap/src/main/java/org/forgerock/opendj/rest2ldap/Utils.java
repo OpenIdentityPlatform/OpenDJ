@@ -15,6 +15,13 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static javax.xml.bind.DatatypeConverter.parseDateTime;
+import static javax.xml.bind.DatatypeConverter.printDateTime;
+import static org.forgerock.opendj.ldap.Functions.byteStringToBoolean;
+import static org.forgerock.opendj.ldap.Functions.byteStringToGeneralizedTime;
+import static org.forgerock.opendj.ldap.Functions.byteStringToLong;
+import static org.forgerock.opendj.ldap.Functions.byteStringToString;
+import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
@@ -26,8 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.xml.bind.DatatypeConverter;
-
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
@@ -35,7 +40,8 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
-import org.forgerock.opendj.ldap.Functions;
+import org.forgerock.opendj.ldap.GeneralizedTime;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
@@ -85,24 +91,45 @@ final class Utils {
 
     }
 
-    // @Checkstyle:off
     private static final Function<ByteString, Object, AttributeDescription> BYTESTRING_TO_JSON =
             new Function<ByteString, Object, AttributeDescription>() {
                 @Override
                 public Object apply(final ByteString value, final AttributeDescription ad) {
                     final Syntax syntax = ad.getAttributeType().getSyntax();
                     if (syntax.equals(getBooleanSyntax())) {
-                        return Functions.byteStringToBoolean().apply(value, null);
+                        return byteStringToBoolean().apply(value, null);
                     } else if (syntax.equals(getIntegerSyntax())) {
-                        return Functions.byteStringToLong().apply(value, null);
+                        return byteStringToLong().apply(value, null);
                     } else if (syntax.equals(getGeneralizedTimeSyntax())) {
-                        return DatatypeConverter.printDateTime(Functions
-                                .byteStringToGeneralizedTime().apply(value, null).toCalendar());
+                        return printDateTime(byteStringToGeneralizedTime().apply(value, null)
+                                .toCalendar());
                     } else if (syntax.isHumanReadable()) {
-                        return Functions.byteStringToString().apply(value, null);
+                        return byteStringToString().apply(value, null);
                     } else {
                         // Base 64 encoded binary.
-                        return DatatypeConverter.printBase64Binary(value.toByteArray());
+                        return value.toBase64String();
+                    }
+                }
+            };
+
+    private static final Function<Object, ByteString, AttributeDescription> JSON_TO_BYTESTRING =
+            new Function<Object, ByteString, AttributeDescription>() {
+                @Override
+                public ByteString apply(final Object value, final AttributeDescription ad) {
+                    if (isJSONPrimitive(value)) {
+                        final Syntax syntax = ad.getAttributeType().getSyntax();
+                        if (syntax.equals(getGeneralizedTimeSyntax())) {
+                            return ByteString.valueOf(GeneralizedTime.valueOf(parseDateTime(value
+                                    .toString())));
+                        } else if (syntax.isHumanReadable()) {
+                            return ByteString.valueOf(value);
+                        } else {
+                            // Base 64 encoded binary.
+                            return ByteString.valueOfBase64(value.toString());
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Unrecognized type of JSON value: "
+                                + value.getClass().getName());
                     }
                 }
             };
@@ -113,13 +140,11 @@ final class Utils {
 
     static Object attributeToJson(final Attribute a) {
         final Function<ByteString, Object, Void> f =
-                Functions.fixedFunction(BYTESTRING_TO_JSON, a.getAttributeDescription());
+                fixedFunction(BYTESTRING_TO_JSON, a.getAttributeDescription());
         final boolean isSingleValued =
                 a.getAttributeDescription().getAttributeType().isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
-
-    // @Checkstyle:on
 
     static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
         return BYTESTRING_TO_JSON;
@@ -141,6 +166,34 @@ final class Utils {
 
     static String getAttributeName(final Attribute a) {
         return a.getAttributeDescription().withoutOption("binary").toString();
+    }
+
+    static boolean isJSONPrimitive(final Object value) {
+        return value instanceof String || value instanceof Boolean || value instanceof Number;
+    }
+
+    static Attribute jsonToAttribute(final Object value, final AttributeDescription ad) {
+        return jsonToAttribute(value, ad, fixedFunction(jsonToByteString(), ad));
+    }
+
+    static Attribute jsonToAttribute(final Object value, final AttributeDescription ad,
+            final Function<Object, ByteString, Void> f) {
+        if (isJSONPrimitive(value)) {
+            return new LinkedAttribute(ad, f.apply(value, null));
+        } else if (value instanceof Collection<?>) {
+            final Attribute a = new LinkedAttribute(ad);
+            for (final Object o : (Collection<?>) value) {
+                a.add(f.apply(o, null));
+            }
+            return a;
+        } else {
+            throw new IllegalArgumentException("Unrecognized type of JSON value: "
+                    + value.getClass().getName());
+        }
+    }
+
+    static Function<Object, ByteString, AttributeDescription> jsonToByteString() {
+        return JSON_TO_BYTESTRING;
     }
 
     static Filter toFilter(final Context c, final FilterType type, final String ldapAttribute,

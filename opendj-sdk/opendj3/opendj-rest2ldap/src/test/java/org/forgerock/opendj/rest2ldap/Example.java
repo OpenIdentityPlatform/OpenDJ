@@ -18,11 +18,9 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Connections.newAuthenticatedConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.builder;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.map;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapAllOf;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapComplex;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -65,12 +63,19 @@ public class Example {
         // Create user resource.
         CollectionResourceProvider users =
                 builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com").map(
+                        mapJSONConstant("schemas", Arrays.asList("urn:scim:schemas:core:1.0")),
                         map("id", "entryUUID").singleValued(true),
-                        mapAllOf("uid", "isMemberOf", "modifyTimestamp"),
-                        mapComplex("name", mapAllOf("cn", "sn", "givenName")),
+                        map("externalId", "uid").singleValued(true),
+                        map("userName", "mail").singleValued(true),
+                        map("displayName", "cn").singleValued(true),
+                        mapComplex("name", map("givenName", "givenName").singleValued(true), map(
+                                "familyName", "sn").singleValued(true)),
                         mapComplex("contactInformation", map("telephoneNumber").decoder(
-                                Functions.byteStringToString()).singleValued(true), map(
-                                "emailAddress", "mail").singleValued(true))).build();
+                                Functions.byteStringToString()).encoder(
+                                Functions.objectToByteString()).singleValued(true), map(
+                                "emailAddress", "mail").singleValued(true)),
+                        mapLDAPConstant("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"))
+                        .build();
         router.addRoute("/users", users);
 
         // Create group resource.
