@@ -18,7 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Connections.newAuthenticatedConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.collection;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.builder;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.map;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapAllOf;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.mapComplex;
@@ -64,7 +64,7 @@ public class Example {
 
         // Create user resource.
         CollectionResourceProvider users =
-                collection().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com").map(
+                builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com").map(
                         map("id", "entryUUID").singleValued(true),
                         mapAllOf("uid", "isMemberOf", "modifyTimestamp"),
                         mapComplex("name", mapAllOf("cn", "sn", "givenName")),
@@ -75,7 +75,7 @@ public class Example {
 
         // Create group resource.
         CollectionResourceProvider groups =
-                collection().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com").map(
+                builder().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com").map(
                         mapAllOf("cn", "ou", "description", "uniquemember")).build();
         router.addRoute("/groups", groups);
 

@@ -25,7 +25,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 /**
  * A name strategy is responsible for naming REST resources and LDAP entries.
  */
-public abstract class NameStrategy {
+abstract class NameStrategy {
     /*
      * This interface is an abstract class so that methods can be made package
      * private until API is finalized.

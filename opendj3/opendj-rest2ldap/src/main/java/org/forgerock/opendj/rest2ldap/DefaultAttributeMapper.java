@@ -133,24 +133,27 @@ final class DefaultAttributeMapper extends AttributeMapper {
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
         if (v.isMap()) {
-            List<Attribute> result = new ArrayList<Attribute>(v.size());
-            for (Map.Entry<String, Object> field : v.asMap().entrySet()) {
+            final List<Attribute> result = new ArrayList<Attribute>(v.size());
+            for (final Map.Entry<String, Object> field : v.asMap().entrySet()) {
+                if (!isIncludedAttribute(field.getKey())) {
+                    continue;
+                }
                 final AttributeDescription ad;
                 try {
                     ad = AttributeDescription.valueOf(field.getKey(), c.getConfig().schema());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     // FIXME: improve error message.
                     h.handleError(new BadRequestException("The field " + field.getKey()
                             + " is invalid"));
                     return;
                 }
-                Object value = field.getValue();
+                final Object value = field.getValue();
                 if (isJSONPrimitive(value)) {
                     result.add(Attributes.singletonAttribute(ad, value));
                 } else if (value instanceof Collection<?>) {
-                    Attribute a =
+                    final Attribute a =
                             c.getConfig().decodeOptions().getAttributeFactory().newAttribute(ad);
-                    for (Object o : (Collection<?>) value) {
+                    for (final Object o : (Collection<?>) value) {
                         if (isJSONPrimitive(o)) {
                             a.add(o);
                         } else {
@@ -174,10 +177,6 @@ final class DefaultAttributeMapper extends AttributeMapper {
         }
     }
 
-    private boolean isJSONPrimitive(Object value) {
-        return value instanceof String || value instanceof Boolean || value instanceof Number;
-    }
-
     private boolean isIncludedAttribute(final String name) {
         final String lowerName = toLowerCase(name);
 
@@ -192,5 +191,9 @@ final class DefaultAttributeMapper extends AttributeMapper {
         }
 
         return false;
+    }
+
+    private boolean isJSONPrimitive(final Object value) {
+        return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 }
