@@ -97,7 +97,6 @@ $ dsconfig
  
  <section xml:id="setup-server-cert">
   <title>Preparing For Secure Communications</title>
-  <subtitle>Setting Up a Self-Signed Certificate</subtitle>
   <indexterm><primary>Certificates</primary></indexterm>
 
   <para>One common way to protect connections between OpenDJ and client
