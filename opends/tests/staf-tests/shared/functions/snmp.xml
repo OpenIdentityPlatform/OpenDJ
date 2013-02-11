@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS 
 ! -->
 <stax>
   <!-- SNMP Get -->
@@ -114,6 +115,11 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
       </function-arg-def>
     </function-map-args>
 
@@ -211,7 +217,8 @@
         'location'   : location ,
         'path'       : '%s/snmp' % remote.java ,
         'envCmd'     : env ,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC ,
+        'knownIssue' : knownIssue
         }
       </call>
 
