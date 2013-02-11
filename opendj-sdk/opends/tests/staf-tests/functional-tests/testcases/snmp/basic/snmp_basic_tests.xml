@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS
+ !      Portions Copyright 2012-2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -88,7 +88,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           none
+    #@TestIssue           OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -115,7 +115,8 @@
               'snmpCommunity' : community ,
               'snmpOIDs'      : '' ,
               'snmpStatus'    : 'noError' ,
-              'snmpWalk'      : 'True'
+              'snmpWalk'      : 'True' ,
+              'knownIssue'    : 'OPENDJ-750'
               }
             </call>
 
@@ -372,7 +373,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -434,7 +435,10 @@
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
               
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+              
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfSearchOps entry' }
             </call>
@@ -492,7 +496,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -564,7 +568,10 @@
               DEFAULT_VALUES['dsMasterEntries.1'] = \
                 str(int(DEFAULT_VALUES['dsMasterEntries.1']) + nbLoop)
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+            
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfAddEntryOps entry' }
             </call>
@@ -622,7 +629,7 @@
    <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -683,7 +690,10 @@
               DEFAULT_VALUES['dsMasterEntries.1'] = \
                 str(int(DEFAULT_VALUES['dsMasterEntries.1']) - nbLoop)
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+            
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfRemoveEntryOps entry' }
             </call>
@@ -741,7 +751,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -801,7 +811,10 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+            
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfCompareOps entry' }
             </call>
@@ -859,7 +872,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -921,7 +934,10 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+            
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfModifyEntryOps entry' }
             </call>
@@ -979,7 +995,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           3862 OPENDJ-750
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -1089,7 +1105,10 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-
+            <call function="'setKnownIssue'">
+              { 'issueId' : 'OPENDJ-750' }
+            </call>
+            
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfModifyRDNOps entry' }
             </call>
