@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -116,13 +117,13 @@
             index_SHA256=certificateResult.find("SHA256:")
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert1=certificateResult[index_MD5+5:index_SHA1].strip()
-            if index_Signature == -1:
-              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
-            else:
-              if index_SHA256 == -1:
-                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()
+            if index_SHA256 == -1:
+              if index_Signature == -1:
+                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
               else:
-                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_SHA256].strip()
+                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()
+            else:
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_SHA256].strip()
       </script>
     
    <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>      
@@ -144,12 +145,16 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_SHA256=certificateResult.find("SHA256:") 
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert2=certificateResult[index_MD5+5:index_SHA1].strip()
-            if index_Signature == -1:
-              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            if index_SHA256 == -1:
+              if index_Signature == -1:
+                SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+              else:
+                SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()
             else:
-              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()   
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_SHA256].strip()
       </script>
   
    <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>      
@@ -498,10 +503,13 @@
             index_SHA1=certificateResult.find("SHA1:")
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert1=certificateResult[index_MD5+5:index_SHA1].strip()
-            if index_Signature == -1:
-              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+            if index_SHA256 == -1:
+              if index_Signature == -1:
+                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+              else:
+                SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()
             else:
-              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()   
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_SHA256].strip()
       </script>
 
  
@@ -527,10 +535,13 @@
             index_SHA1=certificateResult.find("SHA1:")
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert2=certificateResult[index_MD5+5:index_SHA1].strip()
-            if index_Signature == -1:
-              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            if index_SHA256 == -1:
+              if index_Signature == -1:
+                SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+              else:
+                SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()
             else:
-              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()   
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_SHA256].strip()
       </script>
 
  
