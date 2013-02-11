@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -156,8 +156,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         }
 
         private ErrorResultException adaptConnectionException(Throwable t) {
-            if (t instanceof ExecutionException) {
-                t = t.getCause();
+            if (!(t instanceof ErrorResultException) && t instanceof ExecutionException) {
+                t = t.getCause() != null ? t.getCause() : t;
             }
 
             if (t instanceof ErrorResultException) {
