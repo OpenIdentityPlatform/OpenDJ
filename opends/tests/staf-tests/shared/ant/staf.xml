@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <project name="staf">
 
@@ -174,7 +175,7 @@
           <arg value="${staf.config.file}"/>
           <env key="${var.path}" path="${java.path}/bin:${staf.install.dir}/${staf.name}/bin"/>
           <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
-          <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar:${project.home}/ext/svnkit/svnkit.jar:${cp}:."/>
+          <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar:${shared.dir}/resource/svnkit.jar:${cp}:."/>
           <env key="STAFCONVDIR" value="${staf.install.dir}/${staf.name}/codepage"/>
           <env key="LANG" value="en_US.ISO8859-1"/>
           <env key="LC_ALL" value="en_US.ISO8859-1"/>
