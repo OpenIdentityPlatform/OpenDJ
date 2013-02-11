@@ -24,7 +24,8 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
-! -->
+ !      Portions Copyright 2013 ForgeRock AS
+ ! -->
 <stax>
   
   <defaultcall function="main_setup"/>
@@ -61,6 +62,15 @@
               'service'   :  'FS',
               'request'   :  'CREATE',
               'arguments' :  'DIRECTORY %s FAILIFEXISTS' % OUT_GROUP
+            }
+          </call>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
             }
           </call>
 

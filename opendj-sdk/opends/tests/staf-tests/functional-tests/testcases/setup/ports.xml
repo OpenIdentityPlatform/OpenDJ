@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -225,6 +226,45 @@
           <call function="'testCase_Preamble'"/>
           <message>'Ports: LDAPS port conflict'</message>
           
+          <!-- Remove and recreate the unzipped instance -->
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Delete directory containing unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'DELETE',
+              'arguments' :  'ENTRY %s RECURSE CONFIRM' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to remove files for this group at cleanup',
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, ODS_UNZIPPED)
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
+          
           <script>
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
             p = []
@@ -268,6 +308,45 @@
           
           <call function="'testCase_Preamble'"/>
           <message>'Ports: JMX port conflict'</message>
+          
+          <!-- Remove and recreate the unzipped instance -->
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Delete directory containing unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'DELETE',
+              'arguments' :  'ENTRY %s RECURSE CONFIRM' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to remove files for this group at cleanup',
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, ODS_UNZIPPED)
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
           
           <script>
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
@@ -321,7 +400,7 @@
           <message>'Ports: '</message>
           
           <!-- 1. Setup options: baseDN baseDN sampleData -->
-          <message>'Prepare Open DS ZIP (in %s)' % PORTS_I1_ROOT</message>
+          <message>'Prepare Open DS ZIP (in %s)' % PORTS_I2_ROOT</message>
 
           <call function="'runSTAFCommand'">
             { 'name'      :  'Create directory to contain I2',
@@ -371,7 +450,7 @@
               'name'      : 'Setup command for I2 (port conflict but nocheck)',
               'command'   : c,
               'arguments' : p,
-              'path'      : PORTS_I1_ROOT,
+              'path'      : PORTS_I2_ROOT,
               'expectedRC': 0,
               'outputFile': '%s/ports-setup-confl-nocheck-i2.txt' % OUT_GROUP,
             }
@@ -410,7 +489,7 @@
               'name'      : 'Uninstall I2',
               'command'   : c,
               'arguments' : p,
-              'path'      : PORTS_I1_ROOT,
+              'path'      : PORTS_I2_ROOT,
               'expectedRC': 0,
               'outputFile': '%s/ports-uninstall-conflict-i2.txt' % OUT_GROUP,
             }
@@ -439,6 +518,45 @@
           
           <call function="'testCase_Preamble'"/>
           <message>'Ports: Unauthorized LDAP port'</message>
+          
+          <!-- Remove and recreate the unzipped instance -->
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Delete directory containing unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'DELETE',
+              'arguments' :  'ENTRY %s RECURSE CONFIRM' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to remove files for this group at cleanup',
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain unzipped OpenDS',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
+            }
+          </call>
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, ODS_UNZIPPED)
+            }
+          </call>
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
           
           <!-- This testcase is not relevant on Windows or as root user -->
           <script>
