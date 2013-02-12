@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='rebuild-index-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>rebuild-index</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -60,6 +60,17 @@
     <listitem>
      <para>Base DN of a backend supporting indexing. Rebuild is performed on
      indexes within the scope of the given base DN.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--clearDegradedState</option></term>
+    <listitem>
+     <para>Indicates that indexes do not need rebuilding because they are known
+     to be empty and forcefully marks them as valid. <emphasis>This is an
+     advanced option which must only be used in cases where a degraded index is
+     known to be empty and does not therefore need rebuilding.</emphasis> This
+     situation typically arises when an index is created for an attribute which
+     has just been added to the schema.</para>
     </listitem>
    </varlistentry>
    <varlistentry>

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-indexing'
@@ -413,6 +413,56 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
  rate 1860.5/sec)"
 ...
 Rebuild Index task 20120131164324838 has been successfully completed</screen>
+   </example>
+
+   <example xml:id="clear-degraded-indexes-example">
+    <title>Clear New, Unused, "Degraded" Indexes</title>
+
+    <para>When you add a new attribute as described in <link
+    xlink:href="admin-guide#update-schema"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Updating
+    Directory Schema</citetitle></link>, and then create indexes for the new
+    attribute, the new indexes appear as degraded, even though the attribute
+    has not yet been used, and so indexes are sure to be empty, rather than
+    degraded.</para>
+
+    <para>In this special case, you can safely use the
+    <command>rebuild-index</command> command
+    <option>--clearDegradedState</option> option to avoid having to scan
+    the entire directory backend to rebuild the new, unused index. This
+    is shown in the following example, where an index has just been created
+    for <literal>newUnusedAttribute</literal>.</para>
+
+    <screen>$ dbtest
+ list-index-status
+ --backendID userRoot
+ --baseDN dc=example,dc=com
+ | grep newUnusedAttribute
+newUnusedAttribute.equality   Index  ...newUnusedAttribute.equality   false...
+newUnusedAttribute.presence   Index  ...newUnusedAttribute.presence   false...
+newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  false...
+$ rebuild-index
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
+ --clearDegradedState
+ --index newUnusedAttribute
+ --start 0
+Rebuild Index task 20130211175925012 scheduled to start Feb 11, 2013 5:59:25
+ PM CET
+$ dbtest
+ list-index-status
+ --backendID userRoot
+ --baseDN dc=example,dc=com
+ | grep newUnusedAttribute
+newUnusedAttribute.equality   Index  ...newUnusedAttribute.equality   true...
+newUnusedAttribute.presence   Index  ...newUnusedAttribute.presence   true...
+newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  true...</screen>
+
+    <para>If the newly indexed attribute has already been used, rebuild indexes
+    instead.</para>
    </example>
   </section>
 
