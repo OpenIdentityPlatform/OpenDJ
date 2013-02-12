@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-troubleshooting'
@@ -514,10 +514,10 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
     </listitem>
     <listitem>
      <para>Stop each server, and then fix the remaining admin connector
-     certificate as described here in the procedure about <link
-     xlink:href="admin-guide#change-server-certificates"
-     xlink:role="http://docbook.org/xlink/role/olink">changing server
-     certificates</link>.</para>
+     certificate as described here in the procedure <link
+     xlink:href="admin-guide#replace-key-pair"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Replace a
+     Server Key Pair</citetitle></link>.</para>
     </listitem>
    </orderedlist>
   </section>
