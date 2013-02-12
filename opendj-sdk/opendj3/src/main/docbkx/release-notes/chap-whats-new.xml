@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-whats-new'
@@ -84,6 +84,14 @@
      certificate values (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-482"
      >OPENDJ-482</link>).</para>
+    </listitem>
+    <listitem>
+     <para>The OpenDJ <command>rebuild-index</command> command now provides
+     an option, <option>--clearDegradedState</option>, to forcefully clear
+     the state of an unused index for a newly created attribute (<link
+     xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-473"
+     >OPENDJ-473</link>).</para>
     </listitem>
     <listitem>
      <para>Import now performs better when handling LDIF entries with

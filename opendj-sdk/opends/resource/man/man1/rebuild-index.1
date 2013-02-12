@@ -2,12 +2,12 @@
 .\"     Title: rebuild-index
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 02/12/2013
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "REBUILD\-INDEX" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "REBUILD\-INDEX" "1" "02/12/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -42,6 +42,13 @@ The following options are supported\&.
 \fB\-b, \-\-baseDN {baseDN}\fR
 .RS 4
 Base DN of a backend supporting indexing\&. Rebuild is performed on indexes within the scope of the given base DN\&.
+.RE
+.PP
+\fB\-\-clearDegradedState\fR
+.RS 4
+Indicates that indexes do not need rebuilding because they are known to be empty and forcefully marks them as valid\&.
+\fIThis is an advanced option which must only be used in cases where a degraded index is known to be empty and does not therefore need rebuilding\&.\fR
+This situation typically arises when an index is created for an attribute which has just been added to the schema\&.
 .RE
 .PP
 \fB\-i, \-\-index {index}\fR
@@ -248,5 +255,5 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br
