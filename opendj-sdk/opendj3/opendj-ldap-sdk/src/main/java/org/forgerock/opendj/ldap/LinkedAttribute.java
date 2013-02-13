@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -506,6 +505,9 @@ public final class LinkedAttribute extends AbstractAttribute {
     /**
      * Creates a new attribute having the specified attribute description and
      * single attribute value.
+     * <p>
+     * If {@code value} is not an instance of {@code ByteString} then it will be
+     * converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -515,7 +517,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      *             If {@code attributeDescription} or {@code value} was
      *             {@code null} .
      */
-    public LinkedAttribute(final AttributeDescription attributeDescription, final ByteString value) {
+    public LinkedAttribute(final AttributeDescription attributeDescription, final Object value) {
         this(attributeDescription);
         add(value);
     }
@@ -523,6 +525,9 @@ public final class LinkedAttribute extends AbstractAttribute {
     /**
      * Creates a new attribute having the specified attribute description and
      * attribute values.
+     * <p>
+     * Any attribute values which are not instances of {@code ByteString} will
+     * be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -533,14 +538,17 @@ public final class LinkedAttribute extends AbstractAttribute {
      *             {@code null}.
      */
     public LinkedAttribute(final AttributeDescription attributeDescription,
-            final ByteString... values) {
+            final Object... values) {
         this(attributeDescription);
-        addAll(Arrays.asList(values));
+        add(values);
     }
 
     /**
      * Creates a new attribute having the specified attribute description and
      * attribute values.
+     * <p>
+     * Any attribute values which are not instances of {@code ByteString} will
+     * be converted using the {@link ByteString#valueOf(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -551,9 +559,9 @@ public final class LinkedAttribute extends AbstractAttribute {
      *             {@code null}.
      */
     public LinkedAttribute(final AttributeDescription attributeDescription,
-            final Collection<ByteString> values) {
+            final Collection<?> values) {
         this(attributeDescription);
-        addAll(values);
+        addAll(values, null);
     }
 
     /**
@@ -571,6 +579,30 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     public LinkedAttribute(final String attributeDescription) {
         this(AttributeDescription.valueOf(attributeDescription));
+    }
+
+    /**
+     * Creates a new attribute having the specified attribute description and
+     * attribute values. The attribute description will be decoded using the
+     * default schema.
+     * <p>
+     * Any attribute values which are not instances of {@code ByteString} will
+     * be converted using the {@link ByteString#valueOf(Object)} method.
+     *
+     * @param attributeDescription
+     *            The attribute description.
+     * @param values
+     *            The attribute values.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code attributeDescription} could not be decoded using
+     *             the default schema.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} or {@code values} was
+     *             {@code null}.
+     */
+    public LinkedAttribute(final String attributeDescription, final Collection<?> values) {
+        this(attributeDescription);
+        addAll(values, null);
     }
 
     /**
@@ -618,9 +650,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     public LinkedAttribute(final String attributeDescription, final Object... values) {
         this(attributeDescription);
-        for (final Object value : values) {
-            add(ByteString.valueOf(value));
-        }
+        add(values);
     }
 
     /**

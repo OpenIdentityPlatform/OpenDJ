@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -165,14 +165,11 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
     /**
      * {@inheritDoc}
      */
-    public boolean add(final Object firstValue, final Object... remainingValues) {
-        Validator.ensureNotNull(firstValue);
-
-        boolean modified = add(ByteString.valueOf(firstValue));
-        if (remainingValues != null) {
-            for (final Object value : remainingValues) {
-                modified |= add(ByteString.valueOf(value));
-            }
+    public boolean add(final Object... values) {
+        Validator.ensureNotNull(values);
+        boolean modified = false;
+        for (final Object value : values) {
+            modified |= add(ByteString.valueOf(value));
         }
         return modified;
     }

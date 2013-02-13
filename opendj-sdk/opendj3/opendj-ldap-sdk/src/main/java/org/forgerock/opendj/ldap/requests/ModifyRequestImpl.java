@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -86,12 +86,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
      */
     public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
-    }
-
-    public ModifyRequest addChange(final ModificationType type, final String attributeDescription,
-            final Object firstValue, final Object... remainingValues) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     /**

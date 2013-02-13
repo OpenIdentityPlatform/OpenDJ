@@ -22,9 +22,15 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,6 +38,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
+import java.util.List;
+
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import com.forgerock.opendj.util.CompletedFutureResult;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -117,5 +129,77 @@ public final class TestCaseUtils {
      */
     public static SocketAddress getServerSocketAddress() {
         return LDAPServer.getInstance().getSocketAddress();
+    }
+
+    /**
+     * Creates a mock connection factory which will return the provided
+     * connections in order.
+     *
+     * @param first
+     *            The first connection to return.
+     * @param remaining
+     *            The remaining connections to return.
+     * @return The connection factory.
+     */
+    @SuppressWarnings("unchecked")
+    public static ConnectionFactory mockConnectionFactory(final Connection first,
+            final Connection... remaining) {
+        final ConnectionFactory factory = mock(ConnectionFactory.class);
+        try {
+            when(factory.getConnection()).thenReturn(first, remaining);
+        } catch (ErrorResultException ignored) {
+            // Cannot happen.
+        }
+        when(factory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
+                new Answer<FutureResult<Connection>>() {
+                    @Override
+                    public FutureResult<Connection> answer(final InvocationOnMock invocation)
+                            throws Throwable {
+                        final Connection connection = factory.getConnection();
+                        // Execute handler and return future.
+                        final ResultHandler<? super Connection> handler =
+                                (ResultHandler<? super Connection>) invocation.getArguments()[0];
+                        if (handler != null) {
+                            handler.handleResult(connection);
+                        }
+                        return new CompletedFutureResult<Connection>(connection);
+                    }
+                });
+        return factory;
+    }
+
+    /**
+     * Creates a mock connection which will store connection event listeners in
+     * the provided list.
+     *
+     * @param listeners
+     *            The list which should be used for storing event listeners.
+     * @return The mock connection.
+     */
+    public static Connection mockConnection(final List<ConnectionEventListener> listeners) {
+        final Connection mockConnection = mock(Connection.class);
+
+        // Handle listener registration / deregistration in mock connection.
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) throws Throwable {
+                final ConnectionEventListener listener =
+                        (ConnectionEventListener) invocation.getArguments()[0];
+                listeners.add(listener);
+                return null;
+            }
+        }).when(mockConnection).addConnectionEventListener(any(ConnectionEventListener.class));
+
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) throws Throwable {
+                final ConnectionEventListener listener =
+                        (ConnectionEventListener) invocation.getArguments()[0];
+                listeners.remove(listener);
+                return null;
+            }
+        }).when(mockConnection).removeConnectionEventListener(any(ConnectionEventListener.class));
+
+        return mockConnection;
     }
 }

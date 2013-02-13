@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -113,8 +113,8 @@ public final class Attributes {
         }
 
         @Override
-        public boolean add(final Object firstValue, final Object... remainingValues) {
-            return attribute.add(firstValue, remainingValues);
+        public boolean add(final Object... values) {
+            return attribute.add(values);
         }
 
         @Override
@@ -320,7 +320,7 @@ public final class Attributes {
         }
 
         @Override
-        public boolean add(final Object firstValue, final Object... remainingValues) {
+        public boolean add(final Object... values) {
             throw new UnsupportedOperationException();
         }
 

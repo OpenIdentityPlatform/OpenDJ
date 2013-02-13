@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -31,6 +31,7 @@ import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -209,24 +210,17 @@ public final class ServerSideSortRequestControl implements Control {
      *            {@code true} if it is unacceptable to perform the operation
      *            without applying the semantics of this control, or
      *            {@code false} if it can be ignored.
-     * @param firstKey
-     *            The first sort key.
-     * @param remainingKeys
-     *            The remaining sort keys.
+     * @param keys
+     *            The list of sort keys.
      * @return The new control.
+     * @throws IllegalArgumentException
+     *             If {@code keys} was empty.
      * @throws NullPointerException
-     *             If {@code firstKey} was {@code null}.
+     *             If {@code keys} was {@code null}.
      */
     public static ServerSideSortRequestControl newControl(final boolean isCritical,
-            final SortKey firstKey, final SortKey... remainingKeys) {
-        Validator.ensureNotNull(firstKey, remainingKeys);
-
-        final List<SortKey> keys = new ArrayList<SortKey>(1 + remainingKeys.length);
-        keys.add(firstKey);
-        for (final SortKey key : remainingKeys) {
-            keys.add(key);
-        }
-        return new ServerSideSortRequestControl(isCritical, Collections.unmodifiableList(keys));
+            final SortKey... keys) {
+        return newControl(isCritical, Arrays.asList(keys));
     }
 
     /**

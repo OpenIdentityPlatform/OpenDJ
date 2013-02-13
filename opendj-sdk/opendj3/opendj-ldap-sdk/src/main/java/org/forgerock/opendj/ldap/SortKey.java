@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -223,28 +224,19 @@ public final class SortKey {
      *
      * @param schema
      *            The schema which should be used for decoding the sort keys.
-     * @param firstKey
-     *            The first sort key.
-     * @param remainingKeys
-     *            The remaining sort keys.
+     * @param keys
+     *            The list of sort keys.
      * @return The {@code Comparator}.
      * @throws LocalizedIllegalArgumentException
      *             If one of the sort keys could not be converted to a
      *             comparator.
+     * @throws IllegalArgumentException
+     *             If {@code keys} was empty.
      * @throws NullPointerException
-     *             If {@code schema} or {@code firstKey} was {@code null}.
+     *             If {@code schema} or {@code keys} was {@code null}.
      */
-    public static Comparator<Entry> comparator(final Schema schema, final SortKey firstKey,
-            final SortKey... remainingKeys) {
-        Validator.ensureNotNull(schema, firstKey, remainingKeys);
-
-        final List<Comparator<Entry>> comparators =
-                new ArrayList<Comparator<Entry>>(1 + remainingKeys.length);
-        comparators.add(firstKey.comparator(schema));
-        for (final SortKey key : remainingKeys) {
-            comparators.add(key.comparator(schema));
-        }
-        return new CompositeEntryComparator(comparators);
+    public static Comparator<Entry> comparator(final Schema schema, final SortKey... keys) {
+        return comparator(schema, Arrays.asList(keys));
     }
 
     /**
@@ -252,20 +244,19 @@ public final class SortKey {
      * the provided list of sort keys. The sort keys will be decoded using the
      * default schema.
      *
-     * @param firstKey
-     *            The first sort key.
-     * @param remainingKeys
-     *            The remaining sort keys.
+     * @param keys
+     *            The list of sort keys.
      * @return The {@code Comparator}.
      * @throws LocalizedIllegalArgumentException
      *             If one of the sort keys could not be converted to a
      *             comparator.
+     * @throws IllegalArgumentException
+     *             If {@code keys} was empty.
      * @throws NullPointerException
-     *             If {@code firstKey} was {@code null}.
+     *             If {@code keys} was {@code null}.
      */
-    public static Comparator<Entry> comparator(final SortKey firstKey,
-            final SortKey... remainingKeys) {
-        return comparator(Schema.getDefaultSchema(), firstKey, remainingKeys);
+    public static Comparator<Entry> comparator(final SortKey... keys) {
+        return comparator(Schema.getDefaultSchema(), keys);
     }
 
     /**
