@@ -69,7 +69,7 @@ class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
     /**
      * Starts the embedded server.
      *
-     * @throws Exception
+     * @throws Exception If an unexpected error occurred.
      */
     public static void startServer() throws Exception {
         // Embedded server files.
