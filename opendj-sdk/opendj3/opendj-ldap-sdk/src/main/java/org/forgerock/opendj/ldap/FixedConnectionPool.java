@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
@@ -189,6 +190,19 @@ final class FixedConnectionPool implements ConnectionPool {
             if (notifyClose) {
                 listener.handleConnectionClosed();
             }
+        }
+
+        @Override
+        public Result applyChange(ChangeRecord request) throws ErrorResultException {
+            return checkState().applyChange(request);
+        }
+
+        @Override
+        public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
+                final IntermediateResponseHandler intermediateResponseHandler,
+                final ResultHandler<? super Result> resultHandler) {
+            return checkState().applyChangeAsync(request, intermediateResponseHandler,
+                    resultHandler);
         }
 
         @Override

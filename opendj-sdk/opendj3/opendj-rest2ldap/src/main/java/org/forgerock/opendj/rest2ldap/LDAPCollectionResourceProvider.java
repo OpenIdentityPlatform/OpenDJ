@@ -72,13 +72,12 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
 
 /**
  * A {@code CollectionResourceProvider} implementation which maps a JSON
@@ -727,7 +726,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         return resultHandler;
     }
 
-    private void applyUpdate(final Context c, final Request request,
+    private void applyUpdate(final Context c, final ChangeRecord request,
             final ResultHandler<Resource> handler) {
         final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
                 postUpdateHandler(c, handler);
@@ -738,18 +737,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     public void handleResult(final Connection connection) {
                         final RequestCompletionHandler<Result> innerHandler =
                                 new RequestCompletionHandler<Result>(connection, resultHandler);
-                        // FIXME: simplify this once we have Connection#applyChange()
-                        if (request instanceof AddRequest) {
-                            connection.addAsync((AddRequest) request, null, innerHandler);
-                        } else if (request instanceof org.forgerock.opendj.ldap.requests.DeleteRequest) {
-                            connection.deleteAsync(
-                                    (org.forgerock.opendj.ldap.requests.DeleteRequest) request,
-                                    null, innerHandler);
-                        } else if (request instanceof ModifyRequest) {
-                            connection.modifyAsync((ModifyRequest) request, null, innerHandler);
-                        } else {
-                            throw new IllegalStateException();
-                        }
+                        connection.applyChangeAsync(request, null, innerHandler);
                     }
                 };
         factory.getConnectionAsync(outerHandler);

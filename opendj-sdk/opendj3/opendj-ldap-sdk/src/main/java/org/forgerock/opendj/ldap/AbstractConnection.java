@@ -36,7 +36,11 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -46,6 +50,8 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
+import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.Validator;
@@ -206,6 +212,47 @@ public abstract class AbstractConnection implements Connection {
 
     }
 
+    // Visitor used for processing synchronous change requests.
+    private static final ChangeRecordVisitor<Object, Connection> SYNC_VISITOR =
+            new ChangeRecordVisitor<Object, Connection>() {
+
+                @Override
+                public Object visitChangeRecord(final Connection p, final AddRequest change) {
+                    try {
+                        return p.add(change);
+                    } catch (final ErrorResultException e) {
+                        return e;
+                    }
+                }
+
+                @Override
+                public Object visitChangeRecord(final Connection p, final DeleteRequest change) {
+                    try {
+                        return p.delete(change);
+                    } catch (final ErrorResultException e) {
+                        return e;
+                    }
+                }
+
+                @Override
+                public Object visitChangeRecord(final Connection p, final ModifyRequest change) {
+                    try {
+                        return p.modify(change);
+                    } catch (final ErrorResultException e) {
+                        return e;
+                    }
+                }
+
+                @Override
+                public Object visitChangeRecord(final Connection p, final ModifyDNRequest change) {
+                    try {
+                        return p.modifyDN(change);
+                    } catch (final ErrorResultException e) {
+                        return e;
+                    }
+                }
+            };
+
     /**
      * Creates a new abstract connection.
      */
@@ -227,6 +274,56 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public Result add(final String... ldifLines) throws ErrorResultException {
         return add(Requests.newAddRequest(ldifLines));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Result applyChange(final ChangeRecord request) throws ErrorResultException {
+        final Object result = request.accept(SYNC_VISITOR, this);
+        if (result instanceof Result) {
+            return (Result) result;
+        } else {
+            throw (ErrorResultException) result;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        final ChangeRecordVisitor<FutureResult<Result>, Connection> visitor =
+                new ChangeRecordVisitor<FutureResult<Result>, Connection>() {
+
+                    @Override
+                    public FutureResult<Result> visitChangeRecord(final Connection p,
+                            final AddRequest change) {
+                        return p.addAsync(change, intermediateResponseHandler, resultHandler);
+                    }
+
+                    @Override
+                    public FutureResult<Result> visitChangeRecord(final Connection p,
+                            final DeleteRequest change) {
+                        return p.deleteAsync(change, intermediateResponseHandler, resultHandler);
+                    }
+
+                    @Override
+                    public FutureResult<Result> visitChangeRecord(final Connection p,
+                            final ModifyRequest change) {
+                        return p.modifyAsync(change, intermediateResponseHandler, resultHandler);
+                    }
+
+                    @Override
+                    public FutureResult<Result> visitChangeRecord(final Connection p,
+                            final ModifyDNRequest change) {
+                        return p.modifyDNAsync(change, intermediateResponseHandler, resultHandler);
+                    }
+                };
+        return request.accept(visitor, this);
     }
 
     /**
