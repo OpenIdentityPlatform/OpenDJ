@@ -19,7 +19,6 @@ import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
@@ -33,12 +32,10 @@ import org.forgerock.opendj.ldap.Filter;
  * An attribute mapper which maps a single JSON attribute to a fixed value.
  */
 final class JSONConstantAttributeMapper extends AttributeMapper {
-    private final String jsonAttributeName;
-    private final Object jsonAttributeValue;
+    private final JsonValue value;
 
-    JSONConstantAttributeMapper(final String attributeName, final Object attributeValue) {
-        this.jsonAttributeName = attributeName;
-        this.jsonAttributeValue = attributeValue;
+    JSONConstantAttributeMapper(final Object value) {
+        this.value = new JsonValue(value);
     }
 
     @Override
@@ -50,57 +47,52 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     @Override
     void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
-        if (jsonAttribute.size() == 1 && jsonAttribute.get(0).equalsIgnoreCase(jsonAttributeName)) {
-            final Filter filter;
-            if (type == FilterType.PRESENT) {
-                filter = c.getConfig().trueFilter();
-            } else if (jsonAttributeValue instanceof String && valueAssertion instanceof String) {
-                final String v1 = toLowerCase((String) jsonAttributeValue);
-                final String v2 = toLowerCase((String) valueAssertion);
-                switch (type) {
-                case CONTAINS:
-                    filter =
-                            v1.contains(v2) ? c.getConfig().trueFilter() : c.getConfig()
-                                    .falseFilter();
-                    break;
-                case STARTS_WITH:
-                    filter =
-                            v1.startsWith(v2) ? c.getConfig().trueFilter() : c.getConfig()
-                                    .falseFilter();
-                    break;
-                default:
-                    filter = compare(c, type, v1, v2);
-                    break;
-                }
-            } else if (jsonAttributeValue instanceof Number && valueAssertion instanceof Number) {
-                final Double v1 = ((Number) jsonAttributeValue).doubleValue();
-                final Double v2 = ((Number) valueAssertion).doubleValue();
+        final Filter filter;
+        final JsonValue subValue = value.get(jsonAttribute);
+        if (subValue == null) {
+            filter = c.getConfig().falseFilter();
+        } else if (type == FilterType.PRESENT) {
+            filter = c.getConfig().trueFilter();
+        } else if (value.isString() && valueAssertion instanceof String) {
+            final String v1 = toLowerCase(value.asString());
+            final String v2 = toLowerCase((String) valueAssertion);
+            switch (type) {
+            case CONTAINS:
+                filter = v1.contains(v2) ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
+                break;
+            case STARTS_WITH:
+                filter =
+                        v1.startsWith(v2) ? c.getConfig().trueFilter() : c.getConfig()
+                                .falseFilter();
+                break;
+            default:
                 filter = compare(c, type, v1, v2);
-            } else if (jsonAttributeValue instanceof Boolean && valueAssertion instanceof Boolean) {
-                final Boolean v1 = (Boolean) jsonAttributeValue;
-                final Boolean v2 = (Boolean) valueAssertion;
-                filter = compare(c, type, v1, v2);
-            } else {
-                // This attribute mapper is a candidate but it does not match.
-                filter = c.getConfig().falseFilter();
+                break;
             }
-            h.handleResult(filter);
+        } else if (value.isNumber() && valueAssertion instanceof Number) {
+            final Double v1 = value.asDouble();
+            final Double v2 = ((Number) valueAssertion).doubleValue();
+            filter = compare(c, type, v1, v2);
+        } else if (value.isBoolean() && valueAssertion instanceof Boolean) {
+            final Boolean v1 = value.asBoolean();
+            final Boolean v2 = (Boolean) valueAssertion;
+            filter = compare(c, type, v1, v2);
         } else {
-            // This attribute mapper cannot handle the provided filter component.
-            h.handleResult(null);
+            // This attribute mapper is a candidate but it does not match.
+            filter = c.getConfig().falseFilter();
         }
+        h.handleResult(filter);
     }
 
     @Override
-    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
-        // FIXME: how do we know if the user requested it???
-        h.handleResult(Collections.singletonMap(jsonAttributeName, jsonAttributeValue));
-
+    void toJSON(final Context c, final Entry e, final ResultHandler<JsonValue> h) {
+        h.handleResult(value.copy());
     }
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        h.handleResult(Collections.<Attribute>emptyList());
+        // FIXME: should we check if the provided value matches the constant?
+        h.handleResult(Collections.<Attribute> emptyList());
     }
 
     private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,

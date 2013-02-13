@@ -19,23 +19,23 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
 import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
 import static org.forgerock.opendj.rest2ldap.Utils.jsonToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
-import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_ONLY;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -46,37 +46,23 @@ import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 
 /**
- * An attribute mapper which maps a single JSON attribute to a single LDAP
- * attribute.
+ * An attribute mapper which provides a simple mapping from a JSON value to a
+ * single LDAP attribute.
  */
 public final class SimpleAttributeMapper extends AttributeMapper {
-
     private Function<ByteString, ?, Void> decoder = null;
     private Object defaultJSONValue = null;
     private Collection<Object> defaultJSONValues = Collections.emptySet();
     private ByteString defaultLDAPValue = null;
     private Function<Object, ByteString, Void> encoder = null;
-    private boolean forceSingleValued = false;
-
-    // private boolean isReadOnly = false;
-    private final String jsonAttributeName;
+    private boolean isIgnoreUpdates = true;
+    private boolean isRequired = false;
+    private boolean isSingleValued = false;
     private final AttributeDescription ldapAttributeName;
-    private final String normalizedJsonAttributeName;
+    private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
-    /**
-     * Creates a new simple attribute mapper which maps a single LDAP attribute
-     * to an entry.
-     *
-     * @param jsonAttributeName
-     *            The name of the simple JSON attribute.
-     * @param ldapAttributeName
-     *            The name of the LDAP attribute.
-     */
-    SimpleAttributeMapper(final String jsonAttributeName,
-            final AttributeDescription ldapAttributeName) {
-        this.jsonAttributeName = jsonAttributeName;
+    SimpleAttributeMapper(final AttributeDescription ldapAttributeName) {
         this.ldapAttributeName = ldapAttributeName;
-        this.normalizedJsonAttributeName = toLowerCase(jsonAttributeName);
     }
 
     /**
@@ -133,70 +119,118 @@ public final class SimpleAttributeMapper extends AttributeMapper {
     }
 
     /**
-     * Prevents the LDAP attribute from being updated.
+     * Indicates whether or not an attempt to update the LDAP attribute should
+     * be ignored when the update is incompatible with the writability policy.
+     * The default is {@code true}.
      *
-     * @param readOnly
-     *            {@code true} if the LDAP attribute is read-only.
+     * @param ignore
+     *            {@code true} an attempt to update the LDAP attribute should be
+     *            ignored.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper readOnly(final boolean readOnly) {
-        // TODO: enforcement policy: ignore, warn, or reject.
-        // this.isReadOnly = readOnly;
+    public SimpleAttributeMapper ignoreUpdates(final boolean ignore) {
+        this.isIgnoreUpdates = ignore;
+        return this;
+    }
+
+    /**
+     * Indicates that the LDAP attribute is mandatory and must be provided
+     * during create requests. The default is {@code false}.
+     *
+     * @param isRequired
+     *            {@code true} if the LDAP attribute is mandatory and must be
+     *            provided during create requests.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper required(final boolean isRequired) {
+        this.isRequired = isRequired;
         return this;
     }
 
     /**
      * Forces a multi-valued LDAP attribute to be represented as a single-valued
-     * JSON value, rather than an array of values.
+     * JSON value, rather than an array of values. The default is {@code false}.
      *
-     * @param singleValued
+     * @param isSingleValued
      *            {@code true} if the LDAP attribute should be treated as a
      *            single-valued attribute.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper singleValued(final boolean singleValued) {
-        this.forceSingleValued = singleValued;
+    public SimpleAttributeMapper singleValued(final boolean isSingleValued) {
+        this.isSingleValued = isSingleValued;
+        return this;
+    }
+
+    /**
+     * Indicates whether or not the LDAP attribute supports updates. The default
+     * is {@link WritabilityPolicy#READ_WRITE}.
+     *
+     * @param policy
+     *            The writability policy.
+     * @return This attribute mapper.
+     */
+    public SimpleAttributeMapper writability(final WritabilityPolicy policy) {
+        this.writabilityPolicy = policy;
         return this;
     }
 
     @Override
     void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
             final Set<String> ldapAttributes) {
-        if (jsonAttribute.isEmpty() || matches(jsonAttribute)) {
-            ldapAttributes.add(ldapAttributeName.toString());
-        }
+        ldapAttributes.add(ldapAttributeName.toString());
     }
 
     @Override
     void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
-        if (matches(jsonAttribute)) {
+        if (jsonAttribute.isEmpty()) {
             h.handleResult(toFilter(c, type, ldapAttributeName.toString(), valueAssertion));
         } else {
-            // This attribute mapper cannot handle the provided filter component.
-            h.handleResult(null);
+            // This attribute mapper does not support partial filtering.
+            h.handleResult(c.getConfig().falseFilter());
         }
     }
 
     @Override
-    void toJSON(final Context c, final Entry e, final ResultHandler<Map<String, Object>> h) {
+    void toJSON(final Context c, final Entry e, final ResultHandler<JsonValue> h) {
         final Function<ByteString, ?, Void> f =
                 decoder == null ? fixedFunction(byteStringToJson(), ldapAttributeName) : decoder;
         final Object value;
-        if (forceSingleValued || ldapAttributeName.getAttributeType().isSingleValue()) {
+        if (isSingleValued || ldapAttributeName.getAttributeType().isSingleValue()) {
             value = e.parseAttribute(ldapAttributeName).as(f, defaultJSONValue);
         } else {
             value = e.parseAttribute(ldapAttributeName).asSetOf(f, defaultJSONValues);
         }
-        h.handleResult(singletonMap(jsonAttributeName, value));
+        h.handleResult(new JsonValue(value));
     }
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        if (v.isMap()) {
-            final Object value = v.get(jsonAttributeName).getObject();
-            try {
-                final List<Attribute> result;
+        try {
+            final List<Attribute> result;
+            if (v == null || v.isNull()) {
+                if (isRequired()) {
+                    // FIXME: improve error message.
+                    throw new BadRequestException("no value provided");
+                } else if (defaultLDAPValue != null) {
+                    result =
+                            singletonList((Attribute) new LinkedAttribute(ldapAttributeName,
+                                    defaultLDAPValue));
+                } else {
+                    result = emptyList();
+                }
+            } else if (v.isList() && isSingleValued()) {
+                // FIXME: improve error message.
+                throw new BadRequestException("expected single value, but got multiple values");
+            } else if (isCreate()) {
+                if (isIgnoreUpdates) {
+                    result = emptyList();
+                } else {
+                    // FIXME: improve error message.
+                    throw new BadRequestException("attempted to create a read-only value");
+                }
+            } else {
+                final Object value = v.getObject();
                 if (value != null) {
                     final Function<Object, ByteString, Void> f =
                             encoder != null ? encoder : fixedFunction(jsonToByteString(),
@@ -209,21 +243,27 @@ public final class SimpleAttributeMapper extends AttributeMapper {
                 } else {
                     result = emptyList();
                 }
-                h.handleResult(result);
-            } catch (final Exception e) {
-                // FIXME: improve error message.
-                h.handleError(new BadRequestException("The field " + jsonAttributeName
-                        + " is invalid"));
-                return;
             }
-        } else {
-            h.handleResult(Collections.<Attribute> emptyList());
+            h.handleResult(result);
+        } catch (final ResourceException e) {
+            h.handleError(e);
+        } catch (final Exception e) {
+            // FIXME: improve error message.
+            h.handleError(new BadRequestException(e.getMessage()));
         }
     }
 
-    private boolean matches(final JsonPointer jsonAttribute) {
-        return !jsonAttribute.isEmpty()
-                && toLowerCase(jsonAttribute.get(0)).equals(normalizedJsonAttributeName);
+    private boolean isCreate() {
+        return writabilityPolicy != READ_ONLY
+                && ldapAttributeName.getAttributeType().isNoUserModification();
+    }
+
+    private boolean isRequired() {
+        return isRequired && defaultJSONValue == null;
+    }
+
+    private boolean isSingleValued() {
+        return isSingleValued || ldapAttributeName.getAttributeType().isSingleValue();
     }
 
 }

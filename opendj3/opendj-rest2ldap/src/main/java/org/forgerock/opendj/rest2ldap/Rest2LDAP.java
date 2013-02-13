@@ -21,13 +21,14 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeT
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -52,19 +53,45 @@ public final class Rest2LDAP {
      * A builder for incrementally constructing LDAP resource collections.
      */
     public static final class Builder {
+        private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
         private final Filter falseFilter = Filter.present("1.1");
-        private final List<AttributeMapper> mappers = new LinkedList<AttributeMapper>();
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
         private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
+        private final ObjectAttributeMapper rootMapper = new ObjectAttributeMapper();
         private Schema schema = Schema.getDefaultSchema();
         private Filter trueFilter = Filter.objectClassPresent();
 
         Builder() {
             useEtagAttribute();
-            useServerEntryUUIDNaming("uid");
+            useClientDNNaming("uid");
+        }
+
+        public Builder additionalLDAPAttribute(final Attribute attribute) {
+            additionalLDAPAttributes.add(attribute);
+            return this;
+        }
+
+        public Builder additionalLDAPAttribute(final String attribute, final Object... values) {
+            additionalLDAPAttributes.add(new LinkedAttribute(attribute, values));
+            return this;
+        }
+
+        /**
+         * Creates a mapping for the named JSON attribute.
+         *
+         * @param name
+         *            The name of the JSON attribute to be mapped.
+         * @param mapper
+         *            The attribute mapper responsible for mapping the JSON
+         *            attribute to LDAP attribute(s).
+         * @return A reference to this builder.
+         */
+        public Builder attribute(final String name, final AttributeMapper mapper) {
+            rootMapper.attribute(name, mapper);
+            return this;
         }
 
         public Builder baseDN(final DN dn) {
@@ -82,12 +109,12 @@ public final class Rest2LDAP {
         public CollectionResourceProvider build() {
             ensureNotNull(factory);
             ensureNotNull(baseDN);
-            if (mappers.isEmpty()) {
+            if (rootMapper.isEmpty()) {
                 throw new IllegalStateException("No mappings provided");
             }
-            return new LDAPCollectionResourceProvider(baseDN, mapOf(mappers), factory,
-                    nameStrategy, mvccStrategy, new Config(trueFilter, falseFilter,
-                            readOnUpdatePolicy, schema));
+            return new LDAPCollectionResourceProvider(baseDN, rootMapper, factory, nameStrategy,
+                    mvccStrategy, new Config(trueFilter, falseFilter, readOnUpdatePolicy, schema),
+                    additionalLDAPAttributes);
         }
 
         public Builder factory(final ConnectionFactory factory) {
@@ -106,18 +133,6 @@ public final class Rest2LDAP {
          */
         public Builder falseFilter(final Filter filter) {
             this.trueFilter = ensureNotNull(filter);
-            return this;
-        }
-
-        public Builder map(final AttributeMapper... mappers) {
-            ensureNotNull(mappers);
-            this.mappers.addAll(Arrays.asList(mappers));
-            return this;
-        }
-
-        public Builder map(final Collection<AttributeMapper> mappers) {
-            ensureNotNull(mappers);
-            this.mappers.addAll(mappers);
             return this;
         }
 
@@ -303,9 +318,15 @@ public final class Rest2LDAP {
 
         @Override
         void setResourceId(final Context c, final DN baseDN, final String resourceId,
-                final Entry entry) {
-            entry.setName(baseDN.child(rdn(resourceId)));
-            entry.addAttribute(new LinkedAttribute(attribute, ByteString.valueOf(resourceId)));
+                final Entry entry) throws ResourceException {
+            if (resourceId != null) {
+                entry.setName(baseDN.child(rdn(resourceId)));
+                entry.addAttribute(new LinkedAttribute(attribute, ByteString.valueOf(resourceId)));
+            } else if (entry.getAttribute(attribute) != null) {
+                entry.setName(baseDN.child(rdn(entry.parseAttribute(attribute).asString())));
+            } else {
+                throw new BadRequestException("Unable to set the resource ID");
+            }
         }
 
         private RDN rdn(final String resourceId) {
@@ -318,58 +339,20 @@ public final class Rest2LDAP {
         return new Builder();
     }
 
-    public static SimpleAttributeMapper map(final AttributeDescription attribute) {
-        return map(attribute.toString(), attribute);
+    public static AttributeMapper constant(final Object value) {
+        return new JSONConstantAttributeMapper(value);
     }
 
-    public static SimpleAttributeMapper map(final String attribute) {
-        return map(attribute, attribute);
+    public static ObjectAttributeMapper object() {
+        return new ObjectAttributeMapper();
     }
 
-    public static SimpleAttributeMapper map(final String jsonAttribute,
-            final AttributeDescription ldapAttribute) {
-        return new SimpleAttributeMapper(jsonAttribute, ldapAttribute);
+    public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
+        return new SimpleAttributeMapper(attribute);
     }
 
-    public static SimpleAttributeMapper map(final String jsonAttribute, final String ldapAttribute) {
-        return map(jsonAttribute, AttributeDescription.valueOf(ldapAttribute));
-    }
-
-    public static AttributeMapper mapAllExcept(final String... attributes) {
-        return new DefaultAttributeMapper().excludeAttribute(attributes);
-    }
-
-    public static AttributeMapper mapAllOf(final String... attributes) {
-        return new DefaultAttributeMapper().includeAttribute(attributes);
-    }
-
-    public static AttributeMapper mapComplex(final String jsonAttribute,
-            final AttributeMapper... mappers) {
-        return mapComplex(jsonAttribute, Arrays.asList(mappers));
-    }
-
-    public static AttributeMapper mapComplex(final String jsonAttribute,
-            final Collection<AttributeMapper> mappers) {
-        return new ComplexAttributeMapper(jsonAttribute, mapOf(mappers));
-    }
-
-    public static AttributeMapper mapJSONConstant(final String attribute,
-            final Object attributeValue) {
-        return new JSONConstantAttributeMapper(attribute, attributeValue);
-    }
-
-    public static AttributeMapper mapLDAPConstant(final AttributeDescription attribute,
-            final Object... attributeValues) {
-        return new LDAPConstantAttributeMapper(attribute, attributeValues);
-    }
-
-    public static AttributeMapper mapLDAPConstant(final String attribute,
-            final Object... attributeValues) {
-        return mapLDAPConstant(AttributeDescription.valueOf(attribute), attributeValues);
-    }
-
-    private static AttributeMapper mapOf(final Collection<AttributeMapper> mappers) {
-        return new CompositeAttributeMapper(mappers);
+    public static SimpleAttributeMapper simple(final String attribute) {
+        return simple(AttributeDescription.valueOf(attribute));
     }
 
     private Rest2LDAP() {

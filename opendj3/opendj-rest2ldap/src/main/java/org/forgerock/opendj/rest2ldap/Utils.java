@@ -103,11 +103,8 @@ final class Utils {
                     } else if (syntax.equals(getGeneralizedTimeSyntax())) {
                         return printDateTime(byteStringToGeneralizedTime().apply(value, null)
                                 .toCalendar());
-                    } else if (syntax.isHumanReadable()) {
-                        return byteStringToString().apply(value, null);
                     } else {
-                        // Base 64 encoded binary.
-                        return value.toBase64String();
+                        return byteStringToString().apply(value, null);
                     }
                 }
             };
@@ -121,11 +118,8 @@ final class Utils {
                         if (syntax.equals(getGeneralizedTimeSyntax())) {
                             return ByteString.valueOf(GeneralizedTime.valueOf(parseDateTime(value
                                     .toString())));
-                        } else if (syntax.isHumanReadable()) {
-                            return ByteString.valueOf(value);
                         } else {
-                            // Base 64 encoded binary.
-                            return ByteString.valueOfBase64(value.toString());
+                            return ByteString.valueOf(value);
                         }
                     } else {
                         throw new IllegalArgumentException("Unrecognized type of JSON value: "
