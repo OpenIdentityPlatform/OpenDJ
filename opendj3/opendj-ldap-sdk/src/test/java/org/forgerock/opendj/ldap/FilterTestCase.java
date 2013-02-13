@@ -33,6 +33,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -275,7 +276,7 @@ public class FilterTestCase extends SdkTestCase {
         // @formatter:off
         return new Object[][] {
             {
-                "(objectClass=*)", asList(), "(objectClass=*)"
+                "(objectClass=*)", Collections.emptyList(), "(objectClass=*)"
             },
             {
                 "(objectClass=*)", asList("dummy"), "(objectClass=*)"
