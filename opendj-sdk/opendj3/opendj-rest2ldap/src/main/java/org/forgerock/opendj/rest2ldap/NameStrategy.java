@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import java.util.Set;
 
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -89,7 +90,10 @@ abstract class NameStrategy {
      * @param entry
      *            The LDAP entry whose DN and resource ID attributes are to be
      *            set.
+     * @throws ResourceException
+     *             If the resource ID cannot be determined.
      */
-    abstract void setResourceId(Context c, DN baseDN, String resourceId, Entry entry);
+    abstract void setResourceId(Context c, DN baseDN, String resourceId, Entry entry)
+            throws ResourceException;
 
 }

@@ -25,10 +25,10 @@ import org.forgerock.opendj.ldap.schema.Schema;
 final class Config {
 
     private final Filter falseFilter;
-    private final Schema schema;
-    private final ReadOnUpdatePolicy readOnUpdatePolicy;
-    private final Filter trueFilter;
     private final DecodeOptions options;
+    private final ReadOnUpdatePolicy readOnUpdatePolicy;
+    private final Schema schema;
+    private final Filter trueFilter;
 
     Config(final Filter trueFilter, final Filter falseFilter,
             final ReadOnUpdatePolicy readOnUpdatePolicy, final Schema schema) {
@@ -37,17 +37,6 @@ final class Config {
         this.readOnUpdatePolicy = readOnUpdatePolicy;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
-    }
-
-    /**
-     * Returns the schema which should be used when attribute types and
-     * controls.
-     *
-     * @return The schema which should be used when attribute types and
-     *         controls.
-     */
-    public Schema schema() {
-        return schema;
     }
 
     /**
@@ -80,6 +69,17 @@ final class Config {
      */
     public ReadOnUpdatePolicy readOnUpdatePolicy() {
         return readOnUpdatePolicy;
+    }
+
+    /**
+     * Returns the schema which should be used when attribute types and
+     * controls.
+     *
+     * @return The schema which should be used when attribute types and
+     *         controls.
+     */
+    public Schema schema() {
+        return schema;
     }
 
     /**

@@ -18,7 +18,12 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Connections.newAuthenticatedConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.builder;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.constant;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.object;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.CREATE_ONLY;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_ONLY;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -27,7 +32,6 @@ import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.servlet.HttpServlet;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -62,26 +66,29 @@ public class Example {
 
         // Create user resource.
         CollectionResourceProvider users =
-                builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com").map(
-                        mapJSONConstant("schemas", Arrays.asList("urn:scim:schemas:core:1.0")),
-                        map("id", "entryUUID").singleValued(true),
-                        map("externalId", "uid").singleValued(true),
-                        map("userName", "mail").singleValued(true),
-                        map("displayName", "cn").singleValued(true),
-                        mapComplex("name", map("givenName", "givenName").singleValued(true), map(
-                                "familyName", "sn").singleValued(true)),
-                        mapComplex("contactInformation", map("telephoneNumber").decoder(
-                                Functions.byteStringToString()).encoder(
-                                Functions.objectToByteString()).singleValued(true), map(
-                                "emailAddress", "mail").singleValued(true)),
-                        mapLDAPConstant("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"))
-                        .build();
+                builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com")
+                    .attribute("schemas", constant(Arrays.asList("urn:scim:schemas:core:1.0")))
+                    .attribute("id", simple("uid").singleValued(true).required(true).writability(CREATE_ONLY))
+                    .attribute("rev", simple("etag").singleValued(true).writability(READ_ONLY))
+                    .attribute("userName", simple("mail").singleValued(true).writability(READ_ONLY))
+                    .attribute("displayName", simple("cn").singleValued(true).required(true))
+                    .attribute("name", object()
+                            .attribute("givenName", simple("givenName").singleValued(true))
+                            .attribute("familyName", simple("sn").singleValued(true).required(true)))
+                    .attribute("contactInformation", object()
+                            .attribute("telephoneNumber", simple("telephoneNumber").singleValued(true))
+                            .attribute("emailAddress", simple("mail").singleValued(true)))
+                    .additionalLDAPAttribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson")
+                    .build();
         router.addRoute("/users", users);
 
         // Create group resource.
         CollectionResourceProvider groups =
-                builder().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com").map(
-                        mapAllOf("cn", "ou", "description", "uniquemember")).build();
+                builder().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com")
+                    .attribute("cn", simple("cn").singleValued(true))
+                    .attribute("description", simple("description"))
+                    .attribute("member", simple("uniquemember"))
+                    .build();
         router.addRoute("/groups", groups);
 
         final org.forgerock.json.resource.ConnectionFactory resourceFactory =

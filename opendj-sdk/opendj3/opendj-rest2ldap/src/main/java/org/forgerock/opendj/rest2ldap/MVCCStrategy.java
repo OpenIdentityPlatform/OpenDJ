@@ -35,17 +35,6 @@ abstract class MVCCStrategy {
     }
 
     /**
-     * Retrieves the revision value (etag) from the provided LDAP entry.
-     *
-     * @param c
-     *            The context.
-     * @param entry
-     *            The LDAP entry.
-     * @return The revision value.
-     */
-    abstract String getRevisionFromEntry(Context c, Entry entry);
-
-    /**
      * Adds the name of any LDAP attribute required by this MVCC strategy to the
      * provided set.
      *
@@ -56,5 +45,16 @@ abstract class MVCCStrategy {
      *            put.
      */
     abstract void getLDAPAttributes(Context c, Set<String> ldapAttributes);
+
+    /**
+     * Retrieves the revision value (etag) from the provided LDAP entry.
+     *
+     * @param c
+     *            The context.
+     * @param entry
+     *            The LDAP entry.
+     * @return The revision value.
+     */
+    abstract String getRevisionFromEntry(Context c, Entry entry);
 
 }
