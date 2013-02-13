@@ -30,11 +30,11 @@ package org.forgerock.opendj.ldap;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,11 +49,7 @@ import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.CompletedFutureResult;
 
 /**
  * Tests the connection pool implementation..
@@ -416,56 +412,6 @@ public class ConnectionPoolTestCase extends SdkTestCase {
 
         pc3.close();
         pool.close();
-    }
-
-    private Connection mockConnection(final List<ConnectionEventListener> listeners) {
-        final Connection mockConnection = mock(Connection.class);
-
-        // Handle listener registration / deregistration in mock connection.
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(final InvocationOnMock invocation) throws Throwable {
-                final ConnectionEventListener listener =
-                        (ConnectionEventListener) invocation.getArguments()[0];
-                listeners.add(listener);
-                return null;
-            }
-        }).when(mockConnection).addConnectionEventListener(any(ConnectionEventListener.class));
-
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(final InvocationOnMock invocation) throws Throwable {
-                final ConnectionEventListener listener =
-                        (ConnectionEventListener) invocation.getArguments()[0];
-                listeners.remove(listener);
-                return null;
-            }
-        }).when(mockConnection).removeConnectionEventListener(any(ConnectionEventListener.class));
-
-        return mockConnection;
-    }
-
-    @SuppressWarnings("unchecked")
-    private ConnectionFactory mockConnectionFactory(final Connection first,
-            final Connection... remaining) throws ErrorResultException {
-        final ConnectionFactory factory = mock(ConnectionFactory.class);
-        when(factory.getConnection()).thenReturn(first, remaining);
-        when(factory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Connection>>() {
-                    @Override
-                    public FutureResult<Connection> answer(final InvocationOnMock invocation)
-                            throws Throwable {
-                        final Connection connection = factory.getConnection();
-                        // Execute handler and return future.
-                        final ResultHandler<? super Connection> handler =
-                                (ResultHandler<? super Connection>) invocation.getArguments()[0];
-                        if (handler != null) {
-                            handler.handleResult(connection);
-                        }
-                        return new CompletedFutureResult<Connection>(connection);
-                    }
-                });
-        return factory;
     }
 
 }

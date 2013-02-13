@@ -43,11 +43,8 @@ final class LDAPConstantAttributeMapper extends AttributeMapper {
         if (attributeValues.length == 1) {
             attributes = singletonList(singletonAttribute(attributeName, attributeValues[0]));
         } else {
-            Attribute attribute = new LinkedAttribute(attributeName);
-            for (Object o : attributeValues) {
-                attribute.add(o);
-            }
-            attributes = singletonList(attribute);
+            attributes =
+                    singletonList((Attribute) new LinkedAttribute(attributeName, attributeValues));
         }
     }
 

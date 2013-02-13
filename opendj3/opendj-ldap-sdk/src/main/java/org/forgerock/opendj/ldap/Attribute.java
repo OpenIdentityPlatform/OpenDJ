@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -69,18 +69,16 @@ public interface Attribute extends Set<ByteString> {
      * Any attribute values which are not instances of {@code ByteString} will
      * be converted using the {@link ByteString#valueOf(Object)} method.
      *
-     * @param firstValue
-     *            The first attribute value to be added to this attribute.
-     * @param remainingValues
-     *            The remaining attribute values to be added to this attribute.
+     * @param values
+     *            The attribute values to be added to this attribute.
      * @return {@code true} if this attribute changed as a result of this call.
      * @throws UnsupportedOperationException
      *             If this attribute does not support addition of attribute
      *             values.
      * @throws NullPointerException
-     *             If {@code firstValue} was {@code null}.
+     *             If {@code values} was {@code null}.
      */
-    boolean add(Object firstValue, Object... remainingValues);
+    boolean add(Object... values);
 
     /**
      * Adds all of the attribute values contained in {@code values} to this

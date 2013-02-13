@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -271,36 +271,28 @@ public final class MatchedValuesRequestControl implements Control {
      *            {@code true} if it is unacceptable to perform the operation
      *            without applying the semantics of this control, or
      *            {@code false} if it can be ignored.
-     * @param firstFilter
-     *            The first matched values filter.
-     * @param remainingFilters
-     *            The remaining matched values filter, may be {@code null} or
-     *            empty.
+     * @param filters
+     *            The list of filters of which at least one must match an
+     *            attribute value in order for the attribute value to be
+     *            returned to the client. The list must not be empty.
      * @return The new control.
      * @throws LocalizedIllegalArgumentException
      *             If one or more filters could not be parsed, or if one or more
      *             filters failed to conform to the filter constraints defined
      *             in RFC 3876.
      * @throws NullPointerException
-     *             If {@code firstFilter} was {@code null}.
+     *             If {@code filters} was {@code null}.
      */
     public static MatchedValuesRequestControl newControl(final boolean isCritical,
-            final String firstFilter, final String... remainingFilters) {
-        Validator.ensureNotNull(firstFilter);
+            final String... filters) {
+        Validator.ensureTrue(filters.length > 0, "filters is empty");
 
-        List<Filter> filters;
-        if (remainingFilters == null || remainingFilters.length == 0) {
-            filters = Collections.singletonList(validateFilter(Filter.valueOf(firstFilter)));
-        } else {
-            filters = new ArrayList<Filter>(1 + remainingFilters.length);
-            filters.add(validateFilter(Filter.valueOf(firstFilter)));
-            for (final String filter : remainingFilters) {
-                filters.add(validateFilter(Filter.valueOf(filter)));
-            }
-            filters = Collections.unmodifiableList(filters);
+        final List<Filter> parsedFilters = new ArrayList<Filter>(filters.length);
+        for (final String filter : filters) {
+            parsedFilters.add(validateFilter(Filter.valueOf(filter)));
         }
-
-        return new MatchedValuesRequestControl(isCritical, filters);
+        return new MatchedValuesRequestControl(isCritical, Collections
+                .unmodifiableList(parsedFilters));
     }
 
     private static Filter validateFilter(final Filter filter) {
