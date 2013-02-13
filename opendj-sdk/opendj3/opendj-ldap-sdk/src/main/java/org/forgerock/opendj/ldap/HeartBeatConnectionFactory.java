@@ -642,7 +642,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             // response will update the timestamp as if it were a heart beat.
             if (sync.tryLockExclusively()) {
                 try {
-                    searchAsync(heartBeatRequest, null, this);
+                    connection.searchAsync(heartBeatRequest, null, this);
                 } catch (final Exception e) {
                     // This may happen when we attempt to send the heart beat just
                     // after the connection is closed but before we are notified.
