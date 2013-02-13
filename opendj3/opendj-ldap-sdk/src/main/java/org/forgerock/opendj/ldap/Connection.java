@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -48,6 +48,7 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 /**
@@ -292,6 +293,53 @@ public interface Connection extends Closeable {
      *             If the {@code listener} was {@code null}.
      */
     void addConnectionEventListener(ConnectionEventListener listener);
+
+    /**
+     * Applies the provided change request to the Directory Server.
+     *
+     * @param request
+     *            The change request.
+     * @return The result of the operation.
+     * @throws ErrorResultException
+     *             If the result code indicates that the request failed for some
+     *             reason.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support the provided change
+     *             request.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    Result applyChange(ChangeRecord request) throws ErrorResultException;
+
+    /**
+     * Asynchronously applies the provided change request to the Directory
+     * Server.
+     *
+     * @param request
+     *            The change request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @param resultHandler
+     *            A result handler which can be used to asynchronously process
+     *            the operation result when it is received, may be {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support the provided change
+     *             request.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> applyChangeAsync(ChangeRecord request,
+            IntermediateResponseHandler intermediateResponseHandler,
+            ResultHandler<? super Result> resultHandler);
 
     /**
      * Authenticates to the Directory Server using the provided bind request.

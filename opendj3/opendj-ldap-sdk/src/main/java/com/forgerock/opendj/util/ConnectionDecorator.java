@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 /**
@@ -131,6 +132,28 @@ public abstract class ConnectionDecorator implements Connection {
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super Result> resultHandler) {
         return connection.addAsync(request, intermediateResponseHandler, resultHandler);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default implementation is to delegate.
+     */
+    @Override
+    public Result applyChange(ChangeRecord request) throws ErrorResultException {
+        return connection.applyChange(request);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default implementation is to delegate.
+     */
+    @Override
+    public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final ResultHandler<? super Result> resultHandler) {
+        return connection.applyChangeAsync(request, intermediateResponseHandler, resultHandler);
     }
 
     /**
