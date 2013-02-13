@@ -282,8 +282,13 @@ public final class Rest2LDAP {
 
         @Override
         void setResourceId(final Context c, final DN baseDN, final String resourceId,
-                final Entry entry) {
-            if (!isServerProvided) {
+                final Entry entry) throws ResourceException {
+            if (isServerProvided) {
+                if (resourceId != null) {
+                    throw new BadRequestException("Resources cannot be created with a "
+                            + "client provided resource ID");
+                }
+            } else {
                 entry.addAttribute(new LinkedAttribute(idAttribute, ByteString.valueOf(resourceId)));
             }
             final String rdnValue = entry.parseAttribute(dnAttribute).asString();
@@ -325,7 +330,8 @@ public final class Rest2LDAP {
             } else if (entry.getAttribute(attribute) != null) {
                 entry.setName(baseDN.child(rdn(entry.parseAttribute(attribute).asString())));
             } else {
-                throw new BadRequestException("Unable to set the resource ID");
+                throw new BadRequestException("Resources cannot be created without a "
+                        + "client provided resource ID");
             }
         }
 
