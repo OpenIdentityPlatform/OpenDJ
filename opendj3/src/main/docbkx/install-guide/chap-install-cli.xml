@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-install-cli'
@@ -379,6 +379,91 @@ Replication: Disabled</screen>
   <command>setup</command> command with the <option>--no-prompt</option>
   option, specifying values for all the other options you require.</para>
  </note>
+
+ <procedure xml:id="install-properties-file">
+  <title>To Install OpenDJ Directory Server With a Properties File</title>
+
+  <para>You can install OpenDJ directory server by using the
+  <command>setup</command> command with a properties file.</para>
+
+  <para>Property names correspond to the option names, but without leading
+  dashes. Options that take no arguments become boolean properties as in the
+  following example.</para>
+
+  <programlisting language="ini">enableStartTLS=true</programlisting>
+
+  <para>If you use a properties file with multiple tools, prefix the property
+  name with the tool name followed by a dot (<literal>.</literal>), as in the
+  following example.</para>
+
+  <programlisting language="ini">setup.rootUserPasswordFile=/tmp/pwd.txt</programlisting>
+
+  <para>The following steps demonstrate use of a properties file as part of a
+  scripted installation process.</para>
+
+  <step>
+   <para>Prepare your properties file.</para>
+
+   <para>This procedure uses the following example properties file.</para>
+
+   <programlisting language="ini">#
+# Sample properties file to set up OpenDJ directory server
+#
+hostname                        =opendj.example.com
+ldapPort                        =1389
+generateSelfSignedCertificate   =true
+enableStartTLS                  =true
+ldapsPort                       =1636
+jmxPort                         =1689
+adminConnectorPort              =4444
+rootUserDN                      =cn=Directory Manager
+rootUserPassword                =password
+baseDN                          =dc=example,dc=com
+ldifFile                        =/net/install/dj/Example.ldif
+#sampleData                     =2000</programlisting>
+
+   <para>If you have multiple servers to install, consider scripting creation
+   of the properties files.</para>
+  </step>
+
+  <step>
+   <para>Prepare an installation script.</para>
+
+   <screen>$ cat /net/install/dj/1/setup.sh
+#!/bin/sh
+
+unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp; cd /path/to/OpenDJ-<?eval ${docTargetVersion}?>
+./setup --cli --propertiesFilePath /net/install/dj/1/setup.props --no-prompt</screen>
+  </step>
+
+  <step>
+   <para>Run your installation script.</para>
+
+   <screen>$ /net/install/dj/1/setup.sh
+Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
+   creating: /path/to/OpenDJ-2.5.0/
+...
+  inflating: /path/to/OpenDJ-2.5.0/setup
+  inflating: /path/to/OpenDJ-2.5.0/uninstall
+  inflating: /path/to/OpenDJ-2.5.0/upgrade
+
+OpenDJ <?eval ${docTargetVersion}?>
+Please wait while the setup program initializes...
+
+See /var/folders/.../opendj-setup-....log for a detailed log of this operation.
+
+Configuring Directory Server ..... Done.
+Configuring Certificates ..... Done.
+Importing LDIF file /net/install/dj/Example.ldif ....... Done.
+Starting Directory Server ....... Done.
+
+To see basic server configuration status and configuration you can launch
+ /path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status</screen>
+
+   <para>At this point you can use OpenDJ directory server, or you can perform
+   additional configuration.</para>
+  </step>
+ </procedure>
 
  <procedure xml:id="install-dsml-gateway">
   <title>To Install OpenDJ DSML gateway</title>
