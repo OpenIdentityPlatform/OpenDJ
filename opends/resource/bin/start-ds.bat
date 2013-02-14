@@ -24,7 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2012 ForgeRock AS
+rem      Portions Copyright 2011-2013 ForgeRock AS
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
@@ -71,12 +71,12 @@ set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
 :serverAlreadyStarted
-echo %SCRIPT%: Server already started  >> %LOG%
+echo %SCRIPT%: Server already started >> %LOG%
 set ERROR_CODE=0
 goto exitErrorCode
 
 :runNoDetach
-echo %SCRIPT%: Run no detach  >> %LOG%
+echo %SCRIPT%: Run no detach >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
@@ -85,7 +85,7 @@ set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
 :runNoDetachQuiet
-echo %SCRIPT%: Run no detach  >> %LOG%
+echo %SCRIPT%: Run no detach quiet >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
@@ -94,7 +94,7 @@ set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
 :runDetach
-echo %SCRIPT%: Run detach  >> %LOG%
+echo %SCRIPT%: Run detach >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
@@ -104,7 +104,7 @@ echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.starting" to be deleted 
 goto checkStarted
 
 :runDetachQuiet
-echo %SCRIPT%: Run detach  >> %LOG%
+echo %SCRIPT%: Run detach quiet >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
@@ -115,7 +115,7 @@ goto checkStarted
 
 :runDetachCalledByWinService
 rem We write the output of the start command to the winservice.out file.
-echo %SCRIPT%: Run detach called by windows service  >> %LOG%
+echo %SCRIPT%: Run detach called by windows service >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 echo. > "%INSTANCE_ROOT%\logs\server.startingservice"
@@ -138,8 +138,10 @@ if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winse
 goto end
 
 :checkStarted
+echo %SCRIPT%: check started >> %LOG%
 "%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability > NUL 2>&1
 if %errorlevel% == 98 goto serverStarted
+if %errorlevel% == 101 goto serverStarted
 goto serverNotStarted
 
 :serverStarted
