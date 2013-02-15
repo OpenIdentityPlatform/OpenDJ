@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
@@ -449,9 +450,16 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         } catch (final TimeoutResultException e) {
             resourceResultCode = 408;
         } catch (final ErrorResultException e) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else {
+                resourceResultCode = ResourceException.INTERNAL_ERROR;
+            }
         }
-        return ResourceException.getException(resourceResultCode, null, error.getMessage(), error);
+        return ResourceException.getException(resourceResultCode, error.getMessage(), error);
     }
 
     private void applyUpdate(final Context c, final ChangeRecord request,
