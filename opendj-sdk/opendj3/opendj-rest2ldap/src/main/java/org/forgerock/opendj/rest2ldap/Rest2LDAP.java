@@ -123,6 +123,24 @@ public final class Rest2LDAP {
         }
 
         /**
+         * Configures the connection factory using the provided JSON
+         * configuration. See
+         * {@link Rest2LDAP#configureConnectionFactory(JsonValue)} for a
+         * detailed specification of the JSON configuration.
+         *
+         * @param configuration
+         *            The JSON configuration.
+         * @return A reference to this builder.
+         * @throws IllegalArgumentException
+         *             If the configuration is invalid.
+         */
+        public Builder configureConnectionFactory(final JsonValue configuration)
+                throws IllegalArgumentException {
+            connectionFactory(Rest2LDAP.configureConnectionFactory(configuration));
+            return this;
+        }
+
+        /**
          * Configures the JSON to LDAP mapping using the provided JSON
          * configuration. The caller is still required to set the connection
          * factory. The configuration should look like this, excluding the
@@ -196,7 +214,7 @@ public final class Rest2LDAP {
             return this;
         }
 
-        public Builder factory(final ConnectionFactory factory) {
+        public Builder connectionFactory(final ConnectionFactory factory) {
             ensureNotNull(factory);
             this.factory = factory;
             return this;
@@ -452,7 +470,7 @@ public final class Rest2LDAP {
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static ConnectionFactory connectionFactory(final JsonValue configuration)
+    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration)
             throws IllegalArgumentException {
         // Parse pool parameters,
         final int connectionPoolSize =
