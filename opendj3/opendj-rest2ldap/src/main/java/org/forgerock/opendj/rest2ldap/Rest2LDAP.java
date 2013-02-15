@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ResourceException;
@@ -56,7 +57,7 @@ public final class Rest2LDAP {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
-        private final Filter falseFilter = Filter.present("1.1");
+        private Filter falseFilter = Filter.present("1.1");
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
         private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
@@ -132,7 +133,7 @@ public final class Rest2LDAP {
          * @return A reference to this builder.
          */
         public Builder falseFilter(final Filter filter) {
-            this.trueFilter = ensureNotNull(filter);
+            this.falseFilter = ensureNotNull(filter);
             return this;
         }
 
@@ -343,6 +344,139 @@ public final class Rest2LDAP {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Creates a new builder from the provided JSON configuration. See the
+     * documentation of {@link #valueOf(JsonValue)} for a detailed specification
+     * of the JSON configuration.
+     *
+     * @param configuration
+     *            The JSON configuration.
+     * @return A new builder from the provided JSON configuration.
+     * @throws IllegalArgumentException
+     *             If the configuration is invalid.
+     */
+    public static Builder builder(final JsonValue configuration) throws IllegalArgumentException {
+        final Builder builder = builder();
+
+        return builder;
+    }
+
+    /**
+     * Creates a new REST 2 LDAP resource provider from the provided JSON
+     * configuration. The configuration should look like this, excluding the
+     * C-like comments:
+     *
+     * <pre>
+     * {
+     *     // The primary data center, must contain at least one LDAP server.
+     *     "primaryLDAPServers" : [
+     *         {
+     *             "hostname" : "host1.example.com",
+     *             "port"     : 389
+     *         },
+     *         {
+     *             "hostname" : "host2.example.com",
+     *             "port"     : 389
+     *         },
+     *     ],
+     *
+     *     // The optional secondary (fail-over) data center.
+     *     "secondaryLDAPServers" : [
+     *         {
+     *             "hostname" : "host3.example.com",
+     *             "port"     : 389
+     *         },
+     *         {
+     *             "hostname" : "host4.example.com",
+     *             "port"     : 389
+     *         },
+     *     ],
+     *
+     *     // SSL/TLS configuration (optional and TBD).
+     *     "useSSL" : {
+     *         // Elect to use StartTLS instead of SSL.
+     *         "useStartTLS" : true,
+     *         ...
+     *     },
+     *
+     *     // Authentication configuration (mandatory and TBD).
+     *     "authentication" : {
+     *         ...
+     *     },
+     *
+     *     // Additional options (all are optional).
+     *     "options" : {
+     *         "trueFilter" : "(objectClass=*)",
+     *         "falseFilter" : "(1.1=*)",
+     *     },
+     *
+     *     // The base DN beneath which LDAP entries are to be found.
+     *     "baseDN" : "ou=people,dc=example,dc=com",
+     *
+     *     // The mechanism which should be used for read resources during updates, must be
+     *     // one of "disabled", "useReadEntryControls", or "useSearch".
+     *     "readOnUpdatePolicy" : "useReadEntryControls",
+     *
+     *     // Additional LDAP attributes which should be included with entries during add (create) operations.
+     *     "additionalLDAPAttributes" : [
+     *         {
+     *             "type" : "objectClass",
+     *             "values" : [
+     *                 "top",
+     *                 "person"
+     *             ]
+     *         }
+     *     ],
+     *
+     *     // The strategy which should be used for deriving LDAP entry names from JSON resources.
+     *     "namingStrategy" : {
+     *         // Option 1) the RDN and resource ID are both derived from a single user attribute in the entry.
+     *         "strategy" : "clientDNNaming",
+     *         "dnAttribute" : "uid"
+     *
+     *         // Option 2) the RDN and resource ID are derived from separate user attributes in the entry.
+     *         "strategy" : "clientNaming",
+     *         "dnAttribute" : "uid",
+     *         "idAttribute" : "mail"
+     *
+     *         // Option 3) the RDN and is derived from a user attribute and the resource ID from an operational
+     *         //           attribute in the entry.
+     *         "strategy" : "serverNaming",
+     *         "dnAttribute" : "uid",
+     *         "idAttribute" : "entryUUID"
+     *     },
+     *
+     *     // The attribute which will be used for performing MVCC.
+     *     "etagAttribute" : "etag",
+     *
+     *     // The JSON to LDAP attribute mappings.
+     *     "attributes" : [
+     *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
+     *         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
+     *         "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
+     *         "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
+     *         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
+     *         "name"        : { "object"   : [
+     *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
+     *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
+     *         ],
+     *         ...
+     *     ]
+     * }
+     * </pre>
+     *
+     * @param configuration
+     *            The JSON configuration.
+     * @return A new REST 2 LDAP resource provider configured using the provided
+     *         JSON configuration.
+     * @throws IllegalArgumentException
+     *             If the configuration is invalid.
+     */
+    public static CollectionResourceProvider valueOf(final JsonValue configuration)
+            throws IllegalArgumentException {
+        return builder(configuration).build();
     }
 
     public static AttributeMapper constant(final Object value) {
