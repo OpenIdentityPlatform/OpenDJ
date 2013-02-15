@@ -15,6 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
+import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
@@ -51,9 +53,9 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
         final Filter filter;
         final JsonValue subValue = value.get(jsonAttribute);
         if (subValue == null) {
-            filter = toFilter(false);
+            filter = alwaysFalse();
         } else if (type == FilterType.PRESENT) {
-            filter = toFilter(true);
+            filter = alwaysTrue();
         } else if (value.isString() && valueAssertion instanceof String) {
             final String v1 = toLowerCase(value.asString());
             final String v2 = toLowerCase((String) valueAssertion);
@@ -78,7 +80,7 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
             filter = compare(c, type, v1, v2);
         } else {
             // This attribute mapper is a candidate but it does not match.
-            filter = toFilter(false);
+            filter = alwaysFalse();
         }
         h.handleResult(filter);
     }
@@ -114,7 +116,7 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
             filter = toFilter(v1.compareTo(v2) <= 0);
             break;
         default:
-            filter = toFilter(false); // Not supported.
+            filter = alwaysFalse(); // Not supported.
             break;
         }
         return filter;

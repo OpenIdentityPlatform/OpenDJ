@@ -19,6 +19,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.rest2ldap.Utils.base64ToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToBase64;
@@ -183,7 +184,7 @@ public final class SimpleAttributeMapper extends AttributeMapper {
             h.handleResult(toFilter(c, type, ldapAttributeName.toString(), valueAssertion));
         } else {
             // This attribute mapper does not support partial filtering.
-            h.handleResult(toFilter(false));
+            h.handleResult(alwaysFalse());
         }
     }
 
