@@ -20,11 +20,12 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Functions.fixedFunction;
+import static org.forgerock.opendj.rest2ldap.Utils.base64ToByteString;
+import static org.forgerock.opendj.rest2ldap.Utils.byteStringToBase64;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
 import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
 import static org.forgerock.opendj.rest2ldap.Utils.jsonToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
-import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_ONLY;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.Collection;
@@ -55,7 +56,6 @@ public final class SimpleAttributeMapper extends AttributeMapper {
     private Collection<Object> defaultJSONValues = Collections.emptySet();
     private ByteString defaultLDAPValue = null;
     private Function<Object, ByteString, Void> encoder = null;
-    private boolean isIgnoreUpdates = true;
     private boolean isRequired = false;
     private boolean isSingleValued = false;
     private final AttributeDescription ldapAttributeName;
@@ -119,45 +119,41 @@ public final class SimpleAttributeMapper extends AttributeMapper {
     }
 
     /**
-     * Indicates whether or not an attempt to update the LDAP attribute should
-     * be ignored when the update is incompatible with the writability policy.
-     * The default is {@code true}.
+     * Indicates that JSON values are base 64 encodings of binary data. Calling
+     * this method is equivalent to the following:
      *
-     * @param ignore
-     *            {@code true} an attempt to update the LDAP attribute should be
-     *            ignored.
+     * <pre>
+     * mapper.decoder(...); // function that converts binary data to base 64
+     * mapper.encoder(...); // function that converts base 64 to binary data
+     * </pre>
+     *
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper ignoreUpdates(final boolean ignore) {
-        this.isIgnoreUpdates = ignore;
+    public SimpleAttributeMapper isBinary() {
+        decoder = byteStringToBase64();
+        encoder = base64ToByteString();
         return this;
     }
 
     /**
      * Indicates that the LDAP attribute is mandatory and must be provided
-     * during create requests. The default is {@code false}.
+     * during create requests.
      *
-     * @param isRequired
-     *            {@code true} if the LDAP attribute is mandatory and must be
-     *            provided during create requests.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper required(final boolean isRequired) {
-        this.isRequired = isRequired;
+    public SimpleAttributeMapper isRequired() {
+        this.isRequired = true;
         return this;
     }
 
     /**
-     * Forces a multi-valued LDAP attribute to be represented as a single-valued
-     * JSON value, rather than an array of values. The default is {@code false}.
+     * Indicates that multi-valued LDAP attribute should be represented as a
+     * single-valued JSON value, rather than an array of values.
      *
-     * @param isSingleValued
-     *            {@code true} if the LDAP attribute should be treated as a
-     *            single-valued attribute.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper singleValued(final boolean isSingleValued) {
-        this.isSingleValued = isSingleValued;
+    public SimpleAttributeMapper isSingleValued() {
+        this.isSingleValued = true;
         return this;
     }
 
@@ -209,7 +205,7 @@ public final class SimpleAttributeMapper extends AttributeMapper {
         try {
             final List<Attribute> result;
             if (v == null || v.isNull()) {
-                if (isRequired()) {
+                if (attributeIsRequired()) {
                     // FIXME: improve error message.
                     throw new BadRequestException("no value provided");
                 } else if (defaultLDAPValue != null) {
@@ -219,11 +215,11 @@ public final class SimpleAttributeMapper extends AttributeMapper {
                 } else {
                     result = emptyList();
                 }
-            } else if (v.isList() && isSingleValued()) {
+            } else if (v.isList() && attributeIsSingleValued()) {
                 // FIXME: improve error message.
                 throw new BadRequestException("expected single value, but got multiple values");
-            } else if (isCreate()) {
-                if (isIgnoreUpdates) {
+            } else if (!writabilityPolicy.canCreate(ldapAttributeName)) {
+                if (writabilityPolicy.discardWrites()) {
                     result = emptyList();
                 } else {
                     // FIXME: improve error message.
@@ -253,16 +249,11 @@ public final class SimpleAttributeMapper extends AttributeMapper {
         }
     }
 
-    private boolean isCreate() {
-        return writabilityPolicy != READ_ONLY
-                && ldapAttributeName.getAttributeType().isNoUserModification();
-    }
-
-    private boolean isRequired() {
+    private boolean attributeIsRequired() {
         return isRequired && defaultJSONValue == null;
     }
 
-    private boolean isSingleValued() {
+    private boolean attributeIsSingleValued() {
         return isSingleValued || ldapAttributeName.getAttributeType().isSingleValue();
     }
 
