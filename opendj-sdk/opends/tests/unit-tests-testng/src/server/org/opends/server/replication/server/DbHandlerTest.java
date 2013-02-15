@@ -370,19 +370,36 @@ public class DbHandlerTest extends ReplicationTestCase
    * optimize the counting of record in the replication changelog db.
    * @throws Exception
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups = { "opendj-256" })
   void testDbCounts() throws Exception
   {
+    // FIXME: for some reason this test is always failing in Jenkins when run as
+    // part of the unit tests. Here is the output (the failure is 100%
+    // reproducible and always has the same value of 3004):
+    //
+    // Failed Test:
+    // org.opends.server.replication.server.DbHandlerTest#testDbCounts
+    // [testng] Failure Cause: java.lang.AssertionError: AFTER PURGE
+    // expected:<8000> but was:<3004>
+    // [testng] org.testng.Assert.fail(Assert.java:84)
+    // [testng] org.testng.Assert.failNotEquals(Assert.java:438)
+    // [testng] org.testng.Assert.assertEquals(Assert.java:108)
+    // [testng] org.testng.Assert.assertEquals(Assert.java:323)
+    // [testng]
+    // org.opends.server.replication.server.DbHandlerTest.testDBCount(DbHandlerTest.java:594)
+    // [testng]
+    // org.opends.server.replication.server.DbHandlerTest.testDbCounts(DbHandlerTest.java:389)
+
     // It's worth testing with 2 different setting for counterRecord
     // - a counter record is put every 10 Update msg in the db - just a unit
     //   setting.
     // - a counter record is put every 1000 Update msg in the db - something
     //   closer to real setting.
-    // In both cases, we want to test the counting algorithm, 
-    // - when start and stop are before the first counter record, 
-    // - when start and stop are before and after the first counter record, 
-    // - when start and stop are after the first counter record, 
-    // - when start and stop are before and after more than one counter record, 
+    // In both cases, we want to test the counting algorithm,
+    // - when start and stop are before the first counter record,
+    // - when start and stop are before and after the first counter record,
+    // - when start and stop are after the first counter record,
+    // - when start and stop are before and after more than one counter record,
     // After a purge.
     // After shutdowning/closing and reopening the db.
     testDBCount(40, 10);
@@ -441,7 +458,7 @@ public class DbHandlerTest extends ReplicationTestCase
       ChangeNumber cnarray[] = new ChangeNumber[2*(max+1)];
       long now = System.currentTimeMillis();
       for (int i=1; i<=max; i++)
-      {        
+      {
         cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
         mySeqnum+=2;
         DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
@@ -476,7 +493,7 @@ public class DbHandlerTest extends ReplicationTestCase
       actualCnt = handler.getCount(cnarray[1], cnarray[counterWindow+1]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, counterWindow+1, testcase);
-      
+
       testcase="FROM change1 TO 2*counterWindow="+(2*counterWindow);
       actualCnt = handler.getCount(cnarray[1], cnarray[2*counterWindow]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
@@ -513,7 +530,7 @@ public class DbHandlerTest extends ReplicationTestCase
         new ChangeNumber(System.currentTimeMillis() + (2*(max+1)), 100, 1);
 
       // Now we want to test with start and stop outside of the db
-      
+
       testcase="FROM our first generated change TO now (> newest change in the db)";
       actualCnt = handler.getCount(cnarray[1], newerThanLast);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
@@ -529,7 +546,7 @@ public class DbHandlerTest extends ReplicationTestCase
       // the new counter are correctly generated.
       debugInfo(tn,"SHUTDOWN handler and recreate");
       handler.shutdown();
-      
+
       handler =
         new DbHandler( 1, TEST_ROOT_DN_STRING,
             replicationServer, dbEnv, 10);
@@ -548,7 +565,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       // Populate the db with 'max' msg
       for (int i=max+1; i<=(2*max); i++)
-      {        
+      {
         cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
         mySeqnum+=2;
         DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
@@ -566,18 +583,18 @@ public class DbHandlerTest extends ReplicationTestCase
       actualCnt = handler.getCount(cnarray[1], newerThanLast);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, (2*max), testcase);
-      
+
       //
-      
+
       handler.setPurgeDelay(100);
       sleep(4000);
       int totalCount = handler.getCount(null, null);
       debugInfo(tn,testcase + " After purge, total count=" + totalCount);
-      
+
       testcase="AFTER PURGE (first, last)=";
       debugInfo(tn,testcase + handler.getFirstChange() + handler.getLastChange());
       assertEquals(handler.getLastChange(), cnarray[2*max], "Last=");
-           
+
       testcase="AFTER PURGE ";
       actualCnt = handler.getCount(cnarray[1], newerThanLast);
       int expectedCnt;
