@@ -16,26 +16,64 @@
 
 package org.forgerock.opendj.rest2ldap;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
+
 /**
  * The writability policy determines whether or not an attribute supports
  * updates.
  */
 public enum WritabilityPolicy {
+    // @formatter:off
     /**
-     * The attribute may be provided when creating a new resource, but cannot be
-     * modified afterwards.
+     * The attribute cannot be provided when creating a new resource, nor
+     * modified afterwards. Attempts to update the attribute will result in an
+     * error.
      */
-    CREATE_ONLY,
+    READ_ONLY(false),
 
     /**
      * The attribute cannot be provided when creating a new resource, nor
-     * modified afterwards.
+     * modified afterwards. Attempts to update the attribute will not result in
+     * an error (the new values will be ignored).
      */
-    READ_ONLY,
+    READ_ONLY_DISCARD_WRITES(true),
+
+    /**
+     * The attribute may be provided when creating a new resource, but cannot be
+     * modified afterwards. Attempts to update the attribute will result in an
+     * error.
+     */
+    CREATE_ONLY(false),
+
+    /**
+     * The attribute may be provided when creating a new resource, but cannot be
+     * modified afterwards. Attempts to update the attribute will not result in
+     * an error (the new values will be ignored).
+     */
+    CREATE_ONLY_DISCARD_WRITES(true),
 
     /**
      * The attribute may be provided when creating a new resource, and modified
      * afterwards.
      */
-    READ_WRITE;
+    READ_WRITE(false);
+    // @formatter:on
+
+    private final boolean discardWrites;
+
+    private WritabilityPolicy(final boolean discardWrites) {
+        this.discardWrites = discardWrites;
+    }
+
+    boolean canCreate(final AttributeDescription attribute) {
+        return this != READ_ONLY && !attribute.getAttributeType().isNoUserModification();
+    }
+
+    boolean canWrite(final AttributeDescription attribute) {
+        return this == READ_WRITE && !attribute.getAttributeType().isNoUserModification();
+    }
+
+    boolean discardWrites() {
+        return discardWrites;
+    }
 }

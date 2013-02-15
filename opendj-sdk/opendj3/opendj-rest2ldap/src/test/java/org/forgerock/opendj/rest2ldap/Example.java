@@ -68,16 +68,16 @@ public class Example {
         CollectionResourceProvider users =
                 builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com")
                     .attribute("schemas", constant(Arrays.asList("urn:scim:schemas:core:1.0")))
-                    .attribute("id", simple("uid").singleValued(true).required(true).writability(CREATE_ONLY))
-                    .attribute("rev", simple("etag").singleValued(true).writability(READ_ONLY))
-                    .attribute("userName", simple("mail").singleValued(true).writability(READ_ONLY))
-                    .attribute("displayName", simple("cn").singleValued(true).required(true))
+                    .attribute("id", simple("uid").isSingleValued().isRequired().writability(CREATE_ONLY))
+                    .attribute("rev", simple("etag").isSingleValued().writability(READ_ONLY))
+                    .attribute("userName", simple("mail").isSingleValued().writability(READ_ONLY))
+                    .attribute("displayName", simple("cn").isSingleValued().isRequired())
                     .attribute("name", object()
-                            .attribute("givenName", simple("givenName").singleValued(true))
-                            .attribute("familyName", simple("sn").singleValued(true).required(true)))
+                            .attribute("givenName", simple("givenName").isSingleValued())
+                            .attribute("familyName", simple("sn").isSingleValued().isRequired()))
                     .attribute("contactInformation", object()
-                            .attribute("telephoneNumber", simple("telephoneNumber").singleValued(true))
-                            .attribute("emailAddress", simple("mail").singleValued(true)))
+                            .attribute("telephoneNumber", simple("telephoneNumber").isSingleValued())
+                            .attribute("emailAddress", simple("mail").isSingleValued()))
                     .additionalLDAPAttribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson")
                     .build();
         router.addRoute("/users", users);
@@ -85,7 +85,7 @@ public class Example {
         // Create group resource.
         CollectionResourceProvider groups =
                 builder().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com")
-                    .attribute("cn", simple("cn").singleValued(true))
+                    .attribute("cn", simple("cn").isSingleValued())
                     .attribute("description", simple("description"))
                     .attribute("member", simple("uniquemember"))
                     .build();

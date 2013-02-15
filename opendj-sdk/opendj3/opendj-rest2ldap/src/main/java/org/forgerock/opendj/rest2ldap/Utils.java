@@ -91,6 +91,22 @@ final class Utils {
 
     }
 
+    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
+            new Function<ByteString, String, Void>() {
+                @Override
+                public String apply(ByteString value, Void p) {
+                    return value.toBase64String();
+                }
+            };
+
+    private static final Function<Object, ByteString, Void> BASE64_TO_BYTESTRING =
+            new Function<Object, ByteString, Void>() {
+                @Override
+                public ByteString apply(Object value, Void p) {
+                    return ByteString.valueOfBase64(String.valueOf(value));
+                }
+            };
+
     private static final Function<ByteString, Object, AttributeDescription> BYTESTRING_TO_JSON =
             new Function<ByteString, Object, AttributeDescription>() {
                 @Override
@@ -142,6 +158,14 @@ final class Utils {
 
     static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
         return BYTESTRING_TO_JSON;
+    }
+
+    static Function<ByteString, String, Void> byteStringToBase64() {
+        return BYTESTRING_TO_BASE64;
+    }
+
+    static Function<Object, ByteString, Void> base64ToByteString() {
+        return BASE64_TO_BYTESTRING;
     }
 
     static <T> T ensureNotNull(final T object) {
