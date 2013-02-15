@@ -270,14 +270,14 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.INFO, e);
       }
     }
     catch (ClassNotFoundException e)
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.INFO, e);
       }
     }
     finally
