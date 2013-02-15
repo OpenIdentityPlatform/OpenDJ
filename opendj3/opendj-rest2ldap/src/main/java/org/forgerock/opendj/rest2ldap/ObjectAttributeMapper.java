@@ -15,8 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
-import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
@@ -102,7 +102,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
             // Either the filter targeted the entire object (i.e. it was "/"), or it targeted
             // an unrecognized attribute within the object. Either way, the filter will
             // never match.
-            h.handleResult(toFilter(false));
+            h.handleResult(alwaysFalse());
         }
     }
 
