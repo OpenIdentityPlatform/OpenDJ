@@ -66,7 +66,7 @@ public class Example {
 
         // Create user resource.
         CollectionResourceProvider users =
-                builder().factory(ldapFactory).baseDN("ou=people,dc=example,dc=com")
+                builder().connectionFactory(ldapFactory).baseDN("ou=people,dc=example,dc=com")
                     .attribute("schemas", constant(Arrays.asList("urn:scim:schemas:core:1.0")))
                     .attribute("id", simple("uid").isSingleValued().isRequired().writability(CREATE_ONLY))
                     .attribute("rev", simple("etag").isSingleValued().writability(READ_ONLY))
@@ -84,7 +84,7 @@ public class Example {
 
         // Create group resource.
         CollectionResourceProvider groups =
-                builder().factory(ldapFactory).baseDN("ou=groups,dc=example,dc=com")
+                builder().connectionFactory(ldapFactory).baseDN("ou=groups,dc=example,dc=com")
                     .attribute("cn", simple("cn").isSingleValued())
                     .attribute("description", simple("description"))
                     .attribute("member", simple("uniquemember"))
