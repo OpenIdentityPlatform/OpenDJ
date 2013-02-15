@@ -15,8 +15,11 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
+import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
+import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
 import java.util.Collection;
@@ -335,7 +338,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             @Override
             public void handleResult(final Filter ldapFilter) {
                 // Avoid performing a search if the filter could not be mapped or if it will never match.
-                if (ldapFilter == null || ldapFilter == c.getConfig().falseFilter()) {
+                if (ldapFilter == null || ldapFilter == alwaysFalse()) {
                     handler.handleResult(new QueryResult());
                 } else {
                     final ConnectionCompletionHandler<Result> outerHandler =
@@ -350,7 +353,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             getLDAPAttributes(c, request.getFieldFilters());
                                     final SearchRequest request =
                                             Requests.newSearchRequest(getBaseDN(c),
-                                                    SearchScope.SINGLE_LEVEL, ldapFilter,
+                                                    SearchScope.SINGLE_LEVEL, ldapFilter == Filter
+                                                            .alwaysTrue() ? Filter
+                                                            .objectClassPresent() : ldapFilter,
                                                     attributes);
                                     connection.searchAsync(request, null, innerHandler);
                                 }
@@ -531,18 +536,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                 final Iterator<Filter> i = value.iterator();
                                                 while (i.hasNext()) {
                                                     final Filter f = i.next();
-                                                    if (f == null) {
-                                                        // Filter component did not match any attribute mappers.
-                                                        return c.getConfig().falseFilter();
-                                                    } else if (f == c.getConfig().falseFilter()) {
-                                                        return c.getConfig().falseFilter();
-                                                    } else if (f == c.getConfig().trueFilter()) {
+                                                    if (f == null || f == alwaysFalse()) {
+                                                        return alwaysFalse();
+                                                    } else if (f == alwaysTrue()) {
                                                         i.remove();
                                                     }
                                                 }
                                                 switch (value.size()) {
                                                 case 0:
-                                                    return c.getConfig().trueFilter();
+                                                    return alwaysTrue();
                                                 case 1:
                                                     return value.get(0);
                                                 default:
@@ -559,8 +561,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Void visitBooleanLiteralFilter(final ResultHandler<Filter> p,
                             final boolean value) {
-                        p.handleResult(value ? c.getConfig().trueFilter() : c.getConfig()
-                                .falseFilter());
+                        p.handleResult(toFilter(value));
                         return null;
                     }
 
@@ -627,13 +628,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         subFilter.accept(this, transform(new Function<Filter, Filter, Void>() {
                             @Override
                             public Filter apply(final Filter value, final Void p) {
-                                if (value == null) {
-                                    // Filter component did not match any attribute mappers.
-                                    return c.getConfig().trueFilter();
-                                } else if (value == c.getConfig().falseFilter()) {
-                                    return c.getConfig().trueFilter();
-                                } else if (value == c.getConfig().trueFilter()) {
-                                    return c.getConfig().falseFilter();
+                                if (value == null || value == alwaysFalse()) {
+                                    return alwaysTrue();
+                                } else if (value == alwaysTrue()) {
+                                    return alwaysFalse();
                                 } else {
                                     return Filter.not(value);
                                 }
@@ -655,18 +653,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                 final Iterator<Filter> i = value.iterator();
                                                 while (i.hasNext()) {
                                                     final Filter f = i.next();
-                                                    if (f == null) {
-                                                        // Filter component did not match any attribute mappers.
+                                                    if (f == null || f == alwaysFalse()) {
                                                         i.remove();
-                                                    } else if (f == c.getConfig().falseFilter()) {
-                                                        i.remove();
-                                                    } else if (f == c.getConfig().trueFilter()) {
-                                                        return c.getConfig().trueFilter();
+                                                    } else if (f == alwaysTrue()) {
+                                                        return alwaysTrue();
                                                     }
                                                 }
                                                 switch (value.size()) {
                                                 case 0:
-                                                    return c.getConfig().falseFilter();
+                                                    return alwaysFalse();
                                                 case 1:
                                                     return value.get(0);
                                                 default:

@@ -214,6 +214,10 @@ final class Utils {
         return JSON_TO_BYTESTRING;
     }
 
+    static Filter toFilter(final boolean value) {
+        return value ? Filter.alwaysTrue() : Filter.alwaysFalse();
+    }
+
     static Filter toFilter(final Context c, final FilterType type, final String ldapAttribute,
             final Object valueAssertion) {
         final String v = String.valueOf(valueAssertion);
@@ -245,7 +249,7 @@ final class Utils {
             break;
         case EXTENDED:
         default:
-            filter = c.getConfig().falseFilter(); // Not supported.
+            filter = toFilter(false); // Not supported.
             break;
         }
         return filter;
