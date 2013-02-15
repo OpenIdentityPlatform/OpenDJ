@@ -16,24 +16,17 @@
 package org.forgerock.opendj.rest2ldap;
 
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Common configuration options.
  */
 final class Config {
-
-    private final Filter falseFilter;
     private final DecodeOptions options;
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
     private final Schema schema;
-    private final Filter trueFilter;
 
-    Config(final Filter trueFilter, final Filter falseFilter,
-            final ReadOnUpdatePolicy readOnUpdatePolicy, final Schema schema) {
-        this.trueFilter = trueFilter;
-        this.falseFilter = falseFilter;
+    Config(final ReadOnUpdatePolicy readOnUpdatePolicy, final Schema schema) {
         this.readOnUpdatePolicy = readOnUpdatePolicy;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
@@ -48,16 +41,6 @@ final class Config {
      */
     public DecodeOptions decodeOptions() {
         return options;
-    }
-
-    /**
-     * Returns the absolute false filter which should be used when querying the
-     * LDAP server.
-     *
-     * @return The absolute false filter.
-     */
-    public Filter falseFilter() {
-        return falseFilter;
     }
 
     /**
@@ -80,30 +63,5 @@ final class Config {
      */
     public Schema schema() {
         return schema;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("trueFilter=");
-        builder.append(trueFilter);
-        builder.append(", falseFilter=");
-        builder.append(falseFilter);
-        builder.append(", readOnUpdatePolicy=");
-        builder.append(readOnUpdatePolicy);
-        return builder.toString();
-    }
-
-    /**
-     * Returns the absolute true filter which should be used when querying the
-     * LDAP server.
-     *
-     * @return The absolute true filter.
-     */
-    public Filter trueFilter() {
-        return trueFilter;
     }
 }

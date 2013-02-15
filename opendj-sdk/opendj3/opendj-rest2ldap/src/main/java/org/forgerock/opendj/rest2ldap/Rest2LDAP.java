@@ -57,13 +57,11 @@ public final class Rest2LDAP {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
-        private Filter falseFilter = Filter.present("1.1");
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
         private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
         private final ObjectAttributeMapper rootMapper = new ObjectAttributeMapper();
         private Schema schema = Schema.getDefaultSchema();
-        private Filter trueFilter = Filter.objectClassPresent();
 
         Builder() {
             useEtagAttribute();
@@ -114,26 +112,12 @@ public final class Rest2LDAP {
                 throw new IllegalStateException("No mappings provided");
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, factory, nameStrategy,
-                    mvccStrategy, new Config(trueFilter, falseFilter, readOnUpdatePolicy, schema),
-                    additionalLDAPAttributes);
+                    mvccStrategy, new Config(readOnUpdatePolicy, schema), additionalLDAPAttributes);
         }
 
         public Builder factory(final ConnectionFactory factory) {
             ensureNotNull(factory);
             this.factory = factory;
-            return this;
-        }
-
-        /**
-         * Sets the absolute false filter which should be used when querying the
-         * LDAP server.
-         *
-         * @param filter
-         *            The absolute false filter.
-         * @return A reference to this builder.
-         */
-        public Builder falseFilter(final Filter filter) {
-            this.falseFilter = ensureNotNull(filter);
             return this;
         }
 
@@ -162,19 +146,6 @@ public final class Rest2LDAP {
          */
         public Builder schema(final Schema schema) {
             this.schema = ensureNotNull(schema);
-            return this;
-        }
-
-        /**
-         * Sets the absolute true filter which should be used when querying the
-         * LDAP server.
-         *
-         * @param filter
-         *            The absolute true filter.
-         * @return A reference to this builder.
-         */
-        public Builder trueFilter(final Filter filter) {
-            this.trueFilter = ensureNotNull(filter);
             return this;
         }
 
@@ -308,8 +279,8 @@ public final class Rest2LDAP {
 
         @Override
         SearchRequest createSearchRequest(final Context c, final DN baseDN, final String resourceId) {
-            return newSearchRequest(baseDN.child(rdn(resourceId)), SearchScope.BASE_OBJECT, c
-                    .getConfig().trueFilter());
+            return newSearchRequest(baseDN.child(rdn(resourceId)), SearchScope.BASE_OBJECT, Filter
+                    .objectClassPresent());
         }
 
         @Override
@@ -404,12 +375,6 @@ public final class Rest2LDAP {
      *     // Authentication configuration (mandatory and TBD).
      *     "authentication" : {
      *         ...
-     *     },
-     *
-     *     // Additional options (all are optional).
-     *     "options" : {
-     *         "trueFilter" : "(objectClass=*)",
-     *         "falseFilter" : "(1.1=*)",
      *     },
      *
      *     // The base DN beneath which LDAP entries are to be found.

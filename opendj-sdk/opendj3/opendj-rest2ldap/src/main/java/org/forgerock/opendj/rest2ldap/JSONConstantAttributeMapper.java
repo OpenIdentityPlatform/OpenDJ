@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.Collections;
@@ -50,20 +51,18 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
         final Filter filter;
         final JsonValue subValue = value.get(jsonAttribute);
         if (subValue == null) {
-            filter = c.getConfig().falseFilter();
+            filter = toFilter(false);
         } else if (type == FilterType.PRESENT) {
-            filter = c.getConfig().trueFilter();
+            filter = toFilter(true);
         } else if (value.isString() && valueAssertion instanceof String) {
             final String v1 = toLowerCase(value.asString());
             final String v2 = toLowerCase((String) valueAssertion);
             switch (type) {
             case CONTAINS:
-                filter = v1.contains(v2) ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
+                filter = toFilter(v1.contains(v2));
                 break;
             case STARTS_WITH:
-                filter =
-                        v1.startsWith(v2) ? c.getConfig().trueFilter() : c.getConfig()
-                                .falseFilter();
+                filter = toFilter(v1.startsWith(v2));
                 break;
             default:
                 filter = compare(c, type, v1, v2);
@@ -79,7 +78,7 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
             filter = compare(c, type, v1, v2);
         } else {
             // This attribute mapper is a candidate but it does not match.
-            filter = c.getConfig().falseFilter();
+            filter = toFilter(false);
         }
         h.handleResult(filter);
     }
@@ -100,28 +99,22 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
         final Filter filter;
         switch (type) {
         case EQUAL_TO:
-            filter = v1.equals(v2) ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
+            filter = toFilter(v1.equals(v2));
             break;
         case GREATER_THAN:
-            filter =
-                    v1.compareTo(v2) > 0 ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
+            filter = toFilter(v1.compareTo(v2) > 0);
             break;
         case GREATER_THAN_OR_EQUAL_TO:
-            filter =
-                    v1.compareTo(v2) >= 0 ? c.getConfig().trueFilter() : c.getConfig()
-                            .falseFilter();
+            filter = toFilter(v1.compareTo(v2) >= 0);
             break;
         case LESS_THAN:
-            filter =
-                    v1.compareTo(v2) < 0 ? c.getConfig().trueFilter() : c.getConfig().falseFilter();
+            filter = toFilter(v1.compareTo(v2) < 0);
             break;
         case LESS_THAN_OR_EQUAL_TO:
-            filter =
-                    v1.compareTo(v2) <= 0 ? c.getConfig().trueFilter() : c.getConfig()
-                            .falseFilter();
+            filter = toFilter(v1.compareTo(v2) <= 0);
             break;
         default:
-            filter = c.getConfig().falseFilter(); // Not supported.
+            filter = toFilter(false); // Not supported.
             break;
         }
         return filter;

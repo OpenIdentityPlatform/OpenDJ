@@ -183,7 +183,7 @@ public final class SimpleAttributeMapper extends AttributeMapper {
             h.handleResult(toFilter(c, type, ldapAttributeName.toString(), valueAssertion));
         } else {
             // This attribute mapper does not support partial filtering.
-            h.handleResult(c.getConfig().falseFilter());
+            h.handleResult(toFilter(false));
         }
     }
 
