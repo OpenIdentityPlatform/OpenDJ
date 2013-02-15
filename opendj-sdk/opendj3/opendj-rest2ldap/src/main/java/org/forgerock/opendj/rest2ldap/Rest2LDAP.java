@@ -21,9 +21,12 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeT
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
@@ -33,11 +36,15 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -113,6 +120,80 @@ public final class Rest2LDAP {
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, factory, nameStrategy,
                     mvccStrategy, new Config(readOnUpdatePolicy, schema), additionalLDAPAttributes);
+        }
+
+        /**
+         * Configures the JSON to LDAP mapping using the provided JSON
+         * configuration. The caller is still required to set the connection
+         * factory. The configuration should look like this, excluding the
+         * C-like comments:
+         *
+         * <pre>
+         * {
+         *     // The base DN beneath which LDAP entries are to be found.
+         *     "baseDN" : "ou=people,dc=example,dc=com",
+         *
+         *     // The mechanism which should be used for read resources during updates, must be
+         *     // one of "disabled", "useReadEntryControls", or "useSearch".
+         *     "readOnUpdatePolicy" : "useReadEntryControls",
+         *
+         *     // Additional LDAP attributes which should be included with entries during add (create) operations.
+         *     "additionalLDAPAttributes" : [
+         *         {
+         *             "type" : "objectClass",
+         *             "values" : [
+         *                 "top",
+         *                 "person"
+         *             ]
+         *         }
+         *     ],
+         *
+         *     // The strategy which should be used for deriving LDAP entry names from JSON resources.
+         *     "namingStrategy" : {
+         *         // Option 1) the RDN and resource ID are both derived from a single user attribute in the entry.
+         *         "strategy" : "clientDNNaming",
+         *         "dnAttribute" : "uid"
+         *
+         *         // Option 2) the RDN and resource ID are derived from separate user attributes in the entry.
+         *         "strategy" : "clientNaming",
+         *         "dnAttribute" : "uid",
+         *         "idAttribute" : "mail"
+         *
+         *         // Option 3) the RDN and is derived from a user attribute and the resource ID from an operational
+         *         //           attribute in the entry.
+         *         "strategy" : "serverNaming",
+         *         "dnAttribute" : "uid",
+         *         "idAttribute" : "entryUUID"
+         *     },
+         *
+         *     // The attribute which will be used for performing MVCC.
+         *     "etagAttribute" : "etag",
+         *
+         *     // The JSON to LDAP attribute mappings.
+         *     "attributes" : [
+         *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
+         *         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
+         *         "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
+         *         "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
+         *         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
+         *         "name"        : { "object"   : [
+         *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
+         *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
+         *         ],
+         *         ...
+         *     ]
+         * }
+         * </pre>
+         *
+         * @param configuration
+         *            The JSON configuration.
+         * @return A reference to this builder.
+         * @throws IllegalArgumentException
+         *             If the configuration is invalid.
+         */
+        public Builder configureMapping(final JsonValue configuration)
+                throws IllegalArgumentException {
+            return this;
         }
 
         public Builder factory(final ConnectionFactory factory) {
@@ -318,26 +399,8 @@ public final class Rest2LDAP {
     }
 
     /**
-     * Creates a new builder from the provided JSON configuration. See the
-     * documentation of {@link #valueOf(JsonValue)} for a detailed specification
-     * of the JSON configuration.
-     *
-     * @param configuration
-     *            The JSON configuration.
-     * @return A new builder from the provided JSON configuration.
-     * @throws IllegalArgumentException
-     *             If the configuration is invalid.
-     */
-    public static Builder builder(final JsonValue configuration) throws IllegalArgumentException {
-        final Builder builder = builder();
-
-        return builder;
-    }
-
-    /**
-     * Creates a new REST 2 LDAP resource provider from the provided JSON
-     * configuration. The configuration should look like this, excluding the
-     * C-like comments:
+     * Creates a new connection factory using the provided JSON configuration.
+     * The configuration should look like this, excluding the C-like comments:
      *
      * <pre>
      * {
@@ -365,6 +428,10 @@ public final class Rest2LDAP {
      *         },
      *     ],
      *
+     *     // Connection pool configuration.
+     *     "connectionPoolSize"       : 10,
+     *     "heartBeatIntervalSeconds" : 30,
+     *
      *     // SSL/TLS configuration (optional and TBD).
      *     "useSSL" : {
      *         // Elect to use StartTLS instead of SSL.
@@ -376,72 +443,53 @@ public final class Rest2LDAP {
      *     "authentication" : {
      *         ...
      *     },
-     *
-     *     // The base DN beneath which LDAP entries are to be found.
-     *     "baseDN" : "ou=people,dc=example,dc=com",
-     *
-     *     // The mechanism which should be used for read resources during updates, must be
-     *     // one of "disabled", "useReadEntryControls", or "useSearch".
-     *     "readOnUpdatePolicy" : "useReadEntryControls",
-     *
-     *     // Additional LDAP attributes which should be included with entries during add (create) operations.
-     *     "additionalLDAPAttributes" : [
-     *         {
-     *             "type" : "objectClass",
-     *             "values" : [
-     *                 "top",
-     *                 "person"
-     *             ]
-     *         }
-     *     ],
-     *
-     *     // The strategy which should be used for deriving LDAP entry names from JSON resources.
-     *     "namingStrategy" : {
-     *         // Option 1) the RDN and resource ID are both derived from a single user attribute in the entry.
-     *         "strategy" : "clientDNNaming",
-     *         "dnAttribute" : "uid"
-     *
-     *         // Option 2) the RDN and resource ID are derived from separate user attributes in the entry.
-     *         "strategy" : "clientNaming",
-     *         "dnAttribute" : "uid",
-     *         "idAttribute" : "mail"
-     *
-     *         // Option 3) the RDN and is derived from a user attribute and the resource ID from an operational
-     *         //           attribute in the entry.
-     *         "strategy" : "serverNaming",
-     *         "dnAttribute" : "uid",
-     *         "idAttribute" : "entryUUID"
-     *     },
-     *
-     *     // The attribute which will be used for performing MVCC.
-     *     "etagAttribute" : "etag",
-     *
-     *     // The JSON to LDAP attribute mappings.
-     *     "attributes" : [
-     *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
-     *         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
-     *         "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
-     *         "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
-     *         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
-     *         "name"        : { "object"   : [
-     *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
-     *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
-     *         ],
-     *         ...
-     *     ]
      * }
      * </pre>
      *
      * @param configuration
      *            The JSON configuration.
-     * @return A new REST 2 LDAP resource provider configured using the provided
-     *         JSON configuration.
+     * @return A new connection factory using the provided JSON configuration.
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static CollectionResourceProvider valueOf(final JsonValue configuration)
+    public static ConnectionFactory connectionFactory(final JsonValue configuration)
             throws IllegalArgumentException {
-        return builder(configuration).build();
+        // Parse pool parameters,
+        final int connectionPoolSize =
+                Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
+        final int heartBeatIntervalSeconds =
+                Math.max(configuration.get("heartBeatIntervalSeconds").defaultTo(30).asInteger(), 1);
+
+        // Parse primary data center.
+        final JsonValue primaryLDAPServers = configuration.get("primaryLDAPServers");
+        if (primaryLDAPServers == null || !primaryLDAPServers.isList()
+                || primaryLDAPServers.size() == 0) {
+            throw new IllegalArgumentException("No primaryLDAPServers");
+        }
+        final ConnectionFactory primary =
+                parseLDAPServers(primaryLDAPServers, connectionPoolSize, heartBeatIntervalSeconds);
+
+        // Parse secondary data center(s).
+        final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
+        final ConnectionFactory secondary;
+        if (secondaryLDAPServers != null && secondaryLDAPServers.isList()
+                && secondaryLDAPServers.size() != 0) {
+            secondary =
+                    parseLDAPServers(secondaryLDAPServers, connectionPoolSize,
+                            heartBeatIntervalSeconds);
+        } else if (secondaryLDAPServers != null && !secondaryLDAPServers.isList()) {
+            throw new IllegalArgumentException("Invalid secondaryLDAPServers configuration");
+        } else {
+            secondary = null;
+        }
+
+        // Create fail-over.
+        if (secondary != null) {
+            return Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
+                    primary, secondary), heartBeatIntervalSeconds, TimeUnit.SECONDS));
+        } else {
+            return primary;
+        }
     }
 
     public static AttributeMapper constant(final Object value) {
@@ -458,6 +506,29 @@ public final class Rest2LDAP {
 
     public static SimpleAttributeMapper simple(final String attribute) {
         return simple(AttributeDescription.valueOf(attribute));
+    }
+
+    private static ConnectionFactory parseLDAPServers(final JsonValue config,
+            final int connectionPoolSize, final int heartBeatIntervalSeconds) {
+        final List<ConnectionFactory> servers = new ArrayList<ConnectionFactory>(config.size());
+        for (final JsonValue server : config) {
+            final String host = server.get("hostname").required().asString();
+            final int port = server.get("port").required().asInteger();
+            ConnectionFactory factory = new LDAPConnectionFactory(host, port);
+            if (connectionPoolSize > 1) {
+                factory =
+                        Connections.newHeartBeatConnectionFactory(factory,
+                                heartBeatIntervalSeconds, TimeUnit.SECONDS);
+                factory = Connections.newFixedConnectionPool(factory, connectionPoolSize);
+            }
+            servers.add(factory);
+        }
+        if (servers.size() > 1) {
+            return Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(servers,
+                    heartBeatIntervalSeconds, TimeUnit.SECONDS));
+        } else {
+            return servers.get(0);
+        }
     }
 
     private Rest2LDAP() {
