@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
     
@@ -12387,7 +12387,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                newSuffx      = "o=new_suffix_no_repl"
+                newSuffix     = "o=new_suffix_no_repl"
                 newReplSuffix = "o=new_suffix_repl"
                 
                 serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)

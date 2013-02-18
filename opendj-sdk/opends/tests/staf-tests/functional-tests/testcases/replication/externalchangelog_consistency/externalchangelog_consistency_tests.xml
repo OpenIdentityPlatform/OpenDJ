@@ -1,0 +1,2710 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2013 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!-- Definition of Preamble -->             
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL
+  #@TestID              ecl_setup
+  #@TestPurpose         Setup ecl
+  #@TestPreamble
+  #@TestSteps           Step1: TBD
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_setup" scope="local">
+    <testcase name="getTestCaseName('ecl_setup')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: External Changelog: - Setup. \
+              Set up environment for External Changelog tests'
+            </message>
+                
+            <message>
+              'Common ECL tests: reset data'
+            </message>
+
+            <!-- Pre external initialization set generation id (-1) and clears cn=changelog -->
+            <call function="'preInitializeReplication'">
+              { 'location'            : masterHost,
+                'dsPath'              : masterPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'localOnly'           : False,
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>
+
+            <!-- Stop "master" Directory Server -->
+            <call function="'StopDsWithScript'">
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath,
+                'dsHost'      : masterHost,
+                'dsAdminPort' : master.getAdminPort(),
+                'dsBindDN'    : master.getRootDn(),
+                'dsBindPwd'   : master.getRootPwd()
+              }
+            </call>
+      
+            <!-- Import data into "master" Directory Server -->
+            <call function="'ImportLdifWithScript'">
+              { 'location'   : masterHost,
+                'dsPath'     : masterPath,
+                'backEnd'    : DIRECTORY_INSTANCE_BE,          
+                'ldifFile'   : '%s/replication/Example.ldif' \
+                               % masterDataDir
+              }
+            </call>
+      
+            <!-- Start the Directory Server -->
+            <call function="'StartDsWithScript'">
+              { 'location'  : masterHost,
+                'dsPath'    : masterPath
+              }
+            </call>
+      
+            <!-- Wait for DS to start -->
+            <call function="'isAlive'">
+              { 'location'         : masterHost,
+                'dsPath'           : masterPath,
+                'dsInstanceHost'   : masterHost,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000
+              }
+            </call>
+      
+            <!-- Perform the total update, resets generation id from (-1) -->
+            <call function="'initializeReplication'">
+              { 'location'                : clientHost,
+                'dsPath'                  : clientPath,
+                'sourceInstanceHost'      : masterHost,
+                'sourceInstanceAdminPort' : master.getAdminPort(),
+                'replicationDnList'       : [synchroSuffix]
+              }
+            </call>
+
+            <!-- Set replication purge delay in cdthe various replication servers -->
+            <paralleliterate var="server" in="_topologyServerList">
+              <sequence>
+                <script>
+                  replServer = server
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+            
+                <message>
+                  'Set purge delay to %s seconds on server %s:%s' \
+                  % (ecl_purge_delay, replServer.getHostname(), replServer.getPort())
+                </message>
+                
+                <!-- Set purge delay to 120s on "master" server -->   
+                <call function="'dsconfigSet'">
+                  { 'location'            : replServer.getHostname(),
+                    'dsPath'              : replServerPath,
+                    'dsInstanceHost'      : replServer.getHostname(),
+                    'dsInstanceAdminPort' : replServer.getAdminPort(),
+                    'dsInstanceDn'        : replServer.getRootDn(),
+                    'dsInstancePswd'      : replServer.getRootPwd(),
+                    'objectName'          : 'replication-server' ,
+                    'propertyType'        : 'provider',
+                    'propertyName'        : 'Multimaster Synchronization',
+                    'attributeName'       : 'replication-purge-delay' ,
+                    'attributeValue'      : '%s s' % ecl_purge_delay
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+
+            <!-- Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+            
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+            
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Add Cookies
+  #@TestID              ecl_add_cookies_001
+  #@TestPurpose         Verify that the 2 servers have consistent COOKIE on add.
+  #@TestPreamble
+  #@TestSteps           Step 1: Add entries in the various replication servers
+  #@TestSteps           Step 2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestSteps           Step 3: Verify the synchronization of the trees among the servers in the topology
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_add_cookies_001" scope="local">
+    <testcase name="getTestCaseName('ecl_add_cookies_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+     
+            <!-- Step 1: Add entries in the various replication servers -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Add entries in the various replication servers.' }
+            </call>
+
+            <script>
+              entrynum = 1
+            </script>
+            
+            <iterate var="server" in="_topologyServerList" indexvar="'entrynum'">
+              <sequence>
+                <!-- Add entry to both" servers -->
+                <script>
+                  replServer = server
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+
+                  myEntry = person_entry('cn=Change%s' % entrynum, synchroSuffix)
+                  myEntry.addAttr('sn', 'Change%s' % entrynum)
+                  myEntry.addAttr('description', 'this is change %s' % entrynum)
+                  myEntry.addAttr('uid', 'Change%s'.lower() % entrynum)
+                  
+                  entrynum += 1
+                </script>
+
+                <message>
+                  'Add Entry (%s) on server %s:%s' \
+                  % (myEntry.getDn(), replServer.getHostname(), replServer.getPort())
+                </message>
+
+                <!-- Add an Entry under suffix -->          
+                <call function="'addAnEntry'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'DNToAdd'        : myEntry.getDn(),
+                    'listAttributes' : myEntry.getAttrList()
+                  }
+                </call>
+                
+              </sequence>
+            </iterate>
+
+            <!-- Step 2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+
+            <script>
+              entrynum = 1
+              cookiesList = []
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="'entrynum'">
+              <sequence>
+                <!-- Add entry to both" servers -->
+                <script>
+                  replServer = server
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:;',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                       
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+
+            <!-- Step 3: Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify the synchronization of the trees among the servers in the topology.' }
+            </call>    
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>        
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: ChangeNumbers
+  #@TestID              ecl_changenumbers_001
+  #@TestPurpose         Verify that the 2 servers have consistent change numbers after add
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
+  #@TestSteps           Step2: Check that firstChangeNumbers match
+  #@TestSteps           Step3: Count changelog entries in draft mode
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_changenumbers_001" scope="local">
+    <testcase name="getTestCaseName('ecl_changenumbers_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber and lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber and lastChangeNumber match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumber and lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+
+            <!-- Step2: Check that firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsScope'        : 'base',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+
+            <!-- Step3: Count changelog entries in draft mode -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Count changelog entries in draft mode.' }
+            </call>
+
+            <script>
+              dncList = []
+              #2 changes + top
+              noOfEntries = 3
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Count the number of initial changes -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'dn' ,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  dncount=int(count_attr(STAXResult))
+                  dncList.append(dncount)
+                </script>
+                
+                <if expr="dncount == noOfEntries">
+                  <message>
+                    'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                  </message>
+                <else>
+                  <sequence>
+                    <tcstatus result="'fail'"/>
+                    <message level="'error'">
+                      'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                    </message>
+                  </sequence>
+                </else>
+                </if>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare number of entries -->
+            <call function="'compareItems'">
+              { 'items' : dncList ,
+                'label' : 'numberOfEntries'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+            
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Cookie
+  #@TestID              ecl_mod_cookies_001
+  #@TestPurpose         Verify that the 2 servers have consistent COOKIE on modify
+  #@TestPreamble
+  #@TestSteps           Step 1: Modify Entries various replication servers
+  #@TestSteps           Step 2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestSteps           Step 3: Verify the synchronization of the trees among the servers in the topology
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_mod_cookies_001" scope="local">
+    <testcase name="getTestCaseName('ecl_mod_cookies_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Step1: Modify Entries various replication servers -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modify Entries various replication servers.' }
+            </call>
+
+            <script>
+              entrynum = 1
+              cookiesList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+            
+                <!-- Modify entry to both" servers -->
+                <script>
+                  myEntry = person_entry('cn=Change%s' % entrynum, synchroSuffix)
+                  
+                  entrynum += 1
+                </script>
+
+                <message>
+                  'Modify Entry (%s) on server %s:%s' \
+                  % (myEntry.getDn(), replServer.getHostname(), replServer.getPort())
+                </message> 
+
+                <call function="'modifyAnAttribute'">
+                  { 'dsPath'                 : replServerPath,
+                    'dsInstanceHost'         : replServer.getHostname() ,
+                    'dsInstancePort'         : replServer.getPort() ,
+                    'dsInstanceDn'           : replServer.getRootDn() ,
+                    'dsInstancePswd'         : replServer.getRootPwd() ,
+                    'DNToModify'             : myEntry.getDn() ,
+                    'attributeName'          : 'description' ,
+                    'newAttributeValue'      : 'This is a new change' ,
+                    'changetype'             : 'add'
+                  }
+                </call>
+
+                <!-- Lets Read the Entry back to be sure -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : myEntry.getDn(),
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'description',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+              </sequence>
+            </iterate>
+
+            <!-- Step2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+            <script>
+              mycookie = global_cookiesList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % mycookie,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+
+            <!-- Step 3: Verify the synchronization of the trees among the servers in
+              the topology -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify the synchronization of the trees among the servers in the topology.' }
+            </call>    
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+                
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+            
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: ChangeNumbers
+  #@TestID              ecl_changenumbers_002
+  #@TestPurpose         Verify that the 2 servers have consistent change numbers after modify
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
+  #@TestSteps           Step2: Check that firstChangeNumbers match
+  #@TestSteps           Step3: Count changelog entries in draft mode
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_changenumbers_002" scope="local">
+    <testcase name="getTestCaseName('ecl_changenumbers_002')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber and lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber and lastChangeNumber match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumber and lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+
+            <!-- Step2: Check that firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsScope'        : 'base',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+
+            <!-- Step3: Count changelog entries in draft mode -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Count changelog entries in draft mode.' }
+            </call>
+
+            <script>
+              dncList = []
+              #4 changes + top
+              noOfEntries = 5
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Count the number of initial changes -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'dn' ,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  dncount=int(count_attr(STAXResult))
+                  dncList.append(dncount)
+                </script>
+                
+                <if expr="dncount == noOfEntries">
+                  <message>
+                    'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                  </message>
+                <else>
+                  <sequence>
+                    <tcstatus result="'fail'"/>
+                    <message level="'error'">
+                      'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                    </message>
+                  </sequence>
+                </else>
+                </if>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare number of entries -->
+            <call function="'compareItems'">
+              { 'items' : dncList ,
+                'label' : 'numberOfEntries'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Draft Cookies
+  #@TestID              ecl_draft_cookies_001
+  #@TestPurpose         Verify in draft mode the 2 servers have consistent changeLogCookie
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeLogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_draft_cookies_001" scope="local">
+    <testcase name="getTestCaseName('ecl_draft_cookies_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              mychangenumber = global_cnsList.get()
+              cookiesList = []
+            </script>
+
+            <!-- Check that the changeLogCookie match -->
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : '(changenumber=%s)' % mychangenumber,
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+ 
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Cookies
+  #@TestID              ecl_cookies_001
+  #@TestPurpose         Verify that after change to master all servers have consistent COOKIE
+  #@TestPreamble
+  #@TestSteps           Step1: Modify entry on one server
+  #@TestSteps           Step2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_cookies_001" scope="local">
+    <testcase name="getTestCaseName('ecl_cookies_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Step1: Modify entry on one server -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modify entry on one server.' }
+            </call>
+
+            <script>
+              cookiesList = []
+              myEntry = person_entry('cn=Change1', synchroSuffix)
+            </script>
+
+            <message>
+              'Modify Entry (%s) on server %s:%s' \
+              % (myEntry.getDn(), masterHost, master.getPort())
+            </message> 
+
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'                 : masterPath,
+                'dsInstanceHost'         : masterHost ,
+                'dsInstancePort'         : master.getPort() ,
+                'dsInstanceDn'           : master.getRootDn() ,
+                'dsInstancePswd'         : master.getRootPwd() ,
+                'DNToModify'             : myEntry.getDn() ,
+                'attributeName'          : 'description' ,
+                'newAttributeValue'      : 'this is a change on server 1',
+                'changetype'             : 'add'
+              }
+            </call>
+
+            <!-- Step2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+
+            <script>
+              mycookie = global_cookiesList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % mycookie,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Draft ChangeNumbers
+  #@TestID              ecl_draft_changenumbers_001
+  #@TestPurpose         Verify in draft mode servers have consistent changeNumber and lastChangeNumber
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
+
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_draft_changenumbers_001" scope="local">
+    <testcase name="getTestCaseName('ecl_draft_changenumbers_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber and lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber and lastChangeNumber match.' }
+            </call>
+
+            <script>
+              mychangenumber = global_cnsList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : '(changenumber>=%s)' % mychangenumber,
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumber and lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+       
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Cookie
+  #@TestID              ecl_cookies_002
+  #@TestPurpose         Verify that after change to consumer all servers have consistent COOKIE
+  #@TestPreamble
+  #@TestSteps           Step1: Modify entry on one server
+  #@TestSteps           Step2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_cookies_002" scope="local">
+    <testcase name="getTestCaseName('ecl_cookies_002')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Modify entry on one server -->
+            <script>
+              cookiesList = []
+              myEntry = person_entry('cn=Change1', synchroSuffix)
+              
+              consumerServer = consumerList[0]
+              consumerServerPath = '%s/%s' % (consumerServer.getDir(), OPENDSNAME)
+            </script>
+
+            <message>
+              'Modify Entry (%s) on server %s:%s' \
+              % (myEntry.getDn(), consumerServer.getHostname(), consumerServer.getPort())
+            </message> 
+
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'                 : consumerServerPath,
+                'dsInstanceHost'         : consumerServer.getHostname() ,
+                'dsInstancePort'         : consumerServer.getPort() ,
+                'dsInstanceDn'           : consumerServer.getRootDn() ,
+                'dsInstancePswd'         : consumerServer.getRootPwd() ,
+                'DNToModify'             : myEntry.getDn() ,
+                'attributeName'          : 'description' ,
+                'newAttributeValue'      : 'this is a change on server 2',
+                'changetype'             : 'add'
+              }
+            </call>
+
+            <!-- Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <script>
+              mycookie = global_cookiesList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % mycookie,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+ 
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Draft ChangeNumbers
+  #@TestID              ecl_draft_changenumbers_002
+  #@TestPurpose         Verify that the 2 servers have consistent changeNumber and lastChangeNumber
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
+
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_draft_changenumbers_002" scope="local">
+    <testcase name="getTestCaseName('ecl_draft_changenumbers_002')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+              lcnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber and lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber and lastChangeNumber match.' }
+            </call>
+
+            <script>
+              mychangenumber = global_cnsList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : '(changenumber>=%s)' % mychangenumber,
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  lcnsList.append(cn)
+                  global_lcnsList.set(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumber and lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList + lcnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+       
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Cookie
+  #@TestID              ecl_cookies_003
+  #@TestPurpose         Verify that after multiple changes to master all servers have consistent COOKIE
+  #@TestPreamble
+  #@TestSteps           Step 1: Modify entries on one server
+  #@TestSteps           Step 2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_cookies_003" scope="local">
+    <testcase name="getTestCaseName('ecl_cookies_003')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              cookiesList = []
+              nochanges = 0
+            </script>
+
+            <!-- Step 1: Modify entries on one server -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modify entries on one server.' }
+            </call>
+
+            <loop from="1" to="2" var="entrynum">
+              <sequence>
+                <script>
+                  myEntry = person_entry('cn=Change%s' % entrynum,synchroSuffix)
+                  ldapObject=[]
+                </script>
+    
+                <message>
+                  'Modify Entry (%s) on server %s:%s' \
+                  % (myEntry.getDn(), masterHost, master.getPort())
+                </message> 
+
+                <loop from="1" to="2">
+                  <sequence>
+                
+                    <script>
+                      nochanges += 1
+                      ldapObject.append('description:change %s on server %s' % (nochanges,entrynum))                       
+                    </script>
+
+                  </sequence>
+                </loop>
+
+                <call function="'modifyAnAttribute'">
+                    { 'location'         : masterHost,
+                      'dsPath'           : masterPath,
+                      'dsInstanceHost'   : masterHost,
+                      'dsInstancePort'   : master.getPort() ,
+                      'dsInstanceDn'     : master.getRootDn() ,
+                      'dsInstancePswd'   : master.getRootPwd() ,
+                      'DNToModify'       : myEntry.getDn() ,
+                      'listAttributes'   : ldapObject ,
+                      'changetype'       : 'replace' }
+                </call>
+
+              </sequence>
+            </loop>
+
+            <!-- Step2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+
+            <script>
+              mycookie = global_cookiesList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % mycookie,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+    
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Draft ChangeNumbers
+  #@TestID              ecl_draft_changenumbers_003
+  #@TestPurpose         Verify that the servers have consistent changeNumbers
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumbers match
+  #@TestSteps           Step2: Check that the lastChangeNumbers match
+  #@TestSteps           Step3: Check that the firstChangeNumbers match
+
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_draft_changenumbers_003" scope="local">
+    <testcase name="getTestCaseName('ecl_draft_changenumbers_003')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber match.' }
+            </call>
+
+            <script>
+              mychangenumber = global_cnsList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'changeNumber>=%s' % mychangenumber,
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+              </sequence>
+            </iterate>
+
+            <!-- Step2: Check that the lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the lastChangeNumber match.' }
+            </call>
+
+            <script>
+              lcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'lastChangeNumber>=%s' % mychangenumber,
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList + lcnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+
+            <!-- Step3: Check that the firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsScope'        : 'base',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Purge Interval
+  #@TestID              ecl_purge_sleep_001
+  #@TestPurpose         Verify that purge interval is passed
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumbers match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_sleep_001" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_sleep_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              sleepMilliSeconds='%s000' % ecl_purge_delay
+              #TODO: change sleep time
+              #sleepMilliSeconds='1000'
+            </script>
+
+            <message>
+              'Sleeping for %s secs' % ecl_purge_delay
+            </message>
+  
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : sleepMilliSeconds }
+            </call>            
+
+            <tcstatus result="'pass'"/>
+
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Post Purge
+  #@TestID              ecl_purge_001
+  #@TestPurpose         Verify that the 2 servers have consistent cookies and changenumber after purge
+  #@TestPreamble
+  #@TestSteps           Step1: Check that lastExternalChangelogCookie match
+  #@TestSteps           Step2: Search on servers with last cookie
+  #@TestSteps           Step3: Search on servers with changenumber (draft mode)
+  #@TestSteps           Step4: Check that the lastChangeNumber match
+  #@TestSteps           Step5: Check that the firstChangeNumbers match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_001" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Modify Entries various replication servers -->
+            <script>
+              lastCookiesList = []
+            </script>
+
+            <!-- Step 1: Check that lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that lastExternalChangelogCookie match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  lastCookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : lastCookiesList ,
+                'label' : 'lastExternalChangelogCookie'
+              }
+            </call>
+
+            <!-- Step 2: Search on servers with last cookie -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Search on servers with last cookie.' }
+            </call>
+
+            <script>
+              cookiesList = []
+              i = 0
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % lastCookiesList[i],
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  i += 1
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookies -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookie'
+              }
+            </call>
+
+            <!-- Step 3: Search on servers with changenumber (draft mode) -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Search on servers with changenumber (draft mode).' }
+            </call>
+
+            <message>'Now checking draft mode.'</message>
+            <script>
+              mychangenumber = global_cnsList.get()
+              cookiesList = []
+              cnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'changeNumber>=%s' % mychangenumber,
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'changeNumber>=%s' % mychangenumber,
+                    'dsAttributes'   : 'changeLogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(cn)
+                </script>
+
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : cnsList ,
+                'label' : 'draftModeChangeNumber'
+              }
+            </call>
+
+            <!-- Compare changeLogCookies -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'draftModeChangeLogCookie'
+              }
+            </call>
+
+            <!-- Step4: Check that the lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the lastChangeNumber match.' }
+            </call>
+
+            <script>
+              lcnsList = []
+              i = 0
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  lcnsList.append(lcn)
+                  i += 1
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : lcnsList,
+                'label' : 'lastChangeNumber'
+              }
+            </call>
+
+            <!-- Step5: Check that the firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+                              
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Purge Masters Cookie
+  #@TestID              ecl_purge_002
+  #@TestPurpose         Verify that after purge change to master COOKIEs are consistent
+  #@TestPreamble
+  #@TestSteps           Step1: Modify entry on one server
+  #@TestSteps           Step2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_002" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_002')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Step1: Modify entry on one server -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modify entry on one server.' }
+            </call>
+
+            <script>
+              cookiesList = []
+              myEntry = person_entry('cn=Change1', synchroSuffix)
+            </script>
+
+            <message>
+              'Modify Entry (%s) on server %s:%s' \
+              % (myEntry.getDn(), masterHost, master.getPort())
+            </message> 
+
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'                 : masterPath,
+                'dsInstanceHost'         : masterHost ,
+                'dsInstancePort'         : master.getPort() ,
+                'dsInstanceDn'           : master.getRootDn() ,
+                'dsInstancePswd'         : master.getRootPwd() ,
+                'DNToModify'             : myEntry.getDn() ,
+                'attributeName'          : 'description' ,
+                'newAttributeValue'      : 'this is a change on server 1',
+                'changetype'             : 'add'
+              }
+            </call>
+
+            <!-- Step2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+
+            <script>
+              mycookie = global_cookiesList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:%s' % mycookie,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                  global_cookiesList.set(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Purge Consumers Cookie
+  #@TestID              ecl_purge_003
+  #@TestPurpose         Verify that after purge change to consumer COOKIEs are consistent
+  #@TestPreamble
+  #@TestSteps           Step1: Modify entry on one server
+  #@TestSteps           Step2: Check that the changeLogCookie and lastExternalChangelogCookie match
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_003" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_003')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Modify entry on one server -->
+            <script>
+              cookiesList = []
+              myEntry = person_entry('cn=Change1', synchroSuffix)
+              
+              consumerServer = consumerList[0]
+              consumerServerPath = '%s/%s' % (consumerServer.getDir(), OPENDSNAME)
+            </script>
+
+            <message>
+              'Modify Entry (%s) on server %s:%s' \
+              % (myEntry.getDn(), consumerServer.getHostname(), consumerServer.getPort())
+            </message> 
+
+            <call function="'modifyAnAttribute'">
+              { 'dsPath'                 : consumerServerPath,
+                'dsInstanceHost'         : consumerServer.getHostname() ,
+                'dsInstancePort'         : consumerServer.getPort() ,
+                'dsInstanceDn'           : consumerServer.getRootDn() ,
+                'dsInstancePswd'         : consumerServer.getRootPwd() ,
+                'DNToModify'             : myEntry.getDn() ,
+                'attributeName'          : 'description' ,
+                'newAttributeValue'      : 'this is a change on server 2',
+                'changetype'             : 'add'
+              }
+            </call>
+
+            <!-- Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:;',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastExternalChangelogCookie',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lecc = get_last_attr_from_entry(STAXResult,'lastExternalChangelogCookie')
+                  cookiesList.append(lecc)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookie and lastExternalChangelogCookie -->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Purge ChangeNumbers
+  #@TestID              ecl_purge_004
+  #@TestPurpose         Verify that after purge the servers have consistent changeNumbers
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumbers match
+  #@TestSteps           Step2: Check that the lastChangeNumbers match
+  #@TestSteps           Step3: Check that the firstChangeNumbers match
+
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_004" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_004')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              mychangenumber = global_cnsList.get()
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'changeNumber>=%s' % mychangenumber,
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+              </sequence>
+            </iterate>
+
+            <!-- Step2: Check that the lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the lastChangeNumber match.' }
+            </call>
+
+            <script>
+              lcnsList = []
+              mylastcn = global_lcnsList.get()
+            </script>
+            <iterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'lastChangeNumber>=%s' % mylastcn,
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList + lcnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+
+            <!-- Step3: Check that the firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsScope'        : 'base',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: Purge No Cookie or CN
+  #@TestID              ecl_purge_005
+  #@TestPurpose         Verify that change can be found with no cookie nor cn
+  #@TestPreamble
+  #@TestSteps           Step 1: Search for changeLogCookie with no cookie in control
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_purge_005" scope="local">
+    <testcase name="getTestCaseName('ecl_purge_005')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              cookiesList = []
+              cnsList = []
+            </script>
+
+            <!-- Step2: Check that the changeLogCookie and lastExternalChangelogCookie match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeLogCookie and lastExternalChangelogCookie match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeLogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeLogCookie' ,
+                    'dsControl'      : '1.3.6.1.4.1.26027.1.5.4:false:;',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  clc = get_last_attr_from_entry(STAXResult,'changeLogCookie')
+                  cookiesList.append(clc)
+                </script>
+
+                <!-- Search for lastExternalChangelogCookie -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeLogCookies-->
+            <call function="'compareItems'">
+              { 'items' : cookiesList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+
+            <!-- Compare changeLogCookies-->
+            <call function="'compareItems'">
+              { 'items' : cnsList ,
+                'label' : 'changeLogCookies'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+        
+  <!-- Definition of Postamble --> 
+
+  <!--- Test Case : Replication : ECL : ECL CLEANUP -->          
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL
+  #@TestID              ecl_cleanup
+  #@TestPurpose         Cleanup ecl
+  #@TestPreamble
+  #@TestSteps           Step1: TBD
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_cleanup" scope="local">
+    <testcase name="getTestCaseName('ecl_cleanup')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: External Changelog: - Clean up. \
+              Clean up environment for External Changelog tests'
+            </message>
+
+            <tcstatus result="'pass'"/>
+
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+ 
+  <!-- Definition of Functions --> 
+  
+  <function name="compareItems" scope="local">
+    <function-prolog>
+      Compares all items in List for equality
+    </function-prolog>
+    <function-map-args>
+
+      <function-required-arg name="items">
+        List of items to be compared for equality
+      </function-required-arg>
+
+      <function-optional-arg name="label" default="''">
+        Friendly label to aid description
+      </function-optional-arg>
+    </function-map-args>
+
+    <sequence>
+      <if expr="len(items) == 0">
+        <message level='warning'>'The list to compare is empty.'</message>
+      </if>
+      <script>
+        try:
+          allItemsMatch = list_matches(items)
+        except Exception,e:
+          print "Exception Thrown: caught (%s)" % e
+          allItemsMatch = 'False'
+      </script>
+      <if expr="allItemsMatch == 'True'">
+          <sequence>
+            <message>'%s Items match successfully (%s)' % (label,items)</message>
+            <tcstatus result="'pass'"/>
+          </sequence>
+        <else>
+          <sequence>
+            <message level="'error'">'%s Items do not match (%s)' % (label,items)</message>
+            <tcstatus result="'fail'"/>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
+  </function>
+</stax>
