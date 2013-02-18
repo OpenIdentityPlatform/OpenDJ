@@ -501,6 +501,7 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_SHA256=certificateResult.find("SHA256:")
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert1=certificateResult[index_MD5+5:index_SHA1].strip()
             if index_SHA256 == -1:
@@ -533,6 +534,7 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_SHA256=certificateResult.find("SHA256:")
             index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert2=certificateResult[index_MD5+5:index_SHA1].strip()
             if index_SHA256 == -1:
