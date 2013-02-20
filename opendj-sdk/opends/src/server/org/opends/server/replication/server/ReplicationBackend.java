@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -1265,7 +1265,7 @@ public class ReplicationBackend
       previousCount = latestCount;
       previousTime = latestTime;
     }
-  };
+  }
 
 
 

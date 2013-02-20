@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1627,5 +1627,5 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       return backendSet;
     }
-  };
+  }
 }

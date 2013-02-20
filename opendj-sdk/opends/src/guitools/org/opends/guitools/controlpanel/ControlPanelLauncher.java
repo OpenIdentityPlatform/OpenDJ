@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -269,7 +269,7 @@ enum ErrorReturnCode
   {
     return returnCode;
   }
-};
+}
 
 /**
  * The splash screen for the control panel.

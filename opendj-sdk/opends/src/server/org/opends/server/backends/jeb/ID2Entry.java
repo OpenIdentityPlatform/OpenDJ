@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -73,7 +73,7 @@ public class ID2Entry extends DatabaseContainer
     protected EntryCodec initialValue()
     {
       return new EntryCodec();
-    };
+    }
   };
 
   private static EntryCodec acquireEntryCodec()

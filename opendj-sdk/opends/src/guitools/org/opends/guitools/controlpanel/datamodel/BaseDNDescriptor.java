@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -51,7 +51,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
      * The base DN is replicated.
      */
     REPLICATED
-  };
+  }
 
   private int nEntries;
   private int missingChanges;

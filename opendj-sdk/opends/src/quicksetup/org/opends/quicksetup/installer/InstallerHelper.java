@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -105,7 +105,8 @@ public class InstallerHelper {
    * @param args the arguments to be passed to ConfigureDS.configMain.
    * @return the return code of the ConfigureDS.configMain method.
    * @throws ApplicationException if something goes wrong.
-   * @see org.opends.server.tools.ConfigureDS#configMain(String[]).
+   * @see org.opends.server.tools.ConfigureDS#configMain(String[],
+   *                                java.io.OutputStream, java.io.OutputStream)
    */
   public int invokeConfigureServer(String[] args) throws ApplicationException {
     return ConfigureDS.configMain(args, System.out, System.err);
