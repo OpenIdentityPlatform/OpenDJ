@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -102,6 +102,7 @@ public class AttrHistoricalSingle extends AttrHistorical
     switch (mod.getModificationType())
     {
     case DELETE:
+      this.addTime = null;
       this.deleteTime = changeNumber;
       this.value = newValue;
       lastMod = HistAttrModificationKey.DEL;
@@ -117,7 +118,9 @@ public class AttrHistoricalSingle extends AttrHistorical
       if (newValue == null)
       {
         // REPLACE with null value is actually a DELETE
+        this.addTime = null;
         this.deleteTime = changeNumber;
+        this.value = null;
         lastMod = HistAttrModificationKey.DEL;
       }
       else
@@ -260,6 +263,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       {
         if (newValue == null)
         {
+          addTime = null;
           value = newValue;
           deleteTime = changeNumber;
           lastMod = HistAttrModificationKey.DEL;
