@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -339,6 +340,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final AuthenticationType getAuthenticationType()
   {
     return authType;
@@ -348,6 +350,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawBindDN()
   {
     return rawBindDN;
@@ -356,6 +359,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawBindDN(ByteString rawBindDN)
   {
     if (rawBindDN == null)
@@ -374,6 +378,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getBindDN()
   {
     try
@@ -399,6 +404,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getSimplePassword()
   {
     return simplePassword;
@@ -407,6 +413,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setSimplePassword(ByteString simplePassword)
   {
     if (simplePassword == null)
@@ -426,6 +433,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final String getSASLMechanism()
   {
     return  saslMechanism;
@@ -434,6 +442,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getSASLCredentials()
   {
     return saslCredentials;
@@ -442,6 +451,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setSASLCredentials(String saslMechanism,
                                        ByteString saslCredentials)
   {
@@ -455,6 +465,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getServerSASLCredentials()
   {
     return serverSASLCredentials;
@@ -463,6 +474,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setServerSASLCredentials(ByteString
                                                   serverSASLCredentials)
   {
@@ -472,6 +484,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Entry getSASLAuthUserEntry()
   {
     return saslAuthUserEntry;
@@ -480,6 +493,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     this.saslAuthUserEntry = saslAuthUserEntry;
@@ -488,6 +502,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Message getAuthFailureReason()
   {
     return authFailureReason;
@@ -496,6 +511,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setAuthFailureReason(Message message)
   {
     if (DirectoryServer.returnBindErrorMessages())
@@ -511,6 +527,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getUserEntryDN()
   {
     return userEntryDN;
@@ -519,6 +536,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final AuthenticationInfo getAuthenticationInfo()
   {
     return authInfo;
@@ -527,6 +545,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
     this.authInfo = authInfo;
@@ -691,6 +710,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setUserEntryDN(DN userEntryDN)
   {
     this.userEntryDN = userEntryDN;
@@ -699,6 +719,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getProtocolVersion()
   {
     return protocolVersion;
@@ -707,6 +728,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProtocolVersion(String protocolVersion)
   {
     this.protocolVersion = protocolVersion;
@@ -715,6 +737,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
