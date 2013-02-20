@@ -72,7 +72,6 @@ import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
-import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.schema.DirectoryStringSyntax;
@@ -485,37 +484,6 @@ public class InitOnLineTest extends ReplicationTestCase
     }
 
     return entries;
-  }
-
-  /*
-   * Creates one  user entry necessary to the test.
-   */
-  private String newLDIFEntry(int entryCnt)
-  {
-    // It is relevant to test ReplLDIFInputStream
-    // and ReplLDIFOutputStream with big entries
-    char bigAttributeValue[] = new char[30240];
-    for (int i=0; i<bigAttributeValue.length; i++)
-      bigAttributeValue[i] = Integer.toString(i).charAt(0);
-
-    String filler = "000000000000000000000000000000000000";
-
-    String useri="0000"+entryCnt;
-
-    return  "dn: cn="+useri+",ou=people," + EXAMPLE_DN + "\n"
-            + "objectclass: top\n"
-            + "objectclass: person\n"
-            + "objectclass: organizationalPerson\n"
-            + "objectclass: inetOrgPerson\n"
-            + "cn: "+useri+"_cn"+"\n"
-            + "sn: "+useri+"_sn"+"\n"
-            + "uid: "+useri+"_uid"+"\n"
-            + "description:: "+ Base64.encode(
-                new String(bigAttributeValue).getBytes())+"\n"
-            + "entryUUID: 21111111-1111-1111-1111-"+useri+
-                filler.substring(0, 12-useri.length())+"\n"
-            + "\n";
-
   }
 
   /**
