@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.tools.status;
@@ -160,14 +160,14 @@ class StatusCli extends ConsoleApplication
     {
       return returnCode;
     }
-  };
+  }
 
   /**
    * The Logger.
    */
   static private final Logger LOG = Logger.getLogger(StatusCli.class.getName());
 
-  // The argument parser
+  /** The argument parser. */
   private StatusCliArgumentParser argParser;
 
   /**

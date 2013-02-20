@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -189,7 +189,7 @@ public abstract class Task
      * Other task.
      */
     OTHER
-  };
+  }
 
   /**
    * The state on which the task can be.
@@ -212,7 +212,7 @@ public abstract class Task
      * The task finished with error.
      */
     FINISHED_WITH_ERROR
-  };
+  }
 
   /**
    * Returns the names of the backends that are affected by the task.

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  *      Portions Copyright 2012 Manuel Gaupp
  */
 package org.opends.server.schema;
@@ -51,7 +51,6 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.PrintableString.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 /**

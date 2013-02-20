@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  *      Portions Copyright 2012 profiq s.r.o.
  */
 
@@ -254,14 +254,14 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       return prompt;
     }
-  };
+  }
 
-  // The argument parser to be used.
+  /** The argument parser to be used. */
   private ReplicationCliArgumentParser argParser;
   private FileBasedArgument userProvidedAdminPwdFile;
   private LDAPConnectionConsoleInteraction ci = null;
   private CommandBuilder firstServerCommandBuilder;
-  // The message formatter
+  /** The message formatter. */
   PlainTextProgressMessageFormatter formatter =
       new PlainTextProgressMessageFormatter();
 

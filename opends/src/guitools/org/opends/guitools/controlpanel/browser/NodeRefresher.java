@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -104,7 +104,7 @@ public class NodeRefresher extends AbstractNodeTask {
      * The refresher has failed.
      */
     FAILED
-  };
+  }
 
   BrowserController controller;
   State state;

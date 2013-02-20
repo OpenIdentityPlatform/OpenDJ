@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  *      Portions Copyright 2011 profiq s.r.o.
  */
 
@@ -169,7 +169,7 @@ public class InstallDS extends ConsoleApplication
     {
       return returnCode;
     }
-  };
+  }
 
   /**
    * Enumeration describing the different answer that the user can provide

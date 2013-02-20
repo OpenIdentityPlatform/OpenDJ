@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -69,7 +69,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   private enum RecordState
   {
     START, NEED_INSERT_ID_SET, NEED_DELETE_ID_SET
-  };
+  }
 
 
 
