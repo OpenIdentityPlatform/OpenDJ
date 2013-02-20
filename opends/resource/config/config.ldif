@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2012 ForgeRock AS.
+#      Portions Copyright 2010-2013 ForgeRock AS.
 #      Portions Copyright 2012 Manuel Gaupp
 #
 #
@@ -1589,6 +1589,14 @@ objectClass: ds-cfg-password-storage-scheme
 objectClass: ds-cfg-salted-sha512-password-storage-scheme
 cn: Salted SHA-512
 ds-cfg-java-class: org.opends.server.extensions.SaltedSHA512PasswordStorageScheme
+ds-cfg-enabled: true
+
+dn: cn=PBKDF2,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-pbkdf2-password-storage-scheme
+cn: PBKDF2
+ds-cfg-java-class: org.opends.server.extensions.PBKDF2PasswordStorageScheme
 ds-cfg-enabled: true
 
 dn: cn=SHA-1,cn=Password Storage Schemes,cn=config

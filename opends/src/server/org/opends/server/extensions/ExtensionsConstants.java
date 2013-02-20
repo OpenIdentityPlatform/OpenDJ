@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -78,6 +79,15 @@ public class ExtensionsConstants
 
 
   /**
+   * The authentication password scheme name for use with passwords encoded in a
+   * PBKDF2 representation.
+   */
+  public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2 =
+       "PBKDF2";
+
+
+
+  /**
    * The name of the message digest algorithm that should be used to generate
    * MD5 hashes.
    */
@@ -114,6 +124,22 @@ public class ExtensionsConstants
    * 512-bit SHA-2 hashes.
    */
   public static final String MESSAGE_DIGEST_ALGORITHM_SHA_512 = "SHA-512";
+
+
+
+  /**
+   * The name of the message digest algorithm that should be used to generate
+   * PBKDF2 hashes.
+   */
+  public static final String MESSAGE_DIGEST_ALGORITHM_PBKDF2 =
+       "PBKDF2WithHmacSHA1";
+
+
+
+  /**
+   * The name of the pseudo-random number generator using SHA-1.
+   */
+  public static final String SECURE_PRNG_SHA1 = "SHA1PRNG";
 
 
 
@@ -290,6 +316,14 @@ public class ExtensionsConstants
    * a salted SHA-512 representation.
    */
   public static final String STORAGE_SCHEME_NAME_SALTED_SHA_512 = "SSHA512";
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords stored in
+   * a PBKDF2 representation.
+   */
+  public static final String STORAGE_SCHEME_NAME_PBKDF2 = "PBKDF2";
 
 
 
