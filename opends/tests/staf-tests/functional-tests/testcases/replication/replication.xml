@@ -62,6 +62,7 @@
               suiteList.append('changelog')
               suiteList.append('conflict')
               suiteList.append('externalchangelog')
+              suiteList.append('externalchangelog_consistency')
               suiteList.append('aci')
               
               globalAssuredReplication = None

@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS
+ !      Portions Copyright 2012-2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -477,7 +477,7 @@
      #@TestResult         Success if the 4 steps are PASS
   -->
   <function name="pwp_lockout_duration_004" scope="local">
-    <testcase name="getTestCaseName('PWP Reset Lockout Duration Properties ')">                     
+    <testcase name="getTestCaseName('PWP Reset Lockout Duration Properties')">                     
       <sequence> 
         <try>
           <sequence>

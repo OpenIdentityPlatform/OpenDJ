@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -82,7 +83,7 @@
           #@TestResult          Success if ldapseach after delete return
                                 "Total number of matching entries: 0"
          -->
-          <testcase name="getTestCaseName('Fingerprint to user attribute :  server trust all client certificates ')">
+          <testcase name="getTestCaseName('Fingerprint to user attribute :  server trust all client certificates')">
             
             <sequence>
 

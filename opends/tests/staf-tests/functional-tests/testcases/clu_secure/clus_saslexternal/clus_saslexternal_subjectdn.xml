@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -74,7 +75,7 @@
                                 client-250-cert return 'authorization ID
                                 dn:uid=user.250,ou=People,dc=com'
           -->
-          <testcase name="getTestCaseName('Subject DN to user attribute :  server trust all client certificates ')">
+          <testcase name="getTestCaseName('Subject DN to user attribute :  server trust all client certificates')">
             <sequence>
 
               <call function="'testCase_Preamble'"/>
