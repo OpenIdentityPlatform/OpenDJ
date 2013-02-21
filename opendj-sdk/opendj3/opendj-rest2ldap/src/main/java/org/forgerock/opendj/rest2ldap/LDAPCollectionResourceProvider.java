@@ -17,7 +17,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
-import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
@@ -223,7 +223,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     handler.handleError(e);
                     return;
                 }
-                if (config.readOnUpdatePolicy() == USE_READ_ENTRY_CONTROLS) {
+                if (config.readOnUpdatePolicy() == CONTROLS) {
                     final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
                     addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
                 }
