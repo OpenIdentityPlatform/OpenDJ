@@ -18,7 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
-import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.USE_READ_ENTRY_CONTROLS;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.fluent.JsonValueException;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ResourceException;
@@ -66,8 +67,8 @@ public final class Rest2LDAP {
         private ConnectionFactory factory;
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
-        private ReadOnUpdatePolicy readOnUpdatePolicy = USE_READ_ENTRY_CONTROLS;
-        private final ObjectAttributeMapper rootMapper = new ObjectAttributeMapper();
+        private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
+        private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
 
         Builder() {
@@ -81,23 +82,7 @@ public final class Rest2LDAP {
         }
 
         public Builder additionalLDAPAttribute(final String attribute, final Object... values) {
-            additionalLDAPAttributes.add(new LinkedAttribute(attribute, values));
-            return this;
-        }
-
-        /**
-         * Creates a mapping for the named JSON attribute.
-         *
-         * @param name
-         *            The name of the JSON attribute to be mapped.
-         * @param mapper
-         *            The attribute mapper responsible for mapping the JSON
-         *            attribute to LDAP attribute(s).
-         * @return A reference to this builder.
-         */
-        public Builder attribute(final String name, final AttributeMapper mapper) {
-            rootMapper.attribute(name, mapper);
-            return this;
+            return additionalLDAPAttribute(new LinkedAttribute(ad(attribute), values));
         }
 
         public Builder baseDN(final DN dn) {
@@ -107,15 +92,13 @@ public final class Rest2LDAP {
         }
 
         public Builder baseDN(final String dn) {
-            ensureNotNull(dn);
-            this.baseDN = DN.valueOf(dn);
-            return this;
+            return baseDN(DN.valueOf(dn, schema));
         }
 
         public CollectionResourceProvider build() {
             ensureNotNull(factory);
             ensureNotNull(baseDN);
-            if (rootMapper.isEmpty()) {
+            if (rootMapper == null) {
                 throw new IllegalStateException("No mappings provided");
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, factory, nameStrategy,
@@ -152,8 +135,8 @@ public final class Rest2LDAP {
          *     "baseDN" : "ou=people,dc=example,dc=com",
          *
          *     // The mechanism which should be used for read resources during updates, must be
-         *     // one of "disabled", "useReadEntryControls", or "useSearch".
-         *     "readOnUpdatePolicy" : "useReadEntryControls",
+         *     // one of "disabled", "controls", or "search".
+         *     "readOnUpdatePolicy" : "controls",
          *
          *     // Additional LDAP attributes which should be included with entries during add (create) operations.
          *     "additionalLDAPAttributes" : [
@@ -188,18 +171,18 @@ public final class Rest2LDAP {
          *     "etagAttribute" : "etag",
          *
          *     // The JSON to LDAP attribute mappings.
-         *     "attributes" : [
+         *     "attributes" : {
          *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
          *         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
          *         "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
          *         "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
          *         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
-         *         "name"        : { "object"   : [
+         *         "name"        : { "object"   : {
          *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
          *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
-         *         ],
+         *         },
          *         ...
-         *     ]
+         *     }
          * }
          * </pre>
          *
@@ -211,12 +194,54 @@ public final class Rest2LDAP {
          */
         public Builder configureMapping(final JsonValue configuration)
                 throws IllegalArgumentException {
+            baseDN(configuration.get("baseDN").required().asString());
+
+            final JsonValue readOnUpdatePolicy = configuration.get("readOnUpdatePolicy");
+            if (!readOnUpdatePolicy.isNull()) {
+                readOnUpdatePolicy(readOnUpdatePolicy.asEnum(ReadOnUpdatePolicy.class));
+            }
+
+            for (final JsonValue v : configuration.get("additionalLDAPAttributes")) {
+                final String type = v.get("type").required().asString();
+                final List<Object> values = v.get("values").required().asList();
+                additionalLDAPAttribute(new LinkedAttribute(type, values));
+            }
+
+            final JsonValue namingStrategy = configuration.get("namingStrategy");
+            if (!namingStrategy.isNull()) {
+                final String name = namingStrategy.get("strategy").required().asString();
+                if (name.equalsIgnoreCase("clientDNNaming")) {
+                    useClientDNNaming(namingStrategy.get("dnAttribute").required().asString());
+                } else if (name.equalsIgnoreCase("clientNaming")) {
+                    useClientNaming(namingStrategy.get("dnAttribute").required().asString(),
+                            namingStrategy.get("idAttribute").required().asString());
+                } else if (name.equalsIgnoreCase("serverNaming")) {
+                    useServerNaming(namingStrategy.get("dnAttribute").required().asString(),
+                            namingStrategy.get("idAttribute").required().asString());
+                } else {
+                    throw new IllegalArgumentException(
+                            "Illegal naming strategy. Must be one of: clientDNNaming, clientNaming, or serverNaming");
+                }
+            }
+
+            final JsonValue etagAttribute = configuration.get("etagAttribute");
+            if (!etagAttribute.isNull()) {
+                useEtagAttribute(etagAttribute.asString());
+            }
+
+            mapper(configureObjectMapper(configuration.get("attributes").required()));
+
             return this;
         }
 
         public Builder connectionFactory(final ConnectionFactory factory) {
             ensureNotNull(factory);
             this.factory = factory;
+            return this;
+        }
+
+        public Builder mapper(final AttributeMapper mapper) {
+            this.rootMapper = mapper;
             return this;
         }
 
@@ -254,7 +279,7 @@ public final class Rest2LDAP {
         }
 
         public Builder useClientDNNaming(final String attribute) {
-            return useClientDNNaming(Schema.getDefaultSchema().getAttributeType(attribute));
+            return useClientDNNaming(at(attribute));
         }
 
         public Builder useClientNaming(final AttributeType dnAttribute,
@@ -264,8 +289,7 @@ public final class Rest2LDAP {
         }
 
         public Builder useClientNaming(final String dnAttribute, final String idAttribute) {
-            return useClientNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute),
-                    AttributeDescription.valueOf(idAttribute));
+            return useClientNaming(at(dnAttribute), ad(idAttribute));
         }
 
         public Builder useEtagAttribute() {
@@ -278,7 +302,7 @@ public final class Rest2LDAP {
         }
 
         public Builder useEtagAttribute(final String attribute) {
-            return useEtagAttribute(AttributeDescription.valueOf(attribute));
+            return useEtagAttribute(ad(attribute));
         }
 
         public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
@@ -287,7 +311,7 @@ public final class Rest2LDAP {
         }
 
         public Builder useServerEntryUUIDNaming(final String dnAttribute) {
-            return useServerEntryUUIDNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute));
+            return useServerEntryUUIDNaming(at(dnAttribute));
         }
 
         public Builder useServerNaming(final AttributeType dnAttribute,
@@ -297,8 +321,72 @@ public final class Rest2LDAP {
         }
 
         public Builder useServerNaming(final String dnAttribute, final String idAttribute) {
-            return useServerNaming(Schema.getDefaultSchema().getAttributeType(dnAttribute),
-                    AttributeDescription.valueOf(idAttribute));
+            return useServerNaming(at(dnAttribute), ad(idAttribute));
+        }
+
+        private AttributeDescription ad(final String attribute) {
+            return AttributeDescription.valueOf(attribute, schema);
+        }
+
+        private AttributeType at(final String attribute) {
+            return schema.getAttributeType(attribute);
+        }
+
+        private AttributeMapper configureMapper(final JsonValue mapper) {
+            if (mapper.isDefined("constant")) {
+                return constant(mapper.get("constant").getObject());
+            } else if (mapper.isDefined("simple")) {
+                final JsonValue config = mapper.get("simple");
+                final SimpleAttributeMapper s =
+                        simple(ad(config.get("ldapAttribute").required().asString()));
+                if (config.isDefined("defaultJSONValue")) {
+                    s.defaultJSONValue(config.get("defaultJSONValue").getObject());
+                }
+                if (config.isDefined("defaultLDAPValue")) {
+                    s.defaultLDAPValue(config.get("defaultLDAPValue").getObject());
+                }
+                if (config.get("isBinary").defaultTo(false).asBoolean()) {
+                    s.isBinary();
+                }
+                if (config.get("isRequired").defaultTo(false).asBoolean()) {
+                    s.isRequired();
+                }
+                if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
+                    s.isSingleValued();
+                }
+                if (config.isDefined("writability")) {
+                    final String writability = config.get("writability").asString();
+                    if (writability.equalsIgnoreCase("readOnly")) {
+                        s.writability(WritabilityPolicy.READ_ONLY);
+                    } else if (writability.equalsIgnoreCase("readOnlyDiscardWrites")) {
+                        s.writability(WritabilityPolicy.READ_ONLY_DISCARD_WRITES);
+                    } else if (writability.equalsIgnoreCase("createOnly")) {
+                        s.writability(WritabilityPolicy.CREATE_ONLY);
+                    } else if (writability.equalsIgnoreCase("createOnlyDiscardWrites")) {
+                        s.writability(WritabilityPolicy.CREATE_ONLY_DISCARD_WRITES);
+                    } else if (writability.equalsIgnoreCase("readWrite")) {
+                        s.writability(WritabilityPolicy.READ_WRITE);
+                    } else {
+                        throw new JsonValueException(mapper,
+                                "Illegal writability: must be one of readOnly, readOnlyDiscardWrites, "
+                                        + "createOnly, createOnlyDiscardWrites, or readWrite");
+                    }
+                }
+                return s;
+            } else if (mapper.isDefined("object")) {
+                return configureObjectMapper(mapper.get("object"));
+            } else {
+                throw new JsonValueException(mapper,
+                        "Illegal mapping: must contain constant, simple, or object");
+            }
+        }
+
+        private ObjectAttributeMapper configureObjectMapper(final JsonValue mapper) {
+            final ObjectAttributeMapper object = object();
+            for (final String attribute : mapper.keys()) {
+                object.attribute(attribute, configureMapper(mapper.get(attribute)));
+            }
+            return object;
         }
     }
 

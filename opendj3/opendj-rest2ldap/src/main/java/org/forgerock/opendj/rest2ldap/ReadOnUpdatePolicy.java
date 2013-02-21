@@ -35,7 +35,7 @@ public enum ReadOnUpdatePolicy {
      * state of the resource at the time the update was performed. This policy
      * requires that the LDAP server supports RFC 4527.
      */
-    USE_READ_ENTRY_CONTROLS,
+    CONTROLS,
 
     /**
      * The LDAP entry will be read non-atomically using an LDAP search when an
@@ -44,5 +44,5 @@ public enum ReadOnUpdatePolicy {
      * may not reflect the state of the resource at the time the update was
      * performed.
      */
-    USE_SEARCH;
+    SEARCH;
 }
