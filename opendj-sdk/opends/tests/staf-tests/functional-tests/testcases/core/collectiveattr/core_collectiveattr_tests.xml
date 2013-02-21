@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -165,7 +166,7 @@
   #@TestResult          Test is successful if the result code is 0
   -->
   <function name="core_collectiveattr_002" scope="local">
-    <testcase name="getTestCaseName('core_collectiveattr_002: Modify the value of the Collective Attribute ')">
+    <testcase name="getTestCaseName('core_collectiveattr_002: Modify the value of the Collective Attribute')">
       <sequence>
         <try>
           <sequence>
@@ -285,7 +286,7 @@
   #@TestResult          Test is successful if the result code is 0
   -->
   <function name="core_collectiveattr_003" scope="local">
-    <testcase name="getTestCaseName('core_collectiveattr_003: Delete the Collective Attribute ')">
+    <testcase name="getTestCaseName('core_collectiveattr_003: Delete the Collective Attribute')">
       <sequence>
         <try>
           <sequence>
