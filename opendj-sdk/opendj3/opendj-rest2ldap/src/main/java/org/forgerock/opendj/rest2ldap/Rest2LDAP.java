@@ -47,6 +47,8 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -117,8 +119,7 @@ public final class Rest2LDAP {
          * @throws IllegalArgumentException
          *             If the configuration is invalid.
          */
-        public Builder configureConnectionFactory(final JsonValue configuration)
-                throws IllegalArgumentException {
+        public Builder configureConnectionFactory(final JsonValue configuration) {
             connectionFactory(Rest2LDAP.configureConnectionFactory(configuration));
             return this;
         }
@@ -192,8 +193,7 @@ public final class Rest2LDAP {
          * @throws IllegalArgumentException
          *             If the configuration is invalid.
          */
-        public Builder configureMapping(final JsonValue configuration)
-                throws IllegalArgumentException {
+        public Builder configureMapping(final JsonValue configuration) {
             baseDN(configuration.get("baseDN").required().asString());
 
             final JsonValue readOnUpdatePolicy = configuration.get("readOnUpdatePolicy");
@@ -545,9 +545,10 @@ public final class Rest2LDAP {
      *         ...
      *     },
      *
-     *     // Authentication configuration (mandatory and TBD).
+     *     // Authentication configuration (optional and TBD).
      *     "authentication" : {
-     *         ...
+     *         "bindDN"   : "cn=directory manager",
+     *         "password" : "password"
      *     },
      * }
      * </pre>
@@ -558,32 +559,41 @@ public final class Rest2LDAP {
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration)
-            throws IllegalArgumentException {
+    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration) {
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
         final int heartBeatIntervalSeconds =
                 Math.max(configuration.get("heartBeatIntervalSeconds").defaultTo(30).asInteger(), 1);
 
+        // Parse authentication parameters.
+        final BindRequest bindRequest;
+        if (configuration.isDefined("authentication")) {
+            final JsonValue authn = configuration.get("authentication");
+            bindRequest =
+                    Requests.newSimpleBindRequest(authn.get("bindDN").required().asString(), authn
+                            .get("password").required().asString().toCharArray());
+        } else {
+            bindRequest = null;
+        }
+
         // Parse primary data center.
         final JsonValue primaryLDAPServers = configuration.get("primaryLDAPServers");
-        if (primaryLDAPServers == null || !primaryLDAPServers.isList()
-                || primaryLDAPServers.size() == 0) {
+        if (!primaryLDAPServers.isList() || primaryLDAPServers.size() == 0) {
             throw new IllegalArgumentException("No primaryLDAPServers");
         }
         final ConnectionFactory primary =
-                parseLDAPServers(primaryLDAPServers, connectionPoolSize, heartBeatIntervalSeconds);
+                parseLDAPServers(primaryLDAPServers, bindRequest, connectionPoolSize,
+                        heartBeatIntervalSeconds);
 
         // Parse secondary data center(s).
         final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
         final ConnectionFactory secondary;
-        if (secondaryLDAPServers != null && secondaryLDAPServers.isList()
-                && secondaryLDAPServers.size() != 0) {
+        if (secondaryLDAPServers.isList() && secondaryLDAPServers.size() != 0) {
             secondary =
-                    parseLDAPServers(secondaryLDAPServers, connectionPoolSize,
+                    parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
                             heartBeatIntervalSeconds);
-        } else if (secondaryLDAPServers != null && !secondaryLDAPServers.isList()) {
+        } else if (!secondaryLDAPServers.isNull()) {
             throw new IllegalArgumentException("Invalid secondaryLDAPServers configuration");
         } else {
             secondary = null;
@@ -615,12 +625,16 @@ public final class Rest2LDAP {
     }
 
     private static ConnectionFactory parseLDAPServers(final JsonValue config,
-            final int connectionPoolSize, final int heartBeatIntervalSeconds) {
+            final BindRequest bindRequest, final int connectionPoolSize,
+            final int heartBeatIntervalSeconds) {
         final List<ConnectionFactory> servers = new ArrayList<ConnectionFactory>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();
             final int port = server.get("port").required().asInteger();
             ConnectionFactory factory = new LDAPConnectionFactory(host, port);
+            if (bindRequest != null) {
+                factory = Connections.newAuthenticatedConnectionFactory(factory, bindRequest);
+            }
             if (connectionPoolSize > 1) {
                 factory =
                         Connections.newHeartBeatConnectionFactory(factory,

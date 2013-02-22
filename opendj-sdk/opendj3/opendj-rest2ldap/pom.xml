@@ -23,9 +23,9 @@
         <version>3.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>opendj-rest2ldap</artifactId>
-    <name>OpenDJ REST to LDAP Gateway</name>
+    <name>OpenDJ Commons REST Adapter</name>
     <description>
-        This module includes APIs for implementing REST to LDAP gateways.
+        This module includes APIs for accessing LDAP repositories using commons REST.
     </description>
     <packaging>jar</packaging>
     <properties>
