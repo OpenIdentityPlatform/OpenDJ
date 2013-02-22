@@ -23,15 +23,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.loggers;
 
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -431,18 +430,11 @@ public final class TextAccessLogPublisher extends
     }
     buffer.append(" result=");
     buffer.append(abandonOperation.getResultCode().getIntValue());
-    final MessageBuilder msg = abandonOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, abandonOperation);
 
     logAdditionalLogItems(abandonOperation, buffer);
 
-    buffer.append(" etime=");
-    buffer.append(abandonOperation.getProcessingTime());
+    appendEtime(buffer, abandonOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -498,31 +490,14 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(addOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = addOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, addOperation);
 
     logAdditionalLogItems(addOperation, buffer);
 
-    final DN proxiedAuthDN = addOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", addOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = addOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = addOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, addOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -578,22 +553,15 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(bindOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = bindOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, bindOperation);
 
     final Message failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
       buffer.append(" authFailureID=");
       buffer.append(failureMessage.getDescriptor().getId());
-      buffer.append(" authFailureReason=\"");
-      buffer.append(failureMessage);
-      buffer.append('\"');
+      buffer.append(" ");
+      appendLabel(buffer, "authFailureReason", failureMessage);
     }
 
     logAdditionalLogItems(bindOperation, buffer);
@@ -606,19 +574,12 @@ public final class TextAccessLogPublisher extends
         final DN authDN = authInfo.getAuthenticationDN();
         if (authDN != null)
         {
-          buffer.append(" authDN=\"");
-          authDN.toString(buffer);
-          buffer.append('\"');
+          appendLabel(buffer, "authDN", authDN);
 
           final DN authzDN = authInfo.getAuthorizationDN();
           if (!authDN.equals(authzDN))
           {
-            buffer.append(" authzDN=\"");
-            if (authzDN != null)
-            {
-              authzDN.toString(buffer);
-            }
-            buffer.append('\"');
+            appendLabel(buffer, "authzDN", authzDN);
           }
         }
         else
@@ -628,13 +589,7 @@ public final class TextAccessLogPublisher extends
       }
     }
 
-    buffer.append(" etime=");
-    long etime = bindOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = bindOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, bindOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -690,31 +645,14 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(compareOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = compareOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, compareOperation);
 
     logAdditionalLogItems(compareOperation, buffer);
 
-    final DN proxiedAuthDN = compareOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", compareOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = compareOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = compareOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, compareOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -806,31 +744,14 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(deleteOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = deleteOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, deleteOperation);
 
     logAdditionalLogItems(deleteOperation, buffer);
 
-    final DN proxiedAuthDN = deleteOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", deleteOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = deleteOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = deleteOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, deleteOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -865,16 +786,9 @@ public final class TextAccessLogPublisher extends
     buffer.append("]");
     buffer.append(" DISCONNECT conn=");
     buffer.append(connectionID);
-    buffer.append(" reason=\"");
-    buffer.append(disconnectReason);
-
-    if (message != null)
-    {
-      buffer.append("\" msg=\"");
-      buffer.append(message);
-    }
-
-    buffer.append("\"");
+    buffer.append(" ");
+    appendLabel(buffer, "reason", disconnectReason);
+    appendLabelIfNotNull(buffer, "msg", message);
 
     writer.writeRecord(buffer.toString());
   }
@@ -936,38 +850,19 @@ public final class TextAccessLogPublisher extends
       if (extOpHandler != null)
       {
         String name = extOpHandler.getExtendedOperationName();
-        if (name != null)
-        {
-          buffer.append(" name=\"");
-          buffer.append(name);
-          buffer.append("\"");
-        }
+        appendLabelIfNotNull(buffer, "name", name);
       }
-      buffer.append(" oid=\"");
-      buffer.append(oid);
-      buffer.append('\"');
+      appendLabel(buffer, "oid", oid);
     }
 
     buffer.append(" result=");
     buffer.append(extendedOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = extendedOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, extendedOperation);
 
     logAdditionalLogItems(extendedOperation, buffer);
 
-    buffer.append(" etime=");
-    long etime = extendedOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = extendedOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, extendedOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1023,31 +918,14 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(modifyDNOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = modifyDNOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, modifyDNOperation);
 
     logAdditionalLogItems(modifyDNOperation, buffer);
 
-    final DN proxiedAuthDN = modifyDNOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", modifyDNOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = modifyDNOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = modifyDNOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, modifyDNOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1103,31 +981,14 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(modifyOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = modifyOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, modifyOperation);
 
     logAdditionalLogItems(modifyOperation, buffer);
 
-    final DN proxiedAuthDN = modifyOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", modifyOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = modifyOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = modifyOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, modifyOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1183,34 +1044,17 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(searchOperation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = searchOperation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" message=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    appendMessage(buffer, searchOperation);
 
     buffer.append(" nentries=");
     buffer.append(searchOperation.getEntriesSent());
 
     logAdditionalLogItems(searchOperation, buffer);
 
-    final DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
-    if (proxiedAuthDN != null)
-    {
-      buffer.append(" authzDN=\"");
-      proxiedAuthDN.toString(buffer);
-      buffer.append('\"');
-    }
+    appendLabelIfNotNull(buffer, "authzDN", searchOperation
+        .getProxiedAuthorizationDN());
 
-    buffer.append(" etime=");
-    long etime = searchOperation.getProcessingNanoTime();
-    if (etime <= -1)
-    {
-      etime = searchOperation.getProcessingTime();
-    }
-    buffer.append(etime);
+    appendEtime(buffer, searchOperation);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1278,9 +1122,7 @@ public final class TextAccessLogPublisher extends
   private void appendAddRequest(final AddOperation addOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" dn=\"");
-    buffer.append(addOperation.getRawEntryDN().toString());
-    buffer.append("\"");
+    appendLabel(buffer, "dn", addOperation.getRawEntryDN());
     appendRequestControls(addOperation, buffer);
     if (addOperation.isSynchronizationOperation())
     {
@@ -1315,9 +1157,7 @@ public final class TextAccessLogPublisher extends
       break;
     }
 
-    buffer.append(" dn=\"");
-    buffer.append(bindOperation.getRawBindDN().toString());
-    buffer.append("\"");
+    appendLabel(buffer, "dn", bindOperation.getRawBindDN());
     appendRequestControls(bindOperation, buffer);
     if (bindOperation.isSynchronizationOperation())
     {
@@ -1330,9 +1170,8 @@ public final class TextAccessLogPublisher extends
   private void appendCompareRequest(final CompareOperation compareOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" dn=\"");
-    buffer.append(compareOperation.getRawEntryDN().toString());
-    buffer.append("\" attr=");
+    appendLabel(buffer, "dn", compareOperation.getRawEntryDN());
+    buffer.append(" attr=");
     buffer.append(compareOperation.getAttributeType().getNameOrOID());
     appendRequestControls(compareOperation, buffer);
     if (compareOperation.isSynchronizationOperation())
@@ -1346,9 +1185,7 @@ public final class TextAccessLogPublisher extends
   private void appendDeleteRequest(final DeleteOperation deleteOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" dn=\"");
-    buffer.append(deleteOperation.getRawEntryDN().toString());
-    buffer.append("\"");
+    appendLabel(buffer, "dn", deleteOperation.getRawEntryDN());
     appendRequestControls(deleteOperation, buffer);
     if (deleteOperation.isSynchronizationOperation())
     {
@@ -1367,16 +1204,9 @@ public final class TextAccessLogPublisher extends
     if (extOpHandler != null)
     {
       final String name = extOpHandler.getExtendedOperationName();
-      if (name != null)
-      {
-        buffer.append(" name=\"");
-        buffer.append(name);
-        buffer.append("\"");
-      }
+      appendLabelIfNotNull(buffer, "name", name);
     }
-    buffer.append(" oid=\"");
-    buffer.append(oid);
-    buffer.append("\"");
+    appendLabel(buffer, "oid", oid);
     appendRequestControls(extendedOperation, buffer);
     if (extendedOperation.isSynchronizationOperation())
     {
@@ -1386,7 +1216,53 @@ public final class TextAccessLogPublisher extends
 
 
 
-  // Appends the common log header information to the provided buffer.
+  private void appendLabel(final StringBuilder buffer, final String label,
+      final Object obj)
+  {
+    buffer.append(" ").append(label).append("=\"");
+    if (obj != null)
+    {
+      buffer.append(obj);
+    }
+    buffer.append('\"');
+  }
+
+  private void appendLabelIfNotNull(final StringBuilder buffer,
+      final String label, final Object obj)
+  {
+    if (obj != null)
+    {
+      appendLabel(buffer, label, obj);
+    }
+  }
+
+  private void appendMessage(final StringBuilder buffer,
+      final Operation operation)
+  {
+    final MessageBuilder msg = operation.getErrorMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      appendLabel(buffer, "message", msg);
+    }
+  }
+
+  private void appendEtime(final StringBuilder buffer,
+      final Operation operation)
+  {
+    buffer.append(" etime=");
+    // the server can be configured to log processing time as nanos xor millis
+    long etime = operation.getProcessingNanoTime();
+    if (etime <= -1)
+    {
+      // if it is not configured for nanos, then use millis.
+      etime = operation.getProcessingTime();
+    }
+    buffer.append(etime);
+  }
+
+  /**
+   * Appends the common log header information to the provided buffer.
+   */
   private void appendHeader(final Operation operation, final String opType,
       final String category, final StringBuilder buffer)
   {
@@ -1412,20 +1288,12 @@ public final class TextAccessLogPublisher extends
   private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" dn=\"");
-    buffer.append(modifyDNOperation.getRawEntryDN().toString());
-    buffer.append("\" newRDN=\"");
-    buffer.append(modifyDNOperation.getRawNewRDN().toString());
-    buffer.append("\" deleteOldRDN=");
-    buffer.append(modifyDNOperation.deleteOldRDN());
+    appendLabel(buffer, "dn", modifyDNOperation.getRawEntryDN());
+    appendLabel(buffer, "newRDN", modifyDNOperation.getRawNewRDN());
+    appendLabel(buffer, "deleteOldRDN", modifyDNOperation.deleteOldRDN());
 
     final ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
-    if (newSuperior != null)
-    {
-      buffer.append(" newSuperior=\"");
-      buffer.append(newSuperior.toString());
-      buffer.append("\"");
-    }
+    appendLabelIfNotNull(buffer, "newSuperior", newSuperior);
     appendRequestControls(modifyDNOperation, buffer);
     if (modifyDNOperation.isSynchronizationOperation())
     {
@@ -1438,9 +1306,7 @@ public final class TextAccessLogPublisher extends
   private void appendModifyRequest(final ModifyOperation modifyOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" dn=\"");
-    buffer.append(modifyOperation.getRawEntryDN().toString());
-    buffer.append("\"");
+    appendLabel(buffer, "dn", modifyOperation.getRawEntryDN());
     appendRequestControls(modifyOperation, buffer);
     if (modifyOperation.isSynchronizationOperation())
     {
@@ -1495,9 +1361,8 @@ public final class TextAccessLogPublisher extends
   private void appendSearchRequest(final SearchOperation searchOperation,
       final StringBuilder buffer)
   {
-    buffer.append(" base=\"");
-    buffer.append(searchOperation.getRawBaseDN().toString());
-    buffer.append("\" scope=");
+    appendLabel(buffer, "base", searchOperation.getRawBaseDN());
+    buffer.append(" scope=");
     buffer.append(searchOperation.getScope());
     buffer.append(" filter=\"");
     searchOperation.getRawFilter().toString(buffer);
@@ -1530,7 +1395,9 @@ public final class TextAccessLogPublisher extends
 
 
 
-  // Appends additional log items to the provided builder.
+  /**
+   * Appends additional log items to the provided builder.
+   */
   private void logAdditionalLogItems(final Operation operation,
       final StringBuilder builder)
   {
