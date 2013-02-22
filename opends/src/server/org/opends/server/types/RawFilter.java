@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -32,12 +33,12 @@ import org.opends.messages.Message;
 import java.util.ArrayList;
 import java.io.IOException;
 
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPFilter;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -636,12 +637,12 @@ public abstract class RawFilter
     try
     {
       reader.readStartSequence();
-      // Should have atleast 1 filter.
-      do
+      // Should have at least 1 filter
+      // could also be an absolute true/false filter
+      while (reader.hasNextElement())
       {
         filterComponents.add(LDAPFilter.decode(reader));
       }
-      while(reader.hasNextElement());
       reader.readEndSequence();
     }
     catch (LDAPException le)
@@ -1135,6 +1136,7 @@ public abstract class RawFilter
    *
    * @return  A string representation of this search filter.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
