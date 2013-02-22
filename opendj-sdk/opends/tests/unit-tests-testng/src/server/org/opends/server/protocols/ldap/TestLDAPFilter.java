@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
+
+import java.util.ArrayList;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -36,8 +38,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 
-import static org.testng.Assert.assertEquals;
-import java.util.ArrayList;
+import static org.testng.Assert.*;
 
 public class TestLDAPFilter extends LdapTestCase
 {
@@ -195,17 +196,19 @@ public class TestLDAPFilter extends LdapTestCase
         {
             "(ds-sync-conflict=uid=\\5c+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab)",
             LDAPFilter.createEqualityFilter("ds-sync-conflict",
-                    ByteString.valueOf("uid=\\+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab")) }
+                    ByteString.valueOf("uid=\\+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab")) },
 
+      // OPENDJ-735
+      { "(&)", LDAPFilter.createANDFilter(new ArrayList<RawFilter>()) },
+
+      // OPENDJ-735
+      { "(|)", LDAPFilter.createORFilter(new ArrayList<RawFilter>()) }
     };
   }
 
   @Test(dataProvider = "filterstrings")
   public void testDecode(String filterStr, LDAPFilter filter) throws Exception
   {
-    //LDAPFilter decodedFilter = LDAPFilter.decode(filterStr);
-    //System.out.println(decodedFilter.);
-    //System.out.println(filter.toString());
     LDAPFilter decoded = LDAPFilter.decode(filterStr);
     assertEquals(decoded.toString(), filter.toString());
     assertEquals(decoded.getAssertionValue(), filter.getAssertionValue());
