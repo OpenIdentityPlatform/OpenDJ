@@ -1,0 +1,55 @@
+{
+    "primaryLDAPServers" : [
+        {
+            "hostname" : "localhost",
+            "port"     : 1389
+        }
+    ],
+
+    "authentication" : {
+        "bindDN"   : "cn=directory manager",
+        "password" : "password"
+    },
+
+    "connectionPoolSize"       : 10,
+    "heartBeatIntervalSeconds" : 30,
+
+    "mappings" : {
+        "/users" : {
+            "baseDN" : "ou=people,dc=example,dc=com",
+            "readOnUpdatePolicy" : "controls",
+            "additionalLDAPAttributes" : [
+                {
+                    "type" : "objectClass",
+                    "values" : [
+                        "top",
+                        "person",
+                        "organizationalPerson",
+                        "inetOrgPerson"
+                    ]
+                }
+            ],
+            "namingStrategy" : {
+                "strategy" : "clientDNNaming",
+                "dnAttribute" : "uid"
+            },
+            "etagAttribute" : "etag",
+            "attributes" : {
+                "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
+                "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
+                "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
+                "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
+                "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
+                "name" : { "object"   : {
+                    "givenName"  : { "simple" : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
+                    "familyName" : { "simple" : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } }
+                } },
+                "contactInformation" : { "object"   : {
+                    "telephoneNumber" : { "simple" : { "ldapAttribute" : "telephoneNumber", "isSingleValued" : true } },
+                    "emailAddress"    : { "simple" : { "ldapAttribute" : "mail", "isSingleValued" : true } }
+                } }
+            }
+        }
+    }
+}
+
