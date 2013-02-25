@@ -23,12 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -45,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
@@ -52,18 +51,19 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SubentryManager;
-import org.opends.server.util.LDIFException;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.opends.server.types.SubEntry.CollectiveConflictBehavior;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFWriter;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -103,8 +103,12 @@ public class Entry
   // The set of user attributes for this entry.
   private Map<AttributeType,List<Attribute>> userAttributes;
 
-  // The set of suppressed real attributes for this entry.
-  private Map<AttributeType,List<Attribute>> suppressedAttributes;
+  /**
+   * The set of suppressed real attributes for this entry. It contains real
+   * attributes that have been overridden by virtual attributes.
+   */
+  private final Map<AttributeType, List<Attribute>> suppressedAttributes =
+      new LinkedHashMap<AttributeType, List<Attribute>>();
 
   // The set of objectclasses for this entry.
   private Map<ObjectClass,String> objectClasses;
@@ -148,8 +152,6 @@ public class Entry
   {
     attachment                          = null;
     schema                              = DirectoryServer.getSchema();
-    suppressedAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
 
     if (dn == null)
     {
@@ -3830,82 +3832,74 @@ public class Entry
             {
               // There is a conflict with an existing operational
               // attribute.
-              if (attrList.get(0).isVirtual())
-              {
-                // The existing attribute is already virtual,
-                // so we've got a different conflict, but
-                // we'll let the first win.
-                // FIXME -- Should we handle this differently?
-                continue;
-              }
-
-              // The conflict is with a real attribute.  See what the
-              // conflict behavior is and figure out how to handle it.
-              switch (subEntry.getConflictBehavior())
-              {
-                case REAL_OVERRIDES_VIRTUAL:
-                  // We don't need to update the entry because
-                  // the real attribute will take precedence.
-                  break;
-
-                case VIRTUAL_OVERRIDES_REAL:
-                  // We need to move the real attribute to the
-                  // suppressed list and replace it with the
-                  // virtual attribute.
-                  suppressedAttributes.put(attributeType, attrList);
-                  attrList = new LinkedList<Attribute>();
-                  attrList.add(collectiveAttr);
-                  operationalAttributes.put(attributeType, attrList);
-                  break;
-
-                case MERGE_REAL_AND_VIRTUAL:
-                  // We need to add the virtual attribute to the
-                  // list and keep the existing real attribute(s).
-                  attrList.add(collectiveAttr);
-                  break;
-              }
+              resolveCollectiveConflict(subEntry.getConflictBehavior(),
+                  collectiveAttr, attrList, operationalAttributes,
+                  attributeType);
             }
           }
           else
           {
             // There is a conflict with an existing user attribute.
-            if (attrList.get(0).isVirtual())
-            {
-              // The existing attribute is already virtual,
-              // so we've got a different conflict, but
-              // we'll let the first win.
-              // FIXME -- Should we handle this differently?
-              continue;
-            }
-
-            // The conflict is with a real attribute.  See what the
-            // conflict behavior is and figure out how to handle it.
-            switch (subEntry.getConflictBehavior())
-            {
-              case REAL_OVERRIDES_VIRTUAL:
-                // We don't need to update the entry because the real
-                // attribute will take precedence.
-                break;
-
-              case VIRTUAL_OVERRIDES_REAL:
-                // We need to move the real attribute to the
-                // suppressed list and replace it with the
-                // virtual attribute.
-                suppressedAttributes.put(attributeType, attrList);
-                attrList = new LinkedList<Attribute>();
-                attrList.add(collectiveAttr);
-                userAttributes.put(attributeType, attrList);
-                break;
-
-              case MERGE_REAL_AND_VIRTUAL:
-                // We need to add the virtual attribute to the
-                // list and keep the existing real attribute(s).
-                attrList.add(collectiveAttr);
-                break;
-            }
+            resolveCollectiveConflict(subEntry.getConflictBehavior(),
+                collectiveAttr, attrList, userAttributes, attributeType);
           }
         }
       }
+    }
+  }
+
+  /**
+   * Resolves a conflict arising with a collective attribute.
+   *
+   * @param conflictBehavior
+   *          the behavior of the conflict
+   * @param collectiveAttr
+   *          the attribute in conflict
+   * @param attrList
+   *          the List of attribute where to resolve the conflict
+   * @param attributes
+   *          the Map of attributes where to solve the conflict
+   * @param attributeType
+   *          the attribute type used with the Map
+   */
+  private void resolveCollectiveConflict(
+      CollectiveConflictBehavior conflictBehavior, Attribute collectiveAttr,
+      List<Attribute> attrList, Map<AttributeType, List<Attribute>> attributes,
+      AttributeType attributeType)
+  {
+    if (attrList.get(0).isVirtual())
+    {
+      // The existing attribute is already virtual,
+      // so we've got a different conflict, but
+      // we'll let the first win.
+      // FIXME -- Should we handle this differently?
+      return;
+    }
+
+    // The conflict is with a real attribute. See what the
+    // conflict behavior is and figure out how to handle it.
+    switch (conflictBehavior)
+    {
+    case REAL_OVERRIDES_VIRTUAL:
+      // We don't need to update the entry because the real attribute will take
+      // precedence.
+      break;
+
+    case VIRTUAL_OVERRIDES_REAL:
+      // We need to move the real attribute to the
+      // suppressed list and replace it with the
+      // virtual attribute.
+      suppressedAttributes.put(attributeType, attrList);
+      attrList = new LinkedList<Attribute>();
+      attrList.add(collectiveAttr);
+      attributes.put(attributeType, attrList);
+      break;
+
+    case MERGE_REAL_AND_VIRTUAL:
+      // We need to add the virtual attribute to the
+      // list and keep the existing real attribute(s).
+      attrList.add(collectiveAttr);
+      break;
     }
   }
 
@@ -3947,79 +3941,14 @@ public class Entry
         {
           // There is a conflict with an existing operational
           // attribute.
-          if (attrList.get(0).isVirtual())
-          {
-            // The existing attribute is already virtual, so we've got
-            // a different conflict, but we'll let the first win.
-            // FIXME -- Should we handle this differently?
-            continue;
-          }
-
-          // The conflict is with a real attribute.  See what the
-          // conflict behavior is and figure out how to handle it.
-          switch (rule.getConflictBehavior())
-          {
-            case REAL_OVERRIDES_VIRTUAL:
-              // We don't need to update the entry because the real
-              // attribute will take precedence.
-              break;
-
-            case VIRTUAL_OVERRIDES_REAL:
-              // We need to move the real attribute to the suppressed
-              // list and replace it with the virtual attribute.
-              suppressedAttributes.put(attributeType, attrList);
-              attrList = new LinkedList<Attribute>();
-              attrList.add(new VirtualAttribute(attributeType, this,
-                                                rule));
-              operationalAttributes.put(attributeType, attrList);
-              break;
-
-            case MERGE_REAL_AND_VIRTUAL:
-              // We need to add the virtual attribute to the list and
-              // keep the existing real attribute(s).
-              attrList.add(new VirtualAttribute(attributeType, this,
-                                                rule));
-              break;
-          }
+          resolveVirtualConflict(rule, attrList, operationalAttributes,
+              attributeType);
         }
       }
       else
       {
         // There is a conflict with an existing user attribute.
-        if (attrList.get(0).isVirtual())
-        {
-          // The existing attribute is already virtual, so we've got
-          // a different conflict, but we'll let the first win.
-          // FIXME -- Should we handle this differently?
-          continue;
-        }
-
-        // The conflict is with a real attribute.  See what the
-        // conflict behavior is and figure out how to handle it.
-        switch (rule.getConflictBehavior())
-        {
-          case REAL_OVERRIDES_VIRTUAL:
-            // We don't need to update the entry because the real
-            // attribute will take precedence.
-            break;
-
-          case VIRTUAL_OVERRIDES_REAL:
-            // We need to move the real attribute to the suppressed
-            // list and replace it with the virtual attribute.
-            suppressedAttributes.put(attributeType, attrList);
-            attrList = new LinkedList<Attribute>();
-            attrList.add(new VirtualAttribute(attributeType, this,
-                                              rule));
-            userAttributes.put(attributeType, attrList);
-            break;
-
-          case MERGE_REAL_AND_VIRTUAL:
-            // We need to add the virtual attribute to the list and
-            // keep the existing real attribute(s).
-            attrList.add(new VirtualAttribute(attributeType, this,
-                                              rule));
-            break;
-        }
+        resolveVirtualConflict(rule, attrList, userAttributes, attributeType);
       }
     }
 
@@ -4027,6 +3956,55 @@ public class Entry
     processCollectiveAttributes();
   }
 
+  /**
+   * Resolves a conflict arising with a virtual attribute.
+   *
+   * @param rule
+   *          the VirtualAttributeRule in conflict
+   * @param attrList
+   *          the List of attribute where to resolve the conflict
+   * @param attributes
+   *          the Map of attribute where to resolve the conflict
+   * @param attributeType
+   *          the attribute type used with the Map
+   */
+  private void resolveVirtualConflict(VirtualAttributeRule rule,
+      List<Attribute> attrList, Map<AttributeType, List<Attribute>> attributes,
+      AttributeType attributeType)
+  {
+    if (attrList.get(0).isVirtual())
+    {
+      // The existing attribute is already virtual, so we've got
+      // a different conflict, but we'll let the first win.
+      // FIXME -- Should we handle this differently?
+      return;
+    }
+
+    // The conflict is with a real attribute. See what the
+    // conflict behavior is and figure out how to handle it.
+    switch (rule.getConflictBehavior())
+    {
+    case REAL_OVERRIDES_VIRTUAL:
+      // We don't need to update the entry because the real
+      // attribute will take precedence.
+      break;
+
+    case VIRTUAL_OVERRIDES_REAL:
+      // We need to move the real attribute to the suppressed
+      // list and replace it with the virtual attribute.
+      suppressedAttributes.put(attributeType, attrList);
+      attrList = new LinkedList<Attribute>();
+      attrList.add(new VirtualAttribute(attributeType, this, rule));
+      attributes.put(attributeType, attrList);
+      break;
+
+    case MERGE_REAL_AND_VIRTUAL:
+      // We need to add the virtual attribute to the list and
+      // keep the existing real attribute(s).
+      attrList.add(new VirtualAttribute(attributeType, this, rule));
+      break;
+    }
+  }
 
 
   /**
@@ -4580,54 +4558,46 @@ public class Entry
 
 
     // Next, add the set of user attributes.
-    for (List<Attribute> attrList : userAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        StringBuilder attrName = new StringBuilder(a.getName());
-        for (String o : a.getOptions())
-        {
-          attrName.append(";");
-          attrName.append(o);
-        }
-
-        for (AttributeValue v : a)
-        {
-          StringBuilder attrLine = new StringBuilder();
-          attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValue());
-          ldifLines.add(attrLine);
-        }
-      }
-    }
-
+    addLinesForAttributes(ldifLines, userAttributes);
 
     // Finally, add the set of operational attributes.
-    for (List<Attribute> attrList : operationalAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        StringBuilder attrName = new StringBuilder(a.getName());
-        for (String o : a.getOptions())
-        {
-          attrName.append(";");
-          attrName.append(o);
-        }
-
-        for (AttributeValue v : a)
-        {
-          StringBuilder attrLine = new StringBuilder();
-          attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValue());
-          ldifLines.add(attrLine);
-        }
-      }
-    }
-
+    addLinesForAttributes(ldifLines, operationalAttributes);
 
     return ldifLines;
   }
 
+
+  /**
+   * Add LDIF lines for each passed in attributes.
+   *
+   * @param ldifLines
+   *          the List where to add the LDIF lines
+   * @param attributes
+   *          the List of attributes to convert into LDIf lines
+   */
+  private void addLinesForAttributes(List<StringBuilder> ldifLines,
+      Map<AttributeType, List<Attribute>> attributes)
+  {
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        StringBuilder attrName = new StringBuilder(a.getName());
+        for (String o : a.getOptions())
+        {
+          attrName.append(";");
+          attrName.append(o);
+        }
+
+        for (AttributeValue v : a)
+        {
+          StringBuilder attrLine = new StringBuilder(attrName);
+          appendLDIFSeparatorAndValue(attrLine, v.getValue());
+          ldifLines.add(attrLine);
+        }
+      }
+    }
+  }
 
 
   /**
@@ -4703,7 +4673,7 @@ public class Entry
     dnLine.append("dn");
     appendLDIFSeparatorAndValue(dnLine,
         ByteString.valueOf(dn.toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    LDIFWriter.writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
     // Next, the set of objectclasses.
@@ -4713,7 +4683,7 @@ public class Entry
       if (typesOnly)
       {
         StringBuilder ocLine = new StringBuilder("objectClass:");
-        writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
+        LDIFWriter.writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
       }
       else
       {
@@ -4722,7 +4692,7 @@ public class Entry
           StringBuilder ocLine = new StringBuilder();
           ocLine.append("objectClass: ");
           ocLine.append(s);
-          writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
+          LDIFWriter.writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
         }
       }
     }
@@ -4738,125 +4708,15 @@ public class Entry
 
 
     // Now the set of user attributes.
-    for (AttributeType attrType : userAttributes.keySet())
-    {
-      if (exportConfig.includeAttribute(attrType))
-      {
-        List<Attribute> attrList = userAttributes.get(attrType);
-        for (Attribute a : attrList)
-        {
-          if (a.isVirtual() &&
-              (! exportConfig.includeVirtualAttributes()))
-          {
-            continue;
-          }
-
-          if (typesOnly)
-          {
-            StringBuilder attrName = new StringBuilder(a.getName());
-            for (String o : a.getOptions())
-            {
-              attrName.append(";");
-              attrName.append(o);
-            }
-            attrName.append(":");
-
-            writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
-          }
-          else
-          {
-            StringBuilder attrName = new StringBuilder(a.getName());
-            for (String o : a.getOptions())
-            {
-              attrName.append(";");
-              attrName.append(o);
-            }
-
-            for (AttributeValue v : a)
-            {
-              StringBuilder attrLine = new StringBuilder();
-              attrLine.append(attrName);
-              appendLDIFSeparatorAndValue(attrLine,
-                                          v.getValue());
-              writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
-            }
-          }
-        }
-      }
-      else
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Skipping user attribute %s for entry %s because of " +
-                       "the export configuration.",
-              attrType.getNameOrOID(), String.valueOf(dn));
-        }
-      }
-    }
+    writeLDIFLines(userAttributes, typesOnly, "user", exportConfig, writer,
+        wrapColumn, wrapLines);
 
 
     // Next, the set of operational attributes.
     if (exportConfig.includeOperationalAttributes())
     {
-      for (AttributeType attrType : operationalAttributes.keySet())
-      {
-        if (exportConfig.includeAttribute(attrType))
-        {
-          List<Attribute> attrList =
-               operationalAttributes.get(attrType);
-          for (Attribute a : attrList)
-          {
-            if (a.isVirtual() &&
-                (! exportConfig.includeVirtualAttributes()))
-            {
-              continue;
-            }
-
-            if (typesOnly)
-            {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
-              attrName.append(":");
-
-              writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
-            }
-            else
-            {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
-
-              for (AttributeValue v : a)
-              {
-                StringBuilder attrLine = new StringBuilder();
-                attrLine.append(attrName);
-                appendLDIFSeparatorAndValue(attrLine,
-                                            v.getValue());
-                writeLDIFLine(attrLine, writer, wrapLines,
-                              wrapColumn);
-              }
-            }
-          }
-        }
-        else
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Skipping operational attribute %s for entry %s " +
-                         "because of the export configuration.",
-                         attrType.getNameOrOID(), String.valueOf(dn));
-          }
-        }
-      }
+      writeLDIFLines(operationalAttributes, typesOnly, "operational",
+          exportConfig, writer, wrapColumn, wrapLines);
     }
     else
     {
@@ -4881,37 +4741,7 @@ public class Entry
         {
           for (Attribute a : suppressedAttributes.get(t))
           {
-            if (typesOnly)
-            {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
-              attrName.append(":");
-
-              writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
-            }
-            else
-            {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
-
-              for (AttributeValue v : a)
-              {
-                StringBuilder attrLine = new StringBuilder();
-                attrLine.append(attrName);
-                appendLDIFSeparatorAndValue(attrLine,
-                                            v.getValue());
-                writeLDIFLine(attrLine, writer, wrapLines,
-                              wrapColumn);
-              }
-            }
+            writeLDIFLine(a, typesOnly, writer, wrapLines, wrapColumn);
           }
         }
       }
@@ -4926,6 +4756,110 @@ public class Entry
   }
 
 
+  /**
+   * Writes the provided List of attributes to LDIF using the provided
+   * information.
+   *
+   * @param attributes
+   *          the List of attributes to write as LDIF
+   * @param typesOnly
+   *          if true, only writes the type information, else writes the type
+   *          information and values for the attribute.
+   * @param attributeType
+   *          the type of attribute being written to LDIF
+   * @param exportConfig
+   *          configures the export to LDIF
+   * @param writer
+   *          The writer to which the data should be written. It must not be
+   *          <CODE>null</CODE>.
+   * @param wrapLines
+   *          Indicates whether to wrap long lines.
+   * @param wrapColumn
+   *          The column at which long lines should be wrapped.
+   * @throws IOException
+   *           If a problem occurs while writing the information.
+   */
+  private void writeLDIFLines(Map<AttributeType, List<Attribute>> attributes,
+      final boolean typesOnly, String attributeType,
+      LDIFExportConfig exportConfig, BufferedWriter writer, int wrapColumn,
+      boolean wrapLines) throws IOException
+  {
+    for (AttributeType attrType : attributes.keySet())
+    {
+      if (exportConfig.includeAttribute(attrType))
+      {
+        List<Attribute> attrList = attributes.get(attrType);
+        for (Attribute a : attrList)
+        {
+          if (a.isVirtual() &&
+              (! exportConfig.includeVirtualAttributes()))
+          {
+            continue;
+          }
+
+          writeLDIFLine(a, typesOnly, writer, wrapLines, wrapColumn);
+        }
+      }
+      else
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugVerbose("Skipping %s attribute %s for entry %s "
+              + "because of the export configuration.", attributeType, attrType
+              .getNameOrOID(), String.valueOf(dn));
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Writes the provided attribute to LDIF using the provided information.
+   *
+   * @param attribute
+   *          the attribute to write to LDIF
+   * @param typesOnly
+   *          if true, only writes the type information, else writes the type
+   *          information and values for the attribute.
+   * @param writer
+   *          The writer to which the data should be written. It must not be
+   *          <CODE>null</CODE>.
+   * @param wrapLines
+   *          Indicates whether to wrap long lines.
+   * @param wrapColumn
+   *          The column at which long lines should be wrapped.
+   * @throws IOException
+   *           If a problem occurs while writing the information.
+   */
+  private void writeLDIFLine(Attribute attribute, final boolean typesOnly,
+      BufferedWriter writer, boolean wrapLines, int wrapColumn)
+      throws IOException
+  {
+    StringBuilder attrName = new StringBuilder(attribute.getName());
+    for (String o : attribute.getOptions())
+    {
+      attrName.append(";");
+      attrName.append(o);
+    }
+
+    if (typesOnly)
+    {
+      attrName.append(":");
+
+      LDIFWriter.writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
+    }
+    else
+    {
+      for (AttributeValue v : attribute)
+      {
+        StringBuilder attrLine = new StringBuilder(attrName);
+        appendLDIFSeparatorAndValue(attrLine, v.getValue());
+        LDIFWriter.writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
+      }
+    }
+  }
+
+
 
   /**
    * Retrieves the name of the protocol associated with this protocol
@@ -4934,6 +4868,7 @@ public class Entry
    * @return  The name of the protocol associated with this protocol
    *          element.
    */
+  @Override
   public String getProtocolElementName()
   {
     return "Entry";
@@ -5076,6 +5011,7 @@ public class Entry
    * @param  buffer  The buffer into which the string representation
    *                 should be written.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append(toString());
@@ -5092,6 +5028,7 @@ public class Entry
    * @param  indent  The number of spaces that should be used to
    *                 indent the resulting string representation.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);
