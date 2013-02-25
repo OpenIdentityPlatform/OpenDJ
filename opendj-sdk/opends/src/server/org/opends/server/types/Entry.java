@@ -2945,16 +2945,19 @@ public class Entry
     deepCopy(operationalAttributes, operationalAttrsCopy, false,
         false, false, true, false);
 
+    // Put back all the suppressed attributes where they belonged to.
+    // Then hopefully processVirtualAttributes() will rebuild the suppressed
+    // attribute list correctly.
     for (AttributeType t : suppressedAttributes.keySet())
     {
       List<Attribute> attrList = suppressedAttributes.get(t);
       if (t.isOperational())
       {
-        operationalAttributes.put(t, attrList);
+        operationalAttrsCopy.put(t, attrList);
       }
       else
       {
-        userAttributes.put(t, attrList);
+        userAttrsCopy.put(t, attrList);
       }
     }
 
