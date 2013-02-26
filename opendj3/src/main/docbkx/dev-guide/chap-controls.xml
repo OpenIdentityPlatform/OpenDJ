@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-controls'
@@ -333,8 +333,9 @@ Change number: -1</programlisting>
   </indexterm>
 
   <para>Your application can attach the GetEffectiveRights request control to
-  a search in order to determine what access a user has to perform operations
-  on entries found. See the Internet-Draft on the <link xlink:show="new"
+  retrieve information about what the directory server permits a user to do.
+  Use this control during a search to see permissions on the entries returned.
+  See the Internet-Draft on the <link xlink:show="new"
   xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-acl-model">Access
   Control Model for LDAP</link> for background.</para>
 
