@@ -577,17 +577,17 @@ for a detailed log of this operation.</screen>
    Total<subscript>conn</subscript> is expressed as follows.</para>
    
    <equation>
-    <mathphrase>Total<subscript>conn</subscript> = N<subscript>RS</subscript> *
-    (N<subscript>RS</subscript>-1)/2 + N<subscript>DS</subscript></mathphrase>
+    <mathphrase>Total<subscript>conn</subscript> = (N<subscript>RS</subscript> *
+    N<subscript>RS</subscript>-1)/2 + N<subscript>DS</subscript></mathphrase>
    </equation>
    
    <para>Here, N<subscript>RS</subscript> is the number of replication servers,
    and N<subscript>DS</subscript> is the number of stand-alone directory
-   servers. In other words, if you have only three servers, then
-   Total<subscript>conn</subscript> is three with no stand-alone servers.
+   servers. In other words, if you have only 3 servers, then
+   Total<subscript>conn</subscript> is 3 with no stand-alone servers.
    However, if you have two data centers, and need 12 directory servers, then
    with no stand-alone directory servers Total<subscript>conn</subscript> is
-   (12 * 11)/2 or 66. Yet, with four stand-alone replication servers, and 12
+   (12 * 11)/2 or 66. Yet, with 4 stand-alone replication servers, and 12
    stand-alone directory servers, Total<subscript>conn</subscript> is
    (4 * 3)/2 + 12, or 18, with only four of those connections needing to go
    over the WAN. (By running four directory servers that also run replication
