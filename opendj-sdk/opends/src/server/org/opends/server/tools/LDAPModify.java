@@ -24,13 +24,14 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2012 profiq, s.r.o.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -180,7 +181,7 @@ public class LDAPModify
       Message message =
           ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(fileNameValue,
                   e.getLocalizedMessage());
-      throw new IOException(message.toString());
+      throw new FileNotFoundException(message.toString());
     }
 
     while (true)
@@ -1272,6 +1273,14 @@ public class LDAPModify
                                       lce.getMatchedDN());
       int code = lce.getResultCode();
       return code;
+    } catch (FileNotFoundException fe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, fe);
+      }
+      err.println(wrapText(fe.getMessage(), MAX_LINE_WIDTH));
+      return CLIENT_SIDE_PARAM_ERROR;
     } catch(Exception e)
     {
       if (debugEnabled())
