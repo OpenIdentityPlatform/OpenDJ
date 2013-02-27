@@ -294,7 +294,17 @@ public class RebuildIndex extends TaskTool
 
     if(rebuildAll.isPresent() && rebuildDegraded.isPresent())
     {
-      Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get();
+      Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildAll",
+          "rebuildDegraded");
+      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
+      return 1;
+    }
+
+    if(rebuildAll.isPresent() && clearDegradedState.isPresent())
+    {
+      Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildAll",
+          "clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
       return 1;
