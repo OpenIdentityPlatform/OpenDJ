@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock, AS.
  */
 package org.opends.server.tools;
 
@@ -54,9 +55,6 @@ import static org.testng.Assert.*;
 public class LDAPCompareTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing an invalid bind password.
-  private String invalidPasswordFile;
-
   // The path to a file containing a valid bind password.
   private String validPasswordFile;
 
@@ -92,7 +90,6 @@ public class LDAPCompareTestCase
     fileWriter = new FileWriter(pwFile);
     fileWriter.write("wrongPassword" + System.getProperty("line.separator"));
     fileWriter.close();
-    invalidPasswordFile = pwFile.getAbsolutePath();
   }
 
   @AfterClass
@@ -396,7 +393,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple LDAPv2 compare.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSimpleLDAPv2Compare()
@@ -424,7 +421,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple LDAPv3 compare in which the assertion is true.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSimpleLDAPv3CompareTrue()
@@ -452,7 +449,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple LDAPv3 compare in which the assertion is false.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSimpleLDAPv3CompareFalse()
@@ -480,7 +477,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple compare using SSL with blind trust.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSSLBlindTrust()
@@ -509,7 +506,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple compare using SSL with a trust store.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSSLTrustStore()
@@ -541,7 +538,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple compare using StartTLS with blind trust.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testStartTLSBlindTrust()
@@ -570,7 +567,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a simple compare using StartTLS with a trust store.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testStartTLSTrustStore()
@@ -977,7 +974,7 @@ public class LDAPCompareTestCase
    * Tests a a comparison in which the assertion value is base64-encoded with a
    * valid encoding.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareValidBase64Assertion()
@@ -1006,7 +1003,7 @@ public class LDAPCompareTestCase
    * Tests a a comparison in which the assertion value should be base64-encoded
    * but uses an incorrect encoding.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareInvalidBase64Assertion()
@@ -1034,7 +1031,7 @@ public class LDAPCompareTestCase
   /**
    * Tests a a comparison in which the assertion value is contained in a file.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareAssertionValueFromFile()
@@ -1069,7 +1066,7 @@ public class LDAPCompareTestCase
    * Tests a a comparison in which the assertion value is contained in a file
    * that does not exist.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareAssertionValueFromNonExistentFile()
@@ -1096,7 +1093,7 @@ public class LDAPCompareTestCase
    * Tests a a comparison using the LDAP assertion control in which the
    * assertion is true.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareLDAPAssertionControlTrue()
@@ -1126,7 +1123,7 @@ public class LDAPCompareTestCase
    * Tests a a comparison using the LDAP assertion control in which the
    * assertion is not true.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareLDAPAssertionControlNotTrue()
@@ -1156,7 +1153,7 @@ public class LDAPCompareTestCase
    * Tests a a compare operation reading the DNs to compare from a file.  Some
    * of the compares will succeed and others will not.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareDNsFromFile()
@@ -1193,7 +1190,7 @@ public class LDAPCompareTestCase
    * Tests a a compare operation reading the DNs to compare from a file that
    * doesn't exist.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCompareDNsFromNonExistentFile()
