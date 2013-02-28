@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -41,9 +40,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -53,8 +52,9 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -245,7 +245,7 @@ public class LDIFDiff
 
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
 
@@ -261,7 +261,7 @@ public class LDIFDiff
 
       err.println(message);
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -269,7 +269,7 @@ public class LDIFDiff
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
-      return 0;
+      return SUCCESS;
     }
 
     if (doCheckSchema.isPresent() && !configFile.isPresent())
@@ -307,7 +307,7 @@ public class LDIFDiff
                   String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
-          return 1;
+          return OPERATIONS_ERROR;
         }
 
         try
@@ -321,7 +321,7 @@ public class LDIFDiff
                   String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
-          return 1;
+          return OPERATIONS_ERROR;
         }
 
         try
@@ -334,7 +334,7 @@ public class LDIFDiff
                   String.valueOf(configFile.getValue()),
                   e.getMessage());
           err.println(message);
-          return 1;
+          return OPERATIONS_ERROR;
         }
       }
     }
@@ -363,7 +363,7 @@ public class LDIFDiff
                 ignoreAttrsFile.getValue(),
                 String.valueOf(e));
         err.println(message);
-        return 1;
+        return OPERATIONS_ERROR;
       }
       finally
       {
@@ -404,7 +404,7 @@ public class LDIFDiff
                 ignoreEntriesFile.getValue(),
                 String.valueOf(e));
         err.println(message);
-        return 1;
+        return OPERATIONS_ERROR;
       }
       finally
       {
@@ -429,7 +429,7 @@ public class LDIFDiff
               sourceLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
     TreeMap<DN,Entry> sourceMap = new TreeMap<DN,Entry>();
@@ -455,7 +455,7 @@ public class LDIFDiff
               sourceLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
     finally
     {
@@ -478,7 +478,7 @@ public class LDIFDiff
               targetLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
     TreeMap<DN,Entry> targetMap = new TreeMap<DN,Entry>();
@@ -504,7 +504,7 @@ public class LDIFDiff
               targetLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
     finally
     {
@@ -544,7 +544,7 @@ public class LDIFDiff
     {
       Message message = ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
 
@@ -558,7 +558,7 @@ public class LDIFDiff
           // They're both empty, so there are no differences.
           Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
           writer.writeComment(message, 0);
-          return 0;
+          return SUCCESS;
         }
         else
         {
@@ -568,7 +568,7 @@ public class LDIFDiff
           {
             writeAdd(writer, targetMap.get(targetIterator.next()));
           }
-          return 0;
+          return SUCCESS;
         }
       }
       else if (targetMap.isEmpty())
@@ -579,7 +579,7 @@ public class LDIFDiff
         {
           writeDelete(writer, sourceMap.get(sourceIterator.next()));
         }
-        return 0;
+        return SUCCESS;
       }
       else
       {
@@ -719,7 +719,7 @@ public class LDIFDiff
       Message message =
               ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(String.valueOf(e));
       err.println(message);
-      return 1;
+      return OPERATIONS_ERROR;
     }
     finally
     {
@@ -731,7 +731,7 @@ public class LDIFDiff
 
 
     // If we've gotten to this point, then everything was successful.
-    return 0;
+    return SUCCESS;
   }
 
 
