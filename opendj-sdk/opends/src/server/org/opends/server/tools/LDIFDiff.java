@@ -43,7 +43,21 @@ import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.args.ArgumentException;
@@ -153,6 +167,7 @@ public class LDIFDiff
 
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;
+    BooleanArgument useCompareResultCode;
     BooleanArgument singleValueChanges;
     BooleanArgument doCheckSchema;
     StringArgument  configClass;
@@ -238,11 +253,17 @@ public class LDIFDiff
                                       OPTION_LONG_HELP,
                                       INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
+
+      useCompareResultCode =
+          new BooleanArgument("usecompareresultcode", 'r',
+              "useCompareResultCode", INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT
+                  .get());
+      argParser.addArgument(useCompareResultCode);
+
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return OPERATIONS_ERROR;
@@ -256,9 +277,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
       err.println(message);
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
@@ -550,15 +569,15 @@ public class LDIFDiff
 
     try
     {
+      boolean differenceFound;
+
       // Check to see if either or both of the source and target maps are empty.
       if (sourceMap.isEmpty())
       {
         if (targetMap.isEmpty())
         {
           // They're both empty, so there are no differences.
-          Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
-          writer.writeComment(message, 0);
-          return SUCCESS;
+          differenceFound = false;
         }
         else
         {
@@ -568,7 +587,7 @@ public class LDIFDiff
           {
             writeAdd(writer, targetMap.get(targetIterator.next()));
           }
-          return SUCCESS;
+          differenceFound = true;
         }
       }
       else if (targetMap.isEmpty())
@@ -579,10 +598,11 @@ public class LDIFDiff
         {
           writeDelete(writer, sourceMap.get(sourceIterator.next()));
         }
-        return SUCCESS;
+        differenceFound = true;
       }
       else
       {
+        differenceFound = false;
         // Iterate through all the entries in the source and target maps and
         // identify the differences.
         Iterator<DN> sourceIterator  = sourceMap.keySet().iterator();
@@ -591,7 +611,6 @@ public class LDIFDiff
         DN           targetDN        = targetIterator.next();
         Entry        sourceEntry     = sourceMap.get(sourceDN);
         Entry        targetEntry     = targetMap.get(targetDN);
-        boolean      differenceFound = false;
 
         while (true)
         {
@@ -705,13 +724,16 @@ public class LDIFDiff
             }
           }
         }
+      }
 
-
-        if (! differenceFound)
-        {
-          Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
-          writer.writeComment(message, 0);
-        }
+      if (!differenceFound)
+      {
+        Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
+        writer.writeComment(message, 0);
+      }
+      if (useCompareResultCode.isPresent())
+      {
+        return !differenceFound ? COMPARE_TRUE : COMPARE_FALSE;
       }
     }
     catch (IOException e)
