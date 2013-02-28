@@ -23,19 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
 
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,7 +56,6 @@ import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
@@ -79,6 +70,15 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -287,7 +287,7 @@ public class EncodePassword
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
 
@@ -302,7 +302,7 @@ public class EncodePassword
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
 
@@ -310,7 +310,7 @@ public class EncodePassword
     // then we've already done it so just return without doing anything else.
     if (argParser.usageOrVersionDisplayed())
     {
-      return 0;
+      return SUCCESS;
     }
 
 
@@ -321,7 +321,7 @@ public class EncodePassword
               ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(),
                                   clearPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
     if (clearPassword.isPresent() && interactivePassword.isPresent())
@@ -330,7 +330,7 @@ public class EncodePassword
               ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(),
                   interactivePassword.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
     if (clearPasswordFile.isPresent() && interactivePassword.isPresent())
@@ -340,7 +340,7 @@ public class EncodePassword
                   clearPasswordFile.getLongIdentifier(),
                   interactivePassword.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
     if (encodedPassword.isPresent() && encodedPasswordFile.isPresent())
@@ -349,7 +349,7 @@ public class EncodePassword
               ERR_TOOL_CONFLICTING_ARGS.get(encodedPassword.getLongIdentifier(),
                                   encodedPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     }
 
 
@@ -366,7 +366,7 @@ public class EncodePassword
                 ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
-        return 1;
+        return OPERATIONS_ERROR;
       }
     }
 
@@ -407,7 +407,7 @@ public class EncodePassword
         Message message =
                 ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
 
       try
@@ -419,13 +419,13 @@ public class EncodePassword
       {
         Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
         Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
 
 
@@ -439,19 +439,19 @@ public class EncodePassword
       {
         Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (InitializationException ie)
       {
         Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
         Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
 
 
@@ -466,21 +466,21 @@ public class EncodePassword
         Message message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (InitializationException ie)
       {
         Message message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
         Message message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
 
 
@@ -500,21 +500,21 @@ public class EncodePassword
                 ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
                         ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (InitializationException ie)
       {
         Message message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
         Message message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return OPERATIONS_ERROR;
       }
     }
 
@@ -551,7 +551,7 @@ public class EncodePassword
           }
         }
 
-        return 0;
+        return SUCCESS;
       }
       else
       {
@@ -582,7 +582,7 @@ public class EncodePassword
           }
         }
 
-        return 0;
+        return SUCCESS;
       }
     }
 
@@ -613,14 +613,14 @@ public class EncodePassword
           Message message = ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(
                   de.getMessageObject());
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
           Message message = ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(
                   String.valueOf(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
 
         PasswordStorageScheme storageScheme =
@@ -630,7 +630,7 @@ public class EncodePassword
           Message message = ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(
                   scheme);
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
 
         if (clearPW == null)
@@ -639,37 +639,21 @@ public class EncodePassword
               clearPasswordFile, interactivePassword);
           if (clearPW == null)
           {
-            return 1;
+            return OPERATIONS_ERROR;
           }
         }
-        if (storageScheme.authPasswordMatches(clearPW, authInfo, authValue))
+        final boolean authPasswordMatches =
+            storageScheme.authPasswordMatches(clearPW, authInfo, authValue);
+        if (authPasswordMatches)
         {
           Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
           out.println(message);
-
-          if (useCompareResultCode.isPresent())
-          {
-            return LDAPResultCode.COMPARE_TRUE;
-          }
-          else
-          {
-            return 0;
-          }
         }
-        else
+        if (useCompareResultCode.isPresent())
         {
-          Message message = INFO_ENCPW_PASSWORDS_DO_NOT_MATCH.get();
-          out.println(message);
-
-          if (useCompareResultCode.isPresent())
-          {
-            return LDAPResultCode.COMPARE_FALSE;
-          }
-          else
-          {
-            return 0;
-          }
+          return authPasswordMatches ? COMPARE_TRUE : COMPARE_FALSE;
         }
+        return SUCCESS;
       }
       else
       {
@@ -690,7 +674,7 @@ public class EncodePassword
             {
               Message message = ERR_ENCPW_NO_SUCH_SCHEME.get(userPWElements[0]);
               err.println(wrapText(message, MAX_LINE_WIDTH));
-              return 1;
+              return OPERATIONS_ERROR;
             }
           }
           catch (DirectoryException de)
@@ -698,14 +682,14 @@ public class EncodePassword
             Message message = ERR_ENCPW_INVALID_ENCODED_USERPW.get(
                     de.getMessageObject());
             err.println(wrapText(message, MAX_LINE_WIDTH));
-            return 1;
+            return OPERATIONS_ERROR;
           }
           catch (Exception e)
           {
             Message message = ERR_ENCPW_INVALID_ENCODED_USERPW.get(
                     String.valueOf(e));
             err.println(wrapText(message, MAX_LINE_WIDTH));
-            return 1;
+            return OPERATIONS_ERROR;
           }
         }
         else
@@ -715,7 +699,7 @@ public class EncodePassword
             Message message = ERR_ENCPW_NO_SCHEME.get(
                     schemeName.getLongIdentifier());
             err.println(wrapText(message, MAX_LINE_WIDTH));
-            return 1;
+            return OPERATIONS_ERROR;
           }
 
           encodedPWString = encodedPW.toString();
@@ -726,7 +710,7 @@ public class EncodePassword
           {
             Message message = ERR_ENCPW_NO_SUCH_SCHEME.get(scheme);
             err.println(wrapText(message, MAX_LINE_WIDTH));
-            return 1;
+            return OPERATIONS_ERROR;
           }
         }
 
@@ -736,38 +720,27 @@ public class EncodePassword
               clearPasswordFile, interactivePassword);
           if (clearPW == null)
           {
-            return 1;
+            return OPERATIONS_ERROR;
           }
         }
-        if (storageScheme.passwordMatches(clearPW,
-            ByteString.valueOf(encodedPWString)))
+        boolean passwordMatches =
+            storageScheme.passwordMatches(clearPW, ByteString
+                .valueOf(encodedPWString));
+        if (passwordMatches)
         {
           Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
           out.println(message);
-
-          if (useCompareResultCode.isPresent())
-          {
-            return LDAPResultCode.COMPARE_TRUE;
-          }
-          else
-          {
-            return 0;
-          }
         }
         else
         {
           Message message = INFO_ENCPW_PASSWORDS_DO_NOT_MATCH.get();
           out.println(message);
-
-          if (useCompareResultCode.isPresent())
-          {
-            return LDAPResultCode.COMPARE_FALSE;
-          }
-          else
-          {
-            return 0;
-          }
         }
+        if (useCompareResultCode.isPresent())
+        {
+          return passwordMatches ? COMPARE_TRUE : COMPARE_FALSE;
+        }
+        return SUCCESS;
       }
     }
     else
@@ -782,7 +755,7 @@ public class EncodePassword
         {
           Message message = ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(scheme);
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
       }
       else
@@ -793,7 +766,7 @@ public class EncodePassword
         {
           Message message = ERR_ENCPW_NO_SUCH_SCHEME.get(scheme);
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
       }
 
@@ -807,7 +780,7 @@ public class EncodePassword
                 clearPasswordFile, interactivePassword);
             if (clearPW == null)
             {
-              return 1;
+              return OPERATIONS_ERROR;
             }
           }
           encodedPW = storageScheme.encodeAuthPassword(clearPW);
@@ -820,13 +793,13 @@ public class EncodePassword
         {
           Message message = ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject());
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
           Message message = ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
       }
       else
@@ -839,7 +812,7 @@ public class EncodePassword
                 clearPasswordFile, interactivePassword);
             if (clearPW == null)
             {
-              return 1;
+              return OPERATIONS_ERROR;
             }
           }
           encodedPW = storageScheme.encodePasswordWithScheme(clearPW);
@@ -852,19 +825,19 @@ public class EncodePassword
         {
           Message message = ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject());
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
           Message message = ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          return OPERATIONS_ERROR;
         }
       }
     }
 
     // If we've gotten here, then all processing completed successfully.
-    return 0;
+    return SUCCESS;
   }
 
 
@@ -1177,6 +1150,7 @@ public class EncodePassword
     /**
      * Begin masking until asked to stop.
      */
+    @Override
     public void run()
     {
       while (!stop)
