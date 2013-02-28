@@ -286,7 +286,17 @@ public class RebuildIndex extends TaskTool
 
     if(rebuildDegraded.isPresent() && indexList.isPresent())
     {
-      Message msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get();
+      Message msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get(
+          "index");
+      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
+      return 1;
+    }
+
+    if(rebuildDegraded.isPresent() && clearDegradedState.isPresent())
+    {
+      Message msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get(
+          "clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
       return 1;
@@ -295,7 +305,7 @@ public class RebuildIndex extends TaskTool
     if(rebuildAll.isPresent() && rebuildDegraded.isPresent())
     {
       Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get(
-          "rebuildAll", "rebuildDegraded");
+          "rebuildDegraded");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
       return 1;
@@ -304,7 +314,7 @@ public class RebuildIndex extends TaskTool
     if(rebuildAll.isPresent() && clearDegradedState.isPresent())
     {
       Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get(
-          "rebuildAll", "clearDegradedState");
+          "clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
       return 1;
