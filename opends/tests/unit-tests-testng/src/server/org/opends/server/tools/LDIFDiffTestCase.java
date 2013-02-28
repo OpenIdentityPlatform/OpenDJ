@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -32,12 +33,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.testng.Assert.*;
 
 
@@ -153,99 +155,116 @@ public class LDIFDiffTestCase
       // Both files are empty.
       new Object[] { ldifRoot + "source-empty.ldif",
                      ldifRoot + "target-empty.ldif",
-                     noDiffsFile, noDiffsFile },
+                     noDiffsFile, noDiffsFile,
+                     COMPARE_TRUE },
 
       // Both files are the single-entry source.
       new Object[] { ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "source-singleentry.ldif",
-                     noDiffsFile, noDiffsFile },
+                     noDiffsFile, noDiffsFile,
+                     COMPARE_TRUE },
 
       // Both files are the single-entry target.
       new Object[] { ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "target-singleentry.ldif",
-                     noDiffsFile, noDiffsFile },
+                     noDiffsFile, noDiffsFile,
+                     COMPARE_TRUE },
 
       // Both files are the multiple-entry source.
       new Object[] { ldifRoot + "source-multipleentries.ldif",
                      ldifRoot + "source-multipleentries.ldif",
-                     noDiffsFile, noDiffsFile },
+                     noDiffsFile, noDiffsFile,
+                     COMPARE_TRUE },
 
       // Both files are the multiple-entry target.
       new Object[] { ldifRoot + "target-multipleentries.ldif",
                      ldifRoot + "target-multipleentries.ldif",
-                     noDiffsFile, noDiffsFile },
+                     noDiffsFile, noDiffsFile,
+                     COMPARE_TRUE },
 
       // The source is empty but the target has a single entry.
       new Object[] { ldifRoot + "source-empty.ldif",
                      ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "diff-emptytosingle.ldif",
-                     ldifRoot + "diff-emptytosingle.ldif" },
+                     ldifRoot + "diff-emptytosingle.ldif",
+                     COMPARE_FALSE },
 
       // The source has a single entry but the target is empty.
       new Object[] { ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "target-empty.ldif",
                      ldifRoot + "diff-singletoempty.ldif",
-                     ldifRoot + "diff-singletoempty.ldif" },
+                     ldifRoot + "diff-singletoempty.ldif",
+                     COMPARE_FALSE },
 
       // Make a change to only a single entry in the source->target direction.
       new Object[] { ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "diff-singleentry.ldif",
-                     ldifRoot + "diff-singleentry.ldif" },
+                     ldifRoot + "diff-singleentry.ldif",
+                     COMPARE_FALSE },
 
       // Make a change to only a single entry in the target->source direction.
       new Object[] { ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "diff-singleentry-reverse.ldif",
-                     ldifRoot + "diff-singleentry-reverse.ldif" },
+                     ldifRoot + "diff-singleentry-reverse.ldif",
+                     COMPARE_FALSE },
 
       // Make changes to multiple entries in the source->target direction.
       new Object[] { ldifRoot + "source-multipleentries.ldif",
                      ldifRoot + "target-multipleentries.ldif",
                      ldifRoot + "diff-multipleentries.ldif",
-                     ldifRoot + "diff-multipleentries-singlevalue.ldif" },
+                     ldifRoot + "diff-multipleentries-singlevalue.ldif",
+                     COMPARE_FALSE },
 
       // Make changes to multiple entries in the target->source direction.
       new Object[] { ldifRoot + "target-multipleentries.ldif",
                      ldifRoot + "source-multipleentries.ldif",
                      ldifRoot + "diff-multipleentries-reverse.ldif",
                      ldifRoot +
-                          "diff-multipleentries-reverse-singlevalue.ldif" },
+                          "diff-multipleentries-reverse-singlevalue.ldif",
+                     COMPARE_FALSE },
 
       // Go from one entry to multiple in the source->target direction.
       new Object[] { ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "target-multipleentries.ldif",
                      ldifRoot + "diff-singletomultiple.ldif",
-                     ldifRoot + "diff-singletomultiple-singlevalue.ldif" },
+                     ldifRoot + "diff-singletomultiple-singlevalue.ldif",
+                     COMPARE_FALSE },
 
       // Go from one entry to multiple in the target->source direction.
       new Object[] { ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "source-multipleentries.ldif",
                      ldifRoot + "diff-singletomultiple-reverse.ldif",
-                     ldifRoot + "diff-singletomultiple-reverse.ldif" },
+                     ldifRoot + "diff-singletomultiple-reverse.ldif",
+                     COMPARE_FALSE },
 
       // Go from multiple entries to one in the source->target direction.
       new Object[] { ldifRoot + "source-multipleentries.ldif",
                      ldifRoot + "target-singleentry.ldif",
                      ldifRoot + "diff-multipletosingle.ldif",
-                     ldifRoot + "diff-multipletosingle.ldif" },
+                     ldifRoot + "diff-multipletosingle.ldif",
+                     COMPARE_FALSE },
 
       // Go from multiple entries to one in the target->source direction.
       new Object[] { ldifRoot + "target-multipleentries.ldif",
                      ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "diff-multipletosingle-reverse.ldif",
                      ldifRoot +
-                          "diff-multipletosingle-reverse-singlevalue.ldif" },
+                          "diff-multipletosingle-reverse-singlevalue.ldif",
+                     COMPARE_FALSE },
 
       // The source file doesn't exist.
       new Object[] { ldifRoot + "source-notfound.ldif",
                      ldifRoot + "target-singleentry.ldif",
-                     null, null },
+                     null, null,
+                     COMPARE_FALSE },
 
       // The target file doesn't exist.
       new Object[] { ldifRoot + "source-singleentry.ldif",
                      ldifRoot + "target-notfound.ldif",
-                     null, null }
+                     null, null,
+                     COMPARE_FALSE }
     };
   }
 
@@ -253,7 +272,7 @@ public class LDIFDiffTestCase
   /**
    * Tests the LDIFDiff tool with the provided information to ensure that the
    * normal mode of operation works as expected.  This is a bit tricky because
-   * the attributes and values will be written in an indeterminite order, so we
+   * the attributes and values will be written in an indeterminate order, so we
    * can't just use string equality.  We'll have to use a crude checksum
    * mechanism to test whether they are equal.  Combined with other methods in
    * this class, this should be good enough.
@@ -270,14 +289,15 @@ public class LDIFDiffTestCase
    *                              diff in "single-value" form, where each
    *                              attribute-level change results in a separate
    *                              entry per attribute value.
+   * @param resultCode            The result code that should be returned with
+   *                              --useCompareResultCode flag
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
   public void testVerifyNormal(String sourceFile, String targetFile,
-                               String normalDiffFile,
-                               String singleValueDiffFile)
-         throws Exception
+      String normalDiffFile, String singleValueDiffFile, int resultCode)
+      throws Exception
   {
     File outputFile = File.createTempFile("difftest", "ldif");
     outputFile.deleteOnExit();
@@ -288,6 +308,13 @@ public class LDIFDiffTestCase
       "-t", targetFile,
       "-o", outputFile.getAbsolutePath(),
       "-O"
+    };
+    String[] argsUseCompare =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      // No need to write to the outputFile
+      "--useCompareResultCode"
     };
 
     if (normalDiffFile == null)
@@ -300,6 +327,9 @@ public class LDIFDiffTestCase
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
     assertEquals(calcChecksum(outputFile), calcChecksum(normalDiffFile));
+
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), resultCode);
     outputFile.delete();
   }
 
@@ -310,7 +340,7 @@ public class LDIFDiffTestCase
    * Tests the LDIFDiff tool with the provided information to ensure that the
    * single value changes mode of operation works as expected.  This is a bit
    * tricky because the attributes and values will be written in an
-   * indeterminite order, so we can't just use string equality.  We'll have to
+   * indeterminate order, so we can't just use string equality.  We'll have to
    * use a crude checksum mechanism to test whether they are equal.  Combined
    * with other methods in this class, this should be good enough.
    *
@@ -326,14 +356,15 @@ public class LDIFDiffTestCase
    *                              diff in "single-value" form, where each
    *                              attribute-level change results in a separate
    *                              entry per attribute value.
+   * @param resultCode            The result code that should be returned with
+   *                              --useCompareResultCode flag
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
   public void testVerifySingleValue(String sourceFile, String targetFile,
-                                    String normalDiffFile,
-                                    String singleValueDiffFile)
-         throws Exception
+      String normalDiffFile, String singleValueDiffFile, int resultCode)
+      throws Exception
   {
     File outputFile = File.createTempFile("difftest", "ldif");
     outputFile.deleteOnExit();
@@ -346,6 +377,13 @@ public class LDIFDiffTestCase
       "-O",
       "-S"
     };
+    String[] argsUseCompare =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      // No need to write to the outputFile
+      "--useCompareResultCode"
+    };
 
     if (singleValueDiffFile == null)
     {
@@ -357,6 +395,9 @@ public class LDIFDiffTestCase
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
     assertEquals(calcChecksum(outputFile), calcChecksum(singleValueDiffFile));
+
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), resultCode);
     outputFile.delete();
   }
 
@@ -380,14 +421,15 @@ public class LDIFDiffTestCase
    *                              diff in "single-value" form, where each
    *                              attribute-level change results in a separate
    *                              entry per attribute value.
+   * @param resultCode            The result code that should be returned with
+   *                              --useCompareResultCode flag
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
   public void testReconstructNormal(String sourceFile, String targetFile,
-                                    String normalDiffFile,
-                                    String singleValueDiffFile)
-         throws Exception
+      String normalDiffFile, String singleValueDiffFile, int resultCode)
+      throws Exception
   {
     // If the command is expected to fail, or if there aren't any differences,
     // then bail out now.
@@ -407,8 +449,17 @@ public class LDIFDiffTestCase
       "-t", targetFile,
       "-o", diffOutputFile.getAbsolutePath()
     };
+    String[] argsUseCompare =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      // No need to write to the outputFile
+      "--useCompareResultCode"
+    };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), resultCode);
 
 
     // Use LDIFModify to generate a new target file.
@@ -439,9 +490,18 @@ public class LDIFDiffTestCase
       "-t", newTargetFile.getAbsolutePath(),
       "-o", newDiffFile.getAbsolutePath()
     };
+    argsUseCompare = new String[]
+    {
+      "-s", targetFile,
+      "-t", newTargetFile.getAbsolutePath(),
+      // No need to write to the outputFile
+      "--useCompareResultCode"
+    };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
     assertEquals(calcChecksum(newDiffFile), calcChecksum(noDiffsFile));
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), COMPARE_TRUE);
 
     diffOutputFile.delete();
     newTargetFile.delete();
@@ -468,14 +528,15 @@ public class LDIFDiffTestCase
    *                              diff in "single-value" form, where each
    *                              attribute-level change results in a separate
    *                              entry per attribute value.
+   * @param resultCode            The result code that should be returned with
+   *                              --useCompareResultCode flag
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
   public void testReconstructSingleValue(String sourceFile, String targetFile,
-                                         String normalDiffFile,
-                                         String singleValueDiffFile)
-         throws Exception
+      String normalDiffFile, String singleValueDiffFile, int resultCode)
+      throws Exception
   {
     // If the command is expected to fail, or if there aren't any differences,
     // then bail out now.
@@ -496,8 +557,17 @@ public class LDIFDiffTestCase
       "-o", diffOutputFile.getAbsolutePath(),
       "-S"
     };
+    String[] argsUseCompare =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      // No need to write to the outputFile
+      "--useCompareResultCode"
+    };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), resultCode);
 
 
     // Use LDIFModify to generate a new target file.
@@ -528,9 +598,18 @@ public class LDIFDiffTestCase
       "-t", newTargetFile.getAbsolutePath(),
       "-o", newDiffFile.getAbsolutePath()
     };
+    argsUseCompare = new String[]
+    {
+      "-s", targetFile,
+      "-t", newTargetFile.getAbsolutePath(),
+      // No need to write to the outputFile
+      "--useCompareResultCode"
+    };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
     assertEquals(calcChecksum(newDiffFile), calcChecksum(noDiffsFile));
+    assertEquals(LDIFDiff
+        .mainDiff(argsUseCompare, true, System.out, System.err), COMPARE_TRUE);
 
     diffOutputFile.delete();
     newTargetFile.delete();
@@ -578,7 +657,7 @@ public class LDIFDiffTestCase
   /**
    * Tests the LDIFDiff tool with the provided information to ensure that the
    * normal mode of operation works as expected.  This is a bit tricky because
-   * the attributes and values will be written in an indeterminite order, so we
+   * the attributes and values will be written in an indeterminate order, so we
    * can't just use string equality.  We'll have to use a crude checksum
    * mechanism to test whether they are equal.  Combined with other methods in
    * this class, this should be good enough.
@@ -665,7 +744,7 @@ public class LDIFDiffTestCase
   /**
    * Tests the LDIFDiff tool with the provided information to ensure that the
    * normal mode of operation works as expected.  This is a bit tricky because
-   * the attributes and values will be written in an indeterminite order, so we
+   * the attributes and values will be written in an indeterminate order, so we
    * can't just use string equality.  We'll have to use a crude checksum
    * mechanism to test whether they are equal.  Combined with other methods in
    * this class, this should be good enough.
