@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   
@@ -3805,6 +3805,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
       </function-arg-def>
+      <function-arg-def name="dsRebuildDegraded" type="optional">
+        <function-arg-description>
+          Rebuild all degraded indexes
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsClearDegradedState" type="optional">
+        <function-arg-description>
+          Clear degraded state
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
       <function-arg-def name="dsTmpDir" type="optional">
         <function-arg-description>
           Path to temporary directory for index scratch files
@@ -3873,6 +3885,12 @@
         if dsRebuildAll:
           STAFCmdParamsList.append('--rebuildAll')
 
+        if dsRebuildDegraded:
+          STAFCmdParamsList.append('--rebuildDegraded')
+
+        if dsClearDegradedState:
+          STAFCmdParamsList.append('--clearDegradedState')
+          
         if dsIndexList:
           STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
 

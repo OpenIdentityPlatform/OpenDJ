@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   <function name="checkRC">
@@ -340,10 +340,23 @@
         </sequence>
         <else>
           <sequence>
-            <message log="1">
-              'Search type: %s  Did not find substring, %s, in the return \
-              string, %s' % (searchType, expectedString, returnString)
-            </message>
+            <if expr="expectedRC == 1">
+              <sequence>
+                <!-- The string is not found as expected so don't display the output -->
+                <message log="1">
+                  'Search type: %s  Did not find substring, %s, in the return \
+                  string' % (searchType, expectedString)
+                </message>
+              </sequence>
+              <else>
+                <sequence>
+                  <message log="1">
+                    'Search type: %s  Did not find substring, %s, in the return \
+                    string, %s' % (searchType, expectedString, returnString)
+                  </message>
+                </sequence>
+              </else>  
+            </if>
             <script>
               myRC = 1
               myReason = 'String not found'

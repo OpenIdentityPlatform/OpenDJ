@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS
+ !      Portions Copyright 2012-2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -96,8 +96,7 @@
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'            : 'dc=com' ,
-                  'dsIndexList'         : [ 'uid' ] ,
-                  'knownIssue'          : '6931704'
+                  'dsIndexList'         : [ 'uid' ]
                   }
                 </call>
 
@@ -157,7 +156,7 @@
                   msg1 = 'An error occurred while attempting to acquire a'
                   msg2 = 'exclusive lock for backend userRoot' 
                 </script>                  
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -165,7 +164,7 @@
                 </call>
   
                 <message>
-                  'rebuild-index: create a new index for the other testcases'
+                  'rebuild-index: create a new index st for the other testcases'
                 </message>                  
                 
                 <call function="'dsconfig'">
@@ -195,8 +194,7 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'uid' ] ,
-                  'knownIssue'   : '6931704'
+                  'dsIndexList'  : [ 'uid' ]
                   }                
                 </call>           
   
@@ -208,14 +206,14 @@
                   msg1 = 'Rebuild of index\(es\) uid started with 1048'
                   msg2 = 'total entries to process'
                 </script>                  
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>              
   
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : 'Rebuild complete. Processed 1048 entries'
@@ -266,7 +264,7 @@
                   msg1 = 'At least one index must be specified'
                   msg2 = 'for the rebuild process' 
                 </script>                  
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -305,8 +303,7 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'uid', 'cn' ] ,
-                  'knownIssue'   : '6931704'
+                  'dsIndexList'  : [ 'uid', 'cn' ]
                   }                
                 </call>
                 
@@ -318,14 +315,14 @@
                   msg1 = 'Rebuild of index\(es\) uid, cn started'
                   msg2 = 'with 1048 total entries to process'
                 </script>                  
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>              
   
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : 'Rebuild complete. Processed 1048 entries'
@@ -377,7 +374,7 @@
                   msg1 = 'There is no index configured for'
                   msg2 = 'attribute type \'myindex\'' 
                 </script>                 
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -441,7 +438,7 @@
                   msg2 = 'dc_com_st is currently operating in a degraded'
                   msg3 = 'state and must be rebuilt before it can be used'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
@@ -455,8 +452,7 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'st' ] ,
-                  'knownIssue'   : '6931704'
+                  'dsIndexList'  : [ 'st' ]
                   }
                 </call>
 
@@ -469,7 +465,7 @@
                   msg2 = 'dc_com_st is currently operating in a degraded'
                   msg3 = 'state and must be rebuilt before it can be used'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
@@ -480,7 +476,7 @@
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
                   msg2 = 'total entries to process'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -490,7 +486,7 @@
                 <script>
                   msg = 'Rebuild complete. Processed 1048 entries'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg
@@ -517,17 +513,18 @@
                   msg2 = 'dc_com_st is currently operating in a degraded'
                   msg3 = 'state and must be rebuilt before it can be used'
                 </script>
-                <call function="'checktestStringNotPresent'">
+                <call function="'searchString'">
                   {
-                  'returnString' : returnString ,
-                  'testString'   : '%s %s %s' % (msg1, msg2, msg3)
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
                   }
                 </call>
 
                 <script>
                   msg = 'Checked 1048 entries and found 0 error'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg
@@ -554,10 +551,11 @@
                   msg2 = 'dc_com_st is currently operating in a degraded'
                   msg3 = 'state and must be rebuilt before it can be used'
                 </script>
-                <call function="'checktestStringNotPresent'">
+                <call function="'searchString'">
                   {
-                  'returnString' : returnString ,
-                  'testString'   : '%s %s %s' % (msg1, msg2, msg3)
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
                   }
                 </call>
 
@@ -565,7 +563,7 @@
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
                   msg2 = 'total entries to process'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -575,7 +573,7 @@
                 <script>
                   msg = 'Rebuild complete. Processed 1048 entries'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg
@@ -615,19 +613,29 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsRebuildAll' : 'True' ,
-                  'knownIssue'   : '6931704'
+                  'dsRebuildAll' : 'True'
                   }
                 </call>
 
                 <script>
                   returnString = STAXResult[0][1]
                 </script>
+                
+                <script>
+                  msg1 = 'Rebuild of all indexes started with 1048'
+                  msg2 = 'total entries to process'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2)
+                  }
+                </call>
 
                 <script>
                   msg = 'Rebuild complete. Processed 1048 entries'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg
@@ -682,7 +690,7 @@
                   msg1 = 'Index \"-i\" option cannot be specified with'
                   msg2 = 'the \"--rebuildAll\" option'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
@@ -723,8 +731,7 @@
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'uid' ] ,
-                  'dsTmpDir'     : '%s/index_tmp' % DIRECTORY_INSTANCE_DIR ,
-                  'knownIssue'   : '6931704'
+                  'dsTmpDir'     : '%s/index_tmp' % DIRECTORY_INSTANCE_DIR
                   }
                 </call>
 
@@ -735,7 +742,7 @@
                 <script>
                   msg = 'Rebuild complete. Processed 1048 entries'
                 </script>
-                <call function="'checktestString'">
+                <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg
@@ -748,6 +755,1117 @@
 
             </testcase>
             
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: clearDegradedState option in 
+                                    offline mode
+              #@TestIssue           OPENDJ-770
+              #@TestPurpose         Verify that rebuild-index command succeeds
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Create two new indexes using dsconfig.
+              #@TestStep            Check index status using dbtest command.
+              #@TestStep            Do a verify-index before rebuild.
+              #@TestStep            Do a rebuild-index with clearDegradedState 
+                                    option in offline mode.
+              #@TestStep            Check the output of the command.
+              #@TestStep            Check index status using dbtest command.
+              #@TestStep            Do a verify-index after rebuild.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 0 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: clearDegradedState option in offline mode')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'StartDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index l' }
+                </call>            
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name l --set index-type:equality'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index homePhone' }
+                </call>            
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name homePhone --set index-type:equality'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check indexes status using dbtest command before rebuild' }
+                </call>            
+                
+                <call function="'dbtestWithScript'">
+                  {
+                  'subcommand'    : 'list-index-status' ,
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsBackendID'   : DIRECTORY_INSTANCE_BE
+                  }
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'l\.equality\\s+Index\\s+dc_com_l\.equality\\s+false\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+                
+                <script>
+                  msg = 'homePhone\.equality\\s+Index\\s+dc_com_homePhone\.equality\\s+false\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes before rebuild' }
+                </call>
+                  
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_l is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                  }
+                </call>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_homePhone is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                  }
+                </call>
+
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 0 error'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Stop the server' }
+                </call>  
+
+                <call function="'StopDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Clear degraded state for indexes l and homePhone' }
+                </call>  
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsClearDegradedState' : 'True' ,
+                  'dsIndexList'          : [ 'l', 'homePhone' ]
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Degraded state for index(es) l, homePhone has been removed'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg ,
+                  'knownIssue'     : 'OPENDJ-770'
+                  }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Restart the server' }
+                </call>  
+                
+                <call function="'StartDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check index status using dbtest command after rebuild' }
+                </call>            
+                
+                <call function="'dbtestWithScript'">
+                  {
+                  'subcommand'    : 'list-index-status' ,
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsBackendID'   : DIRECTORY_INSTANCE_BE
+                  }
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'l\.equality\\s+Index\\s+dc_com_l\.equality\\s+true\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <script>
+                  msg = 'homePhone\.equality\\s+Index\\s+dc_com_homePhone\.equality\\s+true\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes after rebuild' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_l is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_homePhone is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <!-- 1040 errors for index l
+                     1040 errors for index homePhone -->
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 2080 error'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Stop the server' }
+                </call>  
+
+                <call function="'StopDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Rebuild all the indexes in offline mode' }
+                </call>  
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsRebuildAll'         : 'True'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Restart the server' }
+                </call>  
+                
+                <call function="'StartDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes after rebuildAll' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 0 error'
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+            
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: clearDegradedState option in 
+                                    online mode
+              #@TestIssue           OPENDJ-770 OPENDJ-769
+              #@TestPurpose         Verify that rebuild-index command succeeds
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Create a new index using dsconfig.
+              #@TestStep            Check index status using dbtest command.
+              #@TestStep            Do a verify-index before rebuild.
+              #@TestStep            Do a rebuild-index with clearDegradedState 
+                                    option in offline mode.
+              #@TestStep            Check the output of the command.
+              #@TestStep            Check index status using dbtest command.
+              #@TestStep            Do a verify-index after rebuild.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 0 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: clearDegradedState option in online mode')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index pager' }
+                </call>            
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name pager --set index-type:equality'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check index status using dbtest command before rebuild' }
+                </call>            
+                
+                <call function="'dbtestWithScript'">
+                  {
+                  'subcommand'    : 'list-index-status' ,
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsBackendID'   : DIRECTORY_INSTANCE_BE
+                  }
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'pager\.equality\\s+Index\\s+dc_com_pager\.equality\\s+false\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>      
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_pager is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                  }
+                </call>
+
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 0 error'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Clear degraded state for index pager' }
+                </call>  
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsClearDegradedState' : 'True' ,
+                  'dsIndexList'          : [ 'pager' ]
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Degraded state for index pager has been removed'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg ,
+                  'knownIssue'     : 'OPENDJ-770'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check index status using dbtest command after rebuild' }
+                </call>            
+                
+                <call function="'dbtestWithScript'">
+                  {
+                  'subcommand'    : 'list-index-status' ,
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsBackendID'   : DIRECTORY_INSTANCE_BE
+                  }
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'pager\.equality\\s+Index\\s+dc_com_pager\.equality\\s+true\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg ,
+                  'knownIssue'     : 'OPENDJ-769'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes after rebuild' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_pager is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <!-- 1040 errors for index pager -->
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 1040 error' ,
+                  'knownIssue'     : 'OPENDJ-769'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Rebuild al the indexes in online mode' }
+                </call>  
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsRebuildAll'         : 'True'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes after rebuildAll' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 0 error'
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: clearDegradedState and 
+                                    rebuildAll options
+              #@TestIssue           OPENDJ-771
+              #@TestPurpose         Verify that rebuild-index command failed
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index with clearDegradedState 
+                                    and rebuildAll options.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 1 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: clearDegradedState and rebuildAll options')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run rebuild-index with clearDegradedState and rebuildAll options' }
+                </call>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsClearDegradedState' : 'True' ,
+                  'dsRebuildAll'         : 'True' ,
+                  'expectedRC'           : 1 ,
+                  'knownIssue'           : 'OPENDJ-771'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check rebuild-index output' }
+                </call>
+
+                <script>
+                  msg1 = 'Option \"--rebuildAll\" cannot be specified with'
+                  msg2 = 'the \"--clearDegradedState\"\noption'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2) ,
+                  'knownIssue'     : 'OPENDJ-771'
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+            
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: clearDegradedState and 
+                                    rebuildDegraded options
+              #@TestIssue           OPENDJ-771
+              #@TestPurpose         Verify that rebuild-index command failed
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index with rclearDegradedState 
+                                    and rebuildDegraded options.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 1 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: clearDegradedState and rebuildDegraded options')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run rebuild-index with clearDegradedState and rebuildDegraded options' }
+                </call>
+                
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsClearDegradedState' : 'True' ,
+                  'dsRebuildDegraded'    : 'True' ,
+                  'expectedRC'           : 1 ,
+                  'knownIssue'           : 'OPENDJ-771'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check rebuild-index output' }
+                </call>
+
+                <script>
+                  msg1 = 'Option \"--rebuildDegraded\" cannot be specified with'
+                  msg2 = 'the \"--clearDegradedState\"\noption'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2)
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: rebuildDegraded option
+              #@TestIssue           none
+              #@TestPurpose         Verify that rebuild-index command succeeds
+                                    that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Create two new indexes using dsconfig, these
+                                    indexes are in degraded state.    
+              #@TestStep            Do a rebuild-index with rebuildDegraded
+                                    option.
+              #@TestStep            Check the output of the command.
+              #@TestStep            Do a verify-index after rebuild.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 0 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: rebuildDegraded option')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index street' }
+                </call>            
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name street --set index-type:equality'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index postalCode' }
+                </call>
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name postalCode --set index-type:equality'
+                  }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Create a new index postalAddress' }
+                </call>
+                
+                <call function="'dsconfig'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name postalAddress --set index-type:equality'
+                  }
+                </call>
+
+                <call function="'StopDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Clear degraded state for index postalAddress' }
+                </call>  
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'             : 'dc=com' ,
+                  'dsClearDegradedState' : 'True' ,
+                  'dsIndexList'          : [ 'postalAddress' ]
+                  }
+                </call>
+
+                <call function="'StartDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_street is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                  }
+                </call>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_postalCode is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                  }
+                </call>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_postalAddress is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <!-- 1040 errors for index postalAddress -->
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 1040 error'
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run rebuild-index with rebuildDegraded option' }
+                </call>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'            : 'dc=com' ,
+                  'dsRebuildDegraded'   : 'True'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check rebuild-index output' }
+                </call>
+
+                <script>
+                  msg1 = 'Rebuild of all degraded indexes started with 1048'
+                  msg2 = 'total entries to process'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2)
+                  }
+                </call>
+
+                <script>
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check indexes status using dbtest command after rebuild' }
+                </call>            
+                
+                <call function="'dbtestWithScript'">
+                  {
+                  'subcommand'    : 'list-index-status' ,
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsBackendID'   : DIRECTORY_INSTANCE_BE
+                  }
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'street\.equality\\s+Index\\s+dc_com_street\.equality\\s+true\\s+1040'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+                  
+                <script>
+                  msg = 'postalCode\.equality\\s+Index\\s+dc_com_postalCode\.equality\\s+true\\s+1037'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <script>
+                  msg = 'postalAddress\.equality\\s+Index\\s+dc_com_postalAddress\.equality\\s+true\\s+0'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run verify-index to verify the indexes after rebuild' }
+                </call>
+                
+                <call function="'verifyIndexWithScript'">
+                  {
+                  'dsBaseDN'      : 'dc=com'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_street is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <script>
+                  msg1 = 'Due to changes in the configuration, index'
+                  msg2 = 'dc_com_postalCode is currently operating in a degraded'
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                  'expectedRC'     : 1
+                  }
+                </call>
+
+                <!-- 1040 errors for index postalAddress -->
+                <call function="'searchString'">
+                  { 
+                  'returnString'   : returnString ,
+                  'expectedString' : 'Checked 1048 entries and found 1040 error'
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+            
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: rebuildDegraded and i options
+              #@TestIssue           none
+              #@TestPurpose         Verify that rebuild-index command failed
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index with rebuildDegraded
+                                    and i options.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 1 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: rebuildDegraded and i options')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Run rebuild-index with rebuildDegraded and i options' }
+                </call>
+                
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'            : 'dc=com' ,
+                  'dsRebuildDegraded'   : 'True' ,
+                  'dsIndexList'         : [ 'uid' ] ,
+                  'expectedRC'          : 1
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <call function="'testStep'">
+                    { 'stepMessage' : 'Check rebuild-index output' }
+                </call>
+
+                <script>
+                  msg1 = 'Option \"--rebuildDegraded\" option cannot be specified'
+                  msg2 = 'with the \"--index\" option'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2)
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
           </sequence>
 
           <finally>
