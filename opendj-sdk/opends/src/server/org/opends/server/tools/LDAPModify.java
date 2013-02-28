@@ -39,12 +39,18 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.server.controls.*;
+import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.plugins.ChangeNumberControlPlugin;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -69,18 +75,12 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-import org.opends.server.controls.*;
-import org.opends.server.plugins.ChangeNumberControlPlugin;
-import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPConstants;
 
 
 
@@ -100,38 +100,25 @@ public class LDAPModify
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPModify";
 
-  // The message ID counter to use for requests.
+  /** The message ID counter to use for requests. */
   private final AtomicInteger nextMessageID;
 
-  // The print stream to use for standard error.
+  /** The print stream to use for standard error. */
   private final PrintStream err;
 
-  // The print stream to use for standard output.
+  /** The print stream to use for standard output. */
   private final PrintStream out;
-
-  // The LDIF file name.
-  private String fileName = null;
 
   /**
    * Constructor for the LDAPModify object.
    *
-   * @param  fileName       The name of the file containing the LDIF data to use
-   *                        for the modifications.
    * @param  nextMessageID  The message ID counter to use for requests.
    * @param  out            The print stream to use for standard output.
    * @param  err            The print stream to use for standard error.
    */
-  public LDAPModify(String fileName, AtomicInteger nextMessageID,
-                    PrintStream out, PrintStream err)
+  public LDAPModify(AtomicInteger nextMessageID, PrintStream out,
+      PrintStream err)
   {
-    if(fileName == null)
-    {
-      this.fileName = "Console";
-    } else
-    {
-      this.fileName = fileName;
-    }
-
     this.nextMessageID = nextMessageID;
     this.out           = out;
     this.err           = err;
@@ -184,6 +171,12 @@ public class LDAPModify
       throw new FileNotFoundException(message.toString());
     }
 
+    // Set this for error messages
+    if (fileNameValue == null)
+    {
+      fileNameValue = "Console";
+    }
+
     while (true)
     {
       ChangeRecordEntry entry = null;
@@ -212,13 +205,13 @@ public class LDAPModify
           }
 
           Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
-              le.getLineNumber(), fileName, String.valueOf(le));
+              le.getLineNumber(), fileNameValue, String.valueOf(le));
           throw new IOException(message.toString());
         }
         else
         {
           Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
-                  le.getLineNumber(), fileName, String.valueOf(le));
+                  le.getLineNumber(), fileNameValue, String.valueOf(le));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -244,13 +237,13 @@ public class LDAPModify
           }
 
           Message message =
-              ERR_LDIF_FILE_READ_ERROR.get(fileName, String.valueOf(e));
+              ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, String.valueOf(e));
           throw new IOException(message.toString());
         }
         else
         {
           Message message = ERR_LDIF_FILE_READ_ERROR.get(
-                  fileName, String.valueOf(e));
+              fileNameValue, String.valueOf(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -480,7 +473,6 @@ public class LDAPModify
                 // Control needs to be decoded
                 prrc = LDAPPreReadResponseControl.DECODER.decode(
                     c.isCritical(), ((LDAPControl) c).getValue());
-
               }
               else
               {
@@ -490,7 +482,6 @@ public class LDAPModify
             }
             catch (DirectoryException de)
             {
-
               err.println(wrapText(
                   ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
                               de.getMessage()),
@@ -514,7 +505,6 @@ public class LDAPModify
                 // Control needs to be decoded
                 pprc = LDAPPostReadResponseControl.DECODER.decode(c
                     .isCritical(), ((LDAPControl) c).getValue());
-
               }
               else
               {
@@ -973,7 +963,7 @@ public class LDAPModify
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
-      return 0;
+      return SUCCESS;
     }
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
@@ -1248,7 +1238,7 @@ public class LDAPModify
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID,
           timeout);
 
-      ldapModify = new LDAPModify(fileNameValue, nextMessageID, out, err);
+      ldapModify = new LDAPModify(nextMessageID, out, err);
       ldapModify.readAndExecute(connection, fileNameValue, modifyOptions);
     } catch(LDAPException le)
     {
@@ -1288,7 +1278,7 @@ public class LDAPModify
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     } finally
     {
       if(connection != null)
@@ -1303,7 +1293,7 @@ public class LDAPModify
         }
       }
     }
-    return 0;
+    return SUCCESS;
   }
 
 }
