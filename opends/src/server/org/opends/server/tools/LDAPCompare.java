@@ -23,16 +23,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -41,11 +38,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
+import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
@@ -58,15 +60,12 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-import org.opends.server.controls.LDAPAssertionRequestControl;
 
 
 /**
@@ -124,22 +123,27 @@ public class LDAPCompare
    * @param attributeVal    The attribute value to compare.
    * @param lines           The list of DNs to compare the attribute in.
    * @param compareOptions  The constraints for the compare request.
+   * @return the LDAP result code for the operation
    *
    * @throws  IOException  If a problem occurs while communicating with the
    *                       Directory Server.
    *
    * @throws  LDAPException  If the server returns an error response.
    */
-  public void readAndExecute(LDAPConnection connection, String attributeType,
+  public int readAndExecute(LDAPConnection connection, String attributeType,
                              byte[] attributeVal, ArrayList<String> lines,
                              LDAPCompareOptions compareOptions)
          throws IOException, LDAPException
   {
+    int aggResultCode = SUCCESS;
     for(String line : lines)
     {
-      executeCompare(connection, attributeType, attributeVal, line,
-                     compareOptions);
+      int resultCode =
+          executeCompare(connection, attributeType, attributeVal, line,
+              compareOptions);
+      aggResultCode = aggregateResultCode(aggResultCode, resultCode);
     }
+    return aggResultCode;
   }
 
 
@@ -152,26 +156,57 @@ public class LDAPCompare
    * @param attributeVal    The attribute value to compare.
    * @param reader          The reader to read the list of DNs from.
    * @param compareOptions  The constraints for the compare request.
+   * @return the LDAP result code for the operation
    *
    * @throws  IOException  If a problem occurs while communicating with the
    *                       Directory Server.
    *
    * @throws  LDAPException  If the server returns an error response.
    */
-  public void readAndExecute(LDAPConnection connection, String attributeType,
+  public int readAndExecute(LDAPConnection connection, String attributeType,
                              byte[] attributeVal, Reader reader,
                              LDAPCompareOptions compareOptions)
          throws IOException, LDAPException
   {
+    int aggResultCode = 0;
     BufferedReader in = new BufferedReader(reader);
     String line = null;
 
     while ((line = in.readLine()) != null)
     {
-      executeCompare(connection, attributeType, attributeVal, line,
-                     compareOptions);
+      int resultCode =
+          executeCompare(connection, attributeType, attributeVal, line,
+              compareOptions);
+      aggResultCode = aggregateResultCode(aggResultCode, resultCode);
     }
     in.close();
+    return aggResultCode;
+  }
+
+
+  /**
+   * Aggregates a new result code to the existing aggregated result codes. This
+   * method always overwrites the {@link LDAPResultCode#SUCCESS} and
+   * {@link LDAPResultCode#COMPARE_TRUE} result codes with the new result code.
+   * Then
+   * 
+   * @param aggResultCodes
+   *          the aggregated result codes (a.k.a "accumulator")
+   * @param newResultCode
+   *          the new result code to aggregate
+   * @return the new aggregated result code
+   */
+  int aggregateResultCode(int aggResultCodes, int newResultCode)
+  {
+    if (aggResultCodes == SUCCESS || aggResultCodes == COMPARE_TRUE)
+    {
+      aggResultCodes = newResultCode;
+    }
+    else if (aggResultCodes == COMPARE_FALSE && newResultCode != COMPARE_TRUE)
+    {
+      aggResultCodes = newResultCode;
+    }
+    return aggResultCodes;
   }
 
 
@@ -183,13 +218,14 @@ public class LDAPCompare
    * @param attributeVal    The attribute value to compare.
    * @param line            The DN to compare attribute in.
    * @param compareOptions  The constraints for the compare request.
+   * @return the LDAP result code for the operation
    *
    * @throws  IOException  If a problem occurs while communicating with the
    *                       Directory Server.
    *
    * @throws  LDAPException  If the server returns an error response.
    */
-  private void executeCompare(LDAPConnection connection, String attributeType,
+  private int executeCompare(LDAPConnection connection, String attributeType,
                               byte[] attributeVal, String line,
                               LDAPCompareOptions compareOptions)
           throws IOException, LDAPException
@@ -231,11 +267,10 @@ public class LDAPCompare
         }
         else
         {
-
           Message msg = INFO_OPERATION_FAILED.get("COMPARE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-          return;
+          return OPERATIONS_ERROR;
         }
       }
 
@@ -274,13 +309,14 @@ public class LDAPCompare
           }
         } else
         {
-
           Message msg = INFO_OPERATION_FAILED.get("COMPARE");
           LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
                                           op.getMatchedDN());
         }
       }
+      return resultCode;
     }
+    return SUCCESS;
   }
 
   /**
@@ -362,6 +398,7 @@ public class LDAPCompare
     BooleanArgument   noop                   = null;
     BooleanArgument   saslExternal           = null;
     BooleanArgument   showUsage              = null;
+    BooleanArgument   useCompareResultCode   = null;
     BooleanArgument   startTLS               = null;
     BooleanArgument   trustAll               = null;
     BooleanArgument   useSSL                 = null;
@@ -638,6 +675,13 @@ public class LDAPCompare
                                     OPTION_LONG_HELP,
                                     INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
+
+      useCompareResultCode =
+          new BooleanArgument("usecompareresultcode", 'm',
+              "useCompareResultCode", INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT
+                  .get());
+      argParser.addArgument(useCompareResultCode);
+
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
@@ -665,7 +709,7 @@ public class LDAPCompare
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
-      return 0;
+      return SUCCESS;
     }
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
@@ -1022,15 +1066,24 @@ public class LDAPCompare
           return CLIENT_SIDE_PARAM_ERROR;
         }
       }
+      int resultCode;
       if(rdr != null)
       {
-        ldapCompare.readAndExecute(connection, attributeType, attributeVal,
-                                   rdr, compareOptions);
+        resultCode =
+            ldapCompare.readAndExecute(connection, attributeType, attributeVal,
+                rdr, compareOptions);
       } else
       {
-        ldapCompare.readAndExecute(connection, attributeType, attributeVal,
-                                   dnStrings, compareOptions);
+        resultCode =
+            ldapCompare.readAndExecute(connection, attributeType, attributeVal,
+                dnStrings, compareOptions);
       }
+
+      if (useCompareResultCode.isPresent())
+      {
+        return resultCode;
+      }
+      return SUCCESS;
     } catch(LDAPException le)
     {
       if (debugEnabled())
@@ -1064,7 +1117,7 @@ public class LDAPCompare
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return OPERATIONS_ERROR;
     } finally
     {
       if(connection != null)
@@ -1079,7 +1132,6 @@ public class LDAPCompare
         }
       }
     }
-    return 0;
   }
 
   private boolean isScriptFriendly()
