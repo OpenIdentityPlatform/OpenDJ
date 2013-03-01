@@ -32,19 +32,24 @@ package org.opends.server.tools;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.util.Base64;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.testng.Assert.*;
 
 
@@ -66,18 +71,18 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServerAndCreatePasswordFiles()
          throws Exception
   {
     TestCaseUtils.startServer();
 
-    
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--set", "server-fqdn:" + "127.0.0.1");
-    
+
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
     FileWriter fileWriter = new FileWriter(pwFile);
@@ -94,7 +99,6 @@ public class LDAPCompareTestCase
 
   @AfterClass
   public void tearDown() throws Exception {
-   
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -384,7 +388,7 @@ public class LDAPCompareTestCase
   @Test(dataProvider = "invalidArgs")
   public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0,
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS,
                 "Should have been invalid because:  " + invalidReason);
   }
 
@@ -413,7 +417,23 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "2",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -441,7 +461,23 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -469,10 +505,192 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:nottest",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_FALSE);
   }
 
 
+  /**
+   * Tests two LDAPv3 compares in which the assertion is true for all.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testMultipleCompareAllTrue() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    Backend memoryBackend =
+        DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
+    String dn1 = "arg=success,o=test1,o=test";
+    String dn2 = "arg=success,o=test2,o=test";
+    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
+    addEntriesUpToParentDN(memoryBackend, DN.decode(dn2));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      dn2
+    };
+
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      dn2
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
+  }
+
+
+  /**
+   * Tests two LDAPv3 compares in which one assertion is true and one is false.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testMultipleCompareOneCompareIsFalse() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    Backend memoryBackend =
+        DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
+    String dn1 = "arg=success,o=test1,o=test";
+    String dn2 = "arg=fail,o=test2,o=test";
+    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
+    addEntriesUpToParentDN(memoryBackend, DN.decode(dn2));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      dn2
+    };
+
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      dn2
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_FALSE);
+  }
+
+  /**
+   * Tests two LDAPv3 compares in which one assertion is true and one returns no
+   * such object.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testMultipleCompareOneNoSuchObject() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    Backend memoryBackend =
+        DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
+    String dn1 = "arg=success,o=test1,o=test";
+    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      "arg=fail,o=test2,o=test"
+    };
+
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "--continueOnError",
+      "arg:success",
+      dn1,
+      "arg=fail,o=test2,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), NO_SUCH_OBJECT);
+  }
+
+
+  private void addEntriesUpToParentDN(Backend backend, DN entryDN)
+      throws Exception
+  {
+    if (!backend.entryExists(entryDN.getParent()))
+    {
+      addEntriesUpToParentDN(backend, entryDN.getParent());
+    }
+    backend.addEntry(StaticUtils.createEntry(entryDN), null);
+  }
 
   /**
    * Tests a simple compare using SSL with blind trust.
@@ -498,7 +716,24 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-X",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -530,7 +765,24 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-P", trustStorePath,
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -559,7 +811,24 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-q",
+      "-X",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -591,7 +860,24 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-q",
+      "-P", trustStorePath,
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -646,7 +932,25 @@ public class LDAPCompareTestCase
       "cn=Test User,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-P", trustStorePath,
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "-r",
+      "cn:Test User",
+      "cn=Test User,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -702,7 +1006,26 @@ public class LDAPCompareTestCase
       "cn=Test User,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-N", "client-cert",
+      "-P", trustStorePath,
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "-r",
+      "cn:Test User",
+      "cn=Test User,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -758,7 +1081,7 @@ public class LDAPCompareTestCase
       "cn=Test User,o=test"
     };
 
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0);
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS);
   }
 
 
@@ -813,7 +1136,25 @@ public class LDAPCompareTestCase
       "cn=Test User,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-q",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-P", trustStorePath,
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "-r",
+      "cn:Test User",
+      "cn=Test User,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -864,7 +1205,23 @@ public class LDAPCompareTestCase
       "uid=test.user,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=CRAM-MD5",
+      "-o", "authid=u:test.user",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "givenName:Test",
+      "uid=test.user,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -903,7 +1260,7 @@ public class LDAPCompareTestCase
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -917,7 +1274,24 @@ public class LDAPCompareTestCase
       "uid=test.user,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
+      "-o", "authid=u:test.user",
+      "-o", "authzid=u:test.user",
+      "-w", "password",
+      "--useCompareResultCode",
+      "--noPropertiesFile",
+      "givenName:Test",
+      "uid=test.user,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -965,7 +1339,23 @@ public class LDAPCompareTestCase
       "uid=test.user,o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "--useCompareResultCode",
+      "givenName:Test",
+      "uid=test.user,o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -994,7 +1384,23 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--useCompareResultCode",
+      "--noPropertiesFile",
+      "o::" + Base64.encode("test".getBytes("UTF-8")),
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -1023,7 +1429,7 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0);
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS);
   }
 
 
@@ -1057,7 +1463,23 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--useCompareResultCode",
+      "--noPropertiesFile",
+      "o:<" + f.getAbsolutePath(),
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -1084,7 +1506,7 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0);
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS);
   }
 
 
@@ -1114,7 +1536,24 @@ public class LDAPCompareTestCase
       "o=test"
     };
 
-    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err), 0);
+    String[] argsUseCompare =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--assertionFilter", "(o=test)",
+      "--useCompareResultCode",
+      "--noPropertiesFile",
+      "o:test",
+      "o=test"
+    };
+
+    assertEquals(LDAPCompare.mainCompare(args, false, null, System.err),
+        SUCCESS);
+    assertEquals(LDAPCompare.mainCompare(argsUseCompare, false, null,
+        System.err), COMPARE_TRUE);
   }
 
 
@@ -1143,8 +1582,7 @@ public class LDAPCompareTestCase
       "o:test",
       "o=test"
     };
-
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0);
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS);
   }
 
 
@@ -1211,7 +1649,7 @@ public class LDAPCompareTestCase
       "o:test",
     };
 
-    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == 0);
+    assertFalse(LDAPCompare.mainCompare(args, false, null, null) == SUCCESS);
   }
 
 
@@ -1223,13 +1661,47 @@ public class LDAPCompareTestCase
   public void testHelp()
   {
     String[] args = { "--help" };
-    assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
+    assertEquals(LDAPCompare.mainCompare(args, false, null, null), SUCCESS);
 
     args = new String[] { "-H" };
-    assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
+    assertEquals(LDAPCompare.mainCompare(args, false, null, null), SUCCESS);
 
     args = new String[] { "-?" };
-    assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
+    assertEquals(LDAPCompare.mainCompare(args, false, null, null), SUCCESS);
+  }
+
+
+
+  @DataProvider(name = "aggregateResults")
+  public Object[][] getAggregateResultCodeParamsAndResults()
+  {
+    return new Object[][] { { SUCCESS, SUCCESS, SUCCESS },
+      { SUCCESS, COMPARE_TRUE, COMPARE_TRUE },
+      { SUCCESS, COMPARE_FALSE, COMPARE_FALSE },
+      { SUCCESS, OPERATIONS_ERROR, OPERATIONS_ERROR },
+      { COMPARE_TRUE, COMPARE_TRUE, COMPARE_TRUE },
+      { COMPARE_TRUE, COMPARE_FALSE, COMPARE_FALSE },
+      { COMPARE_TRUE, OPERATIONS_ERROR, OPERATIONS_ERROR },
+      { COMPARE_FALSE, COMPARE_TRUE, COMPARE_FALSE },
+      { COMPARE_FALSE, COMPARE_FALSE, COMPARE_FALSE },
+      { COMPARE_FALSE, OPERATIONS_ERROR, OPERATIONS_ERROR },
+      { OPERATIONS_ERROR, COMPARE_TRUE, OPERATIONS_ERROR },
+      { OPERATIONS_ERROR, COMPARE_FALSE, OPERATIONS_ERROR },
+      { OPERATIONS_ERROR, OPERATIONS_ERROR, OPERATIONS_ERROR } };
+  }
+
+  /**
+   * Test the results of calling function
+   * {@link LDAPCompare#aggregateResultCode(int, int)}.
+   */
+  @Test(dataProvider = "aggregateResults")
+  public void testAggregateResultCode(int currentAggregatedResult,
+      int newResultCode, int finalAggregatedResult)
+  {
+    LDAPCompare obj = new LDAPCompare(new AtomicInteger(), null, null);
+    assertEquals(obj
+        .aggregateResultCode(currentAggregatedResult, newResultCode),
+        finalAggregatedResult);
   }
 }
 
