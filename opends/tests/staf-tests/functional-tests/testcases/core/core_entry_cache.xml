@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="core_entry_cache" />
@@ -74,17 +75,29 @@
                   conducted with a single pipe character ("|") \
                   for an existing entry'
                 </message>
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'dsBaseDN'       : 'cn=version,cn=monitor',
-                    'dsFilter'       : '|' ,
-                    'expectedRC'     : 2 ,
-                    'knownIssue'     : ['3966','4406']
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsCountEntries'   : 'True',
+                  'dsBaseDN'         : 'cn=version,cn=monitor',
+                  'dsFilter'         : '|'
+                  }                
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'checktestString'">
+                  { 
+                  'returnString'     : returnString ,
+                  'expectedString'   : 'Total number of matching entries: 0' 
                   }
                 </call>
+                
                 <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
