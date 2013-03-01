@@ -1058,7 +1058,175 @@ ldapsearch.port=1389</programlisting>
   <para>The location on Windows is
   <filename>%UserProfile%/.opendj/tools.properties</filename>.</para>
  </section>
- 
+
+ <section xml:id="client-auth">
+  <title>Authenticating To the Directory Server</title>
+  <indexterm><primary>Authenticating</primary></indexterm>
+
+  <para>Authentication is the act of confirming the identity of a principal.
+  Authorization is the act of determining whether to grant or to deny access to
+  a principal. Authentication is done to make authorization decisions.</para>
+
+  <para>As explained in <link xlink:href="admin-guide#chap-privileges-acis"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+  Privileges &amp; Access Control</citetitle></link>, OpenDJ directory server
+  implements fine-grained access control for authorization. What is authorized
+  depends on who is requesting the operation. Directory servers like OpenDJ must
+  first therefore authenticate the principals using the clients before they can
+  authorize or deny access. The LDAP bind operation, where a directory client
+  authenticates with the directory server, is therefore the first LDAP operation
+  in every LDAP session.</para>
+
+  <para>Clients bind by providing both a means to find their principal's entry
+  in the directory and also providing some credentials that the directory server
+  can check against their entry.</para>
+
+  <para>In the simplest bind operation, the client provides a zero-length
+  name and a zero-length password. This results in an anonymous bind, meaning
+  the client is authenticated as an anonymous user of the directory. In the
+  simplest examples in <xref linkend="search-ldap" />, notice that no
+  authentication information is provided. The examples work because the
+  client commands default to requesting anonymous binds when you provide no
+  credentials, and because access controls for the sample data allow anonymous
+  clients to read, search, and compare some directory data.</para>
+
+  <para>In a simple bind operation, the client provides an LDAP name, such as
+  the DN identifying its entry, and the corresponding password stored on the
+  <literal>userPassword</literal> attribute of the entry. In
+  <xref linkend="write-ldap" />, notice that to change directory data the
+  client provides the bind DN and bind password of a user who has permission
+  to change directory data. The commands do not work with a bind DN and bind
+  password because access controls for the sample data only allow authorized
+  users to change directory data.</para>
+
+  <para>Users rarely provide client applications with DNs, however. Instead
+  users might provide a client application with an identity string like a user
+  ID or an email address for example. Depending on how the DNs are constructed,
+  the client application can either build the DN directly from the user's
+  identity string, or use a session where the bind has been done with some
+  other identity to search for the user entry based on the user's identity
+  string. Given the DN constructed or found, the client application can then
+  perform a simple bind.</para>
+
+  <para>For example, suppose Babs Jensen enters her email address,
+  <literal>bjensen@example.com</literal> and her password for login. The client
+  application might search for the entry matching
+  <literal>(mail=bjensen@example.com)</literal> under base DN
+  <literal>dc=example,dc=com</literal>. Alternatively, the client application
+  might know to extract the user ID <literal>bjensen</literal> from the address,
+  and then build the corresponding DN,
+  <literal>uid=bjensen,ou=people,dc=example,dc=com</literal> in order to
+  bind.</para>
+
+  <indexterm><primary>Identity mappers</primary></indexterm>
+  <para>When an identifier string provided by the user can readily be mapped to
+  the user's entry DN, OpenDJ directory server can do the translation between
+  the identifier string and the entry DN. This translation is the job of a
+  component called an identity mapper. Identity mappers are used to perform
+  PLAIN SASL authentication (with a user name and password), SASL GSSAPI
+  authentication (Kerberos V5), SASL CRAM MD5 and DIGEST MD5 authentication,
+  and to handle authorization IDs during password modify extended operations and
+  proxied authorization. One use of PLAIN SASL is to translate user names from
+  HTTP Basic authentication to LDAP authentication.</para>
+
+  <para>The following example shows PLAIN SASL authentication using the default
+  Exact Match identity mapper. In this (contrived) example, Babs Jensen reads
+  the hashed value of her password. (According to the access controls in the
+  example data, she must authenticate to read her password.) Notice the
+  authentication ID is her user ID rather than a DN,
+  <literal>u:bjensen</literal>.</para>
+
+  <screen>$ ldapsearch
+ --port 1389
+ --useStartTLS
+ --baseDN dc=example,dc=com
+ --saslOption mech=PLAIN
+ --saslOption authid=u:bjensen
+ --bindPassword hifalutin
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</screen>
+
+  <para>The Exact Match identity mapper searches for a match between the string
+  provided (here, <literal>bjensen</literal>) and the value of a specified
+  attribute (by default the <literal>uid</literal> user ID attribute). If
+  you know users are entering their email addresses, you could create an
+  exact match identity mapper for email addresses, and then use that for PLAIN
+  SASL authentication as in the following example.</para>
+
+  <screen>$ dsconfig
+ create-identity-mapper
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --mapper-name "Email Mapper"
+ --type exact-match
+ --set match-attribute:mail
+ --set enabled:true
+ --no-prompt
+$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name PLAIN
+ --set identity-mapper:"Email Mapper"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --useStartTLS
+ --baseDN dc=example,dc=com
+ --saslOption mech=PLAIN
+ --saslOption authid=u:bjensen@example.com
+ --bindPassword hifalutin
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</screen>
+
+  <para>The Regular Expression identity mapper uses a regular expression to
+  extract a substring from the string provided, and then searches for a match
+  between the substring and the value of a specified attribute. In the case
+  of example data where an email address is user ID + @ + domain, you can use
+  the default Regular Expression identity mapper in the same way as the email
+  mapper from the previous example. The default regular expression pattern is
+  <literal>^([^@]+)@.+$</literal>, and the part of the identity string matching
+  <literal>([^@]+)</literal> is used to find the entry by user ID.</para>
+
+  <screen>$ dsconfig
+ set-sasl-mechanism-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name PLAIN
+ --set identity-mapper:"Regular Expression"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --useStartTLS
+ --baseDN dc=example,dc=com
+ --saslOption mech=PLAIN
+ --saslOption authid=u:bjensen@example.com
+ --bindPassword hifalutin
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</screen>
+
+  <para>Try the <command>dsconfig</command> command interactively to experiment
+  with <literal>match-pattern</literal> and <literal>replace-pattern</literal>
+  settings for the Regular Expression identity mapper. The
+  <literal>match-pattern</literal> can be any regular expression supported by
+  <literal>javax.util.regex.Pattern</literal>.</para>
+ </section>
+
  <section xml:id="proxied-authz">
   <title>Configuring Proxied Authorization</title>
   <indexterm><primary>Proxied authorization</primary></indexterm>
