@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -66,7 +66,6 @@ public final class LDIFSearch extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new LDIFSearch().run(args);
         System.exit(filterExitCode(retCode));
@@ -163,7 +162,7 @@ public final class LDIFSearch extends ConsoleApplication {
             // If we should just display usage or version information,
             // then print it and exit.
             if (argParser.usageOrVersionDisplayed()) {
-                return 0;
+                return ResultCode.SUCCESS.intValue();
             }
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
@@ -300,11 +299,8 @@ public final class LDIFSearch extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeIfNotNull(sourceReader);
-            closeIfNotNull(outputWriter);
-
-            closeIfNotNull(sourceInputStream);
-            closeIfNotNull(outputStream);
+            closeIfNotNull(sourceReader, outputWriter);
+            closeIfNotNull(sourceInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();
