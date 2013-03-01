@@ -107,15 +107,14 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
     <para>An <firstterm>attribute syntax</firstterm> constrains what directory
     clients can store as attribute values.</para>
 
-    <para>An attribute syntax is identified in an attribute type definitions by
+    <para>An attribute syntax is identified in an attribute type definition by
     its OID. String-based syntax OIDs are optionally followed by a number, set
     between braces, that represents a minimum upper bound on the number of
     characters in the attribute value. For example, in the attribute type
     definition shown above, the syntax is
     <literal>1.3.6.1.4.1.1466.115.121.1.26{256}</literal>. The syntax is an
     IA5 string (composed of characters from the international version of the
-    ASCII character set) that can be up to a maximum of at least 256
-    characters long.</para>
+    ASCII character set) that can contain at least 256 characters.</para>
 
     <para>You can find a table matching attribute syntax OIDs with their
     human-readable names in RFC 4517, <link xlink:show="new"
@@ -139,7 +138,9 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
     linkend="schema-legacy-support" />.</para>
 
     <para>When creating your own attribute type definitions, use existing
-    attribute syntaxes where possible.</para>
+    attribute syntaxes where possible. If you must create your own attribute
+    syntax, then consider the extensions in
+    <xref linkend="attr-syntax-schema-definition-extensions" />.</para>
    </listitem>
 
    <listitem>
