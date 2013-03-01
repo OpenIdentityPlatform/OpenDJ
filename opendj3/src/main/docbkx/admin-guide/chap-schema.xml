@@ -343,12 +343,11 @@ myCustomAttribute: Testing 1, 2, 3...
     <term><literal>X-ENUM</literal></term>
     <listitem>
      <para>Used to define a syntax that is an enumeration of values. The
-     following attribute syntax description defines a syntax allowing three
+     following attribute syntax description defines a syntax allowing four
      possible attribute values for example.</para>
      <programlisting language="ldif"
-     >ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
- X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real'
- 'merge-real-and-virtual' ) )</programlisting>
+     >ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
+ X-ENUM ( 'top-secret', 'secret', 'confidential', 'unclassified' ) )</programlisting>
     </listitem>
    </varlistentry>
 
