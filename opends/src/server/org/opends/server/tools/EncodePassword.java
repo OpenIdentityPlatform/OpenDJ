@@ -644,11 +644,7 @@ public class EncodePassword
         }
         final boolean authPasswordMatches =
             storageScheme.authPasswordMatches(clearPW, authInfo, authValue);
-        if (authPasswordMatches)
-        {
-          Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
-          out.println(message);
-        }
+        out.println(getOutputMessage(authPasswordMatches));
         if (useCompareResultCode.isPresent())
         {
           return authPasswordMatches ? COMPARE_TRUE : COMPARE_FALSE;
@@ -726,16 +722,7 @@ public class EncodePassword
         boolean passwordMatches =
             storageScheme.passwordMatches(clearPW, ByteString
                 .valueOf(encodedPWString));
-        if (passwordMatches)
-        {
-          Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
-          out.println(message);
-        }
-        else
-        {
-          Message message = INFO_ENCPW_PASSWORDS_DO_NOT_MATCH.get();
-          out.println(message);
-        }
+        out.println(getOutputMessage(passwordMatches));
         if (useCompareResultCode.isPresent())
         {
           return passwordMatches ? COMPARE_TRUE : COMPARE_FALSE;
@@ -838,6 +825,17 @@ public class EncodePassword
 
     // If we've gotten here, then all processing completed successfully.
     return SUCCESS;
+  }
+
+
+
+  private static Message getOutputMessage(boolean passwordMatches)
+  {
+    if (passwordMatches)
+    {
+      return INFO_ENCPW_PASSWORDS_MATCH.get();
+    }
+    return INFO_ENCPW_PASSWORDS_DO_NOT_MATCH.get();
   }
 
 
