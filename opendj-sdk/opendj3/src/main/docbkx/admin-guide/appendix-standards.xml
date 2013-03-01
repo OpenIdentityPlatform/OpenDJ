@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <appendix xml:id='appendix-standards'
@@ -982,6 +982,31 @@
     </indexterm>
     <para>Provides a method for expressing directory queries and updates as
     XML documents.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><link xlink:show="new" xlink:href='http://www.json.org'
+   >JavaScript Object Notation</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>JSON</secondary>
+    </indexterm>
+    <para>A data-interchange format that aims to be both "easy for humans to
+    read and write," and also "easy for machines to parse and generate."</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><link xlink:show="new"
+   xlink:href='http://www.simplecloud.info/specs/draft-scim-core-schema-00.html'
+   >Simple Cloud Identity Management: Core Schema 1.0</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>SCIM Core Schema 1.0</secondary>
+    </indexterm>
+    <para>Platform neutral schema and extension model for representing users
+    and groups in JSON and XML formats. OpenDJ supports the JSON formats.</para>
    </listitem>
   </varlistentry>
  </variablelist>

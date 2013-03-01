@@ -68,6 +68,14 @@
      <para>TODO: Bring this list up to date post OpenDJ 2.5.0-Xpress1.</para>
     </listitem>
     <listitem>
+     <para>OpenDJ now provides RESTful access to directory data (<link
+     xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-687"
+     >OPENDJ-687</link>, <link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-688"
+     >OPENDJ-688</link>).</para>
+    </listitem>
+    <listitem>
      <para>OpenDJ now sets <literal>isMemberOf</literal> on groups as well as
      user entries (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-513"

@@ -465,6 +465,88 @@ To see basic server configuration status and configuration you can launch
   </step>
  </procedure>
 
+ <procedure xml:id="install-rest2ldap-servlet">
+  <title>To Install OpenDJ REST LDAP Gateway</title>
+  <indexterm><primary>REST LDAP gateway</primary></indexterm>
+
+  <para>The OpenDJ REST LDAP gateway functions as a web application in a web
+  application container, running independently of OpenDJ. <!-- Alternatively,
+  you can add an HTTP listener directly to OpenDJ. See <link
+  xlink:href="admin-guide#setup-rest2ldap"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST Client
+  Access</citetitle></link> for instructions.--> You configure the gateway
+  to access your directory service by editing
+  <filename>opendj-rest2ldap-servlet.json</filename> where you deploy the
+  gateway web application.</para>
+
+  <step>
+   <para>Deploy
+   <filename>opendj-rest2ldap-servlet-<?eval ${docTargetVersion}?>-servlet.war</filename>
+   according to the instructions for your application server.</para>
+  </step>
+
+  <step>
+   <para>Edit <filename>opendj-rest2ldap-servlet.json</filename> where you
+   deployed the gateway web application.</para>
+
+   <para>The default JSON resource for the configuration includes both
+   connection and authentication information, and also
+   <literal>mappings</literal>. The <literal>mappings</literal> describe how
+   the gateway translates between JSON and LDAP representations of your
+   data. The default <literal>mappings</literal> are built to work with
+   generated example data and also the sample content in <link xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/Example.ldif"
+    >Example.ldif</link>.</para>
+
+   <para>At minimum, make sure that the host name and port numbers for
+   <literal>primaryLDAPServers</literal> are properly configured, that
+   <literal>authentication</literal> reflects the correct simple bind
+   credentials, and that the <literal>mappings</literal> for the endpoints
+   correctly match your directory data.</para>
+
+   <para>For details on the configuration, see <link
+   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+   Gateway Configuration</citetitle></link>.</para>
+  </step>
+
+  <step>
+   <para>Restart the REST LDAP gateway or the application server to make
+   sure the changes are taken into account.</para>
+  </step>
+
+  <step>
+   <para>Make sure that your directory server is running, and then check that
+   the gateway is connecting correctly.</para>
+
+   <para>The following command reads Babs Jensen's entry through the gateway
+   to the backend holding data from <filename>Example.ldif</filename>.</para>
+
+   <screen>$ curl
+ http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
+{
+  "id" : "bjensen",
+  "rev" : "000000002f43b789",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen"
+}</screen>
+
+   <para>If you generated example data, Babs Jensen's entry is not included.
+   Try a URL such as
+   <literal>http://opendj.example.com:8080/rest2ldap/users/user.0</literal>
+   instead.</para>
+  </step>
+ </procedure>
+
  <procedure xml:id="install-dsml-gateway">
   <title>To Install OpenDJ DSML gateway</title>
   <indexterm><primary>DSML gateway</primary></indexterm>
