@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -71,11 +72,112 @@
               targetldif = '%s/clu/ldif-diff_checkbehavior.ldif' \
                            % remote.data
             </script>
+
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: compare ldif files with no diffs
+              #@TestIssue           none
+              #@TestPurpose         Test ldif-diff to compare ldif files with 
+                                    no diffs with useCompareResultCode option
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    no diffs with useCompareResultCode option
+              #@TestPostamble       none
+              #@TestResult          Success if ldif-diff returns 6.
+            -->
+            <testcase name="getTestCaseName
+            ('ldif-diff: compare ldif files with no diffs and with useCompareResultCode option')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: compare ldif files with no diffs'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif' : sourceldif ,
+                  'targetLdif' : sourceldif ,
+                  'outputLdif' : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
+                  'useCmpRC'   : 'True' ,
+                  'expectedRC' : 6
+                  }
+                </call>
+
+                <script>
+                  msg1 = '# No differences were detected between the source'
+                  msg2 = 'and target LDIF files'
+                </script>
+                <call function="'grep'">
+                  {
+                  'location'  : STAF_REMOTE_HOSTNAME ,
+                  'filename'  : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
+                  'testString': '%s %s' % (msg1, msg2)
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
+            
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: compare ldif files with diffs
+              #@TestIssue           none
+              #@TestPurpose         Test ldif-diff to compare ldif files with 
+                                    diffs with useCompareResultCode option
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    diffs with useCompareResultCode option
+              #@TestPostamble       none
+              #@TestResult          Success if ldif-diff returns 5.
+            -->
+            <testcase name="getTestCaseName
+            ('ldif-diff: compare ldif files with diffs with useCompareResultCode option')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: compare ldif files with diffs'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif' : sourceldif ,
+                  'targetLdif' : targetldif ,
+                  'outputLdif' : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
+                  'useCmpRC'   : 'True' ,
+                  'expectedRC' : 5
+                  }
+                </call>
+
+                <script>
+                  msg = 'dn: uid=user.10,ou=ldapdelete,o=clu tests,dc=example,dc=com'
+                </script>
+                <call function="'grep'">
+                  {
+                  'location'  : STAF_REMOTE_HOSTNAME ,
+                  'filename'  : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
+                  'testString': msg
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
             
             <!--- Test Case information
               #@TestMarker          ldif-diff check behavior tests
               #@TestName            ldif-diff: compare ldif files with no diffs
-              #@TestIssue           3111
+              #@TestIssue           none
               #@TestPurpose         Test ldif-diff to compare ldif files with 
                                     no diffs
               #@TestPreamble        none
@@ -102,6 +204,18 @@
                   'outputLdif' : '%s/clu/ldif-diff_nodiffs.out' % remote.temp
                   }
                 </call>
+
+                <script>
+                  msg1 = '# No differences were detected between the source'
+                  msg2 = 'and target LDIF files'
+                </script>
+                <call function="'grep'">
+                  {
+                  'location'  : STAF_REMOTE_HOSTNAME ,
+                  'filename'  : '%s/clu/ldif-diff_nodiffs.out' % remote.temp ,
+                  'testString': '%s %s' % (msg1, msg2)
+                  }
+                </call>
                 
                 <call function="'testCase_Postamble'"/>
                 
@@ -112,14 +226,14 @@
             <!--- Test Case information
               #@TestMarker          ldif-diff check behavior tests
               #@TestName            ldif-diff: compare ldif files with diffs
-              #@TestIssue           2641
+              #@TestIssue           none
               #@TestPurpose         Test ldif-diff to compare ldif files with 
                                     diffs
               #@TestPreamble        none
               #@TestStep            Do an ldif-diff to compare ldif files with
                                     diffs
               #@TestPostamble       none
-              #@TestResult          Success if ldif-diff returns 1.
+              #@TestResult          Success if ldif-diff returns 0.
             -->
             <testcase name="getTestCaseName
             ('ldif-diff: compare ldif files with diffs')">
@@ -136,9 +250,18 @@
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/clu/ldif-diff_withdiffs.out' % remote.temp ,
-                  'expectedRC' : 1 ,
-                  'knownIssue' : '2641'
+                  'outputLdif' : '%s/clu/ldif-diff_withdiffs.out' % remote.temp
+                  }
+                </call>
+                
+                <script>
+                  msg = 'dn: uid=user.10,ou=ldapdelete,o=clu tests,dc=example,dc=com'
+                </script>
+                <call function="'grep'">
+                  {
+                  'location'  : STAF_REMOTE_HOSTNAME ,
+                  'filename'  : '%s/clu/ldif-diff_withdiffs.out' % remote.temp ,
+                  'testString': msg
                   }
                 </call>
                 
@@ -151,7 +274,7 @@
             <!--- Test Case information
               #@TestMarker          ldif-diff check behavior tests
               #@TestName            ldif-diff: check diff file
-              #@TestIssue           3111
+              #@TestIssue           none
               #@TestPurpose         Check ldif file generated by ldif-diff
               #@TestPreamble        none
               #@TestStep            Do an ldif-diff to compare ldif files with
@@ -174,17 +297,40 @@
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp ,
-                  'expectedRC' : 'noCheck'
+                  'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp
                   }
                 </call>
+
+                <script>
+                  # Output file
+                  sourceFile = open('%s/clu/ldif-diff.out' % remote.temp,"r")
+                  sortFile = open('%s/clu/ldif-diff_sort.out' % remote.temp,"w")
+
+                  lines = sourceFile.readlines()
+                  lines.sort()
+                  sortFile.writelines(lines)
+
+                  sourceFile.close()
+                  sortFile.close()
+
+                  # Reference file
+                  sourceFile = open('%s/clu/ldif-diff.ref' % local.data,"r")
+                  sortFile = open('%s/clu/ldif-diff_sort.ref' % remote.temp,"w")
+
+                  lines = sourceFile.readlines()
+                  lines.sort()
+                  sortFile.writelines(lines)
+
+                  sourceFile.close()
+                  sortFile.close()
+                </script>
                 
                 <call function="'compareFile'">
                   {
-                  'outputFile' : 'ldif-diff.out' ,
+                  'outputFile' : 'ldif-diff_sort.out' ,
                   'outputPath' : '%s/clu' % remote.temp ,
-                  'refFile'    : 'ldif-diff.ref',
-                  'knownIssue' : '3111'
+                  'refFile'    : 'ldif-diff_sort.ref' ,
+                  'refPath'    : '%s/clu' % remote.temp ,
                   }
                 </call>
   
@@ -197,7 +343,7 @@
             <!--- Test Case information
               #@TestMarker          ldif-diff check behavior tests
               #@TestName            ldif-diff: check diff file
-              #@TestIssue           3111
+              #@TestIssue           none
               #@TestPurpose         Check ldif file generated by ldif-diff
               #@TestPreamble        none
               #@TestStep            Do an ldif-diff to compare ldif files with
@@ -223,17 +369,40 @@
                   'targetLdif'         : targetldif ,
                   'outputLdif'         : '%s/clu/ldif-diff_singlevalue.out' \
                                          % remote.temp ,
-                  'singleValueChanges' : 'True' ,           
-                  'expectedRC'         : 'noCheck'
+                  'singleValueChanges' : 'True'
                   }
                 </call>
                 
+                <script>
+                  # Output file
+                  sourceFile = open('%s/clu/ldif-diff_singlevalue.out' % remote.temp,"r")
+                  sortFile = open('%s/clu/ldif-diff_singlevalue_sort.out' % remote.temp,"w")
+
+                  lines = sourceFile.readlines()
+                  lines.sort()
+                  sortFile.writelines(lines)
+
+                  sourceFile.close()
+                  sortFile.close()
+
+                  # Reference file
+                  sourceFile = open('%s/clu/ldif-diff_singlevalue.ref' % local.data,"r")
+                  sortFile = open('%s/clu/ldif-diff_singlevalue_sort.ref' % remote.temp,"w")
+
+                  lines = sourceFile.readlines()
+                  lines.sort()
+                  sortFile.writelines(lines)
+                    
+                  sourceFile.close()
+                  sortFile.close()
+                </script>
+                
                 <call function="'compareFile'">
                   { 
-                  'outputFile' : 'ldif-diff_singlevalue.out' ,
+                  'outputFile' : 'ldif-diff_singlevalue_sort.out' ,
                   'outputPath' : '%s/clu' % remote.temp ,
-                  'refFile'    : 'ldif-diff_singlevalue.ref' ,
-                  'knownIssue' : '3111'
+                  'refFile'    : 'ldif-diff_singlevalue_sort.ref' ,
+                  'refPath'    : '%s/clu' % remote.temp ,
                   }
                 </call>
   

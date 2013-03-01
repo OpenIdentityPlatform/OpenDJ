@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS 
  ! -->
 <stax>
 
@@ -112,7 +113,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: empty hostname
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with an empty hostname.
@@ -137,8 +138,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : basedn ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
   
@@ -189,12 +189,14 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: no port and no basedn
-              #@TestIssue           2619
-              #@TestPurpose         Verify a parameter error doing an ldapsearch.
+              #@TestIssue           none
+              #@TestPurpose         Verify a connection error doing an 
+                                    ldapsearch without the port option (default
+                                    port is 389)
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with no port and no basedn.
               #@TestPostamble       none
-              #@TestResult          Success if ldapsearch returns 89.
+              #@TestResult          Success if ldapsearch returns 91.
             -->
             <testcase name="getTestCaseName('ldapsearch: no port and no basedn')">
   
@@ -212,8 +214,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 91
                   }
                 </call>
   
@@ -226,7 +227,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: invalid port number and no basedn
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with invalid port number 
@@ -252,8 +253,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
   
@@ -386,7 +386,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: scope with no option-argument
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify an invalid credentials error 
                                     doing an ldapsearch.
               #@TestPreamble        none
@@ -414,8 +414,7 @@
                   'dsScope'          : ' ' ,
                   'dsBaseDN'         : basedn ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
   
@@ -428,7 +427,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: invalid scope
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with an invalid scope.
@@ -454,8 +453,7 @@
                   'dsScope'          : 'bad_scope' ,
                   'dsBaseDN'         : basedn ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
   
@@ -544,7 +542,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: no filter
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch without a filter.
@@ -568,8 +566,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : basedn ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
   
@@ -976,7 +973,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: sort order option of bad
-              #@TestIssue           2623
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with the a sort order of bad.
@@ -1002,8 +999,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsSortOrder'      : 'bad_sort' ,
                   'dsBaseDN'         : basedn ,
-                  'dsFilter'         : dsfilter ,
-                  'knownIssue'       : '2623'
+                  'dsFilter'         : dsfilter
                   }
                 </call>
   
@@ -1056,7 +1052,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: dereference policy of bad
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with the a dereference 
@@ -1084,8 +1080,7 @@
                   'dsDereferencePolicy' : 'bad_ref' ,
                   'dsBaseDN'            : basedn ,
                   'dsFilter'            : dsfilter ,
-                  'expectedRC'          : 89 ,
-                  'knownIssue'          : '2619'
+                  'expectedRC'          : 89
                   }
                 </call>
   
@@ -1137,7 +1132,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: simple page size of 0
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter doing an ldapsearch.
               #@TestPreamble        none
               #@TestStep            Do an ldapsearch with the a simple page size
@@ -1165,8 +1160,7 @@
                   'dsSimplePageSize'    : '0' ,             
                   'dsBaseDN'            : basedn ,
                   'dsFilter'            : 'objectclass=*' ,
-                  'expectedRC'          : 89 ,
-                  'knownIssue'          : '2619'
+                  'expectedRC'          : 89
                   }
                 </call>
                 
