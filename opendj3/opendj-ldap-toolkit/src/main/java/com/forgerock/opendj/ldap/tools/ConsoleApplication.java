@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  *      Portions copyright 2011 Nemanja Lukić
  */
 package com.forgerock.opendj.ldap.tools;
@@ -67,17 +67,22 @@ abstract class ConsoleApplication {
     }
 
     /**
-     * Closes the provided {@code Closeable} if it is not {@code null}.
+     * Closes the provided {@code Closeable}s if they are not {@code null}.
      *
-     * @param closeable
-     *            The closeable to be closed.
+     * @param closeables
+     *          The closeables to be closed.
      */
-    final void closeIfNotNull(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (Exception ignored) {
-                // Do nothing.
+    final void closeIfNotNull(Closeable... closeables) {
+        if (closeables == null) {
+            return;
+        }
+        for (Closeable closeable : closeables) {
+            if (closeable != null) {
+                try {
+                    closeable.close();
+                } catch (Exception ignored) {
+                    // Do nothing.
+                }
             }
         }
     }

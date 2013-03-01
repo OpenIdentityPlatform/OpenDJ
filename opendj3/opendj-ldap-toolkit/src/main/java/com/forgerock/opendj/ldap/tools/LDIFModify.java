@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -68,7 +68,6 @@ public final class LDIFModify extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new LDIFModify().run(args);
         System.exit(filterExitCode(retCode));
@@ -124,7 +123,7 @@ public final class LDIFModify extends ConsoleApplication {
             // If we should just display usage or version information,
             // then print it and exit.
             if (argParser.usageOrVersionDisplayed()) {
-                return 0;
+                return ResultCode.SUCCESS.intValue();
             }
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
@@ -209,6 +208,7 @@ public final class LDIFModify extends ConsoleApplication {
             outputWriter = new LDIFEntryWriter(outputStream);
 
             final RejectedChangeRecordListener listener = new RejectedChangeRecordListener() {
+                @Override
                 public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
                         throws DecodeException {
                     try {
@@ -220,6 +220,7 @@ public final class LDIFModify extends ConsoleApplication {
                     return change;
                 }
 
+                @Override
                 public Entry handleDuplicateEntry(final ModifyDNRequest change,
                         final Entry existingEntry, final Entry renamedEntry) throws DecodeException {
                     try {
@@ -231,6 +232,7 @@ public final class LDIFModify extends ConsoleApplication {
                     return renamedEntry;
                 }
 
+                @Override
                 public void handleRejectedChangeRecord(final AddRequest change,
                         final LocalizableMessage reason) throws DecodeException {
                     try {
@@ -241,6 +243,7 @@ public final class LDIFModify extends ConsoleApplication {
                     }
                 }
 
+                @Override
                 public void handleRejectedChangeRecord(final DeleteRequest change,
                         final LocalizableMessage reason) throws DecodeException {
                     try {
@@ -251,6 +254,7 @@ public final class LDIFModify extends ConsoleApplication {
                     }
                 }
 
+                @Override
                 public void handleRejectedChangeRecord(final ModifyDNRequest change,
                         final LocalizableMessage reason) throws DecodeException {
                     try {
@@ -261,6 +265,7 @@ public final class LDIFModify extends ConsoleApplication {
                     }
                 }
 
+                @Override
                 public void handleRejectedChangeRecord(final ModifyRequest change,
                         final LocalizableMessage reason) throws DecodeException {
                     try {
@@ -290,13 +295,8 @@ public final class LDIFModify extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeIfNotNull(sourceReader);
-            closeIfNotNull(changesReader);
-            closeIfNotNull(outputWriter);
-
-            closeIfNotNull(sourceInputStream);
-            closeIfNotNull(changesInputStream);
-            closeIfNotNull(outputStream);
+            closeIfNotNull(sourceReader, changesReader, outputWriter);
+            closeIfNotNull(sourceInputStream, changesInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();
