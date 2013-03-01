@@ -654,7 +654,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Constructs an attribute using the provided information. It will
-   * have the default syntax.
+   * use the server's schema definitions.
    *
    * @param name
    *          The name to use for the attribute.
@@ -665,7 +665,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   private Attribute createAttribute(String name, String value)
   {
     AttributeType attrType =
-        DirectoryServer.getDefaultAttributeType(name);
+      DirectoryServer.getAttributeType(name.toLowerCase());
 
     AttributeBuilder builder = new AttributeBuilder(attrType, name);
     builder.add(AttributeValues.create(attrType, value));
