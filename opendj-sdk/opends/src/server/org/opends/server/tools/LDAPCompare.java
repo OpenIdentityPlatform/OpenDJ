@@ -47,7 +47,6 @@ import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
@@ -189,7 +188,7 @@ public class LDAPCompare
    * method always overwrites the {@link LDAPResultCode#SUCCESS} and
    * {@link LDAPResultCode#COMPARE_TRUE} result codes with the new result code.
    * Then
-   * 
+   *
    * @param aggResultCodes
    *          the aggregated result codes (a.k.a "accumulator")
    * @param newResultCode
