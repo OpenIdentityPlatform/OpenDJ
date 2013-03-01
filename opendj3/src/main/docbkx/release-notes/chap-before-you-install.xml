@@ -133,8 +133,8 @@ opendj hard nofile 131072</programlisting>
   <para>OpenDJ directory server runs as a standalone Java service, and
   does not depend on an application server.</para>
 
-  <para>OpenDJ <?eval ${docTargetVersion}?> DSML gateway has been validated
-  on Apache Tomcat 6.</para>
+  <para>OpenDJ <?eval ${docTargetVersion}?> DSML and REST LDAP gateway Servlets
+  have been validated on Apache Tomcat 6.</para>
  </section>
 
  <section xml:id="prerequisites-fqdn">

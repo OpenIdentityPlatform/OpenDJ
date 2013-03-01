@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-rest-operations'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Performing RESTful Operations</title>
+ <indexterm><primary>JSON</primary></indexterm>
+ <indexterm><primary>REST</primary></indexterm>
+
+ <para>OpenDJ lets you access directory data as JSON resources over HTTP. To
+ configure this capability, see <link xlink:href="admin-guide#setup-rest2ldap"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST Client
+ Access</citetitle></link> for instructions.</para>
+
+ <para>This chapter demonstrates basic RESTful client operations using the
+ default configuration and sample directory data imported into OpenDJ from
+ <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+ >Example.ldif</link>.</para>
+
+ <section xml:id="understand-rest">
+  <title>Understanding the OpenDJ REST API</title>
+
+  <para>The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API
+  for interacting with JSON Resources. APIs built on this common layer all let
+  you perform the following operations.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term>Create</term>
+    <listitem>
+     <para>Add a resource that does not yet exist</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Read</term>
+    <listitem>
+     <para>Retrieve a single resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Update</term>
+    <listitem>
+     <para>Replace an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Delete</term>
+    <listitem>
+     <para>Remove an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Patch</term>
+    <listitem>
+     <para>Modify part of an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Action</term>
+    <listitem>
+     <para>Perform a predefined action</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Query</term>
+    <listitem>
+     <para>List a set of resources</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>The present implementation in OpenDJ maps JSON resources onto LDAP
+  entries, meaning REST clients can in principle do just about anything an
+  LDAP client can do with directory data.</para>
+
+  <variablelist>
+   <para>In addition to query string parameters that depend on the operation,
+   the examples in this chapter make use of the following parameters that
+   apply to the JSON resource returned for all operations.</para>
+   <varlistentry>
+    <term><literal>_fields=<replaceable>field</replaceable>[,...]</literal></term>
+    <listitem>
+     <para>Retain only the specified fields in the JSON resource returned.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>_prettyPrint=true|false</literal></term>
+    <listitem>
+     <para>Make the JSON resource returned easy for humans to read.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+
+ <section xml:id="authenticate-rest">
+  <title>Authenticating Over REST</title>
+
+  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-694</para>
+ </section>
+
+ <section xml:id="create-rest">
+  <title>Creating Resources</title>
+
+  <para>There are two ways to create resources.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>To create a resource using an ID that you specify, perform an HTTP PUT
+    request with headers <literal>Content-Type: application/json</literal> and
+    <literal>If-None-Match: *</literal>, and the JSON content of your
+    resource.</para>
+
+    <para>The following example creates a new user entry with ID
+    <literal>newuser</literal>.</para>
+
+    <screen>$ curl
+ --request PUT
+ --header "Content-Type: application/json"
+ --header "If-None-Match: *"
+ --data '{
+  "id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User"
+ }'
+ http://opendj.example.com:8080/rest2ldap/users/newuser?_prettyPrint=true
+{
+  "id" : "newuser",
+  "rev" : "0000000049522179",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User"
+}</screen>
+   </listitem>
+
+   <listitem>
+    <para>To create a resource letting the server choose the ID, perform an HTTP
+    POST with <literal>_action=create</literal> as described in
+    <xref linkend="action-rest" />.</para>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section xml:id="read-rest">
+  <title>Reading a Resource</title>
+
+  <para>To read a resource, perform an HTTP GET.</para>
+
+  <screen>$ curl http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
+{
+  "id" : "bjensen",
+  "rev" : "000000002f43b789",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen"
+}</screen>
+ </section>
+
+ <section xml:id="update-rest">
+  <title>Updating Resources</title>
+
+  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-693</para>
+ </section>
+
+ <section xml:id="delete-rest">
+  <title>Deleting Resources</title>
+
+  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-692</para>
+ </section>
+
+ <section xml:id="patch-rest">
+  <title>Patching Resources</title>
+
+  <para>TODO, https://bugster.forgerock.org/jira/browse/CREST-3</para>
+ </section>
+
+ <section xml:id="action-rest">
+  <title>Using Actions</title>
+
+  <para>OpenDJ implements an action that lets the server choose the resource ID
+  on creation. To use this action, perform an HTTP POST with header
+  <literal>Content-Type: application/json</literal>,
+  <literal>_action=create</literal> in the query string, and the JSON content of
+  your resource.</para>
+
+  <para>The following example creates a new user entry. Lines are folded for
+  readability.</para>
+
+  <para>TODO, fix pending https://bugster.forgerock.org/jira/browse/OPENDJ-775</para>
+  <screen>$ curl
+ --request POST
+ --header "Content-Type: application/json"
+ --data '{
+  "id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User"
+}'
+ http://opendj.example.com:8080/rest2ldap/users?_action=create&amp;_prettyPrint=true
+{
+  "id": "newuser",
+  "rev": "0000000049522179",
+  "schemas": [
+    "urn:scim:schemas:core:1.0"
+  ],
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "userName": "newuser@example.com",
+  "displayName": "New User"
+}</screen>
+
+  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-695</para>
+ </section>
+
+ <section xml:id="query-rest">
+  <title>Querying Resource Collections</title>
+
+  <para>To query resource collections, perform an HTTP GET with a
+  <literal>_filter=<replaceable>filter</replaceable></literal> parameter in
+  your query string.</para>
+
+  <variablelist>
+   <para>For query operations, your <replaceable>filter</replaceable>
+   expressions are constructed from the following building blocks.
+   Make sure you URL encode the filter expressions, which are shown here
+   without URL encoding to make them easier to read.</para>
+
+   <para>In these expressions the simplest
+   <replaceable>json-pointer</replaceable> is a field of the JSON resource,
+   such as <literal>userName</literal> or <literal>id</literal>. A
+   <replaceable>json-pointer</replaceable> can however point to nested
+   elements as described in the <link xlink:show="new"
+   xlink:href="http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer">JSON
+   Pointer</link> Internet-Draft.</para>
+
+   <varlistentry>
+    <term>Comparison expressions</term>
+    <listitem>
+     <para>You can build filters using the following comparison expressions.</para>
+
+     <para>Request URLs are folded in the following examples to make them
+     easier to read.</para>
+
+     <variablelist>
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> eq <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer equals the value, as in the following
+        example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+  _filter=userName+eq+"bjensen@example.com"
+  &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "id" : "bjensen",
+    "rev" : "000000002f43b789",
+    "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "contactInformation" : {
+      "telephoneNumber" : "+1 408 555 1862",
+      "emailAddress" : "bjensen@example.com"
+    },
+    "name" : {
+      "familyName" : "Jensen",
+      "givenName" : "Barbara"
+    },
+    "userName" : "bjensen@example.com",
+    "displayName" : "Barbara Jensen"
+  } ],
+  "resultCount" : 1,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> co <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer contains the value, as in the following
+        example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+co+"jensen"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "ajensen@example.com"
+  }, {
+    "userName" : "bjensen@example.com"
+  }, {
+    "userName" : "gjensen@example.com"
+  }, {
+    "userName" : "jjensen@example.com"
+  }, {
+    "userName" : "kjensen@example.com"
+  }, {
+    "userName" : "rjensen@example.com"
+  }, {
+    "userName" : "tjensen@example.com"
+  } ],
+  "resultCount" : 7,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> sw <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer starts with the value, as in the
+        following example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+sw+"ab"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> lt <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is less than the value, as in the
+        following example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+lt+"ac"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> le <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is less than or equal to the value, as
+        in the following example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+le+"ad"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  }, {
+    "userName" : "achassin@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> gt <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is greater than the value, as in the
+        following example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+gt+"tt"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "ttully@example.com"
+  }, {
+    "userName" : "tward@example.com"
+  }, {
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> ge <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is greater than or equal to the value,
+        as in the following example.</para>
+
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
+ _filter=userName+ge+"tw"
+ &amp;_fields=userName
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "tward@example.com"
+  }, {
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <!--
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> <replaceable>string</replaceable> <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches an extended comparison.</para>
+        <screen>TODO</screen>
+       </listitem>
+      </varlistentry>
+      -->
+     </variablelist>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Presence expression</term>
+    <listitem>
+     <para><literal><replaceable>json-pointer</replaceable> pr</literal> matches
+     any resource on which the <replaceable>json-pointer</replaceable> is
+     present, as in the following example.</para>
+
+     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?_filter=userName%20pr
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "id" : "abarnes",
+    "rev" : "000000002609a565",
+    "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "contactInformation" : {
+... many entries omitted ...
+    "userName" : "fdupont@example.fr",
+    "displayName" : "Frederique Dupont"
+  } ],
+  "resultCount" : 151,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Literal expressions</term>
+    <listitem>
+     <para><literal>true</literal> matches any resource in the collection.</para>
+     <para><literal>false</literal> matches no resource in the collection.</para>
+
+     <para>In other words you can list all resources in a collection as in the
+     following example.</para>
+
+     <screen>$ curl http://opendj.example.com:8080/rest2ldap/users?_filter=true
+... much output omitted ...</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Complex expressions</term>
+    <listitem>
+     <para>You can combine expressions using boolean operators
+     <literal>and</literal>, <literal>or</literal>, and <literal>!</literal>
+     (not), using parentheses,
+     <literal>(<replaceable>expression</replaceable>)</literal>, to group
+     expressions. The following example queries resources with last name
+     Jensen and first name starting with <literal>Bar</literal>. Notice that the
+     filters use the JSON pointers <literal>name/familyName</literal> and
+     <literal>name/givenName</literal> to identify the fields that are nested
+     inside the <literal>name</literal> object.</para>
+
+     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users
+ ?_filter=(name/familyName+eq+"jensen"+and+name/givenName+sw+"Bar")
+ &amp;_fields=name
+ &amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "name" : {
+      "familyName" : "Jensen",
+      "givenName" : "Barbara"
+    }
+  } ],
+  "resultCount" : 1,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>You can have the server sort JSON resources before it returns them by
+  using the <literal>_sortKeys[+-]=<replaceable>field</replaceable>[,...]</literal>
+  query string. TODO, pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-702</para>
+
+  <variablelist>
+   <para>You can page through search results using the following query string
+   parameters.</para>
+
+   <para>TODO, pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-701</para>
+
+   <varlistentry>
+    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>__pagedResultsOffset=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+</chapter>

@@ -65,6 +65,7 @@
  <xinclude:include href='chap-listeners.xml' />
  <xinclude:include href='chap-privileges-acis.xml' />
  <xinclude:include href='chap-ldap-operations.xml' />
+ <xinclude:include href='chap-rest-operations.xml' />
  <xinclude:include href='chap-indexing.xml' />
  <xinclude:include href='chap-replication.xml' />
  <xinclude:include href='chap-backup-restore.xml' />
@@ -134,6 +135,7 @@
 
  <xinclude:include href="../shared/glossary.xml" />
 
+ <xinclude:include href="appendix-rest2ldap.xml" />
  <xinclude:include href='appendix-file-layout.xml' />
  <xinclude:include href='appendix-ports-used.xml' />
  <xinclude:include href='appendix-standards.xml' />

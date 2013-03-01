@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+<appendix xml:id='appendix-rest2ldap'
+          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'
+          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>REST LDAP Gateway Configuration</title>
+ <indexterm><primary>REST LDAP gateway</primary></indexterm>
+ <!-- This belongs in an OpenDJ reference. Ultimately this doc should
+      be generated, too, rather than written by hand. CREST-71? -->
+
+ <para>The OpenDJ REST LDAP gateway runs as a Servlet independent from your
+ directory service. You configure the gateway to access your directory service
+ by editing <filename>opendj-rest2ldap-servlet.json</filename> where you deploy
+ the gateway web application.</para>
+
+ <variablelist>
+  <para>The JSON format configuration can hold the following configuration
+  objects.</para>
+
+  <varlistentry>
+   <term>"primaryLDAPServers" (required)</term>
+   <listitem>
+    <para>The gateway accesses this array of LDAP servers before failing over
+    to the secondary LDAP servers. These might be LDAP servers in the same
+    data center for example.</para>
+
+    <programlisting language="javascript">{
+    "primaryLDAPServers": [
+        {
+            "hostname": "local1.example.com",
+            "port": 1389
+        },
+        {
+            "hostname": "local2.example.com",
+            "port": 1389
+        }
+    ]
+}</programlisting>
+
+    <para>By default, the gateway connects to the directory server listening
+    on port 1389 on the local host.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <!-- TODO: change when we get more authentication options. -->
+   <term>"authentication" (required)</term>
+   <listitem>
+    <para>The gateway authenticates by simple bind using the credentials
+    specified.</para>
+
+    <programlisting language="javascript">{
+    "authentication": {
+        "bindDN": "cn=Directory Manager",
+        "password": "password"
+    }
+}</programlisting>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>"mappings"</term>
+   <listitem>
+    <para>For each gateway collection URI such as <literal>/users</literal> and
+    <literal>/groups</literal>, you configure a mapping between the JSON
+    resource returned by the gateway, and the LDAP entry returned by the
+    directory service.</para>
+
+    <variablelist>
+     <para>Each mapping has a number of configuration elements.</para>
+
+     <varlistentry>
+      <term>"baseDN" (required)</term>
+      <listitem>
+       <para>The base DN where LDAP entries are found for this mapping.</para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term>"attributes" (required)</term>
+      <listitem>
+       <para>How the JSON resource fields map to attributes on LDAP
+       entries, each taking the form "<replaceable>field-name</replaceable>":
+       <replaceable>mapping-object</replaceable>. A number of
+       <replaceable>mapping-object</replaceable>s are supported.</para>
+
+       <variablelist>
+        <varlistentry>
+        <term>"constant"</term>
+        <listitem>
+         <para>Maps a single JSON attribute to a fixed value.</para>
+
+         <para>This can be useful as in the default case where each JSON
+         resource "schemas" takes the SCIM URN, and so the value is not related
+         to the underlying LDAP entries.</para>
+
+         <programlisting language="javascript">{
+    "schemas": {
+        "constant": [
+            "urn:scim:schemas:core:1.0"
+        ]
+    }
+}</programlisting>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>"simple"</term>
+        <listitem>
+         <para>Maps a JSON field to an LDAP attribute.</para>
+
+         <para>Simple mappings are used where the correspondence between JSON
+         fields and LDAP attributes is one-to-one.</para>
+
+         <programlisting language="javascript">{
+    "userName": {
+        "simple": {
+            "ldapAttribute": "mail",
+            "isSingleValued": true,
+            "writability": "readOnly"
+        }
+    }
+}</programlisting>
+
+         <itemizedlist>
+          <para>Simple mappings can take a number of fields.</para>
+
+          <listitem>
+           <para>(Required) "ldapAttribute": the name of LDAP attribute.</para>
+          </listitem>
+
+          <listitem>
+           <para>(Optional) "defaultValue": the JSON value if no LDAP attribute
+           is available on the entry.</para>
+          </listitem>
+
+          <listitem>
+           <para>(Optional) "isBinary": true means the LDAP attribute is
+           binary and the JSON field gets the base64-encoded value.</para>
+          </listitem>
+
+          <listitem>
+           <para>(Optional) "isRequired": true means the LDAP attribute is
+           mandatory and must be provided to create the resource.</para>
+          </listitem>
+
+          <listitem>
+           <para>(Optional) "isSingleValued": true means represent a possibly
+           multi-valued LDAP attribute as a single value, rather than an array
+           of values.</para>
+          </listitem>
+
+          <listitem>
+           <para>(Optional) "writability": indicates whether the LDAP attribute
+           supports updates. This field can take the following values.</para>
+
+           <itemizedlist>
+            <listitem>
+             <para>"createOnly": This attribute can be set only when the
+             entry is created. Attempts to update this attribute thereafter
+             result in errors.</para>
+            </listitem>
+            <listitem>
+             <para>"createOnlyDiscardWrites": This attribute can be set only
+             when the entry is created. Attempts to update this attribute
+             thereafter do not result in errors. Instead the update value
+             is discarded.</para>
+            </listitem>
+            <listitem>
+             <para>"readOnly": This attribute cannot be updated. Attempts to
+             update this attribute result in errors.</para>
+            </listitem>
+            <listitem>
+             <para>"readOnlyDiscardWrites": This attribute cannot be updated.
+             Attempts to update this attribute do not result in errors. Instead
+             the update value is discarded.</para>
+            </listitem>
+            <listitem>
+             <para>"readWrite": This attribute can be set at creation and
+             updated thereafter.</para>
+            </listitem>
+           </itemizedlist>
+          </listitem>
+         </itemizedlist>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>"object"</term>
+        <listitem>
+         <para>Maps a JSON object to LDAP attributes.</para>
+
+         <para>This mapping lets you create JSON objects whose fields themselves
+         have mappings to LDAP attributes.</para>
+        </listitem>
+       </varlistentry>
+
+       <!-- More to come?
+       <varlistentry>
+        <term></term>
+        <listitem>
+         <para></para>
+        </listitem>
+       </varlistentry>
+       -->
+       </variablelist>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term>"namingStrategy" (required)</term>
+      <listitem>
+       <para>The approach used to map LDAP entry names to JSON resources. One
+       of the following.</para>
+
+       <itemizedlist>
+        <listitem>
+         <para>RDN and resource ID are both derived from a single user attribute
+         in the LDAP entry, as in the following example, where the
+         <literal>uid</literal> attribute is the RDN and its value is the
+         JSON resource ID.</para>
+
+         <programlisting language="javascript">{
+    "namingStrategy": {
+        "strategy": "clientDNNaming",
+        "dnAttribute": "uid"
+    }
+}</programlisting>
+        </listitem>
+
+        <listitem>
+         <para>RDN and resource ID are derived from separate user attributes in
+         the LDAP entry, as in the following example where the RDN attribute is
+         <literal>uid</literal> but the JSON resource ID is the value of the
+         <literal>mail</literal> attribute.</para>
+
+         <programlisting language="javascript">{
+    "namingStrategy": {
+        "strategy": "clientNaming",
+        "dnAttribute": "uid",
+        "idAttribute": "mail"
+    }
+}</programlisting>
+        </listitem>
+
+        <listitem>
+         <para>RDN is derived from a user attribute and the resource ID from an
+         operational attribute in the LDAP entry, as in the following example,
+         where the RDN attribute is <literal>uid</literal> but the JSON resource
+         ID is the value of the <literal>entryUUID</literal> operational
+         attribute.</para>
+
+         <programlisting language="javascript">{
+    "namingStrategy": {
+        "strategy": "serverNaming",
+        "dnAttribute": "uid",
+        "idAttribute": "entryUUID"
+    }
+}</programlisting>
+        </listitem>
+       </itemizedlist>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term>"additionalLDAPAttributes" (optional, but necessary)</term>
+      <listitem>
+       <para>LDAP attributes to include during LDAP add operations as an
+       array of type-value lists, such as the following example.</para>
+
+       <programlisting language="javascript">{
+    "additionalLDAPAttributes": [
+        {
+            "type": "objectClass",
+            "values": [
+                "top",
+                "person",
+                "organizationalPerson",
+                "inetOrgPerson"
+            ]
+        }
+    ]
+}</programlisting>
+
+       <para>This configuration element is useful to set LDAP object classes
+       for example, which are not present in JSON resources.</para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term>"etagAttribute" (optional)</term>
+      <listitem>
+       <para>The LDAP attribute to use for multi-version concurrency control
+       (MVCC).</para>
+
+      <para>Default: "etag"</para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term>"readOnUpdatePolicy" (optional)</term>
+      <listitem>
+       <para>The policy used to read an entry before it is deleted, or to
+       read an entry after it is added or modified. One of the following.</para>
+
+       <itemizedlist>
+        <listitem>
+         <para>"controls": use RFC 4527 read-entry controls to reflect the
+         state of the resource at the time the update was performed.</para>
+         <para>The directory service must support RFC 4527.</para>
+         <para>This is the default if no policy is specified.</para>
+        </listitem>
+
+        <listitem>
+         <para>"disabled": do not read the entry or return the resource on
+         update.</para>
+        </listitem>
+
+        <listitem>
+         <para>"search": perform an LDAP search to retrieve the entry before
+         deletion or after it is added or modified.</para>
+         <para>The JSON resource returned might differ from the LDAP entry that
+         was updated.</para>
+        </listitem>
+       </itemizedlist>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+
+    <para>The default mapping exposes a SCIM view of sample data.</para>
+
+    <programlisting language="javascript">{
+    "/users": {
+        "baseDN": "ou=people,dc=example,dc=com",
+        "readOnUpdatePolicy": "controls",
+        "additionalLDAPAttributes": [
+            {
+                "type": "objectClass",
+                "values": [
+                    "top",
+                    "person",
+                    "organizationalPerson",
+                    "inetOrgPerson"
+                ]
+            }
+        ],
+        "namingStrategy": {
+            "strategy": "clientDNNaming",
+            "dnAttribute": "uid"
+        },
+        "etagAttribute": "etag",
+        "attributes": {
+            "schemas": {
+                "constant": [
+                    "urn:scim:schemas:core:1.0"
+                ]
+            },
+            "id": {
+                "simple": {
+                    "ldapAttribute": "uid",
+                    "isSingleValued": true,
+                    "isRequired": true,
+                    "writability": "createOnly"
+                }
+            },
+            "rev": {
+                "simple": {
+                    "ldapAttribute": "etag",
+                    "isSingleValued": true,
+                    "writability": "readOnly"
+                }
+            },
+            "userName": {
+                "simple": {
+                    "ldapAttribute": "mail",
+                    "isSingleValued": true,
+                    "writability": "readOnly"
+                }
+            },
+            "displayName": {
+                "simple": {
+                    "ldapAttribute": "cn",
+                    "isSingleValued": true,
+                    "isRequired": true
+                }
+            },
+            "name": {
+                "object": {
+                    "givenName": {
+                        "simple": {
+                            "ldapAttribute": "givenName",
+                            "isSingleValued": true
+                        }
+                    },
+                    "familyName": {
+                        "simple": {
+                            "ldapAttribute": "sn",
+                            "isSingleValued": true,
+                            "isRequired": true
+                        }
+                    }
+                }
+            },
+            "contactInformation": {
+                "object": {
+                    "telephoneNumber": {
+                        "simple": {
+                            "ldapAttribute": "telephoneNumber",
+                            "isSingleValued": true
+                        }
+                    },
+                    "emailAddress": {
+                        "simple": {
+                            "ldapAttribute": "mail",
+                            "isSingleValued": true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}</programlisting>
+   </listitem>
+  </varlistentry>
+
+  <!--
+  <varlistentry>
+   <term>"useSSL" (optional)</term>
+   <listitem>
+    <para>If the gateway connects with StartTLS or SSL to the directory
+    service, then you must specify how it uses SSL.</para>
+    <para>TODO: Not yet implemented.</para>
+   </listitem>
+  </varlistentry>
+  -->
+
+  <varlistentry>
+   <term>"secondaryLDAPServers" (optional)</term>
+   <listitem>
+    <para>The gateway accesses this array of LDAP servers if primary LDAP
+    servers cannot be contacted. These might be LDAP servers in the same
+    data center for example.</para>
+
+    <programlisting language="javascript">{
+    "secondaryLDAPServers": [
+        {
+            "hostname": "remote1.example.com",
+            "port": 1389
+        },
+        {
+            "hostname": "remote2.example.com",
+            "port": 1389
+        }
+    ]
+}</programlisting>
+
+    <para>No secondary LDAP servers are configured by default.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>"connectionPoolSize" (optional)</term>
+   <listitem>
+    <para>The gateway creates connection pools to the primary and secondary
+    LDAP servers that maintain up to <literal>connectionPoolSize</literal>
+    connections to the servers.</para>
+
+    <para>Default: 10</para>
+
+    <programlisting language="javascript">"connectionPoolSize": 10</programlisting>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>"heartBeatIntervalSeconds" (optional)</term>
+   <listitem>
+    <para>The gateway tests its connections every
+    <literal>heartBeatIntervalSeconds</literal> seconds to detect whether the
+    connection is still alive.</para>
+
+    <para>Default: 30 (seconds)</para>
+
+    <programlisting language="javascript">"heartBeatIntervalSeconds": 30</programlisting>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</appendix>

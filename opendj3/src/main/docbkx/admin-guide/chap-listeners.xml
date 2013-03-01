@@ -816,6 +816,64 @@ supportedTLSProtocols: TLSv1.2
  --trustAll</screen>
  </section>
 
+ <section xml:id="setup-rest2ldap">
+  <title>RESTful Client Access</title>
+  <indexterm><primary>JSON</primary></indexterm>
+  <indexterm><primary>REST</primary></indexterm>
+
+  <orderedlist>
+   <para>OpenDJ offers two ways to give RESTful client applications HTTP access
+   to directory data as JSON resources.</para>
+
+   <listitem>
+    <para>Configure an additional listener on the directory server to respond
+    to REST requests.</para>
+
+    <para>With this approach, you do not need to install additional
+    software.</para>
+   </listitem>
+
+   <listitem>
+    <para>Configure the external REST LDAP gateway Servlet to access your
+    directory service.</para>
+
+    <para>With this approach, you must install the gateway separately.</para>
+   </listitem>
+  </orderedlist>
+
+  <procedure xml:id="setup-rest2ldap-connection-handler">
+   <title>To Set Up REST Access to OpenDJ Directory Server</title>
+
+   <para>Follow these steps to configure a listener for REST access directly
+   to an OpenDJ server.</para>
+
+   <step>
+    <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-688</para>
+   </step>
+  </procedure>
+
+  <procedure xml:id="setup-rest2ldap-gateway">
+   <title>To Set Up OpenDJ REST LDAP Gateway</title>
+
+   <para>Follow these steps to set up OpenDJ REST LDAP gateway Servlet to access
+   your directory service.</para>
+
+   <step>
+    <para>Download and install the gateway as described in <link
+    xlink:href="install-guide#install-rest2ldap-servlet"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install
+    OpenDJ REST LDAP Gateway</citetitle></link>.</para>
+   </step>
+
+   <step>
+    <para>Adjust the configuration for your directory service as described in
+    <link xlink:href="admin-guide#appendix-rest2ldap"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+    Gateway Configuration</citetitle></link>.</para>
+   </step>
+  </procedure>
+ </section>
+
   <section xml:id="setup-dsml">
   <title>DSML Client Access</title>
   <indexterm><primary>DSML</primary></indexterm>
