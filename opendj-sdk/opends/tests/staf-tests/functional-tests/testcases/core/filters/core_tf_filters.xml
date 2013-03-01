@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="core_tf_filters" />
@@ -64,7 +65,7 @@
             #@TestPreamble        none
             #@TestSteps           do a ldapsearch
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 2
+            #@TestResult          Success if ldapsearch returns 0
             -->
   
             <testcase name="getTestCaseName('And Filter')">
@@ -73,18 +74,30 @@
                 <message>
                   'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
                 </message>
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'dsBaseDN'       : 'cn=version,cn=monitor',
-                    'dsFilter'       : '&amp;',
-                    'expectedRC'     : 2 ,
-                    'knownIssue'     : ['3966','4406']
-                  }
+                
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsCountEntries'   : 'True' ,
+                  'dsBaseDN'         : 'dc=com' ,
+                  'dsFilter'         : '&amp;'
+                  }                
                 </call>
                 
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'checktestString'">
+                  { 
+                  'returnString'     : returnString ,
+                  'expectedString'   : 'Total number of matching entries: 1174' 
+                  }
+                </call>
+
                 <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
@@ -97,7 +110,7 @@
             #@TestPreamble        none
             #@TestSteps           do a ldapsearch
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 2
+            #@TestResult          Success if ldapsearch returns 0
             -->
             
             <testcase name="getTestCaseName('Or Filter')">
@@ -106,15 +119,27 @@
                 <message>
                   'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
                 </message>
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'dsBaseDN'       : 'cn=version,cn=monitor',
-                    'dsFilter'       : '|',
-                    'expectedRC'     : 2 ,
-                    'knownIssue'     : ['3966','4406']
+                
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsCountEntries'   : 'True' ,
+                  'dsBaseDN'         : 'dc=com' ,
+                  'dsFilter'         : '|'
+                  }                
+                </call>
+                
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+                
+                <call function="'checktestString'">
+                  { 
+                  'returnString'     : returnString ,
+                  'expectedString'   : 'Total number of matching entries: 0' 
                   }
                 </call>
                 
@@ -131,7 +156,7 @@
             #@TestPreamble        none
             #@TestSteps           do a ldapsearch
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 2
+            #@TestResult          Success if ldapsearch returns 32
             -->
             
             <testcase name="getTestCaseName('And Filter Entry Not Exists')">
@@ -140,17 +165,19 @@
                 <message>
                   'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
                 </message>
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'dsBaseDN'       : 'cn=bad,cn=monitor',
-                    'dsFilter'       : '&amp;',
-                    'expectedRC'     : 2,
-                    'knownIssue'     : ['3966','4406']
-                  }
+
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
+                  'dsFilter'         : '&amp;' ,
+                  'expectedRC'       : 32
+                  }                
                 </call>
+
                 <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
@@ -164,7 +191,7 @@
             #@TestPreamble        none
             #@TestSteps           do a ldapsearch
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 2
+            #@TestResult          Success if ldapsearch returns 32
             -->
   
             <testcase name="getTestCaseName('Or Filter Entry Not Exists')">
@@ -173,17 +200,20 @@
                 <message>
                    'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
                 </message>
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'dsBaseDN'       : 'cn=bad,cn=monitor',
-                    'dsFilter'       : '|',
-                    'expectedRC'     : 2,
-                    'knownIssue'     : ['3966','4406']
-                  }
+
+
+                <call function="'ldapSearchWithScript'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
+                  'dsFilter'         : '|' ,
+                  'expectedRC'       : 32
+                  }                
                 </call>
+                
                 <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
