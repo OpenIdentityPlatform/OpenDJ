@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldapcompare-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldapcompare</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -79,6 +79,12 @@
     <term><option>-J, --control {controloid[:criticality[:value|::b64value|:&lt;filePath]]}</option></term>
     <listitem>
      <para>Use a request control with the provided information</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-m, --useCompareResultCode</option></term>
+    <listitem>
+     <para>Use the LDAP compare result as an exit code for the LDAP compare operations.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -275,6 +281,18 @@
      <term>0</term>
      <listitem>
       <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>5</term>
+     <listitem>
+      <para>The -m option was used, and at least one of the LDAP compare operations did not match.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>6</term>
+     <listitem>
+      <para>The -m option was used, and all the LDAP compare operations did match.</para>
      </listitem>
     </varlistentry>
     <varlistentry>

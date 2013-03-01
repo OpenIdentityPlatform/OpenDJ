@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldif-diff-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldif-diff</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -91,6 +91,13 @@
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term><option>-r, --useCompareResultCode</option></term>
+    <listitem>
+     <para>Use the LDAP compare result as an exit code for reporting
+     differences between the two LDIF files.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><option>-s, --sourceLDIF {file}</option></term>
     <listitem>
      <para>LDIF file to use as the source data.</para>
@@ -134,7 +141,19 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term>&gt; 0</term>
+    <term>5</term>
+    <listitem>
+     <para>The -r option was used, and no differences are reported.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>6</term>
+    <listitem>
+     <para>The-r option was used, and differences are reported.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>other</term>
     <listitem>
      <para>An error occurred.</para>
     </listitem>

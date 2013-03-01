@@ -2,12 +2,12 @@
 .\"     Title: ldif-diff
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 03/01/2013
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDIF\-DIFF" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDIF\-DIFF" "1" "03/01/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -64,6 +64,11 @@ File to which the output should be written\&.
 Any existing output file should be overwritten rather than appending to it\&.
 .RE
 .PP
+\fB\-r, \-\-useCompareResultCode\fR
+.RS 4
+Use the LDAP compare result as an exit code for reporting differences between the two LDIF files\&.
+.RE
+.PP
 \fB\-s, \-\-sourceLDIF {file}\fR
 .RS 4
 LDIF file to use as the source data\&.
@@ -95,7 +100,17 @@ Display usage information\&.
 The command completed successfully\&.
 .RE
 .PP
-> 0
+5
+.RS 4
+The \-r option was used, and no differences are reported\&.
+.RE
+.PP
+6
+.RS 4
+The\-r option was used, and differences are reported\&.
+.RE
+.PP
+other
 .RS 4
 An error occurred\&.
 .RE

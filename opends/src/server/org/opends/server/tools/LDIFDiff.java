@@ -256,8 +256,8 @@ public class LDIFDiff
 
       useCompareResultCode =
           new BooleanArgument("usecompareresultcode", 'r',
-              "useCompareResultCode", INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT
-                  .get());
+              "useCompareResultCode",
+              INFO_LDIFDIFF_DESCRIPTION_USE_COMPARE_RESULT.get());
       argParser.addArgument(useCompareResultCode);
 
       argParser.setUsageArgument(showUsage);
