@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <!-- This function uses make ldif to generate LDIF data files -->
@@ -1738,6 +1739,15 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="useCmpRC" type="optional">
+        <function-arg-description>
+          Use an exit code that indicates whether a given clear-text password
+          matched a provided encoded password.
+          Results are an exit code of 6 (COMPARE_TRUE) or
+          an exit code of 5 (COMPARE_FALSE).
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
       <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Help option
@@ -1781,6 +1791,9 @@
           foldersToCreate.append(os.path.dirname(outputLdif))
           STAFCmdParamsList.append('-o %s' % outputLdif)
         
+        if useCmpRC:
+          STAFCmdParamsList.append('-r')
+
         if overwriteExisting:
           STAFCmdParamsList.append('-O')
         
