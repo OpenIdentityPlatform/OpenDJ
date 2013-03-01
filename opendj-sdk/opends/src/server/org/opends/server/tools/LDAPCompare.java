@@ -677,8 +677,8 @@ public class LDAPCompare
 
       useCompareResultCode =
           new BooleanArgument("usecompareresultcode", 'm',
-              "useCompareResultCode", INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT
-                  .get());
+              "useCompareResultCode",
+              INFO_LDAPCOMPARE_DESCRIPTION_USE_COMPARE_RESULT.get());
       argParser.addArgument(useCompareResultCode);
 
       argParser.setUsageArgument(showUsage, out);

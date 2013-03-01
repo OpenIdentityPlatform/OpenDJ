@@ -2,12 +2,12 @@
 .\"     Title: ldapcompare
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 03/01/2013
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "LDAPCOMPARE" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDAPCOMPARE" "1" "03/01/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -57,6 +57,11 @@ LDIF file containing one DN per line of entries to compare
 \fB\-J, \-\-control {controloid[:criticality[:value|::b64value|:<filePath]]}\fR
 .RS 4
 Use a request control with the provided information
+.RE
+.PP
+\fB\-m, \-\-useCompareResultCode\fR
+.RS 4
+Use the LDAP compare result as an exit code for the LDAP compare operations\&.
 .RE
 .PP
 \fB\-n, \-\-dry\-run\fR
@@ -213,6 +218,16 @@ Display usage information
 The command completed successfully\&.
 .RE
 .PP
+5
+.RS 4
+The \-m option was used, and at least one of the LDAP compare operations did not match\&.
+.RE
+.PP
+6
+.RS 4
+The \-m option was used, and all the LDAP compare operations did match\&.
+.RE
+.PP
 \fIldap\-error\fR
 .RS 4
 An LDAP error occurred while processing the operation\&.
@@ -285,5 +300,5 @@ uid=bjensen,ou=people,dc=example,dc=com
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br
