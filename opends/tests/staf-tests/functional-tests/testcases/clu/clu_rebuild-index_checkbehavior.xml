@@ -1373,7 +1373,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState and 
                                     rebuildAll options
-              #@TestIssue           OPENDJ-771
+              #@TestIssue           none
               #@TestPurpose         Verify that rebuild-index command failed
                                     and that the output is correct.
               #@TestPreamble        none
@@ -1404,8 +1404,7 @@
                   'dsBaseDN'             : 'dc=com' ,
                   'dsClearDegradedState' : 'True' ,
                   'dsRebuildAll'         : 'True' ,
-                  'expectedRC'           : 1 ,
-                  'knownIssue'           : 'OPENDJ-771'
+                  'expectedRC'           : 1
                   }
                 </call>
 
@@ -1424,8 +1423,7 @@
                 <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
-                  'expectedString' : '%s %s' % (msg1, msg2) ,
-                  'knownIssue'     : 'OPENDJ-771'
+                  'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
 
@@ -1439,7 +1437,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState and 
                                     rebuildDegraded options
-              #@TestIssue           OPENDJ-771
+              #@TestIssue           none
               #@TestPurpose         Verify that rebuild-index command failed
                                     and that the output is correct.
               #@TestPreamble        none
@@ -1470,8 +1468,7 @@
                   'dsBaseDN'             : 'dc=com' ,
                   'dsClearDegradedState' : 'True' ,
                   'dsRebuildDegraded'    : 'True' ,
-                  'expectedRC'           : 1 ,
-                  'knownIssue'           : 'OPENDJ-771'
+                  'expectedRC'           : 1
                   }
                 </call>
 
