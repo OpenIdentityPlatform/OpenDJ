@@ -1847,7 +1847,7 @@
                 </call>
 
                 <script>
-                  msg1 = 'Option \"--rebuildDegraded\" option cannot be specified'
+                  msg1 = 'Option \"--rebuildDegraded\" cannot be specified'
                   msg2 = 'with the \"--index\" option'
                 </script>
                 <call function="'searchString'">
