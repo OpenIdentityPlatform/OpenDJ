@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS.
+ !      Portions Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <function name="addEntry">
@@ -2106,6 +2106,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
       </function-arg-def>
+      <function-arg-def name="useCmpRC" type="optional">
+        <function-arg-description>
+          Use an exit code that indicates whether comparison is successful.
+          Results are an exit code of 6 (COMPARE_TRUE) or
+          an exit code of 5 (COMPARE_FALSE).
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -2214,6 +2222,9 @@
                           
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
+
+        if useCmpRC:
+          STAFCmdParamsList.append('--useCompareResultCode')
           
         if dsDn:
           for dn in dsDn:
