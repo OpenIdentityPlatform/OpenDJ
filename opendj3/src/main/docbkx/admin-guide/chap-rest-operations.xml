@@ -314,8 +314,8 @@
         <para>Matches when the pointer equals the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
-  _filter=userName+eq+"bjensen@example.com"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+/users?_filter=userName+eq+"bjensen@example.com"
   &amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -346,8 +346,8 @@
         <para>Matches when the pointer contains the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+co+"jensen"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+co+"jensen"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -379,8 +379,8 @@
         <para>Matches when the pointer starts with the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+sw+"ab"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+sw+"ab"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -402,8 +402,8 @@
         <para>Matches when the pointer is less than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+lt+"ac"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+lt+"ac"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -425,8 +425,8 @@
         <para>Matches when the pointer is less than or equal to the value, as
         in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+le+"ad"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+le+"ad"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -450,8 +450,8 @@
         <para>Matches when the pointer is greater than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+gt+"tt"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+gt+"tt"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -475,8 +475,8 @@
         <para>Matches when the pointer is greater than or equal to the value,
         as in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?
- _filter=userName+ge+"tw"
+        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName+ge+"tw"
  &amp;_fields=userName
  &amp;_prettyPrint=true'
 {
@@ -512,8 +512,8 @@
      any resource on which the <replaceable>json-pointer</replaceable> is
      present, as in the following example.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users?_filter=userName%20pr
- &amp;_prettyPrint=true'
+     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=userName%20pr&amp;_prettyPrint=true'
 {
   "result" : [ {
     "id" : "abarnes",
@@ -558,8 +558,8 @@
      <literal>name/givenName</literal> to identify the fields that are nested
      inside the <literal>name</literal> object.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap/users
- ?_filter=(name/familyName+eq+"jensen"+and+name/givenName+sw+"Bar")
+     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /users?_filter=(name/familyName+eq+"jensen"+and+name/givenName+sw+"Bar")
  &amp;_fields=name
  &amp;_prettyPrint=true'
 {
