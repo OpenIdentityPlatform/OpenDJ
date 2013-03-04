@@ -3194,7 +3194,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       totalEntries = suffix.getID2Entry().getRecordCount();
 
-      Message message;
+      Message message = null;
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
@@ -3204,10 +3204,15 @@ public final class Importer implements DiskSpaceMonitorHandler
         message = NOTE_JEB_REBUILD_DEGRADED_START.get(totalEntries);
         break;
       default:
-        message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
+        if (!rebuildConfig.isClearDegradedState())
+        {
+          message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
+        }
         break;
       }
-      logError(message);
+      if ( message != null ) {
+        logError(message);
+      }
     }
 
     /**
@@ -3225,10 +3230,14 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         rate = 1000f * entriesProcessed.get() / totalTime;
       }
-      Message message =
-          NOTE_JEB_REBUILD_FINAL_STATUS.get(entriesProcessed.get(),
-              totalTime / 1000, rate);
-      logError(message);
+
+      if (!rebuildConfig.isClearDegradedState())
+      {
+        Message message =
+            NOTE_JEB_REBUILD_FINAL_STATUS.get(entriesProcessed.get(),
+                totalTime / 1000, rate);
+        logError(message);
+      }
     }
 
     /**
@@ -3305,6 +3314,13 @@ public final class Importer implements DiskSpaceMonitorHandler
           throw new InterruptedException("Rebuild Index canceled.");
         }
         phaseTwo();
+      }
+      else
+      {
+        Message message =
+            NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS.get(
+                rebuildConfig.getRebuildList().toString());
+        logError(message);
       }
 
       setRebuildListIndexesTrusted(true);
