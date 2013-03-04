@@ -300,37 +300,13 @@
                   'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp
                   }
                 </call>
-
-                <script>
-                  # Output file
-                  sourceFile = open('%s/clu/ldif-diff.out' % remote.temp,"r")
-                  sortFile = open('%s/clu/ldif-diff_sort.out' % remote.temp,"w")
-
-                  lines = sourceFile.readlines()
-                  lines.sort()
-                  sortFile.writelines(lines)
-
-                  sourceFile.close()
-                  sortFile.close()
-
-                  # Reference file
-                  sourceFile = open('%s/clu/ldif-diff.ref' % local.data,"r")
-                  sortFile = open('%s/clu/ldif-diff_sort.ref' % remote.temp,"w")
-
-                  lines = sourceFile.readlines()
-                  lines.sort()
-                  sortFile.writelines(lines)
-
-                  sourceFile.close()
-                  sortFile.close()
-                </script>
                 
                 <call function="'compareFile'">
                   {
-                  'outputFile' : 'ldif-diff_sort.out' ,
+                  'outputFile' : 'ldif-diff.out' ,
                   'outputPath' : '%s/clu' % remote.temp ,
-                  'refFile'    : 'ldif-diff_sort.ref' ,
-                  'refPath'    : '%s/clu' % remote.temp ,
+                  'refFile'    : 'ldif-diff.ref' ,
+                  'sortFile'   : True
                   }
                 </call>
   
@@ -373,36 +349,12 @@
                   }
                 </call>
                 
-                <script>
-                  # Output file
-                  sourceFile = open('%s/clu/ldif-diff_singlevalue.out' % remote.temp,"r")
-                  sortFile = open('%s/clu/ldif-diff_singlevalue_sort.out' % remote.temp,"w")
-
-                  lines = sourceFile.readlines()
-                  lines.sort()
-                  sortFile.writelines(lines)
-
-                  sourceFile.close()
-                  sortFile.close()
-
-                  # Reference file
-                  sourceFile = open('%s/clu/ldif-diff_singlevalue.ref' % local.data,"r")
-                  sortFile = open('%s/clu/ldif-diff_singlevalue_sort.ref' % remote.temp,"w")
-
-                  lines = sourceFile.readlines()
-                  lines.sort()
-                  sortFile.writelines(lines)
-                    
-                  sourceFile.close()
-                  sortFile.close()
-                </script>
-                
                 <call function="'compareFile'">
                   { 
-                  'outputFile' : 'ldif-diff_singlevalue_sort.out' ,
+                  'outputFile' : 'ldif-diff_singlevalue.out' ,
                   'outputPath' : '%s/clu' % remote.temp ,
-                  'refFile'    : 'ldif-diff_singlevalue_sort.ref' ,
-                  'refPath'    : '%s/clu' % remote.temp ,
+                  'refFile'    : 'ldif-diff_singlevalue.ref' ,
+                  'sortFile'   : True
                   }
                 </call>
   

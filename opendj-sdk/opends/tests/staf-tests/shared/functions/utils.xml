@@ -2406,6 +2406,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
+      <function-arg-def name="sortFile" type="optional" default="False">
+        <function-arg-description>
+          sort files before diff
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -2503,6 +2509,41 @@
         refRC=RC
       </script>
       
+      <!-- Sort files before diff -->
+      <if expr="sortFile == True" >
+        <sequence>
+          <script>
+            outputFileSorted = '%s_sorted' % outputFile
+            refFileSorted = '%s_sorted' % refFile
+            
+            # Output file
+            sourceFile = open('%s/%s' % (diffPath, outputFile), "r")
+            sortFile = open('%s/%s' % (diffPath, outputFileSorted), "w")
+
+            lines = sourceFile.readlines()
+            lines.sort()
+            sortFile.writelines(lines)
+
+            sourceFile.close()
+            sortFile.close()
+
+            # Reference file
+            sourceFile = open('%s/%s' % (refPath, refFile), "r")
+            sortFile = open('%s/%s' % (diffPath, refFileSorted), "w")
+
+            lines = sourceFile.readlines()
+            lines.sort()
+            sortFile.writelines(lines)
+
+            sourceFile.close()
+            sortFile.close()
+            
+            outputFile = outputFileSorted
+            refFile = refFileSorted
+          </script>
+        </sequence>
+      </if>
+
       <!-- If the copy of 'outputFile' and 'refFile' succeed 
              then compare these files -->
       <if expr="outputRC == 0 and refRC == 0">
