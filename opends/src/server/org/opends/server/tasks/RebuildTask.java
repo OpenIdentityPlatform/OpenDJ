@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -77,6 +77,7 @@ public class RebuildTask extends Task
   ArrayList<String> indexes = null;
   private String tmpDirectory = null;
   private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
+  boolean isClearDegradedState = false;
 
   /**
    * {@inheritDoc}
@@ -111,6 +112,7 @@ public class RebuildTask extends Task
     AttributeType typeBaseDN;
     AttributeType typeIndex;
     AttributeType typeTmpDirectory;
+    AttributeType clearDegradedState;
 
     typeBaseDN =
          getAttributeType(ATTR_REBUILD_BASE_DN, true);
@@ -118,6 +120,8 @@ public class RebuildTask extends Task
          getAttributeType(ATTR_REBUILD_INDEX, true);
     typeTmpDirectory =
          getAttributeType(ATTR_REBUILD_TMP_DIRECTORY, true);
+    clearDegradedState =
+        getAttributeType(ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE, true);
 
     List<Attribute> attrList;
 
@@ -137,6 +141,10 @@ public class RebuildTask extends Task
       }
       indexes.clear();
     }
+
+    attrList = taskEntry.getAttribute(clearDegradedState);
+    isClearDegradedState = Boolean.parseBoolean(
+        TaskUtils.getSingleValueString(attrList));
 
     attrList = taskEntry.getAttribute(typeTmpDirectory);
     tmpDirectory = TaskUtils.getSingleValueString(attrList);
@@ -184,6 +192,9 @@ public class RebuildTask extends Task
       rebuildConfig.addRebuildIndex(index);
     }
 
+    // The degraded state is set(if present in args)
+    // during the initialization.
+    rebuildConfig.isClearDegradedState(isClearDegradedState);
 
     Backend backend =
         DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
@@ -248,6 +259,7 @@ public class RebuildTask extends Task
     }
     rebuildConfig.setTmpDirectory(tmpDirectory);
     rebuildConfig.setRebuildMode(rebuildMode);
+
     TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
     // Launch the rebuild process.
     try
