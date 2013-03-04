@@ -63,7 +63,7 @@
   international standards, including Directory Access Protocol. The X.500
   standards specify Open Systems Interconnect (OSI) protocols and
   data definitions for general-purpose directory services. The X.500 standards
-  were design to meet the needs of systems built according to the X.400
+  were designed to meet the needs of systems built according to the X.400
   standards, covering electronic mail services.</para>
   
   <para>Lightweight Directory Access Protocol has been around since the early
@@ -149,7 +149,7 @@ uidNumber: 1076
   to make binary attribute values, such as passwords, certificates, or photos,
   portable in text format.</para></footnote></para>
   
-  <para>The entry also has a unique identifier, show at the top of the entry, 
+  <para>The entry also has a unique identifier, shown at the top of the entry, 
   <literal>dn: uid=bjensen,ou=People,dc=example,dc=com</literal>. DN stands
   for distinguished name. No two entries in the directory have the same
   distinguished name.<footnote><para>Sometimes your distinguished names include
@@ -285,7 +285,7 @@ mail: escape@example.com</screen></footnote></para>
     </indexterm>
     <para>Delete. After binding, the client can request that the server
     delete one or more entries. To delete and entry with other entries
-    underneath, first delete the children, then then parent.</para>
+    underneath, first delete the children, then the parent.</para>
    </listitem>
    <listitem>
     <indexterm>
