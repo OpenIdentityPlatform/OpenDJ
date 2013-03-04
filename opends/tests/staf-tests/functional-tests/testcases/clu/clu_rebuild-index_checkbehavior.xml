@@ -1120,7 +1120,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState option in 
                                     online mode
-              #@TestIssue           OPENDJ-770 OPENDJ-769
+              #@TestIssue           OPENDJ-770
               #@TestPurpose         Verify that rebuild-index command succeeds
                                     and that the output is correct.
               #@TestPreamble        none
@@ -1272,8 +1272,7 @@
                 <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
-                  'expectedString' : msg ,
-                  'knownIssue'     : 'OPENDJ-769'
+                  'expectedString' : msg
                   }
                 </call>
 
@@ -1308,8 +1307,7 @@
                 <call function="'searchString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Checked 1048 entries and found 1040 error' ,
-                  'knownIssue'     : 'OPENDJ-769'
+                  'expectedString' : 'Checked 1048 entries and found 1040 error'
                   }
                 </call>
 

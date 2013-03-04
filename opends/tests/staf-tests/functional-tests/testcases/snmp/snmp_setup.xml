@@ -464,7 +464,7 @@
                   </try>
                 </sequence>
 
-              </testcase>
+              </testcase>   
 
               <!--- Test Case information
                 #@TestMarker          setup
@@ -486,6 +486,34 @@
 
                       <call function="'testCase_Preamble'"/>
 
+                      <call function="'testStep'">
+                        { 'stepMessage' : 'Copy snmp files to the remote host' }
+                      </call>
+                      <message>
+                        'Copy file %s/snmp/agent.security (on %s) to %s/agent.security (on %s)' % \
+                        (local.data, STAXServiceMachine, remote.temp, STAF_REMOTE_HOSTNAME) 
+                      </message>      
+                      <call function="'copyFile'">
+                        { 
+                        'location'   : STAXServiceMachine ,
+                        'srcfile'    : '%s/snmp/agent.security' % local.data ,
+                        'destfile'   : '%s/agent.security' % remote.temp ,
+                        'remotehost' : STAF_REMOTE_HOSTNAME
+                        }
+                      </call>
+                      <message>
+                        'Copy file %s/snmp/manager.security (on %s) to %s/manager.security (on %s)' % \
+                        (local.data, STAXServiceMachine, remote.temp, STAF_REMOTE_HOSTNAME) 
+                      </message>      
+                      <call function="'copyFile'">
+                        { 
+                        'location'   : STAXServiceMachine ,
+                        'srcfile'    : '%s/snmp/manager.security' % local.data ,
+                        'destfile'   : '%s/manager.security' % remote.temp ,
+                        'remotehost' : STAF_REMOTE_HOSTNAME
+                        }
+                      </call>
+                      
                       <call function="'testStep'">
                         { 'stepMessage' : 'Get SNMP Connection Handler properties' }
                       </call>

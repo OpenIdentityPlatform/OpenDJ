@@ -63,12 +63,12 @@
                 <iterate var="__import" in="importList">
                   <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/%s.xml' % (__groupdir,__import)"/>
-                </iterate>                                                                       
+                </iterate>
 
                 <!-- Specific to v3 SNMP tests -->
                 <script>
                    # Default
-                  securityFile = '%s/snmp/manager.security' % remote.data
+                  securityFile = '%s/manager.security' % remote.temp
                   securityLevel = SNMP_PROPERTIES['security-level']    
                   context = SNMP_PROPERTIES['community']
                   oid = 'dsServerType.1'
@@ -79,7 +79,7 @@
                   defSecurityFileProp = SNMP_PROPERTIES['security-agent-file']
                   defSecurityLevelProp = SNMP_PROPERTIES['security-level']
                   newContextProp = 'myContext'
-                  newSecurityFileProp = '%s/snmp/agent.security' % remote.data
+                  newSecurityFileProp = '%s/agent.security' % remote.temp
                   lowUser = 'myUser1'
                   defUser = 'myUser2'
                   highUser = 'myUser3'
@@ -87,7 +87,7 @@
                   lowSecurityLevelProp = 'noauthnopriv'
                   highSecurityLevelProp = 'authpriv'
                   wrongSecurityLevelProp = 'mySecurityLevel'
-                  mySecurityFile = '%s/snmp/manager.security' % remote.data
+                  mySecurityFile = '%s/manager.security' % remote.temp
                   oid = 'dsServerType.1'
                 </script>
                                                     
