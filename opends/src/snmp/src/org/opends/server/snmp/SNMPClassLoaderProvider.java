@@ -43,7 +43,6 @@ import com.sun.management.snmp.UserAcl;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Set;
 import java.util.SortedSet;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -126,8 +125,6 @@ public class SNMPClassLoaderProvider {
      */
     public void initializeConnectionHandler(
             SNMPConnectionHandlerCfg configuration) throws Exception {
-
-
         // Keep the connection handler configuration
         this.currentConfig = configuration;
 
@@ -136,7 +133,6 @@ public class SNMPClassLoaderProvider {
 
         // Initialize the Connection Handler with the given configuration
         this.initializeConnectionHandler();
-
     }
 
     /**
@@ -149,9 +145,7 @@ public class SNMPClassLoaderProvider {
      */
     public ConfigChangeResult applyConfigurationChange(
             SNMPConnectionHandlerCfg configuration) {
-
         try {
-
             // Register/UnRegister SNMP MBeans
             if ((this.registeredSNMPMBeans) &&
                     (!configuration.isRegisteredMbean())) {
@@ -209,8 +203,6 @@ public class SNMPClassLoaderProvider {
 
     // private methods
     private void initializeConnectionHandler() throws Exception {
-
-
         // Compute the connectionHandler name
         this.connectionHandlerName = "SNMP Connection Handler " +
                 this.currentConfig.getListenPort();
@@ -308,9 +300,7 @@ public class SNMPClassLoaderProvider {
      * Finalize.
      */
     public void finalizeConnectionHandler() {
-
         try {
-
             if (this.sentTraps == true) {
                 // Send a trap when stop
                 this.snmpAdaptor.snmpV1Trap(
@@ -349,9 +339,7 @@ public class SNMPClassLoaderProvider {
     }
 
     private void unregisterSnmpMBeans() {
-        Set objectNames = this.dsMib.getMib().getEntriesObjectNames();
-        for (Object objectName : objectNames) {
-            ObjectName name = (ObjectName) objectName;
+        for (ObjectName name : this.dsMib.getMib().getEntriesObjectNames()) {
             try {
                 this.server.unregisterMBean(name);
             } catch (Exception ex) {
@@ -400,8 +388,7 @@ public class SNMPClassLoaderProvider {
         }
     }
 
-    private boolean checkTrapsDestinations(SortedSet destinations) {
-
+    private boolean checkTrapsDestinations(SortedSet<String> destinations) {
         // If the traps destinations is empty, the traps have to be sent
         // to localhost
         if ((destinations == null) || (destinations.isEmpty())) {
@@ -409,10 +396,8 @@ public class SNMPClassLoaderProvider {
         }
 
         boolean found = false;
-        for (Object destination : destinations) {
-            String dest = null;
+        for (String dest : destinations) {
             try {
-                dest = (String) destination;
                 InetAddress addr = InetAddress.getByName(dest);
                 found = true;
             } catch (UnknownHostException ex) {
@@ -422,7 +407,6 @@ public class SNMPClassLoaderProvider {
             }
         }
         return found;
-
     }
 }
 
