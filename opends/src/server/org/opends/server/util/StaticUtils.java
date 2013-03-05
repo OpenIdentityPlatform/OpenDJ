@@ -4647,7 +4647,7 @@ public final class StaticUtils
    * <code>public Iterator&lt;String&gt; myIteratorMethod();</code>
    * <p>
    * Classical use with for or while loop:
-   * 
+   *
    * <pre>
    * for (Iterator&lt;String&gt; it = myIteratorMethod(); it.hasNext();)
    * {
@@ -4662,15 +4662,15 @@ public final class StaticUtils
    *   // use it
    * }
    * </pre>
-   * 
+   *
    * Improved use with foreach:
-   * 
+   *
    * <pre>
    * for (String s : StaticUtils.toIterable(myIteratorMethod()))
    * {
    * }
    * </pre>
-   * 
+   *
    * </p>
    *
    * @param <T>
