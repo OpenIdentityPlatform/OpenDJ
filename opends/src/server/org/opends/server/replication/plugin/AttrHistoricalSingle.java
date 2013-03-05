@@ -180,7 +180,9 @@ public class AttrHistoricalSingle extends AttrHistorical
           }
           else
           {
+            addTime = null;
             lastMod = HistAttrModificationKey.DEL;
+            value = null;
           }
         }
         else
@@ -198,7 +200,9 @@ public class AttrHistoricalSingle extends AttrHistorical
           {
             deleteTime = changeNumber;
           }
+          addTime = null;
           lastMod = HistAttrModificationKey.DEL;
+          value = null;
         }
         else
         {
