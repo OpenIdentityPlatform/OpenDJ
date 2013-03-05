@@ -811,13 +811,13 @@ public class ReplicationBroker
    * <li>so no choice of the preferred RS</li>
    * <li>?? Heartbeat</li>
    * <li>Start handshake is :
-   * 
+   *
    * <pre>
    *    Broker ---> StartECLMsg       ---> RS
    *          <---- ReplServerStartMsg ---
    *           ---> StartSessionECLMsg --> RS
    * </pre>
-   * 
+   *
    * </li>
    * </ul>
    */
