@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -60,19 +61,19 @@ public class LockFileManager
 
 
 
-  // A map between the filenames and the lock files for exclusive locks.
+  /** A map between the filenames and the lock files for exclusive locks. */
   private static HashMap<String,FileLock> exclusiveLocks =
        new HashMap<String,FileLock>();
 
-  // A map between the filenames and the lock files for shared locks.
+  /** A map between the filenames and the lock files for shared locks. */
   private static HashMap<String,FileLock> sharedLocks =
        new HashMap<String,FileLock>();
 
-  // A map between the filenames and reference counts for shared locks.
+  /** A map between the filenames and reference counts for shared locks. */
   private static HashMap<String,Integer> sharedLockReferences =
        new HashMap<String,Integer>();
 
-  // The lock providing threadsafe access to the lock map data.
+  /** The lock providing threadsafe access to the lock map data. */
   private static Object mapLock = new Object();
 
 
@@ -156,17 +157,7 @@ public class LockFileManager
 
         failureReason.append(ERR_FILELOCKER_LOCK_SHARED_FAILED_OPEN.get(
                 lockFile, getExceptionMessage(e)));
-
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(raf);
         return false;
       }
 
@@ -187,26 +178,7 @@ public class LockFileManager
         failureReason.append(
                 ERR_FILELOCKER_LOCK_SHARED_FAILED_LOCK.get(
                         lockFile, getExceptionMessage(e)));
-        if (channel != null)
-        {
-          try
-          {
-            channel.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(channel, raf);
         return false;
       }
 
@@ -217,26 +189,7 @@ public class LockFileManager
       {
         failureReason.append(
                 ERR_FILELOCKER_LOCK_SHARED_NOT_GRANTED.get(lockFile));
-        if (channel != null)
-        {
-          try
-          {
-            channel.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(channel, raf);
         return false;
       }
       else
@@ -326,16 +279,7 @@ public class LockFileManager
 
         failureReason.append(ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN.get(
                 lockFile, getExceptionMessage(e)));
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(raf);
         return false;
       }
 
@@ -356,27 +300,7 @@ public class LockFileManager
         failureReason.append(
                 ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK.get(lockFile,
                                         getExceptionMessage(e)));
-        if (channel != null)
-        {
-          try
-          {
-            channel.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-
+        close(channel, raf);
         return false;
       }
 
@@ -387,26 +311,7 @@ public class LockFileManager
       {
         failureReason.append(
                 ERR_FILELOCKER_LOCK_EXCLUSIVE_NOT_GRANTED.get(lockFile));
-        if (channel != null)
-        {
-          try
-          {
-            channel.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-        if (raf != null)
-        {
-          try
-          {
-            raf.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(channel, raf);
         return false;
       }
       else

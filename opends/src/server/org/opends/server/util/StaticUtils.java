@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -4588,5 +4588,29 @@ public final class StaticUtils
     }
   }
 
+  /**
+   * Closes the provided {@link Closeable}'s ignoring any errors which
+   * occurred.
+   *
+   * @param closeables The closeables to be closed, which may be
+   *        <code>null</code>.
+   */
+  public static void close(Closeable... closeables)
+  {
+    for (Closeable closeable : closeables)
+    {
+      if (closeable != null)
+      {
+        try
+        {
+          closeable.close();
+        }
+        catch (IOException ignored)
+        {
+          // Ignore.
+        }
+      }
+    }
+  }
 }
 
