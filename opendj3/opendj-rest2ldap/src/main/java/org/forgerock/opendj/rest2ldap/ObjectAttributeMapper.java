@@ -106,10 +106,6 @@ public final class ObjectAttributeMapper extends AttributeMapper {
         }
     }
 
-    boolean isEmpty() {
-        return mappings.isEmpty();
-    }
-
     @Override
     void toJSON(final Context c, final Entry e, final ResultHandler<JsonValue> h) {
         // Use an accumulator which will aggregate the results from the subordinate mappers into
@@ -143,7 +139,8 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                         @Override
                         public Map.Entry<String, JsonValue> apply(final JsonValue value,
                                 final Void p) {
-                            return new SimpleImmutableEntry<String, JsonValue>(mapping.name, value);
+                            return value != null ? new SimpleImmutableEntry<String, JsonValue>(
+                                    mapping.name, value) : null;
                         }
                     }, handler));
         }
@@ -179,8 +176,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                                 case 0:
                                     return Collections.emptyList();
                                 case 1:
-                                    return value.get(0) != null ? value.get(0) : Collections
-                                            .<Attribute> emptyList();
+                                    return value.get(0);
                                 default:
                                     final List<Attribute> attributes =
                                             new ArrayList<Attribute>(value.size());

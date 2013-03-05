@@ -15,13 +15,18 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.forgerock.json.resource.ServerContext;
+import org.forgerock.opendj.ldap.Connection;
 
 /**
  * Common context information passed to containers and mappers.
  */
-final class Context {
+final class Context implements Closeable {
     private final Config config;
+    private final AtomicReference<Connection> connection = new AtomicReference<Connection>();
     private final ServerContext context;
 
     Context(final Config config, final ServerContext context) {
@@ -30,20 +35,32 @@ final class Context {
     }
 
     /**
-     * Returns the common configuration options.
-     *
-     * @return The common configuration options.
+     * {@inheritDoc}
      */
-    public Config getConfig() {
+    @Override
+    public void close() {
+        final Connection c = connection.getAndSet(null);
+        if (c != null) {
+            c.close();
+        }
+    }
+
+    Config getConfig() {
         return config;
     }
 
-    /**
-     * Returns the commons REST server context passed in with the REST request.
-     *
-     * @return The commons REST server context passed in with the REST request.
-     */
-    public ServerContext getServerContext() {
+    Connection getConnection() {
+        return connection.get();
+    }
+
+    ServerContext getServerContext() {
         return context;
     }
+
+    void setConnection(final Connection connection) {
+        if (!this.connection.compareAndSet(null, connection)) {
+            throw new IllegalStateException("LDAP connection obtained multiple times");
+        }
+    }
+
 }

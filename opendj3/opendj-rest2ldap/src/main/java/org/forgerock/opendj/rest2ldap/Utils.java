@@ -36,13 +36,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConnectionException;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
@@ -82,8 +91,10 @@ final class Utils {
          */
         @Override
         public void handleResult(final V result) {
-            synchronized (results) {
-                results.add(result);
+            if (result != null) {
+                synchronized (results) {
+                    results.add(result);
+                }
             }
             if (latch.decrementAndGet() == 0) {
                 handler.handleResult(results);
@@ -92,19 +103,19 @@ final class Utils {
 
     }
 
-    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
-            new Function<ByteString, String, Void>() {
-                @Override
-                public String apply(ByteString value, Void p) {
-                    return value.toBase64String();
-                }
-            };
-
     private static final Function<Object, ByteString, Void> BASE64_TO_BYTESTRING =
             new Function<Object, ByteString, Void>() {
                 @Override
-                public ByteString apply(Object value, Void p) {
+                public ByteString apply(final Object value, final Void p) {
                     return ByteString.valueOfBase64(String.valueOf(value));
+                }
+            };
+
+    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
+            new Function<ByteString, String, Void>() {
+                @Override
+                public String apply(final ByteString value, final Void p) {
+                    return value.toBase64String();
                 }
             };
 
@@ -149,6 +160,44 @@ final class Utils {
         return new AccumulatingResultHandler<V>(size, handler);
     }
 
+    /**
+     * Adapts an LDAP result code to a resource exception.
+     *
+     * @param error
+     *            The LDAP error that should be adapted.
+     * @return The equivalent resource exception.
+     */
+    static ResourceException adapt(final ErrorResultException error) {
+        int resourceResultCode;
+        try {
+            throw error;
+        } catch (final AssertionFailureException e) {
+            resourceResultCode = ResourceException.VERSION_MISMATCH;
+        } catch (final AuthenticationException e) {
+            resourceResultCode = 401;
+        } catch (final AuthorizationException e) {
+            resourceResultCode = ResourceException.FORBIDDEN;
+        } catch (final ConnectionException e) {
+            resourceResultCode = ResourceException.UNAVAILABLE;
+        } catch (final EntryNotFoundException e) {
+            resourceResultCode = ResourceException.NOT_FOUND;
+        } catch (final MultipleEntriesFoundException e) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
+        } catch (final TimeoutResultException e) {
+            resourceResultCode = 408;
+        } catch (final ErrorResultException e) {
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else {
+                resourceResultCode = ResourceException.INTERNAL_ERROR;
+            }
+        }
+        return ResourceException.getException(resourceResultCode, error.getMessage(), error);
+    }
+
     static Object attributeToJson(final Attribute a) {
         final Function<ByteString, Object, Void> f =
                 fixedFunction(BYTESTRING_TO_JSON, a.getAttributeDescription());
@@ -157,16 +206,16 @@ final class Utils {
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
 
-    static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
-        return BYTESTRING_TO_JSON;
+    static Function<Object, ByteString, Void> base64ToByteString() {
+        return BASE64_TO_BYTESTRING;
     }
 
     static Function<ByteString, String, Void> byteStringToBase64() {
         return BYTESTRING_TO_BASE64;
     }
 
-    static Function<Object, ByteString, Void> base64ToByteString() {
-        return BASE64_TO_BYTESTRING;
+    static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
+        return BYTESTRING_TO_JSON;
     }
 
     static <T> T ensureNotNull(final T object) {

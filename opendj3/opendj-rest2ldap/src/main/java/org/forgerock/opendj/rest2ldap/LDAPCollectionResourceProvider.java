@@ -19,6 +19,7 @@ import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
+import static org.forgerock.opendj.rest2ldap.Utils.adapt;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
@@ -52,25 +53,17 @@ import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.json.resource.ServerContext;
 import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
-import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.AuthenticationException;
-import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
-import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
@@ -87,38 +80,51 @@ import org.forgerock.opendj.ldif.ChangeRecord;
  * resource collection to LDAP entries beneath a base DN.
  */
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
+    private <V> ResultHandler<V> wrap(final Context c, final ResultHandler<V> handler) {
+        return new ResultHandler<V>() {
+            @Override
+            public void handleError(ResourceException error) {
+                c.close();
+                handler.handleError(error);
+            }
 
-    private abstract class AbstractRequestCompletionHandler
-            <R, H extends org.forgerock.opendj.ldap.ResultHandler<? super R>>
-            implements org.forgerock.opendj.ldap.ResultHandler<R> {
-        final Connection connection;
-        final H resultHandler;
+            @Override
+            public void handleResult(V result) {
+                c.close();
+                handler.handleResult(result);
+            }
+        };
+    }
 
-        AbstractRequestCompletionHandler(final Connection connection, final H resultHandler) {
-            this.connection = connection;
-            this.resultHandler = resultHandler;
-        }
+    private QueryResultHandler wrap(final Context c, final QueryResultHandler handler) {
+        return new QueryResultHandler() {
+            @Override
+            public void handleError(ResourceException error) {
+                c.close();
+                handler.handleError(error);
+            }
 
-        @Override
-        public final void handleErrorResult(final ErrorResultException error) {
-            connection.close();
-            resultHandler.handleErrorResult(error);
-        }
+            @Override
+            public boolean handleResource(Resource resource) {
+                return handler.handleResource(resource);
+            }
 
-        @Override
-        public final void handleResult(final R result) {
-            connection.close();
-            resultHandler.handleResult(result);
-        }
-
+            @Override
+            public void handleResult(QueryResult result) {
+                c.close();
+                handler.handleResult(result);
+            }
+        };
     }
 
     private abstract class ConnectionCompletionHandler<R> implements
             org.forgerock.opendj.ldap.ResultHandler<Connection> {
         private final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler;
+        private final Context c;
 
-        ConnectionCompletionHandler(
+        ConnectionCompletionHandler(final Context c,
                 final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler) {
+            this.c = c;
             this.resultHandler = resultHandler;
         }
 
@@ -128,36 +134,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }
 
         @Override
-        public abstract void handleResult(Connection connection);
-
-    }
-
-    private final class RequestCompletionHandler<R> extends
-            AbstractRequestCompletionHandler<R, org.forgerock.opendj.ldap.ResultHandler<? super R>> {
-        RequestCompletionHandler(final Connection connection,
-                final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler) {
-            super(connection, resultHandler);
-        }
-    }
-
-    private final class SearchRequestCompletionHandler extends
-            AbstractRequestCompletionHandler<Result, SearchResultHandler> implements
-            SearchResultHandler {
-
-        SearchRequestCompletionHandler(final Connection connection,
-                final SearchResultHandler resultHandler) {
-            super(connection, resultHandler);
+        public final void handleResult(Connection connection) {
+            c.setConnection(connection);
+            chain();
         }
 
-        @Override
-        public final boolean handleEntry(final SearchResultEntry entry) {
-            return resultHandler.handleEntry(entry);
-        }
-
-        @Override
-        public final boolean handleReference(final SearchResultReference reference) {
-            return resultHandler.handleReference(reference);
-        }
+        abstract void chain();
 
     }
 
@@ -201,10 +183,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public void createInstance(final ServerContext context, final CreateRequest request,
             final ResultHandler<Resource> handler) {
         final Context c = wrap(context);
+        final ResultHandler<Resource> h = wrap(c, handler);
+
         attributeMapper.toLDAP(c, request.getContent(), new ResultHandler<List<Attribute>>() {
             @Override
             public void handleError(final ResourceException error) {
-                handler.handleError(error);
+                h.handleError(error);
             }
 
             @Override
@@ -220,14 +204,14 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     nameStrategy.setResourceId(c, getBaseDN(c), request.getNewResourceId(),
                             addRequest);
                 } catch (ResourceException e) {
-                    handler.handleError(e);
+                    h.handleError(e);
                     return;
                 }
                 if (config.readOnUpdatePolicy() == CONTROLS) {
                     final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
                     addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
                 }
-                applyUpdate(c, addRequest, handler);
+                applyUpdate(c, addRequest, h);
             }
         });
     }
@@ -248,6 +232,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public void queryCollection(final ServerContext context, final QueryRequest request,
             final QueryResultHandler handler) {
         final Context c = wrap(context);
+        final QueryResultHandler h = wrap(c, handler);
 
         // The handler which will be invoked for each LDAP search result.
         final SearchResultHandler searchHandler = new SearchResultHandler() {
@@ -280,7 +265,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public void handleResult(final JsonValue result) {
                         final Resource resource = new Resource(id, revision, result);
-                        handler.handleResource(resource);
+                        h.handleResource(resource);
                         pendingResourceCount.decrementAndGet();
                         completeIfNecessary();
                     }
@@ -293,7 +278,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
             @Override
             public void handleErrorResult(final ErrorResultException error) {
-                pendingResult.compareAndSet(null, adaptErrorResult(error));
+                pendingResult.compareAndSet(null, adapt(error));
                 completeIfNecessary();
             }
 
@@ -319,9 +304,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     final ResourceException result = pendingResult.get();
                     if (result != null && resultSent.compareAndSet(false, true)) {
                         if (result == SUCCESS) {
-                            handler.handleResult(new QueryResult());
+                            h.handleResult(new QueryResult());
                         } else {
-                            handler.handleError(result);
+                            h.handleError(result);
                         }
                     }
                 }
@@ -332,23 +317,20 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final ResultHandler<Filter> filterHandler = new ResultHandler<Filter>() {
             @Override
             public void handleError(final ResourceException error) {
-                handler.handleError(error);
+                h.handleError(error);
             }
 
             @Override
             public void handleResult(final Filter ldapFilter) {
                 // Avoid performing a search if the filter could not be mapped or if it will never match.
                 if (ldapFilter == null || ldapFilter == alwaysFalse()) {
-                    handler.handleResult(new QueryResult());
+                    h.handleResult(new QueryResult());
                 } else {
                     final ConnectionCompletionHandler<Result> outerHandler =
-                            new ConnectionCompletionHandler<Result>(searchHandler) {
+                            new ConnectionCompletionHandler<Result>(c, searchHandler) {
 
                                 @Override
-                                public void handleResult(final Connection connection) {
-                                    final SearchRequestCompletionHandler innerHandler =
-                                            new SearchRequestCompletionHandler(connection,
-                                                    searchHandler);
+                                void chain() {
                                     final String[] attributes =
                                             getLDAPAttributes(c, request.getFieldFilters());
                                     final SearchRequest request =
@@ -357,7 +339,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                             .alwaysTrue() ? Filter
                                                             .objectClassPresent() : ldapFilter,
                                                     attributes);
-                                    connection.searchAsync(request, null, innerHandler);
+                                    c.getConnection().searchAsync(request, null, searchHandler);
                                 }
 
                             };
@@ -374,36 +356,33 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public void readInstance(final ServerContext context, final String resourceId,
             final ReadRequest request, final ResultHandler<Resource> handler) {
         final Context c = wrap(context);
+        final ResultHandler<Resource> h = wrap(c, handler);
 
         // The handler which will be invoked for the LDAP search result.
         final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
                 new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
                     @Override
                     public void handleErrorResult(final ErrorResultException error) {
-                        handler.handleError(adaptErrorResult(error));
+                        h.handleError(adapt(error));
                     }
 
                     @Override
                     public void handleResult(final SearchResultEntry entry) {
-                        adaptEntry(c, entry, handler);
+                        adaptEntry(c, entry, h);
                     }
 
                 };
 
         // The handler which will be invoked
         final ConnectionCompletionHandler<SearchResultEntry> outerHandler =
-                new ConnectionCompletionHandler<SearchResultEntry>(searchHandler) {
-
+                new ConnectionCompletionHandler<SearchResultEntry>(c, searchHandler) {
                     @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<SearchResultEntry> innerHandler =
-                                new RequestCompletionHandler<SearchResultEntry>(connection,
-                                        searchHandler);
+                    void chain() {
                         final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
                         final SearchRequest request =
                                 nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
                                         .addAttribute(attributes);
-                        connection.searchSingleEntryAsync(request, innerHandler);
+                        c.getConnection().searchSingleEntryAsync(request, searchHandler);
                     }
 
                 };
@@ -429,56 +408,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }, handler));
     }
 
-    /**
-     * Adapts an LDAP result code to a resource exception.
-     *
-     * @param error
-     *            The LDAP error that should be adapted.
-     * @return The equivalent resource exception.
-     */
-    private ResourceException adaptErrorResult(final ErrorResultException error) {
-        int resourceResultCode;
-        try {
-            throw error;
-        } catch (final AssertionFailureException e) {
-            resourceResultCode = ResourceException.VERSION_MISMATCH;
-        } catch (final AuthenticationException e) {
-            resourceResultCode = 401;
-        } catch (final AuthorizationException e) {
-            resourceResultCode = ResourceException.FORBIDDEN;
-        } catch (final ConnectionException e) {
-            resourceResultCode = ResourceException.UNAVAILABLE;
-        } catch (final EntryNotFoundException e) {
-            resourceResultCode = ResourceException.NOT_FOUND;
-        } catch (final MultipleEntriesFoundException e) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
-        } catch (final TimeoutResultException e) {
-            resourceResultCode = 408;
-        } catch (final ErrorResultException e) {
-            final ResultCode rc = e.getResult().getResultCode();
-            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else {
-                resourceResultCode = ResourceException.INTERNAL_ERROR;
-            }
-        }
-        return ResourceException.getException(resourceResultCode, error.getMessage(), error);
-    }
-
     private void applyUpdate(final Context c, final ChangeRecord request,
             final ResultHandler<Resource> handler) {
         final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
                 postUpdateHandler(c, handler);
         final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
-
+                new ConnectionCompletionHandler<Result>(c, resultHandler) {
                     @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<Result> innerHandler =
-                                new RequestCompletionHandler<Result>(connection, resultHandler);
-                        connection.applyChangeAsync(request, null, innerHandler);
+                    void chain() {
+                        c.getConnection().applyChangeAsync(request, null, resultHandler);
                     }
                 };
         factory.getConnectionAsync(outerHandler);
@@ -536,7 +474,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                 final Iterator<Filter> i = value.iterator();
                                                 while (i.hasNext()) {
                                                     final Filter f = i.next();
-                                                    if (f == null || f == alwaysFalse()) {
+                                                    if (f == alwaysFalse()) {
                                                         return alwaysFalse();
                                                     } else if (f == alwaysTrue()) {
                                                         i.remove();
@@ -653,7 +591,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                 final Iterator<Filter> i = value.iterator();
                                                 while (i.hasNext()) {
                                                     final Filter f = i.next();
-                                                    if (f == null || f == alwaysFalse()) {
+                                                    if (f == alwaysFalse()) {
                                                         i.remove();
                                                     } else if (f == alwaysTrue()) {
                                                         return alwaysTrue();
@@ -702,7 +640,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 new org.forgerock.opendj.ldap.ResultHandler<Result>() {
                     @Override
                     public void handleErrorResult(final ErrorResultException error) {
-                        handler.handleError(adaptErrorResult(error));
+                        handler.handleError(adapt(error));
                     }
 
                     @Override

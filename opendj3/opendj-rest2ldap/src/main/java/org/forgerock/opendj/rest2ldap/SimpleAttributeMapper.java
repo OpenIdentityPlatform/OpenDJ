@@ -193,12 +193,13 @@ public final class SimpleAttributeMapper extends AttributeMapper {
         final Function<ByteString, ?, Void> f =
                 decoder == null ? fixedFunction(byteStringToJson(), ldapAttributeName) : decoder;
         final Object value;
-        if (isSingleValued || ldapAttributeName.getAttributeType().isSingleValue()) {
+        if (attributeIsSingleValued()) {
             value = e.parseAttribute(ldapAttributeName).as(f, defaultJSONValue);
         } else {
-            value = e.parseAttribute(ldapAttributeName).asSetOf(f, defaultJSONValues);
+            final Set<Object> s = e.parseAttribute(ldapAttributeName).asSetOf(f, defaultJSONValues);
+            value = s.isEmpty() ? null : s;
         }
-        h.handleResult(new JsonValue(value));
+        h.handleResult(value != null ? new JsonValue(value) : null);
     }
 
     @Override
