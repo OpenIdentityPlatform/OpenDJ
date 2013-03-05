@@ -112,7 +112,7 @@ public final class Rest2LDAP {
          * configuration. See
          * {@link Rest2LDAP#configureConnectionFactory(JsonValue)} for a
          * detailed specification of the JSON configuration.
-         *
+         * 
          * @param configuration
          *            The JSON configuration.
          * @return A reference to this builder.
@@ -129,16 +129,16 @@ public final class Rest2LDAP {
          * configuration. The caller is still required to set the connection
          * factory. The configuration should look like this, excluding the
          * C-like comments:
-         *
+         * 
          * <pre>
          * {
          *     // The base DN beneath which LDAP entries are to be found.
          *     "baseDN" : "ou=people,dc=example,dc=com",
-         *
+         * 
          *     // The mechanism which should be used for read resources during updates, must be
          *     // one of "disabled", "controls", or "search".
          *     "readOnUpdatePolicy" : "controls",
-         *
+         * 
          *     // Additional LDAP attributes which should be included with entries during add (create) operations.
          *     "additionalLDAPAttributes" : [
          *         {
@@ -149,28 +149,28 @@ public final class Rest2LDAP {
          *             ]
          *         }
          *     ],
-         *
+         * 
          *     // The strategy which should be used for deriving LDAP entry names from JSON resources.
          *     "namingStrategy" : {
          *         // Option 1) the RDN and resource ID are both derived from a single user attribute in the entry.
          *         "strategy" : "clientDNNaming",
          *         "dnAttribute" : "uid"
-         *
+         * 
          *         // Option 2) the RDN and resource ID are derived from separate user attributes in the entry.
          *         "strategy" : "clientNaming",
          *         "dnAttribute" : "uid",
          *         "idAttribute" : "mail"
-         *
+         * 
          *         // Option 3) the RDN and is derived from a user attribute and the resource ID from an operational
          *         //           attribute in the entry.
          *         "strategy" : "serverNaming",
          *         "dnAttribute" : "uid",
          *         "idAttribute" : "entryUUID"
          *     },
-         *
+         * 
          *     // The attribute which will be used for performing MVCC.
          *     "etagAttribute" : "etag",
-         *
+         * 
          *     // The JSON to LDAP attribute mappings.
          *     "attributes" : {
          *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
@@ -182,11 +182,18 @@ public final class Rest2LDAP {
          *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
          *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
          *         },
+         *         "manager"     : { "reference" : {
+         *             "ldapAttribute" : "manager",
+         *             "mapping"       : { "object" : {
+         *                 "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
+         *                 "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
+         *             } }
+         *         },
          *         ...
          *     }
          * }
          * </pre>
-         *
+         * 
          * @param configuration
          *            The JSON configuration.
          * @return A reference to this builder.
@@ -248,7 +255,7 @@ public final class Rest2LDAP {
         /**
          * Sets the policy which should be used in order to read an entry before
          * it is deleted, or after it is added or modified.
-         *
+         * 
          * @param policy
          *            The policy which should be used in order to read an entry
          *            before it is deleted, or after it is added or modified.
@@ -262,7 +269,7 @@ public final class Rest2LDAP {
         /**
          * Sets the schema which should be used when attribute types and
          * controls.
-         *
+         * 
          * @param schema
          *            The schema which should be used when attribute types and
          *            controls.
@@ -354,25 +361,22 @@ public final class Rest2LDAP {
                 if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
                     s.isSingleValued();
                 }
-                if (config.isDefined("writability")) {
-                    final String writability = config.get("writability").asString();
-                    if (writability.equalsIgnoreCase("readOnly")) {
-                        s.writability(WritabilityPolicy.READ_ONLY);
-                    } else if (writability.equalsIgnoreCase("readOnlyDiscardWrites")) {
-                        s.writability(WritabilityPolicy.READ_ONLY_DISCARD_WRITES);
-                    } else if (writability.equalsIgnoreCase("createOnly")) {
-                        s.writability(WritabilityPolicy.CREATE_ONLY);
-                    } else if (writability.equalsIgnoreCase("createOnlyDiscardWrites")) {
-                        s.writability(WritabilityPolicy.CREATE_ONLY_DISCARD_WRITES);
-                    } else if (writability.equalsIgnoreCase("readWrite")) {
-                        s.writability(WritabilityPolicy.READ_WRITE);
-                    } else {
-                        throw new JsonValueException(mapper,
-                                "Illegal writability: must be one of readOnly, readOnlyDiscardWrites, "
-                                        + "createOnly, createOnlyDiscardWrites, or readWrite");
-                    }
-                }
+                s.writability(parseWritability(mapper, config));
                 return s;
+            } else if (mapper.isDefined("reference")) {
+                final JsonValue config = mapper.get("reference");
+                final AttributeDescription ldapAttribute =
+                        ad(config.get("ldapAttribute").required().asString());
+                final AttributeMapper m = configureMapper(config.get("mapper").required());
+                final ReferenceAttributeMapper r = reference(ldapAttribute, m);
+                if (config.get("isRequired").defaultTo(false).asBoolean()) {
+                    r.isRequired();
+                }
+                if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
+                    r.isSingleValued();
+                }
+                r.writability(parseWritability(mapper, config));
+                return r;
             } else if (mapper.isDefined("object")) {
                 return configureObjectMapper(mapper.get("object"));
             } else {
@@ -387,6 +391,29 @@ public final class Rest2LDAP {
                 object.attribute(attribute, configureMapper(mapper.get(attribute)));
             }
             return object;
+        }
+
+        private WritabilityPolicy parseWritability(final JsonValue mapper, final JsonValue config) {
+            if (config.isDefined("writability")) {
+                final String writability = config.get("writability").asString();
+                if (writability.equalsIgnoreCase("readOnly")) {
+                    return WritabilityPolicy.READ_ONLY;
+                } else if (writability.equalsIgnoreCase("readOnlyDiscardWrites")) {
+                    return WritabilityPolicy.READ_ONLY_DISCARD_WRITES;
+                } else if (writability.equalsIgnoreCase("createOnly")) {
+                    return WritabilityPolicy.CREATE_ONLY;
+                } else if (writability.equalsIgnoreCase("createOnlyDiscardWrites")) {
+                    return WritabilityPolicy.CREATE_ONLY_DISCARD_WRITES;
+                } else if (writability.equalsIgnoreCase("readWrite")) {
+                    return WritabilityPolicy.READ_WRITE;
+                } else {
+                    throw new JsonValueException(mapper,
+                            "Illegal writability: must be one of readOnly, readOnlyDiscardWrites, "
+                                    + "createOnly, createOnlyDiscardWrites, or readWrite");
+                }
+            } else {
+                return WritabilityPolicy.READ_WRITE;
+            }
         }
     }
 
@@ -507,7 +534,7 @@ public final class Rest2LDAP {
     /**
      * Creates a new connection factory using the provided JSON configuration.
      * The configuration should look like this, excluding the C-like comments:
-     *
+     * 
      * <pre>
      * {
      *     // The primary data center, must contain at least one LDAP server.
@@ -521,7 +548,7 @@ public final class Rest2LDAP {
      *             "port"     : 389
      *         },
      *     ],
-     *
+     * 
      *     // The optional secondary (fail-over) data center.
      *     "secondaryLDAPServers" : [
      *         {
@@ -533,18 +560,18 @@ public final class Rest2LDAP {
      *             "port"     : 389
      *         },
      *     ],
-     *
+     * 
      *     // Connection pool configuration.
      *     "connectionPoolSize"       : 10,
      *     "heartBeatIntervalSeconds" : 30,
-     *
+     * 
      *     // SSL/TLS configuration (optional and TBD).
      *     "useSSL" : {
      *         // Elect to use StartTLS instead of SSL.
      *         "useStartTLS" : true,
      *         ...
      *     },
-     *
+     * 
      *     // Authentication configuration (optional and TBD).
      *     "authentication" : {
      *         "bindDN"   : "cn=directory manager",
@@ -552,7 +579,7 @@ public final class Rest2LDAP {
      *     },
      * }
      * </pre>
-     *
+     * 
      * @param configuration
      *            The JSON configuration.
      * @return A new connection factory using the provided JSON configuration.
@@ -614,6 +641,16 @@ public final class Rest2LDAP {
 
     public static ObjectAttributeMapper object() {
         return new ObjectAttributeMapper();
+    }
+
+    public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
+            final AttributeMapper mapper) {
+        return new ReferenceAttributeMapper(attribute, mapper);
+    }
+
+    public static ReferenceAttributeMapper reference(final String attribute,
+            final AttributeMapper mapper) {
+        return reference(AttributeDescription.valueOf(attribute), mapper);
     }
 
     public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
