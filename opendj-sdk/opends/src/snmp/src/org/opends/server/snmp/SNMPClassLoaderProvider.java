@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.snmp;
 
@@ -42,7 +43,6 @@ import com.sun.management.snmp.UserAcl;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import javax.management.MBeanServer;
@@ -121,7 +121,7 @@ public class SNMPClassLoaderProvider {
     /**
      * Initialization.
      * @param configuration The configuration
-     * @throws java.lang.Exception if the SNMP connecvtion handler
+     * @throws java.lang.Exception if the SNMP connection handler
      * could not be initialized
      */
     public void initializeConnectionHandler(
@@ -134,7 +134,7 @@ public class SNMPClassLoaderProvider {
         // Get the Directory Server JMX MBeanServer
         this.server = DirectoryServer.getJMXMBeanServer();
 
-        // Initialize he Connection Handler with the givewn configuration
+        // Initialize the Connection Handler with the given configuration
         this.initializeConnectionHandler();
 
     }
@@ -233,9 +233,8 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor = this.getSnmpAdaptor(this.currentConfig);
 
             if (this.snmpAdaptor == null) {
-               Exception ex = new Exception(
-                    ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
-               throw ex;
+              throw new Exception(
+                   ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
             }
 
             // Create the Usm MIB to allow user management
@@ -351,8 +350,8 @@ public class SNMPClassLoaderProvider {
 
     private void unregisterSnmpMBeans() {
         Set objectNames = this.dsMib.getMib().getEntriesObjectNames();
-        for (Iterator iter = objectNames.iterator(); iter.hasNext();) {
-            ObjectName name = (ObjectName) iter.next();
+        for (Object objectName : objectNames) {
+            ObjectName name = (ObjectName) objectName;
             try {
                 this.server.unregisterMBean(name);
             } catch (Exception ex) {
@@ -404,16 +403,16 @@ public class SNMPClassLoaderProvider {
     private boolean checkTrapsDestinations(SortedSet destinations) {
 
         // If the traps destinations is empty, the traps have to be sent
-        // to localhosts
+        // to localhost
         if ((destinations == null) || (destinations.isEmpty())) {
             return true;
         }
 
         boolean found = false;
-        for (Iterator iter = destinations.iterator(); iter.hasNext();) {
+        for (Object destination : destinations) {
             String dest = null;
             try {
-                dest = (String) iter.next();
+                dest = (String) destination;
                 InetAddress addr = InetAddress.getByName(dest);
                 found = true;
             } catch (UnknownHostException ex) {
