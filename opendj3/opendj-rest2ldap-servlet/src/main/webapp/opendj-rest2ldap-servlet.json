@@ -40,13 +40,48 @@
                 "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
                 "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
                 "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
-                "name" : { "object"   : {
+                "name"        : { "object"   : {
                     "givenName"  : { "simple" : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
                     "familyName" : { "simple" : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } }
                 } },
-                "contactInformation" : { "object"   : {
+                "manager"     : { "simple"   : { "ldapAttribute" : "manager", "isSingleValued" : true } },
+                "groups"      : { "simple"   : { "ldapAttribute" : "isMemberOf", "writability" : "readOnly" } },
+                "contactInformation" : { "object" : {
                     "telephoneNumber" : { "simple" : { "ldapAttribute" : "telephoneNumber", "isSingleValued" : true } },
                     "emailAddress"    : { "simple" : { "ldapAttribute" : "mail", "isSingleValued" : true } }
+                } },
+                "meta"        : { "object" : {
+                    "created"      : { "simple" : { "ldapAttribute" : "createTimestamp", "isSingleValued" : true, "writability" : "readOnly" } },
+                    "lastModified" : { "simple" : { "ldapAttribute" : "modifyTimestamp", "isSingleValued" : true, "writability" : "readOnly" } }
+                } }
+            }
+        },
+        "/groups" : {
+            "baseDN" : "ou=groups,dc=example,dc=com",
+            "readOnUpdatePolicy" : "controls",
+            "additionalLDAPAttributes" : [
+                {
+                    "type" : "objectClass",
+                    "values" : [
+                        "top",
+                        "groupofuniquenames"
+                    ]
+                }
+            ],
+            "namingStrategy" : {
+                "strategy" : "clientDNNaming",
+                "dnAttribute" : "cn"
+            },
+            "etagAttribute" : "etag",
+            "attributes" : {
+                "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
+                "id"          : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
+                "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
+                "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true, "writability" : "readOnly" } },
+                "members"     : { "simple"   : { "ldapAttribute" : "uniquemember" } },
+                "meta"        : { "object" : {
+                    "created"      : { "simple" : { "ldapAttribute" : "createTimestamp", "isSingleValued" : true, "writability" : "readOnly" } },
+                    "lastModified" : { "simple" : { "ldapAttribute" : "modifyTimestamp", "isSingleValued" : true, "writability" : "readOnly" } }
                 } }
             }
         }
