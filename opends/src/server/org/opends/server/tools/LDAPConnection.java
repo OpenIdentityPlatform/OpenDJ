@@ -23,41 +23,45 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-import java.io.PrintStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.controls.*;
+import org.opends.messages.Message;
+import org.opends.server.controls.AuthorizationIdentityResponseControl;
+import org.opends.server.controls.PasswordExpiringControl;
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.controls.PasswordPolicyWarningType;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.TraceSettings;
-import static org.opends.messages.CoreMessages.
-                   INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 
 
 
@@ -195,20 +199,15 @@ public class LDAPConnection
     {
       try
       {
-        startTLSSocket = new Socket(hostName, portNumber);
+        startTLSSocket = createSocket();
         ldapWriter = new LDAPWriter(startTLSSocket);
         ldapReader = new LDAPReader(startTLSSocket);
-      } catch(UnknownHostException uhe)
+      }
+      catch (LDAPConnectionException e)
       {
-        Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
-        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
-                                          uhe);
-      } catch(ConnectException ce)
-      {
-        Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
-        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
-                                          ce);
-      } catch(Exception ex)
+        throw e;
+      }
+      catch (Exception ex)
       {
         if (debugEnabled())
         {
@@ -259,21 +258,7 @@ public class LDAPConnection
                          connectionOptions.getSSLConnectionFactory();
     try
     {
-      if(sslConnectionFactory != null)
-      {
-        if(connectionOptions.useStartTLS())
-        {
-          // Use existing socket.
-          socket = sslConnectionFactory.createSocket(startTLSSocket, hostName,
-            portNumber, true);
-        } else
-        {
-          socket = sslConnectionFactory.createSocket(hostName, portNumber);
-        }
-      } else
-      {
-        socket = new Socket(hostName, portNumber);
-      }
+      socket = createSSLOrBasicSocket(startTLSSocket, sslConnectionFactory);
       ldapWriter = new LDAPWriter(socket);
       ldapReader = new LDAPReader(socket);
     } catch(UnknownHostException uhe)
@@ -529,6 +514,169 @@ public class LDAPConnection
       }
     }
 
+  }
+
+  /**
+   * Creates a socket using the hostName and portNumber encapsulated in the
+   * current object. For each IP address associated to this host name,
+   * createSocket() will try to open a socket and it will return the first
+   * socket for which we successfully establish a connection.
+   * <p>
+   * This method can never return null because it will receive
+   * UnknownHostException before and then throw LDAPConnectionException.
+   * </p>
+   *
+   * @return a new {@link Socket}.
+   * @throws LDAPConnectionException
+   *           if any exception occurs including UnknownHostException
+   */
+  private Socket createSocket() throws LDAPConnectionException
+  {
+    ConnectException ce = null;
+    try
+    {
+      for (InetAddress inetAddress : InetAddress.getAllByName(hostName))
+      {
+        try
+        {
+          return new Socket(inetAddress, portNumber);
+        }
+        catch (ConnectException ce2)
+        {
+          if (ce == null)
+          {
+            ce = ce2;
+          }
+        }
+      }
+    }
+    catch (UnknownHostException uhe)
+    {
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+          uhe);
+    }
+    catch (Exception ex)
+    {
+      // if we get there, something went awfully wrong while creatng one socket,
+      // no need to continue the for loop.
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
+      throw new LDAPConnectionException(Message.raw(ex.getMessage()), ex);
+    }
+    if (ce != null)
+    {
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+          ce);
+    }
+    return null;
+  }
+
+  /**
+   * Creates an SSL socket using the hostName and portNumber encapsulated in the
+   * current object. For each IP address associated to this host name,
+   * createSSLSocket() will try to open a socket and it will return the first
+   * socket for which we successfully establish a connection.
+   * <p>
+   * This method can never return null because it will receive
+   * UnknownHostException before and then throw LDAPConnectionException.
+   * </p>
+   *
+   * @return a new {@link Socket}.
+   * @throws LDAPConnectionException
+   *           if any exception occurs including UnknownHostException
+   */
+  private Socket createSSLSocket(SSLConnectionFactory sslConnectionFactory)
+      throws SSLConnectionException, LDAPConnectionException
+  {
+    ConnectException ce = null;
+    try
+    {
+      for (InetAddress inetAddress : InetAddress.getAllByName(hostName))
+      {
+        try
+        {
+          return sslConnectionFactory.createSocket(inetAddress, portNumber);
+        }
+        catch (ConnectException ce2)
+        {
+          if (ce == null)
+          {
+            ce = ce2;
+          }
+        }
+      }
+    }
+    catch (UnknownHostException uhe)
+    {
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+          uhe);
+    }
+    catch (Exception ex)
+    {
+      // if we get there, something went awfully wrong while creatng one socket,
+      // no need to continue the for loop.
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
+      throw new LDAPConnectionException(Message.raw(ex.getMessage()), ex);
+    }
+    if (ce != null)
+    {
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+          ce);
+    }
+    return null;
+  }
+
+  /**
+   * Creates an SSL socket or a normal/basic socket using the hostName and
+   * portNumber encapsulated in the current object, or with the passed in socket
+   * if it needs to use start TLS.
+   *
+   * @param startTLSSocket
+   *          the Socket to use if it needs to use start TLS.
+   * @param sslConnectionFactory
+   *          the {@link SSLConnectionFactory} for creating SSL sockets
+   * @return a new {@link Socket}
+   * @throws SSLConnectionException
+   *           if the SSL socket creation fails
+   * @throws LDAPConnectionException
+   *           if any other error occurs
+   */
+  private Socket createSSLOrBasicSocket(Socket startTLSSocket,
+      SSLConnectionFactory sslConnectionFactory) throws SSLConnectionException,
+      LDAPConnectionException
+  {
+    if (sslConnectionFactory == null)
+    {
+      return createSocket();
+    }
+    else if (!connectionOptions.useStartTLS())
+    {
+      return createSSLSocket(sslConnectionFactory);
+    }
+    else
+    {
+      try
+      {
+        // Use existing socket.
+        return sslConnectionFactory.createSocket(startTLSSocket, hostName,
+            portNumber, true);
+      }
+      catch (IOException e)
+      {
+        Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
+        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+            e);
+      }
+    }
   }
 
   /**

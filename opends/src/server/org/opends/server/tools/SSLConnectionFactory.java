@@ -23,16 +23,19 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
 
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Provider;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -42,13 +45,13 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -161,11 +164,36 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-
       throw new SSLConnectionException(
               ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
     return sslSocketFactory.createSocket(hostName, portNumber);
+  }
+
+  /**
+   * Create the SSL socket connection to the specified host.
+   *
+   * @param host
+   *          The address of the system to which the connection should be
+   *          established.
+   * @param portNumber
+   *          The port number to which the connection should be established.
+   * @return The SSL socket established to the specified host.
+   * @throws SSLConnectionException
+   *           If a problem occurs while performing SSL negotiation.
+   * @throws IOException
+   *           If a problem occurs while attempting to communicate with the
+   *           server.
+   */
+  public Socket createSocket(InetAddress host, int portNumber)
+      throws SSLConnectionException, IOException
+  {
+    if (sslSocketFactory == null)
+    {
+      throw new SSLConnectionException(ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED
+          .get());
+    }
+    return sslSocketFactory.createSocket(host, portNumber);
   }
 
   /**
