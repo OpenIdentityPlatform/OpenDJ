@@ -27,21 +27,41 @@
  */
 package org.opends.server.util;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.RandomAccess;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -65,6 +85,11 @@ import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 /**
@@ -4611,6 +4636,61 @@ public final class StaticUtils
         }
       }
     }
+  }
+
+  /**
+   * Returns an {@link Iterable} returning the passed in {@link Iterator}. THis
+   * allows using methods returning Iterators with foreach statements.
+   * <p>
+   * For example, consider a method with this signature:
+   * <p>
+   * <code>public Iterator&lt;String&gt; myIteratorMethod();</code>
+   * <p>
+   * Classical use with for or while loop:
+   * 
+   * <pre>
+   * for (Iterator&lt;String&gt; it = myIteratorMethod(); it.hasNext();)
+   * {
+   *   String s = it.next();
+   *   // use it
+   * }
+   *
+   * Iterator&lt;String&gt; it = myIteratorMethod();
+   * while(it.hasNext();)
+   * {
+   *   String s = it.next();
+   *   // use it
+   * }
+   * </pre>
+   * 
+   * Improved use with foreach:
+   * 
+   * <pre>
+   * for (String s : StaticUtils.toIterable(myIteratorMethod()))
+   * {
+   * }
+   * </pre>
+   * 
+   * </p>
+   *
+   * @param <T>
+   *          the generic type of the passed in Iterator and for the returned
+   *          Iterable.
+   * @param iterator
+   *          the Iterator that will be returned by the Iterable.
+   * @return an Iterable returning the passed in Iterator
+   */
+  public static <T> Iterable<T> toIterable(final Iterator<T> iterator)
+  {
+    return new Iterable<T>()
+    {
+
+      @Override
+      public Iterator<T> iterator()
+      {
+        return iterator;
+      }
+    };
   }
 }
 
