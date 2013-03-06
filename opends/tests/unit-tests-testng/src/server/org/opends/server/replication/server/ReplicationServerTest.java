@@ -23,17 +23,16 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import org.opends.server.util.StaticUtils;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -84,19 +83,15 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.WindowProbeMsg;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-import static org.opends.server.util.ServerConstants.OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Tests for the replicationServer code.
@@ -218,11 +213,8 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     replicationServer.clearDb();
     changelogBasic();
-    int count = 0;
     while (true)
     {
-      count ++;
-      // System.out.println(count);
       newClient();
     }
   }
@@ -568,8 +560,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     int TOTAL_MSG = 1000;     // number of messages to send during the test
     int CLIENT_THREADS = 2;   // number of threads that will try to read
                               // the messages
-    ChangeNumberGenerator gen =
-      new ChangeNumberGenerator(5 , (long) 0);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator(5 , 0);
 
     BrokerReader client[] = new BrokerReader[CLIENT_THREADS];
     ReplicationBroker clientBroker[] = new ReplicationBroker[CLIENT_THREADS];
@@ -682,8 +673,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i = 0; i< THREADS; i++)
       {
         int serverId = 10 + i;
-        ChangeNumberGenerator gen =
-          new ChangeNumberGenerator(serverId , (long) 0);
+        ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId , 0);
         broker[i] =
           openReplicationSession( DN.decode(TEST_ROOT_DN_STRING), serverId,
               100, replicationServerPort, 3000, 1000, 0, true);
@@ -848,9 +838,9 @@ public class ReplicationServerTest extends ReplicationTestCase
         String baseUUID = "22222222-2222-2222-2222-222222222222";
 
         // - Add
-        String lentry = new String("dn: o=example," + TEST_ROOT_DN_STRING + "\n"
+        String lentry = "dn: o=example," + TEST_ROOT_DN_STRING + "\n"
             + "objectClass: top\n" + "objectClass: domain\n"
-            + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
+            + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
         Entry entry = TestCaseUtils.entryFromLdifString(lentry);
         cn = new ChangeNumber(time, ts++, brokerIds[0]);
         AddMsg addMsg = new AddMsg(cn, "o=example," + TEST_ROOT_DN_STRING,
@@ -956,20 +946,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
       finally
       {
-        if (changelogs[0] != null)
-        {
-          changelogs[0].remove();
-          StaticUtils.recursiveDelete
-                  (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[0].getDbDirName()));
-        }
-        if (changelogs[1] != null)
-        {
-          changelogs[1].remove();
-          StaticUtils.recursiveDelete
-                  (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[1].getDbDirName()));
-        }
+        removeRsAndChangeLog(changelogs[0]);
+        removeRsAndChangeLog(changelogs[1]);
         if (broker1 != null)
           broker1.stop();
         if (broker2 != null)
@@ -1007,7 +985,6 @@ public class ReplicationServerTest extends ReplicationTestCase
      */
 
     // open the first session to the replication server
-    String serverURL = "localhost:" + replicationServerPort;
     InetSocketAddress ServerAddr = new InetSocketAddress(
         InetAddress.getByName("localhost"), replicationServerPort);
     Socket socket = new Socket();
@@ -1027,7 +1004,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       // send a ServerStartMsg with an empty ServerState.
       ServerStartMsg msg =
         new ServerStartMsg( 1723, TEST_ROOT_DN_STRING,
-            WINDOW, (long) 5000, new ServerState(),
+            WINDOW, 5000, new ServerState(),
             ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
 
@@ -1036,7 +1013,6 @@ public class ReplicationServerTest extends ReplicationTestCase
       ReplServerStartDSMsg replStartDSMsg =
         (ReplServerStartDSMsg) session.receive();
       int serverwindow = replStartDSMsg.getWindowSize();
-      ServerState replServerState = replStartDSMsg.getServerState();
 
       if (!sslEncryption)
       {
@@ -1089,8 +1065,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     shutdown();
 
-    StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            dirName));
+    recursiveDelete(new File(DirectoryServer.getInstanceRoot(), dirName));
 
     paranoiaCheck();
   }
@@ -1114,8 +1089,6 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private class BrokerReader extends Thread
   {
-    int count;
-
     private ReplicationBroker broker;
     private int numMsgRcv = 0;
     private final int numMsgExpected;
@@ -1141,7 +1114,6 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       // loop receiving messages until either we get a timeout
       // because there is nothing left or an error condition happens.
-      count = 0;
       try
       {
         while (true)
@@ -1385,10 +1357,10 @@ public class ReplicationServerTest extends ReplicationTestCase
        String baseUUID       = "22222222-2222-2222-2222-222222222222";
 
        // - Add
-       String lentry = new String("dn: "+suffix+"\n"
+       String lentry = "dn: "+suffix+"\n"
            + "objectClass: top\n"
            + "objectClass: domain\n"
-           + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
+           + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
        Entry entry = TestCaseUtils.entryFromLdifString(lentry);
        cn = new ChangeNumber(time, ts++, serverId);
        AddMsg addMsg = new AddMsg(cn, "o=example,"+suffix,
@@ -1397,7 +1369,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        l.add(addMsg);
 
        // - Add
-       String luentry = new String(
+       String luentry =
              "dn: cn=Fiona Jensen,ou=People,"+suffix+"\n"
            + "objectClass: top\n"
            + "objectclass: person\n"
@@ -1408,7 +1380,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "givenName: fjensen\n"
            + "telephonenumber: +1 408 555 1212\n"
            + "entryUUID: " + user1entryUUID +"\n"
-           + "userpassword: fjen$$en"+"\n");
+           + "userpassword: fjen$$en" + "\n";
        Entry uentry = TestCaseUtils.entryFromLdifString(luentry);
        cn = new ChangeNumber(time, ts++, serverId);
        AddMsg addMsg2 = new AddMsg(
@@ -1454,7 +1426,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        DeleteMsg delMsg = new DeleteMsg("o=example,"+suffix, cn, "uid");
        l.add(delMsg);
      }
-     catch(Exception ignored) {};
+     catch(Exception ignored) {}
      return l;
    }
 
@@ -1667,13 +1639,11 @@ public class ReplicationServerTest extends ReplicationTestCase
      }
    }
 
-   private static final ByteArrayOutputStream oStream =
-     new ByteArrayOutputStream();
-   private static final ByteArrayOutputStream eStream =
-     new ByteArrayOutputStream();
-
    private void testReplicationBackendACIs()
    {
+     ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+     ByteArrayOutputStream eStream = new ByteArrayOutputStream();
+     
      // test search as anonymous
      String[] args =
      {
@@ -1721,11 +1691,11 @@ public class ReplicationServerTest extends ReplicationTestCase
      // test write fails : unwilling to perform
      try
      {
-       String ldif = new String(
+       String ldif =
            "dn: dc=foo, dc=replicationchanges\n"
            + "objectclass: top\n"
            + "objectClass: domain\n"
-           + "dc:foo\n");
+           + "dc:foo\n";
        String path = TestCaseUtils.createTempFile(ldif);
        String[] args4 =
        {
@@ -1762,9 +1732,9 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Make client 1 publish a change
     * - Check that client 2 does not receive the change
     */
-    @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
-    public void replicationServerConnected() throws Exception
-    {
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
+  public void replicationServerConnected() throws Exception
+  {
       replicationServer.clearDb();
       TestCaseUtils.initializeTestBackend(true);
 
@@ -1829,9 +1799,9 @@ public class ReplicationServerTest extends ReplicationTestCase
          String baseUUID  = "22222222-2222-2222-2222-222222222222";
 
          // - Add
-         String lentry = new String("dn: o=example," + TEST_ROOT_DN_STRING + "\n"
+         String lentry = "dn: o=example," + TEST_ROOT_DN_STRING + "\n"
              + "objectClass: top\n" + "objectClass: domain\n"
-             + "entryUUID: "+ user1entryUUID +"\n");
+             + "entryUUID: " + user1entryUUID + "\n";
          Entry entry = TestCaseUtils.entryFromLdifString(lentry);
          cn = new ChangeNumber(time, ts++, brokerIds[0]);
          AddMsg addMsg = new AddMsg(cn, "o=example," + TEST_ROOT_DN_STRING,
@@ -1935,35 +1905,23 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
        finally
        {
-         if (changelogs[0] != null)
-         {
-           changelogs[0].remove();
-           StaticUtils.recursiveDelete
-                  (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[0].getDbDirName()));
-         }
-         if (changelogs[1] != null)
-         {
-           changelogs[1].remove();
-           StaticUtils.recursiveDelete
-                  (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[1].getDbDirName()));
-         }
+      removeRsAndChangeLog(changelogs[0]);
+      removeRsAndChangeLog(changelogs[1]);
          if (broker1 != null)
            broker1.stop();
          if (broker2 != null)
            broker2.stop();
        }
-     }
+  }
 
-  private void sleep(long time)
+  private void removeRsAndChangeLog(ReplicationServer replicationServer)
   {
-    try
+    if (replicationServer != null)
     {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + ex.getMessage());
+      replicationServer.remove();
+      recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+          replicationServer.getDbDirName()));
     }
   }
+
 }
