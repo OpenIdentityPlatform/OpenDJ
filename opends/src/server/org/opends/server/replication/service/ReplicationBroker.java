@@ -1332,7 +1332,17 @@ public class ReplicationBroker
           localSession.close();
         }
 
-        close(socket);
+        if (socket != null)
+        {
+          try
+          {
+            socket.close();
+          }
+          catch (IOException e)
+          {
+            // Ignore.
+          }
+        }
       }
 
       if (!hasConnected && errorMessage != null)
