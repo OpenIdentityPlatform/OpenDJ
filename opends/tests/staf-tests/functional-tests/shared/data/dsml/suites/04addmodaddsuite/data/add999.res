@@ -21,7 +21,7 @@ Content-Length: 16684
    <searchResponse>
    <searchResultEntry dn='uid=scarter, ou=People, o=dsmlfe.com'>
       <attr name='jpegPhoto'>
-      <value xsi:type='xsd:base64Binary'>/9j/4AAQSkZJRgABAgEASABIAAD/7QG4UGhvdG9zaG9wIDMuMAA4QklNA+kA
+      <value xsi:type='base64Binary'>/9j/4AAQSkZJRgABAgEASABIAAD/7QG4UGhvdG9zaG9wIDMuMAA4QklNA+kA
 AAAAAHgAAwAAAEgASAAAAAAC2gIo/+H/4gL5AkYDRwUoA/wAAgAAAEgASAAA
 AAAC2AIoAAEAAABkAAAAAQADAwMAAAABJw8AAQABAAAAAAAAAAAAAAAAYAgA
 GQGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4QklNA+0AAAAA
