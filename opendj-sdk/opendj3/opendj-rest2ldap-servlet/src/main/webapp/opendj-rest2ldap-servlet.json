@@ -46,6 +46,7 @@
                 } },
                 "manager"     : { "reference" : {
                     "ldapAttribute" : "manager",
+                    "baseDN"        : "ou=people,dc=example,dc=com",
                     "mapper"        : { "object" : {
                         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
                         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
@@ -53,6 +54,7 @@
                 } },
                 "groups"     : { "reference" : {
                     "ldapAttribute" : "isMemberOf",
+                    "baseDN"        : "ou=groups,dc=example,dc=com",
                     "writability"   : "readOnly",
                     "mapper"        : { "object" : {
                         "id"          : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
@@ -92,6 +94,7 @@
                 "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true, "writability" : "readOnly" } },
                 "members"    : { "reference" : {
                     "ldapAttribute" : "uniqueMember",
+                    "baseDN"        : "dc=example,dc=com",
                     "mapper"        : { "object" : {
                         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
                         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }

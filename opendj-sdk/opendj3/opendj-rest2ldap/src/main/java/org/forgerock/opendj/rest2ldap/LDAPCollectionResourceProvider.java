@@ -73,81 +73,43 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.opendj.ldif.ChangeRecord;
 
 /**
  * A {@code CollectionResourceProvider} implementation which maps a JSON
  * resource collection to LDAP entries beneath a base DN.
  */
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
-    private <V> ResultHandler<V> wrap(final Context c, final ResultHandler<V> handler) {
-        return new ResultHandler<V>() {
-            @Override
-            public void handleError(ResourceException error) {
-                c.close();
-                handler.handleError(error);
-            }
-
-            @Override
-            public void handleResult(V result) {
-                c.close();
-                handler.handleResult(result);
-            }
-        };
-    }
-
-    private QueryResultHandler wrap(final Context c, final QueryResultHandler handler) {
-        return new QueryResultHandler() {
-            @Override
-            public void handleError(ResourceException error) {
-                c.close();
-                handler.handleError(error);
-            }
-
-            @Override
-            public boolean handleResource(Resource resource) {
-                return handler.handleResource(resource);
-            }
-
-            @Override
-            public void handleResult(QueryResult result) {
-                c.close();
-                handler.handleResult(result);
-            }
-        };
-    }
-
-    private abstract class ConnectionCompletionHandler<R> implements
+    private abstract class ConnectionCompletionHandler implements
             org.forgerock.opendj.ldap.ResultHandler<Connection> {
-        private final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler;
         private final Context c;
+        private final ResultHandler<?> handler;
 
-        ConnectionCompletionHandler(final Context c,
-                final org.forgerock.opendj.ldap.ResultHandler<? super R> resultHandler) {
+        ConnectionCompletionHandler(final Context c, final ResultHandler<?> handler) {
             this.c = c;
-            this.resultHandler = resultHandler;
+            this.handler = handler;
         }
 
         @Override
         public final void handleErrorResult(final ErrorResultException error) {
-            resultHandler.handleErrorResult(error);
+            handler.handleError(adapt(error));
         }
 
         @Override
-        public final void handleResult(Connection connection) {
+        public final void handleResult(final Connection connection) {
             c.setConnection(connection);
             chain();
         }
 
         abstract void chain();
-
     }
 
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
 
     private final List<Attribute> additionalLDAPAttributes;
+
     private final AttributeMapper attributeMapper;
+
     private final DN baseDN; // TODO: support template variables.
     private final Config config;
     private final ConnectionFactory factory;
@@ -185,33 +147,45 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        attributeMapper.toLDAP(c, request.getContent(), new ResultHandler<List<Attribute>>() {
+        // Get the connection, then determine entry content, then perform add.
+        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
             @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
+            void chain() {
+                // Calculate entry content.
+                attributeMapper.toLDAP(c, request.getContent(),
+                        new ResultHandler<List<Attribute>>() {
+                            @Override
+                            public void handleError(final ResourceException error) {
+                                h.handleError(error);
+                            }
 
-            @Override
-            public void handleResult(final List<Attribute> result) {
-                final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
-                for (final Attribute attribute : additionalLDAPAttributes) {
-                    addRequest.addAttribute(attribute);
-                }
-                for (final Attribute attribute : result) {
-                    addRequest.addAttribute(attribute);
-                }
-                try {
-                    nameStrategy.setResourceId(c, getBaseDN(c), request.getNewResourceId(),
-                            addRequest);
-                } catch (ResourceException e) {
-                    h.handleError(e);
-                    return;
-                }
-                if (config.readOnUpdatePolicy() == CONTROLS) {
-                    final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
-                    addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
-                }
-                applyUpdate(c, addRequest, h);
+                            @Override
+                            public void handleResult(final List<Attribute> result) {
+                                // Perform add operation.
+                                final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
+                                for (final Attribute attribute : additionalLDAPAttributes) {
+                                    addRequest.addAttribute(attribute);
+                                }
+                                for (final Attribute attribute : result) {
+                                    addRequest.addAttribute(attribute);
+                                }
+                                try {
+                                    nameStrategy.setResourceId(c, getBaseDN(c), request
+                                            .getNewResourceId(), addRequest);
+                                } catch (final ResourceException e) {
+                                    h.handleError(e);
+                                    return;
+                                }
+                                if (config.readOnUpdatePolicy() == CONTROLS) {
+                                    final String[] attributes =
+                                            getLDAPAttributes(c, request.getFieldFilters());
+                                    addRequest.addControl(PostReadRequestControl.newControl(false,
+                                            attributes));
+                                }
+                                c.getConnection().applyChangeAsync(addRequest, null,
+                                        postUpdateHandler(c, h));
+                            }
+                        });
             }
         });
     }
@@ -234,122 +208,120 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final QueryResultHandler h = wrap(c, handler);
 
-        // The handler which will be invoked for each LDAP search result.
-        final SearchResultHandler searchHandler = new SearchResultHandler() {
-            private final AtomicInteger pendingResourceCount = new AtomicInteger();
-            private final AtomicReference<ResourceException> pendingResult =
-                    new AtomicReference<ResourceException>();
-            private final AtomicBoolean resultSent = new AtomicBoolean();
-
+        // Get the connection, then calculate the search filter, then perform the search.
+        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
             @Override
-            public boolean handleEntry(final SearchResultEntry entry) {
-                /*
-                 * Search result entries will be returned before the search
-                 * result/error so the only reason pendingResult will be
-                 * non-null is if a mapping error has occurred.
-                 */
-                if (pendingResult.get() != null) {
-                    return false;
-                }
-
-                final String id = nameStrategy.getResourceId(c, entry);
-                final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
-                final ResultHandler<JsonValue> mapHandler = new ResultHandler<JsonValue>() {
+            void chain() {
+                // Calculate the filter (this may require the connection).
+                getLDAPFilter(c, request.getQueryFilter(), new ResultHandler<Filter>() {
                     @Override
-                    public void handleError(final ResourceException e) {
-                        pendingResult.compareAndSet(null, e);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
+                    public void handleError(final ResourceException error) {
+                        h.handleError(error);
                     }
 
                     @Override
-                    public void handleResult(final JsonValue result) {
-                        final Resource resource = new Resource(id, revision, result);
-                        h.handleResource(resource);
-                        pendingResourceCount.decrementAndGet();
-                        completeIfNecessary();
-                    }
-                };
-
-                pendingResourceCount.incrementAndGet();
-                attributeMapper.toJSON(c, entry, mapHandler);
-                return true;
-            }
-
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                pendingResult.compareAndSet(null, adapt(error));
-                completeIfNecessary();
-            }
-
-            @Override
-            public boolean handleReference(final SearchResultReference reference) {
-                // TODO: should this be classed as an error since rest2ldap
-                // assumes entries are all colocated?
-                return true;
-            }
-
-            @Override
-            public void handleResult(final Result result) {
-                pendingResult.compareAndSet(null, SUCCESS);
-                completeIfNecessary();
-            }
-
-            /*
-             * Close out the query result set if there are no more pending
-             * resources and the LDAP result has been received.
-             */
-            private void completeIfNecessary() {
-                if (pendingResourceCount.get() == 0) {
-                    final ResourceException result = pendingResult.get();
-                    if (result != null && resultSent.compareAndSet(false, true)) {
-                        if (result == SUCCESS) {
+                    public void handleResult(final Filter ldapFilter) {
+                        // Avoid performing a search if the filter could not be mapped or if it will never match.
+                        if (ldapFilter == null || ldapFilter == alwaysFalse()) {
                             h.handleResult(new QueryResult());
                         } else {
-                            h.handleError(result);
-                        }
-                    }
-                }
-            }
-        };
-
-        // The handler which will be invoked once the LDAP filter has been transformed.
-        final ResultHandler<Filter> filterHandler = new ResultHandler<Filter>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final Filter ldapFilter) {
-                // Avoid performing a search if the filter could not be mapped or if it will never match.
-                if (ldapFilter == null || ldapFilter == alwaysFalse()) {
-                    h.handleResult(new QueryResult());
-                } else {
-                    final ConnectionCompletionHandler<Result> outerHandler =
-                            new ConnectionCompletionHandler<Result>(c, searchHandler) {
+                            // Perform the search.
+                            final String[] attributes =
+                                    getLDAPAttributes(c, request.getFieldFilters());
+                            final SearchRequest request =
+                                    Requests.newSearchRequest(getBaseDN(c),
+                                            SearchScope.SINGLE_LEVEL, ldapFilter == Filter
+                                                    .alwaysTrue() ? Filter.objectClassPresent()
+                                                    : ldapFilter, attributes);
+                            c.getConnection().searchAsync(request, null, new SearchResultHandler() {
+                                private final AtomicInteger pendingResourceCount =
+                                        new AtomicInteger();
+                                private final AtomicReference<ResourceException> pendingResult =
+                                        new AtomicReference<ResourceException>();
+                                private final AtomicBoolean resultSent = new AtomicBoolean();
 
                                 @Override
-                                void chain() {
-                                    final String[] attributes =
-                                            getLDAPAttributes(c, request.getFieldFilters());
-                                    final SearchRequest request =
-                                            Requests.newSearchRequest(getBaseDN(c),
-                                                    SearchScope.SINGLE_LEVEL, ldapFilter == Filter
-                                                            .alwaysTrue() ? Filter
-                                                            .objectClassPresent() : ldapFilter,
-                                                    attributes);
-                                    c.getConnection().searchAsync(request, null, searchHandler);
+                                public boolean handleEntry(final SearchResultEntry entry) {
+                                    /*
+                                     * Search result entries will be returned
+                                     * before the search result/error so the
+                                     * only reason pendingResult will be
+                                     * non-null is if a mapping error has
+                                     * occurred.
+                                     */
+                                    if (pendingResult.get() != null) {
+                                        return false;
+                                    }
+
+                                    final String id = nameStrategy.getResourceId(c, entry);
+                                    final String revision =
+                                            mvccStrategy.getRevisionFromEntry(c, entry);
+                                    final ResultHandler<JsonValue> mapHandler =
+                                            new ResultHandler<JsonValue>() {
+                                                @Override
+                                                public void handleError(final ResourceException e) {
+                                                    pendingResult.compareAndSet(null, e);
+                                                    pendingResourceCount.decrementAndGet();
+                                                    completeIfNecessary();
+                                                }
+
+                                                @Override
+                                                public void handleResult(final JsonValue result) {
+                                                    final Resource resource =
+                                                            new Resource(id, revision, result);
+                                                    h.handleResource(resource);
+                                                    pendingResourceCount.decrementAndGet();
+                                                    completeIfNecessary();
+                                                }
+                                            };
+
+                                    pendingResourceCount.incrementAndGet();
+                                    attributeMapper.toJSON(c, entry, mapHandler);
+                                    return true;
                                 }
 
-                            };
+                                @Override
+                                public void handleErrorResult(final ErrorResultException error) {
+                                    pendingResult.compareAndSet(null, adapt(error));
+                                    completeIfNecessary();
+                                }
 
-                    factory.getConnectionAsync(outerHandler);
-                }
+                                @Override
+                                public boolean handleReference(final SearchResultReference reference) {
+                                    // TODO: should this be classed as an error since rest2ldap
+                                    // assumes entries are all colocated?
+                                    return true;
+                                }
+
+                                @Override
+                                public void handleResult(final Result result) {
+                                    pendingResult.compareAndSet(null, SUCCESS);
+                                    completeIfNecessary();
+                                }
+
+                                /*
+                                 * Close out the query result set if there are
+                                 * no more pending resources and the LDAP result
+                                 * has been received.
+                                 */
+                                private void completeIfNecessary() {
+                                    if (pendingResourceCount.get() == 0) {
+                                        final ResourceException result = pendingResult.get();
+                                        if (result != null && resultSent.compareAndSet(false, true)) {
+                                            if (result == SUCCESS) {
+                                                h.handleResult(new QueryResult());
+                                            } else {
+                                                h.handleError(result);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
             }
-        };
-
-        getLDAPFilter(c, request.getQueryFilter(), filterHandler);
+        });
     }
 
     @Override
@@ -358,36 +330,29 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        // The handler which will be invoked for the LDAP search result.
-        final org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> searchHandler =
-                new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
-                    @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        h.handleError(adapt(error));
-                    }
+        // Get connection then perform the search.
+        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
+            @Override
+            void chain() {
+                // Do the search.
+                final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
+                final SearchRequest request =
+                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
+                                attributes);
+                c.getConnection().searchSingleEntryAsync(request,
+                        new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+                            @Override
+                            public void handleErrorResult(final ErrorResultException error) {
+                                h.handleError(adapt(error));
+                            }
 
-                    @Override
-                    public void handleResult(final SearchResultEntry entry) {
-                        adaptEntry(c, entry, h);
-                    }
-
-                };
-
-        // The handler which will be invoked
-        final ConnectionCompletionHandler<SearchResultEntry> outerHandler =
-                new ConnectionCompletionHandler<SearchResultEntry>(c, searchHandler) {
-                    @Override
-                    void chain() {
-                        final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
-                        final SearchRequest request =
-                                nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
-                                        .addAttribute(attributes);
-                        c.getConnection().searchSingleEntryAsync(request, searchHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+                            @Override
+                            public void handleResult(final SearchResultEntry entry) {
+                                adaptEntry(c, entry, h);
+                            }
+                        });
+            }
+        });
     }
 
     @Override
@@ -406,20 +371,6 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 return new Resource(actualResourceId, revision, new JsonValue(value));
             }
         }, handler));
-    }
-
-    private void applyUpdate(final Context c, final ChangeRecord request,
-            final ResultHandler<Resource> handler) {
-        final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
-                postUpdateHandler(c, handler);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(c, resultHandler) {
-                    @Override
-                    void chain() {
-                        c.getConnection().applyChangeAsync(request, null, resultHandler);
-                    }
-                };
-        factory.getConnectionAsync(outerHandler);
     }
 
     private DN getBaseDN(final Context context) {
@@ -636,48 +587,83 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private org.forgerock.opendj.ldap.ResultHandler<Result> postUpdateHandler(final Context c,
             final ResultHandler<Resource> handler) {
         // The handler which will be invoked for the LDAP add result.
-        final org.forgerock.opendj.ldap.ResultHandler<Result> resultHandler =
-                new org.forgerock.opendj.ldap.ResultHandler<Result>() {
-                    @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        handler.handleError(adapt(error));
-                    }
+        return new org.forgerock.opendj.ldap.ResultHandler<Result>() {
+            @Override
+            public void handleErrorResult(final ErrorResultException error) {
+                handler.handleError(adapt(error));
+            }
 
-                    @Override
-                    public void handleResult(final Result result) {
-                        // FIXME: handle USE_SEARCH policy.
-                        Entry entry;
-                        try {
-                            final PostReadResponseControl postReadControl =
-                                    result.getControl(PostReadResponseControl.DECODER, config
-                                            .decodeOptions());
-                            if (postReadControl != null) {
-                                entry = postReadControl.getEntry();
-                            } else {
-                                final PreReadResponseControl preReadControl =
-                                        result.getControl(PreReadResponseControl.DECODER, config
-                                                .decodeOptions());
-                                if (preReadControl != null) {
-                                    entry = preReadControl.getEntry();
-                                } else {
-                                    entry = null;
-                                }
-                            }
-                        } catch (final DecodeException e) {
-                            // FIXME: log something?
+            @Override
+            public void handleResult(final Result result) {
+                // FIXME: handle USE_SEARCH policy.
+                Entry entry;
+                try {
+                    final PostReadResponseControl postReadControl =
+                            result.getControl(PostReadResponseControl.DECODER, config
+                                    .decodeOptions());
+                    if (postReadControl != null) {
+                        entry = postReadControl.getEntry();
+                    } else {
+                        final PreReadResponseControl preReadControl =
+                                result.getControl(PreReadResponseControl.DECODER, config
+                                        .decodeOptions());
+                        if (preReadControl != null) {
+                            entry = preReadControl.getEntry();
+                        } else {
                             entry = null;
                         }
-                        if (entry != null) {
-                            adaptEntry(c, entry, handler);
-                        } else {
-                            final Resource resource =
-                                    new Resource(null, null, new JsonValue(Collections.emptyMap()));
-                            handler.handleResult(resource);
-                        }
                     }
+                } catch (final DecodeException e) {
+                    // FIXME: log something?
+                    entry = null;
+                }
+                if (entry != null) {
+                    adaptEntry(c, entry, handler);
+                } else {
+                    final Resource resource =
+                            new Resource(null, null, new JsonValue(Collections.emptyMap()));
+                    handler.handleResult(resource);
+                }
+            }
 
-                };
-        return resultHandler;
+        };
+    }
+
+    private QueryResultHandler wrap(final Context c, final QueryResultHandler handler) {
+        return new QueryResultHandler() {
+            @Override
+            public void handleError(final ResourceException error) {
+                c.close();
+                handler.handleError(error);
+            }
+
+            @Override
+            public boolean handleResource(final Resource resource) {
+                return handler.handleResource(resource);
+            }
+
+            @Override
+            public void handleResult(final QueryResult result) {
+                c.close();
+                handler.handleResult(result);
+            }
+        };
+    }
+
+    private <V> ResultHandler<V> wrap(final Context c, final ResultHandler<V> handler) {
+        return new ResultHandler<V>() {
+            @Override
+            public void handleError(final ResourceException error) {
+                c.close();
+                handler.handleError(error);
+            }
+
+            @Override
+            public void handleResult(final V result) {
+                c.close();
+                handler.handleResult(result);
+            }
+        };
     }
 
     private Context wrap(final ServerContext context) {
