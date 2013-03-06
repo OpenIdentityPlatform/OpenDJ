@@ -184,6 +184,7 @@ public final class Rest2LDAP {
          *         },
          *         "manager"     : { "reference" : {
          *             "ldapAttribute" : "manager",
+         *             "baseDN"        : "ou=people,dc=example,dc=com",
          *             "mapper"        : { "object" : {
          *                 "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
          *                 "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
@@ -367,13 +368,17 @@ public final class Rest2LDAP {
                 final JsonValue config = mapper.get("reference");
                 final AttributeDescription ldapAttribute =
                         ad(config.get("ldapAttribute").required().asString());
+                final DN baseDN = DN.valueOf(config.get("baseDN").required().asString(), schema);
                 final AttributeMapper m = configureMapper(config.get("mapper").required());
-                final ReferenceAttributeMapper r = reference(ldapAttribute, m);
+                final ReferenceAttributeMapper r = reference(ldapAttribute, baseDN, m);
                 if (config.get("isRequired").defaultTo(false).asBoolean()) {
                     r.isRequired();
                 }
                 if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
                     r.isSingleValued();
+                }
+                if (config.isDefined("searchFilter")) {
+                    r.searchFilter(config.get("searchFilter").asString());
                 }
                 r.writability(parseWritability(mapper, config));
                 return r;
@@ -644,13 +649,13 @@ public final class Rest2LDAP {
     }
 
     public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
-            final AttributeMapper mapper) {
-        return new ReferenceAttributeMapper(attribute, mapper);
+            final DN baseDN, final AttributeMapper mapper) {
+        return new ReferenceAttributeMapper(attribute, baseDN, mapper);
     }
 
-    public static ReferenceAttributeMapper reference(final String attribute,
+    public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
             final AttributeMapper mapper) {
-        return reference(AttributeDescription.valueOf(attribute), mapper);
+        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN), mapper);
     }
 
     public static SimpleAttributeMapper simple(final AttributeDescription attribute) {

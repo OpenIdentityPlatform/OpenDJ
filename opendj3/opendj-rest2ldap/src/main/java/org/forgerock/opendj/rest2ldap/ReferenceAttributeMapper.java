@@ -15,20 +15,23 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.adapt;
+import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -37,23 +40,38 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
 /**
  * An attribute mapper which provides a mapping from a JSON value to a single DN
  * valued LDAP attribute.
  */
 public final class ReferenceAttributeMapper extends AttributeMapper {
+    /**
+     * The maximum number of candidate references to allow in search filters.
+     */
+    private static final int SEARCH_MAX_CANDIDATES = 1000;
 
+    private final DN baseDN;
+    private Filter filter = null;
     private boolean isRequired = false;
     private boolean isSingleValued = false;
     private final AttributeDescription ldapAttributeName;
     private final AttributeMapper mapper;
+    private SearchScope scope = SearchScope.WHOLE_SUBTREE;
     private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
-    ReferenceAttributeMapper(final AttributeDescription ldapAttributeName,
+    ReferenceAttributeMapper(final AttributeDescription ldapAttributeName, final DN baseDN,
             final AttributeMapper mapper) {
         this.ldapAttributeName = ldapAttributeName;
+        this.baseDN = baseDN;
         this.mapper = mapper;
     }
 
@@ -80,6 +98,47 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
     }
 
     /**
+     * Sets the filter which should be used when searching for referenced LDAP
+     * entries. The default is {@code (objectClass=*)}.
+     *
+     * @param filter
+     *            The filter which should be used when searching for referenced
+     *            LDAP entries.
+     * @return This attribute mapper.
+     */
+    public ReferenceAttributeMapper searchFilter(final Filter filter) {
+        this.filter = ensureNotNull(filter);
+        return this;
+    }
+
+    /**
+     * Sets the filter which should be used when searching for referenced LDAP
+     * entries. The default is {@code (objectClass=*)}.
+     *
+     * @param filter
+     *            The filter which should be used when searching for referenced
+     *            LDAP entries.
+     * @return This attribute mapper.
+     */
+    public ReferenceAttributeMapper searchFilter(final String filter) {
+        return searchFilter(Filter.valueOf(filter));
+    }
+
+    /**
+     * Sets the search scope which should be used when searching for referenced
+     * LDAP entries. The default is {@link SearchScope#WHOLE_SUBTREE}.
+     *
+     * @param scope
+     *            The search scope which should be used when searching for
+     *            referenced LDAP entries.
+     * @return This attribute mapper.
+     */
+    public ReferenceAttributeMapper searchScope(final SearchScope scope) {
+        this.scope = ensureNotNull(scope);
+        return this;
+    }
+
+    /**
      * Indicates whether or not the LDAP attribute supports updates. The default
      * is {@link WritabilityPolicy#READ_WRITE}.
      *
@@ -101,10 +160,62 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
     @Override
     void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
-        // TODO: only presence and equality matching will be supported. Equality matching will
-        // only work for the primary key (whatever that is) by performing a reverse look up to
-        // convert the primary key to a DN.
-        h.handleResult(alwaysFalse());
+        // First construct a filter which can be used to find referenced resources.
+        final ResultHandler<Filter> filterHandler = new ResultHandler<Filter>() {
+            @Override
+            public void handleError(final ResourceException error) {
+                h.handleError(error); // Propagate.
+            }
+
+            @Override
+            public void handleResult(final Filter result) {
+                // Now construct a search to find candidate DNs.
+                final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
+                final SearchRequest request =
+                        Requests.newSearchRequest(baseDN, scope, searchFilter, "1.1");
+
+                // Create a result handler which will collect the returned entries and construct a search filter.
+                final SearchResultHandler searchHandler = new SearchResultHandler() {
+                    final List<Filter> subFilters = new LinkedList<Filter>();
+
+                    @Override
+                    public boolean handleEntry(final SearchResultEntry entry) {
+                        if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
+                            subFilters.add(Filter.equality(ldapAttributeName.toString(), entry
+                                    .getName()));
+                            return true;
+                        } else {
+                            // No point in continuing - maximum candidates reached.
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    public void handleErrorResult(final ErrorResultException error) {
+                        h.handleError(adapt(error)); // Propagate.
+                    }
+
+                    @Override
+                    public boolean handleReference(final SearchResultReference reference) {
+                        // Ignore references.
+                        return true;
+                    }
+
+                    @Override
+                    public void handleResult(final Result result) {
+                        if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
+                            handleErrorResult(newErrorResult(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                        } else if (subFilters.size() == 1) {
+                            h.handleResult(subFilters.get(0));
+                        } else {
+                            h.handleResult(Filter.or(subFilters));
+                        }
+                    }
+                };
+                c.getConnection().searchAsync(request, null, searchHandler);
+            }
+        };
+        mapper.getLDAPFilter(c, type, jsonAttribute, operator, valueAssertion, filterHandler);
     }
 
     @Override
@@ -116,7 +227,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
             try {
                 final DN dn = attribute.parse().usingSchema(c.getConfig().schema()).asDN();
                 readEntry(c, dn, h);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 // The LDAP attribute could not be decoded.
                 h.handleError(adapt(ex));
             }
@@ -146,7 +257,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                 for (final DN dn : dns) {
                     readEntry(c, dn, handler);
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 // The LDAP attribute could not be decoded.
                 h.handleError(adapt(ex));
             }
