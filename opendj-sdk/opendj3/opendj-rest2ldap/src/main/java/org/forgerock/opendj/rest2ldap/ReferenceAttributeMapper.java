@@ -113,31 +113,42 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
         if (attribute == null) {
             h.handleResult(null);
         } else if (attributeIsSingleValued()) {
-            final DN dn = attribute.parse().usingSchema(c.getConfig().schema()).asDN();
-            readEntry(c, dn, h);
+            try {
+                final DN dn = attribute.parse().usingSchema(c.getConfig().schema()).asDN();
+                readEntry(c, dn, h);
+            } catch (Exception ex) {
+                // The LDAP attribute could not be decoded.
+                h.handleError(adapt(ex));
+            }
         } else {
-            final Set<DN> dns = attribute.parse().usingSchema(c.getConfig().schema()).asSetOfDN();
-            final ResultHandler<JsonValue> handler =
-                    accumulate(dns.size(), transform(
-                            new Function<List<JsonValue>, JsonValue, Void>() {
-                                @Override
-                                public JsonValue apply(final List<JsonValue> value, final Void p) {
-                                    if (value.isEmpty()) {
-                                        // No values, so omit the entire JSON object from the resource.
-                                        return null;
-                                    } else {
-                                        // Combine values into a single JSON array.
-                                        final List<Object> result =
-                                                new ArrayList<Object>(value.size());
-                                        for (final JsonValue e : value) {
-                                            result.add(e.getObject());
+            try {
+                final Set<DN> dns =
+                        attribute.parse().usingSchema(c.getConfig().schema()).asSetOfDN();
+                final ResultHandler<JsonValue> handler =
+                        accumulate(dns.size(), transform(
+                                new Function<List<JsonValue>, JsonValue, Void>() {
+                                    @Override
+                                    public JsonValue apply(final List<JsonValue> value, final Void p) {
+                                        if (value.isEmpty()) {
+                                            // No values, so omit the entire JSON object from the resource.
+                                            return null;
+                                        } else {
+                                            // Combine values into a single JSON array.
+                                            final List<Object> result =
+                                                    new ArrayList<Object>(value.size());
+                                            for (final JsonValue e : value) {
+                                                result.add(e.getObject());
+                                            }
+                                            return new JsonValue(result);
                                         }
-                                        return new JsonValue(result);
                                     }
-                                }
-                            }, h));
-            for (final DN dn : dns) {
-                readEntry(c, dn, handler);
+                                }, h));
+                for (final DN dn : dns) {
+                    readEntry(c, dn, handler);
+                }
+            } catch (Exception ex) {
+                // The LDAP attribute could not be decoded.
+                h.handleError(adapt(ex));
             }
         }
     }

@@ -68,6 +68,7 @@ final class Utils {
         private final ResultHandler<List<V>> handler;
         private final AtomicInteger latch;
         private final List<V> results;
+        private ResourceException exception; // Guarded by latch.
 
         private AccumulatingResultHandler(final int size, final ResultHandler<List<V>> handler) {
             this.latch = new AtomicInteger(size);
@@ -75,20 +76,12 @@ final class Utils {
             this.handler = handler;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleError(final ResourceException e) {
-            // Ensure that handler is only invoked once.
-            if (latch.getAndSet(0) > 0) {
-                handler.handleError(e);
-            }
+            exception = e;
+            latch(); // Volatile write publishes exception.
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleResult(final V result) {
             if (result != null) {
@@ -96,11 +89,21 @@ final class Utils {
                     results.add(result);
                 }
             }
-            if (latch.decrementAndGet() == 0) {
-                handler.handleResult(results);
-            }
+            latch();
         }
 
+        private void latch() {
+            // Invoke the handler once all results have been received. Avoid failing-fast
+            // when an error occurs because some in-flight tasks may depend on resources
+            // (e.g. connections) which are automatically closed on completion.
+            if (latch.decrementAndGet() == 0) {
+                if (exception != null) {
+                    handler.handleError(exception);
+                } else {
+                    handler.handleResult(results);
+                }
+            }
+        }
     }
 
     private static final Function<Object, ByteString, Void> BASE64_TO_BYTESTRING =
@@ -156,21 +159,45 @@ final class Utils {
                 }
             };
 
+    /**
+     * Returns a result handler which can be used to collect the results of
+     * {@code size} asynchronous operations. Once all results have been received
+     * {@code handler} will be invoked with a list containing the results.
+     * Accumulation ignores {@code null} results, so the result list may be
+     * smaller than {@code size}. The returned result handler does not
+     * fail-fast: it will wait until all results have been received even if an
+     * error has been detected. This ensures that asynchronous operations can
+     * use resources such as connections which are automatically released
+     * (closed) upon completion of the final operation.
+     *
+     * @param <V>
+     *            The type of result to be collected.
+     * @param size
+     *            The number of expected results.
+     * @param handler
+     *            The result handler to be invoked when all results have been
+     *            received.
+     * @return A result handler which can be used to collect the results of
+     *         {@code size} asynchronous operations.
+     */
     static <V> ResultHandler<V> accumulate(final int size, final ResultHandler<List<V>> handler) {
         return new AccumulatingResultHandler<V>(size, handler);
     }
 
     /**
-     * Adapts an LDAP result code to a resource exception.
+     * Adapts a {@code Throwable} to a {@code ResourceException}. If the
+     * {@code Throwable} is an LDAP {@code ErrorResultException} then an
+     * appropriate {@code ResourceException} is returned, otherwise an
+     * {@code InternalServerErrorException} is returned.
      *
-     * @param error
-     *            The LDAP error that should be adapted.
+     * @param t
+     *            The {@code Throwable} to be converted.
      * @return The equivalent resource exception.
      */
-    static ResourceException adapt(final ErrorResultException error) {
+    static ResourceException adapt(final Throwable t) {
         int resourceResultCode;
         try {
-            throw error;
+            throw t;
         } catch (final AssertionFailureException e) {
             resourceResultCode = ResourceException.VERSION_MISMATCH;
         } catch (final AuthenticationException e) {
@@ -194,8 +221,10 @@ final class Utils {
             } else {
                 resourceResultCode = ResourceException.INTERNAL_ERROR;
             }
+        } catch (final Throwable tmp) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
         }
-        return ResourceException.getException(resourceResultCode, error.getMessage(), error);
+        return ResourceException.getException(resourceResultCode, t.getMessage(), t);
     }
 
     static Object attributeToJson(final Attribute a) {
@@ -269,30 +298,31 @@ final class Utils {
     }
 
     static Filter toFilter(final Context c, final FilterType type, final String ldapAttribute,
-            final Object valueAssertion) {
-        final String v = String.valueOf(valueAssertion);
+            final ByteString valueAssertion) {
         final Filter filter;
         switch (type) {
         case CONTAINS:
-            filter = Filter.substrings(ldapAttribute, null, Collections.singleton(v), null);
+            filter =
+                    Filter.substrings(ldapAttribute, null, Collections.singleton(valueAssertion),
+                            null);
             break;
         case STARTS_WITH:
-            filter = Filter.substrings(ldapAttribute, v, null, null);
+            filter = Filter.substrings(ldapAttribute, valueAssertion, null, null);
             break;
         case EQUAL_TO:
-            filter = Filter.equality(ldapAttribute, v);
+            filter = Filter.equality(ldapAttribute, valueAssertion);
             break;
         case GREATER_THAN:
-            filter = Filter.greaterThan(ldapAttribute, v);
+            filter = Filter.greaterThan(ldapAttribute, valueAssertion);
             break;
         case GREATER_THAN_OR_EQUAL_TO:
-            filter = Filter.greaterOrEqual(ldapAttribute, v);
+            filter = Filter.greaterOrEqual(ldapAttribute, valueAssertion);
             break;
         case LESS_THAN:
-            filter = Filter.lessThan(ldapAttribute, v);
+            filter = Filter.lessThan(ldapAttribute, valueAssertion);
             break;
         case LESS_THAN_OR_EQUAL_TO:
-            filter = Filter.lessOrEqual(ldapAttribute, v);
+            filter = Filter.lessOrEqual(ldapAttribute, valueAssertion);
             break;
         case PRESENT:
             filter = Filter.present(ldapAttribute);
@@ -309,6 +339,25 @@ final class Utils {
         return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
     }
 
+    /**
+     * Returns a result handler which accepts results of type {@code M}, applies
+     * the function {@code f} in order to convert the result to an object of
+     * type {@code N}, and subsequently invokes {@code handler}. If an
+     * unexpected error occurs while performing the transformation, the
+     * exception is converted to a {@code ResourceException} before invoking
+     * {@code handler.handleError()}.
+     *
+     * @param <M>
+     *            The type of result expected by the returned handler.
+     * @param <N>
+     *            The type of result expected by {@code handler}.
+     * @param f
+     *            A function which converts the result of type {@code M} to type
+     *            {@code N}.
+     * @param handler
+     *            A result handler which accepts results of type {@code N}.
+     * @return A result handler which accepts results of type {@code M}.
+     */
     static <M, N> ResultHandler<M> transform(final Function<M, N, Void> f,
             final ResultHandler<N> handler) {
         return new ResultHandler<M>() {
@@ -319,7 +368,11 @@ final class Utils {
 
             @Override
             public void handleResult(final M result) {
-                handler.handleResult(f.apply(result, null));
+                try {
+                    handler.handleResult(f.apply(result, null));
+                } catch (Throwable t) {
+                    handler.handleError(adapt(t));
+                }
             }
         };
     }
