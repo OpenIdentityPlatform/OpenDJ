@@ -29,11 +29,12 @@ package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor.Arg1;
+import org.opends.messages.MessageDescriptor.Arg2;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
@@ -519,8 +520,7 @@ public class LocalBackendBindOperation
       if (userEntry == null)
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     ERR_BIND_OPERATION_UNKNOWN_USER.get(
-                                          String.valueOf(bindDN)));
+            ERR_BIND_OPERATION_UNKNOWN_USER.get());
       }
       else
       {
@@ -544,7 +544,7 @@ public class LocalBackendBindOperation
         if ((pwAttr == null) || (pwAttr.isEmpty()))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              ERR_BIND_OPERATION_NO_PASSWORD.get(String.valueOf(bindDN)));
+              ERR_BIND_OPERATION_NO_PASSWORD.get());
         }
 
         // Perform a number of password policy state checks for the user.
@@ -608,36 +608,7 @@ public class LocalBackendBindOperation
 
           if (policy.getLockoutFailureCount() > 0)
           {
-            pwPolicyState.updateAuthFailureTimes();
-            if (pwPolicyState.lockedDueToFailures())
-            {
-              AccountStatusNotificationType notificationType;
-              Message m;
-
-              boolean tempLocked;
-              int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
-              if (lockoutDuration > -1)
-              {
-                notificationType =
-                  AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
-                tempLocked = true;
-
-                m = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED
-                    .get(secondsToTimeString(lockoutDuration));
-              }
-              else
-              {
-                notificationType =
-                  AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
-                tempLocked = false;
-
-                m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
-              }
-
-              pwPolicyState.generateAccountStatusNotification(notificationType,
-                  userEntry, m, AccountStatusNotification.createProperties(
-                      pwPolicyState, tempLocked, -1, null, null));
-            }
+            lockBindAccount(userEntry, pwPolicyState);
           }
         }
       }
@@ -689,7 +660,6 @@ public class LocalBackendBindOperation
       LockManager.unlock(bindDN, userLock);
     }
   }
-
 
 
   /**
@@ -871,35 +841,7 @@ public class LocalBackendBindOperation
           if (pwPolicyState.getAuthenticationPolicy()
               .getLockoutFailureCount() > 0)
           {
-            pwPolicyState.updateAuthFailureTimes();
-            if (pwPolicyState.lockedDueToFailures())
-            {
-              AccountStatusNotificationType notificationType;
-              boolean tempLocked;
-              Message m;
-
-              int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
-              if (lockoutDuration > -1)
-              {
-                notificationType = AccountStatusNotificationType.
-                                        ACCOUNT_TEMPORARILY_LOCKED;
-                tempLocked = true;
-                m = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
-                         secondsToTimeString(lockoutDuration));
-              }
-              else
-              {
-                notificationType =
-                     AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
-                tempLocked = false;
-                m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
-              }
-
-              pwPolicyState.generateAccountStatusNotification(
-                   notificationType, saslAuthUserEntry, m,
-                   AccountStatusNotification.createProperties(
-                        pwPolicyState, tempLocked, -1, null, null));
-            }
+            lockBindAccount(saslAuthUserEntry, pwPolicyState);
           }
         }
       }
@@ -908,6 +850,41 @@ public class LocalBackendBindOperation
     return true;
   }
 
+
+
+  private void lockBindAccount(Entry userEntry,
+      PasswordPolicyState pwPolicyState)
+  {
+    pwPolicyState.updateAuthFailureTimes();
+    if (pwPolicyState.lockedDueToFailures())
+    {
+      AccountStatusNotificationType notificationType;
+      boolean tempLocked;
+      Message m;
+
+      int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
+      if (lockoutDuration > -1)
+      {
+        notificationType =
+            AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
+        tempLocked = true;
+        m =
+            ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED
+                .get(secondsToTimeString(lockoutDuration));
+      }
+      else
+      {
+        notificationType =
+            AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
+        tempLocked = false;
+        m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
+      }
+
+      pwPolicyState.generateAccountStatusNotification(notificationType,
+          userEntry, m, AccountStatusNotification.createProperties(
+              pwPolicyState, tempLocked, -1, null, null));
+    }
+  }
 
 
   private boolean invokePreOpPlugins()
@@ -991,8 +968,7 @@ public class LocalBackendBindOperation
       else
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                       ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get(
-                            String.valueOf(userEntry.getDN())));
+                       ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get());
       }
     }
 
@@ -1006,8 +982,7 @@ public class LocalBackendBindOperation
     }
     else if (pwPolicyState.isAccountExpired())
     {
-      Message m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get(
-                       String.valueOf(userEntry.getDN()));
+      Message m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_EXPIRED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState,
@@ -1023,19 +998,16 @@ public class LocalBackendBindOperation
       }
 
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                     ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get(
-                          String.valueOf(userEntry.getDN())));
+                     ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get());
     }
     else if (pwPolicyState.lockedDueToIdleInterval())
     {
-      Message m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get(
-              String.valueOf(userEntry.getDN()));
-
       if (pwPolicyErrorType == null)
       {
         pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
       }
 
+      Message m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
@@ -1052,14 +1024,12 @@ public class LocalBackendBindOperation
       // Check to see if the account is locked due to the maximum reset age.
       if (pwPolicyState.lockedDueToMaximumResetAge())
       {
-        Message m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get(
-                         String.valueOf(userEntry.getDN()));
-
         if (pwPolicyErrorType == null)
         {
           pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
         }
 
+        Message m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get();
         pwPolicyState.generateAccountStatusNotification(
              AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, userEntry, m,
              AccountStatusNotification.createProperties(pwPolicyState, false,
@@ -1098,9 +1068,7 @@ public class LocalBackendBindOperation
           }
           else
           {
-            Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
-                             String.valueOf(userEntry.getDN()));
-
+            Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
             pwPolicyState.generateAccountStatusNotification(
                  AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,
                  AccountStatusNotification.createProperties(pwPolicyState,
@@ -1112,9 +1080,7 @@ public class LocalBackendBindOperation
         }
         else
         {
-          Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
-                           String.valueOf(userEntry.getDN()));
-
+          Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
           pwPolicyState.generateAccountStatusNotification(
                AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,
                AccountStatusNotification.createProperties(pwPolicyState, false,
@@ -1161,154 +1127,83 @@ public class LocalBackendBindOperation
   protected void setResourceLimits(Entry userEntry)
   {
     // See if the user's entry contains a custom size limit.
+    Integer customSizeLimit =
+        getIntegerUserAttribute(userEntry, OP_ATTR_USER_SIZE_LIMIT,
+            WARN_BIND_MULTIPLE_USER_SIZE_LIMITS,
+            WARN_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT);
+    if (customSizeLimit != null)
+    {
+      sizeLimit = customSizeLimit;
+    }
+
+    // See if the user's entry contains a custom time limit.
+    Integer customTimeLimit =
+        getIntegerUserAttribute(userEntry, OP_ATTR_USER_TIME_LIMIT,
+            WARN_BIND_MULTIPLE_USER_TIME_LIMITS,
+            WARN_BIND_CANNOT_PROCESS_USER_TIME_LIMIT);
+    if (customTimeLimit != null)
+    {
+      timeLimit = customTimeLimit;
+    }
+
+    // See if the user's entry contains a custom idle time limit.
+    // idleTimeLimit = 1000L * Long.parseLong(v.getValue().toString());
+    Integer customIdleTimeLimitInSec =
+        getIntegerUserAttribute(userEntry, OP_ATTR_USER_IDLE_TIME_LIMIT,
+            WARN_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS,
+            WARN_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT);
+    if (customIdleTimeLimitInSec != null)
+    {
+      idleTimeLimit = 1000L * customIdleTimeLimitInSec;
+    }
+
+    // See if the user's entry contains a custom lookthrough limit.
+    Integer customLookthroughLimit =
+        getIntegerUserAttribute(userEntry, OP_ATTR_USER_LOOKTHROUGH_LIMIT,
+            WARN_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS,
+            WARN_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT);
+    if (customLookthroughLimit != null)
+    {
+      lookthroughLimit = customLookthroughLimit;
+    }
+  }
+
+  private Integer getIntegerUserAttribute(Entry userEntry,
+      String attributeTypeName,
+      Arg1<CharSequence> nonUniqueAttributeMessage,
+      Arg2<CharSequence, CharSequence> cannotProcessAttributeMessage)
+  {
     AttributeType attrType =
-         DirectoryServer.getAttributeType(OP_ATTR_USER_SIZE_LIMIT, true);
+        DirectoryServer.getAttributeType(attributeTypeName, true);
     List<Attribute> attrList = userEntry.getAttribute(attrType);
     if ((attrList != null) && (attrList.size() == 1))
     {
       Attribute a = attrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
+      if (a.size() == 1)
       {
-        AttributeValue v = iterator.next();
-        if (iterator.hasNext())
+        AttributeValue v = a.iterator().next();
+        try
         {
-          logError(WARN_BIND_MULTIPLE_USER_SIZE_LIMITS.get(
-                        String.valueOf(userEntry.getDN())));
+          return Integer.valueOf(v.getValue().toString());
         }
-        else
+        catch (Exception e)
         {
-          try
+          if (debugEnabled())
           {
-            sizeLimit = Integer.parseInt(v.getValue().toString());
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
 
-            logError(WARN_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT.get(
-                          v.getValue().toString(),
-                          String.valueOf(userEntry.getDN())));
-          }
+          logError(cannotProcessAttributeMessage.get(v.getValue().toString(),
+              String.valueOf(userEntry.getDN())));
         }
       }
-    }
-
-
-    // See if the user's entry contains a custom time limit.
-    attrType = DirectoryServer.getAttributeType(OP_ATTR_USER_TIME_LIMIT, true);
-    attrList = userEntry.getAttribute(attrType);
-    if ((attrList != null) && (attrList.size() == 1))
-    {
-      Attribute a = attrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
+      else if (a.size() > 1)
       {
-        AttributeValue v = iterator.next();
-        if (iterator.hasNext())
-        {
-          logError(WARN_BIND_MULTIPLE_USER_TIME_LIMITS.get(
-                        String.valueOf(userEntry.getDN())));
-        }
-        else
-        {
-          try
-          {
-            timeLimit = Integer.parseInt(v.getValue().toString());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            logError(WARN_BIND_CANNOT_PROCESS_USER_TIME_LIMIT.get(
-                          v.getValue().toString(),
-                          String.valueOf(userEntry.getDN())));
-          }
-        }
+        logError(nonUniqueAttributeMessage.get(String
+            .valueOf(userEntry.getDN())));
       }
     }
-
-
-    // See if the user's entry contains a custom idle time limit.
-    attrType = DirectoryServer.getAttributeType(OP_ATTR_USER_IDLE_TIME_LIMIT,
-                                                true);
-    attrList = userEntry.getAttribute(attrType);
-    if ((attrList != null) && (attrList.size() == 1))
-    {
-      Attribute a = attrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
-      {
-        AttributeValue v = iterator.next();
-        if (iterator.hasNext())
-        {
-          logError(WARN_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS.get(
-                        String.valueOf(userEntry.getDN())));
-        }
-        else
-        {
-          try
-          {
-            idleTimeLimit = 1000L * Long.parseLong(v.getValue().toString());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            logError(WARN_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT.get(
-                          v.getValue().toString(),
-                          String.valueOf(userEntry.getDN())));
-          }
-        }
-      }
-    }
-
-
-    // See if the user's entry contains a custom lookthrough limit.
-    attrType = DirectoryServer.getAttributeType(OP_ATTR_USER_LOOKTHROUGH_LIMIT,
-                                                true);
-    attrList = userEntry.getAttribute(attrType);
-    if ((attrList != null) && (attrList.size() == 1))
-    {
-      Attribute a = attrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
-      {
-        AttributeValue v = iterator.next();
-        if (iterator.hasNext())
-        {
-          logError(WARN_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS.get(
-                        String.valueOf(userEntry.getDN())));
-        }
-        else
-        {
-          try
-          {
-            lookthroughLimit = Integer.parseInt(v.getValue().toString());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            logError(WARN_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT.get(
-                          v.getValue().toString(),
-                          String.valueOf(userEntry.getDN())));
-          }
-        }
-      }
-    }
+    return null;
   }
 }
 
