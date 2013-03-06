@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock, AS.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -634,14 +635,6 @@ final class LDAPDriver extends Driver {
       activeValues.add(value);
     }
 
-    if (activeValues.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
-      // The active values maybe empty because of a previous
-      // exception.
-      if (exception == null) {
-        exception = new PropertyIsMandatoryException(pd);
-      }
-    }
-
     // Get the property's default values.
     Collection<PD> defaultValues;
     try {
@@ -652,6 +645,16 @@ final class LDAPDriver extends Driver {
     }
 
     newProperties.addProperty(pd, defaultValues, activeValues);
+
+    if (activeValues.isEmpty() && defaultValues.isEmpty()
+        && pd.hasOption(PropertyOption.MANDATORY)) {
+      // The active values maybe empty because of a previous
+      // exception.
+      if (exception == null) {
+        exception = new PropertyIsMandatoryException(pd);
+      }
+    }
+
     if (exception != null) {
       throw exception;
     }
