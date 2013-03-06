@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -200,122 +200,7 @@ public class LocalBackendBindOperation
     pwPolicyWarningValue     = -1 ;
     pluginConfigManager      = DirectoryServer.getPluginConfigManager();
 
-
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-bindProcessing:
-    {
-      // Check to see if the client has permission to perform the
-      // bind.
-
-      // FIXME: for now assume that this will check all permission
-      // pertinent to the operation. This includes any controls
-      // specified.
-      try
-      {
-        if (!AccessControlConfigManager.getInstance()
-            .getAccessControlHandler().isAllowed(this))
-        {
-          setResultCode(ResultCode.INVALID_CREDENTIALS);
-          setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(bindDN)));
-          break bindProcessing;
-        }
-      }
-      catch (DirectoryException e)
-      {
-        setResultCode(e.getResultCode());
-        setAuthFailureReason(e.getMessageObject());
-        break bindProcessing;
-      }
-
-      // Check to see if there are any controls in the request.  If so, then see
-      // if there is any special processing required.
-      try
-      {
-        handleRequestControls();
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        setResponseData(de);
-        break bindProcessing;
-      }
-
-
-      // Check to see if this is a simple bind or a SASL bind and process
-      // accordingly.
-      switch (getAuthenticationType())
-      {
-        case SIMPLE:
-          try
-          {
-            if (! processSimpleBind())
-            {
-              break bindProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            if (de.getResultCode() == ResultCode.INVALID_CREDENTIALS)
-            {
-              setResultCode(ResultCode.INVALID_CREDENTIALS);
-              setAuthFailureReason(de.getMessageObject());
-            }
-            else
-            {
-              setResponseData(de);
-            }
-            break bindProcessing;
-          }
-          break;
-
-
-        case SASL:
-          try
-          {
-            if (! processSASLBind())
-            {
-              break bindProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            if (de.getResultCode() == ResultCode.INVALID_CREDENTIALS)
-            {
-              setResultCode(ResultCode.INVALID_CREDENTIALS);
-              setAuthFailureReason(de.getMessageObject());
-            }
-            else
-            {
-              setResponseData(de);
-            }
-            break bindProcessing;
-          }
-          break;
-
-
-        default:
-          // Send a protocol error response to the client and disconnect.
-          // NYI
-          setResultCode(ResultCode.PROTOCOL_ERROR);
-      }
-    }
-
+    processBind();
 
     // Update the user's account with any password policy changes that may be
     // required.
@@ -421,6 +306,90 @@ bindProcessing:
   }
 
 
+  /**
+   * Performs the checks and processing necessary for the current bind operation
+   * (simple or SASL).
+   */
+  private void processBind()
+  {
+    // Check to see if the client has permission to perform the
+    // bind.
+
+    // FIXME: for now assume that this will check all permission
+    // pertinent to the operation. This includes any controls
+    // specified.
+    try
+    {
+      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .isAllowed(this))
+      {
+        setResultCode(ResultCode.INVALID_CREDENTIALS);
+        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get());
+        return;
+      }
+    }
+    catch (DirectoryException e)
+    {
+      setResultCode(e.getResultCode());
+      setAuthFailureReason(e.getMessageObject());
+      return;
+    }
+
+    // Check to see if there are any controls in the request. If so, then see
+    // if there is any special processing required.
+    try
+    {
+      handleRequestControls();
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+
+    // Check to see if this is a simple bind or a SASL bind and process
+    // accordingly.
+    try
+    {
+      switch (getAuthenticationType())
+      {
+      case SIMPLE:
+        processSimpleBind();
+        break;
+
+      case SASL:
+        processSASLBind();
+        break;
+
+      default:
+        // Send a protocol error response to the client and disconnect.
+        // We should never come here.
+        setResultCode(ResultCode.PROTOCOL_ERROR);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      if (de.getResultCode() == ResultCode.INVALID_CREDENTIALS)
+      {
+        setResultCode(ResultCode.INVALID_CREDENTIALS);
+        setAuthFailureReason(de.getMessageObject());
+      }
+      else
+      {
+        setResponseData(de);
+      }
+    }
+  }
 
   /**
    * Handles request control processing for this bind operation.
