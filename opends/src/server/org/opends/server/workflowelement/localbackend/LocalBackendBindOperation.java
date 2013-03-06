@@ -64,7 +64,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
-
 /**
  * This class defines an operation used to bind against the Directory Server,
  * with the bound user entry within a local backend.
@@ -324,7 +323,8 @@ public class LocalBackendBindOperation
           .isAllowed(this))
       {
         setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get());
+        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+            .get(String.valueOf(bindDN)));
         return;
       }
     }
