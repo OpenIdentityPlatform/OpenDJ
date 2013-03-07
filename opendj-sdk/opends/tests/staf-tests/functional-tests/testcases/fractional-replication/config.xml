@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS
+ !      Portions Copyright 2012-2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="fractional-replication_config"/>
@@ -649,25 +649,61 @@
             'server'            : server,
           }
         </call>
+        
         <script>
           # generating fractional-exclude option for all optional regardless of objectClass
-          excludeAllOptional = '*:'+','.join(schemaMap[ldapServer].allmay)
+          excludeAllOptional = schemaMap[ldapServer].allmay
         </script>
-        <call function="'set-ops-fractional-replication-attributes'">
-          {
-            "server"            : server,
-            "replicationDomain" : domainMap[ldapServer][0],
-            "include"           : [('reset',None)],
-            "exclude"           : [('set',excludeAllOptional)],
-            "expectedRC"        : 0
-          }
-        </call>
+        <message>'%s' % len(excludeAllOptional)</message>
+        
+        <!-- On Windows, we will add attribtues split the list to avoid command line too long -->
+        <if expr="is_windows_platform(server.getHostname())">
+          <sequence>
+            <call function="'set-ops-fractional-replication-attributes'">
+              {
+                "server"            : server,
+                "replicationDomain" : domainMap[ldapServer][0],
+                "include"           : [('reset',None)],
+                "exclude"           : [('set','*:' + excludeAllOptional[0])],
+                "expectedRC"        : 0
+              }
+            </call>
+
+            <script>
+              lenSubList = 10
+            </script>
+            <iterate var="attrs" in="[excludeAllOptional[x:x+lenSubList] for x in xrange(1, len(excludeAllOptional), lenSubList)]">
+                <call function="'set-ops-fractional-replication-attributes'">
+                  {
+                    "server"            : server,
+                    "replicationDomain" : domainMap[ldapServer][0],
+                    "include"           : [('reset',None)],
+                    "exclude"           : [('add','*:' + attr) for attr in attrs],
+                    "expectedRC"        : 0
+                  }
+                </call>
+            </iterate>
+          </sequence>
+          <else>
+            <call function="'set-ops-fractional-replication-attributes'">
+              {
+                "server"            : server,
+                "replicationDomain" : domainMap[ldapServer][0],
+                "include"           : [('reset',None)],
+                "exclude"           : [('set','*:'+','.join(excludeAllOptional))],
+                "expectedRC"        : 0
+              }
+            </call>
+          </else>
+        </if>
+
         <call function="'get-fractional-replication-attributes'">
           {
             "replicationDomain" : domainMap[ldapServer][0],
             "server"            : server,
           }
         </call>
+        
         <script>
           # generating fractional-exclude option for all optional regardless of objectClass
           from java.util import Random
@@ -687,17 +723,40 @@
               objClassesMay.append(schemaMap[ldapServer].objDict[objClass] + ':' + ','.join(mixMayAttrs))
             else:
               objClassesMay.append(objClass + ':' + ','.join(mixMayAttrs))
-          excludeAllObjClassesMay = ','.join(objClassesMay)
         </script>
-        <call function="'set-ops-fractional-replication-attributes'">
-          {
-            "server"            : server,
-            "replicationDomain" : domainMap[ldapServer][0],
-            "include"           : [('reset',None)],
-            "exclude"           : [('add','%s' % oc) for oc in objClassesMay],
-            "expectedRC"        : 0
-          }
-        </call>
+        <message>'%s' % len(objClassesMay)</message>
+        
+        <!-- On Windows, we will add attribtues split the list to avoid command line too long -->
+        <if expr="is_windows_platform(server.getHostname())">
+          <sequence>
+            <script>
+              lenSubList = 10
+            </script>
+            <iterate var="ocs" in="[objClassesMay[x:x+lenSubList] for x in xrange(0, len(objClassesMay), lenSubList)]">
+              <call function="'set-ops-fractional-replication-attributes'">
+                {
+                  "server"            : server,
+                  "replicationDomain" : domainMap[ldapServer][0],
+                  "include"           : [('reset',None)],
+                  "exclude"           : [('add',oc) for oc in ocs],
+                  "expectedRC"        : 0
+                }
+              </call>
+            </iterate>
+          </sequence>
+          <else>
+            <call function="'set-ops-fractional-replication-attributes'">
+              {
+                "server"            : server,
+                "replicationDomain" : domainMap[ldapServer][0],
+                "include"           : [('reset',None)],
+                "exclude"           : [('add','%s' % oc) for oc in objClassesMay],
+                "expectedRC"        : 0
+              }
+            </call>
+          </else>
+        </if>
+
         <call function="'get-fractional-replication-attributes'">
           {
             "replicationDomain" : domainMap[ldapServer][0],

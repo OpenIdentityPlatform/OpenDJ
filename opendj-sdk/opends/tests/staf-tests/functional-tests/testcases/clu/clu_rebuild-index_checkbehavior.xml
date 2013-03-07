@@ -759,7 +759,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState option in 
                                     offline mode
-              #@TestIssue           OPENDJ-770
+              #@TestIssue           none
               #@TestPurpose         Verify that rebuild-index command succeeds
                                     and that the output is correct.
               #@TestPreamble        none
@@ -931,16 +931,15 @@
                 </script>
 
                 <script>
-                  msg = 'Degraded state for index(es) l, homePhone has been removed'
+                  msg = 'Degraded state of index\(es\) \[l, homePhone\] has been cleared'
                 </script>
                 <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
-                  'expectedString' : msg ,
-                  'knownIssue'     : 'OPENDJ-770'
+                  'expectedString' : msg
                   }
                 </call>
-                
+
                 <call function="'testStep'">
                     { 'stepMessage' : 'Restart the server' }
                 </call>  
@@ -1120,7 +1119,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState option in 
                                     online mode
-              #@TestIssue           OPENDJ-770
+              #@TestIssue           OPENDJ-802
               #@TestPurpose         Verify that rebuild-index command succeeds
                                     and that the output is correct.
               #@TestPreamble        none
@@ -1240,15 +1239,28 @@
                 </script>
 
                 <script>
-                  msg = 'Degraded state for index pager has been removed'
+                  msg = 'Degraded state of index\(es\) \[pager\] has been cleared'
+                </script>
+                <call function="'searchString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <script>
+                  msg = 'The backend userRoot is now taken offline'
                 </script>
                 <call function="'searchString'">
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg ,
-                  'knownIssue'     : 'OPENDJ-770'
+                  'expectedRC'     : 1 ,
+                  'knownIssue'     : 'OPENDJ-802'
+                  
                   }
                 </call>
+                
 
                 <call function="'testStep'">
                     { 'stepMessage' : 'Check index status using dbtest command after rebuild' }
@@ -1416,7 +1428,7 @@
 
                 <script>
                   msg1 = 'Option \"--rebuildAll\" cannot be specified with'
-                  msg2 = 'the \"--clearDegradedState\"\noption'
+                  msg2 = 'the \"--clearDegradedState\"%soption' % newLine
                 </script>
                 <call function="'searchString'">
                   {
@@ -1480,7 +1492,7 @@
 
                 <script>
                   msg1 = 'Option \"--rebuildDegraded\" cannot be specified with'
-                  msg2 = 'the \"--clearDegradedState\"\noption'
+                  msg2 = 'the \"--clearDegradedState\"%soption' % newLine
                 </script>
                 <call function="'searchString'">
                   {
