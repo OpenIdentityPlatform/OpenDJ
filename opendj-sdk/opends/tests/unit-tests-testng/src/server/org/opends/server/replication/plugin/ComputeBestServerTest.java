@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -112,7 +113,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -162,7 +163,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -214,7 +215,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -266,7 +267,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -332,7 +333,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -400,7 +401,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -466,7 +467,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -546,7 +547,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -628,7 +629,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -680,7 +681,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -802,7 +803,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte) 1,
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1,
       0L);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
@@ -895,7 +896,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, " ", (byte) 1,
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1,
       0L);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
