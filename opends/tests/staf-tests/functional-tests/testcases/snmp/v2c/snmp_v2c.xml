@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2012 ForgeRock AS.
+ !      Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="main_snmp_v2c"/>
@@ -80,7 +80,7 @@
                   defManagerProp = SNMP_PROPERTIES['allowed-manager']
                   newCommunityProp = 'myCommunity'
                   newCommunity = '%s@%s' %(newCommunityProp, newCommunityProp)
-                  newManagerProp = DIRECTORY_INSTANCE_HOST
+                  newManagerProp = 'localhost'
                   wrongManagerProp = 'myManager'
                   oid = 'dsServerType.1'
                 </script>
