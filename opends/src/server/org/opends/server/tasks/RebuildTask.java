@@ -26,6 +26,7 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tasks;
+
 import org.opends.messages.Message;
 import org.opends.messages.TaskMessages;
 
@@ -40,7 +41,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-
 
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
@@ -58,13 +58,12 @@ import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 
-
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * This class provides an implementation of a Directory Server task that can
- * be used to rebuild indexes in the JEB backend..
+ * This class provides an implementation of a Directory Server task that can be
+ * used to rebuild indexes in the JEB backend..
  */
 public class RebuildTask extends Task
 {
@@ -82,14 +81,16 @@ public class RebuildTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName() {
+  public Message getDisplayName()
+  {
     return TaskMessages.INFO_TASK_REBUILD_NAME.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  @Override public void initializeTask() throws DirectoryException
+  @Override
+  public void initializeTask() throws DirectoryException
   {
     // If the client connection is available, then make sure the associated
     // client has the INDEX_REBUILD privilege.
@@ -98,14 +99,13 @@ public class RebuildTask extends Task
     if (operation != null)
     {
       ClientConnection clientConnection = operation.getClientConnection();
-      if (! clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
+      if (!clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
       {
         Message message = ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message);
+            message);
       }
     }
-
 
     Entry taskEntry = getTaskEntry();
 
@@ -114,12 +114,9 @@ public class RebuildTask extends Task
     AttributeType typeTmpDirectory;
     AttributeType clearDegradedState;
 
-    typeBaseDN =
-         getAttributeType(ATTR_REBUILD_BASE_DN, true);
-    typeIndex =
-         getAttributeType(ATTR_REBUILD_INDEX, true);
-    typeTmpDirectory =
-         getAttributeType(ATTR_REBUILD_TMP_DIRECTORY, true);
+    typeBaseDN = getAttributeType(ATTR_REBUILD_BASE_DN, true);
+    typeIndex = getAttributeType(ATTR_REBUILD_INDEX, true);
+    typeTmpDirectory = getAttributeType(ATTR_REBUILD_TMP_DIRECTORY, true);
     clearDegradedState =
         getAttributeType(ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE, true);
 
@@ -132,9 +129,9 @@ public class RebuildTask extends Task
     indexes = TaskUtils.getMultiValueString(attrList);
 
     rebuildMode = getRebuildMode(indexes);
-    if(rebuildMode != RebuildMode.USER_DEFINED)
+    if (rebuildMode != RebuildMode.USER_DEFINED)
     {
-      if(indexes.size() != 1)
+      if (indexes.size() != 1)
       {
         Message msg = ERR_TASK_INDEXREBUILD_ALL_ERROR.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
@@ -143,8 +140,8 @@ public class RebuildTask extends Task
     }
 
     attrList = taskEntry.getAttribute(clearDegradedState);
-    isClearDegradedState = Boolean.parseBoolean(
-        TaskUtils.getSingleValueString(attrList));
+    isClearDegradedState =
+        Boolean.parseBoolean(TaskUtils.getSingleValueString(attrList));
 
     attrList = taskEntry.getAttribute(typeTmpDirectory);
     tmpDirectory = TaskUtils.getSingleValueString(attrList);
@@ -179,7 +176,7 @@ public class RebuildTask extends Task
     {
       rebuildConfig.setBaseDN(DN.decode(baseDN));
     }
-    catch(DirectoryException de)
+    catch (DirectoryException de)
     {
       Message message =
           ERR_CANNOT_DECODE_BASE_DN.get(baseDN, de.getMessageObject());
@@ -187,7 +184,7 @@ public class RebuildTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    for(String index : indexes)
+    for (String index : indexes)
     {
       rebuildConfig.addRebuildIndex(index);
     }
@@ -199,7 +196,7 @@ public class RebuildTask extends Task
     Backend backend =
         DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
 
-    if(backend == null)
+    if (backend == null)
     {
       Message message = ERR_NO_BACKENDS_FOR_BASE.get(baseDN);
       logError(message);
@@ -215,7 +212,7 @@ public class RebuildTask extends Task
 
     // Acquire a shared lock for the backend if we are rebuilding attribute
     // indexes only. If we are rebuilding one or more system indexes, we have
-    // to aquire exclusive lock.
+    // to acquire exclusive lock.
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
 
@@ -237,23 +234,25 @@ public class RebuildTask extends Task
 
     try
     {
-      if(! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
+        Message message =
+            ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+                .getBackendID(), String.valueOf(failureReason));
         logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
     catch (Exception e)
     {
-      Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
+      Message message =
+          ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+              .getBackendID(), getExceptionMessage(e));
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
-     if(tmpDirectory == null)
+    if (tmpDirectory == null)
     {
       tmpDirectory = "import-tmp";
     }
@@ -261,10 +260,11 @@ public class RebuildTask extends Task
     rebuildConfig.setRebuildMode(rebuildMode);
 
     TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
+
     // Launch the rebuild process.
     try
     {
-      BackendImpl jebBackend = (BackendImpl)backend;
+      BackendImpl jebBackend = (BackendImpl) backend;
       jebBackend.rebuildBackend(rebuildConfig);
     }
     catch (Exception e)
@@ -279,6 +279,7 @@ public class RebuildTask extends Task
       logError(message);
       returnCode = TaskState.STOPPED_BY_ERROR;
     }
+
     // Release the lock on the backend.
     finally
     {
@@ -286,24 +287,26 @@ public class RebuildTask extends Task
       {
         lockFile = LockFileManager.getBackendLockFileName(backend);
         failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
+          Message message =
+              WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
+                  .getBackendID(), String.valueOf(failureReason));
           logError(message);
           returnCode = TaskState.COMPLETED_WITH_ERRORS;
         }
       }
       catch (Throwable t)
       {
-        Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(t));
+        Message message =
+            WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+                getExceptionMessage(t));
         logError(message);
         returnCode = TaskState.COMPLETED_WITH_ERRORS;
       }
     }
 
-    if(returnCode == TaskState.COMPLETED_SUCCESSFULLY)
+    if (returnCode == TaskState.COMPLETED_SUCCESSFULLY)
     {
       // Enable the backend.
       try
