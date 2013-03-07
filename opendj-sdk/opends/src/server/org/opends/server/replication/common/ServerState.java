@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -423,14 +423,7 @@ public class ServerState implements Iterable<Integer>
   public boolean cover(ChangeNumber covered)
   {
     ChangeNumber change = this.list.get(covered.getServerId());
-    if ((change == null) || (change.older(covered)))
-    {
-      return false;
-    }
-    else
-    {
-      return true;
-    }
+    return !((change == null) || (change.older(covered)));
   }
 
   /**
@@ -502,7 +495,7 @@ public class ServerState implements Iterable<Integer>
   /**
    * Set the saved status of this ServerState.
    *
-   * @param b A booelan indicating if the State has been safely stored.
+   * @param b A boolean indicating if the State has been safely stored.
    */
   public void setSaved(boolean b)
   {
