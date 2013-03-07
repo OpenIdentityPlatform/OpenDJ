@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="restore_db"/>
@@ -212,7 +212,7 @@
                 import java.text.SimpleDateFormat
   
                 cal = java.util.Calendar.getInstance()
-                cal.add(java.util.Calendar.SECOND,30)
+                cal.add(java.util.Calendar.SECOND,120)
   
                 dateFormat = java.text.SimpleDateFormat("yyyyMMddHHmmss")
   
@@ -363,7 +363,47 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          Restore tasks
+            #@TestName            Restore task in asynchronous mode with date in the past
+            #@TestPurpose         Schedule a restore in task mode to be executed in asynchronous mode
+                                  with date in the past
+            #@TestPreamble
+            #@TestStep            Execute a restore in task with date in the past
+            #@TestStep            Specify the -t option with date in the past
+            #@TestPostamble
+            #@TestResult
+            -->
   
+          <testcase name="getTestCaseName('schedule restart task for scheduled execution with date in the past')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <call function="'restore'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp,
+                'startTask'           : '20061212000000',
+                'expectedRC'          : 1 }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {'returnString'     : returnString ,
+                  'expectedString'  : 'The specified start time \'20061212000000\' has already passed'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
         </sequence>
         <finally>
           <sequence>

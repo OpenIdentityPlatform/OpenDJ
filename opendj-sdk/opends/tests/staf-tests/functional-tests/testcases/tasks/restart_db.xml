@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="restart_db"/>
@@ -54,14 +55,13 @@
               'stopServer'    : False
             }
           </call>  
-  
+
           <!--- Test Case information
             #@TestMarker          Restart tasks
             #@TestName            Restart task in asynchronous mode
             #@TestPurpose         Schedule a restart in task mode to be executed immedialy in asynchronous mode
             #@TestPreamble
             #@TestStep            Execute a restart in task
-            #@TestStep            Specify the -t option with the value non null  to schedule an  execution
             #@TestPostamble
             #@TestResult
             -->
@@ -77,13 +77,17 @@
                 'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsBindDN'    : DIRECTORY_INSTANCE_DN,
                 'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
-                'dsRestart'   : ' ',
-                'dsStopTime'  : '20061212000000',
-                'knownIssue'  : '3909' ,
-                'expectedRC'  : '89'
+                'dsRestart'   : ' '
                 }
               </call>
-                                     
+
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+               { 'noOfLoops'		: 10 ,
+                 'noOfMilliSeconds' : 2000
+               }
+              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -95,7 +99,6 @@
             #@TestPurpose         Schedule a stop in task mode to be executed immedialy in asynchronous mode
             #@TestPreamble
             #@TestStep            Execute a stop in task mode
-            #@TestStep            Specify the -t option with the value non null to schedule an execution
             #@TestPostamble
             #@TestResult
             -->
@@ -111,9 +114,6 @@
                 'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsBindDN'    : DIRECTORY_INSTANCE_DN,
                 'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
-                'dsStopTime'  : '20061212000000',
-                'knownIssue'  : '3909' ,
-                'expectedRC'  : '89'
                 }
               </call>
            
@@ -143,7 +143,49 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          Restart tasks
+            #@TestName            Restart task in asynchronous mode with date in the past
+            #@TestPurpose         Schedule a restart in task mode to be executed in asynchronous mode
+                                  with date in the past
+            #@TestPreamble
+            #@TestStep            Execute a restart in task with date in the past
+            #@TestStep            Specify the -t option with date in the past
+            #@TestPostamble
+            #@TestResult
+            -->
   
+          <testcase name="getTestCaseName('schedule restart task for scheduled execution with date in the past')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
+                'dsRestart'   : ' ',
+                'dsStopTime'  : '20061212000000',
+                'expectedRC'  : 89
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {'returnString'     : returnString ,
+                  'expectedString'  : 'The specified stop time \'20061212000000\' has already passed'
+                }
+              </call>
+                                             
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
         </sequence>
         <finally>
           <sequence>
