@@ -929,8 +929,7 @@ public class BindOperationBasis
    */
   private void updateOperationErrMsgAndResCode()
   {
-    Message message = ERR_BIND_OPERATION_UNKNOWN_USER.get(
-            String.valueOf(getBindDN()));
+    Message message = ERR_BIND_OPERATION_UNKNOWN_USER.get();
     setResultCode(ResultCode.INVALID_CREDENTIALS);
     setAuthFailureReason(message);
   }

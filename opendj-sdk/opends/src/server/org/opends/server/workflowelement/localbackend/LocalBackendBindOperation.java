@@ -324,8 +324,7 @@ public class LocalBackendBindOperation
           .isAllowed(this))
       {
         setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-            .get(String.valueOf(bindDN)));
+        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get());
         return;
       }
     }
@@ -520,8 +519,7 @@ public class LocalBackendBindOperation
       if (userEntry == null)
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     ERR_BIND_OPERATION_UNKNOWN_USER.get(
-                                          String.valueOf(bindDN)));
+                                     ERR_BIND_OPERATION_UNKNOWN_USER.get());
       }
       else
       {
@@ -545,7 +543,7 @@ public class LocalBackendBindOperation
         if ((pwAttr == null) || (pwAttr.isEmpty()))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              ERR_BIND_OPERATION_NO_PASSWORD.get(String.valueOf(bindDN)));
+              ERR_BIND_OPERATION_NO_PASSWORD.get());
         }
 
         // Perform a number of password policy state checks for the user.
@@ -620,8 +618,7 @@ public class LocalBackendBindOperation
         if (authPolicyState.isDisabled())
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(String.valueOf(userEntry
-                  .getDN())));
+              ERR_BIND_OPERATION_ACCOUNT_DISABLED.get());
         }
 
         // Invoke pre-operation plugins.
@@ -972,8 +969,7 @@ public class LocalBackendBindOperation
       else
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                       ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get(
-                            String.valueOf(userEntry.getDN())));
+                       ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get());
       }
     }
 
@@ -982,13 +978,11 @@ public class LocalBackendBindOperation
     if (pwPolicyState.isDisabled())
     {
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                   ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(
-                                        String.valueOf(userEntry.getDN())));
+                                   ERR_BIND_OPERATION_ACCOUNT_DISABLED.get());
     }
     else if (pwPolicyState.isAccountExpired())
     {
-      Message m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get(
-                       String.valueOf(userEntry.getDN()));
+      Message m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_EXPIRED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState,
@@ -1004,19 +998,16 @@ public class LocalBackendBindOperation
       }
 
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                     ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get(
-                          String.valueOf(userEntry.getDN())));
+                     ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get());
     }
     else if (pwPolicyState.lockedDueToIdleInterval())
     {
-      Message m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get(
-              String.valueOf(userEntry.getDN()));
-
       if (pwPolicyErrorType == null)
       {
         pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
       }
 
+      Message m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
@@ -1033,14 +1024,12 @@ public class LocalBackendBindOperation
       // Check to see if the account is locked due to the maximum reset age.
       if (pwPolicyState.lockedDueToMaximumResetAge())
       {
-        Message m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get(
-                         String.valueOf(userEntry.getDN()));
-
         if (pwPolicyErrorType == null)
         {
           pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
         }
 
+        Message m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get();
         pwPolicyState.generateAccountStatusNotification(
              AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, userEntry, m,
              AccountStatusNotification.createProperties(pwPolicyState, false,
@@ -1079,8 +1068,7 @@ public class LocalBackendBindOperation
           }
           else
           {
-            Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
-                             String.valueOf(userEntry.getDN()));
+            Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
 
             pwPolicyState.generateAccountStatusNotification(
                  AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,
@@ -1093,8 +1081,7 @@ public class LocalBackendBindOperation
         }
         else
         {
-          Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
-                           String.valueOf(userEntry.getDN()));
+          Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
 
           pwPolicyState.generateAccountStatusNotification(
                AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,

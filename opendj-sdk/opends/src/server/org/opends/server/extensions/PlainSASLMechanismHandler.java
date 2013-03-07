@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -31,10 +31,9 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_PLAIN;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -138,8 +137,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    IdentityMapper<?> identityMapper = this.identityMapper;
-
     // Get the SASL credentials provided by the user and decode them.
     String authzID  = null;
     String authcID  = null;
@@ -510,8 +507,7 @@ public class PlainSASLMechanismHandler
       {
         // Check to see if the user is administratively disabled or locked.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(String
-            .valueOf(userEntry.getDN()));
+        Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get();
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -596,6 +592,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
@@ -608,6 +605,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               PlainSASLMechanismHandlerCfg configuration)
   {
