@@ -48,8 +48,29 @@ import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AbandonOperation;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.UnbindOperation;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 
@@ -558,16 +579,30 @@ public final class TextAccessLogPublisher extends
     final Message failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
+      // this code path is mutually exclusive with the if result code is success
+      // down below
       buffer.append(" authFailureID=");
       buffer.append(failureMessage.getDescriptor().getId());
       buffer.append(" ");
       appendLabel(buffer, "authFailureReason", failureMessage);
+      if (bindOperation.getSASLMechanism() != null
+          && bindOperation.getSASLAuthUserEntry() != null)
+      { // SASL bind and we have successfully found a user entry for auth
+        appendLabel(buffer, "authDN", bindOperation.getSASLAuthUserEntry()
+            .getDN());
+      }
+      else
+      { // SASL bind failed to find user entry for auth or simple bind
+        appendLabel(buffer, "authDN", bindOperation.getRawBindDN());
+      }
     }
 
     logAdditionalLogItems(bindOperation, buffer);
 
     if (bindOperation.getResultCode() == ResultCode.SUCCESS)
     {
+      // this code path is mutually exclusive with the if failure message exist
+      // just above
       final AuthenticationInfo authInfo = bindOperation.getAuthenticationInfo();
       if (authInfo != null)
       {
@@ -1219,7 +1254,7 @@ public final class TextAccessLogPublisher extends
   private void appendLabel(final StringBuilder buffer, final String label,
       final Object obj)
   {
-    buffer.append(" ").append(label).append("=\"");
+    buffer.append(' ').append(label).append("=\"");
     if (obj != null)
     {
       buffer.append(obj);
