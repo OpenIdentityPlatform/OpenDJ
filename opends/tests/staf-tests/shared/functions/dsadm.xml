@@ -231,6 +231,164 @@
     </sequence>
   </function>
 
+  <!-- This function uninstall DS using the uninstall script -->
+  <function name="UninstallDsWithScript" scope="local">
+    <function-prolog>
+      This function sets up a Directory Server using a script
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Hostname of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsSslPort" type="optional">
+        <function-arg-description>
+          Directory server SSL port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsJmxPort" type="optional">
+        <function-arg-description>
+          Directory server JMX port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          Base DN (only single base DN supported).
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwdFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsEnableWindowsService" type="optional">
+        <function-arg-description>
+          Enable as a Windows Service
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="dsDoNotStart" type="optional">
+        <function-arg-description>
+          Do not start server after setup
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          STAFCmd='%s/uninstall%s' % (dsPath,fileExt)
+          STAFCmdParamsList.append('--cli')
+          STAFCmdParamsList.append('--remove-all') 
+          STAFCmdParamsList.append('-n')    
+
+        if dsHost:
+          STAFCmdParamsList.append('-h %s' % dsHost)
+
+        if dsBindDN:
+          STAFCmdParamsList.append('-I "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+        
+        if dsBindPwdFile:
+          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
+                  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'name'      : 'Setup DS Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath,
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+    </sequence>
+  </function>
+
   <!-- This function starts DS using the start-ds script -->
   <function name="StartDsWithScript">
     <function-prolog>
@@ -675,14 +833,11 @@
           'knownIssue': knownIssue
         }
       </call>
+      <script>
+        savSTAXResult = STAXResult
+      </script>
 
-      <if expr="is_windows_platform(location) and RC == 1 and expectedRC == 0">
-        <call function="'setKnownIssue'">
-          { 'issueId' : '6931748' }
-        </call>
-      </if>
-
-      <if expr="expectedRC == 0 or expectedRC == 'noCheck'">
+      <if expr="dsRestart == None and (expectedRC == 0 or expectedRC == 'noCheck')">
         <!--- Check that DS stopped -->
         <if expr="IPS_PKG == True">
           <call function="'isStopped'">
@@ -716,6 +871,10 @@
       <script>
         tail_logfile(STAXResult,stop_current_time)
       </script>
+      
+      <return>
+        savSTAXResult
+      </return>
     </sequence>
   </function>
 
