@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="backup_db"/>
@@ -387,7 +387,8 @@
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'startTask'           : '20061212000000',	                
                 'backupDir'           : '%s/tasks/backup_schedule_asynchronous' % remote.temp,
-                'backEnd'             : DIRECTORY_INSTANCE_BE}
+                'backEnd'             : DIRECTORY_INSTANCE_BE,
+                'expectedRC'          : 1 }
               </call>
               
               <script>
@@ -396,9 +397,7 @@
   
               <call function="'searchString'">
                 { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
-                  'returnString'	 : returnString ,
-                  'knownIssue'     : '3909' ,
-                  'expectedRC'     : '1' }
+                  'returnString'   : returnString }
                 </call>
               
               
@@ -409,7 +408,7 @@
             <!--- Test Case information
             #@TestMarker      Backup tasks
             #@TestName        Schedule a recurring Backup task with the same name as previously
-            #@TestPurpose     Schedule a recurring Backup in task mode with the same name see issue 3373
+            #@TestPurpose     Schedule a recurring Backup in task mode with the same name
             #@TestPreamble
             #@TestStep        Create a recurring Backup in task mode with the same name as previously
             #@TestStep        specify the recurringTask option with the value
@@ -559,12 +558,6 @@
                 'expectedRC': 1
                 }
               </call>
-  
-  	    <!---
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3773' }
-              </call>
-  	    -->
   
               <call function="'testCase_Postamble'"/>
             </sequence>
