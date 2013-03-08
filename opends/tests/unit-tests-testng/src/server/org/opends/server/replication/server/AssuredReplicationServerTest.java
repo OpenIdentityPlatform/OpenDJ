@@ -523,7 +523,7 @@ public class AssuredReplicationServerTest
    * (RS for short) for the specified number of RSs. The Set is built by
    * excluding the URL for the currentPort. The returned Set size is nbRS - 1
    * (for the excluded port).
-   * 
+   *
    * @param excludedRsPort
    *          the RS port to exclude
    * @param totalNbRS
@@ -1644,9 +1644,9 @@ public class AssuredReplicationServerTest
       int acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       int timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       Map<Integer,Integer> serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are elligible for receiving an assured update
-      List<Integer> elligibleServers = computeElligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
-      // Compute the list of servers that are elligible for receiving an assured update and that are expected to effectively ack the update
+      // Compute the list of servers that are eligible for receiving an assured update
+      List<Integer> eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
+      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
       List<Integer> expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, fakeRs3Gid, fakeRs3GenId, fakeRs3Scen);
 
       // Send update
@@ -1662,7 +1662,7 @@ public class AssuredReplicationServerTest
 
       // Check
       sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
+      checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(1, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, fakeRs3GenId, expectedServers);
 
       /***********************************************************************
@@ -1681,9 +1681,9 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are elligible for receiving an assured update
-      elligibleServers = computeElligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, -1, -1L);
-      // Compute the list of servers that are elligible for receiving an assured update and that are expected to effectively ack the update
+      // Compute the list of servers that are eligible for receiving an assured update
+      eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, -1, -1L);
+      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
       expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, -1, -1L, -1);
 
       // Send update
@@ -1699,7 +1699,7 @@ public class AssuredReplicationServerTest
 
       // Check
       sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(2, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
+      checkTimeAndMonitoringSafeData(2, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(2, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, -1L, expectedServers);
 
       /***********************************************************************
@@ -1718,9 +1718,9 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are elligible for receiving an assured update
-      elligibleServers = computeElligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, -1, -1L, -1, -1L);
-      // Compute the list of servers that are elligible for receiving an assured update and that are expected to effectively ack the update
+      // Compute the list of servers that are eligible for receiving an assured update
+      eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, -1, -1L, -1, -1L);
+      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
       expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, -1, -1L, -1, -1, -1L, -1);
 
       // Send update
@@ -1736,7 +1736,7 @@ public class AssuredReplicationServerTest
 
       // Check
       sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
+      checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(3, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, -1L, -1L, expectedServers);
 
       /***********************************************************************
@@ -1755,9 +1755,9 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are elligible for receiving an assured update
-      elligibleServers = computeElligibleServersSafeData(-1, -1L, -1, -1L, -1, -1L);
-      // Compute the list of servers that are elligible for receiving an assured update and that are expected to effectively ack the update
+      // Compute the list of servers that are eligible for receiving an assured update
+      eligibleServers = computeEligibleServersSafeData(-1, -1L, -1, -1L, -1, -1L);
+      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
       expectedServers = computeExpectedServersSafeData(-1, -1L, -1, -1, -1L, -1, -1, -1L, -1);
 
       // Send update
@@ -1773,7 +1773,7 @@ public class AssuredReplicationServerTest
 
       // Check
       sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
+      checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(4, otherFakeDS, otherFakeDsGenId, -1L, -1L, -1L, expectedServers);
     } finally
     {
@@ -1853,10 +1853,10 @@ public class AssuredReplicationServerTest
    * values according to the test configuration
    */
   private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates, Map<Integer,Integer> prevNServerErrors, long sendUpdateTime,
-    int nWishedServers, List<Integer> elligibleServers, List<Integer> expectedServers)
+    int nWishedServers, List<Integer> eligibleServers, List<Integer> expectedServers)
   {
     assertEquals(fakeRd1.getAssuredSdSentUpdates(), nSentUpdates);
-    if (elligibleServers.size() >= nWishedServers) // Enough elligible servers
+    if (eligibleServers.size() >= nWishedServers) // Enough eligible servers
     {
       if (expectedServers.size() >= nWishedServers) // Enough servers should ack
       {
@@ -1875,15 +1875,16 @@ public class AssuredReplicationServerTest
         // Check monitoring values (check that timeout occured)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
-        // Check that the servers that are elligible but not expected have been added in the error by server list
-        List<Integer> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
+        // Check that the servers that are eligible but not expected have been added in the error by server list
+        List<Integer> expectedServersInError = computeExpectedServersInError(eligibleServers, expectedServers);
         checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, expectedServersInError);
       }
-    } else // Not enough elligible servers
-    {
-      if (elligibleServers.size() > 0) // Some elligible servers anyway
+    }
+    else
+    { // Not enough eligible servers
+      if (eligibleServers.size() > 0) // Some eligible servers anyway
       {
-        if (expectedServers.size() == elligibleServers.size()) // All elligible servers should respond in time
+        if (expectedServers.size() == eligibleServers.size()) // All eligible servers should respond in time
         {
           // Enough server ok for acking: ack should come back quickly
           assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
@@ -1892,7 +1893,7 @@ public class AssuredReplicationServerTest
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates);
           checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, null); // Should have same value as previous one
         } else
-        { // Some elligible servers should fail
+        { // Some eligible servers should fail
           // Not enough expected servers: should have timed out in RS timeout
           // (SMALL_TIMEOUT)
           assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
@@ -1900,13 +1901,13 @@ public class AssuredReplicationServerTest
           // Check monitoring values (check that timeout occured)
           assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
-          // Check that the servers that are elligible but not expected have been added in the error by server list
-          List<Integer> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
+          // Check that the servers that are eligible but not expected have been added in the error by server list
+          List<Integer> expectedServersInError = computeExpectedServersInError(eligibleServers, expectedServers);
           checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, expectedServersInError);
         }
       } else
       {
-        // No elligible servers at all, RS should not wait for any ack and immediately ack the update
+        // No eligible servers at all, RS should not wait for any ack and immediately ack the update
         assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
         // Check monitoring values (check that ack has been correctly received)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates + 1);
@@ -1916,12 +1917,12 @@ public class AssuredReplicationServerTest
     }
   }
 
-  // Compute a list of servers that are elligibles but that are not able to return an ack
-  // (those in elligibleServers that are not in expectedServers). Result may of course be an empty list
-  private List<Integer> computeExpectedServersInError(List<Integer> elligibleServers, List<Integer> expectedServers)
+  // Compute a list of servers that are eligibles but that are not able to return an ack
+  // (those in eligibleServers that are not in expectedServers). Result may of course be an empty list
+  private List<Integer> computeExpectedServersInError(List<Integer> eligibleServers, List<Integer> expectedServers)
   {
     List<Integer> expectedServersInError = new ArrayList<Integer>();
-    for (Integer serverId : elligibleServers)
+    for (Integer serverId : eligibleServers)
     {
       if (!expectedServers.contains(serverId))
         expectedServersInError.add(serverId);
@@ -1999,27 +2000,27 @@ public class AssuredReplicationServerTest
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
   }
 
-  // Compute the list of servers that are elligible for receiving a safe data assured update
+  // Compute the list of servers that are eligible for receiving a safe data assured update
   // according to their group id and generation id. If -1 is used, the server is out of scope
-  private List<Integer> computeElligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
+  private List<Integer> computeEligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
   {
-    List<Integer> elligibleServers = new ArrayList<Integer>();
+    List<Integer> eligibleServers = new ArrayList<Integer>();
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
     {
-      elligibleServers.add(FRS1_ID);
+      eligibleServers.add(FRS1_ID);
     }
     if (areGroupAndGenerationIdOk(fakeRs2Gid, fakeRs2GenId))
     {
-      elligibleServers.add(FRS2_ID);
+      eligibleServers.add(FRS2_ID);
     }
     if (areGroupAndGenerationIdOk(fakeRs3Gid, fakeRs3GenId))
     {
-      elligibleServers.add(FRS3_ID);
+      eligibleServers.add(FRS3_ID);
     }
-    return elligibleServers;
+    return eligibleServers;
   }
 
-  // Are group id and generation id ok for being an elligible RS for assured update ?
+  // Are group id and generation id ok for being an eligible RS for assured update ?
   private boolean areGroupAndGenerationIdOk(int fakeRsGid, long fakeRsGenId)
   {
     if ((fakeRsGid != -1) && (fakeRsGenId != -1L))
@@ -2029,7 +2030,7 @@ public class AssuredReplicationServerTest
     return false;
   }
 
-  // Compute the list of servers that are elligible for receiving a safe data assured update and that are expected to effectively ack the update
+  // Compute the list of servers that are eligible for receiving a safe data assured update and that are expected to effectively ack the update
   // If -1 is used, the server is out of scope
   private List<Integer> computeExpectedServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen, int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
   {
@@ -2735,8 +2736,8 @@ public class AssuredReplicationServerTest
 
       // Compute some thing that will help determine what to check according to
       // the current test configurarion: compute if DS and RS subject to conf
-      // change are elligible and expected for safe read assured
-      // elligible: the server should receive the ack request
+      // change are eligible and expected for safe read assured
+      // eligible: the server should receive the ack request
       // expected: the server should send back an ack (with or without error)
       boolean dsIsEligible = areGroupAndGenerationIdOk(otherFakeDsGid, otherFakeDsGenId);
       boolean rsIsEligible = areGroupAndGenerationIdOk(otherFakeRsGid, otherFakeRsGenId);
