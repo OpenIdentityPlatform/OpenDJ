@@ -47,15 +47,17 @@
                 "manager"     : { "reference" : {
                     "ldapAttribute" : "manager",
                     "baseDN"        : "ou=people,dc=example,dc=com",
-                    "mapper"        : { "object" : {
-                        "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
-                        "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "writability" : "readOnly" } }
+                    "primaryKey"    : "uid",
+                    "mapper"         : { "object" : {
+                        "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true } },
+                        "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "writability" : "readOnlyDiscardWrites" } }
                     } }
                 } },
                 "groups"     : { "reference" : {
                     "ldapAttribute" : "isMemberOf",
                     "baseDN"        : "ou=groups,dc=example,dc=com",
                     "writability"   : "readOnly",
+                    "primaryKey"    : "cn",
                     "mapper"        : { "object" : {
                         "_id"         : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
                     } }
@@ -95,9 +97,10 @@
                 "members"    : { "reference" : {
                     "ldapAttribute" : "uniqueMember",
                     "baseDN"        : "dc=example,dc=com",
+                    "primaryKey"    : "uid",
                     "mapper"        : { "object" : {
-                        "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
-                        "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "writability" : "readOnly" } }
+                        "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true } },
+                        "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "writability" : "readOnlyDiscardWrites" } }
                     } }
                 } },
                 "meta"        : { "object" : {

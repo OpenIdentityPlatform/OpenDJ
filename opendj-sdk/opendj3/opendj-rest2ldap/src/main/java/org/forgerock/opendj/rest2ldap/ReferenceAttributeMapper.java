@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.adapt;
@@ -28,9 +29,12 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
@@ -40,6 +44,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -65,13 +70,15 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
     private boolean isSingleValued = false;
     private final AttributeDescription ldapAttributeName;
     private final AttributeMapper mapper;
+    private final AttributeDescription primaryKey;
     private SearchScope scope = SearchScope.WHOLE_SUBTREE;
     private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
     ReferenceAttributeMapper(final AttributeDescription ldapAttributeName, final DN baseDN,
-            final AttributeMapper mapper) {
+            final AttributeDescription primaryKey, final AttributeMapper mapper) {
         this.ldapAttributeName = ldapAttributeName;
         this.baseDN = baseDN;
+        this.primaryKey = primaryKey;
         this.mapper = mapper;
     }
 
@@ -160,68 +167,63 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
     @Override
     void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
-        // First construct a filter which can be used to find referenced resources.
-        final ResultHandler<Filter> filterHandler = new ResultHandler<Filter>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error); // Propagate.
-            }
-
-            @Override
-            public void handleResult(final Filter result) {
-                // Now construct a search to find candidate DNs.
-                final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
-                final SearchRequest request =
-                        Requests.newSearchRequest(baseDN, scope, searchFilter, "1.1");
-
-                // Create a result handler which will collect the returned entries and construct a search filter.
-                final SearchResultHandler searchHandler = new SearchResultHandler() {
-                    final List<Filter> subFilters = new LinkedList<Filter>();
-
+        // Construct a filter which can be used to find referenced resources.
+        mapper.getLDAPFilter(c, type, jsonAttribute, operator, valueAssertion,
+                new ResultHandler<Filter>() {
                     @Override
-                    public boolean handleEntry(final SearchResultEntry entry) {
-                        if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
-                            subFilters.add(Filter.equality(ldapAttributeName.toString(), entry
-                                    .getName()));
-                            return true;
-                        } else {
-                            // No point in continuing - maximum candidates reached.
-                            return false;
-                        }
+                    public void handleError(final ResourceException error) {
+                        h.handleError(error); // Propagate.
                     }
 
                     @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        h.handleError(adapt(error)); // Propagate.
-                    }
+                    public void handleResult(final Filter result) {
+                        // Search for all referenced entries and construct a filter.
+                        final SearchRequest request = createSearchRequest(result);
+                        c.getConnection().searchAsync(request, null, new SearchResultHandler() {
+                            final List<Filter> subFilters = new LinkedList<Filter>();
 
-                    @Override
-                    public boolean handleReference(final SearchResultReference reference) {
-                        // Ignore references.
-                        return true;
-                    }
+                            @Override
+                            public boolean handleEntry(final SearchResultEntry entry) {
+                                if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
+                                    subFilters.add(Filter.equality(ldapAttributeName.toString(),
+                                            entry.getName()));
+                                    return true;
+                                } else {
+                                    // No point in continuing - maximum candidates reached.
+                                    return false;
+                                }
+                            }
 
-                    @Override
-                    public void handleResult(final Result result) {
-                        if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
-                            handleErrorResult(newErrorResult(ResultCode.ADMIN_LIMIT_EXCEEDED));
-                        } else if (subFilters.size() == 1) {
-                            h.handleResult(subFilters.get(0));
-                        } else {
-                            h.handleResult(Filter.or(subFilters));
-                        }
+                            @Override
+                            public void handleErrorResult(final ErrorResultException error) {
+                                h.handleError(adapt(error)); // Propagate.
+                            }
+
+                            @Override
+                            public boolean handleReference(final SearchResultReference reference) {
+                                // Ignore references.
+                                return true;
+                            }
+
+                            @Override
+                            public void handleResult(final Result result) {
+                                if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
+                                    handleErrorResult(newErrorResult(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                                } else if (subFilters.size() == 1) {
+                                    h.handleResult(subFilters.get(0));
+                                } else {
+                                    h.handleResult(Filter.or(subFilters));
+                                }
+                            }
+                        });
                     }
-                };
-                c.getConnection().searchAsync(request, null, searchHandler);
-            }
-        };
-        mapper.getLDAPFilter(c, type, jsonAttribute, operator, valueAssertion, filterHandler);
+                });
     }
 
     @Override
     void toJSON(final Context c, final Entry e, final ResultHandler<JsonValue> h) {
         final Attribute attribute = e.getAttribute(ldapAttributeName);
-        if (attribute == null) {
+        if (attribute == null || attribute.isEmpty()) {
             h.handleResult(null);
         } else if (attributeIsSingleValued()) {
             try {
@@ -266,8 +268,121 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
 
     @Override
     void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
-        // TODO:
-        h.handleResult(Collections.<Attribute> emptyList());
+        try {
+            if (v == null || v.isNull()) {
+                if (attributeIsRequired()) {
+                    // FIXME: improve error message.
+                    throw new BadRequestException("no value provided");
+                } else {
+                    h.handleResult(Collections.<Attribute> emptyList());
+                }
+            } else if (v.isList() && attributeIsSingleValued()) {
+                // FIXME: improve error message.
+                throw new BadRequestException("expected single value, but got multiple values");
+            } else if (!writabilityPolicy.canCreate(ldapAttributeName)) {
+                if (writabilityPolicy.discardWrites()) {
+                    h.handleResult(Collections.<Attribute> emptyList());
+                } else {
+                    // FIXME: improve error message.
+                    throw new BadRequestException("attempted to create a read-only value");
+                }
+            } else {
+                /*
+                 * For each value use the subordinate mapper to obtain the LDAP
+                 * primary key, the perform a search for each one to find the
+                 * corresponding entries.
+                 */
+                final JsonValue valueList =
+                        v.isList() ? v : new JsonValue(singletonList(v.getObject()));
+                final Attribute reference = new LinkedAttribute(ldapAttributeName);
+                final AtomicInteger pendingSearches = new AtomicInteger(valueList.size());
+                final AtomicReference<ErrorResultException> exception =
+                        new AtomicReference<ErrorResultException>();
+
+                for (final JsonValue value : valueList) {
+                    mapper.toLDAP(c, value, new ResultHandler<List<Attribute>>() {
+
+                        @Override
+                        public void handleError(final ResourceException error) {
+                            h.handleError(error);
+                        }
+
+                        @Override
+                        public void handleResult(final List<Attribute> result) {
+                            Attribute primaryKeyAttribute = null;
+                            for (final Attribute attribute : result) {
+                                if (attribute.getAttributeDescription().equals(primaryKey)) {
+                                    primaryKeyAttribute = attribute;
+                                    break;
+                                }
+                            }
+                            if (primaryKeyAttribute == null) {
+                                // FIXME: improve error message.
+                                h.handleError(new BadRequestException(
+                                        "reference primary key attribute is missing"));
+                                return;
+                            }
+
+                            if (primaryKeyAttribute.isEmpty()) {
+                                // FIXME: improve error message.
+                                h.handleError(new BadRequestException(
+                                        "reference primary key attribute is empty"));
+                                return;
+                            }
+
+                            if (primaryKeyAttribute.size() > 1) {
+                                // FIXME: improve error message.
+                                h.handleError(new BadRequestException(
+                                        "reference primary key attribute contains multiple values"));
+                                return;
+                            }
+
+                            // Now search for the referenced entry in to get its DN.
+                            final Filter filter =
+                                    Filter.equality(primaryKey.toString(), primaryKeyAttribute
+                                            .firstValue());
+                            final SearchRequest search = createSearchRequest(filter);
+                            c.getConnection()
+                                    .searchSingleEntryAsync(
+                                            search,
+                                            new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+
+                                                @Override
+                                                public void handleErrorResult(
+                                                        final ErrorResultException error) {
+                                                    exception.compareAndSet(null, error);
+                                                    completeIfNecessary();
+                                                }
+
+                                                @Override
+                                                public void handleResult(
+                                                        final SearchResultEntry result) {
+                                                    synchronized (reference) {
+                                                        reference.add(result.getName());
+                                                    }
+                                                    completeIfNecessary();
+                                                }
+                                            });
+                        }
+
+                        private void completeIfNecessary() {
+                            if (pendingSearches.decrementAndGet() == 0) {
+                                if (exception.get() == null) {
+                                    h.handleResult(singletonList(reference));
+                                } else {
+                                    h.handleError(adapt(exception.get()));
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (final ResourceException e) {
+            h.handleError(e);
+        } catch (final Exception e) {
+            // FIXME: improve error message.
+            h.handleError(new BadRequestException(e.getMessage()));
+        }
     }
 
     private boolean attributeIsRequired() {
@@ -276,6 +391,12 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
 
     private boolean attributeIsSingleValued() {
         return isSingleValued || ldapAttributeName.getAttributeType().isSingleValue();
+    }
+
+    private SearchRequest createSearchRequest(final Filter result) {
+        final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
+        final SearchRequest request = Requests.newSearchRequest(baseDN, scope, searchFilter, "1.1");
+        return request;
     }
 
     private void readEntry(final Context c, final DN dn, final ResultHandler<JsonValue> handler) {

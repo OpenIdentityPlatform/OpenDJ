@@ -369,8 +369,10 @@ public final class Rest2LDAP {
                 final AttributeDescription ldapAttribute =
                         ad(config.get("ldapAttribute").required().asString());
                 final DN baseDN = DN.valueOf(config.get("baseDN").required().asString(), schema);
+                final AttributeDescription primaryKey =
+                        ad(config.get("primaryKey").required().asString());
                 final AttributeMapper m = configureMapper(config.get("mapper").required());
-                final ReferenceAttributeMapper r = reference(ldapAttribute, baseDN, m);
+                final ReferenceAttributeMapper r = reference(ldapAttribute, baseDN, primaryKey, m);
                 if (config.get("isRequired").defaultTo(false).asBoolean()) {
                     r.isRequired();
                 }
@@ -649,13 +651,14 @@ public final class Rest2LDAP {
     }
 
     public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
-            final DN baseDN, final AttributeMapper mapper) {
-        return new ReferenceAttributeMapper(attribute, baseDN, mapper);
+            final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
+        return new ReferenceAttributeMapper(attribute, baseDN, primaryKey, mapper);
     }
 
     public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
-            final AttributeMapper mapper) {
-        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN), mapper);
+            final String primaryKey, final AttributeMapper mapper) {
+        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
+                AttributeDescription.valueOf(primaryKey), mapper);
     }
 
     public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
