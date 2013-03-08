@@ -23,12 +23,10 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import org.opends.server.util.StaticUtils;
-import org.opends.server.core.DirectoryServer;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,45 +43,43 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.fail;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertEquals;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test Server part of the assured feature in both safe data and
@@ -384,6 +380,7 @@ public class AssuredReplicationServerTest
     int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario)
+        throws Exception
   {
     return createFakeReplicationDomain(serverId, groupId, rsId, generationId, assured,
       assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true, 100);
@@ -396,6 +393,7 @@ public class AssuredReplicationServerTest
     int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario, ServerState serverState)
+      throws Exception
   {
    return createFakeReplicationDomain(serverId, groupId, rsId, generationId, assured,
     assuredMode, safeDataLevel, assuredTimeout, scenario, serverState, true, 100);
@@ -411,8 +409,8 @@ public class AssuredReplicationServerTest
     int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario, ServerState serverState, boolean startListen, int window)
+      throws Exception
   {
-    try
     {
       // Set port to right real RS according to its id
       int rsPort = -1;
@@ -456,7 +454,7 @@ public class AssuredReplicationServerTest
       String rdPortStr = serverStr.substring(index + 1);
       try
       {
-        rdPort = (new Integer(rdPortStr)).intValue();
+        rdPort = Integer.parseInt(rdPortStr);
       } catch (Exception e)
       {
         fail("Enable to get an int from: " + rdPortStr);
@@ -464,11 +462,7 @@ public class AssuredReplicationServerTest
       assertEquals(rdPort, rsPort);
 
       return fakeReplicationDomain;
-    } catch (Exception e)
-    {
-      fail("createFakeReplicationDomain " + e.getMessage());
     }
-    return null;
   }
 
   /**
@@ -478,7 +472,6 @@ public class AssuredReplicationServerTest
     int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, ServerState serverState, int scenario)
   {
-    try
     {
       // Set port to right real RS according to its id
       int rsPort = -1;
@@ -508,21 +501,16 @@ public class AssuredReplicationServerTest
       fakeReplicationServer.start(scenario);
 
       return fakeReplicationServer;
-    } catch (Exception e)
-    {
-      fail("createFakeReplicationServer " + e.getMessage());
     }
-    return null;
   }
 
   /**
    * Creates a new real replication server (one which is to be tested).
    */
   private ReplicationServer createReplicationServer(int serverId,
-    int groupId, long assuredTimeout, String testCase)
+    int groupId, long assuredTimeout, String testCase) throws Exception
   {
     SortedSet<String> replServers = new TreeSet<String>();
-    try
     {
       int port = -1;
       if (serverId == RS1_ID)
@@ -611,12 +599,7 @@ public class AssuredReplicationServerTest
       conf.setMonitoringPeriod(0L);
       ReplicationServer replicationServer = new ReplicationServer(conf);
       return replicationServer;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + e.getMessage());
     }
-    return null;
   }
 
   /**
@@ -645,7 +628,6 @@ public class AssuredReplicationServerTest
      * Creates a fake replication domain (DS)
      * @param serviceID The base dn used at connection to RS
      * @param serverID our server id
-     * @param replicationServer the URS of the RS we will connect to
      * @param generationId the generation id we use at connection to real RS
      * @param groupId our group id
      * @param assured do we expect incoming assured updates (also used for outgoing updates)
@@ -943,7 +925,8 @@ public class AssuredReplicationServerTest
 
     /**
      * Connect to RS
-     * Returns true if connection was made successfully
+     *
+     * @return true if connection was made successfully
      */
     public boolean connect(ServerState serverState)
     {
