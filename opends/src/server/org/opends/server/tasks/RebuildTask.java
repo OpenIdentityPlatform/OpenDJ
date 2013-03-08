@@ -184,7 +184,7 @@ public class RebuildTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    for (String index : indexes)
+    for (final String index : indexes)
     {
       rebuildConfig.addRebuildIndex(index);
     }
@@ -193,7 +193,14 @@ public class RebuildTask extends Task
     // during the initialization.
     rebuildConfig.isClearDegradedState(isClearDegradedState);
 
-    Backend backend =
+    if (tmpDirectory == null)
+    {
+      tmpDirectory = "import-tmp";
+    }
+    rebuildConfig.setTmpDirectory(tmpDirectory);
+    rebuildConfig.setRebuildMode(rebuildMode);
+
+    final Backend backend =
         DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
 
     if (backend == null)
@@ -210,54 +217,73 @@ public class RebuildTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    // Acquire a shared lock for the backend if we are rebuilding attribute
-    // indexes only. If we are rebuilding one or more system indexes, we have
-    // to acquire exclusive lock.
+    // If we are rebuilding one or more system indexes, we have
+    // to acquire exclusive lock. Shared lock in 'cleardegradedstate' mode.
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
 
     // Disable the backend.
-    try
+    // Except in 'cleardegradedstate' mode we don't need to disable it.
+    if (!isClearDegradedState)
     {
-      TaskUtils.disableBackend(backend.getBackendID());
-    }
-    catch (DirectoryException e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TaskUtils.disableBackend(backend.getBackendID());
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        logError(e.getMessageObject());
+        return TaskState.STOPPED_BY_ERROR;
       }
 
-      logError(e.getMessageObject());
-      return TaskState.STOPPED_BY_ERROR;
-    }
-
-    try
-    {
-      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      try
+      {
+        if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+        {
+          Message message =
+              ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+                  .getBackendID(), String.valueOf(failureReason));
+          logError(message);
+          return TaskState.STOPPED_BY_ERROR;
+        }
+      }
+      catch (Exception e)
       {
         Message message =
             ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
-                .getBackendID(), String.valueOf(failureReason));
+                .getBackendID(), getExceptionMessage(e));
         logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
-    catch (Exception e)
+    else
     {
-      Message message =
-          ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
-              .getBackendID(), getExceptionMessage(e));
-      logError(message);
-      return TaskState.STOPPED_BY_ERROR;
+      // We just need a shared lock on the backend for this part.
+      try
+      {
+        if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
+        {
+          Message message =
+              ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
+                  .getBackendID(), String.valueOf(failureReason));
+          logError(message);
+          return TaskState.STOPPED_BY_ERROR;
+        }
+      }
+      catch (Exception e)
+      {
+        Message message =
+            ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
+                .getBackendID(), getExceptionMessage(e));
+        logError(message);
+        return TaskState.STOPPED_BY_ERROR;
+      }
     }
-
-    if (tmpDirectory == null)
-    {
-      tmpDirectory = "import-tmp";
-    }
-    rebuildConfig.setTmpDirectory(tmpDirectory);
-    rebuildConfig.setRebuildMode(rebuildMode);
 
     TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
 
@@ -306,7 +332,9 @@ public class RebuildTask extends Task
       }
     }
 
-    if (returnCode == TaskState.COMPLETED_SUCCESSFULLY)
+    // The backend must be enabled only if the task is successful
+    // for prevent potential risks of database corruption.
+    if (returnCode == TaskState.COMPLETED_SUCCESSFULLY && !isClearDegradedState)
     {
       // Enable the backend.
       try
