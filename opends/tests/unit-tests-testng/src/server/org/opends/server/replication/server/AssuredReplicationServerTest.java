@@ -399,11 +399,36 @@ public class AssuredReplicationServerTest
     assuredMode, safeDataLevel, assuredTimeout, scenario, serverState, true, 100);
   }
 
+  private int getRsPort(int rsId)
+  {
+    int rsPort = -1;
+    switch (rsId)
+    {
+      case RS1_ID:
+        rsPort = rs1Port;
+        break;
+      case RS2_ID:
+        rsPort = rs2Port;
+        break;
+      case RS3_ID:
+        rsPort = rs3Port;
+        break;
+      case RS4_ID:
+        rsPort = rs4Port;
+        break;
+      default:
+        fail("Unknown RS id: " + rsId);
+    }
+    return rsPort;
+  }
+
   /**
    * Creates a new fake replication domain, using the passed scenario.
-   * If connect = true , we start both publish and listen service and publish
-   * service uses the default window value. If false, we only start publish
-   * service and use the passed window value
+   *
+   * @param the scenario to follow
+   * @param startListen
+   *          If true, we start the listen service. In all cases, the publish
+   *          service gets started.
    */
   private FakeReplicationDomain createFakeReplicationDomain(int serverId,
     int groupId, int rsId, long generationId, boolean assured,
@@ -413,24 +438,7 @@ public class AssuredReplicationServerTest
   {
     {
       // Set port to right real RS according to its id
-      int rsPort = -1;
-      switch (rsId)
-      {
-        case RS1_ID:
-          rsPort = rs1Port;
-          break;
-        case RS2_ID:
-          rsPort = rs2Port;
-          break;
-        case RS3_ID:
-          rsPort = rs3Port;
-          break;
-        case RS4_ID:
-          rsPort = rs4Port;
-          break;
-        default:
-          fail("Unknown RS id: " + rsId);
-      }
+      int rsPort = getRsPort(rsId);
 
       FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
         TEST_ROOT_DN_STRING, serverId, generationId,
@@ -474,21 +482,7 @@ public class AssuredReplicationServerTest
   {
     {
       // Set port to right real RS according to its id
-      int rsPort = -1;
-      switch (rsId)
-      {
-        case RS1_ID:
-          rsPort = rs1Port;
-          break;
-        case RS2_ID:
-          rsPort = rs2Port;
-          break;
-        case RS3_ID:
-          rsPort = rs3Port;
-          break;
-        default:
-          fail("Unknown RS id: " + rsId);
-      }
+      int rsPort = getRsPort(rsId);
 
       FakeReplicationServer fakeReplicationServer = new FakeReplicationServer(
         rsPort, serverId, assured, assuredMode, (byte)safeDataLevel, (byte)groupId,
@@ -507,98 +501,61 @@ public class AssuredReplicationServerTest
   /**
    * Creates a new real replication server (one which is to be tested).
    */
-  private ReplicationServer createReplicationServer(int serverId,
-    int groupId, long assuredTimeout, String testCase) throws Exception
+  private ReplicationServer createReplicationServer(int serverId, int groupId,
+      long assuredTimeout, String testCase, int nbRS) throws ConfigException
+  {
+    int port = getRsPort(serverId);
+    SortedSet<String> replServers = generateReplicationServerUrls(port, nbRS);
+
+    String dir = testName + serverId + testCase + "Db";
+    ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
+            replServers, groupId, assuredTimeout, 5000);
+    // No monitoring publisher to not interfere with some SocketTimeoutException
+    // expected at some points in these tests
+    conf.setMonitoringPeriod(0L);
+    ReplicationServer replicationServer = new ReplicationServer(conf);
+    return replicationServer;
+  }
+
+  /**
+   * Returns a Set<String> containing the URLs for the real Replication Servers
+   * (RS for short) for the specified number of RSs. The Set is built by
+   * excluding the URL for the currentPort. The returned Set size is nbRS - 1
+   * (for the excluded port).
+   * 
+   * @param excludedRsPort
+   *          the RS port to exclude
+   * @param totalNbRS
+   *          the total number of real RSs that will be part of the topology.
+   * @return a SortedSet<String> containing the RS URLs.
+   */
+  private SortedSet<String> generateReplicationServerUrls(int excludedRsPort,
+      int totalNbRS)
   {
     SortedSet<String> replServers = new TreeSet<String>();
+    if (totalNbRS >= 2)
     {
-      int port = -1;
-      if (serverId == RS1_ID)
+      addIfNotSame(replServers, rs1Port, excludedRsPort);
+      addIfNotSame(replServers, rs2Port, excludedRsPort);
+      if (totalNbRS >= 3)
       {
-        port = rs1Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
+        addIfNotSame(replServers, rs3Port, excludedRsPort);
+        if (totalNbRS >= 4)
         {
-          // Every 3 RSs connected together
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
-          if (testCase.equals("testSafeReadManyRSsAndDSs"))
-          {
-           // Every 4 RSs connected together
-           replServers.add("localhost:" + rs4Port);
-          }
-        } else if (testCase.equals("testSafeReadMultiGroups") || testCase.equals("testSafeReadTwoRSs"))
-        {
-          // Every 2 RSs connected together
-          replServers.add("localhost:" + rs2Port);
-        } else
-        {
-          // Let this server alone
+          addIfNotSame(replServers, rs4Port, excludedRsPort);
         }
-      } else if (serverId == RS2_ID)
-      {
-        port = rs2Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
-        {
-          // Every 3 RSs connected together
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs3Port);
-          if (testCase.equals("testSafeReadManyRSsAndDSs"))
-          {
-           // Every 4 RSs connected together
-           replServers.add("localhost:" + rs4Port);
-          }
-        } else if (testCase.equals("testSafeReadMultiGroups") || testCase.equals("testSafeReadTwoRSs"))
-        {
-          // Every 2 RSs connected together
-          replServers.add("localhost:" + rs1Port);
-        } else
-        {
-          // Let this server alone
-        }
-      } else if (serverId == RS3_ID)
-      {
-        port = rs3Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
-        {
-          // Every 3 RSs connected together
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs2Port);
-          if (testCase.equals("testSafeReadManyRSsAndDSs"))
-          {
-           // Every 4 RSs connected together
-           replServers.add("localhost:" + rs4Port);
-          }
-        } else
-        {
-          // Let this server alone
-        }
-      } else if (serverId == RS4_ID)
-      {
-        port = rs4Port;
-        if (testCase.equals("testSafeReadManyRSsAndDSs"))
-        {
-          // Every 4 RSs connected together
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
-        } else
-        {
-          // Let this server alone
-        }
-      } else
-      {
-        fail("Unknown replication server id.");
       }
+    }
+    return replServers;
+  }
 
-      String dir = testName + serverId + testCase + "Db";
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-        replServers, groupId, assuredTimeout, 5000);
-      // No monitoring publisher to not interfer with some SocketTimeoutException
-      // expected at some points in these tests
-      conf.setMonitoringPeriod(0L);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      return replicationServer;
+  private void addIfNotSame(Set<String> replServers, int rsPort,
+      int excludedRsPort)
+  {
+    if (rsPort != excludedRsPort)
+    {
+      replServers.add("localhost:" + rsPort);
     }
   }
 
@@ -800,7 +757,6 @@ public class AssuredReplicationServerTest
      */
     public void sendNewFakeUpdate(boolean useAssured) throws TimeoutException
     {
-
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg = new DeleteMsg(getServiceID(), gen.newChangeNumber(),
         UUID.randomUUID().toString());
@@ -1281,7 +1237,7 @@ public class AssuredReplicationServerTest
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, 0);
       assertNotNull(rs1);
 
       /*
@@ -1628,7 +1584,7 @@ public class AssuredReplicationServerTest
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, 0);
       assertNotNull(rs1);
 
       /*
@@ -2162,7 +2118,7 @@ public class AssuredReplicationServerTest
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, 0);
       assertNotNull(rs1);
 
       /*
@@ -2261,24 +2217,24 @@ public class AssuredReplicationServerTest
 
     try
     {
-
       /*
        * Start 3 real RSs
        */
+      int numberOfRealRSs = 3;
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs1);
 
       // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs2);
 
       // Create real RS 3
       rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs3);
 
       /*
@@ -2347,7 +2303,7 @@ public class AssuredReplicationServerTest
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, 0);
       assertNotNull(rs1);
 
       /*******************
@@ -2711,7 +2667,7 @@ public class AssuredReplicationServerTest
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, 0);
       assertNotNull(rs1);
 
       /*
@@ -3039,25 +2995,26 @@ public class AssuredReplicationServerTest
       /*
        * Start 4 real RSs
        */
+      int numberOfRealRSs = 4;
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs1);
 
       // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs2);
 
       // Create real RS 3
       rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs3);
 
       // Create real RS 4 (different GID 2)
       rs4 = createReplicationServer(RS4_ID, OTHER_GID_BIS, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs4);
 
       /*
@@ -3392,15 +3349,16 @@ public class AssuredReplicationServerTest
       /*
        * Start 2 real RSs
        */
+      int numberOfRealRSs = 2;
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs1);
 
       // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, OTHER_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs2);
 
       /*
@@ -3536,15 +3494,16 @@ public class AssuredReplicationServerTest
       /*
        * Start 2 real RSs
        */
+      int numberOfRealRSs = 2;
 
       // Create real RS 1
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT + 1000, // Be sure DS2 timeout is seen from DS1
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs1);
 
       // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase);
+        testCase, numberOfRealRSs);
       assertNotNull(rs2);
 
       /*
