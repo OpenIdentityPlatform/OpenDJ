@@ -71,6 +71,9 @@ final class Utils {
         private ResourceException exception; // Guarded by latch.
 
         private AccumulatingResultHandler(final int size, final ResultHandler<List<V>> handler) {
+            if (size <= 0) {
+                throw new IllegalStateException();
+            }
             this.latch = new AtomicInteger(size);
             this.results = new ArrayList<V>(size);
             this.handler = handler;
