@@ -271,6 +271,9 @@ public class LDAPConnection
       Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
       throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
                                         ce);
+    } catch (LDAPConnectionException e)
+    {
+      throw e;
     } catch(Exception ex2)
     {
       if (debugEnabled())

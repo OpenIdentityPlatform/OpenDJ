@@ -23,15 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-
-
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -46,7 +46,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
-
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -124,159 +123,16 @@ public class LDAPSearchTestCase
     argLists.add(args);
     reasonList.add("No arguments");
 
-    args = new String[]
+    List<String> options =
+        Arrays.asList("-b", "-D", "-w", "-j", "-Y", "-i", "-K", "-P", "-W",
+            "-h", "-p", "-V", "-f", "-J", "-z", "-l", "-s", "-a", "-o", "-c",
+            "--assertionFilter", "--matchedValuesFilter");
+    for (String option : options)
     {
-      "-b"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-b' argument");
-
-    args = new String[]
-    {
-      "-D"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-D' argument");
-
-    args = new String[]
-    {
-      "-w"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-w' argument");
-
-    args = new String[]
-    {
-      "-j"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-j' argument");
-
-    args = new String[]
-    {
-      "-Y"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-Y' argument");
-
-    args = new String[]
-    {
-      "-i"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-i' argument");
-
-    args = new String[]
-    {
-      "-K"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-K' argument");
-
-    args = new String[]
-    {
-      "-P"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-P' argument");
-
-    args = new String[]
-    {
-      "-W"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-W' argument");
-
-    args = new String[]
-    {
-      "-h"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-h' argument");
-
-    args = new String[]
-    {
-      "-p"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-p' argument");
-
-    args = new String[]
-    {
-      "-V"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-V' argument");
-
-    args = new String[]
-    {
-      "-f"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-f' argument");
-
-    args = new String[]
-    {
-      "-J"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-J' argument");
-
-    args = new String[]
-    {
-      "-z"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-z' argument");
-
-    args = new String[]
-    {
-      "-l"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-l' argument");
-
-    args = new String[]
-    {
-      "-s"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-s' argument");
-
-    args = new String[]
-    {
-      "-a"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-a' argument");
-
-    args = new String[]
-    {
-      "-o"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-o' argument");
-
-    args = new String[]
-    {
-      "-c"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-c' argument");
-
-    args = new String[]
-    {
-      "--assertionFilter"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '--assertionFilter' argument");
-
-    args = new String[]
-    {
-      "--matchedValuesFilter"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '--matchedValuesFilter' argument");
+      args = new String[] { option };
+      argLists.add(args);
+      reasonList.add("No value for '" + option + "' argument");
+    }
 
     args = new String[]
     {
@@ -2311,7 +2167,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-   
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -2325,7 +2181,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertTrue(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
   }
 
 
@@ -2384,7 +2240,7 @@ public class LDAPSearchTestCase
       "dn"
     };
 
-    assertTrue(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
   }
 
 
