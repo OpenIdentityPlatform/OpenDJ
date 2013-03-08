@@ -104,6 +104,7 @@ final class Context implements Closeable {
             // Fast path.
             if (cachedResult != null) {
                 invokeResultHandler(resultHandler);
+                return;
             }
             // Enqueue and re-check.
             waitingResultHandlers.add(resultHandler);
