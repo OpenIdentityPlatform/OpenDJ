@@ -473,57 +473,60 @@ public final class Importer implements DiskSpaceMonitorHandler
     final long phaseOneBufferMemory =
         usableMemory - dbCacheSize - tmpEnvCacheSize;
     final int oldThreadCount = threadCount;
-    while (true)
+    if (indexCount != 0) // Avoid / by zero
     {
-      phaseOneBufferCount = 2 * indexCount * threadCount;
-
-      // Scratch writers allocate 4 buffers per index as well.
-      final int totalPhaseOneBufferCount =
-          phaseOneBufferCount + (4 * indexCount);
-      bufferSize = (int) (phaseOneBufferMemory / totalPhaseOneBufferCount);
-
-      if (bufferSize > MAX_BUFFER_SIZE)
+      while (true)
       {
-        if (!skipDNValidation)
+        phaseOneBufferCount = 2 * indexCount * threadCount;
+
+        // Scratch writers allocate 4 buffers per index as well.
+        final int totalPhaseOneBufferCount =
+            phaseOneBufferCount + (4 * indexCount);
+        bufferSize = (int) (phaseOneBufferMemory / totalPhaseOneBufferCount);
+
+        if (bufferSize > MAX_BUFFER_SIZE)
         {
-          // The buffers are big enough: the memory is best used for the DN2ID
-          // temp DB.
-          bufferSize = MAX_BUFFER_SIZE;
+          if (!skipDNValidation)
+          {
+            // The buffers are big enough: the memory is best used for the DN2ID
+            // temp DB.
+            bufferSize = MAX_BUFFER_SIZE;
 
-          final long extraMemory =
-              phaseOneBufferMemory - (totalPhaseOneBufferCount * bufferSize);
-          if (!clearedBackend)
-          {
-            dbCacheSize += extraMemory / 2;
-            tmpEnvCacheSize += extraMemory / 2;
+            final long extraMemory =
+                phaseOneBufferMemory - (totalPhaseOneBufferCount * bufferSize);
+            if (!clearedBackend)
+            {
+              dbCacheSize += extraMemory / 2;
+              tmpEnvCacheSize += extraMemory / 2;
+            }
+            else
+            {
+              tmpEnvCacheSize += extraMemory;
+            }
           }
-          else
-          {
-            tmpEnvCacheSize += extraMemory;
-          }
+
+          break;
         }
-
-        break;
-      }
-      else if (bufferSize > MIN_BUFFER_SIZE)
-      {
-        // This is acceptable.
-        break;
-      }
-      else if (threadCount > 1)
-      {
-        // Retry using less threads.
-        threadCount--;
-      }
-      else
-      {
-        // Not enough memory.
-        final long minimumPhaseOneBufferMemory =
-            totalPhaseOneBufferCount * MIN_BUFFER_SIZE;
-        Message message =
-            ERR_IMPORT_LDIF_LACK_MEM.get(usableMemory,
-                minimumPhaseOneBufferMemory + dbCacheSize + tmpEnvCacheSize);
-        throw new InitializationException(message);
+        else if (bufferSize > MIN_BUFFER_SIZE)
+        {
+          // This is acceptable.
+          break;
+        }
+        else if (threadCount > 1)
+        {
+          // Retry using less threads.
+          threadCount--;
+        }
+        else
+        {
+          // Not enough memory.
+          final long minimumPhaseOneBufferMemory =
+              totalPhaseOneBufferCount * MIN_BUFFER_SIZE;
+          Message message =
+              ERR_IMPORT_LDIF_LACK_MEM.get(usableMemory,
+                  minimumPhaseOneBufferMemory + dbCacheSize + tmpEnvCacheSize);
+          throw new InitializationException(message);
+        }
       }
     }
 
@@ -3210,7 +3213,8 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
         break;
       }
-      if ( message != null ) {
+      if ( message != null )
+      {
         logError(message);
       }
     }
@@ -3318,8 +3322,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       else
       {
         Message message =
-            NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS.get(
-                rebuildConfig.getRebuildList().toString());
+            NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS.get(rebuildConfig
+                .getRebuildList().toString());
         logError(message);
       }
 
@@ -3683,7 +3687,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       timer2.cancel();
     }
 
-    private int getIndexCount() throws ConfigException, JebException
+    private int getIndexCount() throws ConfigException, JebException,
+        InitializationException
     {
       switch (rebuildConfig.getRebuildMode())
       {
@@ -3700,7 +3705,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     private int getRebuildListIndexCount(LocalDBBackendCfg cfg)
-        throws JebException, ConfigException
+        throws JebException, ConfigException, InitializationException
     {
       int indexCount = 0;
       List<String> rebuildList = rebuildConfig.getRebuildList();
@@ -3730,7 +3735,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               || lowerName.equals("id2children"))
           {
             Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-            throw new JebException(msg);
+            throw new InitializationException(msg);
           }
           else
           {
@@ -3738,14 +3743,14 @@ public final class Importer implements DiskSpaceMonitorHandler
             if ((attrIndexParts.length <= 0) || (attrIndexParts.length > 3))
             {
               Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new InitializationException(msg);
             }
             AttributeType attrType =
                 DirectoryServer.getAttributeType(attrIndexParts[0]);
             if (attrType == null)
             {
               Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new InitializationException(msg);
             }
             if (attrIndexParts.length != 1)
             {
@@ -3775,7 +3780,7 @@ public final class Importer implements DiskSpaceMonitorHandler
                 {
                   Message msg =
                       ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                  throw new JebException(msg);
+                  throw new InitializationException(msg);
                 }
               }
               else
@@ -3808,19 +3813,21 @@ public final class Importer implements DiskSpaceMonitorHandler
                 {
                   Message msg =
                       ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                  throw new JebException(msg);
+                  throw new InitializationException(msg);
                 }
                 indexCount++;
               }
             }
             else
             {
-              for (String idx : cfg.listLocalDBIndexes())
+              boolean found = false;
+              for (final String idx : cfg.listLocalDBIndexes())
               {
                 if (!idx.equalsIgnoreCase(index))
                 {
                   continue;
                 }
+                found = true;
                 LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
                 if (indexCfg.getIndexType().contains(
                     LocalDBIndexCfgDefn.IndexType.EQUALITY))
@@ -3853,7 +3860,7 @@ public final class Importer implements DiskSpaceMonitorHandler
                   Set<String> extensibleRules =
                       indexCfg.getIndexExtensibleMatchingRule();
                   boolean shared = false;
-                  for (String exRule : extensibleRules)
+                  for (final String exRule : extensibleRules)
                   {
                     if (exRule.endsWith(".sub"))
                     {
@@ -3869,6 +3876,12 @@ public final class Importer implements DiskSpaceMonitorHandler
                     }
                   }
                 }
+              }
+              if (!found)
+              {
+                Message msg =
+                    ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+                throw new InitializationException(msg);
               }
             }
           }
@@ -3908,7 +3921,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         throws InterruptedException
     {
       for (Map.Entry<IndexKey, Collection<Index>> mapEntry :
-          this.extensibleIndexMap.entrySet())
+        this.extensibleIndexMap.entrySet())
       {
         IndexKey key = mapEntry.getKey();
         AttributeType attrType = key.getAttributeType();

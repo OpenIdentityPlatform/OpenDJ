@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -61,6 +61,7 @@ public class TestRebuildJob extends JebTestCase
     return new Object[][] {
         { "dn2id" },
         { "dn2uri" }
+        // { "id2entry" } internal index
     };
   }
 
@@ -80,7 +81,6 @@ public class TestRebuildJob extends JebTestCase
   @DataProvider(name = "badIndexes")
   public Object[][] badIndexes() {
     return new Object[][] {
-        { "id2entry" },
         { "nonindex" },
         { "id2subtree" },
         { "id2children" },
@@ -178,14 +178,60 @@ public class TestRebuildJob extends JebTestCase
     }
   }
 
+  /**
+   * Try to rebuild the main system index id2entry.
+   * (primary index from which all other indexes are derived).
+   * It cannot ever be rebuilt. Online mode.
+   *
+   * @throws InitializationException There is no index configured
+   *  for attribute type 'id2entry'.
+   */
+  @Test(expectedExceptions = InitializationException.class)
+  public void testRebuildForbiddenSystemIndexId2EntryOnline() throws Exception
+  {
+    RebuildConfig rebuildConfig = new RebuildConfig();
+    rebuildConfig.setBaseDN(baseDNs[0]);
+    rebuildConfig.addRebuildIndex("id2entry");
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+
+    be.rebuildBackend(rebuildConfig);
+
+  }
+
+  /**
+   * Try to rebuild the main system index id2entry.
+   * (primary index from which all other indexes are derived).
+   * It cannot ever be rebuilt. Offline mode.
+   *
+   * @throws InitializationException There is no index configured
+   *  for attribute type 'id2entry'.
+   */
+  @Test(expectedExceptions = InitializationException.class)
+  public void testRebuildForbiddenSystemIndexId2EntryOffline() throws Exception
+  {
+    RebuildConfig rebuildConfig = new RebuildConfig();
+    rebuildConfig.setBaseDN(baseDNs[0]);
+    rebuildConfig.addRebuildIndex("id2entry");
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+
+    TaskUtils.disableBackend(beID);
+
+    try {
+      be.rebuildBackend(rebuildConfig);
+    } finally {
+      TaskUtils.enableBackend(beID);
+    }
+  }
+
   @Test(dataProvider = "badIndexes",
-        expectedExceptions = DirectoryException.class)
-  public void testRebuildBadIndexes(String index) throws Exception
+        expectedExceptions = InitializationException.class)
+  public void testRebuildBadIndexes(final String index) throws Exception
   {
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
+
     be.rebuildBackend(rebuildConfig);
   }
 

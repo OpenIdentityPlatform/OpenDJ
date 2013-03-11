@@ -203,15 +203,18 @@ public class RebuildConfig
    * Test if this rebuild config includes any system indexes to rebuild.
    *
    * @return True if rebuilding of system indexes are included. False otherwise.
+   * @throws InitializationException
    */
   public boolean includesSystemIndex()
   {
     for (String index : rebuildList)
     {
-      if (index.equalsIgnoreCase("id2entry"))
+      // Removed because the id2entry is not A system indexes is THE
+      // primary system index. It cannot be rebuilt.
+      /*if (index.equalsIgnoreCase("id2entry"))
       {
         return true;
-      }
+      }*/
       if (index.equalsIgnoreCase("dn2id"))
       {
         return true;

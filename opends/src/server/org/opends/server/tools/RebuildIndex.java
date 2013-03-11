@@ -598,6 +598,13 @@ public class RebuildIndex extends TaskTool
       BackendImpl jebBackend = (BackendImpl)backend;
       jebBackend.rebuildBackend(rebuildConfig);
     }
+    catch (InitializationException e)
+    {
+      Message message =
+          ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
+      logError(message);
+      returnCode = 1;
+    }
     catch (Exception e)
     {
       Message message =
