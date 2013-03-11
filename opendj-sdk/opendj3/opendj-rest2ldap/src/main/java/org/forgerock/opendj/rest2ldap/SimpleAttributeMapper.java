@@ -183,7 +183,7 @@ public final class SimpleAttributeMapper extends AttributeMapper {
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         if (jsonAttribute.isEmpty()) {
             try {
-                final ByteString va = encoder().apply(valueAssertion, null);
+                final ByteString va = valueAssertion != null ? encoder().apply(valueAssertion, null) : null;
                 h.handleResult(toFilter(c, type, ldapAttributeName.toString(), va));
             } catch (Exception e) {
                 // Invalid assertion value - bad request.

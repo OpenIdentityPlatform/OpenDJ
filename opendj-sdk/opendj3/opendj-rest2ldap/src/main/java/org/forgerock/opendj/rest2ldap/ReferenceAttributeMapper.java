@@ -39,12 +39,15 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -296,8 +299,8 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                         v.isList() ? v : new JsonValue(singletonList(v.getObject()));
                 final Attribute reference = new LinkedAttribute(ldapAttributeName);
                 final AtomicInteger pendingSearches = new AtomicInteger(valueList.size());
-                final AtomicReference<ErrorResultException> exception =
-                        new AtomicReference<ErrorResultException>();
+                final AtomicReference<ResourceException> exception =
+                        new AtomicReference<ResourceException>();
 
                 for (final JsonValue value : valueList) {
                     mapper.toLDAP(c, value, new ResultHandler<List<Attribute>>() {
@@ -338,9 +341,9 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                             }
 
                             // Now search for the referenced entry in to get its DN.
+                            final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
                             final Filter filter =
-                                    Filter.equality(primaryKey.toString(), primaryKeyAttribute
-                                            .firstValue());
+                                    Filter.equality(primaryKey.toString(), primaryKeyValue);
                             final SearchRequest search = createSearchRequest(filter);
                             c.getConnection()
                                     .searchSingleEntryAsync(
@@ -350,7 +353,29 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                                                 @Override
                                                 public void handleErrorResult(
                                                         final ErrorResultException error) {
-                                                    exception.compareAndSet(null, error);
+                                                    ResourceException re;
+                                                    try {
+                                                        throw error;
+                                                    } catch (EntryNotFoundException e) {
+                                                        // FIXME: improve error message.
+                                                        re =
+                                                                new BadRequestException(
+                                                                        "the resource referenced by '"
+                                                                                + primaryKeyValue
+                                                                                        .toString()
+                                                                                + "' does not exist");
+                                                    } catch (MultipleEntriesFoundException e) {
+                                                        // FIXME: improve error message.
+                                                        re =
+                                                                new BadRequestException(
+                                                                        "the resource referenced by '"
+                                                                                + primaryKeyValue
+                                                                                        .toString()
+                                                                                + "' is ambiguous");
+                                                    } catch (ErrorResultException e) {
+                                                        re = adapt(e);
+                                                    }
+                                                    exception.compareAndSet(null, re);
                                                     completeIfNecessary();
                                                 }
 
@@ -370,7 +395,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                                 if (exception.get() == null) {
                                     h.handleResult(singletonList(reference));
                                 } else {
-                                    h.handleError(adapt(exception.get()));
+                                    h.handleError(exception.get());
                                 }
                             }
                         }
@@ -407,7 +432,12 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
 
                     @Override
                     public void handleErrorResult(final ErrorResultException error) {
-                        handler.handleError(adapt(error));
+                        if (!(error instanceof EntryNotFoundException)) {
+                            handler.handleError(adapt(error));
+                        } else {
+                            // The referenced entry does not exist so ignore it since it cannot be mapped.
+                            handler.handleResult(null);
+                        }
                     }
 
                     @Override
