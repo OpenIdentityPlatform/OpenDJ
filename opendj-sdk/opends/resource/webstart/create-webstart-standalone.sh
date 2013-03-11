@@ -1,8 +1,34 @@
 #!/bin/sh
+#
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/CDDLv1_0.txt
+# or http://forgerock.org/license/CDDLv1.0.html.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2006-2010 Sun Microsystems Inc.
+#      Copyright 2010-2013 ForgeRock AS
 
 # Determine the location to this script so that we know where we are in the
 # OpenDJ source tree.
-cd "`dirname $0`"
+LAUNCH_DIR=`dirname "$0"`
+cd "${LAUNCH_DIR}"
 SCRIPT_DIR=`pwd`
 cd ../..
 ROOT_DIR=`pwd`
@@ -62,7 +88,7 @@ HOMEPAGE="http://www.forgerock.com/opendj.html"
 # If not, then fail.
 if test -z "${JAVA_HOME}"
 then
-  JAVA_HOME=`java -cp ${ROOT_DIR}/resource FindJavaHome 2> /dev/null`
+  JAVA_HOME=`java -cp "${ROOT_DIR}/resource" FindJavaHome 2> /dev/null`
   if test -z "${JAVA_HOME}"
   then
     echo "Please set JAVA_HOME to the root of a Java 5.0 installation."
@@ -115,9 +141,9 @@ fi
 
 # Determine what the name should be for the OpenDJ zip file name, but without
 # the ".zip" extension.
-ZIP_FILEPATH=`ls ${BUILD_DIR}/package/${PRODUCT_NAME}*.zip`
-ZIP_FILENAME=`basename ${ZIP_FILEPATH}`
-ZIP_FILENAME_BASE=`echo ${ZIP_FILENAME} | sed -e 's/\.zip//'`
+ZIP_FILEPATH=`ls "${BUILD_DIR}"/package/${PRODUCT_NAME}*.zip`
+ZIP_FILENAME=`basename "${ZIP_FILEPATH}"`
+ZIP_FILENAME_BASE=`echo "${ZIP_FILENAME}" | sed -e 's/\.zip//'`
 
 
 # Create the directory structure into which we will place the archive.
@@ -140,7 +166,7 @@ PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
-for LIBFILE in ${PRODUCT_NAME}.jar je.jar quicksetup.jar
+for LIBFILE in "${PRODUCT_NAME}.jar" je.jar quicksetup.jar
 do
   echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
