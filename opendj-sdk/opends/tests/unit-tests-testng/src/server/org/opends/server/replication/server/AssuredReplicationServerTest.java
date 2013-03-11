@@ -90,7 +90,7 @@ public class AssuredReplicationServerTest
 {
 
   private String testName = this.getClass().getSimpleName();
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
   private int rs1Port = -1;
   private int rs2Port = -1;
@@ -136,52 +136,70 @@ public class AssuredReplicationServerTest
   private ReplicationServer rs3 = null;
   private ReplicationServer rs4 = null;
 
-  // Small assured timeout value (timeout to be used in first RS receiving an
-  // assured update from a DS)
+  /**
+   * Small assured timeout value (timeout to be used in first RS receiving an
+   * assured update from a DS)
+   */
   private static final int SMALL_TIMEOUT = 3000;
-  // Long assured timeout value (timeout to use in DS when sending an assured
-  // update)
+  /**
+   * Long assured timeout value (timeout to use in DS when sending an assured
+   * update)
+   */
   private static final int LONG_TIMEOUT = 5000;
-  // Expected max time for sending an assured update and receive its ack
-  // (without errors)
+  /**
+   * Expected max time for sending an assured update and receive its ack
+   * (without errors)
+   */
   private static final int MAX_SEND_UPDATE_TIME = 2000;
 
-  // Default group id
+  /** Default group id */
   private static final int DEFAULT_GID = 1;
-  // Other group ids
+  /** Other group ids */
   private static final int OTHER_GID = 2;
   private static final int OTHER_GID_BIS = 3;
 
-  // Default generation id
+  /** Default generation id */
   private static long DEFAULT_GENID = EMPTY_DN_GENID;
-  // Other generation id
+  /** Other generation id */
   private static long OTHER_GENID = 500L;
 
   /*
    * Definitions for the scenario of the fake DS
    */
-  // DS receives updates and replies acks with no errors to every updates
+  /** DS receives updates and replies acks with no errors to every updates */
   private static final int REPLY_OK_DS_SCENARIO = 1;
-  // DS receives updates but does not respond (makes timeouts)
+  /** DS receives updates but does not respond (makes timeouts) */
   private static final int TIMEOUT_DS_SCENARIO = 2;
-  // DS receives updates and replies ack with replay error flags
+  /** DS receives updates and replies ack with replay error flags */
   private static final int REPLAY_ERROR_DS_SCENARIO = 3;
 
   /*
    * Definitions for the scenario of the fake RS
    */
-  // RS receives updates and replies acks with no errors to every updates
+  /** RS receives updates and replies acks with no errors to every updates */
   private static final int REPLY_OK_RS_SCENARIO = 11;
-  // RS receives updates but does not respond (makes timeouts)
+  /** RS receives updates but does not respond (makes timeouts) */
   private static final int TIMEOUT_RS_SCENARIO = 12;
-  // RS is used for sending updates (with sendNewFakeUpdate()) and receive acks, synchronously
+  /**
+   * RS is used for sending updates (with sendNewFakeUpdate()) and receive acks,
+   * synchronously
+   */
   private static final int SENDER_RS_SCENARIO = 13;
   //   Scenarios only used in safe read tests:
-  // RS receives updates and replies ack error as if a DS was connected to it and timed out
+  /**
+   * RS receives updates and replies ack error as if a DS was connected to it
+   * and timed out
+   */
   private static final int DS_TIMEOUT_RS_SCENARIO_SAFE_READ = 14;
-  // RS receives updates and replies ack error as if a DS was connected to it and was wrong status
+  /**
+   * RS receives updates and replies ack error as if a DS was connected to it
+   * and was wrong status
+   */
   private static final int DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ = 15;
-  // RS receives updates and replies ack error as if a DS was connected to it and had a replay error
+  /**
+   * RS receives updates and replies ack error as if a DS was connected to it
+   * and had a replay error
+   */
   private static final int DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ = 16;
 
   private void debugInfo(String s)
@@ -436,7 +454,6 @@ public class AssuredReplicationServerTest
     int scenario, ServerState serverState, boolean startListen, int window)
       throws Exception
   {
-    {
       // Set port to right real RS according to its id
       int rsPort = getRsPort(rsId);
 
@@ -463,7 +480,6 @@ public class AssuredReplicationServerTest
       assertEquals(rdPort, rsPort);
 
       return fakeReplicationDomain;
-    }
   }
 
   /**
@@ -559,16 +575,15 @@ public class AssuredReplicationServerTest
    */
   public class FakeReplicationDomain extends ReplicationDomain
   {
-    // The scenario this DS is expecting
-
+    /** The scenario this DS is expecting */
     private int scenario = -1;
     private long generationId = -1;
 
     private ChangeNumberGenerator gen = null;
 
-    // False if a received update had assured parameters not as expected
+    /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
-    // Number of received updates
+    /** Number of received updates */
     private int nReceivedUpdates = 0;
 
     private int nWrongReceivedUpdates = 0;
@@ -667,7 +682,6 @@ public class AssuredReplicationServerTest
     @Override
     public boolean processUpdate(UpdateMsg updateMsg)
     {
-
       checkUpdateAssuredParameters(updateMsg);
       nReceivedUpdates++;
 
@@ -777,7 +791,7 @@ public class AssuredReplicationServerTest
     private boolean shutdown = false;
     private ProtocolSession session = null;
 
-    // Parameters given at constructor time
+    /** Parameters given at constructor time */
     private int port;
     private int serverId = -1;
     boolean isAssured = false; // Default value for config
@@ -787,18 +801,20 @@ public class AssuredReplicationServerTest
     private long generationId = -1L;
     private byte groupId = (byte) -1;
     private boolean sslEncryption = false;
-    // The scenario this RS is expecting
+    /** The scenario this RS is expecting */
     private int scenario = -1;
 
     private ChangeNumberGenerator gen = null;
 
-    // False if a received update had assured parameters not as expected
+    /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
-    // Number of received updates
+    /** Number of received updates */
     private int nReceivedUpdates = 0;
 
-    // True if an ack has been replied to a received assured update (in assured mode of course)
-    // used in reply scenario
+    /**
+     * True if an ack has been replied to a received assured update (in assured
+     * mode of course) used in reply scenario
+     */
     private boolean ackReplied = false;
 
     /**
@@ -828,9 +844,9 @@ public class AssuredReplicationServerTest
       gen = new ChangeNumberGenerator(serverId + 10, 0L);
     }
 
-    /*
-     * Make the RS send an assured message and return the ack
-     * message it receives from the RS
+    /**
+     * Make the RS send an assured message and return the ack message it
+     * receives from the RS
      */
     public AckMsg sendNewFakeUpdate() throws Exception
     {
@@ -911,7 +927,6 @@ public class AssuredReplicationServerTest
      */
     public void start(int scenario)
     {
-
       // Store expected test case
       this.scenario = scenario;
 
@@ -1038,9 +1053,7 @@ public class AssuredReplicationServerTest
 
       shutdown = true;
 
-      /*
-       * Shutdown any current client handling code
-       */
+      // Shutdown any current client handling code
       if (session != null)
       {
         session.close();
@@ -1049,7 +1062,7 @@ public class AssuredReplicationServerTest
       try
       {
         join();
-      } catch (InterruptedException ie)
+      } catch (InterruptedException ignored)
       {
       }
     }
@@ -1093,9 +1106,13 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Test if the last received updates was acknowledged (ack sent with or without errors)
-     * WARNING: this must be called once per update as it also immediatly resets the status
-     * for a new test for the next update
+     * Test if the last received updates was acknowledged (ack sent with or
+     * without errors).
+     * <p>
+     * WARNING: this must be called once per update as it also immediately
+     * resets the status for a new test for the next update
+     * </p>
+     *
      * @return True if acknowledged
      */
     public boolean ackReplied()
@@ -1309,7 +1326,6 @@ public class AssuredReplicationServerTest
   {
     return new Object[][]
     {
-
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
@@ -1438,34 +1454,44 @@ public class AssuredReplicationServerTest
     return result;
   }
 
-  // Helper for providers:
-  // Modify the passed object array list adding to each already contained object array each
-  // passed possible values.
-  // Example: to create all possible parameter combinations for a test method which has 2 parameters:
-  // one boolean then an integer, with both 2 possible values: {true|false} and {10|100}:
-  //
-  // List<List<Object>> objectArrayList = new ArrayList<List<Object>>();
-  // // Possible bolean values
-  // objectArrayList = addPossibleParameters(objectArrayList, true, false);
-  // // Possible integer values
-  // objectArrayList = addPossibleParameters(objectArrayList, 10, 100);
-  // Object[][] result = new Object[objectArrayList.size()][];
-  //    int i = 0;
-  //    for (List<Object> objectArray : objectArrayList)
-  //    {
-  //      result[i] = objectArray.toArray();
-  //      i++;
-  //    }
-  // return result;
-  //
-  // The provider will return the equivalent following Object[][]:
-  // new Object[][]
-  // {
-  //   { true, 10},
-  //   { true, 100},
-  //   { false, 10},
-  //   { false, 100}
-  // };
+  /**
+   * Helper for providers: Modify the passed object array list adding to each
+   * already contained object array each passed possible values.
+   * <p>
+   * Example: to create all possible parameter combinations for a test method
+   * which has 2 parameters: one boolean then an integer, with both 2 possible
+   * values: {true|false} and {10|100}:
+   *
+   * <pre>
+   * List&lt;List&lt;Object&gt;&gt; objectArrayList = new ArrayList&lt;List&lt;Object&gt;&gt;();
+   * // Possible boolean values
+   * objectArrayList = addPossibleParameters(objectArrayList, true, false);
+   * // Possible integer values
+   * objectArrayList = addPossibleParameters(objectArrayList, 10, 100);
+   * Object[][] result = new Object[objectArrayList.size()][];
+   * int i = 0;
+   * for (List&lt;Object&gt; objectArray : objectArrayList)
+   * {
+   *   result[i] = objectArray.toArray();
+   *   i++;
+   * }
+   * return result;
+   * </pre>
+   *
+   * The provider will return the equivalent following Object[][]:
+   *
+   * <pre>
+   * new Object[][]
+   * {
+   *   { true, 10},
+   *   { true, 100},
+   *   { false, 10},
+   *   { false, 100}
+   * };
+   * </pre>
+   *
+   * </p>
+   */
   private List<List<Object>> addPossibleParameters(List<List<Object>> objectArrayList, Object... possibleParameters)
   {
     List<List<Object>> newObjectArrayList = new ArrayList<List<Object>>();
@@ -1718,12 +1744,13 @@ public class AssuredReplicationServerTest
     }
   }
 
-  // Check that the DSs and the fake RSs of the topology have received/acked what is expected according to the
-  // test step (the number of updates)
-  // -1 for a gen id means no need to test the matching fake RS
+  /**
+   * Check that the DSs and the fake RSs of the topology have received/acked
+   * what is expected according to the test step (the number of updates).
+   * -1 for a gen id means no need to test the matching fake RS
+   */
   private void checkWhatHasBeenReceivedSafeData(int nSentUpdates, boolean otherFakeDS, long otherFakeDsGenId, long fakeRs1GenId, long fakeRs2GenId, long fakeRs3GenId, List<Integer> expectedServers)
   {
-
     // We should not receive our own update
     assertEquals(fakeRd1.getReceivedUpdates(), 0);
     assertTrue(fakeRd1.receivedUpdatesOk());
@@ -1744,7 +1771,6 @@ public class AssuredReplicationServerTest
     }
 
     // Check what received/did fake Rss
-
     if (nSentUpdates < 4)  // Fake RS 3 is stopped after 3 updates sent
     {
       if (fakeRs1GenId != DEFAULT_GENID)
@@ -1854,8 +1880,11 @@ public class AssuredReplicationServerTest
     }
   }
 
-  // Compute a list of servers that are eligibles but that are not able to return an ack
-  // (those in eligibleServers that are not in expectedServers). Result may of course be an empty list
+  /**
+   * Compute a list of servers that are eligibles but that are not able to
+   * return an ack (those in eligibleServers that are not in expectedServers).
+   * Result may of course be an empty list
+   */
   private List<Integer> computeExpectedServersInError(List<Integer> eligibleServers, List<Integer> expectedServers)
   {
     List<Integer> expectedServersInError = new ArrayList<Integer>();
@@ -1867,10 +1896,15 @@ public class AssuredReplicationServerTest
     return expectedServersInError;
   }
 
-  // Check that the passed list of errors by server ids is as expected.
-  // - if expectedServersInError is not null and not empty, each server id in measuredServerErrors should have the value it has
-  // in prevServerErrors + 1, or 1 if it was not in prevServerErrors
-  // - if expectedServersInError is null or empty, both map should be equal
+  /**
+   * Check that the passed list of errors by server ids is as expected.
+   * <ul>
+   * <li>if expectedServersInError is not null and not empty, each server id in
+   * measuredServerErrors should have the value it has in prevServerErrors + 1,
+   * or 1 if it was not in prevServerErrors</li>
+   * <li>if expectedServersInError is null or empty, both map should be equal</li>
+   * </ul>
+   */
   private void checkServerErrors(Map<Integer,Integer> measuredServerErrors, Map<Integer,Integer> prevServerErrors, List<Integer> expectedServersInError)
   {
     if (expectedServersInError != null)
@@ -1937,8 +1971,11 @@ public class AssuredReplicationServerTest
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
   }
 
-  // Compute the list of servers that are eligible for receiving a safe data assured update
-  // according to their group id and generation id. If -1 is used, the server is out of scope
+  /**
+   * Compute the list of servers that are eligible for receiving a safe data
+   * assured update according to their group id and generation id. If -1 is
+   * used, the server is out of scope
+   */
   private List<Integer> computeEligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
   {
     List<Integer> eligibleServers = new ArrayList<Integer>();
@@ -1957,7 +1994,10 @@ public class AssuredReplicationServerTest
     return eligibleServers;
   }
 
-  // Are group id and generation id ok for being an eligible RS for assured update ?
+  /**
+   * Are group id and generation id ok for being an eligible RS for assured
+   * update ?
+   */
   private boolean areGroupAndGenerationIdOk(int fakeRsGid, long fakeRsGenId)
   {
     if ((fakeRsGid != -1) && (fakeRsGenId != -1L))
@@ -1967,8 +2007,11 @@ public class AssuredReplicationServerTest
     return false;
   }
 
-  // Compute the list of servers that are eligible for receiving a safe data assured update and that are expected to effectively ack the update
-  // If -1 is used, the server is out of scope
+  /**
+   * Compute the list of fake servers that are eligible for receiving a safe
+   * data assured update and that are expected to effectively ack the update. If
+   * -1 is used, the server is out of scope
+   */
   private List<Integer> computeExpectedServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen, int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
   {
     List<Integer> exptectedServers = new ArrayList<Integer>();
@@ -3172,7 +3215,7 @@ public class AssuredReplicationServerTest
     }
   }
 
-  // Helper method for some safe read test methods
+  /** Helper method for some safe read test methods */
   private void checkDSReceivedAndAcked(FakeReplicationDomain fakeRd, int nPacket)
   {
     assertEquals(fakeRd.getAssuredSrSentUpdates(), 0);
@@ -3187,7 +3230,7 @@ public class AssuredReplicationServerTest
     assertEquals(fakeRd.getAssuredSrReceivedUpdatesNotAcked(), 0);
   }
 
-  // Helper method for some safe read test methods
+  /** Helper method for some safe read test methods */
   private void checkDSSentAndAcked(FakeReplicationDomain fakeRd, int nPacket)
   {
     assertEquals(fakeRd.getAssuredSrSentUpdates(), nPacket);
@@ -3208,7 +3251,6 @@ public class AssuredReplicationServerTest
    * Topology:
    * DS1(GID=1)---RS1(GID=1)---RS2(GID=2)---DS3(GID=2)
    * DS2(GID=1)---/                     \---DS4(GID=2)
-   *
    */
   @Test(enabled = true)
   public void testSafeReadMultiGroups() throws Exception
@@ -3346,7 +3388,6 @@ public class AssuredReplicationServerTest
    * another RS and according to the remote DS configuration
    * Topology:
    * DS1---RS1---RS2---DS2 (DS2 with changing configuration)
-   *
    */
   @Test(dataProvider = "testSafeReadTwoRSsProvider", groups = "slow", enabled = true)
   public void testSafeReadTwoRSs(int fakeDsGid, long fakeDsGenId, int fakeDsScen) throws Exception
@@ -3503,7 +3544,6 @@ public class AssuredReplicationServerTest
    * is degraded (has wrong status)
    * Topology:
    * DS1---RS1---DS2 (DS2 going degraded)
-   *
    */
   @Test(groups = "slow", enabled = true)
   public void testSafeReadWrongStatus() throws Exception
