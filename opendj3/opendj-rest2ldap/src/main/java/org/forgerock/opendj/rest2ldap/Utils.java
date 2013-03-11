@@ -201,6 +201,8 @@ final class Utils {
         int resourceResultCode;
         try {
             throw t;
+        } catch (final ResourceException e) {
+            return e;
         } catch (final AssertionFailureException e) {
             resourceResultCode = ResourceException.VERSION_MISMATCH;
         } catch (final AuthenticationException e) {
