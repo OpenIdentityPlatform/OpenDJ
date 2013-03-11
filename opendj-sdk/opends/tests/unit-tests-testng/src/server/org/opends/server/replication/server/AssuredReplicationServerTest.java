@@ -497,12 +497,13 @@ public class AssuredReplicationServerTest
       long assuredTimeout, String testCase, int nbRS) throws ConfigException
   {
     int port = getRsPort(serverId);
-    SortedSet<String> replServers = generateReplicationServerUrls(port, nbRS);
+    SortedSet<String> otherRsUrls =
+        generateOtherReplicationServerUrls(port, nbRS);
 
     String dir = testName + serverId + testCase + "Db";
     ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-            replServers, groupId, assuredTimeout, 5000);
+            otherRsUrls, groupId, assuredTimeout, 5000);
     // No monitoring publisher to not interfere with some SocketTimeoutException
     // expected at some points in these tests
     conf.setMonitoringPeriod(0L);
@@ -512,9 +513,8 @@ public class AssuredReplicationServerTest
 
   /**
    * Returns a Set<String> containing the URLs for the real Replication Servers
-   * (RS for short) for the specified number of RSs. The Set is built by
-   * excluding the URL for the currentPort. The returned Set size is nbRS - 1
-   * (for the excluded port).
+   * (RS for short) for the specified number of RSs excluding the URL for the
+   * excludedRsPort. The returned Set size is nbRS - 1 (for the excluded port).
    *
    * @param excludedRsPort
    *          the RS port to exclude
@@ -522,8 +522,8 @@ public class AssuredReplicationServerTest
    *          the total number of real RSs that will be part of the topology.
    * @return a SortedSet<String> containing the RS URLs.
    */
-  private SortedSet<String> generateReplicationServerUrls(int excludedRsPort,
-      int totalNbRS)
+  private SortedSet<String> generateOtherReplicationServerUrls(
+      int excludedRsPort, int totalNbRS)
   {
     SortedSet<String> replServers = new TreeSet<String>();
     if (totalNbRS >= 2)
