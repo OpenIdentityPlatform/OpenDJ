@@ -453,20 +453,13 @@ public class AssuredReplicationServerTest
 
       // Test connection
       assertTrue(fakeReplicationDomain.isConnected());
-      int rdPort = -1;
       // Check connected server port
       String serverStr = fakeReplicationDomain.getReplicationServer();
       int index = serverStr.lastIndexOf(':');
       if ((index == -1) || (index >= serverStr.length()))
         fail("Enable to find port number in: " + serverStr);
       String rdPortStr = serverStr.substring(index + 1);
-      try
-      {
-        rdPort = Integer.parseInt(rdPortStr);
-      } catch (Exception e)
-      {
-        fail("Enable to get an int from: " + rdPortStr);
-      }
+      int rdPort = Integer.parseInt(rdPortStr);// fail the test if not an int
       assertEquals(rdPort, rsPort);
 
       return fakeReplicationDomain;
@@ -477,10 +470,10 @@ public class AssuredReplicationServerTest
    * Creates and connects a new fake replication server, using the passed scenario.
    */
   private FakeReplicationServer createFakeReplicationServer(int serverId,
-    int groupId, int rsId, long generationId, boolean assured,
-    AssuredMode assuredMode, int safeDataLevel, ServerState serverState, int scenario)
+      int groupId, int rsId, long generationId, boolean assured,
+      AssuredMode assuredMode, int safeDataLevel, ServerState serverState,
+      int scenario) throws Exception
   {
-    {
       // Set port to right real RS according to its id
       int rsPort = getRsPort(rsId);
 
@@ -489,13 +482,12 @@ public class AssuredReplicationServerTest
         TEST_ROOT_DN_STRING, generationId);
 
       // Connect fake RS to the real RS
-      assertTrue(fakeReplicationServer.connect(serverState));
+      fakeReplicationServer.connect(serverState);
 
       // Start wished scenario
       fakeReplicationServer.start(scenario);
 
       return fakeReplicationServer;
-    }
   }
 
   /**
@@ -840,11 +832,8 @@ public class AssuredReplicationServerTest
      * Make the RS send an assured message and return the ack
      * message it receives from the RS
      */
-    public AckMsg sendNewFakeUpdate() throws SocketTimeoutException
+    public AckMsg sendNewFakeUpdate() throws Exception
     {
-      try
-      {
-
         // Create a new delete update message (the simplest to create)
         DeleteMsg delMsg = new DeleteMsg(baseDn, gen.newChangeNumber(),
         UUID.randomUUID().toString());
@@ -867,27 +856,13 @@ public class AssuredReplicationServerTest
         ackMsg = (AckMsg)replMsg;
 
         return ackMsg;
-
-      } catch(SocketTimeoutException e)
-      {
-        throw e;
-      } catch (Throwable t)
-      {
-        fail("Unexpected exception in fake replication server sendNewFakeUpdate " +
-          "processing: " + t);
-        return null;
-      }
     }
 
     /**
      * Connect to RS
-     *
-     * @return true if connection was made successfully
      */
-    public boolean connect(ServerState serverState)
+    public void connect(ServerState serverState) throws Exception
     {
-      try
-      {
         // Create and connect socket
         InetSocketAddress serverAddr =
           new InetSocketAddress("localhost", port);
@@ -929,14 +904,6 @@ public class AssuredReplicationServerTest
         // Read topo msg
         TopologyMsg inTopoMsg = (TopologyMsg) session.receive();
         debugInfo("Fake RS " + serverId + " handshake received the following info:" + inTopoMsg);
-
-      } catch (Throwable ex)
-      {
-        fail("Could not connect to replication server. Error in RS " + serverId +
-          " :" + ex.getMessage());
-        return false;
-      }
-      return true;
     }
 
     /**
@@ -1288,13 +1255,7 @@ public class AssuredReplicationServerTest
 
       // Send update from DS 1
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
 
       // Check call time (should have last a lot less than long timeout)
       // (ack received if group id of DS and real RS are the same, no ack requested
@@ -1651,13 +1612,7 @@ public class AssuredReplicationServerTest
 
       // Send update
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
@@ -1688,13 +1643,7 @@ public class AssuredReplicationServerTest
 
       // Send update
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
@@ -1725,13 +1674,7 @@ public class AssuredReplicationServerTest
 
       // Send update
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
@@ -1762,13 +1705,7 @@ public class AssuredReplicationServerTest
 
       // Send update
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
@@ -1872,7 +1809,7 @@ public class AssuredReplicationServerTest
         // (SMALL_TIMEOUT)
         assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
           LONG_TIMEOUT));
-        // Check monitoring values (check that timeout occured)
+        // Check monitoring values (check that timeout occurred)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
         // Check that the servers that are eligible but not expected have been added in the error by server list
@@ -1898,7 +1835,7 @@ public class AssuredReplicationServerTest
           // (SMALL_TIMEOUT)
           assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
             LONG_TIMEOUT));
-          // Check monitoring values (check that timeout occured)
+          // Check monitoring values (check that timeout occurred)
           assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
           // Check that the servers that are eligible but not expected have been added in the error by server list
@@ -2256,15 +2193,8 @@ public class AssuredReplicationServerTest
       /*
        * Send update from DS 1 and check result
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
@@ -2321,15 +2251,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a first assured safe read update
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
@@ -2370,15 +2293,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a second assured safe read update
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
@@ -2430,15 +2346,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a third assured safe read update
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
@@ -2492,15 +2401,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a fourth assured safe read update
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
@@ -2540,15 +2442,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a fifth assured safe read update
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
@@ -2723,15 +2618,8 @@ public class AssuredReplicationServerTest
       /*
        * Send an assured safe read update
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Compute some thing that will help determine what to check according to
@@ -3138,15 +3026,8 @@ public class AssuredReplicationServerTest
       /*
        * Send update from DS 1 and check result
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
@@ -3217,15 +3098,8 @@ public class AssuredReplicationServerTest
       /*
        * Send a second update from DS 1 and check result
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
@@ -3401,15 +3275,8 @@ public class AssuredReplicationServerTest
       /*
        * Send update from DS 1 and check result
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
@@ -3530,15 +3397,8 @@ public class AssuredReplicationServerTest
       /*
        * Send update from DS 1 and check result
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       boolean fakeDsIsEligible = areGroupAndGenerationIdOk(fakeDsGid,
@@ -3659,18 +3519,12 @@ public class AssuredReplicationServerTest
       /*
        * Start 1 real RS with threshold value 1 to easily put DS2 in DEGRADED status
        */
-      try
-      {
-        // Create real RS
-        String dir = testName + RS1_ID + testCase + "Db";
-        ReplServerFakeConfiguration conf =
+      // Create real RS
+      String dir = testName + RS1_ID + testCase + "Db";
+      ReplServerFakeConfiguration conf =
           new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100,
-          new TreeSet<String>(), DEFAULT_GID, SMALL_TIMEOUT, 1);
-        rs1 = new ReplicationServer(conf);
-      } catch (Exception e)
-      {
-        fail("createReplicationServer " + e.getMessage());
-      }
+              new TreeSet<String>(), DEFAULT_GID, SMALL_TIMEOUT, 1);
+      rs1 = new ReplicationServer(conf);
 
       /*
        * Start 2 fake DSs
@@ -3706,13 +3560,7 @@ public class AssuredReplicationServerTest
       for (int i=1 ; i<=4 ; i++)
       {
         long startTime = System.currentTimeMillis();
-        try
-        {
-          fakeRd1.sendNewFakeUpdate();
-        } catch (TimeoutException e)
-        {
-          fail("No timeout is expected here");
-        }
+        fakeRd1.sendNewFakeUpdate();
         long sendUpdateTime = System.currentTimeMillis() - startTime;
         // RS should timeout as no listener in DS2
         assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
@@ -3781,15 +3629,8 @@ public class AssuredReplicationServerTest
        * Send an assured update from DS 1 : should be acked as DS2 is degraded
        * and RS should not consider it as eligible for assured
        */
-
       long startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
@@ -3896,15 +3737,8 @@ public class AssuredReplicationServerTest
       /*
        * Send again an assured update, DS2 should be taken into account for ack
        */
-
       startTime = System.currentTimeMillis();
-      try
-      {
-        fakeRd1.sendNewFakeUpdate();
-      } catch (TimeoutException e)
-      {
-        fail("No timeout is expected here");
-      }
+      fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
