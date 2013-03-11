@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -1413,6 +1414,14 @@ public class BackendImpl
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               e.getMessageObject());
+    }
+    catch (InitializationException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw new InitializationException(e.getMessageObject());
     }
     finally
     {

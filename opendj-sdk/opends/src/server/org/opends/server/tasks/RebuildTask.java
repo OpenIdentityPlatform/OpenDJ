@@ -41,6 +41,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
@@ -192,6 +193,7 @@ public class RebuildTask extends Task
     // The degraded state is set(if present in args)
     // during the initialization.
     rebuildConfig.isClearDegradedState(isClearDegradedState);
+    boolean isBackendNeedToBeEnabled = false;
 
     if (tmpDirectory == null)
     {
@@ -222,7 +224,7 @@ public class RebuildTask extends Task
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
 
-    // Disable the backend.
+    // Disable the backend
     // Except in 'cleardegradedstate' mode we don't need to disable it.
     if (!isClearDegradedState)
     {
@@ -293,6 +295,20 @@ public class RebuildTask extends Task
       BackendImpl jebBackend = (BackendImpl) backend;
       jebBackend.rebuildBackend(rebuildConfig);
     }
+    catch (InitializationException e)
+    {
+      // This exception catches all 'index not found'
+      // The backend needs to be re-enabled at the end of the process.
+      Message message =
+          ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      logError(message);
+      isBackendNeedToBeEnabled = true;
+      returnCode = TaskState.STOPPED_BY_ERROR;
+    }
     catch (Exception e)
     {
       if (debugEnabled())
@@ -305,10 +321,9 @@ public class RebuildTask extends Task
       logError(message);
       returnCode = TaskState.STOPPED_BY_ERROR;
     }
-
-    // Release the lock on the backend.
     finally
     {
+      // Release the lock on the backend.
       try
       {
         lockFile = LockFileManager.getBackendLockFileName(backend);
@@ -334,7 +349,8 @@ public class RebuildTask extends Task
 
     // The backend must be enabled only if the task is successful
     // for prevent potential risks of database corruption.
-    if (returnCode == TaskState.COMPLETED_SUCCESSFULLY && !isClearDegradedState)
+    if ((returnCode == TaskState.COMPLETED_SUCCESSFULLY
+        || (isBackendNeedToBeEnabled)) && !isClearDegradedState)
     {
       // Enable the backend.
       try
