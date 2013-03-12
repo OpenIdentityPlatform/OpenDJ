@@ -173,9 +173,8 @@
 
            <listitem>
             <para>(Optional) "isSingleValued": true means represent a possibly
-            multi-valued LDAP attribute as a single value, rather than an array
-            of values; false means represent a multi-valued attribute as an
-            array of values.</para>
+            multi-valued LDAP attribute as a single value; false means represent
+            it as an array of values.</para>
            </listitem>
 
            <listitem>
@@ -319,9 +318,8 @@
 
            <listitem>
             <para>(Optional) "isSingleValued": true means represent a possibly
-            multi-valued LDAP attribute as a single value, rather than an array
-            of values; false means represent a multi-valued attribute as an
-            array of values.</para>
+            multi-valued LDAP attribute as a single value; false means represent
+            it as an array of values.</para>
            </listitem>
 
            <listitem>
