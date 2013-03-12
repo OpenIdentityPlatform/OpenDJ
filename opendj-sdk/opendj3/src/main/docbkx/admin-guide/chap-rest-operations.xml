@@ -150,7 +150,7 @@
  --header "Content-Type: application/json"
  --header "If-None-Match: *"
  --data '{
-  "id": "newuser",
+  "_id": "newuser",
   "contactInformation": {
     "telephoneNumber": "+1 408 555 1212",
     "emailAddress": "newuser@example.com"
@@ -159,23 +159,36 @@
     "familyName": "New",
     "givenName": "User"
   },
-  "displayName": "New User"
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
  }'
  http://opendj.example.com:8080/rest2ldap/users/newuser?_prettyPrint=true
 {
-  "id" : "newuser",
-  "rev" : "0000000049522179",
+  "_rev" : "0000000037453cac",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1212",
     "emailAddress" : "newuser@example.com"
   },
+  "_id" : "newuser",
   "name" : {
     "familyName" : "New",
     "givenName" : "User"
   },
   "userName" : "newuser@example.com",
-  "displayName" : "New User"
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-03-11T16:49:42Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
 }</screen>
    </listitem>
 
@@ -194,19 +207,23 @@
 
   <screen>$ curl http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
 {
-  "id" : "bjensen",
-  "rev" : "000000002f43b789",
+  "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1862",
     "emailAddress" : "bjensen@example.com"
   },
+  "_id" : "bjensen",
   "name" : {
     "familyName" : "Jensen",
     "givenName" : "Barbara"
   },
   "userName" : "bjensen@example.com",
-  "displayName" : "Barbara Jensen"
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
 }</screen>
  </section>
 
@@ -241,11 +258,11 @@
   readability.</para>
 
   <para>TODO, fix pending https://bugster.forgerock.org/jira/browse/OPENDJ-775</para>
-  <screen>$ curl
+  <screen width="82">$ curl
  --request POST
  --header "Content-Type: application/json"
  --data '{
-  "id": "newuser",
+  "_id": "newuser",
   "contactInformation": {
     "telephoneNumber": "+1 408 555 1212",
     "emailAddress": "newuser@example.com"
@@ -254,25 +271,36 @@
     "familyName": "New",
     "givenName": "User"
   },
-  "displayName": "New User"
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
 }'
- http://opendj.example.com:8080/rest2ldap/users?_action=create&amp;_prettyPrint=true
+ "http://opendj.example.com:8080/rest2ldap/users?_action=create&amp;_prettyPrint=true"
 {
-  "id": "newuser",
-  "rev": "0000000049522179",
-  "schemas": [
-    "urn:scim:schemas:core:1.0"
-  ],
-  "contactInformation": {
-    "telephoneNumber": "+1 408 555 1212",
-    "emailAddress": "newuser@example.com"
+  "_rev" : "0000000035383ca8",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
   },
-  "name": {
-    "familyName": "New",
-    "givenName": "User"
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
   },
-  "userName": "newuser@example.com",
-  "displayName": "New User"
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-03-11T16:56:22Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
 }</screen>
 
   <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-695</para>
@@ -319,19 +347,23 @@
   &amp;_prettyPrint=true'
 {
   "result" : [ {
-    "id" : "bjensen",
-    "rev" : "000000002f43b789",
+    "_rev" : "000000002ee3b764",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
     "contactInformation" : {
       "telephoneNumber" : "+1 408 555 1862",
       "emailAddress" : "bjensen@example.com"
     },
+    "_id" : "bjensen",
     "name" : {
       "familyName" : "Jensen",
       "givenName" : "Barbara"
     },
     "userName" : "bjensen@example.com",
-    "displayName" : "Barbara Jensen"
+    "displayName" : "Barbara Jensen",
+    "manager" : [ {
+      "_id" : "trigden",
+      "displayName" : "Torrey Rigden"
+    } ]
   } ],
   "resultCount" : 1,
   "pagedResultsCookie" : null,
@@ -515,16 +547,27 @@
      <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
  /users?_filter=userName%20pr&amp;_prettyPrint=true'
 {
+{
   "result" : [ {
-    "id" : "abarnes",
-    "rev" : "000000002609a565",
+    "_rev" : "000000002370a4d8",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
     "contactInformation" : {
+      "telephoneNumber" : "+1 408 555 9445",
+      "emailAddress" : "abarnes@example.com"
+    },
 ... many entries omitted ...
-    "userName" : "fdupont@example.fr",
-    "displayName" : "Frederique Dupont"
+    "_id" : "newuser",
+    "name" : {
+      "familyName" : "New",
+      "givenName" : "User"
+    },
+    "userName" : "newuser@example.com",
+    "displayName" : "New User",
+    "meta" : {
+      "created" : "2013-03-11T16:56:22Z"
+    }
   } ],
-  "resultCount" : 151,
+  "resultCount" : 152,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
 }</screen>
@@ -540,8 +583,24 @@
      <para>In other words you can list all resources in a collection as in the
      following example.</para>
 
-     <screen>$ curl http://opendj.example.com:8080/rest2ldap/users?_filter=true
-... much output omitted ...</screen>
+     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
+ /groups?_filter=true&amp;_fields=displayName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "displayName" : "Accounting Managers"
+  }, {
+    "displayName" : "Directory Administrators"
+  }, {
+    "displayName" : "HR Managers"
+  }, {
+    "displayName" : "PD Managers"
+  }, {
+    "displayName" : "QA Managers"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
     </listitem>
    </varlistentry>
 
@@ -553,23 +612,22 @@
      (not), using parentheses,
      <literal>(<replaceable>expression</replaceable>)</literal>, to group
      expressions. The following example queries resources with last name
-     Jensen and first name starting with <literal>Bar</literal>. Notice that the
-     filters use the JSON pointers <literal>name/familyName</literal> and
-     <literal>name/givenName</literal> to identify the fields that are nested
-     inside the <literal>name</literal> object.</para>
+     Jensen and manager name starting with <literal>Bar</literal>. Notice that
+     the filters use the JSON pointers <literal>name/familyName</literal> and
+     <literal>manager/displayName</literal> to identify the fields that are
+     nested inside the <literal>name</literal> and <literal>manager</literal>
+     objects.</para>
 
      <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=(name/familyName+eq+"jensen"+and+name/givenName+sw+"Bar")
- &amp;_fields=name
- &amp;_prettyPrint=true'
+ /users?_filter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
+ &amp;_fields=displayName&amp;_prettyPrint=true'
 {
   "result" : [ {
-    "name" : {
-      "familyName" : "Jensen",
-      "givenName" : "Barbara"
-    }
+    "displayName" : "Jody Jensen"
+  }, {
+    "displayName" : "Ted Jensen"
   } ],
-  "resultCount" : 1,
+  "resultCount" : 2,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
 }</screen>
@@ -590,21 +648,21 @@
    <varlistentry>
     <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>TODO</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><literal>__pagedResultsOffset=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>TODO</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>TODO</para>
     </listitem>
    </varlistentry>
   </variablelist>

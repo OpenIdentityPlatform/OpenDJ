@@ -127,18 +127,18 @@
         ]
     }
 }</programlisting>
-        </listitem>
-       </varlistentry>
+         </listitem>
+        </varlistentry>
 
-       <varlistentry>
-        <term>"simple"</term>
-        <listitem>
-         <para>Maps a JSON field to an LDAP attribute.</para>
+        <varlistentry>
+         <term>"simple"</term>
+         <listitem>
+          <para>Maps a JSON field to an LDAP attribute.</para>
 
-         <para>Simple mappings are used where the correspondence between JSON
-         fields and LDAP attributes is one-to-one.</para>
+          <para>Simple mappings are used where the correspondence between JSON
+          fields and LDAP attributes is one-to-one.</para>
 
-         <programlisting language="javascript">{
+          <programlisting language="javascript">{
     "userName": {
         "simple": {
             "ldapAttribute": "mail",
@@ -148,87 +148,197 @@
     }
 }</programlisting>
 
-         <itemizedlist>
-          <para>Simple mappings can take a number of fields.</para>
+          <itemizedlist>
+           <para>Simple mappings can take a number of fields.</para>
 
-          <listitem>
-           <para>(Required) "ldapAttribute": the name of LDAP attribute.</para>
-          </listitem>
+           <listitem>
+            <para>(Required) "ldapAttribute": the name of LDAP attribute.</para>
+           </listitem>
 
-          <listitem>
-           <para>(Optional) "defaultValue": the JSON value if no LDAP attribute
-           is available on the entry.</para>
-          </listitem>
+           <listitem>
+            <para>(Optional) "defaultValue": the JSON value if no LDAP attribute
+            is available on the entry.</para>
+           </listitem>
 
-          <listitem>
-           <para>(Optional) "isBinary": true means the LDAP attribute is
-           binary and the JSON field gets the base64-encoded value.</para>
-          </listitem>
+           <listitem>
+            <para>(Optional) "isBinary": true means the LDAP attribute is
+            binary and the JSON field gets the base64-encoded value.</para>
+           </listitem>
 
-          <listitem>
-           <para>(Optional) "isRequired": true means the LDAP attribute is
-           mandatory and must be provided to create the resource.</para>
-          </listitem>
+           <listitem>
+            <para>(Optional) "isRequired": true means the LDAP attribute is
+            mandatory and must be provided to create the resource; false means
+            it is optional.</para>
+           </listitem>
 
-          <listitem>
-           <para>(Optional) "isSingleValued": true means represent a possibly
-           multi-valued LDAP attribute as a single value, rather than an array
-           of values.</para>
-          </listitem>
+           <listitem>
+            <para>(Optional) "isSingleValued": true means represent a possibly
+            multi-valued LDAP attribute as a single value, rather than an array
+            of values; false means represent a multi-valued attribute as an
+            array of values.</para>
+           </listitem>
 
-          <listitem>
-           <para>(Optional) "writability": indicates whether the LDAP attribute
-           supports updates. This field can take the following values.</para>
+           <listitem>
+            <para>(Optional) "writability": indicates whether the LDAP attribute
+            supports updates. This field can take the following values.</para>
 
-           <itemizedlist>
-            <listitem>
-             <para>"createOnly": This attribute can be set only when the
-             entry is created. Attempts to update this attribute thereafter
-             result in errors.</para>
-            </listitem>
-            <listitem>
-             <para>"createOnlyDiscardWrites": This attribute can be set only
-             when the entry is created. Attempts to update this attribute
-             thereafter do not result in errors. Instead the update value
-             is discarded.</para>
-            </listitem>
-            <listitem>
-             <para>"readOnly": This attribute cannot be updated. Attempts to
-             update this attribute result in errors.</para>
-            </listitem>
-            <listitem>
-             <para>"readOnlyDiscardWrites": This attribute cannot be updated.
-             Attempts to update this attribute do not result in errors. Instead
-             the update value is discarded.</para>
-            </listitem>
-            <listitem>
-             <para>"readWrite": This attribute can be set at creation and
-             updated thereafter.</para>
-            </listitem>
-           </itemizedlist>
-          </listitem>
-         </itemizedlist>
-        </listitem>
-       </varlistentry>
+            <itemizedlist>
+             <listitem>
+              <para>"createOnly": This attribute can be set only when the
+              entry is created. Attempts to update this attribute thereafter
+              result in errors.</para>
+             </listitem>
+             <listitem>
+              <para>"createOnlyDiscardWrites": This attribute can be set only
+              when the entry is created. Attempts to update this attribute
+              thereafter do not result in errors. Instead the update value
+              is discarded.</para>
+             </listitem>
+             <listitem>
+              <para>"readOnly": This attribute cannot be updated. Attempts to
+              update this attribute result in errors.</para>
+             </listitem>
+             <listitem>
+              <para>"readOnlyDiscardWrites": This attribute cannot be updated.
+              Attempts to update this attribute do not result in errors. Instead
+              the update value is discarded.</para>
+             </listitem>
+             <listitem>
+              <para>"readWrite": This attribute can be set at creation and
+              updated thereafter.</para>
+             </listitem>
+            </itemizedlist>
+           </listitem>
+          </itemizedlist>
+         </listitem>
+        </varlistentry>
 
-       <varlistentry>
-        <term>"object"</term>
-        <listitem>
-         <para>Maps a JSON object to LDAP attributes.</para>
+        <varlistentry>
+         <term>"object"</term>
+         <listitem>
+          <para>Maps a JSON object to LDAP attributes.</para>
 
-         <para>This mapping lets you create JSON objects whose fields themselves
-         have mappings to LDAP attributes.</para>
-        </listitem>
-       </varlistentry>
+          <para>This mapping lets you create JSON objects whose fields themselves
+          have mappings to LDAP attributes.</para>
+         </listitem>
+        </varlistentry>
 
-       <!-- More to come?
-       <varlistentry>
-        <term></term>
-        <listitem>
-         <para></para>
-        </listitem>
-       </varlistentry>
-       -->
+        <varlistentry>
+         <term>"reference"</term>
+         <listitem>
+          <para>Maps a JSON field to an LDAP entry found by reference.</para>
+
+          <para>This mapping works for LDAP attributes whose values reference
+          other entries. This is shown in the following example from the default
+          configuration. The LDAP <literal>manager</literal> attribute values
+          are user entry DNs. Here, the JSON <literal>manager</literal> field
+          takes the user ID and name from the entry referenced by the LDAP
+          attribute. On updates, changes to the JSON manager
+          <literal>_id</literal> affect which manager entry is referenced, yet
+          any changes to the manager's name are discarded, because changing
+          managers only affects which user entry to point to, not the referenced
+          user's name.</para>
+
+          <programlisting language="javascript">{
+    "manager": {
+        "reference": {
+            "ldapAttribute": "manager",
+            "baseDN": "ou=people,dc=example,dc=com",
+            "primaryKey": "uid",
+            "mapper": {
+                "object": {
+                    "_id": {
+                        "simple": {
+                            "ldapAttribute": "uid",
+                            "isSingleValued": true,
+                            "isRequired": true
+                        }
+                    },
+                    "displayName": {
+                        "simple": {
+                            "ldapAttribute": "cn",
+                            "isSingleValued": true,
+                            "writability": "readOnlyDiscardWrites"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}</programlisting>
+
+          <para>Babs Jensen's manager in the sample LDAP data is Torrey Rigden,
+          who has user ID <literal>trigden</literal>. Babs's entry has
+          <literal>manager: uid=trigden,ou=People,dc=example,dc=com</literal>.
+          With this mapping, the resulting JSON field is the following.</para>
+
+          <programlisting language="javascript">{
+    "manager": [
+        {
+            "_id": "trigden",
+            "displayName": "Torrey Rigden"
+        }
+    ]
+}</programlisting>
+
+          <itemizedlist>
+           <para>Reference mapping objects have the following fields.</para>
+
+           <listitem>
+            <para>(Required) "baseDN": indicates the base LDAP DN under which
+            to find entries referenced by the JSON resource.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Required) "ldapAttribute": specifies the LDAP attribute in
+            the entry underlying the JSON resource whose value points to the
+            referenced entry.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Required) "mapper": describes how the referenced entry
+            content maps to the content of this JSON field.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Required) "primaryKey": indicates which LDAP attribute in
+            the mapper holds the primary key to the referenced entry.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Optional) "filter": specifies the LDAP filter to use to
+            search for the referenced entry. The default is
+            <literal>"(objectClass=*)"</literal>.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Optional) "isRequired": true means the LDAP attribute is
+            mandatory and must be provided to create the resource; false means
+            it is optional.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Optional) "isSingleValued": true means represent a possibly
+            multi-valued LDAP attribute as a single value, rather than an array
+            of values; false means represent a multi-valued attribute as an
+            array of values.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Optional) "scope": indicates the scope of the LDAP search to
+            find the referenced entry. The default is
+            <literal>"SearchScope.WHOLE_SUBTREE"</literal>.</para>
+           </listitem>
+
+           <listitem>
+            <para>(Optional) "writability": indicates whether the mapping
+            supports updates, as described above for the simple mapping. The
+            default is "readWrite".</para>
+           </listitem>
+          </itemizedlist>
+         </listitem>
+        </varlistentry>
+
        </variablelist>
       </listitem>
      </varlistentry>
@@ -353,7 +463,7 @@
      </varlistentry>
     </variablelist>
 
-    <para>The default mapping exposes a SCIM view of sample data.</para>
+    <para>The default mappings expose a SCIM view of user and group data.</para>
 
     <programlisting language="javascript">{
     "/users": {
@@ -381,7 +491,7 @@
                     "urn:scim:schemas:core:1.0"
                 ]
             },
-            "id": {
+            "_id": {
                 "simple": {
                     "ldapAttribute": "uid",
                     "isSingleValued": true,
@@ -389,7 +499,7 @@
                     "writability": "createOnly"
                 }
             },
-            "rev": {
+            "_rev": {
                 "simple": {
                     "ldapAttribute": "etag",
                     "isSingleValued": true,
@@ -427,6 +537,49 @@
                     }
                 }
             },
+            "manager": {
+                "reference": {
+                    "ldapAttribute": "manager",
+                    "baseDN": "ou=people,dc=example,dc=com",
+                    "primaryKey": "uid",
+                    "mapper": {
+                        "object": {
+                            "_id": {
+                                "simple": {
+                                    "ldapAttribute": "uid",
+                                    "isSingleValued": true,
+                                    "isRequired": true
+                                }
+                            },
+                            "displayName": {
+                                "simple": {
+                                    "ldapAttribute": "cn",
+                                    "isSingleValued": true,
+                                    "writability": "readOnlyDiscardWrites"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "groups": {
+                "reference": {
+                    "ldapAttribute": "isMemberOf",
+                    "baseDN": "ou=groups,dc=example,dc=com",
+                    "writability": "readOnly",
+                    "primaryKey": "cn",
+                    "mapper": {
+                        "object": {
+                            "_id": {
+                                "simple": {
+                                    "ldapAttribute": "cn",
+                                    "isSingleValued": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "contactInformation": {
                 "object": {
                     "telephoneNumber": {
@@ -439,6 +592,115 @@
                         "simple": {
                             "ldapAttribute": "mail",
                             "isSingleValued": true
+                        }
+                    }
+                }
+            },
+            "meta": {
+                "object": {
+                    "created": {
+                        "simple": {
+                            "ldapAttribute": "createTimestamp",
+                            "isSingleValued": true,
+                            "writability": "readOnly"
+                        }
+                    },
+                    "lastModified": {
+                        "simple": {
+                            "ldapAttribute": "modifyTimestamp",
+                            "isSingleValued": true,
+                            "writability": "readOnly"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "/groups": {
+        "baseDN": "ou=groups,dc=example,dc=com",
+        "readOnUpdatePolicy": "controls",
+        "additionalLDAPAttributes": [
+            {
+                "type": "objectClass",
+                "values": [
+                    "top",
+                    "groupOfUniqueNames"
+                ]
+            }
+        ],
+        "namingStrategy": {
+            "strategy": "clientDNNaming",
+            "dnAttribute": "cn"
+        },
+        "etagAttribute": "etag",
+        "attributes": {
+            "schemas": {
+                "constant": [
+                    "urn:scim:schemas:core:1.0"
+                ]
+            },
+            "_id": {
+                "simple": {
+                    "ldapAttribute": "cn",
+                    "isSingleValued": true,
+                    "isRequired": true,
+                    "writability": "createOnly"
+                }
+            },
+            "_rev": {
+                "simple": {
+                    "ldapAttribute": "etag",
+                    "isSingleValued": true,
+                    "writability": "readOnly"
+                }
+            },
+            "displayName": {
+                "simple": {
+                    "ldapAttribute": "cn",
+                    "isSingleValued": true,
+                    "isRequired": true,
+                    "writability": "readOnly"
+                }
+            },
+            "members": {
+                "reference": {
+                    "ldapAttribute": "uniqueMember",
+                    "baseDN": "dc=example,dc=com",
+                    "primaryKey": "uid",
+                    "mapper": {
+                        "object": {
+                            "_id": {
+                                "simple": {
+                                    "ldapAttribute": "uid",
+                                    "isSingleValued": true,
+                                    "isRequired": true
+                                }
+                            },
+                            "displayName": {
+                                "simple": {
+                                    "ldapAttribute": "cn",
+                                    "isSingleValued": true,
+                                    "writability": "readOnlyDiscardWrites"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "meta": {
+                "object": {
+                    "created": {
+                        "simple": {
+                            "ldapAttribute": "createTimestamp",
+                            "isSingleValued": true,
+                            "writability": "readOnly"
+                        }
+                    },
+                    "lastModified": {
+                        "simple": {
+                            "ldapAttribute": "modifyTimestamp",
+                            "isSingleValued": true,
+                            "writability": "readOnly"
                         }
                     }
                 }
