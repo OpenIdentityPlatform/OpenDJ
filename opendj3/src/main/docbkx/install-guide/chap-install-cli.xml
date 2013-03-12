@@ -481,7 +481,7 @@ To see basic server configuration status and configuration you can launch
 
   <step>
    <para>Deploy
-   <filename>opendj-rest2ldap-servlet-<?eval ${docTargetVersion}?>-servlet.war</filename>
+   <filename>opendj-rest2ldap-servlet-<?eval ${sdkDocTargetVersion}?>-servlet.war</filename>
    according to the instructions for your application server.</para>
   </step>
 
@@ -525,19 +525,23 @@ To see basic server configuration status and configuration you can launch
    <screen>$ curl
  http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
 {
-  "id" : "bjensen",
-  "rev" : "000000002f43b789",
+  "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1862",
     "emailAddress" : "bjensen@example.com"
   },
+  "_id" : "bjensen",
   "name" : {
     "familyName" : "Jensen",
     "givenName" : "Barbara"
   },
   "userName" : "bjensen@example.com",
-  "displayName" : "Barbara Jensen"
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
 }</screen>
 
    <para>If you generated example data, Babs Jensen's entry is not included.
