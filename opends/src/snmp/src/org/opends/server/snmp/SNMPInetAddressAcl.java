@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -30,10 +31,11 @@ import com.sun.management.snmp.InetAddressAcl;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.Vector;
+
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -57,7 +59,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      */
     private static final String ALL_MANAGERS_ALLOWED = "*";
 
-    private TreeSet<InetAddress> hostsList;
+    private Set<InetAddress> hostsList;
     private boolean allManagers = false;
 
     private SortedSet<String> trapsDestinations;
@@ -76,17 +78,16 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
         this.currentConfig = configuration;
 
         // hostsList
-        SortedSet tmp = this.currentConfig.getAllowedManager();
+        SortedSet<String> tmp = this.currentConfig.getAllowedManager();
         if (tmp.contains(ALL_MANAGERS_ALLOWED)) {
             this.allManagers=true;
         }
-        this.hostsList = new TreeSet<InetAddress>();
+        this.hostsList = new HashSet<InetAddress>();
         // Transform the String list into InetAddress List
-        for (Iterator iter = tmp.iterator(); iter.hasNext();) {
+        for (String dest : tmp) {
             try {
-                String dest = (String) iter.next();
                 this.hostsList.add(InetAddress.getByName(dest));
-            } catch (UnknownHostException ex) {
+            } catch (UnknownHostException ignore) {
             }
         }
 
@@ -110,7 +111,6 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      */
     public boolean checkReadPermission(InetAddress address) {
-
         if (this.allManagers) {
             return true;
         }
@@ -120,15 +120,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
         }
 
         // check the address is in the configured allowed managers
-        boolean found = false;
-        for (Iterator iter = this.hostsList.iterator(); iter.hasNext();) {
-            InetAddress host = (InetAddress)iter.next();
-            if (host.equals(address)) {
-                found = true;
-                break;
-            }
-        }
-        return found;
+        return this.hostsList.contains(address);
     }
 
     /**
@@ -172,13 +164,10 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      */
     public Enumeration getTrapDestinations() {
         Vector<InetAddress> tempDests = new Vector<InetAddress>();
-        for (Iterator iter = this.trapsDestinations.iterator(); iter.hasNext();)
-        {
+        for (String dest : this.trapsDestinations) {
             try {
-                String dest = (String) iter.next();
-                InetAddress addr = InetAddress.getByName(dest);
-                tempDests.add(addr);
-            } catch (UnknownHostException ex) {
+                tempDests.add(InetAddress.getByName(dest));
+            } catch (UnknownHostException ignore) {
             }
         }
         return tempDests.elements();
