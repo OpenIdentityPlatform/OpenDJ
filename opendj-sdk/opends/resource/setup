@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2013 ForgeRock AS
 
 
 # Capture the current working directory so that we can change to it later.
@@ -54,7 +54,8 @@ then
 fi
 
 # Launch the setup process.
-"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} org.opends.quicksetup.installer.SetupLauncher "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} \
+     org.opends.quicksetup.installer.SetupLauncher "${@}"
 
 # return part
 RETURN_CODE=$?
