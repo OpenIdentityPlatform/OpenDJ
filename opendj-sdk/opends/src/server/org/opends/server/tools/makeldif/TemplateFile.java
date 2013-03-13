@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -707,33 +708,8 @@ public class TemplateFile
     {
       String line = lines[lineNumber];
 
-      // See if there are any constant definitions in the line that need to be
-      // replaced.  We'll do that first before any further processing.
-      int closePos = line.lastIndexOf(']');
-      if (closePos > 0)
-      {
-        StringBuilder lineBuffer = new StringBuilder(line);
-        int openPos = line.lastIndexOf('[', closePos);
-        if (openPos >= 0)
-        {
-          String constantName =
-               toLowerCase(line.substring(openPos+1, closePos));
-          String constantValue = templateFileConstants.get(constantName);
-          if (constantValue == null)
-          {
-            Message message = WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
-                    constantName, lineNumber);
-            warnings.add(message);
-          }
-          else
-          {
-            lineBuffer.replace(openPos, closePos+1, constantValue);
-          }
-        }
-
-        line = lineBuffer.toString();
-      }
-
+      line = replaceConstants(line, lineNumber,
+                              templateFileConstants, warnings);
 
       String lowerLine = toLowerCase(line);
       if ((line.length() == 0) || line.startsWith("#"))
@@ -837,35 +813,8 @@ public class TemplateFile
           }
           else
           {
-            // See if there are any constant definitions in the line that need
-            // to be replaced.  We'll do that first before any further
-            // processing.
-            closePos = line.lastIndexOf(']');
-            if (closePos > 0)
-            {
-              StringBuilder lineBuffer = new StringBuilder(line);
-              int openPos = line.lastIndexOf('[', closePos);
-              if (openPos >= 0)
-              {
-                String constantName =
-                     toLowerCase(line.substring(openPos+1, closePos));
-                String constantValue = templateFileConstants.get(constantName);
-                if (constantValue == null)
-                {
-                  Message message =
-                          WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
-                                  constantName, lineNumber);
-                  warnings.add(message);
-                }
-                else
-                {
-                  lineBuffer.replace(openPos, closePos+1, constantValue);
-                }
-              }
-
-              line = lineBuffer.toString();
-            }
-
+            line = replaceConstants(line, lineNumber,
+                                    templateFileConstants, warnings);
             lineList.add(line);
           }
         }
@@ -875,7 +824,7 @@ public class TemplateFile
 
         Branch b = parseBranchDefinition(branchLines, lineNumber,
                                          templateFileIncludeTags,
-                                         templateFileConstants, warnings);
+            warnings);
         DN branchDN = b.getBranchDN();
         if (templateFileBranches.containsKey(branchDN))
         {
@@ -908,35 +857,8 @@ public class TemplateFile
           }
           else
           {
-            // See if there are any constant definitions in the line that need
-            // to be replaced.  We'll do that first before any further
-            // processing.
-            closePos = line.lastIndexOf(']');
-            if (closePos > 0)
-            {
-              StringBuilder lineBuffer = new StringBuilder(line);
-              int openPos = line.lastIndexOf('[', closePos);
-              if (openPos >= 0)
-              {
-                String constantName =
-                     toLowerCase(line.substring(openPos+1, closePos));
-                String constantValue = templateFileConstants.get(constantName);
-                if (constantValue == null)
-                {
-                  Message message =
-                          WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
-                                  constantName, lineNumber);
-                  warnings.add(message);
-                }
-                else
-                {
-                  lineBuffer.replace(openPos, closePos+1, constantValue);
-                }
-              }
-
-              line = lineBuffer.toString();
-            }
-
+            line = replaceConstants(line, lineNumber,
+                                    templateFileConstants, warnings);
             lineList.add(line);
           }
         }
@@ -946,8 +868,7 @@ public class TemplateFile
 
         Template t = parseTemplateDefinition(templateLines, startLineNumber,
                                              templateFileIncludeTags,
-                                             templateFileConstants,
-                                             templateFileTemplates, warnings);
+            templateFileTemplates, warnings);
         String lowerName = toLowerCase(t.getName());
         if (templateFileTemplates.containsKey(lowerName))
         {
@@ -989,10 +910,69 @@ public class TemplateFile
   }
 
 
+  /**
+   * Parse a line and replace all constants within [ ] with their
+   * values.
+   *
+   * @param line        The line to parse.
+   * @param lineNumber  The line number in the template file.
+   * @param constants   The set of constants defined in the template file.
+   * @param warnings    A list into which any warnings identified may be
+   *                    placed.
+   * @return The line in which all constant variables have been replaced
+   *         with their value
+   */
+  private String replaceConstants(String line, int lineNumber,
+                                  Map<String,String> constants,
+                                  List<Message> warnings)
+  {
+    int closePos = line.lastIndexOf(']');
+    // Loop until we've scanned all closing brackets
+    do
+    {
+      // Skip escaped closing brackets
+      while (closePos > 0 &&
+          line.charAt(closePos - 1) == '\\')
+      {
+        closePos = line.lastIndexOf(']', closePos - 1);
+      }
+      if (closePos > 0)
+      {
+        StringBuilder lineBuffer = new StringBuilder(line);
+        int openPos = line.lastIndexOf('[', closePos);
+        // Find the opening bracket. If it's escaped, then it's not a constant
+        if ((openPos > 0 && line.charAt(openPos - 1) != '\\') ||
+            (openPos == 0))
+        {
+          String constantName =
+              toLowerCase(line.substring(openPos+1, closePos));
+          String constantValue = constants.get(constantName);
+          if (constantValue == null)
+          {
+            Message message = WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
+                constantName, lineNumber);
+            warnings.add(message);
+          }
+          else
+          {
+            lineBuffer.replace(openPos, closePos+1, constantValue);
+          }
+        }
+        if (openPos >= 0)
+        {
+          closePos = openPos;
+        }
+        line = lineBuffer.toString();
+        closePos = line.lastIndexOf(']', closePos);
+      }
+    } while (closePos > 0);
+    return line;
+  }
 
   /**
    * Parses the information contained in the provided set of lines as a MakeLDIF
    * branch definition.
+   *
    *
    * @param  branchLines      The set of lines containing the branch definition.
    * @param  startLineNumber  The line number in the template file on which the
@@ -1000,7 +980,6 @@ public class TemplateFile
    * @param  tags             The set of defined tags from the template file.
    *                          Note that this does not include the tags that are
    *                          always registered by default.
-   * @param  constants        The set of constants defined in the template file.
    * @param  warnings         A list into which any warnings identified may be
    *                          placed.
    *
@@ -1013,8 +992,7 @@ public class TemplateFile
    */
   private Branch parseBranchDefinition(String[] branchLines,
                                        int startLineNumber,
-                                       LinkedHashMap<String,Tag> tags,
-                                       LinkedHashMap<String,String> constants,
+                                       Map<String, Tag> tags,
                                        List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
@@ -1108,6 +1086,7 @@ public class TemplateFile
    * Parses the information contained in the provided set of lines as a MakeLDIF
    * template definition.
    *
+   *
    * @param  templateLines     The set of lines containing the template
    *                           definition.
    * @param  startLineNumber   The line number in the template file on which the
@@ -1115,8 +1094,6 @@ public class TemplateFile
    * @param  tags              The set of defined tags from the template file.
    *                           Note that this does not include the tags that are
    *                           always registered by default.
-   * @param  constants         The set of constants defined in the template
-   *                           file.
    * @param  definedTemplates  The set of templates already defined in the
    *                           template file.
    * @param  warnings          A list into which any warnings identified may be
@@ -1131,11 +1108,9 @@ public class TemplateFile
    */
   private Template parseTemplateDefinition(String[] templateLines,
                                            int startLineNumber,
-                                           LinkedHashMap<String,Tag> tags,
-                                           LinkedHashMap<String,String>
-                                                constants,
-                                           LinkedHashMap<String,Template>
-                                                definedTemplates,
+                                           Map<String, Tag> tags,
+                                           Map<String, Template>
+                                               definedTemplates,
                                            List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
@@ -1316,7 +1291,7 @@ public class TemplateFile
   private TemplateLine parseTemplateLine(String line, String lowerLine,
                                          int lineNumber, Branch branch,
                                          Template template,
-                                         LinkedHashMap<String,Tag> tags,
+                                         Map<String,Tag> tags,
                                          List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
@@ -1405,9 +1380,10 @@ public class TemplateFile
     final int PARSING_STATIC_TEXT     = 0;
     final int PARSING_REPLACEMENT_TAG = 1;
     final int PARSING_ATTRIBUTE_TAG   = 2;
+    final int PARSING_ESCAPED_CHAR    = 3;
 
     int phase = PARSING_STATIC_TEXT;
-
+    int previousPhase = PARSING_STATIC_TEXT;
 
     ArrayList<Tag> tagList = new ArrayList<Tag>();
     StringBuilder buffer = new StringBuilder();
@@ -1420,6 +1396,10 @@ public class TemplateFile
         case PARSING_STATIC_TEXT:
           switch (c)
           {
+            case '\\':
+              phase = PARSING_ESCAPED_CHAR;
+              previousPhase = PARSING_STATIC_TEXT;
+              break;
             case '<':
               if (buffer.length() > 0)
               {
@@ -1454,6 +1434,10 @@ public class TemplateFile
         case PARSING_REPLACEMENT_TAG:
           switch (c)
           {
+            case '\\':
+              phase = PARSING_ESCAPED_CHAR;
+              previousPhase = PARSING_REPLACEMENT_TAG;
+              break;
             case '>':
               Tag t = parseReplacementTag(buffer.toString(), branch, template,
                                           lineNumber, tags, warnings);
@@ -1471,7 +1455,11 @@ public class TemplateFile
         case PARSING_ATTRIBUTE_TAG:
           switch (c)
           {
-              case '}':
+            case '\\':
+              phase = PARSING_ESCAPED_CHAR;
+              previousPhase = PARSING_ATTRIBUTE_TAG;
+              break;
+            case '}':
               Tag t = parseAttributeTag(buffer.toString(), branch, template,
                                         lineNumber, warnings);
               tagList.add(t);
@@ -1483,6 +1471,11 @@ public class TemplateFile
               buffer.append(c);
               break;
           }
+          break;
+
+        case PARSING_ESCAPED_CHAR:
+          buffer.append(c);
+          phase = previousPhase;
           break;
       }
     }
@@ -1535,7 +1528,7 @@ public class TemplateFile
    */
   private Tag parseReplacementTag(String tagString, Branch branch,
                                   Template template, int lineNumber,
-                                  LinkedHashMap<String,Tag> tags,
+                                  Map<String,Tag> tags,
                                   List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
