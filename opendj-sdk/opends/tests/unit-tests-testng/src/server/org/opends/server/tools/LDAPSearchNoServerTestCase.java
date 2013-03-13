@@ -28,6 +28,9 @@ package org.opends.server.tools;
 
 import static org.testng.Assert.*;
 
+import java.net.InetSocketAddress;
+
+import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.testng.annotations.Test;
 
@@ -44,10 +47,12 @@ public class LDAPSearchNoServerTestCase
   @Test
   public void testSearchWithServerDown()
   {
+    InetSocketAddress freeAddress =
+        (InetSocketAddress) TestCaseUtils.findFreeSocketAddress();
     String[] args =
     {
       "-h", "127.0.0.1",
-      "-p", "1389",
+      "-p", String.valueOf(freeAddress.getPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "",

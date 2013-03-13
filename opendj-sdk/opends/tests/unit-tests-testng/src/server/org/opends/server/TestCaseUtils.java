@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server;
 
@@ -49,6 +49,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
@@ -72,15 +73,15 @@ import org.opends.server.backends.jeb.Index;
 import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.TextAccessLogPublisher;
-import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.TextAccessLogPublisher;
+import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -135,10 +136,9 @@ public final class TestCaseUtils {
 
   /**
    * The name of the system property that specifies if the test instance
-   * direcotry needs to be wiped out before starting the setup or not.
-   * This will let the caller the possibility to copy some files
-   * (ie extensions) inside the test instance directory before the server
-   * starts up.
+   * directory needs to be wiped out before starting the setup or not. This will
+   * let the caller the possibility to copy some files (ie extensions) inside
+   * the test instance directory before the server starts up.
    */
   public static final String PROPERTY_CLEANUP_REQUIRED =
       "org.opends.server.CleanupDirectories";
@@ -152,9 +152,9 @@ public final class TestCaseUtils {
        "org.opends.server.LdapPort";
 
   /**
-   * The name of the system property that specifies the admin port.
-   * Set this prtoperty when running the server if you want to use a given
-   * port number, otherwise a port is choosed randomly at test startup time.
+   * The name of the system property that specifies the admin port. Set this
+   * property when running the server if you want to use a given port number,
+   * otherwise a port is chosen randomly at test startup time.
    */
   public static final String PROPERTY_ADMIN_PORT =
        "org.opends.server.AdminPort";
@@ -620,7 +620,7 @@ public final class TestCaseUtils {
     }
   }
 
-  public static List<Long> restartTimesMs = new ArrayList<Long>();
+  private static List<Long> restartTimesMs = new ArrayList<Long>();
   public static List<Long> getRestartTimesMs() {
     return Collections.unmodifiableList(restartTimesMs);
   }
@@ -742,11 +742,30 @@ public final class TestCaseUtils {
    */
   public static ServerSocket bindFreePort() throws IOException
   {
-    ServerSocket serverLdapSocket;
-    serverLdapSocket = new ServerSocket();
+    ServerSocket serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
     return serverLdapSocket;
+  }
+
+  /**
+   * Finds a free server socket port on the local host.
+   *
+   * @return The free port.
+   */
+  public static SocketAddress findFreeSocketAddress()
+  {
+    try
+    {
+      ServerSocket serverLdapSocket = bindFreePort();
+      final SocketAddress address = serverLdapSocket.getLocalSocketAddress();
+      serverLdapSocket.close();
+      return address;
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -1551,7 +1570,7 @@ public final class TestCaseUtils {
   // ---------------------------------------------------------------------------
   // ---------------------------------------------------------------------------
 
-  // The set of loggers for which the console logger has been disabled.
+  /** The set of loggers for which the console logger has been disabled. */
   private final static Map<Logger, Handler> disabledLogHandlers = new HashMap<Logger,Handler>();
 
   /** The original System.err print stream.  Use this if you absolutely
@@ -1757,11 +1776,8 @@ public final class TestCaseUtils {
    */
   private static byte[] readFileBytes(File file)
           throws IOException {
-    FileInputStream fis;
-    byte[] bytes;
-    fis = new FileInputStream(file);
-    bytes = readInputStreamBytes(fis, true);
-    return bytes;
+    FileInputStream fis = new FileInputStream(file);
+    return readInputStreamBytes(fis, true);
   }
 
   /**
@@ -1943,21 +1959,21 @@ public final class TestCaseUtils {
 
       if (stackElements != null)
       {
-        for (int j=0; j < stackElements.length; j++)
+        for (StackTraceElement stackElement : stackElements)
         {
-          buffer.append("   ").append(stackElements[j].getClassName());
+          buffer.append("   ").append(stackElement.getClassName());
           buffer.append(".");
-          buffer.append(stackElements[j].getMethodName());
+          buffer.append(stackElement.getMethodName());
           buffer.append("(");
-          buffer.append(stackElements[j].getFileName());
+          buffer.append(stackElement.getFileName());
           buffer.append(":");
-          if (stackElements[j].isNativeMethod())
+          if (stackElement.isNativeMethod())
           {
             buffer.append("native");
           }
           else
           {
-            buffer.append(stackElements[j].getLineNumber());
+            buffer.append(stackElement.getLineNumber());
           }
           buffer.append(")").append(EOL);
         }
