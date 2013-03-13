@@ -29,13 +29,11 @@ package org.opends.server.tools.makeldif;
 
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tools.ToolsTestCase;
@@ -264,7 +262,7 @@ public class MakeLDIFTestCase
             "test ou=group [dc=com]", // Expected value
         },
         {
-            "",
+            "NoConstantBecauseEscaped",
             new String[]{
                 "define top=dc=com",
                 "define container=ou=group",
@@ -282,7 +280,7 @@ public class MakeLDIFTestCase
             "test [top]", // Expected value
         },
        {
-            "",
+            "NoConstantBecauseStrangeChar",
             new String[]{
                 "define top=dc=com",
                 "define container=ou=group",
@@ -299,7 +297,7 @@ public class MakeLDIFTestCase
             "description", // Attribute to test
             "test [group [top]", // Expected value
         },
-        /*
+        /* If adding a test, please copy and reuse template code down below
         {
             "",
             new String[]{
@@ -321,10 +319,9 @@ public class MakeLDIFTestCase
   public void testLDIFOutputFromTemplate(String testName, String[] lines,
                                          String attrName, String expectedValue) throws Exception
   {
-    System.out.println("Running test for " + testName);
-    File tempDir = TestCaseUtils.createTemporaryDirectory("MakeLdifTest");
-    String homeDirName = tempDir.getAbsolutePath();
-    String outLdifFilePath =  homeDirName + File.separator + testName + "_out.ldif";
+    File tmpFile = File.createTempFile(testName, "out.ldif");
+    tmpFile.deleteOnExit();
+    String outLdifFilePath = tmpFile.getAbsolutePath();
 
     LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
 
@@ -338,7 +335,7 @@ public class MakeLDIFTestCase
     assertNotNull(top);
     assertNotNull(e);
     List<Attribute> attrs = e.getAttribute(attrName);
-    assertTrue(!attrs.isEmpty());
+    assertFalse(attrs.isEmpty());
     Attribute a = attrs.get(0);
     Attribute expectedRes = Attributes.create(attrName, expectedValue);
     assertEquals(a, expectedRes);
@@ -367,23 +364,24 @@ public class MakeLDIFTestCase
             "",
         };
 
-    File tempDir = TestCaseUtils.createTemporaryDirectory("MakeLdifTest");
-    String homeDirName = tempDir.getAbsolutePath();
-    String outLdifFilePath = homeDirName + File.separator + "out2.ldif";
+
+    File tmpFile = File.createTempFile("combineEscapeChar", "out.ldif");
+    tmpFile.deleteOnExit();
+    String outLdifFilePath = tmpFile.getAbsolutePath();
 
     LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
 
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry top=reader.readEntry();
+    Entry top = reader.readEntry();
     Entry e = reader.readEntry();
     reader.close();
 
     assertNotNull(top);
     assertNotNull(e);
     List<Attribute> attrs = e.getAttribute("cn");
-    assertTrue(!attrs.isEmpty());
+    assertFalse(attrs.isEmpty());
     Attribute a = attrs.get(0);
     assertTrue(a.iterator().next().toString().matches("Foo <[A-Z]>\\{1\\}Bar"),
         "cn value doesn't match the expected value");
