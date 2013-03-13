@@ -1119,7 +1119,7 @@
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: clearDegradedState option in 
                                     online mode
-              #@TestIssue           OPENDJ-802
+              #@TestIssue           none
               #@TestPurpose         Verify that rebuild-index command succeeds
                                     and that the output is correct.
               #@TestPreamble        none
@@ -1255,9 +1255,7 @@
                   {
                   'returnString'   : returnString ,
                   'expectedString' : msg ,
-                  'expectedRC'     : 1 ,
-                  'knownIssue'     : 'OPENDJ-802'
-                  
+                  'expectedRC'     : 1
                   }
                 </call>
                 

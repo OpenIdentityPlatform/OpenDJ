@@ -122,37 +122,6 @@
               }
             </call>
 
-            <!-- Set replication purge delay in cdthe various replication servers -->
-            <paralleliterate var="server" in="_topologyServerList">
-              <sequence>
-                <script>
-                  replServer = server
-                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
-                </script>
-            
-                <message>
-                  'Set purge delay to %s seconds on server %s:%s' \
-                  % (ecl_purge_delay, replServer.getHostname(), replServer.getPort())
-                </message>
-                
-                <!-- Set purge delay to 120s on "master" server -->   
-                <call function="'dsconfigSet'">
-                  { 'location'            : replServer.getHostname(),
-                    'dsPath'              : replServerPath,
-                    'dsInstanceHost'      : replServer.getHostname(),
-                    'dsInstanceAdminPort' : replServer.getAdminPort(),
-                    'dsInstanceDn'        : replServer.getRootDn(),
-                    'dsInstancePswd'      : replServer.getRootPwd(),
-                    'objectName'          : 'replication-server' ,
-                    'propertyType'        : 'provider',
-                    'propertyName'        : 'Multimaster Synchronization',
-                    'attributeName'       : 'replication-purge-delay' ,
-                    'attributeValue'      : '%s s' % ecl_purge_delay
-                  }
-                </call>
-              </sequence>
-            </paralleliterate>
-
             <!-- Verify the synchronization of the trees among the servers in
               the topology -->
             <call function="'verifyTrees'">

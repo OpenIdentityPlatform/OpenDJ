@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Deprecated Schemes Preamble
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Prepare to deprecate MD5 scheme
             #@TestPreamble              none
             #@TestStep                  Admin Adding 3 Pwd Storage Schemes, 
@@ -127,7 +128,7 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'MD5' }
             </call>
@@ -143,7 +144,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Admin Deprecate MD5
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Deprecate MD5 scheme
             #@TestPreamble              none
             #@TestStep                  Admin Deprecate MD5 Scheme.
@@ -188,13 +189,58 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case : Check that MD5 hashed password is still present from existing user's entry-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Check For MD5 Password Presence
+            #@TestIssue                 none
+            #@TestPurpose               Test to determine if the user password in MD5 scheme is listed.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {MD5}, is found
+                                        in the userpassword of an already existing user.
+        -->
+        <testcase name="getTestCaseName('Deprecated Schemes - Check For MD5 on an existing entry (before user bind)')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+             <message>
+               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating - Existing User (before user bind)'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'MD5' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
         <!--- Test Case : User Bind -->
        <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  User Bind
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Test a user bind.
             #@TestPreamble              none
             #@TestStep                  User binds.
@@ -224,25 +270,26 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Check that MD5 hashed password is still present from existing user's entry-->
+        <!--- Test Case : Check that MD5 hashed password is no more present from existing user's entry-->
        <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Check For MD5 Password Deletion
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Test to determine if the user password in MD5 scheme is listed.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry.
             #@TestPostamble             none
-            #@TestResult                Success if the prefix string, {MD5}, is found
-                                        in the userpassword of an already existing user.
+            #@TestResult                Success if the prefix string, {MD5}, is not found
+                                        in the userpassword of an already existing user 
+                                        after the user bind (password has been migrated).
         -->
-        <testcase name="getTestCaseName('Deprecated Schemes - Check For MD5 on an existing entry')">
+        <testcase name="getTestCaseName('Deprecated Schemes - Check For MD5 on an existing entry (after user bind)')">
           <sequence>
             <call function="'testCase_Preamble'"/>
              <message>
-               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating - Existing User'
+               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating - Existing User (after user bind)'
             </message>
 
             <call function="'SearchObject'">
@@ -259,9 +306,10 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'         : 'MD5' }
+                  'expectedString'     : 'MD5' ,
+                  'expectedRC'         : 1 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -276,7 +324,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Check For MD5 Password Deletion
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Test to determine if the user password in MD5 scheme is not present.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry.
@@ -330,9 +378,10 @@
              returnString = STAXResult[0][1]
             </script>
 
-            <call function="'checktestStringNotPresent'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
-                  'testString'         : 'MD5' }
+                  'expectedString'     : 'MD5' ,
+                  'expectedRC'         : 1 }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -346,7 +395,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Check For SSHA256 Password Deletion
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Test to determine if the user password in SSHA256 scheme was deleted.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry.
@@ -375,7 +424,7 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'SSHA256' }
             </call>
@@ -390,7 +439,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Check For BASE64 Password Deletion
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Test to determine if the user password in Base64 scheme was deleted.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry.
@@ -419,7 +468,7 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestString'">
+            <call function="'searchString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'BASE64' }
             </call>
@@ -435,7 +484,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Deprecated Schemes Postamble
-            #@TestIssue                 323
+            #@TestIssue                 none
             #@TestPurpose               Reset back to the default SSHA storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin reset the password policy to SSHA password scheme.
@@ -447,6 +496,315 @@
             <call function="'testCase_Preamble'"/>
             <message>
                'Security: Deprecating Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Salted SHA-1' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
+          </sequence>
+        </testcase>
+
+        <!--- Test case: Admin Add Additional Pwd Storage Schemes -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  Deprecated Schemes Preamble
+            #@TestIssue                 none
+            #@TestPurpose               Prepare to deprecate SSHA scheme
+            #@TestPreamble              none
+            #@TestStep                  Admin Adding MD5 Pwd Storage Schemes.
+            #@TestStep                  Check MD5 Scheme Before Deprecating.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all operations and a user password
+                                        is not stored in the MD5 scheme.
+        -->
+        <testcase name="getTestCaseName('New Deprecated Schemes - Preamble')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: New Deprecated Pwd Schemes: Preamble Step 1. Admin Adding MD5 Pwd Storage Scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'MD5' ,
+                    'modifyType'             : 'add' }
+            </call>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+               'Security: New Deprecating Pwd Schemes: Preamble Step 2. Checking for SSHA is present Before Deprecating'
+            </message>
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'SSHA' }
+            </call>
+
+            <message>
+               'Security: New Deprecating Pwd Schemes: Preamble Step 3. Checking for MD5 is not present Before Deprecating'
+            </message>
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'MD5' ,
+                  'expectedRC'         : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Deprecate SSHA Scheme-->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  Admin Deprecate SSHA
+            #@TestIssue                 none
+            #@TestPurpose               Deprecate SSHA scheme
+            #@TestPreamble              none
+            #@TestStep                  Admin Deprecate SSHA Scheme.
+            #@TestStep                  Admin Remove SSHA Scheme From Default.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all operations.
+        -->
+        <testcase name="getTestCaseName('New Deprecated Schemes - Admin Deprecate SSHA')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: New Deprecated Pwd Schemes: Admin Deprecating SSHA Scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'deprecated-password-storage-scheme' ,
+                    'attributeValue'         : 'Salted SHA-1' }
+            </call>
+            
+            <message>
+               'Security: New Deprecated Pwd Schemes: Admin Removing SSHA Scheme From Default'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'attributeName'          : 'ds-cfg-default-password-storage-scheme' ,
+                    'newAttributeValue'      : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' ,
+                    'changetype'             : 'delete' }
+            </call>
+                    
+            <call function="'testCase_Postamble'"/>
+         
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Check that SSHA hashed password is still present 
+              from existing user's entry and MD5 is not present -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  Check For SSHA Password Presence and
+                                        MD5 Not Presence
+            #@TestIssue                 none
+            #@TestPurpose               Test to determine if the user password in Salted SHA-1 
+                                        scheme is listed.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {SSHA}, is found
+                                        in the userpassword and not {MD5} of an already existing user.
+        -->
+        <testcase name="getTestCaseName('New Deprecated Schemes - Check For Password Schemes on an existing entry (before user bind)')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+            
+            <message>
+               'Security: New Deprecating Pwd Schemes: Checking for SSHA is present After Deprecating - Existing User (before user bind)'
+            </message>
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'SSHA' }
+            </call>
+
+            <message>
+               'Security: New Deprecating Pwd Schemes: Checking for MD5 is not present After Deprecating - Existing User (before user bind)'
+            </message>
+                
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'MD5' ,
+                  'expectedRC'         : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  User Bind
+            #@TestIssue                 none
+            #@TestPurpose               Test a user bind.
+            #@TestPreamble              none
+            #@TestStep                  User binds.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and the user binds successfully.
+        -->
+        <testcase name="getTestCaseName('Deprecated Schemes - User Bind')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: New Deprecated Pwd Schemes: User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'oranges' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+         
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Check that MD5 hashed password is no more present from existing user's entry-->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  Check For SSHA Password Deletion
+            #@TestIssue                 none
+            #@TestPurpose               Test to determine if the user password in MD5 scheme is listed.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {MD5}, is found
+                                        but not {SSHA} in the userpassword of an already
+                                        existing user after the user bind (password has been migrated).
+        -->
+        <testcase name="getTestCaseName('Deprecated Schemes - Check For Password Schemes on an existing entry (after user bind)')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+               'Security: New Deprecating Pwd Schemes: Checking for SSHA is no more present After Deprecating - Existing User (after user bind)'
+            </message>
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'SSHA' ,
+                  'expectedRC'         : 1 }
+            </call>
+
+            <message>
+               'Security: New Deprecating Pwd Schemes: Checking for MD5 is present After Deprecating - Existing User (after user bind)'
+            </message>
+
+            <call function="'searchString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'MD5' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
+
+        <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                New Deprecated Schemes
+            #@TestName                  Deprecated Schemes Postamble
+            #@TestIssue                 none
+            #@TestPurpose               Reset back to the default SSHA storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin reset the password policy to SSHA password scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
+        <testcase name="getTestCaseName('New Deprecated Schemes - Postamble')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: New Deprecating Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
 
             <call function="'modifyPwdPolicy'">
