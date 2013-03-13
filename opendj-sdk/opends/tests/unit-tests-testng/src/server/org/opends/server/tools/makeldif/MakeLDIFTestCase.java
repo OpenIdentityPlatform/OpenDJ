@@ -23,20 +23,26 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2006 Brighton Consulting, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tools.ToolsTestCase;
-import org.opends.server.types.InitializationException;
+import org.opends.server.types.*;
+import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -68,7 +74,7 @@ public class MakeLDIFTestCase
    * correct line.
    */
   @Test()
-  public void testParseTemplate() throws Exception 
+  public void testParseTemplate() throws Exception
   {
     String[] lines =
     {
@@ -79,10 +85,10 @@ public class MakeLDIFTestCase
       /* 4 */ "",
       /* 5 */ "template: template2",
     };
-    
-    // Test must show "missingVar" missing on line 1.  
+
+    // Test must show "missingVar" missing on line 1.
     // Previous behaviour showed "missingVar" on line 5.
-    
+
     TemplateFile templateFile = new TemplateFile(resourcePath);
     List<Message> warns = new ArrayList<Message>();
 
@@ -96,6 +102,291 @@ public class MakeLDIFTestCase
       Message msg_locale = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar",1);
       assertTrue (msg.equals(msg_locale.toString()), msg);
     }
+  }
+
+  @DataProvider (name="validTemplates")
+  public Object[][] createTestTemplates() {
+    return new Object[][] {
+        { "CurlyBracket",
+          new String[] {
+            "template: templateWithEscape",
+            "rdnAttr: uid",
+            "uid: testEntry",
+            "cn: I\\{Foo\\}F"} },
+        { "AngleBracket",
+          new String[] {
+            "template: templateWithEscape",
+            "rdnAttr: uid",
+            "uid: testEntry",
+            "sn: \\<Bar\\>"} },
+        { "SquareBracket",
+            new String[] {
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "description: \\[TEST\\]"} },
+        { "BackSlash",
+            new String[] {
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "description: Foo \\\\ Bar"} },
+        { "EscapedAlpha",
+            new String[] {
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "description: Foo \\\\Bar"} },
+        { "Normal Variable",
+            new String[] {
+                "template: templateNormal",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "sn: {uid}"} },
+        { "Constant",
+            new String[] {
+                "define foo=Test123",
+                "",
+                "template: templateConstant",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "sn: {uid}",
+                "cn: [foo]"} },
+    };
+  }
+
+  /**
+   * Test for parsing escaped  character in templates
+   */
+  @Test(dataProvider = "validTemplates")
+  public void testParsingEscapeCharInTemplate(String testName, String[] lines)
+      throws Exception
+  {
+    TemplateFile templateFile = new TemplateFile(resourcePath);
+    List<Message> warns = new ArrayList<Message>();
+    templateFile.parse(lines, warns);
+    assertTrue(warns.isEmpty(),"Warnings in parsing test template " + testName );
+  }
+
+  @DataProvider (name="templatesToTestLDIFOutput")
+  public Object[][] createTemplatesToTestLDIFOutput() {
+    return new Object[][]{
+        {
+            "Curly",
+            new String[]{
+                "branch: dc=test",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "cn: I\\{ Foo \\}F"},
+            "cn", // Attribute to test
+            "I{ Foo }F", // Expected value
+        },
+        {
+            "Angle",
+            new String[]{
+                "branch: dc=test",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "sn: \\< Bar \\>"},
+            "sn", // Attribute to test
+            "< Bar >", // Expected value
+        },
+        {
+            "Square",
+            new String[]{
+                "branch: dc=test",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "description: \\[TEST\\]"},
+            "description", // Attribute to test
+            "[TEST]", // Expected value
+        },
+        {
+            "BackSlash",
+            new String[]{
+                "branch: dc=test",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "displayName: Foo \\\\ Bar"},
+            "displayname", // Attribute to test
+            "Foo \\ Bar", // Expected value
+        },
+        {
+            "MultipleSquare",
+            new String[]{
+                "define top=dc=com",
+                "define container=ou=group",
+                "",
+                "branch: dc=test,[top]",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "manager: cn=Bar,[container],dc=test,[top]",
+                ""},
+            "manager", // Attribute to test
+            "cn=Bar,ou=group,dc=test,dc=com", // Expected value
+        },
+        {
+            "MixedSquare",
+            new String[]{
+                "define top=dc=com",
+                "define container=ou=group",
+                "",
+                "branch: dc=test,[top]",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "description: test [container] \\[[top]\\]",
+                "",},
+            "description", // Attribute to test
+            "test ou=group [dc=com]", // Expected value
+        },
+        {
+            "",
+            new String[]{
+                "define top=dc=com",
+                "define container=ou=group",
+                "",
+                "branch: dc=test,[top]",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "description: test \\[top]",
+                "",},
+            "description", // Attribute to test
+            "test [top]", // Expected value
+        },
+       {
+            "",
+            new String[]{
+                "define top=dc=com",
+                "define container=ou=group",
+                "",
+                "branch: dc=test,[top]",
+                "subordinateTemplate: templateWithEscape:1",
+                "",
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "objectclass: inetOrgPerson",
+                "uid: testEntry",
+                "description: test [group \\[top]",
+                "",},
+            "description", // Attribute to test
+            "test [group [top]", // Expected value
+        },
+        /*
+        {
+            "",
+            new String[]{
+                "template: templateWithEscape",
+                "rdnAttr: uid",
+                "uid: testEntry",
+                "cn: I\\{Foo\\}F"},
+            "", // Attribute to test
+            "", // Expected value
+        }
+        */
+    };
+  }
+
+  /**
+   * Test for escaped characters in templates, check LDIF output
+   */
+  @Test(dataProvider="templatesToTestLDIFOutput", dependsOnMethods = { "testParsingEscapeCharInTemplate"})
+  public void testLDIFOutputFromTemplate(String testName, String[] lines,
+                                         String attrName, String expectedValue) throws Exception
+  {
+    System.out.println("Running test for " + testName);
+    File tempDir = TestCaseUtils.createTemporaryDirectory("MakeLdifTest");
+    String homeDirName = tempDir.getAbsolutePath();
+    String outLdifFilePath =  homeDirName + File.separator + testName + "_out.ldif";
+
+    LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
+
+    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
+    ldifConfig.setValidateSchema(false);
+    LDIFReader reader = new LDIFReader(ldifConfig);
+    Entry top = reader.readEntry();
+    Entry e = reader.readEntry();
+    reader.close();
+
+    assertNotNull(top);
+    assertNotNull(e);
+    List<Attribute> attrs = e.getAttribute(attrName);
+    assertTrue(!attrs.isEmpty());
+    Attribute a = attrs.get(0);
+    Attribute expectedRes = Attributes.create(attrName, expectedValue);
+    assertEquals(a, expectedRes);
+  }
+
+  /**
+   * Test for escaped characters in templates, check LDIF output when
+   * the templates combines escaped characters and variables
+   */
+  @Test(dependsOnMethods = { "testParsingEscapeCharInTemplate"})
+  public void testOutputCombineEscapeCharInTemplate() throws Exception
+  {
+    String[] lines =
+        {
+            "branch: dc=test",
+            "subordinateTemplate: templateWithEscape:1",
+            "",
+            "template: templateWithEscape",
+            "rdnAttr: uid",
+            "objectclass: inetOrgPerson",
+            "uid: testEntry",
+            "sn: Bar",
+            // The value below combines variable, randoms and escaped chars.
+            // The resulting value is "Foo <?>{1}Bar" where ? is a letter from [A-Z].
+            "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}",
+            "",
+        };
+
+    File tempDir = TestCaseUtils.createTemporaryDirectory("MakeLdifTest");
+    String homeDirName = tempDir.getAbsolutePath();
+    String outLdifFilePath = homeDirName + File.separator + "out2.ldif";
+
+    LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
+
+    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
+    ldifConfig.setValidateSchema(false);
+    LDIFReader reader = new LDIFReader(ldifConfig);
+    Entry top=reader.readEntry();
+    Entry e = reader.readEntry();
+    reader.close();
+
+    assertNotNull(top);
+    assertNotNull(e);
+    List<Attribute> attrs = e.getAttribute("cn");
+    assertTrue(!attrs.isEmpty());
+    Attribute a = attrs.get(0);
+    assertTrue(a.iterator().next().toString().matches("Foo <[A-Z]>\\{1\\}Bar"),
+        "cn value doesn't match the expected value");
   }
 }
 
