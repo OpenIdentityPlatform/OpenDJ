@@ -109,8 +109,6 @@
 
                 <!-- List of Test Cases -->
                 <script>
-                  ecl_purge_delay = '120'
-
                   # Globals for cookies, changenumbers, lastchangenumbers
                   global_cookiesList=STAXGlobal([])
                   global_cnsList=STAXGlobal([])
