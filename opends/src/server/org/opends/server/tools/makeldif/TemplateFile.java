@@ -868,7 +868,7 @@ public class TemplateFile
 
         Template t = parseTemplateDefinition(templateLines, startLineNumber,
                                              templateFileIncludeTags,
-            templateFileTemplates, warnings);
+                                             templateFileTemplates, warnings);
         String lowerName = toLowerCase(t.getName());
         if (templateFileTemplates.containsKey(lowerName))
         {
