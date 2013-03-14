@@ -1032,33 +1032,7 @@ public final class LDAPConnectionHandler extends
       {
         cleanUpSelector();
 
-        int numRegistered = 0;
-        for (InetAddress a : listenAddresses)
-        {
-          try
-          {
-            ServerSocketChannel channel = ServerSocketChannel.open();
-            channel.socket().setReuseAddress(allowReuseAddress);
-            channel.socket()
-                .bind(new InetSocketAddress(a, listenPort), backlog);
-            channel.configureBlocking(false);
-            channel.register(selector, SelectionKey.OP_ACCEPT);
-            numRegistered++;
-
-            logError(NOTE_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(
-                String.valueOf(currentConfig.dn()), a.getHostAddress(),
-                listenPort, stackTraceToSingleLineString(e)));
-          }
-        }
+        int numRegistered = registerChannels();
 
         // At this point, the connection Handler either started
         // correctly or failed to start but the start process
@@ -1085,44 +1059,11 @@ public final class LDAPConnectionHandler extends
         // Enter a loop, waiting for new connections to arrive and
         // then accepting them as they come in.
         boolean lastIterationFailed = false;
-        int selectorState;
         while (enabled && (!shutdownRequested))
         {
           try
           {
-            selectorState = selector.select();
-
-            // We can't rely on return value of select to determine if any keys
-            // are ready.
-            // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4850373
-            for (Iterator<SelectionKey> iterator =
-                selector.selectedKeys().iterator(); iterator.hasNext();)
-            {
-              SelectionKey key = iterator.next();
-              iterator.remove();
-              if (key.isAcceptable())
-              {
-                // Accept the new client connection.
-                ServerSocketChannel serverChannel = (ServerSocketChannel) key
-                    .channel();
-                SocketChannel clientChannel = serverChannel.accept();
-                if (clientChannel != null)
-                {
-                  acceptConnection(clientChannel);
-                }
-              }
-
-              if (selectorState == 0 && enabled && (!shutdownRequested)
-                  && debugEnabled())
-              {
-                // Selected keys was non empty but select() returned 0.
-                // Log warning and hope it blocks on the next select() call.
-                TRACER.debugWarning("Selector.select() returned 0. "
-                    + "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
-                    selector.selectedKeys().size(), key.interestOps(),
-                    key.readyOps());
-              }
-            }
+            serveIncomingConnections();
 
             lastIterationFailed = false;
           }
@@ -1151,15 +1092,8 @@ public final class LDAPConnectionHandler extends
                   ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
                   message);
 
+              cleanUpSelector();
               enabled = false;
-
-              try
-              {
-                cleanUpSelector();
-              }
-              catch (Exception ignored)
-              {
-              }
             }
             else
             {
@@ -1196,17 +1130,93 @@ public final class LDAPConnectionHandler extends
         DirectoryServer.sendAlertNotification(this,
             ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR, message);
 
-        try
-        {
-          cleanUpSelector();
-        }
-        catch (Exception ignored)
-        {
-        }
-
+        cleanUpSelector();
         enabled = false;
       }
     }
+  }
+
+
+  /**
+   * Serves the incoming connections.
+   *
+   * @throws IOException
+   * @throws DirectoryException
+   */
+  private void serveIncomingConnections() throws IOException, DirectoryException
+  {
+    int selectorState = selector.select();
+
+    // We can't rely on return value of select to determine if any keys
+    // are ready.
+    // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4850373
+    for (Iterator<SelectionKey> iterator =
+        selector.selectedKeys().iterator(); iterator.hasNext();)
+    {
+      SelectionKey key = iterator.next();
+      iterator.remove();
+      if (key.isAcceptable())
+      {
+        // Accept the new client connection.
+        ServerSocketChannel serverChannel = (ServerSocketChannel) key
+            .channel();
+        SocketChannel clientChannel = serverChannel.accept();
+        if (clientChannel != null)
+        {
+          acceptConnection(clientChannel);
+        }
+      }
+
+      if (selectorState == 0 && enabled && (!shutdownRequested)
+          && debugEnabled())
+      {
+        // Selected keys was non empty but select() returned 0.
+        // Log warning and hope it blocks on the next select() call.
+        TRACER.debugWarning("Selector.select() returned 0. "
+            + "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
+            selector.selectedKeys().size(), key.interestOps(),
+            key.readyOps());
+      }
+    }
+  }
+
+
+  /**
+   * Open channels for each listen address and register them against this
+   * ConnectionHandler's {@link Selector}.
+   *
+   * @return the number of successfully registered channel
+   */
+  private int registerChannels()
+  {
+    int numRegistered = 0;
+    for (InetAddress a : listenAddresses)
+    {
+      try
+      {
+        ServerSocketChannel channel = ServerSocketChannel.open();
+        channel.socket().setReuseAddress(allowReuseAddress);
+        channel.socket()
+            .bind(new InetSocketAddress(a, listenPort), backlog);
+        channel.configureBlocking(false);
+        channel.register(selector, SelectionKey.OP_ACCEPT);
+        numRegistered++;
+
+        logError(NOTE_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(
+            String.valueOf(currentConfig.dn()), a.getHostAddress(),
+            listenPort, stackTraceToSingleLineString(e)));
+      }
+    }
+    return numRegistered;
   }
 
 
