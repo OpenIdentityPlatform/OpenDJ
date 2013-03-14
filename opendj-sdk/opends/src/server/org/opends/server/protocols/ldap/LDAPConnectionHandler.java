@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -92,6 +92,7 @@ public final class LDAPConnectionHandler extends
    */
   private final class ConnectionFinalizerRunnable implements Runnable
   {
+    @Override
     public void run()
     {
       if (!connectionFinalizerActiveJobQueue.isEmpty())
@@ -133,92 +134,106 @@ public final class LDAPConnectionHandler extends
   private static final String DEFAULT_FRIENDLY_NAME =
       "LDAP Connection Handler";
 
-  // The current configuration state.
+  /** The current configuration state. */
   private LDAPConnectionHandlerCfg currentConfig;
 
   /* Properties that cannot be modified dynamically */
 
-  // The set of addresses on which to listen for new connections.
+  /** The set of addresses on which to listen for new connections. */
   private Set<InetAddress> listenAddresses;
 
-  // The port on which this connection handler should listen for
-  // requests.
+  /** The port on which this connection handler should listen for requests. */
   private int listenPort;
 
-  // The SSL client auth policy used by this connection handler.
+  /** The SSL client auth policy used by this connection handler. */
   private SSLClientAuthPolicy sslClientAuthPolicy;
 
-  // The backlog that will be used for the accept queue.
+  /** The backlog that will be used for the accept queue. */
   private int backlog;
 
-  // Indicates whether to allow the reuse address socket option.
+  /** Indicates whether to allow the reuse address socket option. */
   private boolean allowReuseAddress;
 
-  // The number of request handlers that should be used for this
-  // connection handler.
+  /**
+   * The number of request handlers that should be used for this connection
+   * handler.
+   */
   private int numRequestHandlers;
 
-  // Indicates whether the Directory Server is in the process of
-  // shutting down.
+  /**
+   * Indicates whether the Directory Server is in the process of shutting down.
+   */
   private volatile boolean shutdownRequested;
 
   /* Internal LDAP connection handler state */
 
-  // Indicates whether this connection handler is enabled.
+  /** Indicates whether this connection handler is enabled. */
   private boolean enabled;
 
-  // The set of clients that are explicitly allowed access to the
-  // server.
+  /** The set of clients that are explicitly allowed access to the server. */
   private AddressMask[] allowedClients;
 
-  // The set of clients that have been explicitly denied access to the
-  // server.
+  /**
+   * The set of clients that have been explicitly denied access to the server.
+   */
   private AddressMask[] deniedClients;
 
-  // The index to the request handler that will be used for the next
-  // connection accepted by the server.
+  /**
+   * The index to the request handler that will be used for the next connection
+   * accepted by the server.
+   */
   private int requestHandlerIndex;
 
-  // The set of listeners for this connection handler.
+  /** The set of listeners for this connection handler. */
   private LinkedList<HostPort> listeners;
 
-  // The set of request handlers that are associated with this
-  // connection handler.
+  /**
+   * The set of request handlers that are associated with this connection
+   * handler.
+   */
   private LDAPRequestHandler[] requestHandlers;
 
-  // The set of statistics collected for this connection handler.
+  /** The set of statistics collected for this connection handler. */
   private LDAPStatistics statTracker;
 
-  // The client connection monitor provider associated with this
-  // connection handler.
+  /**
+   * The client connection monitor provider associated with this connection
+   * handler.
+   */
   private ClientConnectionMonitorProvider connMonitor;
 
-  // The selector that will be used to multiplex connection acceptance
-  // across multiple sockets by a single thread.
+  /**
+   * The selector that will be used to multiplex connection acceptance across
+   * multiple sockets by a single thread.
+   */
   private Selector selector;
 
-  // The unique name assigned to this connection handler.
+  /** The unique name assigned to this connection handler. */
   private String handlerName;
 
-  // The protocol used by this connection handler.
+  /** The protocol used by this connection handler. */
   private String protocol;
 
-  // Queueing strategy
+  /** Queueing strategy. */
   private final QueueingStrategy queueingStrategy;
 
-  // The condition variable that will be used by the start method
-  // to wait for the socket port to be opened and ready to process
-  // requests before returning.
+  /**
+   * The condition variable that will be used by the start method to wait for
+   * the socket port to be opened and ready to process requests before
+   * returning.
+   */
   private final Object waitListen = new Object();
 
-  // The friendly name of this connection handler.
+  /** The friendly name of this connection handler. */
   private String friendlyName;
 
-  // SSL instance name used in context creation.
+  /** SSL instance name used in context creation. */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-  // SSL context and engine - the engine is used for obtaining default SSL
-  // parameters.
+  /**
+   * SSL context and engine - the engine is used for obtaining default SSL
+   * parameters.
+   */
   private SSLContext sslContext;
   private SSLEngine sslEngine;
 
@@ -302,6 +317,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       LDAPConnectionHandlerCfg config)
   {
@@ -436,6 +452,7 @@ public final class LDAPConnectionHandler extends
    * @return Information about the set of alerts that this generator may
    *         produce.
    */
+  @Override
   public LinkedHashMap<String, String> getAlerts()
   {
     LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
@@ -457,6 +474,7 @@ public final class LDAPConnectionHandler extends
    * @return The fully-qualified name of the Java class for this alert generator
    *         implementation.
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -513,6 +531,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
     if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
@@ -531,6 +550,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getEnabledSSLProtocols()
   {
     if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
@@ -627,6 +647,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getShutdownListenerName()
   {
     return handlerName;
@@ -737,28 +758,13 @@ public final class LDAPConnectionHandler extends
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    for (InetAddress a : listenAddresses)
+    Message errorMessage =
+        checkAnyListenAddressInUse(listenAddresses, listenPort,
+            allowReuseAddress, config.dn());
+    if (errorMessage != null)
     {
-      try
-      {
-        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress))
-        {
-          throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
-        }
-      }
-      catch (IOException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
-            String.valueOf(config.dn()), a.getHostAddress(), listenPort,
-            getExceptionMessage(e));
-        logError(message);
-        throw new InitializationException(message);
-      }
+      logError(errorMessage);
+      throw new InitializationException(errorMessage);
     }
 
     // Create a system property to store the LDAP(S) port the server is
@@ -823,30 +829,13 @@ public final class LDAPConnectionHandler extends
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.
-      for (InetAddress a : config.getListenAddress())
+      Message errorMessage =
+          checkAnyListenAddressInUse(config.getListenAddress(), config
+              .getListenPort(), config.isAllowTCPReuseAddress(), config.dn());
+      if (errorMessage != null)
       {
-        try
-        {
-          if (StaticUtils.isAddressInUse(a, config.getListenPort(),
-              config.isAllowTCPReuseAddress()))
-          {
-            throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get()
-                .toString());
-          }
-        }
-        catch (IOException e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
-              String.valueOf(config.dn()), a.getHostAddress(),
-              config.getListenPort(), getExceptionMessage(e));
-          unacceptableReasons.add(message);
-          return false;
-        }
+        unacceptableReasons.add(errorMessage);
+        return false;
       }
     }
 
@@ -876,11 +865,53 @@ public final class LDAPConnectionHandler extends
     return true;
   }
 
+  /**
+   * Checks whether any listen address is in use for the given port. The check
+   * is performed by binding to each address and port.
+   *
+   * @param listenAddresses
+   *          the listen {@link InetAddress} to test
+   * @param listenPort
+   *          the listen port to test
+   * @param allowReuseAddress
+   *          whether addresses can be reused
+   * @param configEntryDN
+   *          the configuration entry DN
+   * @return an error message if at least one of the address is already in use,
+   *         null otherwise.
+   */
+  private Message checkAnyListenAddressInUse(
+      Collection<InetAddress> listenAddresses, int listenPort,
+      boolean allowReuseAddress, DN configEntryDN)
+  {
+    for (InetAddress a : listenAddresses)
+    {
+      try
+      {
+        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress))
+        {
+          throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+        }
+      }
+      catch (IOException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        return ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(String
+            .valueOf(configEntryDN), a.getHostAddress(), listenPort,
+            getExceptionMessage(e));
+      }
+    }
+    return null;
+  }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config, List<Message> unacceptableReasons)
   {
@@ -905,6 +936,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void processServerShutdown(Message reason)
   {
     shutdownRequested = true;
@@ -917,12 +949,12 @@ public final class LDAPConnectionHandler extends
         {
           requestHandler.processServerShutdown(reason);
         }
-        catch (Exception e)
+        catch (Exception ignored)
         {
         }
       }
     }
-    catch (Exception e)
+    catch (Exception ignored)
     {
     }
   }
@@ -985,7 +1017,7 @@ public final class LDAPConnectionHandler extends
         {
           Thread.sleep(1000);
         }
-        catch (Exception e)
+        catch (InterruptedException wokenUp)
         {
         }
 
@@ -1060,13 +1092,11 @@ public final class LDAPConnectionHandler extends
           {
             selectorState = selector.select();
 
-            // We can't rely on return value of select to deterine if any keys
+            // We can't rely on return value of select to determine if any keys
             // are ready.
             // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4850373
-            Iterator<SelectionKey> iterator = selector.selectedKeys()
-                .iterator();
-
-            while (iterator.hasNext())
+            for (Iterator<SelectionKey> iterator =
+                selector.selectedKeys().iterator(); iterator.hasNext();)
             {
               SelectionKey key = iterator.next();
               iterator.remove();
@@ -1127,7 +1157,7 @@ public final class LDAPConnectionHandler extends
               {
                 cleanUpSelector();
               }
-              catch (Exception e2)
+              catch (Exception ignored)
               {
               }
             }
@@ -1170,7 +1200,7 @@ public final class LDAPConnectionHandler extends
         {
           cleanUpSelector();
         }
-        catch (Exception e2)
+        catch (Exception ignored)
         {
         }
 
@@ -1191,18 +1221,10 @@ public final class LDAPConnectionHandler extends
     }
     catch (SocketException se)
     {
-      // TCP error occured because conneciton reset/closed? In any case,
+      // TCP error occurred because connection reset/closed? In any case,
       // just close it and ignore.
       // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6378870
-      try
-      {
-        clientChannel.close();
-      }
-      catch (Exception e)
-      {
-        // Ignore any exceptions while closing the channel.
-      }
-      return;
+      close(clientChannel);
     }
 
     // Check to see if the core server rejected the
@@ -1328,11 +1350,8 @@ public final class LDAPConnectionHandler extends
   {
     try
     {
-      Iterator<SelectionKey> iterator = selector.keys().iterator();
-      while (iterator.hasNext())
+      for (SelectionKey key : selector.keys())
       {
-        SelectionKey key = iterator.next();
-
         try
         {
           key.cancel();
