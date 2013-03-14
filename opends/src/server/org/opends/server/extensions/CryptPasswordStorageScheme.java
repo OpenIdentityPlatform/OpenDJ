@@ -23,7 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  *
  */
 
@@ -33,6 +34,7 @@ package org.opends.server.extensions;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
+
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -50,7 +52,6 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
-
 /**
  * This class defines a Directory Server password storage scheme based on the
  * UNIX Crypt algorithm.  This is a legacy one-way digest algorithm
@@ -63,6 +64,7 @@ public class CryptPasswordStorageScheme
        extends PasswordStorageScheme<CryptPasswordStorageSchemeCfg>
        implements ConfigurationChangeListener<CryptPasswordStorageSchemeCfg>
 {
+
   /**
    * The fully-qualified name of this class for debugging purposes.
    */
@@ -185,6 +187,40 @@ public class CryptPasswordStorageScheme
     return ByteString.valueOf(output);
   }
 
+  private ByteString sha256CryptEncodePassword(ByteSequence plaintext)
+      throws DirectoryException {
+    String output;
+    try
+    {
+      output = Sha2Crypt.sha256Crypt(plaintext.toByteArray());
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, stackTraceToSingleLineString(e));
+      throw new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    return ByteString.valueOf(output);
+  }
+
+  private ByteString sha512CryptEncodePassword(ByteSequence plaintext)
+      throws DirectoryException {
+    String output;
+    try
+    {
+      output = Sha2Crypt.sha512Crypt(plaintext.toByteArray());
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, stackTraceToSingleLineString(e));
+      throw new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    return ByteString.valueOf(output);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -200,6 +236,12 @@ public class CryptPasswordStorageScheme
         break;
       case MD5:
         bytes = md5CryptEncodePassword(plaintext);
+        break;
+      case SHA256:
+        bytes = sha256CryptEncodePassword(plaintext);
+        break;
+      case SHA512:
+        bytes = sha512CryptEncodePassword(plaintext);
         break;
     }
     return bytes;
@@ -267,6 +309,36 @@ public class CryptPasswordStorageScheme
     }
   }
 
+  private boolean sha256CryptPasswordMatches(ByteSequence plaintextPassword,
+      ByteSequence storedPassword) {
+    String storedString = storedPassword.toString();
+    try
+    {
+      String userString = Sha2Crypt.sha256Crypt(
+          plaintextPassword.toByteArray(), storedString);
+      return userString.equals(storedString);
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
+  }
+
+  private boolean sha512CryptPasswordMatches(ByteSequence plaintextPassword,
+      ByteSequence storedPassword) {
+    String storedString = storedPassword.toString();
+    try
+    {
+      String userString = Sha2Crypt.sha512Crypt(
+          plaintextPassword.toByteArray(), storedString);
+      return userString.equals(storedString);
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -278,6 +350,14 @@ public class CryptPasswordStorageScheme
     if (storedString.startsWith(BSDMD5Crypt.getMagicString()))
     {
       return md5CryptPasswordMatches(plaintextPassword, storedPassword);
+    }
+    else if (storedString.startsWith(Sha2Crypt.getMagicSHA256Prefix()))
+    {
+      return sha256CryptPasswordMatches(plaintextPassword, storedPassword);
+    }
+    else if (storedString.startsWith(Sha2Crypt.getMagicSHA512Prefix()))
+    {
+      return sha512CryptPasswordMatches(plaintextPassword, storedPassword);
     }
     else
     {

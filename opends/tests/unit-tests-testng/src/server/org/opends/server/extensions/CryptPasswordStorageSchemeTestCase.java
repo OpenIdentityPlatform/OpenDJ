@@ -23,14 +23,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
+ *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
 
-import static org.testng.Assert.*;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 
@@ -53,6 +54,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 /**
@@ -68,6 +72,9 @@ public class CryptPasswordStorageSchemeTestCase
   // password storage scheme.
   private static final String configDNString =
           "cn=Crypt,cn=Password Storage Schemes,cn=config";
+
+  // Names of all the crypt algorithms we want to test.
+  private static final String[] names = { "unix", "md5", "sha256", "sha512" };
 
   /**
    * Creates a new instance of this crypt password storage scheme test
@@ -134,7 +141,7 @@ public class CryptPasswordStorageSchemeTestCase
 
 
   /**
-   * Creates an instance of the password storage scheme, uses it to encode the
+   * Creates an instance of each password storage scheme, uses it to encode the
    * provided password, and ensures that the encoded value is correct.
    *
    * @param  plaintext  The plain-text version of the password to encode.
@@ -142,162 +149,83 @@ public class CryptPasswordStorageSchemeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testPasswords")
-  public void testUnixStorageScheme(ByteString plaintext)
+  public void testUnixStorageSchemes(ByteString plaintext)
          throws Exception
   {
-    CryptPasswordStorageScheme scheme = getScheme("unix");
-    assertNotNull(scheme);
-    assertNotNull(scheme.getStorageSchemeName());
-
-    ByteString encodedPassword = scheme.encodePassword(plaintext);
-    assertNotNull(encodedPassword);
-    assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
-    assertFalse(scheme.passwordMatches(plaintext,
-                                       ByteString.valueOf("garbage")));
-
-    ByteString schemeEncodedPassword =
-         scheme.encodePasswordWithScheme(plaintext);
-    String[] pwComponents = UserPasswordSyntax.decodeUserPassword(
-                                 schemeEncodedPassword.toString());
-    assertNotNull(pwComponents);
-
-
-    if (scheme.supportsAuthPasswordSyntax())
+    for (String name : names)
     {
-      assertNotNull(scheme.getAuthPasswordSchemeName());
-      ByteString encodedAuthPassword = scheme.encodeAuthPassword(plaintext);
-      StringBuilder[] authPWComponents =
-           AuthPasswordSyntax.decodeAuthPassword(
-                encodedAuthPassword.toString());
-      assertTrue(scheme.authPasswordMatches(plaintext,
-                                            authPWComponents[1].toString(),
-                                            authPWComponents[2].toString()));
-      assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
-      assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
-    }
-    else
-    {
-      try
-      {
-        scheme.encodeAuthPassword(plaintext);
-        throw new Exception("Expected encodedAuthPassword to fail for scheme " +
-                            scheme.getStorageSchemeName() +
-                            " because it doesn't support auth passwords.");
-      }
-      catch (DirectoryException de)
-      {
-        // This was expected.
-      }
+      CryptPasswordStorageScheme scheme = getScheme(name);
+      assertNotNull(scheme);
+      assertNotNull(scheme.getStorageSchemeName());
 
-      assertFalse(scheme.authPasswordMatches(plaintext, "foo", "bar"));
-    }
+      ByteString encodedPassword = scheme.encodePassword(plaintext);
+      assertNotNull(encodedPassword);
+      assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
+      assertFalse(scheme.passwordMatches(plaintext,
+                                         ByteString.valueOf("garbage")));
+
+      ByteString schemeEncodedPassword =
+           scheme.encodePasswordWithScheme(plaintext);
+      String[] pwComponents = UserPasswordSyntax.decodeUserPassword(
+                                   schemeEncodedPassword.toString());
+      assertNotNull(pwComponents);
 
 
-    if (scheme.isReversible())
-    {
-      assertEquals(scheme.getPlaintextValue(encodedPassword), plaintext);
-    }
-    else
-    {
-      try
+      if (scheme.supportsAuthPasswordSyntax())
       {
-        scheme.getPlaintextValue(encodedPassword);
-        throw new Exception("Expected getPlaintextValue to fail for scheme " +
-                            scheme.getStorageSchemeName() +
-                            " because it is not reversible.");
+        assertNotNull(scheme.getAuthPasswordSchemeName());
+        ByteString encodedAuthPassword = scheme.encodeAuthPassword(plaintext);
+        StringBuilder[] authPWComponents =
+             AuthPasswordSyntax.decodeAuthPassword(
+                  encodedAuthPassword.toString());
+        assertTrue(scheme.authPasswordMatches(plaintext,
+                                              authPWComponents[1].toString(),
+                                              authPWComponents[2].toString()));
+        assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
+        assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
       }
-      catch (DirectoryException de)
+      else
       {
-        // This was expected.
-      }
-    }
+        try
+        {
+          scheme.encodeAuthPassword(plaintext);
+          throw new Exception("Expected encodedAuthPassword to fail for scheme " +
+                              scheme.getStorageSchemeName() +
+                              " because it doesn't support auth passwords.");
+        }
+        catch (DirectoryException de)
+        {
+          // This was expected.
+        }
 
-    scheme.isStorageSchemeSecure();
+        assertFalse(scheme.authPasswordMatches(plaintext, "foo", "bar"));
+      }
+
+
+      if (scheme.isReversible())
+      {
+        assertEquals(scheme.getPlaintextValue(encodedPassword), plaintext);
+      }
+      else
+      {
+        try
+        {
+          scheme.getPlaintextValue(encodedPassword);
+          throw new Exception("Expected getPlaintextValue to fail for scheme " +
+                              scheme.getStorageSchemeName() +
+                              " because it is not reversible.");
+        }
+        catch (DirectoryException de)
+        {
+          // This was expected.
+        }
+      }
+
+      scheme.isStorageSchemeSecure();
+      
+    }
   }
 
-
-
-  /**
-   * Creates an instance of the password storage scheme, uses it to encode the
-   * provided password, and ensures that the encoded value is correct.
-   *
-   * @param  plaintext  The plain-text version of the password to encode.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(dataProvider = "testPasswords")
-  public void testMD5StorageScheme(ByteString plaintext)
-         throws Exception
-  {
-    CryptPasswordStorageScheme scheme = getScheme("md5");
-    assertNotNull(scheme);
-    assertNotNull(scheme.getStorageSchemeName());
-
-    ByteString encodedPassword = scheme.encodePassword(plaintext);
-    assertNotNull(encodedPassword);
-    assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
-    assertFalse(scheme.passwordMatches(plaintext,
-                                       ByteString.valueOf("garbage")));
-
-    ByteString schemeEncodedPassword =
-         scheme.encodePasswordWithScheme(plaintext);
-    String[] pwComponents = UserPasswordSyntax.decodeUserPassword(
-                                 schemeEncodedPassword.toString());
-    assertNotNull(pwComponents);
-
-
-    if (scheme.supportsAuthPasswordSyntax())
-    {
-      assertNotNull(scheme.getAuthPasswordSchemeName());
-      ByteString encodedAuthPassword = scheme.encodeAuthPassword(plaintext);
-      StringBuilder[] authPWComponents =
-           AuthPasswordSyntax.decodeAuthPassword(
-                encodedAuthPassword.toString());
-      assertTrue(scheme.authPasswordMatches(plaintext,
-                                            authPWComponents[1].toString(),
-                                            authPWComponents[2].toString()));
-      assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
-      assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
-    }
-    else
-    {
-      try
-      {
-        scheme.encodeAuthPassword(plaintext);
-        throw new Exception("Expected encodedAuthPassword to fail for scheme " +
-                            scheme.getStorageSchemeName() +
-                            " because it doesn't support auth passwords.");
-      }
-      catch (DirectoryException de)
-      {
-        // This was expected.
-      }
-
-      assertFalse(scheme.authPasswordMatches(plaintext, "foo", "bar"));
-    }
-
-
-    if (scheme.isReversible())
-    {
-      assertEquals(scheme.getPlaintextValue(encodedPassword), plaintext);
-    }
-    else
-    {
-      try
-      {
-        scheme.getPlaintextValue(encodedPassword);
-        throw new Exception("Expected getPlaintextValue to fail for scheme " +
-                            scheme.getStorageSchemeName() +
-                            " because it is not reversible.");
-      }
-      catch (DirectoryException de)
-      {
-        // This was expected.
-      }
-    }
-
-    scheme.isStorageSchemeSecure();
-  }
 
 
   @DataProvider
@@ -316,6 +244,8 @@ public class CryptPasswordStorageSchemeTestCase
     };
   }
 
+
+
   /**
    * An end-to-end test that verifies that we can set a pre-encoded password
    * in a user entry, and then bind as that user using the cleartext password.
@@ -324,15 +254,16 @@ public class CryptPasswordStorageSchemeTestCase
   public void testSettingUnixEncodedPassword(ByteString plainPassword)
           throws Exception
   {
-    // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
+    for (String name: names)
+    {
+      // Start/clear-out the memory backend
+      TestCaseUtils.initializeTestBackend(true);
 
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
+      setAllowPreencodedPasswords(true);
 
-    try {
-      CryptPasswordStorageScheme scheme = getScheme("unix");
+      CryptPasswordStorageScheme scheme = getScheme(name);
       ByteString schemeEncodedPassword =
-           scheme.encodePasswordWithScheme(plainPassword);
+          scheme.encodePasswordWithScheme(plainPassword);
 
       //
       // This code creates a user with the encoded password,
@@ -340,79 +271,27 @@ public class CryptPasswordStorageSchemeTestCase
       //
 
       Entry userEntry = TestCaseUtils.makeEntry(
-           "dn: uid=test.user,o=test",
-           "objectClass: top",
-           "objectClass: person",
-           "objectClass: organizationalPerson",
-           "objectClass: inetOrgPerson",
-           "uid: test.user",
-           "givenName: Test",
-           "sn: User",
-           "cn: Test User",
-           "ds-privilege-name: bypass-acl",
-           "userPassword: " + schemeEncodedPassword.toString());
+          "dn: uid=test.user,o=test",
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: test.user",
+          "givenName: Test",
+          "sn: User",
+          "cn: Test User",
+          "ds-privilege-name: bypass-acl",
+          "userPassword: " + schemeEncodedPassword.toString());
 
       // Add the entry
       TestCaseUtils.addEntry(userEntry);
 
       assertTrue(TestCaseUtils.canBind("uid=test.user,o=test",
-                 plainPassword.toString()),
-                 "Failed to bind when pre-encoded password = \"" +
-                         schemeEncodedPassword.toString() + "\" and " +
-                         "plaintext password = \"" +
-                         plainPassword.toString() + "\"");
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
-    }
-  }
-
-  /**
-   * An end-to-end test that verifies that we can set a pre-encoded password
-   * in a user entry, and then bind as that user using the cleartext password.
-   */
-  @Test(dataProvider = "passwordsForBinding")
-  public void testSettingMD5EncodedPassword(ByteString plainPassword)
-          throws Exception
-  {
-    // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
-
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
-
-    try {
-      CryptPasswordStorageScheme scheme = getScheme("md5");
-      ByteString schemeEncodedPassword =
-           scheme.encodePasswordWithScheme(plainPassword);
-
-      //
-      // This code creates a user with the encoded password,
-      // and then verifies that they can bind with the raw password.
-      //
-
-      Entry userEntry = TestCaseUtils.makeEntry(
-           "dn: uid=test.user,o=test",
-           "objectClass: top",
-           "objectClass: person",
-           "objectClass: organizationalPerson",
-           "objectClass: inetOrgPerson",
-           "uid: test.user",
-           "givenName: Test",
-           "sn: User",
-           "cn: Test User",
-           "ds-privilege-name: bypass-acl",
-           "userPassword: " + schemeEncodedPassword.toString());
-
-      // Add the entry
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=test.user,o=test",
-                 plainPassword.toString()),
-                 "Failed to bind when pre-encoded password = \"" +
-                         schemeEncodedPassword.toString() + "\" and " +
-                         "plaintext password = \"" +
-                         plainPassword.toString() + "\"");
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
+          plainPassword.toString()),
+          "Failed to bind when pre-encoded password = \"" +
+              schemeEncodedPassword.toString() + "\" and " +
+              "plaintext password = \"" +
+              plainPassword.toString() + "\"");
     }
   }
 
@@ -460,33 +339,40 @@ public class CryptPasswordStorageSchemeTestCase
   }
 
   /**
-   * Retrieves a set of passwords (plain and md5 encrypted) that may
-   * be used to test the BSDMD5 algorithm of Crypt Password Storage scheme
-   * compatibility with Linux versions.
-   * The encrypted version has been generated by openssl passwd -1
+   * Retrieves a set of passwords (plain and variously hashed) that may
+   * be used to test the different Unix "crypt" algorithms used by the Crypt
+   * Password Storage scheme.
+   *
+   * The encrypted versions have been generated by the openssl passwd -1
    * command on MacOS X.
    *
-   * @return  A set of couple (cleartext, md5 encryped) passwords that
-   *          may be used to test BSD MD5 algorithm of the Crypt password
-   *          storage scheme.
+   * @return  A set of couple (cleartext, hashed) passwords that
+   *          may be used to test the different algorithms used by the Crypt
+   *          password storage scheme.
    */
 
-  @DataProvider(name = "testBSDMD5Passwords")
-  public Object[][] getTestBSDMD5Passwords()
+  @DataProvider(name = "testCryptPasswords")
+  public Object[][] getTestCryptPasswords()
          throws Exception
   {
     return new Object[][]
     {
       new Object[] { "secret12", "{CRYPT}$1$X40CcMaA$dd3ndknBLcpkED4/RciyD1" },
       new Object[] { "#1 Strong Password!", "{CRYPT}$1$7jHbWKyy$gAmpOSdaYVap55MwsQnK5/" },
-      new Object[] { "foo", "{CRYPT}$1$ac/Z7Q3s$5kTVLqMSq9KMqUVyEBfiw0" }
+      new Object[] { "foo", "{CRYPT}$1$ac/Z7Q3s$5kTVLqMSq9KMqUVyEBfiw0" },
+      new Object[] { "secret12", "{CRYPT}$5$miWe9yahchas7aiy$b/6oTh5QF3bqbdIDWmjtdOxD8df75426zTHwF.MJuyB" },
+      new Object[] { "foo", "{CRYPT}$5$aZoothaeDai0nooG$5LDMuhK6gWtH6/mrrqZbRc5aIRROfrKri4Tvl/D6Z.0"},
+      new Object[] { "#1 Strong Password!", "{CRYPT}$5$aZoothaeDai0nooG$6o0Sbx/RtTA4K/A8uflMsSCid3i7TYktcwWxIp5NFy2"},
+      new Object[] { "secret12", "{CRYPT}$6$miWe9yahchas7aiy$RQASn5qZMCu2FDsR69RHk1RoLVi3skFUhS0qGNCo.MymgkYoWAedMji09UzxMFzOj8fW2GnzsXT4RVn9gcNmf0" },
+      new Object[] { "#1 Strong Password!", "{CRYPT}$6$p0NJY6r4$VV2JfNtRaTmy8hBtVpdgeIUYQIAUyfdLyhiH6VxzsDIw.28oCsVeMQ5ARiL/PoOambM9dAU3vk4ll8uEB/nnx0"},
+      new Object[] { "foo", "{CRYPT}$6$aZoothaeDai0nooG$1K9ePro8ujsqRy/Ag77OVuev8Y8hyN1Jp10S2t9S.1RMtkKn/SbxQbl2MezoL0UJFYjrEzL0zVdO8PcfT3yXS."}
     };
   }
 
-  @Test(dataProvider = "testBSDMD5Passwords")
-  public void testAuthBSDMD5Passwords(
+  @Test(dataProvider = "testCryptPasswords")
+  public void testAuthCryptPasswords(
           String plaintextPassword,
-          String md5EncodedPassword) throws Exception
+          String encodedPassword) throws Exception
   {
       // Start/clear-out the memory backend
     TestCaseUtils.initializeTestBackend(true);
@@ -496,25 +382,25 @@ public class CryptPasswordStorageSchemeTestCase
     try {
 
       Entry userEntry = TestCaseUtils.makeEntry(
-       "dn: uid=testMD5.user,o=test",
+       "dn: uid=testCrypt.user,o=test",
        "objectClass: top",
        "objectClass: person",
        "objectClass: organizationalPerson",
        "objectClass: inetOrgPerson",
-       "uid: testMD5.user",
-       "givenName: TestMD5",
+       "uid: testCrypt.user",
+       "givenName: TestCrypt",
        "sn: User",
-       "cn: TestMD5 User",
-       "userPassword: " + md5EncodedPassword);
+       "cn: TestCrypt User",
+       "userPassword: " + encodedPassword);
 
 
       // Add the entry
       TestCaseUtils.addEntry(userEntry);
 
-      assertTrue(TestCaseUtils.canBind("uid=testMD5.user,o=test",
+      assertTrue(TestCaseUtils.canBind("uid=testCrypt.user,o=test",
                   plaintextPassword),
                "Failed to bind when pre-encoded password = \"" +
-               md5EncodedPassword + "\" and " +
+               encodedPassword + "\" and " +
                "plaintext password = \"" +
                plaintextPassword + "\"" );
     } finally {
