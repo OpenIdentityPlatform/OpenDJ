@@ -24,11 +24,11 @@
   !
 -->
 <chapter xml:id='chap-change-certs'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Changing Server Certificates</title>
  <indexterm><primary>Certificates</primary></indexterm>
 
@@ -73,57 +73,62 @@
   <varlistentry>
    <term><filename>admin-keystore</filename></term>
    <listitem>
-    <para>This Java Key Store holds the private key corresponding to the
-    administrative certificate, <literal>admin-cert</literal>, used
-    to protect communications on the administration port, and for replication.
-    The password is stored in <filename>admin-keystore.pin</filename>.</para>
+    <para>This Java Key Store holds the private key and administrative
+    certificate for the server, <literal>admin-cert</literal>. This key pair
+    is used to protect communications on the administration port. The password,
+    stored in <filename>admin-keystore.pin</filename>, is also the key password
+    for <literal>admin-cert</literal>.</para>
    </listitem>
   </varlistentry>
+
   <varlistentry>
    <term><filename>admin-truststore</filename></term>
    <listitem>
-    <para>This Java Key Store holds the public administrative certificate,
-    <literal>admin-cert</literal>, corresponding to the private key having the
-    same alias in the <filename>admin-keystore</filename>. The password is the
-    same as for the <filename>admin-keystore</filename>, in other words the
-    string in <filename>admin-keystore.pin</filename>.</para>
+    <para>This Java Key Store holds a copy of the administrative certificate,
+    <literal>admin-cert</literal>. The password is the same as for the
+    <filename>admin-keystore</filename>, in other words the string in
+    <filename>admin-keystore.pin</filename>.</para>
    </listitem>
   </varlistentry>
+
   <varlistentry>
    <term><filename>ads-truststore</filename></term>
    <listitem>
-    <para>This Java Key Store holds public keys of all servers
-    participating in the replication topology including the current server,
-    and also holds the private key of the current server. The password is
-    stored in <filename>ads-truststore.pin</filename>.</para>
+    <para>This Java Key Store holds public key certificates of all servers
+    replicating with the current server. It also includes the
+    <literal>ads-certificate</literal> key pair of the current server.
+    The password is stored in <filename>ads-truststore.pin</filename>.</para>
 
     <para>Do not change this key store directly.</para>
    </listitem>
   </varlistentry>
+
   <varlistentry>
    <term><filename>keystore</filename></term>
    <listitem>
-    <para>This Java Key Store holds the private key corresponding to the
-    server certificate used to protect TLS/SSL communications with client
-    applications. The password is stored in
-    <filename>keystore.pin</filename>.</para>
+    <para>This Java Key Store holds the private key and server certificate,
+    <literal>server-cert</literal>, used to protect TLS/SSL communications
+    with client applications. The password, stored in
+    <filename>keystore.pin</filename>, is also the key password for
+    <literal>server-cert</literal>.</para>
    </listitem>
   </varlistentry>
+
   <varlistentry>
    <term><filename>truststore</filename></term>
    <listitem>
-    <para>This Java Key Store holds the public server certificate
-    corresponding to the private key having the same alias in the
-    <filename>keystore</filename>. The password is the same as for the
-    <filename>keystore</filename>, in other words the string in
-    <filename>keystore.pin</filename>.</para>
+    <para>This Java Key Store holds a copy of the <literal>server-cert</literal>
+    certificate from the <filename>keystore</filename>. This is also where you
+    import certificates of client applications if you want OpenDJ to recognize
+    them. The password is the same as for the <filename>keystore</filename>,
+    in other words the string in <filename>keystore.pin</filename>.</para>
    </listitem>
   </varlistentry>
  </variablelist>
 
  <tip>
   <para>Examples in this chapter use self-signed certificates, but you can
-  also use CA-signed certificates.</para>
+  also use certificates signed by a Certificate Authority (CA).</para>
 
   <para>When importing a certificate (<command>keytool -import</command>)
   signed by a well-known CA, use the <option>-trustcacerts</option> option
@@ -135,27 +140,45 @@
   <title>To Replace a Server Key Pair</title>
 
   <para>This procedure shows how to replace a server key pair in the
-  <filename>admin-truststore</filename> and corresponding private key in the
-  <filename>admin-keystore</filename>.</para>
+  <filename>admin-keystore</filename> and copy of the administrative certificate
+  in <filename>admin-truststore</filename>.</para>
 
   <para>The examples also apply when replacing a key pair in the
-  <filename>keystore</filename> and <filename>truststore</filename>, provided
-  that you change they keystore and PIN names in the commands.</para>
+  <filename>keystore</filename> and copy of the server certificate in
+  <filename>truststore</filename>. Just adapt the commands to use the correct
+  key store, trust store, and PIN file names.</para>
 
   <para>This procedure does not apply for replication key pairs. Instead, see
   <xref linkend="replace-ads-cert" />.</para>
 
   <step>
-   <para>List information about the contents of the key store and trust store
-   whose contents you want to replace.</para>
+   <para>Check the alias of the key pair and certificate copy to replace.</para>
 
    <screen>$ cd /path/to/OpenDJ/config
-$ keytool -list -v -keystore admin-keystore -storepass `cat admin-keystore.pin`</screen>
+$ keytool -list -keystore admin-keystore -storepass `cat admin-keystore.pin`
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+admin-cert, Mar 15, 2013, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E
+$ keytool -list -keystore admin-truststore -storepass `cat admin-keystore.pin`
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+admin-cert, Mar 15, 2013, trustedCertEntry,
+Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</screen>
+
+   <para>This alias is also stored in the server configuration.</para>
   </step>
 
   <step>
-   <para>Remove the certificate to replace from the keystore and from the
-   trust store.</para>
+   <para>Remove the key pair and certificate copy to replace.</para>
 
    <screen>$ keytool
  -delete
@@ -170,39 +193,57 @@ $ keytool
   </step>
 
   <step>
-   <para>Generate the private key, storing it in the key store.</para>
+   <para>Generate a new key pair in the key store.</para>
 
-   <screen>$ keytool
+   <screen width="83">$ keytool
  -genkey
  -alias admin-cert
  -keyalg RSA
- -dname
- "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate"
+ -validity 7300
+ -keysize 2048
+ -dname "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate"
  -keystore admin-keystore
  -storepass `cat admin-keystore.pin`
  -keypass `cat admin-keystore.pin`</screen>
-   <para>You might choose to make the key valid for 20 years with
-   <option>-validity 7300</option>.</para>
+
+   <para>Notice that the <option>-alias</option> option takes the same alias
+   as before. This is because the <literal>ssl-cert-nickname</literal> for
+   the Administration Connector is configured as <literal>admin-cert</literal>.
+   Also, the <option>-dname</option> option has a CN value corresponding to the
+   fully-qualified domain name of the host where OpenDJ directory server is
+   running.</para>
   </step>
 
   <step>
-   <para>Self-sign what you generated.</para>
+   <para>Get the new key pair's certificate signed, using one of the following
+   alternatives.</para>
 
-   <screen>$ keytool
+   <stepalternatives>
+    <step>
+     <para>Self-sign the certificate.</para>
+
+     <screen>$ keytool
  -selfcert
  -alias admin-cert
  -keystore admin-keystore
  -storepass `cat admin-keystore.pin`</screen>
+    </step>
 
-   <para>Alternatively, request and install a CA-signed certificate as
-   described in the section on <link
-   xlink:href="admin-guide#setup-server-cert"
-   xlink:role="http://docbook.org/xlink/role/olink"
-   ><citetitle>Preparing For Secure Communications</citetitle></link>.</para>
+    <step>
+     <para>Create a certificate signing request, have it signed by a CA, and
+     import the signed certificate from the CA reply.</para>
+
+     <para>For examples of the <command>keytool</command> commands to use, see
+     the procedure <link xlink:href="admin-guide#new-ca-signed-cert"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Request and
+     Install a CA-Signed Certificate</citetitle></link>.</para>
+    </step>
+   </stepalternatives>
+
   </step>
 
   <step>
-   <para>Export the certificate from the key store.</para>
+   <para>Export a copy of the certificate from the key store.</para>
 
    <screen>$ keytool
  -export
@@ -214,25 +255,35 @@ Certificate stored in file &lt;admin-cert.crt&gt;</screen>
   </step>
 
   <step>
-   <para>Import the certificate into the trust store.</para>
+   <para>Import the copy of the certificate into the trust store.</para>
 
-   <screen>$ keytool
+   <screen width="81">$ keytool
  -import
  -alias admin-cert
  -keystore admin-truststore
  -storepass `cat admin-keystore.pin`
  -file admin-cert.crt
-Owner: CN=opendj.example.com,
- O=Administration Connector Self-Signed Certificate
-Issuer: CN=opendj.example.com,
- O=Administration Connector Self-Signed Certificate
-Serial number: 4e0321c6
-Valid from: Thu Jun 23 13:21:42 CEST 2011 until: Wed Sep 21 13:21:42 CEST 2011
+Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+Issuer: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+Serial number: 904fc2b
+Valid from: Fri Mar 15 15:15:20 CET 2013 until: Thu Jun 13 16:15:20 CEST 2013
 Certificate fingerprints:
-  MD5:  5C:4B:CC:9A:37:E2:71:BD:C4:86:8E:FC:D4:37:39:57
-  SHA1: 70:D0:36:0D:EB:0D:AC:45:6D:A4:EF:8A:8E:CB:C7:04:7D:3A:EE:6E
-  Signature algorithm name: SHA1withRSA
-  Version: 3
+	 MD5:  DD:2A:A1:3A:39:87:DF:02:15:A4:8A:9D:77:89:F1:E4
+	 SHA1: E1:99:82:92:D7:9B:28:B7:93:D2:B5:5B:C9:DA:4E:D2:62:C2:E7:B0
+	 SHA256: C5:34:9C:04:E2:87:A9:B1:72:B5:...:99:86:3A:02:28:D0:AB:02:5F:F4:BE
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: FE 33 69 67 FF E8 64 F6   D3 FB CD 14 1C D3 01 44  .3ig..d........D
+0010: EE 62 40 DD                                        .b@.
+]
+]
+
 Trust this certificate? [no]:  yes
 Certificate was added to keystore</screen>
   </step>
@@ -240,7 +291,8 @@ Certificate was added to keystore</screen>
   <step>
    <para>Restart OpenDJ to make sure it reloads the key stores.</para>
 
-   <screen>$ stop-ds --restart</screen>
+   <screen>$ cd /path/to/OpenDJ/bin
+$ stop-ds --restart</screen>
   </step>
 
   <step>
