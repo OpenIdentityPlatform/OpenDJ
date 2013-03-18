@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import static org.opends.messages.ProtocolMessages.*;
 import java.util.BitSet;
+import java.util.Collection;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -381,17 +382,17 @@ public final class AddressMask
 
     /**
      * Indicates whether provided address matches one of the address masks in
-     * the provided array.
+     * the provided collection.
      *
      * @param address
      *          The address to check.
      * @param masks
-     *          An array of address masks to check.
+     *          A collection of address masks to check.
      * @return <CODE>true</CODE> if the provided address matches one of the
      *         given address masks, or <CODE>false</CODE> if it does not.
      */
     public  static boolean maskListContains(InetAddress address,
-        AddressMask[] masks)
+        Collection<AddressMask> masks)
     {
       for (AddressMask mask : masks)
       {

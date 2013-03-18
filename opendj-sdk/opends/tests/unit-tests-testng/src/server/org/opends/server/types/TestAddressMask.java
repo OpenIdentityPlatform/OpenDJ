@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -33,7 +33,8 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class TestAddressMask extends TypesTestCase {
 
@@ -206,49 +207,43 @@ public class TestAddressMask extends TypesTestCase {
      };
  }
 
- @Test(dataProvider = "matchRules")
- public void testMatch(String[] rules, String[] addrs, String[]hostNames) {
-     boolean ret;
-     ret=match(rules,addrs,hostNames);
-     assertTrue(ret);
- }
+  @Test(dataProvider = "matchRules")
+  public void testMatch(String[] rules, String[] addrs, String[] hostNames)
+      throws Exception
+  {
+    assertTrue(match(rules, addrs, hostNames));
+  }
 
- @Test(dataProvider = "matchWCRules")
- public void testWildCardMatch(String[] rules, String[] addrs,
-         String[]hostNames) {
-     boolean ret;
-     ret=match(rules,addrs,hostNames);
-     assertTrue(ret);
- }
+  @Test(dataProvider = "matchWCRules")
+  public void testWildCardMatch(String[] rules, String[] addrs,
+      String[] hostNames) throws Exception
+  {
+    assertTrue(match(rules, addrs, hostNames));
+  }
 
- @Test(dataProvider = "noMatchRules")
- public void testNoMatch(String[] rules, String[] addrs,
-         String[] hostNames) {
-     boolean ret;
-     ret=match(rules,addrs,hostNames);
-     assertFalse(ret);
- }
+  @Test(dataProvider = "noMatchRules")
+  public void testNoMatch(String[] rules, String[] addrs, String[] hostNames)
+    throws Exception
+  {
+    assertFalse(match(rules, addrs, hostNames));
+  }
 
- @Test(dataProvider="toStringRule")
- public void testToString(String rule) {
-     try {
-         AddressMask m = AddressMask.decode(rule);
-         assertEquals(rule, m.toString());
-     } catch (ConfigException ce) {
-         throw new RuntimeException(
-                 "Invalid mask <" + rule +
-                 "> all data should be valid for this test");
-     }
- }
+  @Test(dataProvider = "toStringRule")
+  public void testToString(String rule) throws Exception
+  {
+    AddressMask m = AddressMask.decode(rule);
+    assertEquals(rule, m.toString());
+  }
 
-  private boolean match(String[] rules, String[] addrs,  String[]hostNames) {
-    boolean ret=true;
+  private boolean match(String[] rules, String[] addrs, String[] hostNames)
+      throws Exception
+  {
     int i=0;
 
-    AddressMask[] m = new AddressMask[rules.length];
+    Collection<AddressMask> m = new ArrayList<AddressMask>(rules.length);
     try {
       for (i = 0; i < rules.length; i++) {
-        m[i] = AddressMask.decode(rules[i]);
+        m.add(AddressMask.decode(rules[i]));
       }
     } catch (ConfigException ce) {
       throw new RuntimeException(
@@ -256,18 +251,15 @@ public class TestAddressMask extends TypesTestCase {
                       "> all data must be valid for this test");
     }
     for(int j = 0; j < addrs.length; j++) {
-      try  {
-        InetAddress addr = InetAddress.getByAddress(hostNames[j], InetAddress
-            .getByName(addrs[j]).getAddress());
-        if(!AddressMask.maskListContains(addr, m)) {
-          ret=false;
-          break;
-        }
-      } catch (UnknownHostException ex) {
-        ret=false;
+      InetAddress addr =
+          InetAddress.getByAddress(hostNames[j], InetAddress
+              .getByName(addrs[j]).getAddress());
+      if (!AddressMask.maskListContains(addr, m))
+      {
+        return false;
       }
     }
-    return ret;
+    return true;
   }
 
   /*
@@ -286,7 +278,7 @@ public class TestAddressMask extends TypesTestCase {
                 {"0:0:0:0:0:0:101.45.75.700"},
                 {"1080::8:800:200C:417A/500"},
                 {"1080::8:800:*:417A/66"},
-                 {"2001:fecd:ba23:cd1ff:dcb1:1010:202.45.66.20"},
+                {"2001:fecd:ba23:cd1ff:dcb1:1010:202.45.66.20"},
         };
   }
 
@@ -358,9 +350,9 @@ public class TestAddressMask extends TypesTestCase {
   }
 
   @Test(dataProvider = "match6Rules")
-  public void testMatch6(String[] rules, String[] addrs, String[]hostNames) {
-      boolean ret;
-      ret=match(rules,addrs,hostNames);
-      assertTrue(ret);
+  public void testMatch6(String[] rules, String[] addrs, String[] hostNames)
+      throws Exception
+  {
+    assertTrue(match(rules, addrs, hostNames));
   }
 }

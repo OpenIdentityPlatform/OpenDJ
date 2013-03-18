@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core.networkgroups;
 
@@ -46,11 +46,11 @@ import org.opends.server.types.DN;
 final class IPConnectionCriteria implements ConnectionCriteria
 {
 
-  // The list of allowed client address masks.
-  private final AddressMask[] allowedClients;
+  /** The collection of allowed client address masks. */
+  private final Collection<AddressMask> allowedClients;
 
-  // The list of denied client address masks.
-  private final AddressMask[] deniedClients;
+  /** The collection of denied client address masks. */
+  private final Collection<AddressMask> deniedClients;
 
 
 
@@ -66,8 +66,8 @@ final class IPConnectionCriteria implements ConnectionCriteria
   public IPConnectionCriteria(Collection<AddressMask> allowedClients,
       Collection<AddressMask> deniedClients)
   {
-    this.allowedClients = allowedClients.toArray(new AddressMask[0]);
-    this.deniedClients = deniedClients.toArray(new AddressMask[0]);
+    this.allowedClients = allowedClients;
+    this.deniedClients = deniedClients;
   }
 
 
@@ -79,20 +79,16 @@ final class IPConnectionCriteria implements ConnectionCriteria
   {
     InetAddress ipAddr = connection.getRemoteAddress();
 
-    if (deniedClients.length > 0)
+    if (!deniedClients.isEmpty()
+        && AddressMask.maskListContains(ipAddr, deniedClients))
     {
-      if (AddressMask.maskListContains(ipAddr, deniedClients))
-      {
-        return false;
-      }
+      return false;
     }
 
-    if (allowedClients.length > 0)
+    if (!allowedClients.isEmpty()
+        && !AddressMask.maskListContains(ipAddr, allowedClients))
     {
-      if (!AddressMask.maskListContains(ipAddr, allowedClients))
-      {
-        return false;
-      }
+      return false;
     }
 
     return true;

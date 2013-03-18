@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -35,6 +35,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -76,8 +77,8 @@ public abstract class AbstractTextAccessLogPublisher
     private final boolean logConnectRecords;
     private final boolean logDisconnectRecords;
     private final EnumSet<OperationType> logOperationRecords;
-    private final AddressMask[] clientAddressEqualTo;
-    private final AddressMask[] clientAddressNotEqualTo;
+    private final Collection<AddressMask> clientAddressEqualTo;
+    private final Collection<AddressMask> clientAddressNotEqualTo;
     private final int[] clientPorts;
     private final String[] clientProtocols;
     private final PatternDN[] userDNEqualTo;
@@ -179,10 +180,8 @@ public abstract class AbstractTextAccessLogPublisher
         clientProtocols[i++] = toLowerCase(protocol);
       }
 
-      clientAddressEqualTo = cfg.getConnectionClientAddressEqualTo().toArray(
-          new AddressMask[0]);
-      clientAddressNotEqualTo = cfg.getConnectionClientAddressNotEqualTo()
-          .toArray(new AddressMask[0]);
+      clientAddressEqualTo = cfg.getConnectionClientAddressEqualTo();
+      clientAddressNotEqualTo = cfg.getConnectionClientAddressNotEqualTo();
 
       userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
       i = 0;
@@ -402,19 +401,15 @@ public abstract class AbstractTextAccessLogPublisher
 
       // Check client address.
       final InetAddress ipAddr = connection.getRemoteAddress();
-      if (clientAddressNotEqualTo.length > 0)
+      if (!clientAddressNotEqualTo.isEmpty()
+          && AddressMask.maskListContains(ipAddr, clientAddressNotEqualTo))
       {
-        if (AddressMask.maskListContains(ipAddr, clientAddressNotEqualTo))
-        {
-          return false;
-        }
+        return false;
       }
-      if (clientAddressEqualTo.length > 0)
+      if (!clientAddressEqualTo.isEmpty()
+          && !AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
       {
-        if (!AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
-        {
-          return false;
-        }
+        return false;
       }
 
       return true;
