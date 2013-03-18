@@ -258,7 +258,7 @@
             <call function="'SNMPGet'">
               {
               'snmpVersion'   : '1',
-              'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+              'snmpHost'      : newManagerProp ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : defCommunity ,
               'snmpOIDs'      : oid ,
@@ -392,7 +392,7 @@
             <call function="'SNMPGet'">
               {
               'snmpVersion'   : '1',
-              'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+              'snmpHost'      : newManagerProp ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : defCommunity ,
               'snmpOIDs'      : oid ,
@@ -539,7 +539,7 @@
             <call function="'SNMPGet'">
               {
               'snmpVersion'   : '1',
-              'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+              'snmpHost'      : newManagerProp ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : defCommunity ,
               'snmpOIDs'      : oid ,
