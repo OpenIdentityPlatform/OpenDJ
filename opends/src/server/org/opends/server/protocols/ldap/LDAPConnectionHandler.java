@@ -171,12 +171,12 @@ public final class LDAPConnectionHandler extends
   private boolean enabled;
 
   /** The set of clients that are explicitly allowed access to the server. */
-  private AddressMask[] allowedClients;
+  private Collection<AddressMask> allowedClients;
 
   /**
    * The set of clients that have been explicitly denied access to the server.
    */
-  private AddressMask[] deniedClients;
+  private Collection<AddressMask> deniedClients;
 
   /**
    * The index to the request handler that will be used for the next connection
@@ -348,8 +348,8 @@ public final class LDAPConnectionHandler extends
     // Apply the changes.
     currentConfig = config;
     enabled = config.isEnabled();
-    allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
-    deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
+    allowedClients = config.getAllowedClient();
+    deniedClients = config.getDeniedClient();
 
     // Reconfigure SSL if needed.
     protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
@@ -712,8 +712,8 @@ public final class LDAPConnectionHandler extends
     currentConfig = config;
     enabled = config.isEnabled();
     requestHandlerIndex = 0;
-    allowedClients = config.getAllowedClient().toArray(new AddressMask[0]);
-    deniedClients = config.getDeniedClient().toArray(new AddressMask[0]);
+    allowedClients = config.getAllowedClient();
+    deniedClients = config.getDeniedClient();
 
     // Configure SSL if needed.
     protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
@@ -1251,7 +1251,7 @@ public final class LDAPConnectionHandler extends
     InetAddress clientAddr = clientConnection.getRemoteAddress();
     // Check to see if the client is on the denied list.
     // If so, then reject it immediately.
-    if ((deniedClients.length > 0)
+    if ((!deniedClients.isEmpty())
         && AddressMask.maskListContains(clientAddr, deniedClients))
     {
       clientConnection.disconnect(
@@ -1265,7 +1265,7 @@ public final class LDAPConnectionHandler extends
     // Check to see if there is an allowed list and if
     // there is whether the client is on that list. If
     // not, then reject the connection.
-    if ((allowedClients.length > 0)
+    if ((!allowedClients.isEmpty())
         && (!AddressMask.maskListContains(clientAddr, allowedClients)))
     {
       clientConnection.disconnect(
