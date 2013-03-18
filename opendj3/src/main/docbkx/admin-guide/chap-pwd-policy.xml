@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-pwd-policy'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Configuring Password Policy</title>
  <indexterm><primary>Password policy</primary></indexterm>
  
@@ -618,5 +618,368 @@ dn: uid=kvaughan,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
    </step>
   </procedure>
+ </section>
+
+ <section xml:id="configure-pwd-generation">
+  <title>Configuring Password Generation</title>
+  <indexterm>
+   <primary>Passwords</primary>
+   <secondary>Generating</secondary>
+  </indexterm>
+
+  <para>Password generators are used by OpenDJ during the LDAP password modify
+  extended operation to construct a new password for the user. In other words,
+  a directory administrator resetting a user's password can have OpenDJ
+  directory server generate the new password.</para>
+
+  <screen>$ ldappasswordmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "u:bjensen"
+The LDAP password modify operation was successful
+Generated Password:  eak77qdi</screen>
+
+  <para>The default password policy shown in <xref linkend="default-pwp" /> uses
+  the Random Password Generator.</para>
+
+  <screen>$ dsconfig
+ get-password-policy-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Default Password Policy"
+ --property password-generator
+Property           : Value(s)
+-------------------:--------------------------
+password-generator : Random Password Generator
+$ dsconfig
+ get-password-generator-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --generator-name "Random Password Generator"
+ --property password-generator
+ Property               : Value(s)
+-----------------------:-----------------------------------------------------
+enabled                : true
+password-character-set : alpha:abcdefghijklmnopqrstuvwxyz, numeric:0123456789
+password-format        : "alpha:3,numeric:2,alpha:3"</screen>
+
+  <para>Notice that the default configuration for the Random Password Generator
+  defines two <literal>password-character-set</literal> values, and then uses
+  those definitions in the <literal>password-format</literal> so that generated
+  passwords have eight characters: three from the <literal>alpha</literal> set,
+  followed by two from the <literal>numeric</literal> set, followed by three
+  from the <literal>alpha</literal> set. The
+  <literal>password-character-set</literal> name must be ASCII.</para>
+
+  <para>To set the password generator that OpenDJ employs when constructing a
+  new password for a user, set the <literal>password-generator</literal>
+  property for the password policy that applies to the user.</para>
+
+  <para>The following example does not change the password policy, but instead
+  changes the Random Password Generator configuration, and then demonstrates a
+  password being generated upon reset.</para>
+
+  <screen>$ dsconfig
+ set-password-generator-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --generator-name "Random Password Generator"
+ --remove password-character-set:alpha:abcdefghijklmnopqrstuvwxyz
+ --add
+  password-character-set:alpha:ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz
+ --add password-character-set:punct:,./\`!@#\$%^&amp;*:\;[]\"\'\(\)+=-_~\\
+ --set
+  password-format:alpha:3,punct:1,numeric:2,punct:2,numeric:3,alpha:3,punct:2
+ --no-prompt
+$ ldappasswordmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "u:bjensen"
+The LDAP password modify operation was successful
+Generated Password:  pld^06:)529HTq$'</screen>
+
+  <para>If you also set up a password validator in the password policy as
+  shown in <xref linkend="default-pwp" /> and further described in
+  <xref linkend="configure-pwd-validation" />, make sure the generated
+  passwords are acceptable to the validator.</para>
+ </section>
+
+  <section xml:id="configure-pwd-storage">
+   <title>Configuring Password Storage</title>
+   <indexterm>
+    <primary>Passwords</primary>
+    <secondary>Storage schemes</secondary>
+   </indexterm>
+
+  <para>Password storage schemes encode new passwords provided by users so that
+  they are stored in an encoded manner. This makes it difficult or impossible
+  for someone to determine the clear-text passwords from the encoded
+  values. Password storage schemes also determine whether a clear-text password
+  provided by a client matches the encoded value stored in the server.</para>
+
+  <para>OpenDJ offers a variety of both reversible and one-way password storage
+  schemes. Some schemes make it easy to recover the clear-text password,
+  whereas others aim to make it computationally hard to do so.</para>
+
+  <screen>$ dsconfig
+ list-password-storage-schemes
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+Password Storage Scheme : Type          : enabled
+------------------------:---------------:--------
+3DES                    : triple-des    : true
+AES                     : aes           : true
+Base64                  : base64        : true
+Blowfish                : blowfish      : true
+Clear                   : clear         : true
+CRYPT                   : crypt         : true
+MD5                     : md5           : true
+PBKDF2                  : pbkdf2        : true
+RC4                     : rc4           : true
+Salted MD5              : salted-md5    : true
+Salted SHA-1            : salted-sha1   : true
+Salted SHA-256          : salted-sha256 : true
+Salted SHA-384          : salted-sha384 : true
+Salted SHA-512          : salted-sha512 : true
+SHA-1                   : sha1          : true</screen>
+
+  <para>As shown in <xref linkend="default-pwp" />, the default password storage
+  scheme for users in Salted SHA-1. When you add users or import user entries
+  with <literal>userPassword</literal> values in clear text, OpenDJ hashes them
+  with the default password storage scheme. Root DN users have a different
+  password policy by default, shown in <xref linkend="assign-pwp-to-group" />.
+  The Root Password Policy uses Salted SHA-512 by default.</para>
+
+  <para>You change the default password policy storage scheme for users by
+  changing the applicable password policy, as shown in the following
+  example.</para>
+
+  <screen>$ dsconfig
+ set-password-policy-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Default Password Policy"
+ --set default-password-storage-scheme:pbkdf2
+ --no-prompt</screen>
+
+   <para>Notice that the change in default password storage scheme does not
+   cause OpenDJ to update any stored password values. By default, OpenDJ only
+   stores a password with the new storage scheme the next time that the password
+   is changed.</para>
+
+   <para>OpenDJ prefixes passwords with the scheme used to encode them, which
+   means it is straightforward to see which password storage scheme is in use.
+   After the default password storage scheme is changed to PBKDF2, old user
+   passwords remain encoded with Salted SHA-1.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com
+ --bindPassword hifalutin
+ --baseDN dc=example,dc=com
+ "(uid=bjensen)" userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {SSHA}Rc3tkAj1qP5zGiRkwDIWDFxrxpGgO8Fwh3aibg==</screen>
+
+   <para>When the password is changed, the new default password storage scheme
+   takes effect, as shown in the following example.</para>
+
+   <screen>$ ldappasswordmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "u:bjensen"
+ --newPassword changeit
+The LDAP password modify operation was successful
+$ ldapsearch
+ --port 1389
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com
+ --bindPassword changeit
+ --baseDN dc=example,dc=com
+ "(uid=bjensen)" userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:O3V6G7y7n7AefOkRGNKQ5ukrMuO5uf+iEQ9ZLg==</screen>
+
+   <para>When you change the password storage scheme for users, realize that
+   the user passwords must change in order for OpenDJ to encode them with
+   the chosen storage scheme. If you are changing the storage scheme because
+   the old scheme was too weak, then you no doubt want users to change their
+   passwords anyway.</para>
+
+   <para>If however the storage scheme change is not related to vulnerability,
+   you can use the <literal>deprecated-password-storage-scheme</literal>
+   property of the password policy to have OpenDJ store the password in the new
+   format after successful authentication. This makes it possible to do password
+   migration for active users without forcing users to change their
+   passwords.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com
+ --bindPassword bribery
+ --baseDN dc=example,dc=com
+ "(uid=kvaughan)" userPassword
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {SSHA}hDgK44F2GhIIZj913b+29Ak7phb9oU3Lz4ogkg==
+
+$ dsconfig
+ set-password-policy-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Default Password Policy"
+ --set deprecated-password-storage-scheme:"Salted SHA-1"
+ --no-prompt
+$ ldapsearch
+ --port 1389
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com
+ --bindPassword bribery
+ --baseDN dc=example,dc=com
+ "(uid=kvaughan)" userPassword
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</screen>
+
+   <para>Notice that with <literal>deprecated-password-storage-scheme</literal>
+   set appropriately, Kirsten Vaughan's password was rehashed after she
+   authenticated successfully.</para>
+ </section>
+
+ <section xml:id="configure-pwd-validation">
+  <title>Configuring Password Validation</title>
+  <indexterm>
+   <primary>Passwords</primary>
+   <secondary>Validating</secondary>
+  </indexterm>
+
+  <para>Password validators are responsible for determining whether a proposed
+  password is acceptable for use and can run checks like ensuring the password
+  meets minimum length requirements, that it has an appropriate range of
+  characters, or that it is not in the history. OpenDJ directory server
+  provides a variety of password validators.</para>
+
+  <screen>$ dsconfig
+ list-password-validators
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+
+Password Validator                  : Type                : enabled
+------------------------------------:---------------------:--------
+Attribute Value                     : attribute-value     : true
+Character Set                       : character-set       : true
+Dictionary                          : dictionary          : false
+Length-Based Password Validator     : length-based        : true
+Repeated Characters                 : repeated-characters : true
+Similarity-Based Password Validator : similarity-based    : true
+Unique Characters                   : unique-characters   : true</screen>
+
+  <para>The password policy for a user specifies the set of password validators
+  that should be used whenever that user provides a new password. By default
+  no password validators are configured. You can see an example setting the
+  Default Password Policy to use the Dictionary validator in
+  <xref linkend="default-pwp" />. The following example shows how to set up
+  a custom password validator and assign it to the default password
+  policy.</para>
+
+  <itemizedlist>
+   <para>The custom password validator ensures passwords meet at least three of
+   the following four criteria. Passwords are composed of:</para>
+
+   <listitem>
+    <para>English lowercase characters (a through z)</para>
+   </listitem>
+
+   <listitem>
+    <para>English uppercase characters (A through Z)</para>
+   </listitem>
+
+   <listitem>
+    <para>Base 10 digits (0 through 9)</para>
+   </listitem>
+
+   <listitem>
+    <para>Non-alphabetic characters (for example, !, $, #, %)</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>Notice how the <literal>character-set</literal> values are constructed.
+  The initial <literal>0:</literal> means the set is optional, whereas
+  <literal>1:</literal> would mean the set is required.</para>
+
+  <screen>$ dsconfig
+ create-password-validator
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --validator-name "Custom Character Set Password Validator"
+ --set allow-unclassified-characters:true
+ --set enabled:true
+ --set character-set:0:abcdefghijklmnopqrstuvwxyz
+ --set character-set:0:ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ --set character-set:0:0123456789
+ --set character-set:0:!\"#\$%&amp;\'\(\)*+,-./:\;\\&lt;=\&gt;?@[\\]^_\`{\|}~
+ --set min-character-sets:3
+ --type character-set
+ --no-prompt
+
+$ dsconfig
+ set-password-policy-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Default Password Policy"
+ --set password-validator:"Custom Character Set Password Validator"
+ --no-prompt
+
+$ ldappasswordmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "u:bjensen"
+ --newPassword '!ABcd$%^'</screen>
+
+  <para>In the preceding example, the character set of ASCII punctuation,
+  <literal>!\"#\$%&amp;\'\(\)*+,-./:\;\\&lt;=\&gt;?@[\\]^_\`{\|}~</literal>,
+  is hard to read because of all the escape characters. In practice it can
+  be easier to enter sequences like that by using <command>dsconfig</command>
+  in interactive mode, and letting it do the escaping for you. You can also
+  use the <option>--commandFilePath {path}</option> option to save the result
+  of your interactive session to a file for use in scripts later.</para>
+
+  <para>An attempt to set an invalid password fails as shown in the following
+  example.</para>
+
+  <screen>$ ldappasswordmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --authzID "u:bjensen"
+ --newPassword hifalutin
+ The LDAP password modify operation failed with result code 19
+Error Message:  The provided new password failed the validation checks defined
+in the server:  The provided password did not contain characters from at least
+3 of the following character sets or ranges: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+'!"#$%&amp;'()*+,-./:;&lt;=\&gt;?@[\]^_`{|}~', '0123456789', 'abcdefghijklmnopqrstuvwxyz'</screen>
+
+  <para>Validation does not affect existing passwords, but only takes effect
+  when the password is updated.</para>
  </section>
 </chapter>
