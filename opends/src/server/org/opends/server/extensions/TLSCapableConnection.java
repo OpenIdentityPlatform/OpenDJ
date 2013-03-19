@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.MessageBuilder;
@@ -51,6 +52,6 @@ public interface TLSCapableConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean isTLSAvailable(MessageBuilder unavailableReason);
+  public boolean isStartTLSAvailable(MessageBuilder unavailableReason);
 }
 

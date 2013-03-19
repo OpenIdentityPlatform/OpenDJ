@@ -34,12 +34,10 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
 import static org.opends.server.loggers.AccessLogger.logDisconnect;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -92,15 +90,15 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private static final class ConnectionFinalizerJob implements Runnable
   {
-    // The client connection ASN1 reader.
+    /** The client connection ASN1 reader. */
     private final ASN1Reader asn1Reader;
 
-    // The client connection socket channel.
+    /** The client connection socket channel. */
     private final SocketChannel socketChannel;
 
-    // Creates a new connection finalizer job.
-    private ConnectionFinalizerJob(long connectionID,
-        ASN1Reader asn1Reader, SocketChannel socketChannel)
+    /** Creates a new connection finalizer job. */
+    private ConnectionFinalizerJob(ASN1Reader asn1Reader,
+        SocketChannel socketChannel)
     {
       this.asn1Reader = asn1Reader;
       this.socketChannel = socketChannel;
@@ -996,16 +994,9 @@ public final class LDAPClientConnection extends ClientConnection implements
     finally
     {
       // Clear and reset all of the internal buffers ready for the next usage.
-      try
-      {
-        // The ASN1Writer is based on a ByteStringBuilder so closing will cause
-        // the internal buffers to be resized if needed.
-        holder.writer.close();
-      }
-      catch (IOException ignored)
-      {
-        // Unreachable.
-      }
+      // The ASN1Writer is based on a ByteStringBuilder so closing will cause
+      // the internal buffers to be resized if needed.
+      close(holder.writer);
     }
  }
 
@@ -1078,16 +1069,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     // If there is a write selector for this connection, then close it.
     Selector selector = writeSelector.get();
-    if (selector != null)
-    {
-      try
-      {
-        selector.close();
-      }
-      catch (Exception e)
-      {
-      }
-    }
+    close(selector);
 
     // See if we should send a notification to the client. If so, then
     // construct and send a notice of disconnection unsolicited
@@ -1152,8 +1134,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
 
     // Enqueue the connection channels for closing by the finalizer.
-    Runnable r =
-      new ConnectionFinalizerJob(connectionID, asn1Reader, clientChannel);
+    Runnable r = new ConnectionFinalizerJob(asn1Reader, clientChannel);
     connectionHandler.registerConnectionFinalizer(r);
 
     // NYI -- Deregister the client connection from any server components that
@@ -2526,7 +2507,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    * @return <CODE>true</CODE> if TLS is available on the underlying
    *         client connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean isTLSAvailable(MessageBuilder unavailableReason)
+  public boolean isStartTLSAvailable(MessageBuilder unavailableReason)
   {
     if (isSecure() && activeProvider.getName().equals("TLS"))
     {

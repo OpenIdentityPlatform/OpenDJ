@@ -4639,6 +4639,33 @@ public final class StaticUtils
   }
 
   /**
+   * Closes the provided {@link Selector}'s ignoring any errors which occurred.
+   * <p>
+   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
+   * </p>
+   *
+   * @param selectors
+   *          The selectors to be closed, which may be <code>null</code>.
+   */
+  public static void close(Selector... selectors)
+  {
+    for (Selector selector : selectors)
+    {
+      if (selector != null)
+      {
+        try
+        {
+          selector.close();
+        }
+        catch (IOException ignored)
+        {
+          // Ignore.
+        }
+      }
+    }
+  }
+
+  /**
    * Returns an {@link Iterable} returning the passed in {@link Iterator}. THis
    * allows using methods returning Iterators with foreach statements.
    * <p>
