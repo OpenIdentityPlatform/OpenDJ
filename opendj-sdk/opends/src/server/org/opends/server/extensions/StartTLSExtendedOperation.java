@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -132,8 +133,6 @@ public class StartTLSExtendedOperation
     if (clientConnection == null)
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
-
-
       operation.appendErrorMessage(ERR_STARTTLS_NO_CLIENT_CONNECTION.get());
       return;
     }
@@ -149,14 +148,12 @@ public class StartTLSExtendedOperation
     else
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
-
-
       operation.appendErrorMessage(ERR_STARTTLS_NOT_TLS_CAPABLE.get());
       return;
     }
 
     MessageBuilder unavailableReason = new MessageBuilder();
-    if (! tlsCapableConnection.isTLSAvailable(unavailableReason))
+    if (! tlsCapableConnection.isStartTLSAvailable(unavailableReason))
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
       operation.setErrorMessage(unavailableReason);
