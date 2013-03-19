@@ -153,7 +153,7 @@ public class StartTLSExtendedOperation
     }
 
     MessageBuilder unavailableReason = new MessageBuilder();
-    if (! tlsCapableConnection.isStartTLSAvailable(unavailableReason))
+    if (! tlsCapableConnection.prepareTLS(unavailableReason))
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
       operation.setErrorMessage(unavailableReason);
