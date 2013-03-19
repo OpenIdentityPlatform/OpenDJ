@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -106,7 +106,7 @@ public class ProxiedAuthV2Control
           }
 
           Message message =
-              ERR_PROXYAUTH2_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+              ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthZIDStr);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
               e);
         }
