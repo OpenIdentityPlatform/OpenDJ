@@ -372,7 +372,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -432,7 +432,9 @@
               key = 'dsApplIfSearchOps.%s' % indexLDAP
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
-              
+              key = 'dsApplIfWholeSubtreeSearchOps.%s' % indexLDAP
+              DEFAULT_VALUES[key] = \
+                str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
               
             <call function="'testStep'">
@@ -444,8 +446,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -492,7 +493,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -574,8 +575,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -622,7 +622,7 @@
    <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -693,8 +693,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -741,7 +740,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -811,8 +810,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -859,7 +857,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -931,8 +929,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -979,7 +976,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP MIB values
     #@TestName            snmp_mibvalues: TODO
-    #@TestIssue           3862
+    #@TestIssue           none
     #@TestPurpose         TODO.
     #@TestPreamble        none
     #@TestStep            TODO.
@@ -1099,8 +1096,7 @@
               'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
               'snmpPort'      : SNMP_PORT ,
               'snmpCommunity' : community ,
-              'index'         : indexLDAP ,
-              'knownIssue'    : '3862'
+              'index'         : indexLDAP
               }
             </call>
 
@@ -1634,7 +1630,7 @@
     #@TestName            status: check error message and status when
                           the opendmk-jarfile property is set to a
                           wrong value
-    #@TestIssue           3943
+    #@TestIssue           none
     #@TestPurpose         Check error message and status when
                           the opendmk-jarfile property is set to a
                           wrong value.
@@ -1723,10 +1719,6 @@
               'filename'  : serverLogFile ,
               'testString': msg
               }
-            </call>
-
-            <call function="'setKnownIssue'">
-              { 'issueId' : '3943' }
             </call>
 
             <call function="'testStep'">
