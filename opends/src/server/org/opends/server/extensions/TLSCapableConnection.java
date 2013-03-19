@@ -40,10 +40,10 @@ import org.opends.messages.MessageBuilder;
 public interface TLSCapableConnection
 {
   /**
-   * Indicates whether TLS protection is actually available for the underlying
-   * client connection.  If there is any reason that TLS protection cannot be
-   * enabled on this client connection, then it should be appended to the
-   * provided buffer.
+   * Prepares this connection for using TLS and returns whether TLS protection
+   * is actually available for the underlying client connection. If there is any
+   * reason that TLS protection cannot be enabled on this client connection,
+   * then it should be appended to the provided buffer.
    *
    * @param  unavailableReason  The buffer used to hold the reason that TLS is
    *                            not available on the underlying client
@@ -52,6 +52,6 @@ public interface TLSCapableConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean isStartTLSAvailable(MessageBuilder unavailableReason);
+  public boolean prepareTLS(MessageBuilder unavailableReason);
 }
 
