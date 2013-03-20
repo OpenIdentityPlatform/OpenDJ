@@ -26,7 +26,7 @@
  !      Copyright 2013 ForgeRock AS
  ! -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version "2.2.19">
+    <!ENTITY grizzly.version "2.3-rc6">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,10 +34,13 @@
   <info organisation="org.forgerock" module="opendj"/>
   <dependencies>
     <dependency org="javax.mail"            name="mail"                     rev="1.4.5" />
+    <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
+    <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.48" />
     <!--dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="3.0.0-SNAPSHOT" /-->
-    <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;" />
-    <dependency org="javax.servlet"         name="javax.servlet-api"        rev="3.0.1" />
+    <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
+      <exclude module="javax.servlet-api" />
+    </dependency>
 
     <!-- Force download of the sources jar -->
     <!--
@@ -48,3 +51,4 @@
     <exclude org="javax.activation"         artifact="activation" />
   </dependencies>
 </ivy-module>
+
