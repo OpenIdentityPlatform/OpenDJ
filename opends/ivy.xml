@@ -37,7 +37,6 @@
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.48" />
     <!--dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="3.0.0-SNAPSHOT" /-->
     <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;" />
-    <dependency org="org.glassfish.grizzly" name="grizzly-project"          rev="&grizzly.version;" />
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="3.0.1" />
 
     <!-- Force download of the sources jar -->
