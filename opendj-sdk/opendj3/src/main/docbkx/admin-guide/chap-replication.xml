@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-replication'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Managing Data Replication</title>
 
  <para>OpenDJ uses advanced data replication with automated conflict
@@ -138,7 +138,7 @@
   backup your directory data.</para>
   
   <para>The primary unit of replication is the suffix, specified by a
-  base DN such as <literal>dc=example,dc=com</literal>. <footnote><para>When
+  base DN such as <literal>dc=example,dc=com</literal>.<footnote><para>When
   you configure partial and fractional replication, however, you can replicate
   only part of a suffix, or only certain attributes on entries. Also,
   if you split your suffix across multiple backends, then you need to set up
@@ -148,13 +148,46 @@
   suffix with administrative identities and certificates for protecting
   communications. Thus that content gets replicated as well.</para>
   
-  <para>The set of replicas sharing data in a given suffix is called
-  a replication topology. You can have more than one replication topology.
-  For example, one topology could be devoted to
+  <para>The set of OpenDJ servers replicating data for a given suffix is
+  called a replication topology. You can have more than one replication
+  topology. For example, one topology could be devoted to
   <literal>dc=example,dc=com</literal>, and another to
-  <literal>dc=example,dc=org</literal>. Directory servers are capable of
+  <literal>dc=example,dc=org</literal>. OpenDJ servers are capable of
   serving more than one suffix. They are also capable of participating in
   more than one replication topology.</para>
+
+  <mediaobject xml:id="figure-replication-topologies-right">
+   <alt>Three replication topologies set up correctly</alt>
+   <imageobject>
+    <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>In this figure, all OpenDJ servers serve the replicated suffix
+    <literal>dc=example,dc=com</literal>. Only servers A and B serve
+    <literal>dc=example,dc=org</literal>. Only server C and D serve
+    <literal>dc=example,dc=net</literal>.</para>
+   </textobject>
+  </mediaobject>
+
+  <para>Within a replication topology, the suffixes being replicated are
+  identified to the replication servers by their DN. As all the replication
+  servers are fully connected in a topology, a consequence is that it is
+  impossible to have multiple "sub-topologies" within the overall set of
+  servers as illustrated in the following diagram.</para>
+
+  <mediaobject xml:id="figure-replication-topologies-wrong">
+   <alt>Two replication topologies, one of which does not work</alt>
+   <imageobject>
+    <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>You cannot have all servers replicating both
+    <literal>dc=example,dc=com</literal> and also
+    <literal>dc=example,dc=org</literal>, but with all servers connected for
+    <literal>dc=example,dc=com</literal> and only some of the servers
+    connected for <literal>dc=example,dc=org</literal>.</para>
+   </textobject>
+  </mediaobject>
 
   <para>Keep server clocks synchronized for your topology. You can use NTP for
   example. Keeping server clocks synchronized helps prevent issues with SSL
