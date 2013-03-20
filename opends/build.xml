@@ -26,7 +26,8 @@
  !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 
-<project name="Directory Server" basedir="." default="package">
+<project name="Directory Server" basedir="." default="package"
+         xmlns:ivy="antlib:org.apache.ivy.ant">
   <description>
     This is the build script for OpenDJ.  See the BUILDING
     file in this directory for build instructions.
@@ -55,6 +56,8 @@
   <property name="scripts.dir"      location="${resource.dir}/bin"     />
   <property name="config.dir"       location="${resource.dir}/config"  />
   <property name="build.debuglevel"    value="lines,vars,source"       />
+  <property name="ivy.install.version" value="2.3.0"/>
+  <property name="ivy.jar.file"        value="${ext.dir}/ivy.jar"/>
 
   <!-- Properties for build tools                                   -->
   <property name="buildtools.src.dir" location="src/build-tools" />
@@ -398,14 +401,11 @@
   </target>
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="clean" depends="init,cleanadmin,cleanmessages,cleansnmp"
+  <target name="clean" depends="init,cleanadmin,cleanmessages,cleansnmp,cleanlib"
        description="Clean up any files generated during the build process">
 
     <delete dir="${build.dir}" />
     <delete file="${dynconstants.file}"  />
-    <fileset dir="${lib.dir}">
-      <include name="*.jar" />
-    </fileset>
   </target>
 
 
@@ -688,7 +688,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="compile"
-       depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin"
+       depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin,resolve"
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
     <mkdir dir="${build.lib.dir}" />
@@ -1085,7 +1085,12 @@
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
 
     <copy todir="${pdir}/lib">
-      <fileset file="${lib.dir}/*.jar" />
+      <fileset dir="${lib.dir}/">
+        <include name="**/*.exe" />
+        <include name="**/*.jar" />
+        <exclude name="**/*-sources.jar" />
+        <exclude name="**/*-javadoc.jar" />
+      </fileset>
     </copy>
 
     <copy todir="${pdir}/lib">
@@ -2575,6 +2580,53 @@
       </classpath>
     </javac>
   </target>
+
+  <!-- ==============
+  IVY TARGETS
+  =================== -->
+
+  <target name="check-ivy-installed">
+    <available file="${ivy.jar.file}" property="ivy-installed"/>
+  </target>
+
+  <target name="download-ivy" depends="check-ivy-installed" unless="ivy-installed">
+    <mkdir dir="${ext.dir}"/>
+    <!-- download Ivy from web site so that it can be used even without any special installation -->
+    <echo message="installing ivy..."/>
+    <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+  </target>
+
+  <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+    <!-- try to load ivy here from local ivy dir, in case the user has not already dropped
+    it into ant's lib dir (note that the latter copy will always take precedence).
+    We will not fail as long as local lib dir exists (it may be empty) and
+    ivy is in at least one of ant's lib dir or the local lib dir. -->
+    <path id="ivy.lib.path">
+      <fileset dir="${ext.dir}" includes="*.jar"/>
+    </path>
+    <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+  </target>
+
+  <target name="resolve" depends="install-ivy" description="--> retrieve dependencies with ivy">
+    <ivy:retrieve/>
+  </target>
+
+  <target name="cleanlib" description="--> clean the lib directory">
+    <delete>
+      <fileset dir="${lib.dir}">
+        <include name="*.jar" />
+      </fileset>
+    </delete>
+  </target>
+  
+  <target name="clean-ivy" description="--> clean the ivy installation">
+    <delete file="${ivy.jar.file}"/>
+  </target>
+
+  <target name="clean-ivy-cache" depends="install-ivy" description="--> clean the ivy cache">
+    <ivy:cleancache/>
+  </target>
+
 
   <import file="build-svr4.xml"/>
   <import file="build-pkg.xml"/>
