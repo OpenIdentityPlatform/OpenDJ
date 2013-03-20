@@ -23,18 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
-import java.io.IOException;
-import org.opends.messages.Message;
 
-
-
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ProtocolMessages.*;
-
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
@@ -53,8 +51,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-
-
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -73,6 +69,8 @@ public final class JmxConnectionHandler extends
     ConnectionHandler<JMXConnectionHandlerCfg> implements
     ServerShutdownListener, AlertGenerator,
     ConfigurationChangeListener<JMXConnectionHandlerCfg> {
+
+  private static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
    * Key that may be placed into a JMX connection environment map to
@@ -119,6 +117,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       JMXConnectionHandlerCfg config) {
     // Create variables to include in the response.
@@ -214,6 +213,7 @@ public final class JmxConnectionHandler extends
    * @return Information about the set of alerts that this generator
    *         may produce.
    */
+  @Override
   public LinkedHashMap<String, String> getAlerts() {
     LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
 
@@ -229,6 +229,7 @@ public final class JmxConnectionHandler extends
    * @return The fully-qualified name of the Java class for this alert
    *         generator implementation.
    */
+  @Override
   public String getClassName() {
     return CLASS_NAME;
   }
@@ -305,6 +306,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getShutdownListenerName() {
     return connectionHandlerName;
   }
@@ -347,9 +349,9 @@ public final class JmxConnectionHandler extends
     }
     catch (Exception e)
     {
-      Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.
-          get(String.valueOf(config.dn()), config.getListenPort(),
-              getExceptionMessage(e));
+      Message message =
+          ERR_CONNHANDLER_CANNOT_BIND.get("JMX", String.valueOf(config.dn()),
+              WILDCARD_ADDRESS, config.getListenPort(), getExceptionMessage(e));
       logError(message);
       throw new InitializationException(message);
     }
@@ -361,7 +363,7 @@ public final class JmxConnectionHandler extends
     }
 
     listeners.clear();
-    listeners.add(new HostPort("0.0.0.0", config.getListenPort()));
+    listeners.add(new HostPort(WILDCARD_ADDRESS, config.getListenPort()));
     connectionHandlerName = "JMX Connection Handler " + config.getListenPort();
 
     // Create a system property to store the JMX port the server is
@@ -430,9 +432,10 @@ public final class JmxConnectionHandler extends
             ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
         }
       } catch (Exception e) {
-        Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.get(
-          String.valueOf(config.dn()), config.getListenPort(),
-          getExceptionMessage(e));
+        Message message =
+            ERR_CONNHANDLER_CANNOT_BIND.get("JMX", String.valueOf(config.dn()),
+                WILDCARD_ADDRESS, config.getListenPort(),
+                getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -446,6 +449,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
       List<Message> unacceptableReasons) {
@@ -471,6 +475,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void processServerShutdown(Message reason) {
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(true);

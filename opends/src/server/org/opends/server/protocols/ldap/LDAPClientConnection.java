@@ -29,14 +29,14 @@ package org.opends.server.protocols.ldap;
 
 
 
-import static org.opends.messages.CoreMessages.ERR_ENQUEUE_BIND_IN_PROGRESS;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
-import static org.opends.server.loggers.AccessLogger.logDisconnect;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -109,6 +109,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void run()
     {
       try
@@ -159,6 +160,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     // Synchronize concurrent writes to the same connection.
     private final Lock writeLock = new ReentrantLock();
 
+    @Override
     public int read(ByteBuffer byteBuffer) throws IOException
     {
       int bytesRead = clientChannel.read(byteBuffer);
@@ -169,11 +171,13 @@ public final class LDAPClientConnection extends ClientConnection implements
       return bytesRead;
     }
 
+    @Override
     public boolean isOpen()
     {
       return clientChannel.isOpen();
     }
 
+    @Override
     public void close() throws IOException
     {
       clientChannel.close();
@@ -181,6 +185,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
+    @Override
     public int write(ByteBuffer byteBuffer) throws IOException
     {
       writeLock.lock();
@@ -333,6 +338,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     /**
      * {@inheritDoc}
      */
+    @Override
     protected ASN1WriterHolder initialValue()
     {
       return new ASN1WriterHolder();
@@ -503,7 +509,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     if (connectionID < 0)
     {
       disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
+          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
   }
 
@@ -2498,6 +2504,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean prepareTLS(MessageBuilder unavailableReason)
   {
     if (isSecure() && "TLS".equals(activeProvider.getName()))

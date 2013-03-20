@@ -23,30 +23,31 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
-import java.net.*;
+import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.remote.JMXConnectionNotification;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.core.*;
+import org.opends.server.core.networkgroups.NetworkGroup;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
-import org.opends.messages.Message;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
-
-import org.opends.messages.MessageBuilder;
-import org.opends.server.core.networkgroups.NetworkGroup;
 
 
 /**
@@ -117,12 +118,8 @@ public class JmxClientConnection
     connectionID = DirectoryServer.newConnectionAccepted(this);
     if (connectionID < 0)
     {
-      //
-      // TODO Change Message to be JMX specific
-      disconnect(
-          DisconnectReason.ADMIN_LIMIT_EXCEEDED,
-          true,
-          ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
+      disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
+          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
     operationList = new LinkedList<Operation>();
 
@@ -154,11 +151,8 @@ public class JmxClientConnection
 
     //
     // The only handled notifications are CLOSED and FAILED
-    if (! (
-        (jcn.getType().equals(JMXConnectionNotification.CLOSED))
-        ||
-        (jcn.getType().equals(JMXConnectionNotification.FAILED))
-        ))
+    if ((!jcn.getType().equals(JMXConnectionNotification.CLOSED))
+        && (!jcn.getType().equals(JMXConnectionNotification.FAILED)))
     {
       return;
     }

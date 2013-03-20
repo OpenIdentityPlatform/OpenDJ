@@ -3820,6 +3820,29 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.13
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
+  NAME 'ds-cfg-http-connection-handler'
+  SUP ds-cfg-connection-handler
+  STRUCTURAL
+  MUST ds-cfg-listen-port
+  MAY ( ds-cfg-listen-address $
+#        ds-cfg-keep-stats $
+        ds-cfg-use-tcp-keep-alive $
+        ds-cfg-use-tcp-no-delay $
+        ds-cfg-allow-tcp-reuse-address $
+        ds-cfg-max-request-size $
+#        ds-cfg-num-request-handlers $ # TODO JNR TCPNIOTransport.setWorkerThreadPoolConfig()
+        ds-cfg-use-ssl $
+        ds-cfg-ssl-client-auth-policy $
+        ds-cfg-ssl-cert-nickname $
+        ds-cfg-accept-backlog $
+        ds-cfg-key-manager-provider $
+        ds-cfg-trust-manager-provider $
+        ds-cfg-ssl-protocol $
+        ds-cfg-ssl-cipher-suite $
+        ds-cfg-max-blocked-write-time-limit $
+        ds-cfg-buffer-size )
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
   NAME 'ds-cfg-entry-cache'
   SUP top
