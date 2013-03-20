@@ -43,12 +43,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -57,8 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
-import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.servlet.DispatcherType;
 import org.glassfish.grizzly.servlet.FilterRegistration;
 import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
@@ -692,11 +690,11 @@ public class HTTPConnectionHandler extends
     this.httpServer =
         HttpServer.createSimpleServer("./", initConfig.getListenPort());
 
-    int requestSize = (int) currentConfig.getMaxRequestSize();
-    final ServerConfiguration serverConfig =
-        this.httpServer.getServerConfiguration();
-    serverConfig.setMaxBufferedPostSize(requestSize);
-    serverConfig.setMaxFormPostSize(requestSize);
+    // int requestSize = (int) currentConfig.getMaxRequestSize();
+    // final ServerConfiguration serverConfig =
+    //     this.httpServer.getServerConfiguration();
+    // serverConfig.setMaxBufferedPostSize(requestSize);
+    // serverConfig.setMaxFormPostSize(requestSize);
 
     try
     {
@@ -706,8 +704,8 @@ public class HTTPConnectionHandler extends
         transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
         transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
         transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
-        transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
-            TimeUnit.MILLISECONDS);
+        // transport.setWriteTimeout(currentConfig
+        //     .getMaxBlockedWriteTimeLimit(), TimeUnit.MILLISECONDS);
 
         int bufferSize = (int) currentConfig.getBufferSize();
         transport.setReadBufferSize(bufferSize);
