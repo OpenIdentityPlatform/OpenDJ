@@ -123,16 +123,12 @@ public final class LDAPConnectionHandler extends
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * The fully-qualified name of this class.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.protocols.ldap.LDAPConnectionHandler";
-
-  /**
    * Default friendly name for the LDAP connection handler.
    */
-  private static final String DEFAULT_FRIENDLY_NAME =
-      "LDAP Connection Handler";
+  private static final String DEFAULT_FRIENDLY_NAME = "LDAP Connection Handler";
+
+  /** SSL instance name used in context creation. */
+  private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
   /** The current configuration state. */
   private LDAPConnectionHandlerCfg currentConfig;
@@ -185,7 +181,7 @@ public final class LDAPConnectionHandler extends
   private int requestHandlerIndex;
 
   /** The set of listeners for this connection handler. */
-  private LinkedList<HostPort> listeners;
+  private List<HostPort> listeners;
 
   /**
    * The set of request handlers that are associated with this connection
@@ -227,14 +223,14 @@ public final class LDAPConnectionHandler extends
   /** The friendly name of this connection handler. */
   private String friendlyName;
 
-  /** SSL instance name used in context creation. */
-  private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
-
   /**
-   * SSL context and engine - the engine is used for obtaining default SSL
-   * parameters.
+   * SSL context.
+   *
+   * @see LDAPConnectionHandler#sslEngine
    */
   private SSLContext sslContext;
+
+  /** The SSL engine is used for obtaining default SSL parameters. */
   private SSLEngine sslEngine;
 
   /**
@@ -352,24 +348,19 @@ public final class LDAPConnectionHandler extends
     deniedClients = config.getDeniedClient();
 
     // Reconfigure SSL if needed.
-    protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
-    if (config.isUseSSL() || config.isAllowStartTLS())
+    try
     {
-      try
+      configureSSL(config);
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
       {
-        sslContext = createSSLContext(config);
-        sslEngine = createSSLEngine(config, sslContext);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        messages.add(e.getMessageObject());
-        return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
-            messages);
-      }
+      messages.add(e.getMessageObject());
+      return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
+          messages);
     }
 
     if (config.isAllowLDAPV2())
@@ -384,6 +375,21 @@ public final class LDAPConnectionHandler extends
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
+  private void configureSSL(LDAPConnectionHandlerCfg config)
+      throws DirectoryException
+  {
+    protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
+    if (config.isUseSSL() || config.isAllowStartTLS())
+    {
+      sslContext = createSSLContext(config);
+      sslEngine = createSSLEngine(config, sslContext);
+    }
+    else
+    {
+      sslContext = null;
+      sslEngine = null;
+    }
+  }
 
 
   /**
@@ -477,7 +483,7 @@ public final class LDAPConnectionHandler extends
   @Override
   public String getClassName()
   {
-    return CLASS_NAME;
+    return LDAPConnectionHandler.class.getName();
   }
 
 
@@ -534,13 +540,10 @@ public final class LDAPConnectionHandler extends
   @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
-    if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
+    final SSLEngine engine = sslEngine;
+    if (engine != null)
     {
-      final SSLEngine engine = sslEngine;
-      if (engine != null)
-      {
-        return Arrays.asList(engine.getEnabledCipherSuites());
-      }
+      return Arrays.asList(engine.getEnabledCipherSuites());
     }
     return super.getEnabledSSLCipherSuites();
   }
@@ -553,13 +556,10 @@ public final class LDAPConnectionHandler extends
   @Override
   public Collection<String> getEnabledSSLProtocols()
   {
-    if (currentConfig.isUseSSL() || currentConfig.isAllowStartTLS())
+    final SSLEngine engine = sslEngine;
+    if (engine != null)
     {
-      final SSLEngine engine = sslEngine;
-      if (engine != null)
-      {
-        return Arrays.asList(engine.getEnabledProtocols());
-      }
+      return Arrays.asList(engine.getEnabledProtocols());
     }
     return super.getEnabledSSLProtocols();
   }
@@ -716,22 +716,17 @@ public final class LDAPConnectionHandler extends
     deniedClients = config.getDeniedClient();
 
     // Configure SSL if needed.
-    protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
-    if (config.isUseSSL() || config.isAllowStartTLS())
+    try
     {
-      try
+      configureSSL(config);
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
       {
-        sslContext = createSSLContext(config);
-        sslEngine = createSSLEngine(config, sslContext);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        throw new InitializationException(e.getMessageObject());
-      }
+      throw new InitializationException(e.getMessageObject());
     }
 
     // Save properties that cannot be dynamically modified.
@@ -899,7 +894,7 @@ public final class LDAPConnectionHandler extends
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        return ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(String
+        return ERR_CONNHANDLER_CANNOT_BIND.get("LDAP", String
             .valueOf(configEntryDN), a.getHostAddress(), listenPort,
             getExceptionMessage(e));
       }
@@ -1010,7 +1005,7 @@ public final class LDAPConnectionHandler extends
           cleanUpSelector();
           listening = false;
 
-          logError(NOTE_LDAP_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+          logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
         try
@@ -1202,7 +1197,7 @@ public final class LDAPConnectionHandler extends
         channel.register(selector, SelectionKey.OP_ACCEPT);
         numRegistered++;
 
-        logError(NOTE_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+        logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
       }
       catch (Exception e)
       {
@@ -1254,12 +1249,10 @@ public final class LDAPConnectionHandler extends
     if ((!deniedClients.isEmpty())
         && AddressMask.maskListContains(clientAddr, deniedClients))
     {
-      clientConnection.disconnect(
-          DisconnectReason.CONNECTION_REJECTED,
-          currentConfig.isSendRejectionNotice(),
-          ERR_LDAP_CONNHANDLER_DENIED_CLIENT.get(
-              clientConnection.getClientHostPort(),
-              clientConnection.getServerHostPort()));
+      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
+          currentConfig.isSendRejectionNotice(), ERR_CONNHANDLER_DENIED_CLIENT
+              .get(clientConnection.getClientHostPort(), clientConnection
+                  .getServerHostPort()));
       return;
     }
     // Check to see if there is an allowed list and if
@@ -1268,12 +1261,10 @@ public final class LDAPConnectionHandler extends
     if ((!allowedClients.isEmpty())
         && (!AddressMask.maskListContains(clientAddr, allowedClients)))
     {
-      clientConnection.disconnect(
-          DisconnectReason.CONNECTION_REJECTED,
+      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
-          ERR_LDAP_CONNHANDLER_DISALLOWED_CLIENT.get(
-              clientConnection.getClientHostPort(),
-              clientConnection.getServerHostPort()));
+          ERR_CONNHANDLER_DISALLOWED_CLIENT.get(clientConnection
+              .getClientHostPort(), clientConnection.getServerHostPort()));
       return;
     }
 
@@ -1310,9 +1301,10 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
-          clientConnection.getClientHostPort(),
-          clientConnection.getServerHostPort(), getExceptionMessage(e));
+      Message message =
+          INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
+              .getClientHostPort(), clientConnection.getServerHostPort(),
+              getExceptionMessage(e));
       logError(message);
 
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
