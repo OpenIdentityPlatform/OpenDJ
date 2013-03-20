@@ -483,7 +483,7 @@ objectClass: ds-cfg-connection-handler
 objectClass: ds-cfg-http-connection-handler
 cn: HTTP Connection Handler
 ds-cfg-java-class: org.opends.server.protocols.http.HTTPConnectionHandler
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 8080
 ds-cfg-accept-backlog: 128
