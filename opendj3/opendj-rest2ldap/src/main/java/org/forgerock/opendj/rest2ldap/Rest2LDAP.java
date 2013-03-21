@@ -660,10 +660,14 @@ public final class Rest2LDAP {
         // Parse secondary data center(s).
         final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
         final ConnectionFactory secondary;
-        if (secondaryLDAPServers.isList() && secondaryLDAPServers.size() != 0) {
-            secondary =
-                    parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
-                            heartBeatIntervalSeconds);
+        if (secondaryLDAPServers.isList()) {
+            if (secondaryLDAPServers.size() > 0) {
+                secondary =
+                        parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
+                                heartBeatIntervalSeconds);
+            } else {
+                secondary = null;
+            }
         } else if (!secondaryLDAPServers.isNull()) {
             throw new IllegalArgumentException("Invalid secondaryLDAPServers configuration");
         } else {

@@ -49,6 +49,12 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
             {
+                // Should not perform DN quoting.
+                "dn:{dn}",
+                "dn:uid=test.user,ou=acme,dc=example,dc=com",
+                map("dn", "uid=test.user,ou=acme,dc=example,dc=com")
+            },
+            {
                 "u:{uid}@{realm}.example.com",
                 "u:test.user@acme.example.com",
                 map("uid", "test.user", "realm", "acme")
@@ -82,6 +88,11 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
                 map("uid", "test.user")
             },
             {
+                // Malformed DN.
+                "dn:{dn}",
+                map("dn", "uid")
+            },
+            {
                 "u:{uid}@{realm}.example.com",
                 map("uid", "test.user")
             },
@@ -105,7 +116,6 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
             },
         };
         // @formatter:on
-
     }
 
     @Test(dataProvider = "invalidTemplates", expectedExceptions = IllegalArgumentException.class)
