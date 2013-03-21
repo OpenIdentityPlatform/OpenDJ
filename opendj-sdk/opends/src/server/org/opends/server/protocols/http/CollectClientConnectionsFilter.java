@@ -61,7 +61,7 @@ final class CollectClientConnectionsFilter implements Filter
 
   /** The connection handler that created this servlet filter. */
   private HTTPConnectionHandler connectionHandler;
-  private final Map<ClientConnection, Void> clientConnections;
+  private final Map<ClientConnection, ClientConnection> clientConnections;
 
   /**
    * Constructs a new instance of this class.
@@ -73,7 +73,7 @@ final class CollectClientConnectionsFilter implements Filter
    */
   public CollectClientConnectionsFilter(
       HTTPConnectionHandler connectionHandler,
-      Map<ClientConnection, Void> clientConnections)
+      Map<ClientConnection, ClientConnection> clientConnections)
   {
     this.connectionHandler = connectionHandler;
     this.clientConnections = clientConnections;
@@ -93,7 +93,7 @@ final class CollectClientConnectionsFilter implements Filter
   {
     final ClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
-    this.clientConnections.put(clientConnection, null);
+    this.clientConnections.put(clientConnection, clientConnection);
     try
     {
       String ipAddress = request.getRemoteAddr();
