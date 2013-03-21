@@ -143,11 +143,11 @@ public class HTTPConnectionHandler extends
 
   /**
    * Holds the current client connections. Using {@link ConcurrentHashMap} to
-   * ensure no concurrent reads/writes can happen and adds/removes are fast.
-   * Using Void for the value since it has no use.
+   * ensure no concurrent reads/writes can happen and adds/removes are fast. We
+   * only use the keys, so it does not matter what value is put there.
    */
-  private Map<ClientConnection, Void> clientConnections =
-      new ConcurrentHashMap<ClientConnection, Void>();
+  private Map<ClientConnection, ClientConnection> clientConnections =
+      new ConcurrentHashMap<ClientConnection, ClientConnection>();
 
   /** The unique name assigned to this connection handler. */
   private String handlerName;
