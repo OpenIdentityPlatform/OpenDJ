@@ -36,7 +36,6 @@ import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
  */
 public final class Rest2LDAPConnectionFactoryProvider {
     private static final String INIT_PARAM_CONFIG_FILE = "config-file";
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     /**
@@ -47,15 +46,26 @@ public final class Rest2LDAPConnectionFactoryProvider {
      *
      * <pre>
      * {
-     *     // The LDAP server configuration - see Rest2LDAP.configureConnectionFactory(JsonValue).
-     *     "primaryLDAPServers" : [
-     *         {
-     *             "hostname" : "host1.example.com",
-     *             "port"     : 389
+     *     // LDAP connection factory configurations.
+     *     "ldapConnectionFactories" : {
+     *         "default" : {
+     *             // See Rest2LDAP.configureConnectionFactory(JsonValue, String)
+     *         },
+     *         "root" : {
+     *             ...
      *         }
-     *     ],
+     *     },
      *
-     *     ...
+     *     // This is optional.
+     *     "authorization" : {
+     *         // The LDAP connection factory which should be used for LDAP operations, or
+     *         // re-use cached connection from authentication filter if not present.
+     *         "ldapConnectionFactory" : "root",
+     *
+     *         // The optional authorization ID template to use if proxied authorization is
+     *         // to be performed.
+     *         "proxyAuthzIdTemplate"  : "dn:uid={uid},ou=people,dc=example,dc=com"
+     *     },
      *
      *     // The LDAP mappings
      *     "mappings" : {
@@ -80,7 +90,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
      * @return The configured JSON resource connection factory.
      * @throws ServletException
      *             If the connection factory could not be initialized.
-     * @see Rest2LDAP#configureConnectionFactory(JsonValue)
+     * @see Rest2LDAP#configureConnectionFactory(JsonValue, String)
      * @see Builder#configureMapping(JsonValue)
      */
     public static ConnectionFactory getConnectionFactory(final ServletConfig config)
@@ -105,9 +115,19 @@ public final class Rest2LDAPConnectionFactoryProvider {
             }
             final JsonValue configuration = new JsonValue(content);
 
-            // Parse the LDAP connection configuration.
-            final org.forgerock.opendj.ldap.ConnectionFactory ldapFactory =
-                    Rest2LDAP.configureConnectionFactory(configuration);
+            // Parse the authorization configuration.
+            final String proxyAuthzTemplate =
+                    configuration.get("authorization").get("proxyAuthzIdTemplate").asString();
+            final String ldapFactoryName =
+                    configuration.get("authorization").get("ldapConnectionFactory").asString();
+            final org.forgerock.opendj.ldap.ConnectionFactory ldapFactory;
+            if (ldapFactoryName != null) {
+                ldapFactory =
+                        Rest2LDAP.configureConnectionFactory(configuration.get(
+                                "ldapConnectionFactories").required(), ldapFactoryName);
+            } else {
+                ldapFactory = null;
+            }
 
             // Create the router.
             final Router router = new Router();
@@ -115,8 +135,8 @@ public final class Rest2LDAPConnectionFactoryProvider {
             for (final String mappingUrl : mappings.keys()) {
                 final JsonValue mapping = mappings.get(mappingUrl);
                 final CollectionResourceProvider provider =
-                        Rest2LDAP.builder().connectionFactory(ldapFactory)
-                                .configureMapping(mapping).build();
+                        Rest2LDAP.builder().connectionFactory(ldapFactory).useProxiedAuthorization(
+                                proxyAuthzTemplate).configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
             return Resources.newInternalConnectionFactory(router);

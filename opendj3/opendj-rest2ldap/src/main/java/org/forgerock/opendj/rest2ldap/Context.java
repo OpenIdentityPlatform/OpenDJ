@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.rest2ldap.Utils.adapt;
 
 import java.io.Closeable;
 import java.util.LinkedHashMap;
@@ -24,6 +25,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.json.resource.InternalServerErrorException;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.SecurityContext;
 import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.Connection;
@@ -35,6 +39,8 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -43,6 +49,7 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -190,14 +197,21 @@ final class Context implements Closeable {
     };
 
     private final Config config;
-
     private final AtomicReference<Connection> connection = new AtomicReference<Connection>();
-
     private final ServerContext context;
+    private final Connection preAuthenticatedConnection;
+    private Control proxiedAuthzControl = null;
 
     Context(final Config config, final ServerContext context) {
         this.config = config;
         this.context = context;
+        if (context.containsContext(AuthenticatedConnectionContext.class)) {
+            final Connection connection =
+                    context.asContext(AuthenticatedConnectionContext.class).getConnection();
+            this.preAuthenticatedConnection = connection != null ? wrap(connection) : null;
+        } else {
+            this.preAuthenticatedConnection = null;
+        }
     }
 
     /**
@@ -205,6 +219,11 @@ final class Context implements Closeable {
      */
     @Override
     public void close() {
+        /*
+         * Only release the connection that we acquired. Don't release the
+         * cached connection since that is the responsibility of the component
+         * which acquired it.
+         */
         final Connection c = connection.getAndSet(null);
         if (c != null) {
             c.close();
@@ -216,28 +235,98 @@ final class Context implements Closeable {
     }
 
     Connection getConnection() {
-        return connection.get();
+        return preAuthenticatedConnection != null ? preAuthenticatedConnection : connection.get();
     }
 
     ServerContext getServerContext() {
         return context;
     }
 
-    void setConnection(final Connection connection) {
-        if (!this.connection.compareAndSet(null, withCache(connection))) {
-            throw new IllegalStateException("LDAP connection obtained multiple times");
+    /**
+     * Performs common processing required before handling an HTTP request,
+     * including calculating the proxied authorization request control, and
+     * obtaining an LDAP connection.
+     * <p>
+     * This method should be called at most once per request.
+     *
+     * @param handler
+     *            The result handler which should be invoked if an error is
+     *            detected.
+     * @param runnable
+     *            The runnable which will be invoked once the common processing
+     *            has completed. Implementations will be able to call
+     *            {@link #getConnection()} to get the LDAP connection for use
+     *            with subsequent LDAP requests.
+     */
+    void run(final org.forgerock.json.resource.ResultHandler<?> handler, final Runnable runnable) {
+        /*
+         * Compute the proxied authorization control from the content of the
+         * security context if present. Only do this if we are not using a
+         * cached connection since cached connections are supposed to have been
+         * pre-authenticated and therefore do not require proxied authorization.
+         */
+        if (preAuthenticatedConnection == null && config.useProxiedAuthorization()) {
+            if (context.containsContext(SecurityContext.class)) {
+                try {
+                    final SecurityContext securityContext =
+                            context.asContext(SecurityContext.class);
+                    final String authzId =
+                            config.getProxiedAuthorizationTemplate().formatAsAuthzId(
+                                    securityContext.getAuthorizationId(), config.schema());
+                    proxiedAuthzControl = ProxiedAuthV2RequestControl.newControl(authzId);
+                } catch (final ResourceException e) {
+                    handler.handleError(e);
+                    return;
+                }
+            } else {
+                // FIXME: i18n.
+                handler.handleError(new InternalServerErrorException(
+                        "The request could not be authorized because it did not contain a security context"));
+                return;
+            }
+        }
+
+        /*
+         * Now get the LDAP connection to use for processing subsequent LDAP
+         * requests. A null factory indicates that Rest2LDAP has been configured
+         * to re-use the LDAP connection which was used for authentication.
+         */
+        if (preAuthenticatedConnection != null) {
+            // Invoke the handler immediately since a connection is available.
+            runnable.run();
+        } else if (config.connectionFactory() != null) {
+            config.connectionFactory().getConnectionAsync(new ResultHandler<Connection>() {
+                @Override
+                public final void handleErrorResult(final ErrorResultException error) {
+                    handler.handleError(adapt(error));
+                }
+
+                @Override
+                public final void handleResult(final Connection result) {
+                    if (!connection.compareAndSet(null, wrap(result))) {
+                        // This should never happen.
+                        throw new IllegalStateException("LDAP connection obtained multiple times");
+                    }
+                    runnable.run();
+                }
+            });
+        } else {
+            // FIXME: i18n
+            handler.handleError(new InternalServerErrorException(
+                    "The request could not be processed because there was no LDAP connection available for use"));
         }
     }
 
     /*
-     * Adds read caching support to the provided connection.
+     * Adds read caching support to the provided connection as well
+     * functionality which automatically adds the proxied authorization control
+     * if needed.
      */
-    private Connection withCache(final Connection connection) {
+    private Connection wrap(final Connection connection) {
         /*
          * We only use async methods so no need to wrap sync methods.
          */
         return new AbstractAsynchronousConnection() {
-
             @Override
             public FutureResult<Void> abandonAsync(final AbandonRequest request) {
                 return connection.abandonAsync(request);
@@ -247,7 +336,8 @@ final class Context implements Closeable {
             public FutureResult<Result> addAsync(final AddRequest request,
                     final IntermediateResponseHandler intermediateResponseHandler,
                     final ResultHandler<? super Result> resultHandler) {
-                return connection.addAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.addAsync(withControls(request), intermediateResponseHandler,
+                        resultHandler);
             }
 
             @Override
@@ -276,7 +366,8 @@ final class Context implements Closeable {
             public FutureResult<CompareResult> compareAsync(final CompareRequest request,
                     final IntermediateResponseHandler intermediateResponseHandler,
                     final ResultHandler<? super CompareResult> resultHandler) {
-                return connection.compareAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.compareAsync(withControls(request), intermediateResponseHandler,
+                        resultHandler);
             }
 
             @Override
@@ -284,7 +375,8 @@ final class Context implements Closeable {
                     final IntermediateResponseHandler intermediateResponseHandler,
                     final ResultHandler<? super Result> resultHandler) {
                 evict(request.getName());
-                return connection.deleteAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.deleteAsync(withControls(request), intermediateResponseHandler,
+                        resultHandler);
             }
 
             @Override
@@ -297,8 +389,8 @@ final class Context implements Closeable {
                  * operation modifies an entry: clear the cachedReads.
                  */
                 evictAll();
-                return connection.extendedRequestAsync(request, intermediateResponseHandler,
-                        resultHandler);
+                return connection.extendedRequestAsync(withControls(request),
+                        intermediateResponseHandler, resultHandler);
             }
 
             @Override
@@ -316,7 +408,8 @@ final class Context implements Closeable {
                     final IntermediateResponseHandler intermediateResponseHandler,
                     final ResultHandler<? super Result> resultHandler) {
                 evict(request.getName());
-                return connection.modifyAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.modifyAsync(withControls(request), intermediateResponseHandler,
+                        resultHandler);
             }
 
             @Override
@@ -325,8 +418,8 @@ final class Context implements Closeable {
                     final ResultHandler<? super Result> resultHandler) {
                 // Simple brute force implementation: clear the cachedReads.
                 evictAll();
-                return connection
-                        .modifyDNAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.modifyDNAsync(withControls(request), intermediateResponseHandler,
+                        resultHandler);
             }
 
             @Override
@@ -341,7 +434,6 @@ final class Context implements Closeable {
             public FutureResult<Result> searchAsync(final SearchRequest request,
                     final IntermediateResponseHandler intermediateResponseHandler,
                     final SearchResultHandler resultHandler) {
-
                 /*
                  * Don't attempt caching if this search is not a read (base
                  * object), or if the search request passed in an intermediate
@@ -349,8 +441,8 @@ final class Context implements Closeable {
                  */
                 if (!request.getScope().equals(SearchScope.BASE_OBJECT)
                         || intermediateResponseHandler != null) {
-                    return connection.searchAsync(request, intermediateResponseHandler,
-                            resultHandler);
+                    return connection.searchAsync(withControls(request),
+                            intermediateResponseHandler, resultHandler);
                 }
 
                 // This is a read request and a candidate for caching.
@@ -369,8 +461,8 @@ final class Context implements Closeable {
                         cachedReads.put(request.getName(), pendingCachedRead);
                     }
                     final FutureResult<Result> future =
-                            connection.searchAsync(request, intermediateResponseHandler,
-                                    pendingCachedRead);
+                            connection.searchAsync(withControls(request),
+                                    intermediateResponseHandler, pendingCachedRead);
                     pendingCachedRead.setFuture(future);
                     return future;
                 }
@@ -391,6 +483,13 @@ final class Context implements Closeable {
                 synchronized (cachedReads) {
                     cachedReads.clear();
                 }
+            }
+
+            private <R extends Request> R withControls(final R request) {
+                if (proxiedAuthzControl != null) {
+                    request.addControl(proxiedAuthzControl);
+                }
+                return request;
             }
         };
     }

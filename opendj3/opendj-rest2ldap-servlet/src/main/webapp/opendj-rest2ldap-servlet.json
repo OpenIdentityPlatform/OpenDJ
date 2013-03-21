@@ -1,18 +1,29 @@
 {
-    "primaryLDAPServers" : [
-        {
-            "hostname" : "localhost",
-            "port"     : 1389
+    "ldapConnectionFactories" : {
+        "default" : {
+            "primaryLDAPServers" : [
+                {
+                    "hostname" : "localhost",
+                    "port"     : 1389
+                }
+            ],
+            "connectionPoolSize"       : 10,
+            "heartBeatIntervalSeconds" : 30
+        },
+        "root" : {
+            "inheritFrom"    : "default",
+            "authentication" : {
+                "simple" : {
+                    "bindDN"       : "cn=directory manager",
+                    "bindPassword" : "password"
+                }
+            }
         }
-    ],
-
-    "authentication" : {
-        "bindDN"   : "cn=directory manager",
-        "password" : "password"
     },
 
-    "connectionPoolSize"       : 10,
-    "heartBeatIntervalSeconds" : 30,
+    "authorization" : {
+        "ldapConnectionFactory" : "root"
+    },
 
     "mappings" : {
         "/users" : {
