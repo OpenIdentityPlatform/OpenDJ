@@ -37,11 +37,57 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * <code>u:{uid}@{realm}.example.com</code>.
  */
 final class AuthzIdTemplate {
+    private static interface Impl {
+        String formatAsAuthzId(AuthzIdTemplate t, Object[] templateVariables, Schema schema)
+                throws ResourceException;
+    }
+
+    private static final Impl DN_IMPL = new Impl() {
+
+        @Override
+        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
+                final Schema schema) throws ResourceException {
+            final String authzId = String.format(Locale.ENGLISH, t.formatString, templateVariables);
+            try {
+                // Validate the DN.
+                DN.valueOf(authzId.substring(3), schema);
+            } catch (final IllegalArgumentException e) {
+                throw new ForbiddenException(
+                        "The request could not be authorized because the required security principal "
+                                + " was not a valid LDAP DN");
+            }
+            return authzId;
+        }
+    };
+
+    private static final Pattern DN_PATTERN = Pattern.compile("^dn:\\{[^}]+\\}$");
+
+    private static final Impl DN_TEMPLATE_IMPL = new Impl() {
+
+        @Override
+        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
+                final Schema schema) throws ResourceException {
+            return "dn:" + DN.format(t.dnFormatString, schema, templateVariables).toString();
+        }
+
+    };
+
     private static final Pattern KEY_RE = Pattern.compile("\\{([^}]+)\\}");
+
+    private static final Impl UID_TEMPLATE_IMPL = new Impl() {
+
+        @Override
+        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
+                final Schema schema) throws ResourceException {
+            return String.format(Locale.ENGLISH, t.formatString, templateVariables);
+        }
+
+    };
 
     private final String dnFormatString;
     private final String formatString;
     private final List<String> keys = new ArrayList<String>();
+    private final Impl pimpl;
     private final String template;
 
     AuthzIdTemplate(final String template) {
@@ -57,10 +103,16 @@ final class AuthzIdTemplate {
             keys.add(matcher.group(1));
         }
         matcher.appendTail(buffer);
-
-        this.template = template;
         this.formatString = buffer.toString();
-        this.dnFormatString = template.startsWith("dn:") ? formatString.substring(3) : null;
+        this.template = template;
+
+        if (template.startsWith("dn:")) {
+            this.pimpl = DN_PATTERN.matcher(template).matches() ? DN_IMPL : DN_TEMPLATE_IMPL;
+            this.dnFormatString = formatString.substring(3);
+        } else {
+            this.pimpl = UID_TEMPLATE_IMPL;
+            this.dnFormatString = null;
+        }
     }
 
     @Override
@@ -70,29 +122,8 @@ final class AuthzIdTemplate {
 
     String formatAsAuthzId(final Map<String, Object> principals, final Schema schema)
             throws ResourceException {
-        if (isDNTemplate()) {
-            final String dn = formatAsDN(principals, schema).toString();
-            final StringBuilder builder = new StringBuilder(dn.length() + 3);
-            builder.append("dn:");
-            builder.append(dn);
-            return builder.toString();
-        } else {
-            final String[] values = getPrincipalsForFormatting(principals);
-            return String.format(Locale.ENGLISH, formatString, (Object[]) values);
-        }
-    }
-
-    DN formatAsDN(final Map<String, Object> principals, final Schema schema)
-            throws ResourceException {
-        if (!isDNTemplate()) {
-            throw new IllegalStateException();
-        }
-        final String[] values = getPrincipalsForFormatting(principals);
-        return DN.format(dnFormatString, schema, (Object[]) values);
-    }
-
-    boolean isDNTemplate() {
-        return dnFormatString != null;
+        final String[] templateVariables = getPrincipalsForFormatting(principals);
+        return pimpl.formatAsAuthzId(this, templateVariables, schema);
     }
 
     private String[] getPrincipalsForFormatting(final Map<String, Object> principals)

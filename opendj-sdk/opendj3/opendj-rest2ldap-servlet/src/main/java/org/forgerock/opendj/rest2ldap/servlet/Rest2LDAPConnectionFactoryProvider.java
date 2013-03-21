@@ -21,6 +21,7 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -36,54 +37,14 @@ import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
  */
 public final class Rest2LDAPConnectionFactoryProvider {
     private static final String INIT_PARAM_CONFIG_FILE = "config-file";
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(
+            JsonParser.Feature.ALLOW_COMMENTS, true);
 
     /**
      * Returns a JSON resource connection factory configured using the
      * configuration file named in the {@code config-file} Servlet
-     * initialization parameter. The configuration file should have the
-     * following JSON structure excluding the C-like comments:
-     *
-     * <pre>
-     * {
-     *     // LDAP connection factory configurations.
-     *     "ldapConnectionFactories" : {
-     *         "default" : {
-     *             // See Rest2LDAP.configureConnectionFactory(JsonValue, String)
-     *         },
-     *         "root" : {
-     *             ...
-     *         }
-     *     },
-     *
-     *     // This is optional.
-     *     "authorization" : {
-     *         // The LDAP connection factory which should be used for LDAP operations, or
-     *         // re-use cached connection from authentication filter if not present.
-     *         "ldapConnectionFactory" : "root",
-     *
-     *         // The optional authorization ID template to use if proxied authorization is
-     *         // to be performed.
-     *         "proxyAuthzIdTemplate"  : "dn:uid={uid},ou=people,dc=example,dc=com"
-     *     },
-     *
-     *     // The LDAP mappings
-     *     "mappings" : {
-     *         "/users" : {
-     *             // The LDAP mapping for /users - Rest2LDAP.Builder.configureMapping(JsonValue).
-     *             "baseDN" : "ou=people,dc=example,dc=com",
-     *
-     *             ...
-     *         },
-     *         "/groups" : {
-     *             // The LDAP mapping for /groups - Rest2LDAP.Builder.configureMapping(JsonValue).
-     *             "baseDN" : "ou=groups,dc=example,dc=com",
-     *
-     *             ...
-     *         }
-     *     }
-     * }
-     * </pre>
+     * initialization parameter. See the sample configuration file for a
+     * detailed description of its content.
      *
      * @param config
      *            The Servlet configuration.
@@ -117,9 +78,9 @@ public final class Rest2LDAPConnectionFactoryProvider {
 
             // Parse the authorization configuration.
             final String proxyAuthzTemplate =
-                    configuration.get("authorization").get("proxyAuthzIdTemplate").asString();
+                    configuration.get("servlet").get("proxyAuthzIdTemplate").asString();
             final String ldapFactoryName =
-                    configuration.get("authorization").get("ldapConnectionFactory").asString();
+                    configuration.get("servlet").get("ldapConnectionFactory").asString();
             final org.forgerock.opendj.ldap.ConnectionFactory ldapFactory;
             if (ldapFactoryName != null) {
                 ldapFactory =
@@ -131,7 +92,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
 
             // Create the router.
             final Router router = new Router();
-            final JsonValue mappings = configuration.get("mappings").required();
+            final JsonValue mappings = configuration.get("servlet").get("mappings").required();
             for (final String mappingUrl : mappings.keys()) {
                 final JsonValue mapping = mappings.get(mappingUrl);
                 final CollectionResourceProvider provider =
