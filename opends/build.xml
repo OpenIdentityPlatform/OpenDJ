@@ -697,7 +697,7 @@
          destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -849,7 +849,7 @@
          destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -947,7 +947,7 @@
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <dirset dir="${classes.dir}" />
       </classpath>
@@ -967,7 +967,7 @@
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <dirset dir="${classes.dir}" />
       </classpath>
@@ -1085,12 +1085,12 @@
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
 
     <copy todir="${pdir}/lib">
-      <fileset dir="${lib.dir}/">
-        <include name="**/*.exe" />
-        <include name="**/*.jar" />
-        <exclude name="**/*-sources.jar" />
-        <exclude name="**/*-javadoc.jar" />
-      </fileset>
+        <fileset dir="${lib.dir}/jar">
+          <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="${lib.dir}/bundle">
+          <include name="**/*.jar" />
+        </fileset>
     </copy>
 
     <copy todir="${pdir}/lib">
@@ -1404,7 +1404,7 @@
          maxmemory="${MEM}">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
 
         <fileset dir="${dsml.lib.dir}">
@@ -1436,7 +1436,7 @@
     <java fork="true" classname="org.opends.server.core.DirectoryServer" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar"/>
+          <include name="**/*.jar"/>
         </fileset>
         <dirset dir="${classes.dir}"/>
       </classpath>
@@ -1455,7 +1455,7 @@
     <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <path id="cp">
       <fileset dir="${lib.dir}">
-        <include name="*.jar"/>
+        <include name="**/*.jar"/>
       </fileset>
       <dirset dir="${classes.dir}"/>
    </path>
@@ -1482,7 +1482,7 @@
     <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <path id="cp">
       <fileset dir="${lib.dir}">
-        <include name="*.jar"/>
+        <include name="**/*.jar"/>
       </fileset>
       <dirset dir="${classes.dir}"/>
     </path>
@@ -1492,7 +1492,7 @@
     <java fork="true" classname="org.opends.server.core.DirectoryServer">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar"/>
+          <include name="**/*.jar"/>
         </fileset>
         <dirset dir="${classes.dir}"/>
       </classpath>
@@ -1514,7 +1514,7 @@
     <java fork="true" classname="org.opends.server.tools.dsconfig.DSConfig" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <dirset dir="${classes.dir}" />
       </classpath>
@@ -1531,7 +1531,7 @@
               location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
     <path id="cp">
       <fileset dir="${lib.dir}">
-        <include name="*.jar" />
+        <include name="**/*.jar" />
       </fileset>
       <dirset dir="${classes.dir}" />
     </path>
@@ -1590,7 +1590,7 @@
         destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
@@ -1628,7 +1628,7 @@
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}" excludes="org/opends/server/snmp/**">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
 
         <fileset dir="${testng.lib.dir}">
@@ -2112,7 +2112,7 @@
         <path refid="emma.lib" />
 
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
 
         <!-- Needed by quicksetup tests -->
@@ -2496,7 +2496,7 @@
       <compilerarg value="-Xlint:-serial" />
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar" />
@@ -2507,7 +2507,7 @@
      <javac srcdir="${snmp.src.dir}" destdir="${classes.dir}">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar" />
@@ -2564,7 +2564,7 @@
            includes="org/opends/server/snmp/**">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="**/*.jar" />
         </fileset>
 
         <fileset dir="${testng.lib.dir}">
@@ -2608,13 +2608,13 @@
   </target>
 
   <target name="resolve" depends="install-ivy" description="--> retrieve dependencies with ivy">
-    <ivy:retrieve/>
+    <ivy:retrieve pattern="${lib.dir}/[type]/[artifact].[ext]"/>
   </target>
 
   <target name="cleanlib" description="--> clean the lib directory">
     <delete>
       <fileset dir="${lib.dir}">
-        <include name="*.jar" />
+        <include name="**/*.jar" />
       </fileset>
     </delete>
   </target>
