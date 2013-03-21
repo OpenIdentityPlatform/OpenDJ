@@ -23,8 +23,10 @@ import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -69,6 +71,7 @@ public final class Rest2LDAP {
         private ConnectionFactory factory;
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
+        private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
@@ -98,30 +101,17 @@ public final class Rest2LDAP {
         }
 
         public CollectionResourceProvider build() {
-            ensureNotNull(factory);
             ensureNotNull(baseDN);
             if (rootMapper == null) {
                 throw new IllegalStateException("No mappings provided");
             }
-            return new LDAPCollectionResourceProvider(baseDN, rootMapper, factory, nameStrategy,
-                    mvccStrategy, new Config(readOnUpdatePolicy, schema), additionalLDAPAttributes);
-        }
-
-        /**
-         * Configures the connection factory using the provided JSON
-         * configuration. See
-         * {@link Rest2LDAP#configureConnectionFactory(JsonValue)} for a
-         * detailed specification of the JSON configuration.
-         *
-         * @param configuration
-         *            The JSON configuration.
-         * @return A reference to this builder.
-         * @throws IllegalArgumentException
-         *             If the configuration is invalid.
-         */
-        public Builder configureConnectionFactory(final JsonValue configuration) {
-            connectionFactory(Rest2LDAP.configureConnectionFactory(configuration));
-            return this;
+            if (proxiedAuthzTemplate != null && factory == null) {
+                throw new IllegalStateException(
+                        "No connection factory specified for use with proxied authorization");
+            }
+            return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy,
+                    mvccStrategy, new Config(factory, readOnUpdatePolicy, proxiedAuthzTemplate,
+                            schema), additionalLDAPAttributes);
         }
 
         /**
@@ -243,7 +233,6 @@ public final class Rest2LDAP {
         }
 
         public Builder connectionFactory(final ConnectionFactory factory) {
-            ensureNotNull(factory);
             this.factory = factory;
             return this;
         }
@@ -311,6 +300,11 @@ public final class Rest2LDAP {
 
         public Builder useEtagAttribute(final String attribute) {
             return useEtagAttribute(ad(attribute));
+        }
+
+        public Builder useProxiedAuthorization(final String template) {
+            this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
+            return this;
         }
 
         public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
@@ -539,61 +533,99 @@ public final class Rest2LDAP {
     }
 
     /**
-     * Creates a new connection factory using the provided JSON configuration.
-     * The configuration should look like this, excluding the C-like comments:
+     * Creates a new connection factory using the named configuration in the
+     * provided JSON list of factory configurations. Excluding the C-like
+     * comments, the configuration should look like this:
      *
      * <pre>
      * {
-     *     // The primary data center, must contain at least one LDAP server.
-     *     "primaryLDAPServers" : [
-     *         {
-     *             "hostname" : "host1.example.com",
-     *             "port"     : 389
-     *         },
-     *         {
-     *             "hostname" : "host2.example.com",
-     *             "port"     : 389
-     *         },
-     *     ],
+     *     // A default pool of servers using no authentication.
+     *     "default" : {
+     *         // The primary data center, must contain at least one LDAP server.
+     *         "primaryLDAPServers" : [
+     *             {
+     *                 "hostname" : "host1.example.com",
+     *                 "port"     : 389
+     *             },
+     *             {
+     *                 "hostname" : "host2.example.com",
+     *                 "port"     : 389
+     *             },
+     *         ],
      *
-     *     // The optional secondary (fail-over) data center.
-     *     "secondaryLDAPServers" : [
-     *         {
-     *             "hostname" : "host3.example.com",
-     *             "port"     : 389
-     *         },
-     *         {
-     *             "hostname" : "host4.example.com",
-     *             "port"     : 389
-     *         },
-     *     ],
+     *         // The optional secondary (fail-over) data center.
+     *         "secondaryLDAPServers" : [
+     *             {
+     *                 "hostname" : "host3.example.com",
+     *                 "port"     : 389
+     *             },
+     *             {
+     *                 "hostname" : "host4.example.com",
+     *                 "port"     : 389
+     *             },
+     *         ],
      *
-     *     // Connection pool configuration.
-     *     "connectionPoolSize"       : 10,
-     *     "heartBeatIntervalSeconds" : 30,
-     *
-     *     // SSL/TLS configuration (optional and TBD).
-     *     "useSSL" : {
-     *         // Elect to use StartTLS instead of SSL.
-     *         "useStartTLS" : true,
-     *         ...
+     *         // Connection pool configuration.
+     *         "connectionPoolSize"       : 10,
+     *         "heartBeatIntervalSeconds" : 30
      *     },
      *
-     *     // Authentication configuration (optional and TBD).
-     *     "authentication" : {
-     *         "bindDN"   : "cn=directory manager",
-     *         "password" : "password"
-     *     },
+     *     // The same pool of servers except authenticated as cn=directory manager.
+     *     "root" : {
+     *         "inheritFrom"    : "default",
+     *         "authentication" : {
+     *             "simple" : {
+     *                 "bindDN"       : "cn=directory manager",
+     *                 "bindPassword" : "password"
+     *             }
+     *         }
+     *     }
      * }
      * </pre>
      *
      * @param configuration
      *            The JSON configuration.
+     * @param name
+     *            The name of the connection factory configuration to be parsed.
      * @return A new connection factory using the provided JSON configuration.
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration) {
+    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
+            final String name) {
+        final JsonValue normalizedConfiguration =
+                normalizeConnectionFactory(configuration, name, 0);
+        return configureConnectionFactory(normalizedConfiguration);
+    }
+
+    public static AttributeMapper constant(final Object value) {
+        return new JSONConstantAttributeMapper(value);
+    }
+
+    public static ObjectAttributeMapper object() {
+        return new ObjectAttributeMapper();
+    }
+
+    public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
+            final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
+        return new ReferenceAttributeMapper(attribute, baseDN, primaryKey, mapper);
+    }
+
+    public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
+            final String primaryKey, final AttributeMapper mapper) {
+        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
+                AttributeDescription.valueOf(primaryKey), mapper);
+    }
+
+    public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
+        return new SimpleAttributeMapper(attribute);
+    }
+
+    public static SimpleAttributeMapper simple(final String attribute) {
+        return simple(AttributeDescription.valueOf(attribute));
+    }
+
+    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration) {
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
@@ -604,9 +636,14 @@ public final class Rest2LDAP {
         final BindRequest bindRequest;
         if (configuration.isDefined("authentication")) {
             final JsonValue authn = configuration.get("authentication");
-            bindRequest =
-                    Requests.newSimpleBindRequest(authn.get("bindDN").required().asString(), authn
-                            .get("password").required().asString().toCharArray());
+            if (authn.isDefined("simple")) {
+                final JsonValue simple = authn.get("simple");
+                bindRequest =
+                        Requests.newSimpleBindRequest(simple.get("bindDN").required().asString(),
+                                simple.get("bindPassword").required().asString().toCharArray());
+            } else {
+                throw new IllegalArgumentException("Only simple authentication is supported");
+            }
         } else {
             bindRequest = null;
         }
@@ -642,31 +679,31 @@ public final class Rest2LDAP {
         }
     }
 
-    public static AttributeMapper constant(final Object value) {
-        return new JSONConstantAttributeMapper(value);
-    }
+    private static JsonValue normalizeConnectionFactory(final JsonValue configuration,
+            final String name, final int depth) {
+        // Protect against infinite recursion in the configuration.
+        if (depth > 100) {
+            throw new IllegalArgumentException(
+                    "The LDAP server configuration '"
+                            + name
+                            + "' could not be parsed because of potential circular inheritance dependencies");
+        }
 
-    public static ObjectAttributeMapper object() {
-        return new ObjectAttributeMapper();
-    }
-
-    public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
-            final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
-        return new ReferenceAttributeMapper(attribute, baseDN, primaryKey, mapper);
-    }
-
-    public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
-            final String primaryKey, final AttributeMapper mapper) {
-        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
-                AttributeDescription.valueOf(primaryKey), mapper);
-    }
-
-    public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
-        return new SimpleAttributeMapper(attribute);
-    }
-
-    public static SimpleAttributeMapper simple(final String attribute) {
-        return simple(AttributeDescription.valueOf(attribute));
+        final JsonValue current = configuration.get(name).required();
+        if (current.isDefined("inheritFrom")) {
+            // Inherit missing fields from inherited configuration.
+            final JsonValue parent =
+                    normalizeConnectionFactory(configuration,
+                            current.get("inheritFrom").asString(), depth + 1);
+            final Map<String, Object> normalized =
+                    new LinkedHashMap<String, Object>(parent.asMap());
+            normalized.putAll(current.asMap());
+            normalized.remove("inheritFrom");
+            return new JsonValue(normalized);
+        } else {
+            // No normalization required.
+            return current;
+        }
     }
 
     private static ConnectionFactory parseLDAPServers(final JsonValue config,

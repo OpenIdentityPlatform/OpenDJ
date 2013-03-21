@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.schema.Schema;
 
@@ -22,14 +23,30 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * Common configuration options.
  */
 final class Config {
+    private final ConnectionFactory factory;
     private final DecodeOptions options;
+    private final AuthzIdTemplate proxiedAuthzTemplate;
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
     private final Schema schema;
 
-    Config(final ReadOnUpdatePolicy readOnUpdatePolicy, final Schema schema) {
+    Config(final ConnectionFactory factory, final ReadOnUpdatePolicy readOnUpdatePolicy,
+            final AuthzIdTemplate proxiedAuthzTemplate, final Schema schema) {
+        this.factory = factory;
         this.readOnUpdatePolicy = readOnUpdatePolicy;
+        this.proxiedAuthzTemplate = proxiedAuthzTemplate;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
+    }
+
+    /**
+     * Returns the LDAP SDK connection factory which should be used when
+     * performing LDAP operations.
+     *
+     * @return The LDAP SDK connection factory which should be used when
+     *         performing LDAP operations.
+     */
+    ConnectionFactory connectionFactory() {
+        return factory;
     }
 
     /**
@@ -39,8 +56,20 @@ final class Config {
      * @return The decoding options which should be used when decoding controls
      *         in responses.
      */
-    public DecodeOptions decodeOptions() {
+    DecodeOptions decodeOptions() {
         return options;
+    }
+
+    /**
+     * Returns the authorization ID template which should be used when proxied
+     * authorization is enabled.
+     *
+     * @return The authorization ID template which should be used when proxied
+     *         authorization is enabled, or {@code null} if proxied
+     *         authorization is disabled.
+     */
+    AuthzIdTemplate getProxiedAuthorizationTemplate() {
+        return proxiedAuthzTemplate;
     }
 
     /**
@@ -50,7 +79,7 @@ final class Config {
      * @return The policy which should be used in order to read an entry before
      *         it is deleted, or after it is added or modified.
      */
-    public ReadOnUpdatePolicy readOnUpdatePolicy() {
+    ReadOnUpdatePolicy readOnUpdatePolicy() {
         return readOnUpdatePolicy;
     }
 
@@ -61,7 +90,18 @@ final class Config {
      * @return The schema which should be used when attribute types and
      *         controls.
      */
-    public Schema schema() {
+    Schema schema() {
         return schema;
+    }
+
+    /**
+     * Returns {@code true} if the proxied authorization should be used for
+     * authorizing LDAP requests.
+     *
+     * @return {@code true} if the proxied authorization should be used for
+     *         authorizing LDAP requests.
+     */
+    boolean useProxiedAuthorization() {
+        return proxiedAuthzTemplate != null;
     }
 }

@@ -54,8 +54,6 @@ import org.forgerock.json.resource.ServerContext;
 import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
@@ -79,50 +77,21 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * resource collection to LDAP entries beneath a base DN.
  */
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
-    private abstract class ConnectionCompletionHandler implements
-            org.forgerock.opendj.ldap.ResultHandler<Connection> {
-        private final Context c;
-        private final ResultHandler<?> handler;
-
-        ConnectionCompletionHandler(final Context c, final ResultHandler<?> handler) {
-            this.c = c;
-            this.handler = handler;
-        }
-
-        @Override
-        public final void handleErrorResult(final ErrorResultException error) {
-            handler.handleError(adapt(error));
-        }
-
-        @Override
-        public final void handleResult(final Connection connection) {
-            c.setConnection(connection);
-            chain();
-        }
-
-        abstract void chain();
-    }
-
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
 
     private final List<Attribute> additionalLDAPAttributes;
-
     private final AttributeMapper attributeMapper;
-
     private final DN baseDN; // TODO: support template variables.
     private final Config config;
-    private final ConnectionFactory factory;
     private final MVCCStrategy mvccStrategy;
     private final NameStrategy nameStrategy;
 
     LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
-            final ConnectionFactory factory, final NameStrategy nameStrategy,
-            final MVCCStrategy mvccStrategy, final Config config,
+            final NameStrategy nameStrategy, final MVCCStrategy mvccStrategy, final Config config,
             final List<Attribute> additionalLDAPAttributes) {
         this.baseDN = baseDN;
         this.attributeMapper = mapper;
-        this.factory = factory;
         this.config = config;
         this.nameStrategy = nameStrategy;
         this.mvccStrategy = mvccStrategy;
@@ -148,9 +117,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final ResultHandler<Resource> h = wrap(c, handler);
 
         // Get the connection, then determine entry content, then perform add.
-        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
+        c.run(h, new Runnable() {
             @Override
-            void chain() {
+            public void run() {
                 // Calculate entry content.
                 attributeMapper.toLDAP(c, request.getContent(),
                         new ResultHandler<List<Attribute>>() {
@@ -209,9 +178,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final QueryResultHandler h = wrap(c, handler);
 
         // Get the connection, then calculate the search filter, then perform the search.
-        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
+        c.run(h, new Runnable() {
             @Override
-            void chain() {
+            public void run() {
                 // Calculate the filter (this may require the connection).
                 getLDAPFilter(c, request.getQueryFilter(), new ResultHandler<Filter>() {
                     @Override
@@ -331,9 +300,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final ResultHandler<Resource> h = wrap(c, handler);
 
         // Get connection then perform the search.
-        factory.getConnectionAsync(new ConnectionCompletionHandler(c, h) {
+        c.run(h, new Runnable() {
             @Override
-            void chain() {
+            public void run() {
                 // Do the search.
                 final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
                 final SearchRequest request =
