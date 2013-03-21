@@ -29,7 +29,7 @@ import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 
 /**
  * An HTTP servlet context factory which will create a {@link Context} chain
- * comprising of a {@linkn SecurityContext} and optionally an
+ * comprising of a {@link SecurityContext} and optionally an
  * {@link AuthenticatedConnectionContext}.
  * <p>
  * This class provides integration between Rest2LDAP HTTP Servlets and the
