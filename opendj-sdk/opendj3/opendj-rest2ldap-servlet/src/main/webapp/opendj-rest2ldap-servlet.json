@@ -100,19 +100,32 @@
     "servlet" : {
         // The connection factory which will be used for performing LDAP
         // operations. Pre-authenticated connections passed through from the
-        // authentication filter see "reuseAuthenticatedConnection") will be
+        // authentication filter (see "reuseAuthenticatedConnection") will be
         // used in preference to this factory. Specifically, a connection
         // factory does not need to be configured if a connection will always
         // be passed on from the filter, which may not always be the case
         // if the filter is configured to use HTTP sessions.
         "ldapConnectionFactory" : "root",
         
-        // The AuthzID template which will be used for proxied authorization. If
-        // no template is specified then proxied authorization will be disabled.
+        // Specifies how LDAP authorization should be performed. The method
+        // must be one of:
+        //
+        // "none"        - use connections acquired from the LDAP connection
+        //                 factory. Don't use proxied authorization, and don't
+        //                 use cached pre-authenticated connections,
+        // "reuse"       - use the connection obtained during LDAP
+        //                 authentication. If no connection was passed through
+        //                 the authorization will fail,
+        // "proxy"       - use proxied authorization with an authorization ID
+        //                 derived from the "proxyAuthzIdTemplate". Proxied
+        //                 authorization will only be used if there is no
+        //                 pre-authenticated connection available.
+        "authorizationPolicy" : "none",
+        
+        // The AuthzID template which will be used for proxied authorization.
         // The template should contain fields which are expected to be found in
         // the security context create during authentication, e.g. "dn" and "id".
-        
-        // "proxyAuthzIdTemplate" : "dn:{dn}",
+        "proxyAuthzIdTemplate" : "dn:{dn}",
         
         // The REST APIs and their LDAP attribute mappings.
         "mappings" : {

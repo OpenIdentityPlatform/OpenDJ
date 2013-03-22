@@ -71,6 +71,7 @@ public final class Rest2LDAP {
         private ConnectionFactory factory;
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
+        private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
@@ -105,13 +106,30 @@ public final class Rest2LDAP {
             if (rootMapper == null) {
                 throw new IllegalStateException("No mappings provided");
             }
-            if (proxiedAuthzTemplate != null && factory == null) {
-                throw new IllegalStateException(
-                        "No connection factory specified for use with proxied authorization");
+            switch (authzPolicy) {
+            case NONE:
+                if (factory == null) {
+                    throw new IllegalStateException(
+                            "A connection factory must be specified when the authorization policy is 'none'");
+                }
+                break;
+            case PROXY:
+                if (proxiedAuthzTemplate == null) {
+                    throw new IllegalStateException(
+                            "Proxied authorization enabled but no template defined");
+                }
+                if (factory == null) {
+                    throw new IllegalStateException(
+                            "A connection factory must be specified when using proxied authorization");
+                }
+                break;
+            case REUSE:
+                // This is always ok.
+                break;
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy,
-                    mvccStrategy, new Config(factory, readOnUpdatePolicy, proxiedAuthzTemplate,
-                            schema), additionalLDAPAttributes);
+                    mvccStrategy, new Config(factory, readOnUpdatePolicy, authzPolicy,
+                            proxiedAuthzTemplate, schema), additionalLDAPAttributes);
         }
 
         /**
@@ -302,7 +320,12 @@ public final class Rest2LDAP {
             return useEtagAttribute(ad(attribute));
         }
 
-        public Builder useProxiedAuthorization(final String template) {
+        public Builder authorizationPolicy(final AuthorizationPolicy policy) {
+            this.authzPolicy = ensureNotNull(policy);
+            return this;
+        }
+
+        public Builder proxyAuthzIdTemplate(final String template) {
             this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
             return this;
         }

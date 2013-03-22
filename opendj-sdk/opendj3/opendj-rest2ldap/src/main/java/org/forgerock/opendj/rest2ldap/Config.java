@@ -25,14 +25,17 @@ import org.forgerock.opendj.ldap.schema.Schema;
 final class Config {
     private final ConnectionFactory factory;
     private final DecodeOptions options;
+    private final AuthorizationPolicy authzPolicy;
     private final AuthzIdTemplate proxiedAuthzTemplate;
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
     private final Schema schema;
 
     Config(final ConnectionFactory factory, final ReadOnUpdatePolicy readOnUpdatePolicy,
-            final AuthzIdTemplate proxiedAuthzTemplate, final Schema schema) {
+            final AuthorizationPolicy authzPolicy, final AuthzIdTemplate proxiedAuthzTemplate,
+            final Schema schema) {
         this.factory = factory;
         this.readOnUpdatePolicy = readOnUpdatePolicy;
+        this.authzPolicy = authzPolicy;
         this.proxiedAuthzTemplate = proxiedAuthzTemplate;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
@@ -61,12 +64,22 @@ final class Config {
     }
 
     /**
+     * Returns the authorization policy which should be used for performing LDAP
+     * operations.
+     *
+     * @return The authorization policy which should be used for performing LDAP
+     *         operations.
+     */
+    AuthorizationPolicy getAuthorizationPolicy() {
+        return authzPolicy;
+    }
+
+    /**
      * Returns the authorization ID template which should be used when proxied
      * authorization is enabled.
      *
      * @return The authorization ID template which should be used when proxied
-     *         authorization is enabled, or {@code null} if proxied
-     *         authorization is disabled.
+     *         authorization is enabled.
      */
     AuthzIdTemplate getProxiedAuthorizationTemplate() {
         return proxiedAuthzTemplate;
@@ -92,16 +105,5 @@ final class Config {
      */
     Schema schema() {
         return schema;
-    }
-
-    /**
-     * Returns {@code true} if the proxied authorization should be used for
-     * authorizing LDAP requests.
-     *
-     * @return {@code true} if the proxied authorization should be used for
-     *         authorizing LDAP requests.
-     */
-    boolean useProxiedAuthorization() {
-        return proxiedAuthzTemplate != null;
     }
 }
