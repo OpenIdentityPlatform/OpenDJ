@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011 ForgeRock AS.
+ !      Copyright 2011-2013 ForgeRock AS.
  ! -->
 
 <xsl:output method="xml" indent="yes" />
@@ -38,27 +38,39 @@
   <xsl:variable name="total-tests"      select="count($testcase)"/>
   <xsl:variable name="pass-tests"       select="count($testcase[@result='pass'])"/>
   <xsl:variable name="kfail-tests"      select="count($testcase/issues)"/>
-  <xsl:variable name="fail-tests"       select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"     select="count($testcase[@result='unknown'])"/>
+  <xsl:variable name="fail-tests"       select="count($testcase[@result='fail']) - $kfail-tests"/>
   <testsuite name="opendj.tests.functional"
-    tests="{$total-tests}" time="0"
-    failures="{$fail-tests}" errors="0"
-    skipped="{$inconc-tests}">
-    
+             time="0"
+             tests="{$total-tests}"
+             errors="{$inconc-tests}"
+             failures="{$fail-tests}"
+             skipped="{$kfail-tests}">
+
     <xsl:for-each select="$testcase">
+      <xsl:variable name="issue">
+        <xsl:value-of select="issues/issue/@id"/>
+      </xsl:variable>
       <xsl:variable name="message" select="'no message'"/>
-      <xsl:variable name="className" select="$testsuite/@name"/>
-        <xsl:variable name="outcome" select="@result"/>
-        <testcase classname="opendj.tests.functional"
-          name="{@name}"
-          time="{@duration}">
-          
-          <xsl:if test="contains(@result, 'fail')">
-            <failure>
-              <xsl:value-of select="$message" />
-            </failure>
-          </xsl:if>
-        </testcase>
+      <testcase classname="{ancestor::testgroup[1]/@name}.{ancestor::testsuite[1]/@shortname}" 
+      			name="{@shortname}"
+      			time="{@duration}">
+        <xsl:if test="contains(@result, 'unknown')">
+          <error>
+            <xsl:value-of select="'log inconclusive'"/>
+          </error>
+        </xsl:if>
+        <xsl:if test="contains(@result, 'fail') and string-length($issue) = 0">
+          <failure>
+            <xsl:value-of select="'log fail'"/>
+          </failure>
+        </xsl:if>
+        <xsl:if test="contains(@result, 'fail') and string-length($issue) &gt; 0">
+          <skipped>
+            <xsl:value-of select="$issue"/>
+          </skipped>
+        </xsl:if>
+      </testcase>
     </xsl:for-each>
   
   </testsuite>
