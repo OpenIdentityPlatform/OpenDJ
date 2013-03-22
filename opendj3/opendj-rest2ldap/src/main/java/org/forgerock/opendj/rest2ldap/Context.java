@@ -205,7 +205,10 @@ final class Context implements Closeable {
     Context(final Config config, final ServerContext context) {
         this.config = config;
         this.context = context;
-        if (context.containsContext(AuthenticatedConnectionContext.class)) {
+
+        // Re-use the pre-authenticated connection if available and the authorization policy allows.
+        if (config.getAuthorizationPolicy() != AuthorizationPolicy.NONE
+                && context.containsContext(AuthenticatedConnectionContext.class)) {
             final Connection connection =
                     context.asContext(AuthenticatedConnectionContext.class).getConnection();
             this.preAuthenticatedConnection = connection != null ? wrap(connection) : null;
@@ -265,7 +268,8 @@ final class Context implements Closeable {
          * cached connection since cached connections are supposed to have been
          * pre-authenticated and therefore do not require proxied authorization.
          */
-        if (preAuthenticatedConnection == null && config.useProxiedAuthorization()) {
+        if (preAuthenticatedConnection == null
+                && config.getAuthorizationPolicy() == AuthorizationPolicy.PROXY) {
             if (context.containsContext(SecurityContext.class)) {
                 try {
                     final SecurityContext securityContext =

@@ -28,6 +28,7 @@ import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
+import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
 
@@ -77,8 +78,13 @@ public final class Rest2LDAPConnectionFactoryProvider {
             final JsonValue configuration = new JsonValue(content);
 
             // Parse the authorization configuration.
+            final AuthorizationPolicy authzPolicy =
+                    configuration.get("servlet").get("authorizationPolicy").required().asEnum(
+                            AuthorizationPolicy.class);
             final String proxyAuthzTemplate =
                     configuration.get("servlet").get("proxyAuthzIdTemplate").asString();
+
+            // Parse the connection factory if present.
             final String ldapFactoryName =
                     configuration.get("servlet").get("ldapConnectionFactory").asString();
             final org.forgerock.opendj.ldap.ConnectionFactory ldapFactory;
@@ -96,8 +102,9 @@ public final class Rest2LDAPConnectionFactoryProvider {
             for (final String mappingUrl : mappings.keys()) {
                 final JsonValue mapping = mappings.get(mappingUrl);
                 final CollectionResourceProvider provider =
-                        Rest2LDAP.builder().connectionFactory(ldapFactory).useProxiedAuthorization(
-                                proxyAuthzTemplate).configureMapping(mapping).build();
+                        Rest2LDAP.builder().connectionFactory(ldapFactory).authorizationPolicy(
+                                authzPolicy).proxyAuthzIdTemplate(proxyAuthzTemplate)
+                                .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
             return Resources.newInternalConnectionFactory(router);
