@@ -28,7 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Changing Server Certificates</title>
  <indexterm><primary>Certificates</primary></indexterm>
 
@@ -307,53 +307,6 @@ $ stop-ds --restart</screen>
 
   <para>Follow these steps to replace the key pair that is used to
   secure replication connections.</para>
-
-  <step>
-   <para>Delete the key pair used by this server to secure replication
-   connections.</para>
-
-   <para>The change is replicated across the topology.</para>
-
-   <substeps>
-    <step>
-     <para>Identify the key ID of the certificate used by this server
-     by searching the administrative data using the host name and
-     administration port for this server.</para>
-
-     <para>The server in this example is installed on
-     <literal>opendj.example.com</literal> with administration port
-     4444.</para>
-
-     <screen>$ ldapsearch
- --port 1389
- --hostname opendj.example.com
- --baseDN "cn=admin data"
- "(cn=opendj.example.com:4444)" ds-cfg-key-id
-dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
-ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
-
-     <para>The key ID in this case is
-     <literal>4F2F97979A7C05162CF64C9F73AF66ED</literal>.</para>
-    </step>
-
-    <step>
-     <para>Using the key ID, delete the certificate.</para>
-
-     <screen width="81">$ ldapmodify
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
-dn: ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,cn=instance keys,cn=admin data
-changetype: delete
-
-Processing DELETE request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
- cn=instance keys,cn=admin data
-DELETE operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED
- ,cn=instance keys,cn=admin data</screen>
-    </step>
-   </substeps>
-  </step>
 
   <step>
    <para>Generate a new key pair for the server.</para>

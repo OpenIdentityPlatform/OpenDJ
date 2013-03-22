@@ -521,6 +521,148 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
     </listitem>
    </orderedlist>
   </section>
+
+  <section xml:id="troubleshoot-compromised-key">
+   <title>Handling Compromised Keys</title>
+   <indexterm><primary>Certificates</primary></indexterm>
+   <indexterm><primary>SSL</primary></indexterm>
+
+   <para>As explained in <link xlink:href="admin-guide#chap-change-certs"
+   xlink:role="http://docbook.org/xlink/role/olink" xlink:show="new"><citetitle
+   >Changing Server Certificates</citetitle></link>, OpenDJ directory server
+   has different keys and key stores for different purposes. The public keys
+   used for replication are also used to encrypt shared secret symmetric keys
+   for example to encrypt and to sign back ups. This section looks at what to
+   do if either a key pair or secret key is compromised.</para>
+
+   <itemizedlist>
+    <para>How you deal with the problem depends on which key was
+    compromised.</para>
+
+    <listitem>
+     <para>For a key pair used for a client connection handler and with a
+     certificate signed by a certificate authority (CA), contact the CA for
+     help. The CA might choose to publish a certificate revocation list (CRL)
+     that identifies the certificate of the compromised key pair.</para>
+
+     <para>Also make sure you replace the key pair. See <link
+     xlink:href="admin-guide#replace-key-pair" xlink:show="new"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Replace a
+     Server Key Pair</citetitle></link> for specific steps.</para>
+    </listitem>
+
+    <listitem>
+     <para>For a key pair used for a client connection handler and that has
+     a self-signed certificate, follow the steps in <link
+     xlink:href="admin-guide#replace-key-pair" xlink:show="new"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Replace a
+     Server Key Pair</citetitle></link>, and make sure the clients remove the
+     compromised certificate from their trust stores, updating those trust
+     stores with the new certificate.</para>
+    </listitem>
+
+    <listitem>
+     <para>For a key pair that is used for replication, mark the key as
+     compromised as described below, and replace the key pair. See <link
+     xlink:href="admin-guide#replace-ads-cert" xlink:show="new"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Replace a
+     Server Key Pair</citetitle></link> for specific steps.</para>
+
+     <orderedlist>
+      <para>To mark the key pair as compromised, follow these steps.</para>
+
+      <listitem>
+       <para>Identity the key entry by searching administrative data on the
+       server whose key was compromised.</para>
+
+       <para>The server in this example is installed on
+       <literal>opendj.example.com</literal> with administration port
+       <literal>4444</literal>.</para>
+
+       <screen>$ ldapsearch
+ --port 1389
+ --hostname opendj.example.com
+ --baseDN "cn=admin data"
+ "(cn=opendj.example.com:4444)" ds-cfg-key-id
+dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
+ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
+
+       <para>The key ID, <literal>4F2F97979A7C05162CF64C9F73AF66ED</literal>, is
+       the RDN of the key entry.</para>
+      </listitem>
+
+      <listitem>
+       <para>Mark the key as compromised by adding the attribute,
+       <literal>ds-cfg-key-compromised-time</literal>, to the key entry.</para>
+
+       <para>The attribute has generalized time syntax, and so takes as its
+       value the time at which the key was compromised expressed in generalized
+       time. In the following example, the key pair was compromised at 8:34 AM
+       UTC on March 21, 2013.</para>
+
+       <screen width="81">$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,cn=instance keys,cn=admin data
+changetype: modify
+add: ds-cfg-key-compromised-time
+ds-cfg-key-compromised-time: 201303210834Z
+
+Processing MODIFY request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
+ cn=instance keys,cn=admin data
+MODIFY operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED
+ ,cn=instance keys,cn=admin data</screen>
+      </listitem>
+
+      <listitem>
+       <para>If the server uses encrypted or signed data, then the shared secret
+       keys used for encryption or signing and associated with the compromised
+       key pair should also be considered compromised. Therefore, mark all
+       shared secret keys encrypted with with the instance key as
+       compromised.</para>
+
+       <para>To identify the shared secret keys, find the list of secret keys
+       in the administrative data whose <literal>ds-cfg-symmetric-key</literal>
+       starts with the key ID of the compromised key.</para>
+
+       <screen>$ ldapsearch
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN "cn=secret keys,cn=admin data"
+ "(ds-cfg-symmetric-key=4F2F97979A7C05162CF64C9F73AF66ED*)" dn
+dn: ds-cfg-key-id=fba16e59-2ce1-4619-96e7-8caf33f916c8,cn=secret keys,cn=admin d
+ ata
+
+dn: ds-cfg-key-id=57bd8b8b-9cc6-4a29-b42f-fb7a9e48d713,cn=secret keys,cn=admin d
+ ata
+
+dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
+ ata</screen>
+
+       <para>For each such key, mark the entry with
+       <literal>ds-cfg-key-compromised-time</literal> as shown above for the
+       instance key.</para>
+      </listitem>
+     </orderedlist>
+
+     <para>Changes to administration data are replicated to other OpenDJ
+     servers in the replication topology.</para>
+    </listitem>
+
+    <listitem>
+     <para>For a shared secret key used for data encryption that has been
+     compromised, mark the key entry with
+     <literal>ds-cfg-key-compromised-time</literal> as shown in the example
+     above that demonstrates marking the instance key as compromised.</para>
+
+     <para>Again, changes to administration data are replicated to other OpenDJ
+     servers in the replication topology.</para>
+    </listitem>
+   </itemizedlist>
+  </section>
  </section>
  
  <section xml:id="troubleshoot-connections">
