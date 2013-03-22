@@ -330,7 +330,7 @@
                       <call function="'checktestString'">
                         {
                         'returnString'   : returnString ,
-                        'expectedString' : ': SNMP     : Disabled'
+                        'expectedString' : ':\\s+SNMP\\s+:\\s+Disabled'
                         }
                       </call>
 
@@ -445,7 +445,7 @@
                       <call function="'checktestString'">
                         {
                         'returnString'   : returnString ,
-                        'expectedString' : ': SNMP     : Enabled'
+                        'expectedString' : ':\\s+SNMP\\s+:\\s+Enabled'
                         }
                       </call>
 

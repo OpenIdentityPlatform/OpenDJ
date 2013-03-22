@@ -1396,7 +1396,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -1435,7 +1435,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -1531,7 +1531,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Disabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Disabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -1586,7 +1586,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -1738,7 +1738,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -1930,7 +1930,7 @@
 
             <call function="'searchString'">
               {
-              'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+              'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                  % SNMP_PORT ,
               'returnString'   : returnString ,
               'expectedRC'     : 0
@@ -2111,7 +2111,7 @@
 
                 <call function="'searchString'">
                   {
-                  'expectedString' : '0.0.0.0:%s  : SNMP     : Enabled' \
+                  'expectedString' : '0.0.0.0:%s\\s+:\\s+SNMP\\s+:\\s+Enabled' \
                                      % DEFAULT_PROPERTIES['listen-port'] ,
                   'returnString'   : returnString ,
                   'expectedRC'     : 0
