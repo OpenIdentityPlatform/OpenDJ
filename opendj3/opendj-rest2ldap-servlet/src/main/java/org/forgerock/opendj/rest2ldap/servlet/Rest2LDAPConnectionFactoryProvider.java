@@ -102,7 +102,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
             for (final String mappingUrl : mappings.keys()) {
                 final JsonValue mapping = mappings.get(mappingUrl);
                 final CollectionResourceProvider provider =
-                        Rest2LDAP.builder().connectionFactory(ldapFactory).authorizationPolicy(
+                        Rest2LDAP.builder().ldapConnectionFactory(ldapFactory).authorizationPolicy(
                                 authzPolicy).proxyAuthzIdTemplate(proxyAuthzTemplate)
                                 .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);

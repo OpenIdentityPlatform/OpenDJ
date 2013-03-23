@@ -18,12 +18,32 @@
             <param-name>config-file</param-name>
             <param-value>/opendj-rest2ldap-servlet.json</param-value>
         </init-param>
+        
+         <init-param>
+            <param-name>context-factory-class</param-name>
+            <param-value>org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory</param-value>
+        </init-param>
     </servlet>
-
+    
     <servlet-mapping>
         <servlet-name>OpenDJ Commons REST LDAP Gateway</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+
+    <filter>
+        <filter-name>OpenDJ Commons REST LDAP Authentication Filter</filter-name>
+        <filter-class>org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPAuthnFilter</filter-class>
+
+        <init-param>
+            <param-name>config-file</param-name>
+            <param-value>/opendj-rest2ldap-servlet.json</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>OpenDJ Commons REST LDAP Authentication Filter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
 </web-app>
  

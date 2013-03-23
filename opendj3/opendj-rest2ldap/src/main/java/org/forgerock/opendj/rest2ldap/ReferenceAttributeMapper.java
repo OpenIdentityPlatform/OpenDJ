@@ -17,8 +17,8 @@ package org.forgerock.opendj.rest2ldap;
 
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
-import static org.forgerock.opendj.rest2ldap.Utils.adapt;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
@@ -199,7 +199,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
 
                             @Override
                             public void handleErrorResult(final ErrorResultException error) {
-                                h.handleError(adapt(error)); // Propagate.
+                                h.handleError(asResourceException(error)); // Propagate.
                             }
 
                             @Override
@@ -234,7 +234,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                 readEntry(c, dn, h);
             } catch (final Exception ex) {
                 // The LDAP attribute could not be decoded.
-                h.handleError(adapt(ex));
+                h.handleError(asResourceException(ex));
             }
         } else {
             try {
@@ -264,7 +264,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                 }
             } catch (final Exception ex) {
                 // The LDAP attribute could not be decoded.
-                h.handleError(adapt(ex));
+                h.handleError(asResourceException(ex));
             }
         }
     }
@@ -373,7 +373,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                                                                                         .toString()
                                                                                 + "' is ambiguous");
                                                     } catch (ErrorResultException e) {
-                                                        re = adapt(e);
+                                                        re = asResourceException(e);
                                                     }
                                                     exception.compareAndSet(null, re);
                                                     completeIfNecessary();
@@ -433,7 +433,7 @@ public final class ReferenceAttributeMapper extends AttributeMapper {
                     @Override
                     public void handleErrorResult(final ErrorResultException error) {
                         if (!(error instanceof EntryNotFoundException)) {
-                            handler.handleError(adapt(error));
+                            handler.handleError(asResourceException(error));
                         } else {
                             // The referenced entry does not exist so ignore it since it cannot be mapped.
                             handler.handleResult(null);

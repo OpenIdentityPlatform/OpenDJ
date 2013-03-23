@@ -16,7 +16,7 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.rest2ldap.Utils.adapt;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 
 import java.io.Closeable;
 import java.util.LinkedHashMap;
@@ -302,7 +302,7 @@ final class Context implements Closeable {
             config.connectionFactory().getConnectionAsync(new ResultHandler<Connection>() {
                 @Override
                 public final void handleErrorResult(final ErrorResultException error) {
-                    handler.handleError(adapt(error));
+                    handler.handleError(asResourceException(error));
                 }
 
                 @Override

@@ -35,20 +35,29 @@ import org.forgerock.json.fluent.JsonValueException;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -67,11 +76,11 @@ public final class Rest2LDAP {
      */
     public static final class Builder {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
+        private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
         private MVCCStrategy mvccStrategy;
         private NameStrategy nameStrategy;
-        private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
@@ -89,6 +98,11 @@ public final class Rest2LDAP {
 
         public Builder additionalLDAPAttribute(final String attribute, final Object... values) {
             return additionalLDAPAttribute(new LinkedAttribute(ad(attribute), values));
+        }
+
+        public Builder authorizationPolicy(final AuthorizationPolicy policy) {
+            this.authzPolicy = ensureNotNull(policy);
+            return this;
         }
 
         public Builder baseDN(final DN dn) {
@@ -135,74 +149,9 @@ public final class Rest2LDAP {
         /**
          * Configures the JSON to LDAP mapping using the provided JSON
          * configuration. The caller is still required to set the connection
-         * factory. The configuration should look like this, excluding the
-         * C-like comments:
-         *
-         * <pre>
-         * {
-         *     // The base DN beneath which LDAP entries are to be found.
-         *     "baseDN" : "ou=people,dc=example,dc=com",
-         *
-         *     // The mechanism which should be used for read resources during updates, must be
-         *     // one of "disabled", "controls", or "search".
-         *     "readOnUpdatePolicy" : "controls",
-         *
-         *     // Additional LDAP attributes which should be included with entries during add (create) operations.
-         *     "additionalLDAPAttributes" : [
-         *         {
-         *             "type" : "objectClass",
-         *             "values" : [
-         *                 "top",
-         *                 "person"
-         *             ]
-         *         }
-         *     ],
-         *
-         *     // The strategy which should be used for deriving LDAP entry names from JSON resources.
-         *     "namingStrategy" : {
-         *         // Option 1) the RDN and resource ID are both derived from a single user attribute in the entry.
-         *         "strategy" : "clientDNNaming",
-         *         "dnAttribute" : "uid"
-         *
-         *         // Option 2) the RDN and resource ID are derived from separate user attributes in the entry.
-         *         "strategy" : "clientNaming",
-         *         "dnAttribute" : "uid",
-         *         "idAttribute" : "mail"
-         *
-         *         // Option 3) the RDN and is derived from a user attribute and the resource ID from an operational
-         *         //           attribute in the entry.
-         *         "strategy" : "serverNaming",
-         *         "dnAttribute" : "uid",
-         *         "idAttribute" : "entryUUID"
-         *     },
-         *
-         *     // The attribute which will be used for performing MVCC.
-         *     "etagAttribute" : "etag",
-         *
-         *     // The JSON to LDAP attribute mappings.
-         *     "attributes" : {
-         *         "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
-         *         "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
-         *         "rev"         : { "simple"   : { "ldapAttribute" : "etag", "isSingleValued" : true, "writability" : "readOnly" } },
-         *         "userName"    : { "simple"   : { "ldapAttribute" : "mail", "isSingleValued" : true, "writability" : "readOnly" } },
-         *         "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true } },
-         *         "name"        : { "object"   : {
-         *             "givenName"  : { "simple"   : { "ldapAttribute" : "givenName", "isSingleValued" : true } },
-         *             "familyName" : { "simple"   : { "ldapAttribute" : "sn", "isSingleValued" : true, "isRequired" : true } },
-         *         },
-         *         "manager"     : { "reference" : {
-         *             "ldapAttribute" : "manager",
-         *             "baseDN"        : "ou=people,dc=example,dc=com",
-         *             "mapper"        : { "object" : {
-         *                 "id"          : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true } },
-         *                 "displayName" : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true } }
-         *             } }
-         *         },
-         *         ...
-         *     }
-         * }
-         * </pre>
-         *
+         * factory. See the sample configuration file for a detailed description
+         * of its content.
+         * 
          * @param configuration
          *            The JSON configuration.
          * @return A reference to this builder.
@@ -250,7 +199,7 @@ public final class Rest2LDAP {
             return this;
         }
 
-        public Builder connectionFactory(final ConnectionFactory factory) {
+        public Builder ldapConnectionFactory(final ConnectionFactory factory) {
             this.factory = factory;
             return this;
         }
@@ -260,10 +209,15 @@ public final class Rest2LDAP {
             return this;
         }
 
+        public Builder proxyAuthzIdTemplate(final String template) {
+            this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
+            return this;
+        }
+
         /**
          * Sets the policy which should be used in order to read an entry before
          * it is deleted, or after it is added or modified.
-         *
+         * 
          * @param policy
          *            The policy which should be used in order to read an entry
          *            before it is deleted, or after it is added or modified.
@@ -277,7 +231,7 @@ public final class Rest2LDAP {
         /**
          * Sets the schema which should be used when attribute types and
          * controls.
-         *
+         * 
          * @param schema
          *            The schema which should be used when attribute types and
          *            controls.
@@ -318,16 +272,6 @@ public final class Rest2LDAP {
 
         public Builder useEtagAttribute(final String attribute) {
             return useEtagAttribute(ad(attribute));
-        }
-
-        public Builder authorizationPolicy(final AuthorizationPolicy policy) {
-            this.authzPolicy = ensureNotNull(policy);
-            return this;
-        }
-
-        public Builder proxyAuthzIdTemplate(final String template) {
-            this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
-            return this;
         }
 
         public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
@@ -551,61 +495,60 @@ public final class Rest2LDAP {
 
     }
 
+    /**
+     * Adapts a {@code Throwable} to a {@code ResourceException}. If the
+     * {@code Throwable} is an LDAP {@code ErrorResultException} then an
+     * appropriate {@code ResourceException} is returned, otherwise an
+     * {@code InternalServerErrorException} is returned.
+     * 
+     * @param t
+     *            The {@code Throwable} to be converted.
+     * @return The equivalent resource exception.
+     */
+    public static ResourceException asResourceException(final Throwable t) {
+        int resourceResultCode;
+        try {
+            throw t;
+        } catch (final ResourceException e) {
+            return e;
+        } catch (final AssertionFailureException e) {
+            resourceResultCode = ResourceException.VERSION_MISMATCH;
+        } catch (final AuthenticationException e) {
+            resourceResultCode = 401;
+        } catch (final AuthorizationException e) {
+            resourceResultCode = ResourceException.FORBIDDEN;
+        } catch (final ConnectionException e) {
+            resourceResultCode = ResourceException.UNAVAILABLE;
+        } catch (final EntryNotFoundException e) {
+            resourceResultCode = ResourceException.NOT_FOUND;
+        } catch (final MultipleEntriesFoundException e) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
+        } catch (final TimeoutResultException e) {
+            resourceResultCode = 408;
+        } catch (final ErrorResultException e) {
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
+                resourceResultCode = 413; // Request Entity Too Large
+            } else {
+                resourceResultCode = ResourceException.INTERNAL_ERROR;
+            }
+        } catch (final Throwable tmp) {
+            resourceResultCode = ResourceException.INTERNAL_ERROR;
+        }
+        return ResourceException.getException(resourceResultCode, t.getMessage(), t);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
     /**
      * Creates a new connection factory using the named configuration in the
-     * provided JSON list of factory configurations. Excluding the C-like
-     * comments, the configuration should look like this:
-     *
-     * <pre>
-     * {
-     *     // A default pool of servers using no authentication.
-     *     "default" : {
-     *         // The primary data center, must contain at least one LDAP server.
-     *         "primaryLDAPServers" : [
-     *             {
-     *                 "hostname" : "host1.example.com",
-     *                 "port"     : 389
-     *             },
-     *             {
-     *                 "hostname" : "host2.example.com",
-     *                 "port"     : 389
-     *             },
-     *         ],
-     *
-     *         // The optional secondary (fail-over) data center.
-     *         "secondaryLDAPServers" : [
-     *             {
-     *                 "hostname" : "host3.example.com",
-     *                 "port"     : 389
-     *             },
-     *             {
-     *                 "hostname" : "host4.example.com",
-     *                 "port"     : 389
-     *             },
-     *         ],
-     *
-     *         // Connection pool configuration.
-     *         "connectionPoolSize"       : 10,
-     *         "heartBeatIntervalSeconds" : 30
-     *     },
-     *
-     *     // The same pool of servers except authenticated as cn=directory manager.
-     *     "root" : {
-     *         "inheritFrom"    : "default",
-     *         "authentication" : {
-     *             "simple" : {
-     *                 "bindDN"       : "cn=directory manager",
-     *                 "bindPassword" : "password"
-     *             }
-     *         }
-     *     }
-     * }
-     * </pre>
-     *
+     * provided JSON list of factory configurations. See the sample
+     * configuration file for a detailed description of its content.
+     * 
      * @param configuration
      *            The JSON configuration.
      * @param name

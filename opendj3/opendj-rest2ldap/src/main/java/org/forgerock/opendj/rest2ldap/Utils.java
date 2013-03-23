@@ -26,6 +26,7 @@ import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,22 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.AuthenticationException;
-import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConnectionException;
-import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.LinkedAttribute;
-import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
@@ -185,51 +177,6 @@ final class Utils {
      */
     static <V> ResultHandler<V> accumulate(final int size, final ResultHandler<List<V>> handler) {
         return new AccumulatingResultHandler<V>(size, handler);
-    }
-
-    /**
-     * Adapts a {@code Throwable} to a {@code ResourceException}. If the
-     * {@code Throwable} is an LDAP {@code ErrorResultException} then an
-     * appropriate {@code ResourceException} is returned, otherwise an
-     * {@code InternalServerErrorException} is returned.
-     *
-     * @param t
-     *            The {@code Throwable} to be converted.
-     * @return The equivalent resource exception.
-     */
-    static ResourceException adapt(final Throwable t) {
-        int resourceResultCode;
-        try {
-            throw t;
-        } catch (final ResourceException e) {
-            return e;
-        } catch (final AssertionFailureException e) {
-            resourceResultCode = ResourceException.VERSION_MISMATCH;
-        } catch (final AuthenticationException e) {
-            resourceResultCode = 401;
-        } catch (final AuthorizationException e) {
-            resourceResultCode = ResourceException.FORBIDDEN;
-        } catch (final ConnectionException e) {
-            resourceResultCode = ResourceException.UNAVAILABLE;
-        } catch (final EntryNotFoundException e) {
-            resourceResultCode = ResourceException.NOT_FOUND;
-        } catch (final MultipleEntriesFoundException e) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
-        } catch (final TimeoutResultException e) {
-            resourceResultCode = 408;
-        } catch (final ErrorResultException e) {
-            final ResultCode rc = e.getResult().getResultCode();
-            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else {
-                resourceResultCode = ResourceException.INTERNAL_ERROR;
-            }
-        } catch (final Throwable tmp) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
-        }
-        return ResourceException.getException(resourceResultCode, t.getMessage(), t);
     }
 
     static Object attributeToJson(final Attribute a) {
@@ -376,7 +323,7 @@ final class Utils {
                 try {
                     handler.handleResult(f.apply(result, null));
                 } catch (Throwable t) {
-                    handler.handleError(adapt(t));
+                    handler.handleError(asResourceException(t));
                 }
             }
         };
