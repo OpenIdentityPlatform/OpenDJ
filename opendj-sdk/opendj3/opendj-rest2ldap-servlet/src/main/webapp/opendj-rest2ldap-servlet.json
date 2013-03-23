@@ -69,7 +69,7 @@
         // "sasl-plain"    - the username is an authzid which will be
         //                   substituted into the "saslAuthzIdTemplate" using
         //                   %s substitution
-        // "search+simple" - the user's DN will be resolved by performing an
+        // "search-simple" - the user's DN will be resolved by performing an
         //                   LDAP search using a filter constructed by
         //                   substituting the username into the
         //                   "searchFilterTemplate" using %s substitution.
@@ -84,11 +84,11 @@
         "saslAuthzIdTemplate" : "dn:uid=%s,ou=people,dc=example,dc=com",
         
         // The connection factory which will be used for performing LDAP
-        // searches to locate users when "search+simple" authentication is
+        // searches to locate users when "search-simple" authentication is
         // enabled.
         "searchLDAPConnectionFactory" : "root",
         
-        // The search parameters to use for "search+simple" authentication.
+        // The search parameters to use for "search-simple" authentication.
         "searchBaseDN"         : "ou=people,dc=example,dc=com",
         "searchScope"          : "sub", // Or "one".
         "searchFilterTemplate" : "(&(objectClass=inetOrgPerson)(uid=%s))"
@@ -120,7 +120,7 @@
         //                 derived from the "proxyAuthzIdTemplate". Proxied
         //                 authorization will only be used if there is no
         //                 pre-authenticated connection available.
-        "authorizationPolicy" : "none",
+        "authorizationPolicy" : "proxy",
         
         // The AuthzID template which will be used for proxied authorization.
         // The template should contain fields which are expected to be found in

@@ -170,9 +170,7 @@ public final class Rest2LDAPContextFactory implements HttpServletContextFactory 
      */
     @Override
     public Context createContext(final HttpServletRequest request) throws ResourceException {
-        final Context securityContext =
-                SecurityContextFactory.getHttpServletContextFactory().createContext(request);
-        return createContext(securityContext, request);
+        return createContext(new RootContext(), request);
     }
 
 }

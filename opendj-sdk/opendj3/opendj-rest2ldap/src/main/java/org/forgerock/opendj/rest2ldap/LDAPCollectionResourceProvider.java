@@ -18,8 +18,8 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
-import static org.forgerock.opendj.rest2ldap.Utils.adapt;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
@@ -251,7 +251,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
                                 @Override
                                 public void handleErrorResult(final ErrorResultException error) {
-                                    pendingResult.compareAndSet(null, adapt(error));
+                                    pendingResult.compareAndSet(null, asResourceException(error));
                                     completeIfNecessary();
                                 }
 
@@ -312,7 +312,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
                             @Override
                             public void handleErrorResult(final ErrorResultException error) {
-                                h.handleError(adapt(error));
+                                h.handleError(asResourceException(error));
                             }
 
                             @Override
@@ -559,7 +559,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         return new org.forgerock.opendj.ldap.ResultHandler<Result>() {
             @Override
             public void handleErrorResult(final ErrorResultException error) {
-                handler.handleError(adapt(error));
+                handler.handleError(asResourceException(error));
             }
 
             @Override

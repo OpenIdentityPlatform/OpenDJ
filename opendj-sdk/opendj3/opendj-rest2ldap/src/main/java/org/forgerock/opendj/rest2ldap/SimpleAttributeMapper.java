@@ -21,7 +21,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Functions.fixedFunction;
-import static org.forgerock.opendj.rest2ldap.Utils.adapt;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.base64ToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToBase64;
 import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
@@ -183,7 +183,8 @@ public final class SimpleAttributeMapper extends AttributeMapper {
             final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
         if (jsonAttribute.isEmpty()) {
             try {
-                final ByteString va = valueAssertion != null ? encoder().apply(valueAssertion, null) : null;
+                final ByteString va =
+                        valueAssertion != null ? encoder().apply(valueAssertion, null) : null;
                 h.handleResult(toFilter(c, type, ldapAttributeName.toString(), va));
             } catch (Exception e) {
                 // Invalid assertion value - bad request.
@@ -212,7 +213,7 @@ public final class SimpleAttributeMapper extends AttributeMapper {
             h.handleResult(value != null ? new JsonValue(value) : null);
         } catch (Exception ex) {
             // The LDAP attribute could not be decoded.
-            h.handleError(adapt(ex));
+            h.handleError(asResourceException(ex));
         }
     }
 
