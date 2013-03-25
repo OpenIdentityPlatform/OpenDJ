@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -184,6 +184,14 @@ public class ErrorResultException extends ExecutionException {
         return new ErrorResultException(result);
     }
 
+    private static String getMessage(final Result result) {
+        if (result.getDiagnosticMessage() == null || result.getDiagnosticMessage().isEmpty()) {
+            return result.getResultCode().toString();
+        } else {
+            return result.getResultCode() + ": " + result.getDiagnosticMessage();
+        }
+    }
+
     private final Result result;
 
     /**
@@ -193,7 +201,7 @@ public class ErrorResultException extends ExecutionException {
      *            The error result.
      */
     protected ErrorResultException(final Result result) {
-        super(result.getResultCode() + ": " + result.getDiagnosticMessage(), result.getCause());
+        super(getMessage(result), result.getCause());
         this.result = result;
     }
 
