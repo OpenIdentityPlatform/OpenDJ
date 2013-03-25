@@ -57,6 +57,9 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <properties>
+      <opendj.osgi.import.additional>com.sun.security.auth*;resolution:=optional</opendj.osgi.import.additional>
+  </properties>
   <build>
     <plugins>
       <plugin>
@@ -80,11 +83,6 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Export-Package>org.forgerock.opendj.*</Export-Package>
-          </instructions>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

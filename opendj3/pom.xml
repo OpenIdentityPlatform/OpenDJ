@@ -107,6 +107,18 @@
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.2.19</grizzlyFrameworkVersion>
     <gaId>UA-23412190-8</gaId>
+    <!-- OSGi bundles properties -->
+    <opendj.osgi.import.additional/>
+    <!--
+     | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
+     | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
+    -->
+    <opendj.osgi.import>
+     org.forgerock.opendj.*;provide:=true,
+     org.forgerock.json.*;provide:=true,
+     ${opendj.osgi.import.additional},
+     *
+    </opendj.osgi.import>
     <!--
       Release date is specified only when building the documentation
       for publication. For example:
@@ -200,6 +212,24 @@
             </properties>
           </configuration>
         </plugin>
+          <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <version>2.3.7</version>
+              <extensions>true</extensions>
+              <configuration>
+                  <instructions>
+                      <!--
+                      | Remove the by default removed headers plus some other to make cleaner the generated MANIFEST.MF
+                      -->
+                      <_removeheaders>
+                          Bnd-LastModified,Built-By,Private-Package,Tool,Created-By,Build-Jdk,Include-Resource,
+                          Ignore-Package,Private-Package,Bundle-DocURL
+                      </_removeheaders>
+                      <Import-Package>${opendj.osgi.import}</Import-Package>
+                  </instructions>
+              </configuration>
+          </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
