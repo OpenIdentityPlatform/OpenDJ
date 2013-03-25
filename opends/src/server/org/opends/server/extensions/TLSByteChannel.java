@@ -415,11 +415,12 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
   /**
    * Map of cipher phrases to effective key size (bits). Taken from the
-   * following RFCs: 5289, 4346, 3268,4132 and 4162.
+   * following RFCs: 5289, 4346, 3268,4132 and 4162 and the IANA Transport Layer
+   * Security (TLS) Parameters.
    *
    * @see <a
-   *      href="http://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-3">Transport
-   *      Layer Security (TLS) Parameters, TLS Cipher Suite Registry</a>
+   * href="http://www.iana.org/assignments/tls-parameters/tls-parameters.xml">
+   * Transport Layer Security (TLS) Parameters, TLS Cipher Suite Registry</a>
    */
   static final Map<String, Integer> CIPHER_MAP;
   static
