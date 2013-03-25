@@ -20,11 +20,16 @@ import static org.forgerock.json.resource.SecurityContext.AUTHZID_DN;
 import static org.forgerock.json.resource.SecurityContext.AUTHZID_ID;
 import static org.forgerock.json.resource.servlet.SecurityContextFactory.ATTRIBUTE_AUTHCID;
 import static org.forgerock.json.resource.servlet.SecurityContextFactory.ATTRIBUTE_AUTHZID;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.requests.Requests.newPlainSASLBindRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -46,15 +51,22 @@ import org.forgerock.json.fluent.JsonValueException;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.servlet.CompletionHandler;
 import org.forgerock.json.resource.servlet.CompletionHandlerFactory;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 
@@ -74,12 +86,12 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(
             JsonParser.Feature.ALLOW_COMMENTS, true);
 
-    /** Indicates whether or not authentication should be performed. */
-    private boolean isEnabled = false;
     private String altAuthenticationPasswordHeader;
     private String altAuthenticationUsernameHeader;
     private AuthenticationMethod authenticationMethod = AuthenticationMethod.SEARCH_SIMPLE;
     private ConnectionFactory bindLDAPConnectionFactory;
+    /** Indicates whether or not authentication should be performed. */
+    private boolean isEnabled = false;
     private boolean reuseAuthenticatedConnection = true;
     private String saslAuthzIdTemplate;
     private final Schema schema = Schema.getDefaultSchema();
@@ -179,55 +191,100 @@ public final class Rest2LDAPAuthnFilter implements Filter {
 
             // If we've got here then we have a username and password.
             switch (authenticationMethod) {
-            case SIMPLE:
-                bindLDAPConnectionFactory.getConnectionAsync(new ResultHandler<Connection>() {
+            case SIMPLE: {
+                final Map<String, Object> authzid;
+                authzid = new LinkedHashMap<String, Object>(2);
+                authzid.put(AUTHZID_DN, username);
+                authzid.put(AUTHZID_ID, username);
+                doBind(req, response, newSimpleBindRequest(username, password), chain,
+                        savedConnection, completionHandler, username, authzid);
+                break;
+            }
+            case SASL_PLAIN: {
+                final Map<String, Object> authzid;
+                final String bindId;
+                if (saslAuthzIdTemplate.startsWith("dn:")) {
+                    final String bindDN =
+                            DN.format(saslAuthzIdTemplate.substring(3), schema, username)
+                                    .toString();
+                    bindId = "dn:" + bindDN;
+                    authzid = new LinkedHashMap<String, Object>(2);
+                    authzid.put(AUTHZID_DN, bindDN);
+                    authzid.put(AUTHZID_ID, username);
+                } else {
+                    bindId = String.format(saslAuthzIdTemplate, username);
+                    authzid = Collections.singletonMap(AUTHZID_ID, (Object) username);
+                }
+                doBind(req, response, newPlainSASLBindRequest(bindId, password), chain,
+                        savedConnection, completionHandler, username, authzid);
+                break;
+            }
+            default: // SEARCH_SIMPLE
+            {
+                /*
+                 * First do a search to find the user's entry and then perform a
+                 * bind request using the user's DN.
+                 */
+                final org.forgerock.opendj.ldap.Filter filter =
+                        org.forgerock.opendj.ldap.Filter.format(searchFilterTemplate, username);
+                final SearchRequest searchRequest =
+                        newSearchRequest(searchBaseDN, searchScope, filter, "1.1");
+                searchLDAPConnectionFactory.getConnectionAsync(new ResultHandler<Connection>() {
                     @Override
-                    public void handleErrorResult(ErrorResultException error) {
+                    public void handleErrorResult(final ErrorResultException error) {
                         completionHandler.onError(asResourceException(error));
                     }
 
                     @Override
                     public void handleResult(final Connection connection) {
-                        savedConnection.set(connection);
-                        connection.bindAsync(Requests.newSimpleBindRequest(username, password),
-                                null, new ResultHandler<BindResult>() {
+                        // Do the search.
+                        connection.searchSingleEntryAsync(searchRequest,
+                                new ResultHandler<SearchResultEntry>() {
 
                                     @Override
-                                    public void handleErrorResult(ErrorResultException error) {
-                                        completionHandler.onError(asResourceException(error));
+                                    public void handleErrorResult(final ErrorResultException error) {
+                                        connection.close();
+                                        /*
+                                         * The search error should not be passed
+                                         * as-is back to the user.
+                                         */
+                                        final ErrorResultException normalizedError;
+                                        if (error instanceof EntryNotFoundException
+                                                || error instanceof MultipleEntriesFoundException) {
+                                            normalizedError =
+                                                    newErrorResult(ResultCode.INVALID_CREDENTIALS,
+                                                            error);
+                                        } else if (error instanceof AuthenticationException
+                                                || error instanceof AuthorizationException) {
+                                            normalizedError =
+                                                    newErrorResult(
+                                                            ResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                                                            error);
+                                        } else {
+                                            normalizedError = error;
+                                        }
+                                        completionHandler
+                                                .onError(asResourceException(normalizedError));
                                     }
 
                                     @Override
-                                    public void handleResult(BindResult result) {
-                                        // Cache the pre-authenticated connection.
-                                        if (reuseAuthenticatedConnection) {
-                                            req.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, connection);
-                                        }
-
-                                        // Pass through the authentication ID.
-                                        req.setAttribute(ATTRIBUTE_AUTHCID, username);
-
-                                        // Pass through authorization information.
+                                    public void handleResult(final SearchResultEntry result) {
+                                        connection.close();
+                                        final String bindDN = result.getName().toString();
                                         final Map<String, Object> authzid =
                                                 new LinkedHashMap<String, Object>(2);
-                                        authzid.put(AUTHZID_DN, username);
+                                        authzid.put(AUTHZID_DN, bindDN);
                                         authzid.put(AUTHZID_ID, username);
-                                        req.setAttribute(ATTRIBUTE_AUTHZID, authzid);
-
-                                        // Invoke the remained of the filter chain.
-                                        try {
-                                            chain.doFilter(request, response);
-                                        } catch (Throwable t) {
-                                            completionHandler.onError(asResourceException(t));
-                                        }
+                                        doBind(req, response,
+                                                newSimpleBindRequest(bindDN, password), chain,
+                                                savedConnection, completionHandler, username,
+                                                authzid);
                                     }
                                 });
                     }
                 });
                 break;
-            case SASL_PLAIN:
-            case SEARCH_SIMPLE:
-                throw ResourceException.getException(401);
+            }
             }
 
             /*
@@ -348,6 +405,61 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         }
     }
 
+    private void closeConnection(final AtomicReference<Connection> savedConnection) {
+        final Connection connection = savedConnection.get();
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    /*
+     * Get a bind connection and then perform the bind operation, setting the
+     * cached connection and authorization credentials on completion.
+     */
+    private void doBind(final HttpServletRequest request, final ServletResponse response,
+            final BindRequest bindRequest, final FilterChain chain,
+            final AtomicReference<Connection> savedConnection,
+            final CompletionHandler completionHandler, final String authcid,
+            final Map<String, Object> authzid) {
+        bindLDAPConnectionFactory.getConnectionAsync(new ResultHandler<Connection>() {
+            @Override
+            public void handleErrorResult(final ErrorResultException error) {
+                completionHandler.onError(asResourceException(error));
+            }
+
+            @Override
+            public void handleResult(final Connection connection) {
+                savedConnection.set(connection);
+                connection.bindAsync(bindRequest, null, new ResultHandler<BindResult>() {
+
+                    @Override
+                    public void handleErrorResult(final ErrorResultException error) {
+                        completionHandler.onError(asResourceException(error));
+                    }
+
+                    @Override
+                    public void handleResult(final BindResult result) {
+                        // Cache the pre-authenticated connection.
+                        if (reuseAuthenticatedConnection) {
+                            request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, connection);
+                        }
+
+                        // Pass through the authentication ID and authorization principals.
+                        request.setAttribute(ATTRIBUTE_AUTHCID, authcid);
+                        request.setAttribute(ATTRIBUTE_AUTHZID, authzid);
+
+                        // Invoke the remained of the filter chain.
+                        try {
+                            chain.doFilter(request, response);
+                        } catch (final Throwable t) {
+                            completionHandler.onError(asResourceException(t));
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     private AuthenticationMethod parseAuthenticationMethod(final JsonValue configuration) {
         if (configuration.isDefined("method")) {
             final String method = configuration.get("method").asString();
@@ -380,13 +492,6 @@ public final class Rest2LDAPAuthnFilter implements Filter {
             }
         } else {
             return SearchScope.WHOLE_SUBTREE;
-        }
-    }
-
-    private void closeConnection(final AtomicReference<Connection> savedConnection) {
-        final Connection connection = savedConnection.get();
-        if (connection != null) {
-            connection.close();
         }
     }
 
