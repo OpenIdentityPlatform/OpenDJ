@@ -23,25 +23,29 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.ClosedChannelException;
 import java.security.cert.Certificate;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -62,6 +66,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     /**
      * {@inheritDoc}
      */
+    @Override
     public void close() throws IOException
     {
       synchronized (readLock)
@@ -114,6 +119,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isOpen()
     {
       return !sslEngine.isOutboundDone() || !sslEngine.isInboundDone();
@@ -124,6 +130,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     /**
      * {@inheritDoc}
      */
+    @Override
     public int read(final ByteBuffer unwrappedData) throws IOException
     {
       synchronized (readLock)
@@ -165,6 +172,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     /**
      * {@inheritDoc}
      */
+    @Override
     public int write(final ByteBuffer unwrappedData) throws IOException
     {
       // This method will block until the entire message is sent.
@@ -405,30 +413,37 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  // Map of cipher phrases to effective key size (bits). Taken from the
-  // following RFCs: 5289, 4346, 3268,4132 and 4162.
-  private static final Map<String, Integer> CIPHER_MAP;
+  /**
+   * Map of cipher phrases to effective key size (bits). Taken from the
+   * following RFCs: 5289, 4346, 3268,4132 and 4162.
+   *
+   * @see <a
+   *      href="http://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-3">Transport
+   *      Layer Security (TLS) Parameters, TLS Cipher Suite Registry</a>
+   */
+  static final Map<String, Integer> CIPHER_MAP;
   static
   {
-    CIPHER_MAP = new LinkedHashMap<String, Integer>();
-    CIPHER_MAP.put("_WITH_AES_256_CBC_", new Integer(256));
-    CIPHER_MAP.put("_WITH_CAMELLIA_256_CBC_", new Integer(256));
-    CIPHER_MAP.put("_WITH_AES_256_GCM_", new Integer(256));
-    CIPHER_MAP.put("_WITH_3DES_EDE_CBC_", new Integer(112));
-    CIPHER_MAP.put("_WITH_AES_128_GCM_", new Integer(128));
-    CIPHER_MAP.put("_WITH_SEED_CBC_", new Integer(128));
-    CIPHER_MAP.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
-    CIPHER_MAP.put("_WITH_AES_128_CBC_", new Integer(128));
-    CIPHER_MAP.put("_WITH_IDEA_CBC_", new Integer(128));
-    CIPHER_MAP.put("_WITH_RC4_128_", new Integer(128));
-    CIPHER_MAP.put("_WITH_FORTEZZA_CBC_", new Integer(96));
-    CIPHER_MAP.put("_WITH_DES_CBC_", new Integer(56));
-    CIPHER_MAP.put("_WITH_RC4_56_", new Integer(56));
-    CIPHER_MAP.put("_WITH_DES_CBC_40_", new Integer(40));
-    CIPHER_MAP.put("_WITH_RC2_CBC_40_", new Integer(40));
-    CIPHER_MAP.put("_WITH_RC4_40_", new Integer(40));
-    CIPHER_MAP.put("_WITH_DES40_CBC_", new Integer(40));
-    CIPHER_MAP.put("_WITH_NULL_", new Integer(0));
+    final Map<String, Integer> map = new LinkedHashMap<String, Integer>();
+    map.put("_WITH_AES_256_", 256);
+    map.put("_WITH_ARIA_256_", 256);
+    map.put("_WITH_CAMELLIA_256_", 256);
+    map.put("_WITH_AES_128_", 128);
+    map.put("_WITH_ARIA_128_", 128);
+    map.put("_WITH_SEED_", 128);
+    map.put("_WITH_CAMELLIA_128_", 128);
+    map.put("_WITH_IDEA_", 128);
+    map.put("_WITH_RC4_128_", 128);
+    map.put("_WITH_3DES_EDE_", 112);
+    map.put("_WITH_FORTEZZA_", 96);
+    map.put("_WITH_RC4_56_", 56);
+    map.put("_WITH_DES_CBC_40_", 40);
+    map.put("_WITH_RC2_CBC_40_", 40);
+    map.put("_WITH_RC4_40_", 40);
+    map.put("_WITH_DES40_", 40);
+    map.put("_WITH_DES_", 56);
+    map.put("_WITH_NULL_", 0);
+    CIPHER_MAP = Collections.unmodifiableMap(map);
   }
 
   private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
@@ -485,6 +500,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteChannel getChannel()
   {
     return pimpl;
@@ -495,6 +511,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public Certificate[] getClientCertificateChain()
   {
     try
@@ -516,6 +533,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getName()
   {
     return "TLS";
@@ -526,17 +544,36 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getSSF()
   {
-    final String cipherString = sslEngine.getSession().getCipherSuite();
-    for (final Map.Entry<String, Integer> mapEntry : CIPHER_MAP.entrySet())
+    final Integer ssf = getSSF(sslEngine.getSession().getCipherSuite());
+    if (ssf != null)
     {
-      if (cipherString.indexOf(mapEntry.getKey()) >= 0)
-      {
-        return mapEntry.getValue().intValue();
-      }
+      return ssf.intValue();
     }
     return 0;
+  }
+
+  /**
+   * Returns the Security Strength Factor corresponding to the supplied cipher
+   * string.
+   *
+   * @param cipherString
+   *          the cipher to test for SSF
+   * @return the Security Strength Factor corresponding to the supplied cipher
+   *         string, null if the cipher cannot be recognized.
+   */
+  static Integer getSSF(final String cipherString)
+  {
+    for (final Map.Entry<String, Integer> mapEntry : CIPHER_MAP.entrySet())
+    {
+      if (cipherString.contains(mapEntry.getKey()))
+      {
+        return mapEntry.getValue();
+      }
+    }
+    return null;
   }
 
 
@@ -544,6 +581,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSecure()
   {
     return true;
