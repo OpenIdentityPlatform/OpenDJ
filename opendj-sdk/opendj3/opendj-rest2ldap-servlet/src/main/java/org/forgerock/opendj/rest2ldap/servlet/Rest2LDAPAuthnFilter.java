@@ -101,6 +101,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private SearchScope searchScope = SearchScope.WHOLE_SUBTREE;
     private boolean supportAltAuthentication;
     private boolean supportHTTPBasicAuthentication = true;
+    private CompletionHandlerFactory completionHandlerFactory;
 
     /**
      * {@inheritDoc}
@@ -139,8 +140,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
          */
         final AtomicReference<Connection> savedConnection = new AtomicReference<Connection>();
         final CompletionHandler completionHandler =
-                CompletionHandlerFactory.getInstance(req.getServletContext())
-                        .createCompletionHandler(req, res);
+                completionHandlerFactory.createCompletionHandler(req, res);
         if (completionHandler.isAsynchronous()) {
             completionHandler.addCompletionListener(new Runnable() {
                 @Override
@@ -387,6 +387,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                 bindLDAPConnectionFactory =
                         Rest2LDAP.configureConnectionFactory(configuration.get(
                                 "ldapConnectionFactories").required(), ldapFactoryName);
+
+                // Set the completion handler factory based on the Servlet API version.
+                completionHandlerFactory =
+                        CompletionHandlerFactory.getInstance(config.getServletContext());
 
                 isEnabled = true;
             }
