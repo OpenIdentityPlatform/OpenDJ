@@ -27,7 +27,7 @@
     <description>
         This module includes APIs for accessing LDAP repositories using commons REST.
     </description>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <properties>
         <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
         <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
@@ -76,6 +76,11 @@
         </executions>
       </plugin>
       -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
