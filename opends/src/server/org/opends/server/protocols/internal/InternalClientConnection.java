@@ -758,11 +758,6 @@ public final class InternalClientConnection
                                  List<RawAttribute> rawAttributes,
                                  List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     AddOperationBasis addOperation =
          new AddOperationBasis(this, nextOperationID(),
                           nextMessageID(), controls, rawEntryDN,
@@ -830,11 +825,6 @@ public final class InternalClientConnection
                                 operationalAttributes,
                            List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     AddOperationBasis addOperation =
          new AddOperationBasis(this, nextOperationID(),
                           nextMessageID(), controls, entryDN,
@@ -1015,11 +1005,6 @@ public final class InternalClientConnection
                                          ByteString password,
                                          List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
                            nextMessageID(), controls,
@@ -1069,11 +1054,6 @@ public final class InternalClientConnection
                                          ByteString password,
                                          List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
                            nextMessageID(), controls,
@@ -1129,11 +1109,6 @@ public final class InternalClientConnection
                             ByteString saslCredentials,
                             List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
                            nextMessageID(), controls,
@@ -1190,11 +1165,6 @@ public final class InternalClientConnection
                             ByteString saslCredentials,
                             List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
                            nextMessageID(), controls,
@@ -1307,11 +1277,6 @@ public final class InternalClientConnection
                                          ByteString assertionValue,
                                          List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(),
                               nextMessageID(), controls, rawEntryDN,
@@ -1369,11 +1334,6 @@ public final class InternalClientConnection
                                          ByteString assertionValue,
                                          List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(),
                               nextMessageID(), controls, entryDN,
@@ -1455,11 +1415,6 @@ public final class InternalClientConnection
   public DeleteOperation processDelete(ByteString rawEntryDN,
                                        List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(),
                              nextMessageID(), controls, rawEntryDN);
@@ -1502,11 +1457,6 @@ public final class InternalClientConnection
   public DeleteOperation processDelete(DN entryDN,
                                        List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(),
                              nextMessageID(), controls, entryDN);
@@ -1579,11 +1529,6 @@ public final class InternalClientConnection
                                 ByteString requestValue,
                                 List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     ExtendedOperationBasis extendedOperation =
          new ExtendedOperationBasis(this, nextOperationID(),
                                nextMessageID(), controls, requestOID,
@@ -1682,18 +1627,12 @@ public final class InternalClientConnection
                               List<RawModification> rawModifications,
                               List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(this, nextOperationID(),
                              nextMessageID(), controls, rawEntryDN,
                              rawModifications);
     modifyOperation.setInternalOperation(true);
     modifyOperation.run();
-
     return modifyOperation;
   }
 
@@ -1737,18 +1676,12 @@ public final class InternalClientConnection
                               List<Modification> modifications,
                               List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(this, nextOperationID(),
                              nextMessageID(), controls, entryDN,
                              modifications);
     modifyOperation.setInternalOperation(true);
     modifyOperation.run();
-
     return modifyOperation;
   }
 
@@ -1961,11 +1894,6 @@ public final class InternalClientConnection
                                            ByteString rawNewSuperior,
                                            List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(this, nextOperationID(),
                                nextMessageID(), controls, rawEntryDN,
@@ -2052,11 +1980,6 @@ public final class InternalClientConnection
                                            DN newSuperior,
                                            List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(this, nextOperationID(),
                                nextMessageID(), controls, entryDN,
@@ -2408,11 +2331,6 @@ public final class InternalClientConnection
                             List<Control> controls,
                             InternalSearchListener searchListener)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(), controls,
@@ -2557,11 +2475,6 @@ public final class InternalClientConnection
                             List<Control> controls,
                             InternalSearchListener searchListener)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(), controls,
