@@ -427,4 +427,30 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="config-file" mandatory="true" advanced="true">
+    <adm:synopsis>
+      Specifies the name of the configuration file for the HTTP Connection Handler.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>config/http-config.json</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>FILE</adm:usage>
+           <adm:synopsis>
+             A path to an existing file that is readable by the server.
+           </adm:synopsis>
+         </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-config-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

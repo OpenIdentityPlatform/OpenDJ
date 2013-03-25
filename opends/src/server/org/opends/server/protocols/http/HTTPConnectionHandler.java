@@ -31,6 +31,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -51,10 +54,18 @@ import javax.net.ssl.SSLEngine;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.ConnectionFactory;
+import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.servlet.HttpServlet;
+import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
+import org.forgerock.opendj.rest2ldap.Rest2LDAP;
+import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
@@ -63,6 +74,7 @@ import org.glassfish.grizzly.servlet.FilterRegistration;
 import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -98,23 +110,6 @@ public class HTTPConnectionHandler extends
     ServerShutdownListener, AlertGenerator
 {
 
-  /**
-   * Fake Servlet.
-   * <p>
-   * TODO JNR remove when using REST2LDAP servlet
-   */
-  private static final class FakeServlet extends HttpServlet
-  {
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-        throws ServletException, IOException
-    {
-      // TODO Auto-generated method stub
-      super.doGet(req, resp);
-    }
-
-  }
-
   /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
@@ -123,6 +118,9 @@ public class HTTPConnectionHandler extends
 
   /** SSL instance name used in context creation. */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
+
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(
+      JsonParser.Feature.ALLOW_COMMENTS, true);
 
   /** The initialization configuration. */
   private HTTPConnectionHandlerCfg initConfig;
@@ -331,6 +329,16 @@ public class HTTPConnectionHandler extends
   public Collection<ClientConnection> getClientConnections()
   {
     return clientConnections.keySet();
+  }
+
+  /**
+   * Gives access to the clientConnections to classes in this package.
+   *
+   * @return the Map containing the current client connections
+   */
+  Map<ClientConnection, ClientConnection> getClientConnectionsMap()
+  {
+    return clientConnections;
   }
 
   /** {@inheritDoc} */
@@ -660,35 +668,9 @@ public class HTTPConnectionHandler extends
 
   private void startHttpServer()
   {
-    // TODO JNR stop Grizzly own logging.
-    // [testng] Mar 14, 2013 11:22:13 AM org.glassfish.grizzly.http.server.
-    // NetworkListener stop
-    // [testng] INFO: Stopped listener bound to [0.0.0.0:8080]
-    // [testng] Mar 14, 2013 11:22:19 AM org.glassfish.grizzly.servlet.
-    // WebappContext deploy
-    // [testng] INFO: Starting application [example] ...
-    // [testng] Mar 14, 2013 11:22:19 AM org.glassfish.grizzly.servlet.
-    // WebappContext initServlets
-    // [testng] INFO: [example] Servlet
-    // [org.opends.server.protocols.http.HTTPConnec
-    // tionHandler$FakeServlet] registered for url pattern(s) [[/managed/*]].
-    // [testng] Mar 14, 2013 11:22:19 AM
-    // org.glassfish.grizzly.servlet.WebappContext
-    // initFilters
-    // [testng] INFO: [example] Filter [org.opends.server.protocols.http.
-    // AllowAdressesFilter] registered for
-    // url pattern(s) [[/managed/*]] and servlet name(s) [[]]
-    // [testng] Mar 14, 2013 11:22:19 AM
-    // org.glassfish.grizzly.servlet.WebappContext
-    // deploy
-    // [testng] INFO: Application [example] is ready to service requests. Root:
-    // [/example].
-    // [testng] Mar 14, 2013 11:22:19 AM org.glassfish.grizzly.http.server.
-    // NetworkListener start
-    // [testng] INFO: Started listener bound to [0.0.0.0:8080]
-    // [testng] Mar 14, 2013 11:22:19 AM org.glassfish.grizzly.http.server.
-    // HttpServer start
-    // [testng] INFO: [HttpServer-1] Started.
+    // silence Grizzly's own logging
+    Logger.getLogger("org.glassfish.grizzly").setLevel(Level.OFF);
+
     this.httpServer =
         HttpServer.createSimpleServer("./", initConfig.getListenPort());
 
@@ -713,8 +695,11 @@ public class HTTPConnectionHandler extends
         transport.setReadBufferSize(bufferSize);
         transport.setWriteBufferSize(bufferSize);
         // TODO JNR
-        // transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-        // transport.setWorkerThreadPool(threadPool);
+        transport.setIOStrategy(SameThreadIOStrategy.getInstance());
+        // ThreadPoolConfig workerPoolConfig =
+        // ThreadPoolConfig.defaultConfig().copy();
+        // workerPoolConfig.setCorePoolSize(currentConfig
+        // .getNumRequestHandlers());
         // transport.setWorkerThreadPoolConfig(workerPoolConfig);
         transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
 
@@ -725,17 +710,11 @@ public class HTTPConnectionHandler extends
         }
       }
 
-      // TODO JNR what to use here?
-      final String displayName = "example";
-      final String contextPath = "/example";
-      final String servletName = "managed";
-      final String urlPattern = "/managed/*";
+      final String servletName = "OpenDJ Rest2LDAP servlet";
+      final String urlPattern = "/*";
+      final WebappContext ctx = new WebappContext(servletName);
 
-      // TODO JNR what to use here?
-      final WebappContext ctx = new WebappContext(displayName, contextPath);
-
-      Filter filter =
-          new CollectClientConnectionsFilter(this, clientConnections);
+      Filter filter = new CollectClientConnectionsFilter(this);
       FilterRegistration filterReg =
           ctx.addFilter("collectClientConnections", filter);
       // TODO JNR this is not working
@@ -744,8 +723,14 @@ public class HTTPConnectionHandler extends
       filterReg.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST),
           urlPattern);
 
+      ConnectionFactory connFactory =
+          getConnectionFactory(getFileForPath(this.currentConfig
+              .getConfigFile()));
+
       final ServletRegistration reg =
-          ctx.addServlet(servletName, new FakeServlet());
+          ctx.addServlet(servletName, new HttpServlet(connFactory,
+          // Used for hooking our HTTPClientConnection in Rest2LDAP
+              Rest2LDAPContextFactory.getHttpServletContextFactory()));
       reg.addMapping(urlPattern);
 
       ctx.deploy(this.httpServer);
@@ -770,6 +755,33 @@ public class HTTPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
+  }
+
+  private ConnectionFactory getConnectionFactory(File configFile)
+      throws Exception
+  {
+    // Parse the config file.
+    final Object content = JSON_MAPPER.readValue(configFile, Object.class);
+    if (!(content instanceof Map))
+    {
+      throw new ServletException("Servlet configuration file '" + configFile
+          + "' does not contain a valid JSON configuration");
+    }
+    final JsonValue configuration = new JsonValue(content);
+
+    // Create the router.
+    final Router router = new Router();
+    final JsonValue mappings =
+        configuration.get("servlet").get("mappings").required();
+    for (final String mappingUrl : mappings.keys())
+    {
+      final JsonValue mapping = mappings.get(mappingUrl);
+      final CollectionResourceProvider provider =
+          Rest2LDAP.builder().authorizationPolicy(AuthorizationPolicy.REUSE)
+              .configureMapping(mapping).build();
+      router.addRoute(mappingUrl, provider);
+    }
+    return Resources.newInternalConnectionFactory(router);
   }
 
   private void stopHttpServer()

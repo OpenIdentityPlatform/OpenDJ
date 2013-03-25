@@ -25,8 +25,11 @@
  !
  !      Copyright 2013 ForgeRock AS
  ! -->
+<!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version "2.3-rc6">
+    <!ENTITY grizzly.version    "2.3-rc6">
+    <!ENTITY opendj.sdk.version "3.0.0-SNAPSHOT">
+    <!ENTITY crest.version      "2.0.0-SNAPSHOT">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,15 +40,30 @@
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.48" />
-    <!--dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="3.0.0-SNAPSHOT" /-->
+    <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" />
+    <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
+      <!-- This is the OpenDJ server module :) -->
+      <exclude  module="opendj-server"/>
+    </dependency>
     <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
       <exclude module="javax.servlet-api" />
     </dependency>
 
-    <!-- Force download of the sources jar -->
+    <!-- Force download of the source jars -->
     <!--
-    <dependency org="org.glassfish.grizzly" name="grizzly-http-server"      rev="&grizzly.version;" conf="default->master,sources"/>
-    <dependency org="org.glassfish.grizzly" name="grizzly-framework"        rev="&grizzly.version;" conf="default->master,sources"/>
+    <dependency org="org.codehaus.jackson"  name="jackson-core-asl"         rev="1.9.2"                conf="default->master,sources"/>
+    <dependency org="org.codehaus.jackson"  name="jackson-mapper-asl"       rev="1.9.2"                conf="default->master,sources"/>
+    <dependency org="org.glassfish.grizzly" name="grizzly-framework"        rev="&grizzly.version;"    conf="default->master,sources"/>
+    <dependency org="org.glassfish.grizzly" name="grizzly-http"             rev="&grizzly.version;"    conf="default->master,sources"/>
+    <dependency org="org.glassfish.grizzly" name="grizzly-http-server"      rev="&grizzly.version;"    conf="default->master,sources"/>
+    <dependency org="org.glassfish.grizzly" name="grizzly-rcm"              rev="&grizzly.version;"    conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="i18n-core"                rev="1.4.0"                conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="json-fluent"              rev="&crest.version;"      conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="json-resource"            rev="&crest.version;"      conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="json-resource-servlet"    rev="&crest.version;"      conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="org.forgerock.util"       rev="1.0.0"                conf="default->master,sources"/>
+    <dependency org="org.forgerock.opendj"  name="opendj-ldap-sdk"          rev="&opendj.sdk.version;" conf="default->master,sources"/>
+    <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap"         rev="&opendj.sdk.version;" conf="default->master,sources"/>
     -->
 
     <exclude org="javax.activation"         artifact="activation" />
