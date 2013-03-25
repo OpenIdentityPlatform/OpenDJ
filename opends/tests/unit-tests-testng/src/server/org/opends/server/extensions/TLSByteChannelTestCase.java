@@ -44,12 +44,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 @Test(groups = { "slow" })
 public class TLSByteChannelTestCase
@@ -404,7 +403,7 @@ public class TLSByteChannelTestCase
     }
     finally
     {
-      StaticUtils.closeSilently(bis);
+      StaticUtils.close(bis);
     }
   }
 
