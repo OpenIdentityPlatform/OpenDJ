@@ -147,7 +147,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                 }
                                 if (config.readOnUpdatePolicy() == CONTROLS) {
                                     final String[] attributes =
-                                            getLDAPAttributes(c, request.getFieldFilters());
+                                            getLDAPAttributes(c, request.getFields());
                                     addRequest.addControl(PostReadRequestControl.newControl(false,
                                             attributes));
                                 }
@@ -196,7 +196,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         } else {
                             // Perform the search.
                             final String[] attributes =
-                                    getLDAPAttributes(c, request.getFieldFilters());
+                                    getLDAPAttributes(c, request.getFields());
                             final SearchRequest request =
                                     Requests.newSearchRequest(getBaseDN(c),
                                             SearchScope.SINGLE_LEVEL, ldapFilter == Filter
@@ -304,7 +304,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             @Override
             public void run() {
                 // Do the search.
-                final String[] attributes = getLDAPAttributes(c, request.getFieldFilters());
+                final String[] attributes = getLDAPAttributes(c, request.getFields());
                 final SearchRequest request =
                         nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
                                 attributes);
