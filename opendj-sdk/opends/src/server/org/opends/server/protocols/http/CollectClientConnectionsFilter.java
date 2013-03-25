@@ -42,6 +42,8 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import org.forgerock.opendj.adapter.server2x.Adapters;
+import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
@@ -60,23 +62,17 @@ final class CollectClientConnectionsFilter implements Filter
   private static final DebugTracer TRACER = getTracer();
 
   /** The connection handler that created this servlet filter. */
-  private HTTPConnectionHandler connectionHandler;
-  private final Map<ClientConnection, ClientConnection> clientConnections;
+  private final HTTPConnectionHandler connectionHandler;
 
   /**
    * Constructs a new instance of this class.
    *
    * @param connectionHandler
    *          the connection handler that accepted this connection
-   * @param clientConnections
-   *          Map where to add new connections
    */
-  public CollectClientConnectionsFilter(
-      HTTPConnectionHandler connectionHandler,
-      Map<ClientConnection, ClientConnection> clientConnections)
+  public CollectClientConnectionsFilter(HTTPConnectionHandler connectionHandler)
   {
     this.connectionHandler = connectionHandler;
-    this.clientConnections = clientConnections;
   }
 
   /** {@inheritDoc} */
@@ -91,9 +87,11 @@ final class CollectClientConnectionsFilter implements Filter
   public void doFilter(ServletRequest request, ServletResponse response,
       FilterChain chain)
   {
+    final Map<ClientConnection, ClientConnection> clientConnections =
+        this.connectionHandler.getClientConnectionsMap();
     final ClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
-    this.clientConnections.put(clientConnection, clientConnection);
+    clientConnections.put(clientConnection, clientConnection);
     try
     {
       String ipAddress = request.getRemoteAddr();
@@ -133,6 +131,18 @@ final class CollectClientConnectionsFilter implements Filter
         return;
       }
 
+      // TODO JNR handle authentication + send the HTTPClientConnection
+      // to Rest2LDAP
+      Object result = Adapters.newRootConnection();
+
+      // WARNING: This action triggers 3-4 others:
+      // Set the connection for use with this request on the HttpServletRequest.
+      // It will make Rest2LDAPContextFactory create an
+      // AuthenticatedConnectionContext which will in turn ensure Rest2LDAP uses
+      // the supplied Connection object
+      request.setAttribute(Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION,
+          result);
+
       // send the request further down the filter chain or pass to servlet
       chain.doFilter(request, response);
     }
@@ -154,7 +164,7 @@ final class CollectClientConnectionsFilter implements Filter
     }
     finally
     {
-      this.clientConnections.remove(clientConnection);
+      clientConnections.remove(clientConnection);
     }
   }
 

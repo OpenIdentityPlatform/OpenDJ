@@ -497,6 +497,7 @@ ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
+ds-cfg-config-file: config/http-config.json
 
 dn: cn=LDIF Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top

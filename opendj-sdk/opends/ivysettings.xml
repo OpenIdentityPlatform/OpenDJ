@@ -28,13 +28,28 @@
 <ivy-settings>
   <settings defaultResolver="main" />
   <resolvers>
-    <chain name="main">
+    <!-- FIXME Not sure whether checkmodified is useful. Maybe not. -->
+    <!-- FIXME This change does not work when offline.
+         Check this link to see how to solve offline mode:
+         http://svn.apache.org/viewvc?view=revision&revision=1203477 
+    -->
+    <chain name="main" checkmodified="true" changingPattern=".*-SNAPSHOT">
 	  <!-- for forgerock dependencies -->
-      <ibiblio name="forgerock" m2compatible="true" root="http://maven.forgerock.org/repo/repo" />
+      <ibiblio name="forgerock"
+               m2compatible="true"
+               root="http://maven.forgerock.org/repo/repo"
+               checkmodified="true"
+               changingPattern=".*-SNAPSHOT"
+               />
 	  <!-- for nearly everything else -->
-      <ibiblio name="central"   m2compatible="true"/>
+      <ibiblio name="central"
+               m2compatible="true"
+               />
 	  <!-- for JE -->
-      <ibiblio name="oracle"    m2compatible="true" root="http://download.oracle.com/maven" />
+      <ibiblio name="oracle"
+               m2compatible="true"
+               root="http://download.oracle.com/maven"
+               />
     </chain>
   </resolvers>
 </ivy-settings>
