@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2012 ForgeRock AS
+  !      Copyright 2012-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='make-ldif-template-5'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2012-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>make-ldif.template</refentrytitle><manvolnum>5</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -56,8 +56,12 @@ include <replaceable>custom.makeldif.tag.ClassName</replaceable>
 define <replaceable>constant-name</replaceable>=<replaceable>value</replaceable>
 ...
 
-# Define branches by suffix DN, such as dc=example,dc=com;
-# ou=People,dc=example,dc=com; ou=Groups,dc=example,dc=com; and so on.
+# Define branches by suffix DN, such as the following:
+#
+#  dc=example,dc=com
+#  ou=People,dc=example,dc=com
+#  ou=Groups,dc=example,dc=com
+#
 # make-ldif generates the necessary object class definitions and RDNs.
 #
 # A branch can have subordinateTemplates that define templates to use for
@@ -112,8 +116,12 @@ rdnAttr: <replaceable>attribute</replaceable>[+<replaceable>attribute</replaceab
 
    <para>When specifying attribute values in <command>make-ldif</command>
    templates, you can use static text and constants that you have defined,
-   enclosing names for constants in brackets,
-   <literal>[myConstant]</literal>.</para>
+   enclosing names for constants in brackets, <literal>[myConstant]</literal>.
+   You can use more than one constant per line, as in the following
+   example.</para>
+
+   <programlisting language="ldif"
+   >description: Description for [org] under [suffix]</programlisting>
 
    <para>You can also use two kinds of tags when specifying attribute values.
    One kind of tag gets replaced with the value of another attribute in the
@@ -121,22 +129,31 @@ rdnAttr: <replaceable>attribute</replaceable>[+<replaceable>attribute</replaceab
    For example, if your template includes definitions for first name and last
    name attributes:</para>
 
-   <programlisting>givenName: &lt;first&gt;
+   <programlisting language="ldif">givenName: &lt;first&gt;
 sn: &lt;last&gt;</programlisting>
 
    <para>Then you can define a mail attribute that uses the values of both
    attributes, and an initials attribute that takes the first character
    of each.</para>
 
-   <programlisting>mail: {givenName}.{sn}@[myDomain]
+   <programlisting language="ldif">mail: {givenName}.{sn}@[myDomain]
 initials: {givenName:1}{sn:1}</programlisting>
 
    <para>The other kind of tag is delimited with <literal>&lt;</literal>
    and <literal>&gt;</literal>, as shown above in the example with
    <literal>&lt;first&gt;</literal> and <literal>&lt;last&gt;</literal>.
    Tag names are not case sensitive. Many tags can take arguments separated
-   by colons, <literal>:</literal>, from the tag names within the tag. OpenDJ
-   supports the following tags.</para>
+   by colons, <literal>:</literal>, from the tag names within the tag.</para>
+
+   <para>Use backslashes to escape literal start tag characters (<literal
+   >&lt; [ {</literal>) as shown in the following example, and to escape literal
+   end tag characters within tags (<literal>&gt; ] }</literal>).</para>
+
+   <programlisting language="ldif"
+   >scimMail: \{"emails": \[\{"value": "{mail}", "type": "work", "primary": true}]}
+xml: \&lt;id&gt;{uid}\&lt;/id&gt;</programlisting>
+
+   <para>OpenDJ supports the following tags.</para>
 
    <varlistentry>
     <term>&lt;DN&gt;</term>

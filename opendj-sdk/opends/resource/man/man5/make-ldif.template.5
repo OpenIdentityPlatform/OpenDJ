@@ -2,12 +2,12 @@
 .\"     Title: make-ldif.template
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 06/27/2012
+.\"      Date: 03/26/2013
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "MAKE\-LDIF\&.TEMPLAT" "5" "06/27/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "MAKE\-LDIF\&.TEMPLAT" "5" "03/26/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -47,8 +47,12 @@ include \fIcustom\&.makeldif\&.tag\&.ClassName\fR
 define \fIconstant\-name\fR=\fIvalue\fR
 \&.\&.\&.
 
-# Define branches by suffix DN, such as dc=example,dc=com;
-# ou=People,dc=example,dc=com; ou=Groups,dc=example,dc=com; and so on\&.
+# Define branches by suffix DN, such as the following:
+#
+#  dc=example,dc=com
+#  ou=People,dc=example,dc=com
+#  ou=Groups,dc=example,dc=com
+#
 # make\-ldif generates the necessary object class definitions and RDNs\&.
 #
 # A branch can have subordinateTemplates that define templates to use for
@@ -101,7 +105,17 @@ in the Synopsis section\&.
 When specifying attribute values in
 \fBmake\-ldif\fR
 templates, you can use static text and constants that you have defined, enclosing names for constants in brackets,
-[myConstant]\&.
+[myConstant]\&. You can use more than one constant per line, as in the following example\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+description: Description for [org] under [suffix]
+.fi
+.if n \{\
+.RE
+.\}
 .PP
 You can also use two kinds of tags when specifying attribute values\&. One kind of tag gets replaced with the value of another attribute in the generated entry\&. Such tags are delimited with braces,
 { }\&. For example, if your template includes definitions for first name and last name attributes:
@@ -137,7 +151,22 @@ and
 <first>
 and
 <last>\&. Tag names are not case sensitive\&. Many tags can take arguments separated by colons,
-:, from the tag names within the tag\&. OpenDJ supports the following tags\&.
+:, from the tag names within the tag\&.
+.PP
+Use backslashes to escape literal start tag characters (< [ {) as shown in the following example, and to escape literal end tag characters within tags (> ] })\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+scimMail: \e{"emails": \e[\e{"value": "{mail}", "type": "work", "primary": true}]}
+xml: \e<id>{uid}\e</id>
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+OpenDJ supports the following tags\&.
 .PP
 <DN>
 .RS 4
@@ -505,5 +534,5 @@ description: This is the description for {cn}\&.
 /path/to/OpenDJ/config/MakeLDIF/example\&.template
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2012 ForgeRock AS
+Copyright \(co 2012-2013 ForgeRock AS
 .br
