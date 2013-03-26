@@ -62,8 +62,7 @@ import org.opends.server.types.SearchScope;
 /**
  * Common utility methods.
  */
-public final class Converters
-{
+public final class Converters {
 
     // Prevent instantiation.
     private Converters() {
@@ -536,7 +535,7 @@ public final class Converters
     /**
      * Converts from <code>byte[]</code> to OpenDJ server
      * {@link org.opends.server.types.ByteString}.
-     * 
+     *
      * @param authenticationValue
      *          value to convert
      * @return the converted value
