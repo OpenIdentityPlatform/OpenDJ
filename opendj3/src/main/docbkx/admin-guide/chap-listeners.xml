@@ -818,6 +818,7 @@ supportedTLSProtocols: TLSv1.2
 
  <section xml:id="setup-rest2ldap">
   <title>RESTful Client Access</title>
+  <indexterm><primary>HTTP</primary></indexterm>
   <indexterm><primary>JSON</primary></indexterm>
   <indexterm><primary>REST</primary></indexterm>
 
@@ -826,7 +827,7 @@ supportedTLSProtocols: TLSv1.2
    to directory data as JSON resources.</para>
 
    <listitem>
-    <para>Configure an additional listener on the directory server to respond
+    <para>Enable the listener on OpenDJ directory server to respond
     to REST requests.</para>
 
     <para>With this approach, you do not need to install additional
@@ -844,11 +845,94 @@ supportedTLSProtocols: TLSv1.2
   <procedure xml:id="setup-rest2ldap-connection-handler">
    <title>To Set Up REST Access to OpenDJ Directory Server</title>
 
-   <para>Follow these steps to configure a listener for REST access directly
-   to an OpenDJ server.</para>
+   <para>OpenDJ directory server has a handler for HTTP connections, where it
+   exposes the RESTful API demonstrated in the chapter on
+   <link xlink:href="admin-guide#chap-rest-operations" xlink:show="new"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Performing
+   RESTful Operations</citetitle></link>. The HTTP connection handler is not
+   enabled by default.</para>
+
+   <para>You configure the mapping between JSON resources and LDAP entries
+   by editing the configuration file for the HTTP connection handler, by
+   default <filename>/path/to/OpenDJ/config/http-config.json</filename>. The
+   configuration is described in the appendix, <link xlink:show="new"
+   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+   Configuration</citetitle></link>.</para>
 
    <step>
-    <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-688</para>
+    <para>Enable the connection handler.</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set enabled:true
+ --no-prompt</screen>
+
+    <para>The HTTP connection handler paths start by default at the root
+    context, as shown in the following example.</para>
+
+    <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "00000000315fb731",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen"
+}</screen>
+   </step>
+
+   <step performance="optional">
+    <para>If necessary, change the connection handler configuration using the
+    <command>dsconfig</command> command.</para>
+
+<!-- The example I would like to use does not quite work for me, yet.
+
+    <para>The following example shows how to set the port to 8443, and to
+    configure the connection handler to do SSL (using the default server
+    certificate).</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ - -hostname opendj.example.com
+ - -port 4444
+ - -bindDN "cn=Directory Manager"
+ - -bindPassword password
+ - -handler-name "HTTP Connection Handler"
+ - -set listen-port:8443
+ - -set use-ssl:true
+ - -set key-manager-provider:JKS
+ - -set trust-manager-provider:"Blind Trust"
+ - -no-prompt
+$ stop-ds - -restart
+$ keytool
+ -export
+ -rfc
+ -alias server-cert
+ -keystore /path/to/OpenDJ/config/keystore
+ -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -file server-cert.pem
+Certificate stored in file &lt;server-cert.pem&gt;
+$ curl - -cacert server-cert.pem https://opendj.example.com:8443/users/bjensen?_prettyPrint
+curl: (35) error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol</screen>
+
+-->
    </step>
   </procedure>
 
@@ -869,7 +953,7 @@ supportedTLSProtocols: TLSv1.2
     <para>Adjust the configuration for your directory service as described in
     <link xlink:href="admin-guide#appendix-rest2ldap"
     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
-    Gateway Configuration</citetitle></link>.</para>
+    Configuration</citetitle></link>.</para>
    </step>
   </procedure>
  </section>

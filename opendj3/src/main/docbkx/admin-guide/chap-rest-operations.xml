@@ -30,18 +30,19 @@
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Performing RESTful Operations</title>
+ <indexterm><primary>HTTP</primary></indexterm>
  <indexterm><primary>JSON</primary></indexterm>
  <indexterm><primary>REST</primary></indexterm>
 
- <para>OpenDJ lets you access directory data as JSON resources over HTTP. To
- configure this capability, see <link xlink:href="admin-guide#setup-rest2ldap"
- xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST Client
- Access</citetitle></link> for instructions.</para>
-
- <para>This chapter demonstrates basic RESTful client operations using the
+ <para>OpenDJ lets you access directory data as JSON resources over HTTP.
+ This chapter demonstrates basic RESTful client operations using the
  default configuration and sample directory data imported into OpenDJ from
  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
- >Example.ldif</link>.</para>
+ >Example.ldif</link>. Before trying the examples, enable HTTP access to
+ OpenDJ directory server as described in procedure, <link xlink:show="new"
+ xlink:href="admin-guide#setup-rest2ldap-connection-handler"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
+ Access to OpenDJ Directory Server</citetitle></link>.</para>
 
  <section xml:id="understand-rest">
   <title>Understanding the OpenDJ REST API</title>
@@ -127,7 +128,7 @@
  <section xml:id="authenticate-rest">
   <title>Authenticating Over REST</title>
 
-  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-694</para>
+  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-828</para>
  </section>
 
  <section xml:id="create-rest">
@@ -167,10 +168,14 @@
     }
   ]
  }'
- http://opendj.example.com:8080/rest2ldap/users/newuser?_prettyPrint=true
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
 {
-  "_rev" : "0000000037453cac",
+  "_rev" : "0000000035c03ca9",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1212",
     "emailAddress" : "newuser@example.com"
@@ -183,12 +188,8 @@
   "userName" : "newuser@example.com",
   "displayName" : "New User",
   "meta" : {
-    "created" : "2013-03-11T16:49:42Z"
-  },
-  "manager" : [ {
-    "_id" : "kvaughan",
-    "displayName" : "Kirsten Vaughan"
-  } ]
+    "created" : "2013-03-26T10:44:26Z"
+  }
 }</screen>
    </listitem>
 
@@ -205,10 +206,14 @@
 
   <para>To read a resource, perform an HTTP GET.</para>
 
-  <screen>$ curl http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
+  <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
 {
-  "_rev" : "000000002ee3b764",
+  "_rev" : "00000000315fb731",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1862",
     "emailAddress" : "bjensen@example.com"
@@ -219,11 +224,7 @@
     "givenName" : "Barbara"
   },
   "userName" : "bjensen@example.com",
-  "displayName" : "Barbara Jensen",
-  "manager" : [ {
-    "_id" : "trigden",
-    "displayName" : "Torrey Rigden"
-  } ]
+  "displayName" : "Barbara Jensen"
 }</screen>
  </section>
 
@@ -278,11 +279,15 @@
       "displayName": "Kirsten Vaughan"
     }
   ]
-}'
- "http://opendj.example.com:8080/rest2ldap/users?_action=create&amp;_prettyPrint=true"
+ }'
+ "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"
 {
-  "_rev" : "0000000035383ca8",
+  "_rev" : "00000000343b3ca6",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1212",
     "emailAddress" : "newuser@example.com"
@@ -295,12 +300,8 @@
   "userName" : "newuser@example.com",
   "displayName" : "New User",
   "meta" : {
-    "created" : "2013-03-11T16:56:22Z"
-  },
-  "manager" : [ {
-    "_id" : "kvaughan",
-    "displayName" : "Kirsten Vaughan"
-  } ]
+    "created" : "2013-03-26T10:52:42Z"
+  }
 }</screen>
 
   <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-695</para>
@@ -310,8 +311,8 @@
   <title>Querying Resource Collections</title>
 
   <para>To query resource collections, perform an HTTP GET with a
-  <literal>_filter=<replaceable>filter</replaceable></literal> parameter in
-  your query string.</para>
+  <literal>_queryFilter=<replaceable>filter</replaceable></literal> parameter
+  in your query string.</para>
 
   <variablelist>
    <para>For query operations, your <replaceable>filter</replaceable>
@@ -342,13 +343,16 @@
         <para>Matches when the pointer equals the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
-/users?_filter=userName+eq+"bjensen@example.com"
-  &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+eq+"bjensen@example.com"&amp;_prettyPrint=true'
 {
   "result" : [ {
-    "_rev" : "000000002ee3b764",
+    "_rev" : "00000000315fb731",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "manager" : [ {
+      "_id" : "trigden",
+      "displayName" : "Torrey Rigden"
+    } ],
     "contactInformation" : {
       "telephoneNumber" : "+1 408 555 1862",
       "emailAddress" : "bjensen@example.com"
@@ -359,11 +363,7 @@
       "givenName" : "Barbara"
     },
     "userName" : "bjensen@example.com",
-    "displayName" : "Barbara Jensen",
-    "manager" : [ {
-      "_id" : "trigden",
-      "displayName" : "Torrey Rigden"
-    } ]
+    "displayName" : "Barbara Jensen"
   } ],
   "resultCount" : 1,
   "pagedResultsCookie" : null,
@@ -378,10 +378,8 @@
         <para>Matches when the pointer contains the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+co+"jensen"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+co+"jensen"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "ajensen@example.com"
@@ -411,10 +409,8 @@
         <para>Matches when the pointer starts with the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+sw+"ab"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+sw+"ab"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "abarnes@example.com"
@@ -434,10 +430,8 @@
         <para>Matches when the pointer is less than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+lt+"ac"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+lt+"ac"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "abarnes@example.com"
@@ -457,10 +451,8 @@
         <para>Matches when the pointer is less than or equal to the value, as
         in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+le+"ad"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+le+"ad"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "abarnes@example.com"
@@ -482,10 +474,8 @@
         <para>Matches when the pointer is greater than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+gt+"tt"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+gt+"tt"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "ttully@example.com"
@@ -507,10 +497,8 @@
         <para>Matches when the pointer is greater than or equal to the value,
         as in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName+ge+"tw"
- &amp;_fields=userName
- &amp;_prettyPrint=true'
+        <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+ge+"tw"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "userName" : "tward@example.com"
@@ -544,18 +532,28 @@
      any resource on which the <replaceable>json-pointer</replaceable> is
      present, as in the following example.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=userName%20pr&amp;_prettyPrint=true'
-{
+     <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=userName%20pr&amp;_prettyPrint=true'
 {
   "result" : [ {
-    "_rev" : "000000002370a4d8",
+    "_rev" : "000000002210a544",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "manager" : [ {
+      "_id" : "scarter",
+      "displayName" : "Sam Carter"
+    } ],
     "contactInformation" : {
       "telephoneNumber" : "+1 408 555 9445",
       "emailAddress" : "abarnes@example.com"
     },
-... many entries omitted ...
+    "_id" : "abarnes",
+    "name" : {
+      "familyName" : "Barnes",
+      "givenName" : "Anne-Louise"
+    },
+    "userName" : "abarnes@example.com",
+    "displayName" : "Anne-Louise Barnes"
+  },... many entries omitted ...
     "_id" : "newuser",
     "name" : {
       "familyName" : "New",
@@ -564,7 +562,7 @@
     "userName" : "newuser@example.com",
     "displayName" : "New User",
     "meta" : {
-      "created" : "2013-03-11T16:56:22Z"
+      "created" : "2013-03-26T10:52:42Z"
     }
   } ],
   "resultCount" : 152,
@@ -583,8 +581,8 @@
      <para>In other words you can list all resources in a collection as in the
      following example.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /groups?_filter=true&amp;_fields=displayName&amp;_prettyPrint=true'
+     <screen>$ curl 'http://opendj.example.com:8080
+ /groups?_queryFilter=true&amp;_fields=displayName&amp;_prettyPrint=true'
 {
   "result" : [ {
     "displayName" : "Accounting Managers"
@@ -618,8 +616,8 @@
      nested inside the <literal>name</literal> and <literal>manager</literal>
      objects.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080/rest2ldap
- /users?_filter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
+     <screen>$ curl 'http://opendj.example.com:8080
+ /users?_queryFilter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
  &amp;_fields=displayName&amp;_prettyPrint=true'
 {
   "result" : [ {
