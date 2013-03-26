@@ -23,25 +23,24 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
-
 
 
 import java.util.Map;
 
+import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AbstractOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Operation;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -58,24 +57,28 @@ public class TraditionalWorkerThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Indicates whether the Directory Server is shutting down and this thread
-  // should stop running.
+  /**
+   * Indicates whether the Directory Server is shutting down and this thread
+   * should stop running.
+   */
   private volatile boolean shutdownRequested;
 
-  // Indicates whether this thread was stopped because the server threadnumber
-  // was reduced.
+  /**
+   * Indicates whether this thread was stopped because the server threadnumber
+   * was reduced.
+   */
   private boolean stoppedByReducedThreadNumber;
 
-  // Indicates whether this thread is currently waiting for work.
+  /** Indicates whether this thread is currently waiting for work. */
   private boolean waitingForWork;
 
-  // The operation that this worker thread is currently processing.
-  private AbstractOperation operation;
+  /** The operation that this worker thread is currently processing. */
+  private Operation operation;
 
-  // The handle to the actual thread for this worker thread.
+  /** The handle to the actual thread for this worker thread. */
   private Thread workerThread;
 
-  // The work queue that this worker thread will service.
+  /** The work queue that this worker thread will service. */
   private TraditionalWorkQueue workQueue;
 
 
@@ -136,6 +139,7 @@ public class TraditionalWorkerThread
    * Operates in a loop, retrieving the next request from the work queue,
    * processing it, and then going back to the queue for more.
    */
+  @Override
   public void run()
   {
     workerThread = currentThread();
@@ -279,7 +283,7 @@ public class TraditionalWorkerThread
     {
       try
       {
-        final AbstractOperation localOperation = operation;
+        final Operation localOperation = operation;
         if (localOperation != null)
         {
           CancelRequest cancelRequest = new CancelRequest(true,
@@ -306,6 +310,7 @@ public class TraditionalWorkerThread
    *
    * @return debug information about this thread as a string.
    */
+  @Override
   public Map<String, String> getDebugProperties()
   {
     Map<String, String> properties = super.getDebugProperties();

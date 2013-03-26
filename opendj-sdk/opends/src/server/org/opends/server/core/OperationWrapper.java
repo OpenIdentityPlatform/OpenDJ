@@ -23,16 +23,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
-
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 
 import java.util.List;
 import java.util.Map;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.*;
 import org.opends.server.controls.ControlDecoder;
@@ -44,7 +43,7 @@ import org.opends.server.controls.ControlDecoder;
  */
 public class OperationWrapper implements Operation
 {
-  // The wrapped operation.
+  /** The wrapped operation. */
   private Operation operation;
 
 
@@ -61,6 +60,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addRequestControl(Control control)
   {
     operation.addRequestControl(control);
@@ -69,6 +69,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addResponseControl(Control control)
   {
     operation.addResponseControl(control);
@@ -77,6 +78,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void appendErrorMessage(Message message)
   {
     operation.appendErrorMessage(message);
@@ -85,6 +87,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
     return operation.cancel(cancelRequest);
@@ -93,6 +96,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void abort(CancelRequest cancelRequest)
   {
     operation.abort(cancelRequest);
@@ -101,6 +105,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void disconnectClient(
           DisconnectReason disconnectReason,
           boolean sendNotification,
@@ -114,6 +119,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean dontSynchronize()
   {
     return operation.dontSynchronize();
@@ -122,6 +128,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public Object getAttachment(String name)
   {
     return operation.getAttachment(name);
@@ -130,6 +137,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<String, Object> getAttachments()
   {
     return operation.getAttachments();
@@ -138,6 +146,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getAuthorizationDN()
   {
     return operation.getAuthorizationDN();
@@ -146,6 +155,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getAuthorizationEntry()
   {
     return operation.getAuthorizationEntry();
@@ -154,6 +164,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public CancelRequest getCancelRequest()
   {
     return operation.getCancelRequest();
@@ -162,6 +173,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public CancelResult getCancelResult()
   {
     return operation.getCancelResult();
@@ -170,6 +182,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public ClientConnection getClientConnection()
   {
     return operation.getClientConnection();
@@ -178,6 +191,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public String[][] getCommonLogElements()
   {
     return operation.getCommonLogElements();
@@ -186,6 +200,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getConnectionID()
   {
     return operation.getConnectionID();
@@ -194,6 +209,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public MessageBuilder getErrorMessage()
   {
     return operation.getErrorMessage();
@@ -202,6 +218,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getMatchedDN()
   {
     return operation.getMatchedDN();
@@ -210,6 +227,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getMessageID()
   {
     return operation.getMessageID();
@@ -218,6 +236,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getOperationID()
   {
     return operation.getOperationID();
@@ -226,6 +245,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public OperationType getOperationType()
   {
     return operation.getOperationType();
@@ -234,6 +254,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getProcessingStartTime()
   {
     return operation.getProcessingStartTime();
@@ -242,6 +263,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getProcessingStopTime()
   {
     return operation.getProcessingStopTime();
@@ -250,6 +272,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getProcessingTime()
   {
     return operation.getProcessingTime();
@@ -258,6 +281,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getProcessingNanoTime()
   {
     return operation.getProcessingNanoTime();
@@ -266,6 +290,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<String> getReferralURLs()
   {
     return operation.getReferralURLs();
@@ -274,6 +299,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<Control> getRequestControls()
   {
     return operation.getRequestControls();
@@ -282,6 +308,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public <T extends Control> T getRequestControl(
       ControlDecoder<T> d)throws DirectoryException
   {
@@ -291,6 +318,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public String[][] getRequestLogElements()
   {
     return operation.getRequestLogElements();
@@ -299,6 +327,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<Control> getResponseControls()
   {
     return operation.getResponseControls();
@@ -307,6 +336,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public String[][] getResponseLogElements()
   {
     return operation.getResponseLogElements();
@@ -315,6 +345,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public ResultCode getResultCode()
   {
     return operation.getResultCode();
@@ -323,6 +354,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInternalOperation()
   {
     return operation.isInternalOperation();
@@ -331,6 +363,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSynchronizationOperation()
   {
     return operation.isSynchronizationOperation();
@@ -339,6 +372,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void operationCompleted()
   {
     operation.operationCompleted();
@@ -347,6 +381,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public Object removeAttachment(String name)
   {
     return operation.removeAttachment(name);
@@ -355,6 +390,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeRequestControl(Control control)
   {
     operation.removeRequestControl(control);
@@ -363,6 +399,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeResponseControl(Control control)
   {
     operation.removeResponseControl(control);
@@ -371,6 +408,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public Object setAttachment(String name, Object value)
   {
     return operation.setAttachment(name, value);
@@ -379,6 +417,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttachments(Map<String, Object> attachments)
   {
     operation.setAttachments(attachments);
@@ -387,6 +426,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAuthorizationEntry(Entry authorizationEntry)
   {
     operation.setAuthorizationEntry(authorizationEntry);
@@ -395,6 +435,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setDontSynchronize(boolean dontSynchronize)
   {
     operation.setDontSynchronize(dontSynchronize);
@@ -403,6 +444,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setErrorMessage(MessageBuilder errorMessage)
   {
     operation.setErrorMessage(errorMessage);
@@ -411,6 +453,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setInternalOperation(boolean isInternalOperation)
   {
     operation.setInternalOperation(isInternalOperation);
@@ -419,6 +462,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setMatchedDN(DN matchedDN)
   {
     operation.setMatchedDN(matchedDN);
@@ -427,6 +471,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setReferralURLs(List<String> referralURLs)
   {
     operation.setReferralURLs(referralURLs);
@@ -435,6 +480,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setResponseData(DirectoryException directoryException)
   {
     operation.setResponseData(directoryException);
@@ -443,6 +489,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setResultCode(ResultCode resultCode)
   {
     operation.setResultCode(resultCode);
@@ -451,6 +498,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setSynchronizationOperation(boolean isSynchronizationOperation)
   {
     operation.setSynchronizationOperation(isSynchronizationOperation);
@@ -461,6 +509,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int hashCode()
   {
     return getClientConnection().hashCode() * (int) getOperationID();
@@ -471,6 +520,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean equals(Object obj)
   {
     if (this == obj)
@@ -495,6 +545,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     operation.toString(buffer);
@@ -503,6 +554,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized final void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException {
     operation.checkIfCanceled(signalTooLate);
@@ -511,14 +563,23 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void registerPostResponseCallback(Runnable callback)
   {
     operation.registerPostResponseCallback(callback);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void run()
+  {
+    operation.run();
+  }
+
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
     return operation.getAdditionalLogItems();
@@ -527,6 +588,7 @@ public class OperationWrapper implements Operation
   /**
    *{@inheritDoc}
    */
+  @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
     operation.addAdditionalLogItem(item);
