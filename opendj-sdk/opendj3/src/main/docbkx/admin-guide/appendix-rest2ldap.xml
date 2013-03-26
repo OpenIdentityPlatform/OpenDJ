@@ -29,16 +29,33 @@
           xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
           xmlns:xlink='http://www.w3.org/1999/xlink'
           xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>REST LDAP Gateway Configuration</title>
- <indexterm><primary>REST LDAP gateway</primary></indexterm>
+ <title>REST LDAP Configuration</title>
+ <indexterm><primary>REST</primary></indexterm>
+ <indexterm><primary>HTTP</primary></indexterm>
  <!-- This belongs in an OpenDJ reference. Ultimately this doc should
       be generated, too, rather than written by hand. CREST-71? -->
 
- <para>The OpenDJ REST LDAP gateway runs as a Servlet independent from your
- directory service. You configure the gateway to access your directory service
- by editing <filename>opendj-rest2ldap-servlet.json</filename> where you deploy
- the gateway web application.</para>
+ <itemizedlist>
+  <para>OpenDJ offers two alternatives for RESTful access to directory
+  data.</para>
 
+  <listitem>
+   <para>OpenDJ directory server has an HTTP connection handler that exposes
+   the RESTful API over HTTP (or HTTPS). You configure the mapping between
+   JSON resources and LDAP entries by editing the configuration file for the
+   HTTP connection handler, by default
+   <filename>/path/to/OpenDJ/config/http-config.json</filename>.</para>
+  </listitem>
+
+  <listitem>
+   <para>The OpenDJ REST LDAP gateway runs as a Servlet independent from your
+   directory service. You configure the gateway to access your directory service
+   by editing <filename>opendj-rest2ldap-servlet.json</filename> where you
+   deploy the gateway web application.</para>
+  </listitem>
+ </itemizedlist>
+
+ <!-- To be updated, pending OPENDJ-828 -->
  <variablelist>
   <para>The JSON format configuration can hold the following configuration
   objects.</para>

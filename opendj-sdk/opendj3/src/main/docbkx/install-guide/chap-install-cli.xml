@@ -470,12 +470,13 @@ To see basic server configuration status and configuration you can launch
   <indexterm><primary>REST LDAP gateway</primary></indexterm>
 
   <para>The OpenDJ REST LDAP gateway functions as a web application in a web
-  application container, running independently of OpenDJ. <!-- Alternatively,
-  you can add an HTTP listener directly to OpenDJ. See <link
-  xlink:href="admin-guide#setup-rest2ldap"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST Client
-  Access</citetitle></link> for instructions.--> You configure the gateway
-  to access your directory service by editing
+  application container, running independently of OpenDJ. Alternatively,
+  you can use the HTTP connection handler in OpenDJ directory server. See the
+  procedure, <link xlink:href="admin-guide#setup-rest2ldap-connection-handler"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
+  Access to OpenDJ Directory Server</citetitle></link>, for instructions.</para>
+
+  <para>You configure the gateway to access your directory service by editing
   <filename>opendj-rest2ldap-servlet.json</filename> where you deploy the
   gateway web application.</para>
 
@@ -496,7 +497,7 @@ To see basic server configuration status and configuration you can launch
    data. The default <literal>mappings</literal> are built to work with
    generated example data and also the sample content in <link xlink:show="new"
    xlink:href="http://opendj.forgerock.org/Example.ldif"
-    >Example.ldif</link>.</para>
+   >Example.ldif</link>.</para>
 
    <para>At minimum, make sure that the host name and port numbers for
    <literal>primaryLDAPServers</literal> are properly configured, that
@@ -507,7 +508,7 @@ To see basic server configuration status and configuration you can launch
    <para>For details on the configuration, see <link
    xlink:href="admin-guide#appendix-rest2ldap"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
-   Gateway Configuration</citetitle></link>.</para>
+   Configuration</citetitle></link>.</para>
   </step>
 
   <step>

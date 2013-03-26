@@ -80,6 +80,15 @@
     traffic on port 1689 by default. JMX is not enabled by default.</para>
    </listitem>
   </varlistentry>
+  <varlistentry xml:id="http-port">
+   <term>HTTP: 8080</term>
+   <listitem>
+    <indexterm><primary>Ports</primary><secondary>8080</secondary></indexterm>
+    <para>OpenDJ directory server can listen for HTTP client requests to the
+    RESTful API. The default port is 8080, but HTTP access is not enabled by
+    default.</para>
+   </listitem>
+  </varlistentry>
   <varlistentry xml:id="repl-port">
    <term>Replication: 8989</term>
    <listitem>
