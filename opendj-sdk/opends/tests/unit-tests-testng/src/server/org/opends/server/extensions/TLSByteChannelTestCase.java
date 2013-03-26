@@ -44,14 +44,18 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
+/**
+ * Tests for {@link TLSByteChannel} class.
+ */
 @Test(groups = { "slow" })
-public class TLSByteChannelTestCase
+public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
 
   /**
@@ -511,7 +515,8 @@ public class TLSByteChannelTestCase
   @Test
   public void checkNoUnknownOverlappingCiphers()
   {
-    List<String> ciphers = new ArrayList(TLSByteChannel.CIPHER_MAP.keySet());
+    List<String> ciphers =
+        new ArrayList<String>(TLSByteChannel.CIPHER_MAP.keySet());
     for (int i = 0; i < ciphers.size(); i++)
     {
       for (int j = 0; j < i; j++)
