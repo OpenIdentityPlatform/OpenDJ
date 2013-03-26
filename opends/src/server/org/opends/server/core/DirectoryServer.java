@@ -110,13 +110,6 @@ public final class DirectoryServer
    */
   private static final DebugTracer TRACER = getTracer();
 
-    /**
-    * The fully-qualified name of this class.
-    */
-    private static final String CLASS_NAME =
-       "org.opends.server.core.DirectoryServer";
-
-
   /**
    * The singleton Directory Server instance.
    */
@@ -184,462 +177,549 @@ public final class DirectoryServer
    */
   private static int START_AS_NON_DETACH_QUIET = 104;
 
-  // The policy to use regarding single structural objectclass enforcement.
+  /** The policy to use regarding single structural objectclass enforcement. */
   private AcceptRejectWarn singleStructuralClassPolicy;
 
-  // The policy to use regarding syntax enforcement.
+  /** The policy to use regarding syntax enforcement. */
   private AcceptRejectWarn syntaxEnforcementPolicy;
 
-  // The account status notification handler config manager for the server.
+  /** The account status notification handler config manager for the server. */
   private AccountStatusNotificationHandlerConfigManager
        accountStatusNotificationHandlerConfigManager;
 
-  // The default syntax to use for binary attributes.
+  /** The default syntax to use for binary attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultBinarySyntax;
 
-  // The default syntax to use for Boolean attributes.
+  /** The default syntax to use for Boolean attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultBooleanSyntax;
 
-  // The default syntax to use for DN attributes.
+  /** The default syntax to use for DN attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultDNSyntax;
 
-  // The default syntax to use for integer attributes.
+  /** The default syntax to use for integer attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultIntegerSyntax;
 
-  // The default syntax to use for string attributes.
+  /** The default syntax to use for string attributes. */
   private AttributeSyntax<DirectoryStringAttributeSyntaxCfg>
                defaultStringSyntax;
 
-  // The default attribute syntax to use for attributes with no defined syntax.
+  /**
+   * The default attribute syntax to use for attributes with no defined syntax.
+   */
   private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
 
-  // The attribute type used to reference the "objectclass" attribute.
+  /** The attribute type used to reference the "objectclass" attribute. */
   private AttributeType objectClassAttributeType;
 
-  // The authenticated users manager for the server.
+  /** The authenticated users manager for the server. */
   private AuthenticatedUsers authenticatedUsers;
 
-  // The configuration manager that will handle the server backends.
+  /** The configuration manager that will handle the server backends. */
   private BackendConfigManager backendConfigManager;
 
-  // Indicates whether to automatically add missing RDN attributes to entries
-  // during an add request.
+  /**
+   * Indicates whether to automatically add missing RDN attributes to entries
+   * during an add request.
+   */
   private boolean addMissingRDNAttributes;
 
-  // Indicates whether to allow attribute name exceptions (i.e., attribute names
-  // can contain underscores and may start with a digit).
+  /**
+   * Indicates whether to allow attribute name exceptions (i.e., attribute names
+   * can contain underscores and may start with a digit).
+   */
   private boolean allowAttributeNameExceptions;
 
-  // Indicates whether a simple bind request containing a DN must also provide a
-  // password.
+  /**
+   * Indicates whether a simple bind request containing a DN must also provide a
+   * password.
+   */
   private boolean bindWithDNRequiresPassword;
 
-  // Indicates whether the Directory Server should perform schema checking for
-  // update operations.
+  /**
+   * Indicates whether the Directory Server should perform schema checking for
+   * update operations.
+   */
   private boolean checkSchema;
 
-  // Indicates whether the server has been bootstrapped.
+  /** Indicates whether the server has been bootstrapped. */
   private boolean isBootstrapped;
 
-  // Indicates whether the server is currently online.
+  /** Indicates whether the server is currently online. */
   private boolean isRunning;
 
-  // Indicates whether the server is currently in "lockdown mode".
+  /** Indicates whether the server is currently in "lockdown mode". */
   private boolean lockdownMode;
 
-  // Indicates whether the server should send a response to operations that have
-  // been abandoned.
+  /**
+   * Indicates whether the server should send a response to operations that have
+   * been abandoned.
+   */
   private boolean notifyAbandonedOperations;
 
-  // Indicates whether to save a copy of the configuration on successful
-  // startup.
+  /**
+   * Indicates whether to save a copy of the configuration on successful
+   * startup.
+   */
   private boolean saveConfigOnSuccessfulStartup;
 
-  // Indicates whether the server is currently in the process of shutting down.
+  /**
+   * Indicates whether the server is currently in the process of shutting down.
+   */
   private boolean shuttingDown;
 
-  // Indicates whether the server should reject unauthenticated requests.
+  /** Indicates whether the server should reject unauthenticated requests. */
   private boolean rejectUnauthenticatedRequests;
 
-  // Indicates whether bind responses should include failure reason messages.
+  /**
+   * Indicates whether bind responses should include failure reason messages.
+   */
   private boolean returnBindErrorMessages;
 
-  // The configuration manager that will handle the certificate mapper.
+  /** The configuration manager that will handle the certificate mapper. */
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
-  // The class used to provide the config handler implementation.
+  /** The class used to provide the config handler implementation. */
   private Class configClass;
 
-  // The configuration handler for the Directory Server.
+  /** The configuration handler for the Directory Server. */
   private ConfigHandler configHandler;
 
-  // The set of account status notification handlers defined in the server.
+  /** The set of account status notification handlers defined in the server. */
   private ConcurrentHashMap<DN,AccountStatusNotificationHandler>
                accountStatusNotificationHandlers;
 
-  // The set of certificate mappers registered with the server.
+  /** The set of certificate mappers registered with the server. */
   private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
 
-  // The set of alternate bind DNs for the root users.
+  /** The set of alternate bind DNs for the root users. */
   private ConcurrentHashMap<DN,DN> alternateRootBindDNs;
 
-  // The set of identity mappers registered with the server (mapped between
-  // the configuration entry Dn and the mapper).
+  /**
+   * The set of identity mappers registered with the server (mapped between the
+   * configuration entry Dn and the mapper).
+   */
   private ConcurrentHashMap<DN,IdentityMapper> identityMappers;
 
-  // The set of JMX MBeans that have been registered with the server (mapped
-  // between the associated configuration entry DN and the MBean).
+  /**
+   * The set of JMX MBeans that have been registered with the server (mapped
+   * between the associated configuration entry DN and the MBean).
+   */
   private ConcurrentHashMap<DN,JMXMBean> mBeans;
 
-  // The set of key manager providers registered with the server.
+  /** The set of key manager providers registered with the server. */
   private ConcurrentHashMap<DN,KeyManagerProvider> keyManagerProviders;
 
-  // The set of extensions registered with the server.
+  /** The set of extensions registered with the server. */
   private ConcurrentHashMap<DN,Extension> extensions;
 
-  // The set of password generators registered with the Directory Server, as a
-  // mapping between the DN of the associated configuration entry and the
-  // generator implementation.
+  /**
+   * The set of password generators registered with the Directory Server, as a
+   * mapping between the DN of the associated configuration entry and the
+   * generator implementation.
+   */
   private ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
 
-  // The set of authentication policies registered with the Directory Server, as
-  // a mapping between the DN of the associated configuration entry and the
-  // policy implementation.
+  /**
+   * The set of authentication policies registered with the Directory Server, as
+   * a mapping between the DN of the associated configuration entry and the
+   * policy implementation.
+   */
   private ConcurrentHashMap<DN,AuthenticationPolicy> authenticationPolicies;
 
-  // The set of password validators registered with the Directory Server, as a
-  // mapping between the DN of the associated configuration entry and the
-  // validator implementation.
+  /**
+   * The set of password validators registered with the Directory Server, as a
+   * mapping between the DN of the associated configuration entry and the
+   * validator implementation.
+   */
   private ConcurrentHashMap<DN,
                PasswordValidator<? extends PasswordValidatorCfg>>
                passwordValidators;
 
-  // The set of trust manager providers registered with the server.
+  /** The set of trust manager providers registered with the server. */
   private ConcurrentHashMap<DN,TrustManagerProvider> trustManagerProviders;
 
-  // The set of log rotation policies registered with the Directory Server, as
-  // a mapping between the DN of the associated configuration entry and the
-  // policy implementation.
+  /**
+   * The set of log rotation policies registered with the Directory Server, as a
+   * mapping between the DN of the associated configuration entry and the policy
+   * implementation.
+   */
   private ConcurrentHashMap<DN, RotationPolicy> rotationPolicies;
 
-  // The set of log retention policies registered with the Directory Server, as
-  // a mapping between the DN of the associated configuration entry and the
-  // policy implementation.
+  /**
+   * The set of log retention policies registered with the Directory Server, as
+   * a mapping between the DN of the associated configuration entry and the
+   * policy implementation.
+   */
   private ConcurrentHashMap<DN, RetentionPolicy> retentionPolicies;
 
-  // The set supported LDAP protocol versions.
+  /** The set supported LDAP protocol versions. */
   private ConcurrentHashMap<Integer,List<ConnectionHandler>>
                supportedLDAPVersions;
 
-  // The set of extended operation handlers registered with the server (mapped
-  // between the OID of the extended operation and the handler).
+  /**
+   * The set of extended operation handlers registered with the server (mapped
+   * between the OID of the extended operation and the handler).
+   */
   private ConcurrentHashMap<String,ExtendedOperationHandler>
                extendedOperationHandlers;
 
-  // The set of monitor providers registered with the Directory Server, as a
-  // mapping between the monitor name and the corresponding implementation.
+  /**
+   * The set of monitor providers registered with the Directory Server, as a
+   * mapping between the monitor name and the corresponding implementation.
+   */
   private ConcurrentHashMap<String,
                             MonitorProvider<? extends MonitorProviderCfg>>
                monitorProviders;
 
-  // The set of password storage schemes defined in the server (mapped between
-  // the lowercase scheme name and the storage scheme) that support the
-  // authentication password syntax.
+  /**
+   * The set of password storage schemes defined in the server (mapped between
+   * the lowercase scheme name and the storage scheme) that support the
+   * authentication password syntax.
+   */
   private ConcurrentHashMap<String,PasswordStorageScheme>
                authPasswordStorageSchemes;
 
-  // The set of password storage schemes defined in the server (mapped between
-  // the lowercase scheme name and the storage scheme).
+  /**
+   * The set of password storage schemes defined in the server (mapped between
+   * the lowercase scheme name and the storage scheme).
+   */
   private ConcurrentHashMap<String,PasswordStorageScheme>
                passwordStorageSchemes;
 
-  // The set of password storage schemes defined in the server (mapped between
-  // the DN of the configuration entry and the storage scheme).
+  /**
+   * The set of password storage schemes defined in the server (mapped between
+   * the DN of the configuration entry and the storage scheme).
+   */
   private ConcurrentHashMap<DN,PasswordStorageScheme>
                passwordStorageSchemesByDN;
 
-  // The set of SASL mechanism handlers registered with the server (mapped
-  // between the mechanism name and the handler).
+  /**
+   * The set of SASL mechanism handlers registered with the server (mapped
+   * between the mechanism name and the handler).
+   */
   private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
 
-  // The connection handler configuration manager for the Directory Server.
+  /** The connection handler configuration manager for the Directory Server. */
   private ConnectionHandlerConfigManager connectionHandlerConfigManager = null;
 
-  // The set of alert handlers registered with the Directory Server.
+  /** The set of alert handlers registered with the Directory Server. */
   private CopyOnWriteArrayList<AlertHandler> alertHandlers;
 
-  // The set of backup task listeners registered with the Directory Server.
+  /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
 
-  // The set of change notification listeners registered with the Directory
-  // Server.
+  /**
+   * The set of change notification listeners registered with the Directory
+   * Server.
+   */
   private CopyOnWriteArrayList<ChangeNotificationListener>
                changeNotificationListeners;
 
-  // The set of connection handlers registered with the Directory Server.
+  /** The set of connection handlers registered with the Directory Server. */
   private CopyOnWriteArrayList<ConnectionHandler> connectionHandlers;
 
-  // The set of export task listeners registered with the Directory Server.
+  /** The set of export task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<ExportTaskListener> exportTaskListeners;
 
-  // The set of import task listeners registered with the Directory Server.
+  /** The set of import task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<ImportTaskListener> importTaskListeners;
 
-  // The set of restore task listeners registered with the Directory Server.
+  /** The set of restore task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<RestoreTaskListener> restoreTaskListeners;
 
-  // The set of initialization completed listeners that have been registered
-  // with the Directory Server.
+  /**
+   * The set of initialization completed listeners that have been registered
+   * with the Directory Server.
+   */
   private CopyOnWriteArrayList<InitializationCompletedListener>
           initializationCompletedListeners;
 
-  // The set of shutdown listeners that have been registered with the Directory
-  // Server.
+  /**
+   * The set of shutdown listeners that have been registered with the Directory
+   * Server.
+   */
   private CopyOnWriteArrayList<ServerShutdownListener> shutdownListeners;
 
-  // The set of synchronization providers that have been registered with the
-  // Directory Server.
+  /**
+   * The set of synchronization providers that have been registered with the
+   * Directory Server.
+   */
   private
     CopyOnWriteArrayList<SynchronizationProvider<SynchronizationProviderCfg>>
                synchronizationProviders;
 
-  // The set of virtual attributes defined in the server.
+  /** The set of virtual attributes defined in the server. */
   private CopyOnWriteArrayList<VirtualAttributeRule> virtualAttributes;
 
-  // The set of backend initialization listeners registered with the Directory
-  // Server.
+  /**
+   * The set of backend initialization listeners registered with the Directory
+   * Server.
+   */
   private CopyOnWriteArraySet<BackendInitializationListener>
                backendInitializationListeners;
 
-  // The set of root DNs registered with the Directory Server.
+  /** The set of root DNs registered with the Directory Server. */
   private CopyOnWriteArraySet<DN> rootDNs;
 
-  // The core configuration manager for the Directory Server.
+  /** The core configuration manager for the Directory Server. */
   private CoreConfigManager coreConfigManager;
 
-  // The crypto manager for the Directory Server.
+  /** The crypto manager for the Directory Server. */
   private CryptoManagerImpl cryptoManager;
 
-  // The default compressed schema manager.
+  /** The default compressed schema manager. */
   private DefaultCompressedSchema compressedSchema;
 
-  // The environment configuration for the Directory Server.
+  /** The environment configuration for the Directory Server. */
   private DirectoryEnvironmentConfig environmentConfig;
 
-  // The shutdown hook that has been registered with the server.
+  /** The shutdown hook that has been registered with the server. */
   private DirectoryServerShutdownHook shutdownHook;
 
-  // The DN of the default password policy configuration entry.
+  /** The DN of the default password policy configuration entry. */
   private DN defaultPasswordPolicyDN;
 
-  // The DN of the identity mapper that will be used to resolve authorization
-  // IDs contained in the proxied authorization V2 control.
+  /**
+   * The DN of the identity mapper that will be used to resolve authorization
+   * IDs contained in the proxied authorization V2 control.
+   */
   private DN proxiedAuthorizationIdentityMapperDN;
 
-  // The DN of the entry containing the server schema definitions.
+  /** The DN of the entry containing the server schema definitions. */
   private DN schemaDN;
 
-  // The Directory Server entry cache.
+  /** The Directory Server entry cache. */
   private EntryCache entryCache;
 
-  // The configuration manager for the entry cache.
+  /** The configuration manager for the entry cache. */
   private EntryCacheConfigManager entryCacheConfigManager;
 
-  // The configuration manager for extended operation handlers.
+  /** The configuration manager for extended operation handlers. */
   private ExtendedOperationConfigManager extendedOperationConfigManager;
 
-  // The path to the file containing the Directory Server configuration, or the
-  // information needed to bootstrap the configuration handler.
+  /**
+   * The path to the file containing the Directory Server configuration, or the
+   * information needed to bootstrap the configuration handler.
+   */
   private File configFile;
 
-  // The group manager for the Directory Server.
+  /** The group manager for the Directory Server. */
   private GroupManager groupManager;
 
-  // The subentry manager for the Directory Server.
+  /** The subentry manager for the Directory Server. */
   private SubentryManager subentryManager;
 
-  // The configuration manager for identity mappers.
+  /** The configuration manager for identity mappers. */
   private IdentityMapperConfigManager identityMapperConfigManager;
 
-  // The maximum number of entries that should be returned for a search unless
-  // overridden on a per-user basis.
+  /**
+   * The maximum number of entries that should be returned for a search unless
+   * overridden on a per-user basis.
+   */
   private int sizeLimit;
 
-  // The maximum length of time in seconds that should be allowed for a search
-  // unless overridden on a per-user basis.
+  /**
+   * The maximum length of time in seconds that should be allowed for a search
+   * unless overridden on a per-user basis.
+   */
   private int timeLimit;
 
-  // The maxiumum number of candidates that should be check for matches during
-  // a search.
+  /**
+   * The maximum number of candidates that should be check for matches during a
+   * search.
+   */
   private int lookthroughLimit;
 
-  // The current active persistent searches.
+  /** The current active persistent searches. */
   private AtomicInteger activePSearches = new AtomicInteger(0);
 
-  //The maximum number of concurrent persistent searches.
+  /** The maximum number of concurrent persistent searches. */
   private int maxPSearches;
 
-  // Whether to use collect operation processing times in nanosecond resolution
+  /**
+   * Whether to use collect operation processing times in nanosecond resolution.
+   */
   private boolean useNanoTime;
 
-  // The key manager provider configuration manager for the Directory Server.
+  /**
+   * The key manager provider configuration manager for the Directory Server.
+   */
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
-  // The extension configuration manager for the Directory Server.
+  /** The extension configuration manager for the Directory Server. */
   private ExtensionConfigManager extensionConfigManager;
 
-  // The set of connections that are currently established.
+  /** The set of connections that are currently established. */
   private LinkedHashSet<ClientConnection> establishedConnections;
 
-  // The sets of mail server properties
+  /** The sets of mail server properties. */
   private List<Properties> mailServerPropertySets;
 
-  // The set of schema changes made by editing the schema configuration files
-  // with the server offline.
+  /**
+   * The set of schema changes made by editing the schema configuration files
+   * with the server offline.
+   */
   private List<Modification> offlineSchemaChanges;
 
-  // The log rotation policy config manager for the Directory Server.
+  /** The log rotation policy config manager for the Directory Server. */
   private LogRotationPolicyConfigManager rotationPolicyConfigManager;
 
-  // The log retention policy config manager for the Directory Server.
+  /** The log retention policy config manager for the Directory Server. */
   private LogRetentionPolicyConfigManager retentionPolicyConfigManager;
 
-  // The logger configuration manager for the Directory Server.
+  /** The logger configuration manager for the Directory Server. */
   private LoggerConfigManager loggerConfigManager;
 
-  // The number of connections currently established to the server.
+  /** The number of connections currently established to the server. */
   private long currentConnections;
 
-  // The idle time limit for the server.
+  /** The idle time limit for the server. */
   private long idleTimeLimit;
 
-  // The maximum number of connections that will be allowed at any given time.
+  /**
+   * The maximum number of connections that will be allowed at any given time.
+   */
   private long maxAllowedConnections;
 
-  // The maximum number of connections established at one time.
+  /** The maximum number of connections established at one time. */
   private long maxConnections;
 
-  // The time that this Directory Server instance was started.
+  /** The time that this Directory Server instance was started. */
   private long startUpTime;
 
-  // The total number of connections established since startup.
+  /** The total number of connections established since startup. */
   private long totalConnections;
 
-  // The MBean server used to handle JMX interaction.
+  /** The MBean server used to handle JMX interaction. */
   private MBeanServer mBeanServer;
 
-  // The monitor config manager for the Directory Server.
+  /** The monitor config manager for the Directory Server. */
   private MonitorConfigManager monitorConfigManager;
 
-  // The operating system on which the server is running.
+  /** The operating system on which the server is running. */
   private final OperatingSystem operatingSystem;
 
-  // The configuration handler used to manage the password generators.
+  /** The configuration handler used to manage the password generators. */
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
 
-  // The default password policy for the Directory Server.
+  /** The default password policy for the Directory Server. */
   private PasswordPolicy defaultPasswordPolicy;
 
-  // The configuration handler used to manage the authentication policies.
+  /** The configuration handler used to manage the authentication policies. */
   private PasswordPolicyConfigManager authenticationPolicyConfigManager;
 
-  // The configuration handler used to manage the password storage schemes.
+  /** The configuration handler used to manage the password storage schemes. */
   private PasswordStorageSchemeConfigManager storageSchemeConfigManager;
 
-  // The configuration handler used to manage the password validators.
+  /** The configuration handler used to manage the password validators. */
   private PasswordValidatorConfigManager passwordValidatorConfigManager;
 
-  // The plugin config manager for the Directory Server.
+  /** The plugin config manager for the Directory Server. */
   private PluginConfigManager pluginConfigManager;
 
-  // The result code that should be used for internal "server" errors.
+  /** The result code that should be used for internal "server" errors. */
   private ResultCode serverErrorResultCode;
 
-  // The special backend used for the Directory Server root DSE.
+  /** The special backend used for the Directory Server root DSE. */
   private RootDSEBackend rootDSEBackend;
 
-  // The root DN config manager for the server.
+  /** The root DN config manager for the server. */
   private RootDNConfigManager rootDNConfigManager;
 
-  // The SASL mechanism config manager for the Directory Server.
+  /** The SASL mechanism config manager for the Directory Server. */
   private SASLConfigManager saslConfigManager;
 
-  // The schema for the Directory Server.
+  /** The schema for the Directory Server. */
   private Schema schema;
 
-  // The schema configuration manager for the Directory Server.
+  /** The schema configuration manager for the Directory Server. */
   private SchemaConfigManager schemaConfigManager;
 
-  // The set of disabled privileges.
+  /** The set of disabled privileges. */
   private Set<Privilege> disabledPrivileges;
 
-  // The set of allowed task classes.
+  /** The set of allowed task classes. */
   private Set<String> allowedTasks;
 
-  // The time that the server was started, formatted in UTC time.
+  /** The time that the server was started, formatted in UTC time. */
   private String startTimeUTC;
 
-  // The synchronization provider configuration manager for the Directory
-  // Server.
+  /**
+   * The synchronization provider configuration manager for the Directory
+   * Server.
+   */
   private SynchronizationProviderConfigManager
                synchronizationProviderConfigManager;
 
-  // Registry for base DN and naming context information.
+  /** Registry for base DN and naming context information. */
   private BaseDnRegistry baseDnRegistry;
 
 
-  // The set of backends registered with the server.
+  /** The set of backends registered with the server. */
   private TreeMap<String,Backend> backends;
 
-  // The mapping between backends and their unique indentifiers for their
-  // offline state, representing either checksum or other unique value to
-  // be used for detecting any offline modifications to a given backend.
+  /**
+   * The mapping between backends and their unique identifiers for their offline
+   * state, representing either checksum or other unique value to be used for
+   * detecting any offline modifications to a given backend.
+   */
   private ConcurrentHashMap<String,Long> offlineBackendsStateIDs;
 
-  // The set of supported controls registered with the Directory Server.
+  /** The set of supported controls registered with the Directory Server. */
   private TreeSet<String> supportedControls;
 
-  // The set of supported feature OIDs registered with the Directory Server.
+  /** The set of supported feature OIDs registered with the Directory Server. */
   private TreeSet<String> supportedFeatures;
 
-  // The trust manager provider configuration manager for the Directory Server.
+  /**
+   * The trust manager provider configuration manager for the Directory Server.
+   */
   private TrustManagerProviderConfigManager trustManagerProviderConfigManager;
 
-  // The virtual attribute provider configuration manager for the Directory
-  // Server.
+  /**
+   * The virtual attribute provider configuration manager for the Directory
+   * Server.
+   */
   private VirtualAttributeConfigManager virtualAttributeConfigManager;
 
-  // The work queue that will be used to service client requests.
+  /** The work queue that will be used to service client requests. */
   private WorkQueue workQueue;
 
-  // The writability mode for the Directory Server.
+  /** The writability mode for the Directory Server. */
   private WritabilityMode writabilityMode;
 
-  // The mappings between the names and WorkflowElements
-  // registered with the Directory Server
+  /**
+   * The mappings between the names and WorkflowElements registered with the
+   * Directory Server.
+   */
   private final ConcurrentHashMap<String, WorkflowElement> workflowElements =
           new ConcurrentHashMap<String, WorkflowElement>();
 
-  // The workflow configuration mode (auto or manual).
+  /** The workflow configuration mode (auto or manual). */
   private WorkflowConfigurationMode workflowConfigurationMode;
 
-  // The network group config manager for the Directory Server.
-  // This config manager is used when the workflow configuration
-  // mode is 'manual'.
+  /**
+   * The network group config manager for the Directory Server. This config
+   * manager is used when the workflow configuration mode is 'manual'.
+   */
   private NetworkGroupConfigManager networkGroupConfigManager;
 
-  // The workflow config manager for the Directory Server.
-  // This config manager is used when the workflow configuration
-  // mode is 'manual'.
+  /**
+   * The workflow config manager for the Directory Server. This config manager
+   * is used when the workflow configuration mode is 'manual'.
+   */
   private WorkflowConfigManager workflowConfigManager;
 
-  // The workflow element config manager for the Directory Server.
-  // This config manager is used when the workflow configuration
-  // mode is 'manual'.
+  /**
+   * The workflow element config manager for the Directory Server. This config
+   * manager is used when the workflow configuration mode is 'manual'.
+   */
   private WorkflowElementConfigManager workflowElementConfigManager;
 
-  // The maximum size that internal buffers will be allowed to grow to until
-  // they are trimmed.
+  /**
+   * The maximum size that internal buffers will be allowed to grow to until
+   * they are trimmed.
+   */
   private int maxInternalBufferSize = DEFAULT_MAX_INTERNAL_BUFFER_SIZE;
 
   /**
@@ -7215,7 +7295,7 @@ public final class DirectoryServer
    * @throws  DirectoryException  If a problem prevents the operation from being
    *                              added to the queue (e.g., the queue is full).
    */
-  public static void enqueueRequest(AbstractOperation operation)
+  public static void enqueueRequest(Operation operation)
          throws DirectoryException
   {
     ClientConnection clientConnection = operation.getClientConnection();
@@ -9067,7 +9147,7 @@ public final class DirectoryServer
   @Override
   public String getClassName()
   {
-    return CLASS_NAME;
+    return DirectoryServer.class.getName();
   }
 
 

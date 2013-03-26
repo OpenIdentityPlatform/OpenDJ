@@ -23,19 +23,17 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-
-
 
 import java.util.List;
 import java.util.Map;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
-import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -53,7 +51,7 @@ import org.opends.messages.MessageBuilder;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public interface Operation
+public interface Operation extends Runnable
 {
   /**
    * Identifier used to get the local operation [if any] in the
@@ -73,7 +71,7 @@ public interface Operation
    * Terminates the client connection being used to process this
    * operation.  If this is called by a plugin, then that plugin must
    * return a result indicating that the  client connection has been
-   * teriminated.
+   * terminated.
    *
    * @param  disconnectReason  The disconnect reason that provides the
    *                           generic cause for the disconnect.
@@ -584,6 +582,7 @@ public interface Operation
    *
    * @return  A string representation of this operation.
    */
+  @Override
   public abstract String toString();
 
   /**
