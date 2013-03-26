@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -46,51 +47,46 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ServerStartMsg;
 import org.opends.server.replication.protocol.StartSessionMsg;
+import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.testng.annotations.BeforeClass;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+
 import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.fail;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the client part (plugin) of the assured feature in both safe data and
@@ -1899,8 +1895,8 @@ public class AssuredReplicationPluginTest
 
     return resultMap;
   }
-  private void waitOpResult(AbstractOperation operation,
-      ResultCode expectedResult)
+
+  private void waitOpResult(Operation operation, ResultCode expectedResult)
   {
     int ii=0;
     while((operation.getResultCode()==ResultCode.UNDEFINED) ||

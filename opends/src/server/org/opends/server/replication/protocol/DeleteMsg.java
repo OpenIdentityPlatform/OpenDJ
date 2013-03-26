@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -36,8 +36,8 @@ import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.Operation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 
 /**
@@ -47,7 +47,7 @@ public class DeleteMsg extends LDAPUpdateMsg
 {
   private String initiatorsName;
 
-  // whether the DEL operation is a subtree DEL
+  /** whether the DEL operation is a subtree DEL. */
   private boolean isSubtreeDelete = false;
 
   /**
@@ -66,7 +66,6 @@ public class DeleteMsg extends LDAPUpdateMsg
     }
     catch(Exception e)
     {}
-
   }
 
   /**
@@ -113,8 +112,8 @@ public class DeleteMsg extends LDAPUpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public AbstractOperation createOperation(
-         InternalClientConnection connection, String newDn)
+  public Operation createOperation(InternalClientConnection connection,
+      String newDn)
   {
     DeleteOperationBasis del =  new DeleteOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
@@ -136,6 +135,7 @@ public class DeleteMsg extends LDAPUpdateMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);

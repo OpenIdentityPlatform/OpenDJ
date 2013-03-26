@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -37,12 +37,12 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
@@ -165,9 +165,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * {@inheritDoc}
    */
   @Override
-  public AbstractOperation createOperation(
-      InternalClientConnection connection, String newDn)
-  throws LDAPException, ASN1Exception
+  public Operation createOperation(InternalClientConnection connection,
+      String newDn) throws LDAPException, ASN1Exception
   {
     ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
@@ -328,6 +327,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
   {
@@ -707,11 +707,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     try
     {
       DN newDN = computeNewDN();
-
-      if (newDN.isAncestorOf(targetDn))
-        return true;
-      else
-        return false;
+      return newDN.isAncestorOf(targetDn);
     } catch (DirectoryException e)
     {
       // The DN was not a correct DN, and therefore does not a parent of the
@@ -734,11 +730,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     try
     {
       DN newDN = computeNewDN();
-
-      if (newDN.equals(targetDN))
-        return true;
-      else
-        return false;
+      return newDN.equals(targetDN);
     } catch (DirectoryException e)
     {
       // The DN was not a correct DN, and therefore does not match the
@@ -761,11 +753,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     try
     {
       DN newSuperiorDN = DN.decode(newSuperior);
-
-      if (newSuperiorDN.equals(targetDN))
-        return true;
-      else
-        return false;
+      return newSuperiorDN.equals(targetDN);
     } catch (DirectoryException e)
     {
       // The newsuperior was not a correct DN, and therefore does not match the

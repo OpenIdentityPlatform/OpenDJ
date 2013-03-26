@@ -23,23 +23,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.createEntry;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -51,9 +47,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
-import java.util.Date;
 
-import org.opends.server.util.TimeThread;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -108,6 +102,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.replication.service.ReplicationMonitor;
+import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PluginOperation;
@@ -122,9 +117,9 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationOperation;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.*;
-import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 
 /**
  *  This class implements the bulk part of the Directory Server side
@@ -2644,7 +2639,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           op.addRequestControl(new LDAPControl(OID_MANAGE_DSAIT_CONTROL));
 
           changeNumber = OperationContext.getChangeNumber(op);
-          ((AbstractOperation) op).run();
+          op.run();
 
           ResultCode result = op.getResultCode();
 
@@ -3998,8 +3993,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (checksumOutput)
     {
-      os = (OutputStream)new ReplLDIFOutputStream(entryCount);
-      ros = (ReplLDIFOutputStream)os;
+      ros = new ReplLDIFOutputStream(entryCount);
+      os = ros;
       try
       {
         os.write((Long.toString(numberOfEntries)).

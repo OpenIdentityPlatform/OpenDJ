@@ -44,7 +44,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.ParallelWorkQueueMonitor;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
@@ -456,7 +455,7 @@ public class ParallelWorkQueue
    * @return  <CODE>true</CODE> if the provided request was present in the queue
    *          and was removed successfully, or <CODE>false</CODE> it not.
    */
-  public boolean removeOperation(AbstractOperation operation)
+  public boolean removeOperation(Operation operation)
   {
     return opQueue.remove(operation);
   }
