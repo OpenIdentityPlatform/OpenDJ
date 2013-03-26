@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -338,36 +338,6 @@ modifyProcessing:
         break modifyProcessing;
       }
 
-
-      // If the user must change their password before doing anything else, and
-      // if the target of the modify operation isn't the user's own entry, then
-      // reject the request.
-      if ((! isInternalOperation()) && clientConnection.mustChangePassword())
-      {
-        DN authzDN = getAuthorizationDN();
-        if ((authzDN != null) && (! authzDN.equals(entryDN)))
-        {
-          // The user will not be allowed to do anything else before the
-          // password gets changed.  Also note that we haven't yet checked the
-          // request controls so we need to do that now to see if the password
-          // policy request control was provided.
-          for (Control c : getRequestControls())
-          {
-            if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-            {
-              pwPolicyControlRequested = true;
-              pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-              break;
-            }
-          }
-
-          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
-          break modifyProcessing;
-        }
-      }
-
-
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
@@ -441,7 +411,30 @@ modifyProcessing:
           // Get the password policy state object for the entry that can be used
           // to perform any appropriate password policy processing.  Also, see
           // if the entry is being updated by the end user or an administrator.
-          selfChange = entryDN.equals(getAuthorizationDN());
+          DN authzDN = getAuthorizationDN();
+          selfChange = entryDN.equals(authzDN);
+
+          // Check that the authorizing account isn't required to change its
+          // password.
+          if (( !isInternalOperation()) && !selfChange
+              && getAuthorizationEntry() != null) {
+            AuthenticationPolicy authzPolicy = AuthenticationPolicy.forUser(
+                getAuthorizationEntry(), true);
+            if (authzPolicy.isPasswordPolicy())
+            {
+              PasswordPolicyState authzState = (PasswordPolicyState) authzPolicy
+                  .createAuthenticationPolicyState(getAuthorizationEntry());
+              if (authzState.mustChangePassword())
+              {
+                pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+                setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
+                    .get(authzDN != null ? String.valueOf(authzDN)
+                        : "anonymous"));
+                break modifyProcessing;
+              }
+            }
+          }
 
           // FIXME -- Need a way to enable debug mode.
           AuthenticationPolicy policy = AuthenticationPolicy.forUser(
@@ -537,23 +530,21 @@ modifyProcessing:
         }
 
 
-        DN authzDN = getAuthorizationDN();
-        if ((!passwordChanged) && (!isInternalOperation())
+        if ((!passwordChanged) && (!isInternalOperation()) && selfChange
             && pwPolicyState != null && pwPolicyState.mustChangePassword())
         {
-          if (authzDN != null && authzDN.equals(entryDN))
-          {
-            // The user did not attempt to change their password.
-            pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-            setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-            appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
-            break modifyProcessing;
-          }
+          // The user did not attempt to change their password.
+          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          DN authzDN = getAuthorizationDN();
+          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
+              .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
+          break modifyProcessing;
         }
 
 
         // If the server is configured to check the schema and the
-        // operation is not a sycnhronization operation,
+        // operation is not a synchronization operation,
         // make sure that the new entry is valid per the server schema.
         if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
         {

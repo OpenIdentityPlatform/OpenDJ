@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 
 import static org.testng.Assert.*;
 
@@ -85,22 +86,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -194,14 +195,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -286,10 +284,7 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -308,9 +303,9 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--add", "password-validator:Length-Based Password Validator");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--add", "password-validator:Length-Based Password Validator");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -379,14 +374,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--remove", "password-validator:Length-Based Password Validator");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--remove", "password-validator:Length-Based Password Validator");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -406,22 +398,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "lockout-failure-count:3");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "lockout-failure-count:3");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -486,14 +478,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "lockout-failure-count:0");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "lockout-failure-count:0");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -512,22 +501,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -590,14 +579,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -616,27 +602,27 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl",
-      "",
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl",
+        "",
+        "dn: ou=People,o=test",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: People");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -698,14 +684,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -771,22 +754,22 @@ public class PasswordPolicyControlTestCase
         "ds-privilege-name: bypass-acl");
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -866,14 +849,152 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
+
+      StaticUtils.close(s);
+    }
+  }
+
+
+
+  /**
+   * Tests that an appropriate password policy response control is
+   * returned for a modify operation when the authorized user is forced to
+   * change their own password before changing a different entry.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testAuthzModifyMustChange()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String userDN = "uid=test.admin,o=test";
+    String entryDN = "uid=test.user,o=test";
+    String authzDN = "uid=authz.user,o=test";
+
+    TestCaseUtils.addEntry(
+        "dn: uid=test.admin,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.admin",
+        "givenName: Test Admin",
+        "sn: Admin",
+        "cn: Test Admin",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl",
+        "ds-privilege-name: proxied-auth");
+
+    TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
+
+    TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+        "--set", "force-change-on-add:true");
 
-      try
+    TestCaseUtils.addEntry(
+        "dn: uid=authz.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: authz.user",
+        "givenName: Authz",
+        "sn: User",
+        "cn: Authz User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
+
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
+
+    try
+    {
+      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
+           ByteString.valueOf(userDN), 3,
+           ByteString.valueOf("password"));
+      LDAPMessage message = new LDAPMessage(1, bindRequest);
+      w.writeMessage(message);
+
+      message = r.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      mods.add(RawModification.create(ModificationType.REPLACE, "description",
+                                      "foo"));
+
+      ModifyRequestProtocolOp modifyRequest =
+           new ModifyRequestProtocolOp(ByteString.valueOf(entryDN), mods);
+
+      List<Control> controls = new ArrayList<Control>();
+      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
+      controls.add(new LDAPControl(OID_PROXIED_AUTH_V2, true,
+          ByteString.valueOf("dn:" + authzDN)));
+
+      message = new LDAPMessage(2, modifyRequest, controls);
+      w.writeMessage(message);
+
+      message = r.readMessage();
+      ModifyResponseProtocolOp modifyResponse =
+           message.getModifyResponseProtocolOp();
+
+      assertEquals(modifyResponse.getResultCode(),
+          LDAPResultCode.CONSTRAINT_VIOLATION);
+
+      controls = message.getControls();
+      assertNotNull(controls);
+      assertFalse(controls.isEmpty());
+
+      boolean found = false;
+      for(Control c : controls)
       {
-        s.close();
-      } catch (Exception e) {}
+        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+        {
+          PasswordPolicyResponseControl pwpControl;
+          if(c instanceof LDAPControl)
+          {
+            pwpControl =
+                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+          }
+          else
+          {
+            pwpControl = (PasswordPolicyResponseControl)c;
+          }
+          assertEquals(pwpControl.getErrorType(),
+              PasswordPolicyErrorType.CHANGE_AFTER_RESET);
+          found = true;
+        }
+      }
+      assertTrue(found);
+    }
+    finally
+    {
+      TestCaseUtils.dsconfig(
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
+
+      StaticUtils.close(s);
     }
   }
 
@@ -893,22 +1014,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "allow-user-password-changes:false");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "allow-user-password-changes:false");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -975,14 +1096,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "allow-user-password-changes:true");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "allow-user-password-changes:true");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -1002,22 +1120,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "password-history-count:5");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "password-history-count:5");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -1084,14 +1202,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "password-history-count:0");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "password-history-count:0");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -1111,22 +1226,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "password-change-requires-current-password:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "password-change-requires-current-password:true");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -1193,14 +1308,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "password-change-requires-current-password:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "password-change-requires-current-password:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -1220,22 +1332,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "min-password-age:24 hours");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "min-password-age:24 hours");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -1302,14 +1414,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "min-password-age:0 seconds");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "min-password-age:0 seconds");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -1328,27 +1437,27 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl",
-      "",
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl",
+        "",
+        "dn: ou=People,o=test",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: People");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -1412,14 +1521,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 
@@ -1438,22 +1544,22 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.dsconfig(
-      "set-password-policy-prop",
-      "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true");
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "ds-privilege-name: bypass-acl");
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -1520,14 +1626,11 @@ public class PasswordPolicyControlTestCase
     finally
     {
       TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false");
+          "set-password-policy-prop",
+          "--policy-name", "Default Password Policy",
+          "--set", "force-change-on-add:false");
 
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 }
