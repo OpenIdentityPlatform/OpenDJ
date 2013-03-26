@@ -77,7 +77,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.DereferencePolicy to(
+    public static org.opends.server.types.DereferencePolicy to(
             final DereferenceAliasesPolicy dereferenceAliasesPolicy) {
         return DereferencePolicy.values()[dereferenceAliasesPolicy.intValue()];
     }
@@ -90,7 +90,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.DN to(final DN userDn) {
+    public static org.opends.server.types.DN to(final DN userDn) {
         try {
             return org.opends.server.types.DN.decode(userDn.toString());
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.ByteString to(ByteString value) {
+    public static org.opends.server.types.ByteString to(final ByteString value) {
         if (value != null) {
             return org.opends.server.types.ByteString.wrap(value.toByteArray());
         }
@@ -121,7 +121,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.SearchScope to(
+    public static org.opends.server.types.SearchScope to(
             final org.forgerock.opendj.ldap.SearchScope searchScope) {
         return SearchScope.values()[searchScope.intValue()];
     }
@@ -134,7 +134,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.RawFilter to(final org.forgerock.opendj.ldap.Filter filter) {
+    public static org.opends.server.types.RawFilter to(final org.forgerock.opendj.ldap.Filter filter) {
         org.opends.server.protocols.ldap.LDAPFilter ldapFilter = null;
         try {
             ldapFilter = LDAPFilter.decode(filter.toString());
@@ -153,7 +153,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.SearchResultReference to(
+    public static org.opends.server.types.SearchResultReference to(
             final org.forgerock.opendj.ldap.responses.SearchResultReference searchResultReference) {
         return new SearchResultReference(searchResultReference.getURIs(), to(searchResultReference
                 .getControls()));
@@ -167,7 +167,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.ByteString to(final String value) {
+    public static org.opends.server.types.ByteString to(final String value) {
         return org.opends.server.types.ByteString.valueOf(value);
     }
 
@@ -179,7 +179,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.protocols.ldap.LDAPControl to(final Control control) {
+    public static org.opends.server.protocols.ldap.LDAPControl to(final Control control) {
         return new LDAPControl(control.getOID(), control.isCritical(), to(control.getValue()));
     }
 
@@ -192,7 +192,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final List<org.opends.server.types.Control> to(
+    public static List<org.opends.server.types.Control> to(
             final List<org.forgerock.opendj.ldap.controls.Control> listOfControl) {
         List<org.opends.server.types.Control> toListofControl =
                 new ArrayList<org.opends.server.types.Control>(listOfControl.size());
@@ -210,7 +210,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.RawAttribute to(
+    public static org.opends.server.types.RawAttribute to(
             final org.forgerock.opendj.ldap.Attribute attribute) {
         ArrayList<org.opends.server.types.ByteString> listAttributeValues =
                 new ArrayList<org.opends.server.types.ByteString>(attribute.size());
@@ -231,7 +231,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final List<org.opends.server.types.RawAttribute> to(
+    public static List<org.opends.server.types.RawAttribute> to(
             final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
         List<org.opends.server.types.RawAttribute> toListofAttributes =
                 new ArrayList<org.opends.server.types.RawAttribute>(
@@ -251,7 +251,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.RawModification to(
+    public static org.opends.server.types.RawModification to(
             final org.forgerock.opendj.ldap.Modification modification) {
         return new LDAPModification(to(modification.getModificationType()), to(modification
                 .getAttribute()));
@@ -266,7 +266,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final List<org.opends.server.types.RawModification> toModifications(
+    public static List<org.opends.server.types.RawModification> toModifications(
             final List<org.forgerock.opendj.ldap.Modification> listOfModifications) {
         List<org.opends.server.types.RawModification> toListofModifications =
                 new ArrayList<org.opends.server.types.RawModification>(listOfModifications.size());
@@ -285,7 +285,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.ModificationType to(
+    public static org.opends.server.types.ModificationType to(
             final org.forgerock.opendj.ldap.ModificationType modificationType) {
         return ModificationType.values()[modificationType.intValue()];
     }
@@ -298,7 +298,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final ByteString from(final org.opends.server.types.ByteString value) {
+    public static ByteString from(final org.opends.server.types.ByteString value) {
         if (value != null) {
             return ByteString.wrap(value.toByteArray());
         }
@@ -314,7 +314,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final Control from(final org.opends.server.protocols.ldap.LDAPControl ldapControl) {
+    public static Control from(final org.opends.server.protocols.ldap.LDAPControl ldapControl) {
         return GenericControl.newControl(ldapControl.getOID(), ldapControl.isCritical(),
                 from(ldapControl.getValue()));
     }
@@ -327,7 +327,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final Control from(final org.opends.server.types.Control control) {
+    public static Control from(final org.opends.server.types.Control control) {
 
         String oid = null;
         boolean isCritical = false;
@@ -376,7 +376,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final List<org.forgerock.opendj.ldap.controls.Control> from(
+    public static List<org.forgerock.opendj.ldap.controls.Control> from(
             final List<org.opends.server.types.Control> listOfControl) {
         List<org.forgerock.opendj.ldap.controls.Control> fromListofControl =
                 new ArrayList<org.forgerock.opendj.ldap.controls.Control>(listOfControl.size());
@@ -395,7 +395,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.forgerock.opendj.ldap.responses.SearchResultReference from(
+    public static org.forgerock.opendj.ldap.responses.SearchResultReference from(
             final org.opends.server.types.SearchResultReference srvResultReference) {
         return Responses.newSearchResultReference(srvResultReference.getReferralURLString());
     }
@@ -408,7 +408,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.forgerock.opendj.ldap.Attribute from(
+    public static org.forgerock.opendj.ldap.Attribute from(
             final org.opends.server.types.Attribute attribute) {
         Attribute sdkAttribute = new LinkedAttribute(attribute.getNameWithOptions());
         for (AttributeValue value : attribute) {
@@ -426,7 +426,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final List<org.forgerock.opendj.ldap.Attribute> from(
+    public static List<org.forgerock.opendj.ldap.Attribute> from(
             final Iterable<org.opends.server.types.Attribute> listOfAttributes) {
         List<org.forgerock.opendj.ldap.Attribute> fromListofAttributes =
                 new ArrayList<org.forgerock.opendj.ldap.Attribute>(
@@ -446,7 +446,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.forgerock.opendj.ldap.responses.SearchResultEntry from(
+    public static org.forgerock.opendj.ldap.responses.SearchResultEntry from(
             final org.opends.server.types.SearchResultEntry srvResultEntry) {
 
         final SearchResultEntry searchResultEntry =
@@ -482,7 +482,7 @@ public final class Converters {
      * @throws ErrorResultException
      *           when an error occurs
      */
-    static final <T extends Result> T getResponseResult(final Operation operation, final T result)
+    public static <T extends Result> T getResponseResult(final Operation operation, final T result)
             throws ErrorResultException {
         if (operation.getReferralURLs() != null) {
             for (String ref : operation.getReferralURLs()) {
@@ -515,7 +515,7 @@ public final class Converters {
      * @throws ErrorResultException
      *           when an error occurs
      */
-    static final Result getResponseResult(final Operation operation) throws ErrorResultException {
+    public static Result getResponseResult(final Operation operation) throws ErrorResultException {
         Result result = Responses.newResult(getResultCode(operation));
         return getResponseResult(operation, result);
     }
@@ -528,7 +528,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final ResultCode getResultCode(final Operation operation) {
+    public static ResultCode getResultCode(final Operation operation) {
         return ResultCode.valueOf(operation.getResultCode().getIntValue());
     }
 
@@ -540,7 +540,7 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    static final org.opends.server.types.ByteString getCredentials(final byte[] authenticationValue) {
+    public static org.opends.server.types.ByteString getCredentials(final byte[] authenticationValue) {
         final org.opends.server.protocols.asn1.ASN1Reader reader =
                 ASN1.getReader(authenticationValue);
         org.opends.server.types.ByteString saslCred = org.opends.server.types.ByteString.empty();
