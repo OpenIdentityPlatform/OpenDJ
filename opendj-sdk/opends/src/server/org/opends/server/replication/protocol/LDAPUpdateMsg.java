@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -40,12 +40,12 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
@@ -189,8 +189,8 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @throws  ASN1Exception In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
-  public AbstractOperation createOperation(InternalClientConnection conn)
-         throws LDAPException, ASN1Exception, DataFormatException
+  public Operation createOperation(InternalClientConnection conn)
+      throws LDAPException, ASN1Exception, DataFormatException
   {
     return createOperation(conn, dn);
   }
@@ -206,9 +206,8 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @throws  ASN1Exception In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
-  public abstract AbstractOperation createOperation(
-         InternalClientConnection conn, String newDn)
-         throws LDAPException, ASN1Exception, DataFormatException;
+  public abstract Operation createOperation(InternalClientConnection conn,
+      String newDn) throws LDAPException, ASN1Exception, DataFormatException;
 
 
   // ============
@@ -460,9 +459,9 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    {
      /* first byte is the type */
      boolean foundMatchingType = false;
-     for (int i = 0; i < types.length; i++)
+     for (byte type : types)
      {
-       if (types[i] == encodedMsg[0])
+       if (type == encodedMsg[0])
        {
          foundMatchingType = true;
          break;
@@ -485,7 +484,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
      }
 
      /* read the protocol version */
-     protocolVersion = (short)encodedMsg[1];
+     protocolVersion = encodedMsg[1];
 
      try
      {
@@ -589,6 +588,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    *
    * @return The number of bytes used by this message.
    */
+  @Override
   public abstract int size();
 
   /**

@@ -23,47 +23,45 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
-import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-import org.opends.server.types.AttributeType;
+import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
-import org.opends.server.core.DirectoryServer;
-import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 import static org.opends.server.TestCaseUtils.*;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -239,7 +237,6 @@ public class HistoricalTest
     after = hist.encodeAndPurge();
     assertTrue(after.isEmpty());
     assertEquals(hist.getLastPurgedValuesCount(),11);
-
   }
 
   /**
@@ -470,7 +467,7 @@ public class HistoricalTest
     for (FakeOperation fake : ops)
     {
       LDAPUpdateMsg msg = (LDAPUpdateMsg) fake.generateMessage();
-      AbstractOperation op =
+      Operation op =
         msg.createOperation(InternalClientConnection.getRootConnection());
       op.setInternalOperation(true);
       op.setSynchronizationOperation(true);
@@ -488,7 +485,7 @@ public class HistoricalTest
    */
   private void assertFakeOperations(final DN dn1, Entry entry,
       Iterable<FakeOperation> ops, int assertCount) throws Exception
-      {
+  {
     int count = 0;
     for (FakeOperation op : ops)
     {
@@ -512,7 +509,7 @@ public class HistoricalTest
         if (count == 1)
         {
           // The first operation should be an ADD operation.
-          assertTrue(false, "FakeAddOperation was not correctly generated"
+          fail("FakeAddOperation was not correctly generated"
               + " from historical information");
         }
       }

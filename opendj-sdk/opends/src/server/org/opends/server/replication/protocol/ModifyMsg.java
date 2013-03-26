@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -38,11 +38,11 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 
@@ -133,9 +133,8 @@ public class ModifyMsg extends ModifyCommonMsg
    * {@inheritDoc}
    */
   @Override
-  public AbstractOperation createOperation(InternalClientConnection connection,
-      String newDn)
-  throws LDAPException, ASN1Exception, DataFormatException
+  public Operation createOperation(InternalClientConnection connection,
+      String newDn) throws LDAPException, ASN1Exception, DataFormatException
   {
     if (newDn == null)
       newDn = getDn();
@@ -149,7 +148,6 @@ public class ModifyMsg extends ModifyCommonMsg
     ModifyContext ctx = new ModifyContext(getChangeNumber(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
-
   }
 
 
@@ -181,10 +179,8 @@ public class ModifyMsg extends ModifyCommonMsg
         }
       } catch (LDAPException e)
       {
-
       } catch (ASN1Exception e)
       {
-
       }
 
       return "ModifyMsg content: " +
@@ -222,6 +218,7 @@ public class ModifyMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     /* encode the header in a byte[] large enough to also contain the mods */
@@ -238,6 +235,7 @@ public class ModifyMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
     // Encoding V2 / V3
@@ -256,6 +254,7 @@ public class ModifyMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
   {

@@ -28,16 +28,11 @@
 package org.opends.server.replication;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.opends.server.util.StaticUtils.createEntry;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -103,7 +98,6 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeValue;
@@ -119,6 +113,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -2755,8 +2750,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    *
    * @throws Exception If the environment could not be set up.
    */
+  @Override
   @AfterClass
-
   public void classCleanUp() throws Exception
   {
     callParanoiaCheck = false;
@@ -3345,10 +3340,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 1);
       if (entries != null)
       {
-        int i=0;
         for (SearchResultEntry resultEntry : entries)
         {
-          i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           ldifWriter.writeEntry(resultEntry);
           // check the entry has the right content
@@ -3413,10 +3406,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 1);
       if (entries != null)
       {
-        int i=0;
         for (SearchResultEntry resultEntry : entries)
         {
-          i++;
           // Just verify that no entry contains the ChangeLogCookie control
           List<Control> controls = resultEntry.getControls();
           assertTrue(controls.isEmpty());
@@ -3475,10 +3466,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           lastDraftChangeNumber-firstDraftChangeNumber+1);
       if (searchOp.getSearchEntries() != null)
       {
-        int i=0;
         for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
         {
-          i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
         }
       }
@@ -3569,10 +3558,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 1);
       if (entries != null)
       {
-        int i=0;
         for (SearchResultEntry resultEntry : entries)
         {
-          i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           ldifWriter.writeEntry(resultEntry);
           // check the DEL entry has the right content
@@ -3815,10 +3802,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 1);
       if (entries != null)
       {
-        int i=0;
         for (SearchResultEntry resultEntry : entries)
         {
-          i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           ldifWriter.writeEntry(resultEntry);
           if (eclEnabled)
@@ -4087,10 +4072,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         debugInfo(tn, "Perfs - last 3 changes searched in (ms):" + (t5 - t4));
         if (searchOp.getSearchEntries() != null)
         {
-          int i=0;
           for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
           {
-            i++;
             debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           }
         }
@@ -4422,8 +4405,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return targetEntry;
   }
 
-  private void waitOpResult(AbstractOperation operation,
-      ResultCode expectedResult)
+  private void waitOpResult(Operation operation, ResultCode expectedResult)
   {
     int ii=0;
     while((operation.getResultCode()==ResultCode.UNDEFINED) ||

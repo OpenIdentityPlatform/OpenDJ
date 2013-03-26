@@ -41,13 +41,13 @@ import org.opends.server.api.*;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 /**
@@ -63,16 +63,16 @@ public class JmxClientConnection
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The message ID counter to use for jmx connections.
+  /** The message ID counter to use for jmx connections. */
   private AtomicInteger nextMessageID;
 
-  // The operation ID counter to use for operations on this connection.
+  /** The operation ID counter to use for operations on this connection. */
   private AtomicLong nextOperationID;
 
-  // The empty operation list for this connection.
+  /** The empty operation list for this connection. */
   private LinkedList<Operation> operationList;
 
-  // The connection ID for this client connection.
+  /** The connection ID for this client connection. */
   private long connectionID;
 
   /**
@@ -1028,7 +1028,7 @@ public class JmxClientConnection
    *          <CODE>null</CODE> if no such operation could be found.
    */
   @Override
-  public AbstractOperation getOperationInProgress(int messageID)
+  public Operation getOperationInProgress(int messageID)
   {
     // Jmx operations will not be tracked.
     return null;

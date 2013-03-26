@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.core;
 
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Operation;
 
 /**
  * This interface defines request handling strategies.
@@ -42,7 +42,6 @@ public interface QueueingStrategy {
    * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs in the Directory Server.
    */
-  public void enqueueRequest(AbstractOperation operation)
-    throws DirectoryException;
+  public void enqueueRequest(Operation operation) throws DirectoryException;
 
 }

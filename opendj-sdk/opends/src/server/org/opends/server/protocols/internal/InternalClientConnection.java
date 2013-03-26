@@ -55,7 +55,7 @@ import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -88,20 +88,19 @@ public final class InternalClientConnection
 
 
 
-  // The message ID counter to use for internal connections.
+  /** The message ID counter to use for internal connections. */
   private static AtomicInteger nextMessageID;
 
-  // The connection ID counter to use for internal connections.
+  /** The connection ID counter to use for internal connections. */
   private static AtomicLong nextConnectionID;
 
-  // The operation ID counter to use for operations on this
-  // connection.
+  /** The operation ID counter to use for operations on this connection. */
   private static AtomicLong nextOperationID;
 
-  // The static connection for root-based connections.
+  /** The static connection for root-based connections. */
   private static InternalClientConnection rootConnection;
 
-  // The connection ID for this client connection.
+  /** The connection ID for this client connection. */
   private final long connectionID;
 
 
@@ -2648,7 +2647,7 @@ public final class InternalClientConnection
        mayExtend=false,
        mayInvoke=false)
   @Override()
-  public AbstractOperation getOperationInProgress(int messageID)
+  public Operation getOperationInProgress(int messageID)
   {
     // Internal operations will not be tracked.
     return null;

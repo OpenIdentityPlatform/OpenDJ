@@ -1210,7 +1210,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    *           client already has reached the maximum allowed concurrent
    *           requests).
    */
-  private void addOperationInProgress(AbstractOperation operation)
+  private void addOperationInProgress(Operation operation)
       throws DirectoryException
   {
     int messageID = operation.getMessageID();
