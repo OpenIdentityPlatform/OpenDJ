@@ -620,8 +620,7 @@ MODIFY operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66E
        <para>If the server uses encrypted or signed data, then the shared secret
        keys used for encryption or signing and associated with the compromised
        key pair should also be considered compromised. Therefore, mark all
-       shared secret keys encrypted with with the instance key as
-       compromised.</para>
+       shared secret keys encrypted with the instance key as compromised.</para>
 
        <para>To identify the shared secret keys, find the list of secret keys
        in the administrative data whose <literal>ds-cfg-symmetric-key</literal>
