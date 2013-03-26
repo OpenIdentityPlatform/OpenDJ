@@ -4666,6 +4666,33 @@ public final class StaticUtils
   }
 
   /**
+   * Closes the provided {@link Socket}s ignoring any errors which occurred.
+   * <p>
+   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
+   * </p>
+   *
+   * @param sockets
+   *          The sockets to be closed, which may be <code>null</code>.
+   */
+  public static void close(Socket... sockets)
+  {
+    for (Socket socket : sockets)
+    {
+      if (socket != null)
+      {
+        try
+        {
+          socket.close();
+        }
+        catch (IOException ignored)
+        {
+          // Ignore.
+        }
+      }
+    }
+  }
+
+  /**
    * Returns an {@link Iterable} returning the passed in {@link Iterator}. THis
    * allows using methods returning Iterators with foreach statements.
    * <p>

@@ -7296,7 +7296,10 @@ public final class DirectoryServer
             }
           }
 
-          Message message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD.get();
+          DN user = clientConnection.getAuthenticationInfo()
+              .getAuthorizationDN();
+          Message message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
+              .get(user != null ? user.toString() : "anonymous");
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
 
@@ -7321,7 +7324,10 @@ public final class DirectoryServer
               }
             }
 
-            message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD.get();
+            user = clientConnection.getAuthenticationInfo()
+                .getAuthorizationDN();
+            message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
+                .get(user != null ? user.toString() : "anonymous");
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }
