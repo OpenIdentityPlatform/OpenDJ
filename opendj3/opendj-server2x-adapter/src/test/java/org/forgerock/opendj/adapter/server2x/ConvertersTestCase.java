@@ -25,7 +25,8 @@
  */
 package org.forgerock.opendj.adapter.server2x;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.adapter.server2x.Converters.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -61,10 +62,6 @@ import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.from;
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.to;
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.getCredentials;
-
 /**
  * This class defines a set of tests for the StaticUtils.class.
  * <p>
@@ -77,7 +74,7 @@ import static org.forgerock.opendj.adapter.server2x.StaticUtils.getCredentials;
  */
 @SuppressWarnings("javadoc")
 @Test()
-public class StaticUtilsTestCase extends ForgeRockTestCase {
+public class ConvertersTestCase extends ForgeRockTestCase {
 
     /**
      * Launched before the tests, this function starts the embedded server.

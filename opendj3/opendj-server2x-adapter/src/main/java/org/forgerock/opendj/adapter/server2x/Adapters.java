@@ -23,7 +23,6 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-
 package org.forgerock.opendj.adapter.server2x;
 
 import java.net.InetAddress;
@@ -81,11 +80,8 @@ import org.opends.server.types.SearchResultReference;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
 
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.from;
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.to;
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.toModifications;
-import static org.forgerock.opendj.adapter.server2x.StaticUtils.getCredentials;
-import static org.forgerock.opendj.ldap.ByteString.valueOf;
+import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.forgerock.opendj.ldap.ByteString.*;
 
 /**
  * This class provides a connection factory and an adapter for the OpenDJ 2.x
@@ -231,7 +227,7 @@ public final class Adapters {
                                         .getAttributes()), to(request.getControls()),
                                 internalSearchListener);
 
-                return StaticUtils.getResponseResult(internalSO);
+                return getResponseResult(internalSO);
             }
 
             @Override
@@ -241,24 +237,20 @@ public final class Adapters {
 
             @Override
             public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
-
                 final ModifyDNOperation modifyDNOperation =
                         icc.processModifyDN(to(valueOf(request.getName())), to(valueOf(request
                                 .getNewRDN())), request.isDeleteOldRDN(),
                                 (request.getNewSuperior() != null ? to(valueOf(request
                                         .getNewSuperior())) : null), to(request.getControls()));
-                return StaticUtils.getResponseResult(modifyDNOperation);
-
+                return getResponseResult(modifyDNOperation);
             }
 
             @Override
             public Result modify(final ModifyRequest request) throws ErrorResultException {
-
                 final ModifyOperation modifyOperation =
                         icc.processModify(to(valueOf(request.getName())), toModifications(request
                                 .getModifications()), to(request.getControls()));
-                return StaticUtils.getResponseResult(modifyOperation);
-
+                return getResponseResult(modifyOperation);
             }
 
             @Override
@@ -280,7 +272,7 @@ public final class Adapters {
                         icc.processExtendedOperation(request.getOID(), to(request.getValue()),
                                 to(request.getControls()));
 
-                final Result result = StaticUtils.getResponseResult(extendedOperation);
+                final Result result = getResponseResult(extendedOperation);
                 final GenericExtendedResult genericExtendedResult =
                         Responses.newGenericExtendedResult(result.getResultCode())
                                 .setDiagnosticMessage(result.getDiagnosticMessage()).setMatchedDN(
@@ -308,21 +300,19 @@ public final class Adapters {
             public Result delete(final DeleteRequest request) throws ErrorResultException {
                 final DeleteOperation deleteOperation =
                         icc.processDelete(to(valueOf(request.getName())), to(request.getControls()));
-                return StaticUtils.getResponseResult(deleteOperation);
-
+                return getResponseResult(deleteOperation);
             }
 
             @Override
             public CompareResult compare(final CompareRequest request) throws ErrorResultException {
-
                 final CompareOperation compareOperation =
                         icc.processCompare(to(valueOf(request.getName())), request
                                 .getAttributeDescription().toString(), to(request
                                 .getAssertionValueAsString()), to(request.getControls()));
 
                 CompareResult result =
-                        Responses.newCompareResult(StaticUtils.getResultCode(compareOperation));
-                result = StaticUtils.getResponseResult(compareOperation, result);
+                        Responses.newCompareResult(getResultCode(compareOperation));
+                result = getResponseResult(compareOperation, result);
                 return result;
             }
 
@@ -364,7 +354,7 @@ public final class Adapters {
                             .newResult(ResultCode.AUTH_METHOD_NOT_SUPPORTED));
                 }
                 BindResult result =
-                        Responses.newBindResult(StaticUtils.getResultCode(bindOperation));
+                        Responses.newBindResult(getResultCode(bindOperation));
                 result.setServerSASLCredentials(from(bindOperation.getSASLCredentials()));
 
                 if (result.isSuccess()) {
@@ -384,7 +374,7 @@ public final class Adapters {
                 final AddOperation addOperation =
                         icc.processAdd(to(valueOf(request.getName())), to(request
                                 .getAllAttributes()), to(request.getControls()));
-                return StaticUtils.getResponseResult(addOperation);
+                return getResponseResult(addOperation);
             }
 
             @Override
