@@ -427,7 +427,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="config-file" mandatory="true" advanced="true">
+  <adm:property name="config-file" mandatory="true">
     <adm:synopsis>
       Specifies the name of the configuration file for the HTTP Connection Handler.
     </adm:synopsis>
