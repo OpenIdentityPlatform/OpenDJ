@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-import-export'
@@ -85,6 +85,11 @@
     data, and on the sample template, 
     <filename>OpenDJ/config/MakeLDIF/example.template</filename>, and
     associated data.</para>
+
+    <para>See <link xlink:href="admin-guide#make-ldif-template-5"
+    xlink:role="http://docbook.org/xlink/role/olink" xlink:show="new"><citetitle
+    >make-ldif.template</citetitle></link> for reference information about
+    template files.</para>
    </step>
    <step>
     <para>Create additional data files for the content in your template to be
