@@ -274,11 +274,11 @@ public class AsynchronousFutureResult<M, H extends ResultHandler<? super M>> imp
     }
 
     /**
-     * Returns the request handler associated to this FutureResult.
+     * Returns the result handler associated to this FutureResult.
      *
-     * @return the request handler associated to this FutureResult.
+     * @return the result handler associated to this FutureResult.
      */
-    public H getRequestHandler() {
+    public H getResultHandler() {
         return handler;
     }
 
