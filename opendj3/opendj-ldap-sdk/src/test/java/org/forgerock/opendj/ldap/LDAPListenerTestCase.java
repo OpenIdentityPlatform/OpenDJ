@@ -24,12 +24,11 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2012 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -65,10 +64,10 @@ import com.forgerock.opendj.util.StaticUtils;
 public class LDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
-        final AsynchronousFutureResult<Throwable> connectionError =
-                new AsynchronousFutureResult<Throwable>(null);
-        final AsynchronousFutureResult<LDAPClientContext> context =
-                new AsynchronousFutureResult<LDAPClientContext>(null);
+        final AsynchronousFutureResult<Throwable, ResultHandler<? super Throwable>> connectionError =
+                new AsynchronousFutureResult<Throwable, ResultHandler<? super Throwable>>(null);
+        final AsynchronousFutureResult<LDAPClientContext, ResultHandler<? super LDAPClientContext>> context =
+                new AsynchronousFutureResult<LDAPClientContext, ResultHandler<? super LDAPClientContext>>(null);
         final CountDownLatch isClosed = new CountDownLatch(1);
 
         MockServerConnection() {

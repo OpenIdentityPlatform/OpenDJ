@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +70,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         /**
          * {@inheritDoc}
          */
+        @Override
         public Connection getConnection() throws ErrorResultException {
             final Connection connection;
             try {
@@ -92,8 +93,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         @Override
         public FutureResult<Connection> getConnectionAsync(
                 final ResultHandler<? super Connection> resultHandler) {
-            final AsynchronousFutureResult<Connection> future =
-                    new AsynchronousFutureResult<Connection>(resultHandler);
+            final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
+                   new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(resultHandler);
 
             final ResultHandler<Connection> failoverHandler = new ResultHandler<Connection>() {
                 @Override

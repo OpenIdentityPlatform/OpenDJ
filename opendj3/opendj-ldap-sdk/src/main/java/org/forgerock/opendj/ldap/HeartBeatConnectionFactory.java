@@ -27,9 +27,10 @@
 
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
-import static java.lang.System.currentTimeMillis;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static com.forgerock.opendj.util.StaticUtils.*;
+import static java.lang.System.*;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -85,7 +86,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * @param <R>
          *            The type of result returned by the request.
          */
-        private abstract class DelayedFuture<R extends Result> extends AsynchronousFutureResult<R>
+        private abstract class DelayedFuture<R extends Result>
+                extends AsynchronousFutureResult<R, ResultHandler<? super R>>
                 implements Runnable {
             private volatile FutureResult<R> innerFuture = null;
 

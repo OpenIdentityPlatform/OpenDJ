@@ -26,7 +26,7 @@
 
 package com.forgerock.opendj.util;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -63,9 +63,13 @@ import org.forgerock.opendj.ldap.ResultHandler;
  * </ul>
  *
  * @param <M>
- *            The type of result returned by this completion future.
+ *          The type of result returned by this future.
+ * @param <H>
+ *          The type of {@link ResultHandler} associated to this future.
  */
-public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandler<M> {
+public class AsynchronousFutureResult<M, H extends ResultHandler<? super M>> implements
+    FutureResult<M>, ResultHandler<M> {
+
     @SuppressWarnings("serial")
     private final class Sync extends AbstractQueuedSynchronizer {
         // State value representing the initial state before a result has
@@ -212,7 +216,7 @@ public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandl
 
     private final Sync sync = new Sync();
 
-    private final ResultHandler<? super M> handler;
+    private final H handler;
 
     private final int requestID;
 
@@ -224,7 +228,7 @@ public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandl
      *            A result handler which will be forwarded the result or error
      *            when it arrives, may be {@code null}.
      */
-    public AsynchronousFutureResult(final ResultHandler<? super M> handler) {
+    public AsynchronousFutureResult(final H handler) {
         this(handler, -1);
     }
 
@@ -239,7 +243,7 @@ public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandl
      *            The request ID which will be returned by the default
      *            implementation of {@link #getRequestID}.
      */
-    public AsynchronousFutureResult(final ResultHandler<? super M> handler, final int requestID) {
+    public AsynchronousFutureResult(final H handler, final int requestID) {
         this.handler = handler;
         this.requestID = requestID;
     }
@@ -267,6 +271,15 @@ public class AsynchronousFutureResult<M> implements FutureResult<M>, ResultHandl
     public final M get(final long timeout, final TimeUnit unit) throws ErrorResultException,
             TimeoutException, InterruptedException {
         return sync.innerGet(unit.toNanos(timeout));
+    }
+
+    /**
+     * Returns the request handler associated to this FutureResult.
+     *
+     * @return the request handler associated to this FutureResult.
+     */
+    public H getRequestHandler() {
+        return handler;
     }
 
     /**

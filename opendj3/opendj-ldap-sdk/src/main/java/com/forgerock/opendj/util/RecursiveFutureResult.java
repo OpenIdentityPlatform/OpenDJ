@@ -47,11 +47,14 @@ import org.forgerock.opendj.ldap.ResultHandler;
  *            The type of the outer result.
  */
 public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, ResultHandler<M> {
-    private final class FutureResultImpl extends AsynchronousFutureResult<N> {
+
+    private final class FutureResultImpl extends AsynchronousFutureResult<N, ResultHandler<? super N>> {
+
         private FutureResultImpl(final ResultHandler<? super N> handler) {
             super(handler);
         }
 
+        @Override
         public int getRequestID() {
             if (innerFuture instanceof FutureResult<?>) {
                 final FutureResult<?> tmp = (FutureResult<?>) innerFuture;
@@ -97,6 +100,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
         return impl.cancel(mayInterruptIfRunning);
     }
@@ -104,6 +108,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final N get() throws ErrorResultException, InterruptedException {
         return impl.get();
     }
@@ -111,6 +116,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final N get(final long timeout, final TimeUnit unit) throws ErrorResultException,
             TimeoutException, InterruptedException {
         return impl.get(timeout, unit);
@@ -119,6 +125,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final int getRequestID() {
         return impl.getRequestID();
     }
@@ -126,6 +133,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final void handleErrorResult(final ErrorResultException error) {
         try {
             outerFuture = chainErrorResult(error, impl);
@@ -137,6 +145,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final void handleResult(final M result) {
         try {
             outerFuture = chainResult(result, impl);
@@ -148,6 +157,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean isCancelled() {
         return impl.isCancelled();
     }
@@ -155,6 +165,7 @@ public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>, Re
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean isDone() {
         return impl.isDone();
     }

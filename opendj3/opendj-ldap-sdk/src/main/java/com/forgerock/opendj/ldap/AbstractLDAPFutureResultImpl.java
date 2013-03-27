@@ -44,8 +44,10 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
  * @param <S>
  *            The type of result returned by this future.
  */
-abstract class AbstractLDAPFutureResultImpl<S extends Result> extends AsynchronousFutureResult<S>
+abstract class AbstractLDAPFutureResultImpl<S extends Result>
+        extends AsynchronousFutureResult<S, ResultHandler<? super S>>
         implements IntermediateResponseHandler {
+
     private final Connection connection;
 
     private final int requestID;
@@ -54,9 +56,10 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Asynchrono
 
     private volatile long timestamp;
 
-    AbstractLDAPFutureResultImpl(final int requestID, final ResultHandler<? super S> resultHandler,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final Connection connection) {
+    AbstractLDAPFutureResultImpl(final int requestID,
+        final ResultHandler<? super S> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final Connection connection) {
         super(resultHandler);
         this.requestID = requestID;
         this.connection = connection;
@@ -72,6 +75,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Asynchrono
         return requestID;
     }
 
+    /** {@inheritDoc} */
     @Override
     public final boolean handleIntermediateResponse(final IntermediateResponse response) {
         // FIXME: there's a potential race condition here - the future could
