@@ -27,7 +27,7 @@
 
 package com.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -68,16 +68,19 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     private final class CompletionHandlerAdapter implements
             CompletionHandler<org.glassfish.grizzly.Connection> {
 
-        private final AsynchronousFutureResult<? super Connection> future;
+        private final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future;
 
-        private CompletionHandlerAdapter(final AsynchronousFutureResult<? super Connection> future) {
+        private CompletionHandlerAdapter(
+                final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future) {
             this.future = future;
         }
 
+        @Override
         public void cancelled() {
             // Ignore this.
         }
 
+        @Override
         public void completed(final org.glassfish.grizzly.Connection result) {
             // Adapt the connection.
             final LDAPConnection connection = adaptConnection(result);
@@ -105,10 +108,12 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                 startTLS.addEnabledProtocol(options.getEnabledProtocols().toArray(
                         new String[options.getEnabledProtocols().size()]));
                 final ResultHandler<ExtendedResult> handler = new ResultHandler<ExtendedResult>() {
+                    @Override
                     public void handleErrorResult(final ErrorResultException error) {
                         onFailure(connection, error);
                     }
 
+                    @Override
                     public void handleResult(final ExtendedResult result) {
                         onSuccess(connection);
                     }
@@ -137,11 +142,13 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             }
         }
 
+        @Override
         public void failed(final Throwable throwable) {
             // Adapt and forward.
             future.handleErrorResult(adaptConnectionException(throwable));
         }
 
+        @Override
         public void updated(final org.glassfish.grizzly.Connection result) {
             // Ignore this.
         }
@@ -181,7 +188,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                 connection.close();
             }
         }
-    };
+    }
 
     private final LDAPClientFilter clientFilter;
     private final FilterChain defaultFilterChain;
@@ -233,8 +240,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             final ResultHandler<? super Connection> handler) {
         final SocketConnectorHandler connectorHandler =
                 TCPNIOConnectorHandler.builder(transport).processor(defaultFilterChain).build();
-        final AsynchronousFutureResult<Connection> future =
-                new AsynchronousFutureResult<Connection>(handler);
+        final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
+                new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
         final CompletionHandlerAdapter cha = new CompletionHandlerAdapter(future);
         connectorHandler.connect(socketAddress, cha);
         return future;
