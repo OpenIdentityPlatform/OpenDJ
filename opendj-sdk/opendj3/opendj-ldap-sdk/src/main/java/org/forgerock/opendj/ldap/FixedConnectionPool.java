@@ -27,9 +27,10 @@
 
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -536,7 +537,7 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         QueueElement(final ResultHandler<? super Connection> handler) {
-            this.value = new AsynchronousFutureResult<Connection>(handler);
+            this.value = new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
         }
 
         @Override
@@ -553,8 +554,8 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @SuppressWarnings("unchecked")
-        AsynchronousFutureResult<Connection> getWaitingFuture() {
-            return (AsynchronousFutureResult<Connection>) value;
+        AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> getWaitingFuture() {
+            return (AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>) value;
         }
 
         boolean isWaitingFuture() {
