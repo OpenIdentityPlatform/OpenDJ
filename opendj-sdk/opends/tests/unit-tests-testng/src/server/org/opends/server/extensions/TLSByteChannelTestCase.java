@@ -54,7 +54,7 @@ import org.w3c.dom.NodeList;
 /**
  * Tests for {@link TLSByteChannel} class.
  */
-@Test(groups = { "slow" })
+@Test(groups = { "slow" }, sequential = true)
 public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
 
