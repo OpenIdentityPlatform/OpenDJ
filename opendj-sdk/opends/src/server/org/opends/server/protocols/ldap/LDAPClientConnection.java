@@ -1149,6 +1149,10 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // NYI -- Log a message indicating that we couldn't send the
         // notice of disconnection.
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -1239,8 +1243,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         // then reject the operation.
         if (disconnectRequested)
         {
-          Message message =
-            WARN_LDAP_CLIENT_DISCONNECT_IN_PROGRESS.get();
+          Message message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
               message);
         }

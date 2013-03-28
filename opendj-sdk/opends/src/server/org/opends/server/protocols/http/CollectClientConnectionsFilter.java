@@ -42,7 +42,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import org.forgerock.opendj.adapter.server2x.Adapters;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -89,7 +89,7 @@ final class CollectClientConnectionsFilter implements Filter
   {
     final Map<ClientConnection, ClientConnection> clientConnections =
         this.connectionHandler.getClientConnectionsMap();
-    final ClientConnection clientConnection =
+    final HTTPClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
     clientConnections.put(clientConnection, clientConnection);
     try
@@ -131,9 +131,8 @@ final class CollectClientConnectionsFilter implements Filter
         return;
       }
 
-      // TODO JNR handle authentication + send the HTTPClientConnection
-      // to Rest2LDAP
-      Object result = Adapters.newRootConnection();
+      // TODO JNR handle authentication
+      Connection connectionAdapter = new SdkConnectionAdapter(clientConnection);
 
       // WARNING: This action triggers 3-4 others:
       // Set the connection for use with this request on the HttpServletRequest.
@@ -141,7 +140,7 @@ final class CollectClientConnectionsFilter implements Filter
       // AuthenticatedConnectionContext which will in turn ensure Rest2LDAP uses
       // the supplied Connection object
       request.setAttribute(Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION,
-          result);
+          connectionAdapter);
 
       // send the request further down the filter chain or pass to servlet
       chain.doFilter(request, response);
