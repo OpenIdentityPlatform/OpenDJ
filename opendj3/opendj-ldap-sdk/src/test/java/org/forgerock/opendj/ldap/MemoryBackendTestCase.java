@@ -26,8 +26,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory;
-import static org.forgerock.opendj.ldap.Connections.newServerConnectionFactory;
+import static org.forgerock.opendj.ldap.Connections.newInternalConnection;
 import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
@@ -398,7 +397,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
                 getUser1Entry());
     }
 
-    private Connection getConnection() throws IOException, ErrorResultException {
+    private Connection getConnection() throws IOException {
         // @formatter:off
         final MemoryBackend backend =
                 new MemoryBackend(new LDIFEntryReader(
@@ -440,10 +439,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
                 ));
         // @formatter:on
 
-        final Connection connection =
-                newInternalConnectionFactory(newServerConnectionFactory(backend), null)
-                        .getConnection();
-        return connection;
+        return newInternalConnection(backend);
     }
 
     private Entry getUser1Entry() {
