@@ -157,7 +157,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private class TimeoutWriteByteChannel implements ByteChannel
   {
-    // Synchronize concurrent writes to the same connection.
+    /** Synchronize concurrent writes to the same connection. */
     private final Lock writeLock = new ReentrantLock();
 
     @Override
@@ -309,9 +309,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   }
 
 
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
   /**
@@ -331,7 +329,9 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-  // Cached ASN1 writer: a thread can only write to one connection at a time.
+  /**
+   * Cached ASN1 writer: a thread can only write to one connection at a time.
+   */
   private static final ThreadLocal<ASN1WriterHolder> ASN1_WRITER_CACHE =
       new ThreadLocal<ASN1WriterHolder>()
   {
@@ -357,76 +357,89 @@ public final class LDAPClientConnection extends ClientConnection implements
     return holder;
   }
 
-  // The time that the last operation was completed.
+  /** The time that the last operation was completed. */
   private final AtomicLong lastCompletionTime;
 
-  // The next operation ID that should be used for this connection.
+  /** The next operation ID that should be used for this connection. */
   private final AtomicLong nextOperationID;
 
-  // The selector that may be used for write operations.
+  /** The selector that may be used for write operations. */
   private final AtomicReference<Selector> writeSelector;
 
-  // Indicates whether the Directory Server believes this connection to
-  // be valid and available for communication.
+  /**
+   * Indicates whether the Directory Server believes this connection to be valid
+   * and available for communication.
+   */
   private volatile boolean connectionValid;
 
-  // Indicates whether this connection is about to be closed. This will
-  // be used to prevent accepting new requests while a disconnect is in
-  // progress.
+  /**
+   * Indicates whether this connection is about to be closed. This will be used
+   * to prevent accepting new requests while a disconnect is in progress.
+   */
   private boolean disconnectRequested;
 
-  // Indicates whether the connection should keep statistics regarding
-  // the operations that it is performing.
+  /**
+   * Indicates whether the connection should keep statistics regarding the
+   * operations that it is performing.
+   */
   private final boolean keepStats;
 
-  // The set of all operations currently in progress on this connection.
+  /** The set of all operations currently in progress on this connection. */
   private final ConcurrentHashMap<Integer, Operation> operationsInProgress;
 
-  // The number of operations performed on this connection.
-  // Used to compare with the resource limits of the network group.
+  /**
+   * The number of operations performed on this connection. Used to compare with
+   * the resource limits of the network group.
+   */
   private final AtomicLong operationsPerformed;
 
-  // The port on the client from which this connection originated.
+  /** The port on the client from which this connection originated. */
   private final int clientPort;
 
-  // The LDAP version that the client is using to communicate with the
-  // server.
+  /**
+   * The LDAP version that the client is using to communicate with the server.
+   */
   private int ldapVersion;
 
-  // The port on the server to which this client has connected.
+  /** The port on the server to which this client has connected. */
   private final int serverPort;
 
-  // The reference to the connection handler that accepted this
-  // connection.
+  /** The reference to the connection handler that accepted this connection. */
   private final LDAPConnectionHandler connectionHandler;
 
-  // The statistics tracker associated with this client connection.
+  /** The statistics tracker associated with this client connection. */
   private final LDAPStatistics statTracker;
   private boolean useNanoTime=false;
 
 
-  // The connection ID assigned to this connection.
+  /** The connection ID assigned to this connection. */
   private final long connectionID;
 
-  // The lock used to provide threadsafe access to the set of operations
-  // in progress.
+  /**
+   * The lock used to provide threadsafe access to the set of operations in
+   * progress.
+   */
   private final Object opsInProgressLock;
 
-  // The socket channel with which this client connection is associated.
+  /** The socket channel with which this client connection is associated. */
   private final SocketChannel clientChannel;
 
-  // The byte channel used for blocking writes with time out.
+  /** The byte channel used for blocking writes with time out. */
   private final ByteChannel timeoutClientChannel;
 
-  // The string representation of the address of the client.
+  /** The string representation of the address of the client. */
   private final String clientAddress;
 
-  // The name of the protocol that the client is using to communicate
-  // with the server.
+  /**
+   * The name of the protocol that the client is using to communicate with the
+   * server.
+   */
   private final String protocol;
 
-  // The string representation of the address of the server to which the
-  // client has connected.
+  /**
+   * The string representation of the address of the server to which the client
+   * has connected.
+   */
   private final String serverAddress;
 
 
