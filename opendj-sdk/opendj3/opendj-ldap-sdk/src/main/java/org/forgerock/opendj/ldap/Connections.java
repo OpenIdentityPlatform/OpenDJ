@@ -27,12 +27,15 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.adaptRequestHandler;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 
+import com.forgerock.opendj.ldap.InternalConnection;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -195,6 +198,94 @@ public final class Connections {
     }
 
     /**
+     * Creates a new internal client connection which will route requests to the
+     * provided {@code RequestHandler}.
+     * <p>
+     * When processing requests, {@code RequestHandler} implementations are
+     * passed a {@code RequestContext} having a pseudo {@code requestID} which
+     * is incremented for each successive internal request on a per client
+     * connection basis. The request ID may be useful for logging purposes.
+     * <p>
+     * An internal connection does not require {@code RequestHandler}
+     * implementations to return a result when processing requests. However, it
+     * is recommended that implementations do always return results even for
+     * abandoned requests. This is because application client threads may block
+     * indefinitely waiting for results.
+     *
+     * @param requestHandler
+     *            The request handler which will be used for all client
+     *            connections.
+     * @return The new internal connection.
+     * @throws NullPointerException
+     *             If {@code requestHandler} was {@code null}.
+     */
+    public static Connection newInternalConnection(
+            final RequestHandler<RequestContext> requestHandler) {
+        Validator.ensureNotNull(requestHandler);
+        return newInternalConnection(adaptRequestHandler(requestHandler));
+    }
+
+    /**
+     * Creates a new internal client connection which will route requests to the
+     * provided {@code ServerConnection}.
+     * <p>
+     * When processing requests, {@code ServerConnection} implementations are
+     * passed an integer as the first parameter. This integer represents a
+     * pseudo {@code requestID} which is incremented for each successive
+     * internal request on a per client connection basis. The request ID may be
+     * useful for logging purposes.
+     * <p>
+     * An internal connection does not require {@code ServerConnection}
+     * implementations to return a result when processing requests. However, it
+     * is recommended that implementations do always return results even for
+     * abandoned requests. This is because application client threads may block
+     * indefinitely waiting for results.
+     *
+     * @param serverConnection
+     *            The server connection.
+     * @return The new internal connection.
+     * @throws NullPointerException
+     *             If {@code serverConnection} was {@code null}.
+     */
+    public static Connection newInternalConnection(final ServerConnection<Integer> serverConnection) {
+        Validator.ensureNotNull(serverConnection);
+        return new InternalConnection(serverConnection);
+    }
+
+    /**
+     * Creates a new connection factory which binds internal client connections
+     * to {@link RequestHandler}s created using the provided
+     * {@link RequestHandlerFactory}.
+     * <p>
+     * When processing requests, {@code RequestHandler} implementations are
+     * passed an integer as the first parameter. This integer represents a
+     * pseudo {@code requestID} which is incremented for each successive
+     * internal request on a per client connection basis. The request ID may be
+     * useful for logging purposes.
+     * <p>
+     * An internal connection factory does not require {@code RequestHandler}
+     * implementations to return a result when processing requests. However, it
+     * is recommended that implementations do always return results even for
+     * abandoned requests. This is because application client threads may block
+     * indefinitely waiting for results.
+     *
+     * @param <C>
+     *            The type of client context.
+     * @param factory
+     *            The request handler factory to use for creating connections.
+     * @param clientContext
+     *            The client context.
+     * @return The new internal connection factory.
+     * @throws NullPointerException
+     *             If {@code factory} was {@code null}.
+     */
+    public static <C> ConnectionFactory newInternalConnectionFactory(
+            final RequestHandlerFactory<C, RequestContext> factory, final C clientContext) {
+        Validator.ensureNotNull(factory);
+        return new InternalConnectionFactory<C>(newServerConnectionFactory(factory), clientContext);
+    }
+
+    /**
      * Creates a new connection factory which binds internal client connections
      * to {@link ServerConnection}s created using the provided
      * {@link ServerConnectionFactory}.
@@ -265,14 +356,14 @@ public final class Connections {
         return new ConnectionFactory() {
 
             @Override
-            public FutureResult<Connection> getConnectionAsync(
-                    final ResultHandler<? super Connection> handler) {
-                return factory.getConnectionAsync(handler);
+            public Connection getConnection() throws ErrorResultException {
+                return factory.getConnection();
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException {
-                return factory.getConnection();
+            public FutureResult<Connection> getConnectionAsync(
+                    final ResultHandler<? super Connection> handler) {
+                return factory.getConnectionAsync(handler);
             }
 
             /**
@@ -313,17 +404,12 @@ public final class Connections {
     public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
             final RequestHandler<RequestContext> requestHandler) {
         Validator.ensureNotNull(requestHandler);
-
-        final RequestHandlerFactory<C, RequestContext> factory =
-                new RequestHandlerFactory<C, RequestContext>() {
-
-                    public RequestHandler<RequestContext> handleAccept(C clientContext)
-                            throws ErrorResultException {
-                        return requestHandler;
-                    }
-                };
-
-        return new RequestHandlerFactoryAdapter<C>(factory);
+        return new RequestHandlerFactoryAdapter<C>(new RequestHandlerFactory<C, RequestContext>() {
+            @Override
+            public RequestHandler<RequestContext> handleAccept(final C clientContext) {
+                return requestHandler;
+            }
+        });
     }
 
     /**
