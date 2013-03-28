@@ -33,7 +33,6 @@ import com.forgerock.opendj.util.Validator;
  */
 public final class Modification {
     private final ModificationType modificationType;
-
     private final Attribute attribute;
 
     /**
@@ -44,7 +43,8 @@ public final class Modification {
      * fully immutable:
      *
      * <pre>
-     * Modification change = new Modification(modificationType, Types.unmodifiableAttribute(attribute));
+     * Modification change = new Modification(modificationType, Attributes
+     *         .unmodifiableAttribute(attribute));
      * </pre>
      *
      * @param modificationType
@@ -54,7 +54,6 @@ public final class Modification {
      */
     public Modification(final ModificationType modificationType, final Attribute attribute) {
         Validator.ensureNotNull(modificationType, attribute);
-
         this.modificationType = modificationType;
         this.attribute = attribute;
     }

@@ -309,6 +309,11 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public Result deleteSubtree(final String name) throws ErrorResultException {
+            return checkState().deleteSubtree(name);
+        }
+
+        @Override
         public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request)
                 throws ErrorResultException {
             return checkState().extendedRequest(request);

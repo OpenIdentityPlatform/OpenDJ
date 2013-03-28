@@ -289,6 +289,16 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
+    public Result deleteSubtree(final String name) throws ErrorResultException {
+        return connection.deleteSubtree(name);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default implementation is to delegate.
+     */
+    @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request)
             throws ErrorResultException {
         return connection.extendedRequest(request);

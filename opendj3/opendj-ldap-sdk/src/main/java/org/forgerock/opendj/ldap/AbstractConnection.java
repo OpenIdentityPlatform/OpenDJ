@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
@@ -357,6 +358,15 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public Result delete(final String name) throws ErrorResultException {
         return delete(Requests.newDeleteRequest(name));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Result deleteSubtree(final String name) throws ErrorResultException {
+        return delete(Requests.newDeleteRequest(name).addControl(
+                SubtreeDeleteRequestControl.newControl(true)));
     }
 
     /**

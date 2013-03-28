@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -52,6 +52,17 @@ public interface Request {
      *             If {@code control} was {@code null}.
      */
     Request addControl(Control control);
+
+    /**
+     * Returns {@code true} if this request contains the specified request
+     * control.
+     *
+     * @param oid
+     *            The numeric OID of the request control.
+     * @return {@code true} if this request contains the specified request
+     *         control.
+     */
+    boolean containsControl(String oid);
 
     /**
      * Decodes and returns the first control in this request having an OID
