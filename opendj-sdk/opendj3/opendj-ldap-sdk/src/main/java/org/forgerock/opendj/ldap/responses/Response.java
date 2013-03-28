@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -52,6 +52,17 @@ public interface Response {
      *             If {@code control} was {@code null}.
      */
     Response addControl(Control control);
+
+    /**
+     * Returns {@code true} if this response contains the specified response
+     * control.
+     *
+     * @param oid
+     *            The numeric OID of the response control.
+     * @return {@code true} if this response contains the specified response
+     *         control.
+     */
+    boolean containsControl(String oid);
 
     /**
      * Decodes and returns the first control in this response having an OID

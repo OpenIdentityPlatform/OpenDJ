@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -45,6 +45,20 @@ import com.forgerock.opendj.util.Validator;
  *            The type of request.
  */
 abstract class AbstractRequestImpl<R extends Request> implements Request {
+
+    // Used by unmodifiable implementations as well.
+    static Control getControl(final List<Control> controls, final String oid) {
+        // Avoid creating an iterator if possible.
+        if (!controls.isEmpty()) {
+            for (final Control control : controls) {
+                if (control.getOID().equals(oid)) {
+                    return control;
+                }
+            }
+        }
+        return null;
+    }
+
     private final List<Control> controls = new LinkedList<Control>();
 
     /**
@@ -63,9 +77,9 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
      * @throws NullPointerException
      *             If {@code request} was {@code null} .
      */
-    AbstractRequestImpl(Request request) {
+    AbstractRequestImpl(final Request request) {
         Validator.ensureNotNull(request);
-        for (Control control : request.getControls()) {
+        for (final Control control : request.getControls()) {
             // Create defensive copy.
             controls.add(GenericControl.newControl(control));
         }
@@ -74,6 +88,7 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
     /**
      * {@inheritDoc}
      */
+    @Override
     public final R addControl(final Control control) {
         Validator.ensureNotNull(control);
         controls.add(control);
@@ -83,27 +98,26 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
     /**
      * {@inheritDoc}
      */
-    public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
-            final DecodeOptions options) throws DecodeException {
-        Validator.ensureNotNull(decoder, options);
-
-        // Avoid creating an iterator if possible.
-        if (controls.isEmpty()) {
-            return null;
-        }
-
-        for (final Control control : controls) {
-            if (control.getOID().equals(decoder.getOID())) {
-                return decoder.decodeControl(control, options);
-            }
-        }
-
-        return null;
+    @Override
+    public boolean containsControl(final String oid) {
+        return getControl(controls, oid) != null;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
+    public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
+            final DecodeOptions options) throws DecodeException {
+        Validator.ensureNotNull(decoder, options);
+        final Control control = getControl(controls, decoder.getOID());
+        return control != null ? decoder.decodeControl(control, options) : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public final List<Control> getControls() {
         return controls;
     }

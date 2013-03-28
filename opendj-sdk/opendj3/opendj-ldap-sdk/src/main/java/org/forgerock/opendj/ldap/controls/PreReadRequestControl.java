@@ -22,21 +22,24 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableList;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_NO_CONTROL_VALUE;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.asn1.ASN1;
@@ -87,16 +90,16 @@ public final class PreReadRequestControl implements Control {
      */
     public static final String OID = "1.3.6.1.1.13.1";
 
-    // The set of raw attributes to return in the entry.
-    private final Set<String> attributes;
+    // The list of raw attributes to return in the entry.
+    private final List<String> attributes;
 
     private final boolean isCritical;
 
     private static final PreReadRequestControl CRITICAL_EMPTY_INSTANCE = new PreReadRequestControl(
-            true, Collections.<String> emptySet());
+            true, Collections.<String> emptyList());
 
     private static final PreReadRequestControl NONCRITICAL_EMPTY_INSTANCE =
-            new PreReadRequestControl(false, Collections.<String> emptySet());
+            new PreReadRequestControl(false, Collections.<String> emptyList());
 
     /**
      * A decoder which can be used for decoding the pre-read request control.
@@ -125,23 +128,23 @@ public final class PreReadRequestControl implements Control {
                     }
 
                     final ASN1Reader reader = ASN1.getReader(control.getValue());
-                    Set<String> attributes;
+                    List<String> attributes;
                     try {
                         reader.readStartSequence();
                         if (reader.hasNextElement()) {
                             final String firstAttribute = reader.readOctetStringAsString();
                             if (reader.hasNextElement()) {
-                                attributes = new LinkedHashSet<String>();
+                                attributes = new ArrayList<String>();
                                 attributes.add(firstAttribute);
                                 do {
                                     attributes.add(reader.readOctetStringAsString());
                                 } while (reader.hasNextElement());
-                                attributes = Collections.unmodifiableSet(attributes);
+                                attributes = unmodifiableList(attributes);
                             } else {
-                                attributes = Collections.singleton(firstAttribute);
+                                attributes = singletonList(firstAttribute);
                             }
                         } else {
-                            attributes = Collections.emptySet();
+                            attributes = emptyList();
                         }
                         reader.readEndSequence();
                     } catch (final Exception ae) {
@@ -189,11 +192,11 @@ public final class PreReadRequestControl implements Control {
         if (attributes.isEmpty()) {
             return isCritical ? CRITICAL_EMPTY_INSTANCE : NONCRITICAL_EMPTY_INSTANCE;
         } else if (attributes.size() == 1) {
-            return new PreReadRequestControl(isCritical, Collections.singleton(attributes
-                    .iterator().next()));
+            return new PreReadRequestControl(isCritical,
+                    singletonList(attributes.iterator().next()));
         } else {
-            final Set<String> attributeSet = new LinkedHashSet<String>(attributes);
-            return new PreReadRequestControl(isCritical, Collections.unmodifiableSet(attributeSet));
+            return new PreReadRequestControl(isCritical, unmodifiableList(new ArrayList<String>(
+                    attributes)));
         }
     }
 
@@ -220,28 +223,28 @@ public final class PreReadRequestControl implements Control {
         if (attributes.length == 0) {
             return isCritical ? CRITICAL_EMPTY_INSTANCE : NONCRITICAL_EMPTY_INSTANCE;
         } else if (attributes.length == 1) {
-            return new PreReadRequestControl(isCritical, Collections.singleton(attributes[0]));
+            return new PreReadRequestControl(isCritical, singletonList(attributes[0]));
         } else {
-            final Set<String> attributeSet = new LinkedHashSet<String>(Arrays.asList(attributes));
-            return new PreReadRequestControl(isCritical, Collections.unmodifiableSet(attributeSet));
+            return new PreReadRequestControl(isCritical, unmodifiableList(new ArrayList<String>(
+                    asList(attributes))));
         }
     }
 
-    private PreReadRequestControl(final boolean isCritical, final Set<String> attributes) {
+    private PreReadRequestControl(final boolean isCritical, final List<String> attributes) {
         this.isCritical = isCritical;
         this.attributes = attributes;
     }
 
     /**
-     * Returns an unmodifiable set containing the names of attributes to be
+     * Returns an unmodifiable list containing the names of attributes to be
      * included with the response control. Attributes that are sub-types of
-     * listed attributes are implicitly included. The returned set may be empty,
-     * indicating that all user attributes should be returned.
+     * listed attributes are implicitly included. The returned list may be
+     * empty, indicating that all user attributes should be returned.
      *
-     * @return An unmodifiable set containing the names of attributes to be
+     * @return An unmodifiable list containing the names of attributes to be
      *         included with the response control.
      */
-    public Set<String> getAttributes() {
+    public List<String> getAttributes() {
         return attributes;
     }
 

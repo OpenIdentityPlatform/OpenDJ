@@ -597,6 +597,37 @@ public interface Connection extends Closeable {
     Result delete(String name) throws ErrorResultException;
 
     /**
+     * Deletes the named entry and all of its subordinates from the Directory
+     * Server.
+     * <p>
+     * This method is equivalent to the following code:
+     *
+     * <pre>
+     * DeleteRequest request = new DeleteRequest(name).addControl(
+     * connection.delete(request);
+     * </pre>
+     *
+     * @param name
+     *            The distinguished name of the subtree base entry to be
+     *            deleted.
+     * @return The result of the operation.
+     * @throws ErrorResultException
+     *             If the result code indicates that the request failed for some
+     *             reason.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code name} could not be decoded using the default
+     *             schema.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support delete operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code name} was {@code null}.
+     */
+    Result deleteSubtree(String name) throws ErrorResultException;
+
+    /**
      * Asynchronously deletes an entry from the Directory Server using the
      * provided delete request.
      *

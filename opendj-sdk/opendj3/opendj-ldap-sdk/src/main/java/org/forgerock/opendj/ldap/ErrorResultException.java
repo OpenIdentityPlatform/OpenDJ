@@ -162,6 +162,7 @@ public class ErrorResultException extends ExecutionException {
                 || rc == ResultCode.CLIENT_SIDE_ENCODING_ERROR) {
             return new ConnectionException(result);
         } else if (rc == ResultCode.ATTRIBUTE_OR_VALUE_EXISTS
+                || rc == ResultCode.NO_SUCH_ATTRIBUTE
                 || rc == ResultCode.CONSTRAINT_VIOLATION || rc == ResultCode.ENTRY_ALREADY_EXISTS
                 || rc == ResultCode.INVALID_ATTRIBUTE_SYNTAX || rc == ResultCode.INVALID_DN_SYNTAX
                 || rc == ResultCode.NAMING_VIOLATION || rc == ResultCode.NOT_ALLOWED_ON_NONLEAF

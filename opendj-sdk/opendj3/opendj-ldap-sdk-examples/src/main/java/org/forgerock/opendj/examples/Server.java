@@ -22,61 +22,28 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.net.ssl.SSLContext;
 
-import org.forgerock.opendj.ldap.CancelledResultException;
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
-import org.forgerock.opendj.ldap.LinkedHashMapEntry;
-import org.forgerock.opendj.ldap.Matcher;
-import org.forgerock.opendj.ldap.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.RequestContext;
-import org.forgerock.opendj.ldap.RequestHandler;
+import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
-import org.forgerock.opendj.ldap.SearchResultHandler;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TrustManagers;
-import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.BindRequest;
-import org.forgerock.opendj.ldap.requests.CompareRequest;
-import org.forgerock.opendj.ldap.requests.DeleteRequest;
-import org.forgerock.opendj.ldap.requests.ExtendedRequest;
-import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
-import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.CompareResult;
-import org.forgerock.opendj.ldap.responses.ExtendedResult;
-import org.forgerock.opendj.ldap.responses.Responses;
-import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 
 /**
@@ -95,260 +62,6 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
  * </pre>
  */
 public final class Server {
-    private static final class MemoryBackend implements RequestHandler<RequestContext> {
-        private final ConcurrentSkipListMap<DN, Entry> entries;
-        private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
-
-        private MemoryBackend(final ConcurrentSkipListMap<DN, Entry> entries) {
-            this.entries = entries;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleAdd(final RequestContext requestContext, final AddRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            // TODO: controls.
-            entryLock.writeLock().lock();
-            try {
-                DN dn = request.getName();
-                if (entries.containsKey(dn)) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                            ResultCode.ENTRY_ALREADY_EXISTS, "The entry " + dn.toString()
-                                    + " already exists"));
-                }
-
-                DN parent = dn.parent();
-                if (!entries.containsKey(parent)) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                            ResultCode.NO_SUCH_OBJECT, "The parent entry " + parent.toString()
-                                    + " does not exist"));
-                } else {
-                    entries.put(dn, request);
-                    resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                }
-            } finally {
-                entryLock.writeLock().unlock();
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleBind(final RequestContext requestContext, final int version,
-                final BindRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
-            if (request.getAuthenticationType() != ((byte) 0x80)) {
-                // TODO: SASL authentication not implemented.
-                resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "non-SIMPLE authentication not supported: "
-                                + request.getAuthenticationType()));
-            } else {
-                // TODO: always succeed.
-                resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleCompare(final RequestContext requestContext,
-                final CompareRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler) {
-            // TODO:
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            // TODO: controls.
-            entryLock.writeLock().lock();
-            try {
-                // TODO: check for children.
-                DN dn = request.getName();
-                if (!entries.containsKey(dn)) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                            ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
-                                    + " does not exist"));
-                } else {
-                    entries.remove(dn);
-                    resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                }
-            } finally {
-                entryLock.writeLock().unlock();
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public <R extends ExtendedResult> void handleExtendedRequest(
-                final RequestContext requestContext, final ExtendedRequest<R> request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) {
-            // TODO: not implemented.
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                    "Extended request operation not supported"));
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleModify(final RequestContext requestContext, final ModifyRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            // TODO: controls.
-            // TODO: read lock is not really enough since concurrent updates may
-            // still occur to the same entry.
-            entryLock.readLock().lock();
-            try {
-                DN dn = request.getName();
-                Entry entry = entries.get(dn);
-                if (entry == null) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                            ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
-                                    + " does not exist"));
-                }
-
-                Entry newEntry = new LinkedHashMapEntry(entry);
-                for (Modification mod : request.getModifications()) {
-                    ModificationType modType = mod.getModificationType();
-                    if (modType.equals(ModificationType.ADD)) {
-                        // TODO: Reject empty attribute and duplicate values.
-                        newEntry.addAttribute(mod.getAttribute(), null);
-                    } else if (modType.equals(ModificationType.DELETE)) {
-                        // TODO: Reject missing values.
-                        newEntry.removeAttribute(mod.getAttribute(), null);
-                    } else if (modType.equals(ModificationType.REPLACE)) {
-                        newEntry.replaceAttribute(mod.getAttribute());
-                    } else {
-                        resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                                "Modify request contains an unsupported modification type"));
-                        return;
-                    }
-                }
-
-                entries.put(dn, newEntry);
-                resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-            } finally {
-                entryLock.readLock().unlock();
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleModifyDN(final RequestContext requestContext,
-                final ModifyDNRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            // TODO: not implemented.
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                    "ModifyDN request operation not supported"));
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleSearch(final RequestContext requestContext, final SearchRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) {
-            // TODO: controls, limits, etc.
-            entryLock.readLock().lock();
-            try {
-                DN dn = request.getName();
-                Entry baseEntry = entries.get(dn);
-                if (baseEntry == null) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                            ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
-                                    + " does not exist"));
-                    return;
-                }
-
-                SearchScope scope = request.getScope();
-                Filter filter = request.getFilter();
-                Matcher matcher = filter.matcher();
-
-                if (scope.equals(SearchScope.BASE_OBJECT)) {
-                    if (matcher.matches(baseEntry).toBoolean()) {
-                        sendEntry(request, resultHandler, baseEntry);
-                    }
-                } else if (scope.equals(SearchScope.SINGLE_LEVEL)) {
-                    NavigableMap<DN, Entry> subtree = entries.tailMap(dn, false);
-                    for (Entry entry : subtree.values()) {
-                        // Check for cancellation.
-                        requestContext.checkIfCancelled(false);
-
-                        DN childDN = entry.getName();
-                        if (childDN.isChildOf(dn)) {
-                            if (!matcher.matches(entry).toBoolean()) {
-                                continue;
-                            }
-
-                            if (!sendEntry(request, resultHandler, entry)) {
-                                // Caller has asked to stop sending results.
-                                break;
-                            }
-                        } else if (!childDN.isSubordinateOrEqualTo(dn)) {
-                            // The remaining entries will be out of scope.
-                            break;
-                        }
-                    }
-                } else if (scope.equals(SearchScope.WHOLE_SUBTREE)) {
-                    NavigableMap<DN, Entry> subtree = entries.tailMap(dn);
-                    for (Entry entry : subtree.values()) {
-                        // Check for cancellation.
-                        requestContext.checkIfCancelled(false);
-
-                        DN childDN = entry.getName();
-                        if (childDN.isSubordinateOrEqualTo(dn)) {
-                            if (!matcher.matches(entry).toBoolean()) {
-                                continue;
-                            }
-
-                            if (!sendEntry(request, resultHandler, entry)) {
-                                // Caller has asked to stop sending results.
-                                break;
-                            }
-                        } else {
-                            // The remaining entries will be out of scope.
-                            break;
-                        }
-                    }
-                } else {
-                    resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                            "Search request contains an unsupported search scope"));
-                    return;
-                }
-
-                resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-            } catch (CancelledResultException e) {
-                resultHandler.handleErrorResult(e);
-            } finally {
-                entryLock.readLock().unlock();
-            }
-        }
-
-        private boolean sendEntry(SearchRequest request, SearchResultHandler resultHandler,
-                Entry entry) {
-            // TODO: check filter, strip attributes.
-            return resultHandler.handleEntry(Responses.newSearchResultEntry(entry));
-        }
-    }
 
     /**
      * Main method.
@@ -373,8 +86,14 @@ public final class Server {
         final String certNickname = (args.length == 6) ? args[5] : null;
 
         // Create the memory backend.
-        final ConcurrentSkipListMap<DN, Entry> entries = readEntriesFromLDIF(ldifFileName);
-        final MemoryBackend backend = new MemoryBackend(entries);
+        final MemoryBackend backend;
+        try {
+            backend = new MemoryBackend(new LDIFEntryReader(new FileInputStream(ldifFileName)));
+        } catch (final IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
+            return; // Keep compiler quiet.
+        }
 
         // Create a server connection adapter.
         final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
@@ -395,11 +114,13 @@ public final class Server {
                                                 .toCharArray(), null))).setTrustManager(
                                 TrustManagers.trustAll()).getSSLContext();
 
-                ServerConnectionFactory<LDAPClientContext, Integer> sslWrapper =
+                final ServerConnectionFactory<LDAPClientContext, Integer> sslWrapper =
                         new ServerConnectionFactory<LDAPClientContext, Integer>() {
 
+                            @Override
                             public ServerConnection<Integer> handleAccept(
-                                    LDAPClientContext clientContext) throws ErrorResultException {
+                                    final LDAPClientContext clientContext)
+                                    throws ErrorResultException {
                                 clientContext.enableTLS(sslContext, null, null, false, false);
                                 return connectionHandler.handleAccept(clientContext);
                             }
@@ -420,63 +141,6 @@ public final class Server {
                 listener.close();
             }
         }
-    }
-
-    /**
-     * Reads the entries from the named LDIF file.
-     *
-     * @param ldifFileName
-     *            The name of the LDIF file.
-     * @return The entries.
-     */
-    private static ConcurrentSkipListMap<DN, Entry> readEntriesFromLDIF(final String ldifFileName) {
-        final ConcurrentSkipListMap<DN, Entry> entries;
-        // Read the LDIF.
-        InputStream ldif;
-        try {
-            ldif = new FileInputStream(ldifFileName);
-        } catch (final FileNotFoundException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
-            return null; // Satisfy compiler.
-        }
-
-        entries = new ConcurrentSkipListMap<DN, Entry>();
-        final LDIFEntryReader reader = new LDIFEntryReader(ldif);
-        try {
-            while (reader.hasNext()) {
-                Entry entry = reader.readEntry();
-                entries.put(entry.getName(), entry);
-            }
-        } catch (final IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
-            return null; // Satisfy compiler.
-        } finally {
-            try {
-                reader.close();
-            } catch (final IOException ignored) {
-                // Ignore.
-            }
-        }
-
-        // Quickly sanity check that every entry (except root entries) have a
-        // parent.
-        boolean isValid = true;
-        for (DN dn : entries.keySet()) {
-            if (dn.size() > 1) {
-                DN parent = dn.parent();
-                if (!entries.containsKey(parent)) {
-                    System.err
-                            .println("The entry \"" + dn.toString() + "\" does not have a parent");
-                    isValid = false;
-                }
-            }
-        }
-        if (!isValid) {
-            System.exit(1);
-        }
-        return entries;
     }
 
     private Server() {

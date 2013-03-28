@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -73,38 +73,38 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
      * {@inheritDoc}
      */
     @Override
+    public boolean containsControl(final String oid) {
+        return impl.containsControl(oid);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
         Validator.ensureNotNull(decoder, options);
 
         final List<Control> controls = impl.getControls();
-
-        // Avoid creating an iterator if possible.
-        if (controls.isEmpty()) {
+        final Control control = AbstractRequestImpl.getControl(controls, decoder.getOID());
+        if (control != null) {
+            // Got a match. Return a defensive copy only if necessary.
+            final C decodedControl = decoder.decodeControl(control, options);
+            if (decodedControl != control) {
+                // This was not the original control so return it
+                // immediately.
+                return decodedControl;
+            } else if (decodedControl instanceof GenericControl) {
+                // Generic controls are immutable, so return it immediately.
+                return decodedControl;
+            } else {
+                // Re-decode to get defensive copy.
+                final GenericControl genericControl = GenericControl.newControl(control);
+                return decoder.decodeControl(genericControl, options);
+            }
+        } else {
             return null;
         }
-
-        for (final Control control : controls) {
-            if (control.getOID().equals(decoder.getOID())) {
-                // Got a match. Return a defensive copy only if necessary.
-                final C decodedControl = decoder.decodeControl(control, options);
-
-                if (decodedControl != control) {
-                    // This was not the original control so return it
-                    // immediately.
-                    return decodedControl;
-                } else if (decodedControl instanceof GenericControl) {
-                    // Generic controls are immutable, so return it immediately.
-                    return decodedControl;
-                } else {
-                    // Re-decode to get defensive copy.
-                    final GenericControl genericControl = GenericControl.newControl(control);
-                    return decoder.decodeControl(genericControl, options);
-                }
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -113,8 +113,7 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
     @Override
     public final List<Control> getControls() {
         // We need to make all controls unmodifiable as well, which implies
-        // making
-        // defensive copies where necessary.
+        // making defensive copies where necessary.
         final Function<Control, Control, Void> function = new Function<Control, Control, Void>() {
 
             @Override
