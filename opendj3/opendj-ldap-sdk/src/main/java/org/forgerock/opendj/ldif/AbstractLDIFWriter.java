@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -31,6 +31,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -100,45 +101,29 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
      * LDIF string list writer implementation.
      */
     private static final class LDIFWriterListImpl implements LDIFWriterImpl {
-
         private final StringBuilder builder = new StringBuilder();
-
         private final List<String> ldifLines;
 
-        /**
-         * Creates a new LDIF list writer.
-         *
-         * @param ldifLines
-         *            The string list.
-         */
         LDIFWriterListImpl(final List<String> ldifLines) {
             this.ldifLines = ldifLines;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void close() throws IOException {
             // Nothing to do.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void flush() throws IOException {
             // Nothing to do.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void print(final CharSequence s) throws IOException {
             builder.append(s);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void println() throws IOException {
             ldifLines.add(builder.toString());
             builder.setLength(0);
@@ -149,81 +134,54 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
      * LDIF output stream writer implementation.
      */
     private static final class LDIFWriterOutputStreamImpl implements LDIFWriterImpl {
-
         private final BufferedWriter writer;
 
-        /**
-         * Creates a new LDIF output stream writer.
-         *
-         * @param out
-         *            The output stream.
-         */
-        LDIFWriterOutputStreamImpl(final OutputStream out) {
-            this.writer = new BufferedWriter(new OutputStreamWriter(out));
+        LDIFWriterOutputStreamImpl(final Writer writer) {
+            this.writer =
+                    writer instanceof BufferedWriter ? (BufferedWriter) writer
+                            : new BufferedWriter(writer);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void close() throws IOException {
             writer.close();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void flush() throws IOException {
             writer.flush();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void print(final CharSequence s) throws IOException {
             writer.append(s);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void println() throws IOException {
             writer.newLine();
         }
     }
 
-    // Regular expression used for splitting comments on line-breaks.
+    /*
+     * Regular expression used for splitting comments on line-breaks.
+     */
     private static final Pattern SPLIT_NEWLINE = Pattern.compile("\\r?\\n");
-
     boolean addUserFriendlyComments = false;
-
     final LDIFWriterImpl impl;
-
     int wrapColumn = 0;
-
     private final StringBuilder builder = new StringBuilder(80);
 
-    /**
-     * Creates a new LDIF entry writer which will append lines of LDIF to the
-     * provided list.
-     *
-     * @param ldifLines
-     *            The list to which lines of LDIF should be appended.
-     */
-    public AbstractLDIFWriter(final List<String> ldifLines) {
-        Validator.ensureNotNull(ldifLines);
+    AbstractLDIFWriter(final List<String> ldifLines) {
         this.impl = new LDIFWriterListImpl(ldifLines);
     }
 
-    /**
-     * Creates a new LDIF entry writer whose destination is the provided output
-     * stream.
-     *
-     * @param out
-     *            The output stream to use.
-     */
-    public AbstractLDIFWriter(final OutputStream out) {
-        Validator.ensureNotNull(out);
-        this.impl = new LDIFWriterOutputStreamImpl(out);
+    AbstractLDIFWriter(final OutputStream out) {
+        this(new OutputStreamWriter(out));
+    }
+
+    AbstractLDIFWriter(final Writer writer) {
+        this.impl = new LDIFWriterOutputStreamImpl(writer);
     }
 
     final void close0() throws IOException {
@@ -238,12 +196,16 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
     final void writeComment0(final CharSequence comment) throws IOException {
         Validator.ensureNotNull(comment);
 
-        // First, break up the comment into multiple lines to preserve the
-        // original spacing that it contained.
+        /*
+         * First, break up the comment into multiple lines to preserve the
+         * original spacing that it contained.
+         */
         final String[] lines = SPLIT_NEWLINE.split(comment);
 
-        // Now iterate through the lines and write them out, prefixing and
-        // wrapping them as necessary.
+        /*
+         * Now iterate through the lines and write them out, prefixing and
+         * wrapping them as necessary.
+         */
         for (final String line : lines) {
             if (!shouldWrap()) {
                 impl.print("# ");
@@ -251,7 +213,6 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
                 impl.println();
             } else {
                 final int breakColumn = wrapColumn - 2;
-
                 if (line.length() <= breakColumn) {
                     impl.print("# ");
                     impl.print(line);
@@ -267,7 +228,6 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
                             startPos = line.length();
                         } else {
                             final int endPos = startPos + breakColumn;
-
                             int i = endPos - 1;
                             while (i > startPos) {
                                 if (line.charAt(i) == ' ') {
@@ -278,19 +238,17 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
                                     startPos = i + 1;
                                     continue outerLoop;
                                 }
-
                                 i--;
                             }
 
-                            // If we've gotten here, then there are no spaces on
-                            // the
-                            // entire line. If that happens, then we'll have to
-                            // break
-                            // in the middle of a word.
+                            /*
+                             * If we've gotten here, then there are no spaces on
+                             * the entire line. If that happens, then we'll have
+                             * to break in the middle of a word.
+                             */
                             impl.print("# ");
                             impl.print(line.substring(startPos, endPos));
                             impl.println();
-
                             startPos = endPos;
                         }
                     }
@@ -304,7 +262,6 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             final StringBuilder key = new StringBuilder("control: ");
             key.append(control.getOID());
             key.append(control.isCritical() ? " true" : " false");
-
             if (control.hasValue()) {
                 writeKeyAndValue(key, control.getValue());
             } else {
@@ -317,17 +274,20 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             throws IOException {
         builder.setLength(0);
 
-        // If the value is empty, then just append a single colon and a
-        // single space.
+        /*
+         * If the value is empty, then just append a single colon and a single
+         * space.
+         */
         if (value.length() == 0) {
             builder.append(key);
             builder.append(": ");
         } else if (needsBase64Encoding(value)) {
             if (addUserFriendlyComments) {
-                // TODO: Only display comments for valid UTF-8 values, not
-                // binary values.
+                /*
+                 * TODO: Only display comments for valid UTF-8 values, not
+                 * binary values.
+                 */
             }
-
             builder.setLength(0);
             builder.append(key);
             builder.append(":: ");
@@ -337,7 +297,6 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             builder.append(": ");
             builder.append(value.toString());
         }
-
         writeLine(builder);
     }
 
@@ -372,8 +331,10 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             return false;
         }
 
-        // If the value starts with a space, colon, or less than, then it
-        // needs to be base64 encoded.
+        /*
+         * If the value starts with a space, colon, or less than, then it needs
+         * to be base64 encoded.
+         */
         switch (bytes.byteAt(0)) {
         case 0x20: // Space
         case 0x3A: // Colon
@@ -381,14 +342,17 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             return true;
         }
 
-        // If the value ends with a space, then it needs to be
-        // base64 encoded.
+        /*
+         * If the value ends with a space, then it needs to be base64 encoded.
+         */
         if (length > 1 && bytes.byteAt(length - 1) == 0x20) {
             return true;
         }
 
-        // If the value contains a null, newline, or return character, then
-        // it needs to be base64 encoded.
+        /*
+         * If the value contains a null, newline, or return character, then it
+         * needs to be base64 encoded.
+         */
         byte b;
         for (int i = 0; i < bytes.length(); i++) {
             b = bytes.byteAt(i);
@@ -404,7 +368,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
             }
         }
 
-        // If we've made it here, then there's no reason to base64 encode.
+        /* If we've made it here, then there's no reason to base64 encode. */
         return false;
     }
 
@@ -415,11 +379,9 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
     @SuppressWarnings("unused")
     private void writeKeyAndURL(final CharSequence key, final CharSequence url) throws IOException {
         builder.setLength(0);
-
         builder.append(key);
         builder.append(":: ");
         builder.append(url);
-
         writeLine(builder);
     }
 }

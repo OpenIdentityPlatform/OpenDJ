@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -42,51 +42,30 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * Common LDIF reader/writer functionality.
  */
 abstract class AbstractLDIFStream {
-
     final Set<AttributeDescription> excludeAttributes = new HashSet<AttributeDescription>();
-
-    boolean excludeOperationalAttributes = false;
-
-    boolean excludeUserAttributes = false;
-
-    final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
-
-    final Set<DN> includeBranches = new HashSet<DN>();
-
     final Set<DN> excludeBranches = new HashSet<DN>();
-
+    final List<Matcher> excludeFilters = new LinkedList<Matcher>();
+    boolean excludeOperationalAttributes = false;
+    boolean excludeUserAttributes = false;
+    final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
+    final Set<DN> includeBranches = new HashSet<DN>();
     final List<Matcher> includeFilters = new LinkedList<Matcher>();
 
-    final List<Matcher> excludeFilters = new LinkedList<Matcher>();
-
-    /**
-     * Creates a new abstract LDIF stream.
-     */
     AbstractLDIFStream() {
         // Nothing to do.
     }
 
     final boolean isAttributeExcluded(final AttributeDescription attributeDescription) {
+        // Let explicit include override more general exclude.
         if (!excludeAttributes.isEmpty() && excludeAttributes.contains(attributeDescription)) {
             return true;
-        }
-
-        // Let explicit include override more general exclude.
-        if (!includeAttributes.isEmpty()) {
+        } else if (!includeAttributes.isEmpty()) {
             return !includeAttributes.contains(attributeDescription);
+        } else {
+            final AttributeType type = attributeDescription.getAttributeType();
+            return (excludeOperationalAttributes && type.isOperational())
+                    || (excludeUserAttributes && !type.isOperational());
         }
-
-        final AttributeType type = attributeDescription.getAttributeType();
-
-        if (excludeOperationalAttributes && type.isOperational()) {
-            return true;
-        }
-
-        if (excludeUserAttributes && !type.isOperational()) {
-            return true;
-        }
-
-        return false;
     }
 
     final boolean isBranchExcluded(final DN dn) {
@@ -97,7 +76,6 @@ abstract class AbstractLDIFStream {
                 }
             }
         }
-
         if (!includeBranches.isEmpty()) {
             for (final DN includeBranch : includeBranches) {
                 if (includeBranch.isSuperiorOrEqualTo(dn)) {
@@ -105,9 +83,9 @@ abstract class AbstractLDIFStream {
                 }
             }
             return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     final boolean isEntryExcluded(final Entry entry) {
@@ -118,7 +96,6 @@ abstract class AbstractLDIFStream {
                 }
             }
         }
-
         if (!includeFilters.isEmpty()) {
             for (final Matcher includeFilter : includeFilters) {
                 if (includeFilter.matches(entry).toBoolean()) {
@@ -126,9 +103,9 @@ abstract class AbstractLDIFStream {
                 }
             }
             return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
 }

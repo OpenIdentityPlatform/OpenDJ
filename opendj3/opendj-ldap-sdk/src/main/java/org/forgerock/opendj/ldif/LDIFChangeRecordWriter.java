@@ -22,13 +22,15 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Attribute;
@@ -72,6 +74,25 @@ import com.forgerock.opendj.util.Validator;
 public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements ChangeRecordWriter {
 
     /**
+     * Returns the LDIF string representation of the provided change record.
+     *
+     * @param change
+     *            The change record.
+     * @return The LDIF string representation of the provided change record.
+     */
+    public static String toString(final ChangeRecord change) {
+        final StringWriter writer = new StringWriter(128);
+        try {
+            new LDIFChangeRecordWriter(writer).setAddUserFriendlyComments(true).writeChangeRecord(
+                    change).close();
+        } catch (final IOException e) {
+            // Should never happen.
+            throw new IllegalStateException(e);
+        }
+        return writer.toString();
+    }
+
+    /**
      * Creates a new LDIF change record writer which will append lines of LDIF
      * to the provided list.
      *
@@ -94,8 +115,20 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     }
 
     /**
+     * Creates a new LDIF change record writer whose destination is the provided
+     * character stream writer.
+     *
+     * @param writer
+     *            The character stream writer to use.
+     */
+    public LDIFChangeRecordWriter(final Writer writer) {
+        super(writer);
+    }
+
+    /**
      * {@inheritDoc}
      */
+    @Override
     public void close() throws IOException {
         close0();
     }
@@ -103,6 +136,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public void flush() throws IOException {
         flush0();
     }
@@ -230,6 +264,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change) throws IOException {
         Validator.ensureNotNull(change);
 
@@ -262,6 +297,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws IOException {
         Validator.ensureNotNull(change);
 
@@ -281,6 +317,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws IOException {
         Validator.ensureNotNull(change);
 
@@ -302,6 +339,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
             throws IOException {
         Validator.ensureNotNull(change);
@@ -314,9 +352,11 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         writeKeyAndValue("dn", change.getName().toString());
         writeControls(change.getControls());
 
-        // Write the changetype. Some older tools may not support the
-        // "moddn" changetype, so only use it if a newSuperior element has
-        // been provided, but use modrdn elsewhere.
+        /*
+         * Write the changetype. Some older tools may not support the "moddn"
+         * changetype, so only use it if a newSuperior element has been
+         * provided, but use modrdn elsewhere.
+         */
         if (change.getNewSuperior() == null) {
             writeLine("changetype: modrdn");
         } else {
@@ -338,6 +378,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws IOException {
         Validator.ensureNotNull(change);
 
@@ -381,6 +422,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFChangeRecordWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);
         return this;
