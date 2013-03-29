@@ -39,31 +39,37 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 final class UnmodifiableStartTLSExtendedRequestImpl extends
         AbstractUnmodifiableExtendedRequest<StartTLSExtendedRequest, ExtendedResult> implements
         StartTLSExtendedRequest {
-    UnmodifiableStartTLSExtendedRequestImpl(StartTLSExtendedRequest impl) {
+    UnmodifiableStartTLSExtendedRequestImpl(final StartTLSExtendedRequest impl) {
         super(impl);
     }
 
-    public SSLContext getSSLContext() {
-        return impl.getSSLContext();
-    }
-
-    public StartTLSExtendedRequest addEnabledProtocol(String... protocols) {
+    @Override
+    public StartTLSExtendedRequest addEnabledCipherSuite(final String... suites) {
         throw new UnsupportedOperationException();
     }
 
-    public StartTLSExtendedRequest addEnabledCipherSuite(String... suites) {
+    @Override
+    public StartTLSExtendedRequest addEnabledProtocol(final String... protocols) {
         throw new UnsupportedOperationException();
     }
 
-    public List<String> getEnabledProtocols() {
-        return Collections.unmodifiableList(impl.getEnabledProtocols());
-    }
-
+    @Override
     public List<String> getEnabledCipherSuites() {
         return Collections.unmodifiableList(impl.getEnabledCipherSuites());
     }
 
-    public StartTLSExtendedRequest setSSLContext(SSLContext sslContext) {
+    @Override
+    public List<String> getEnabledProtocols() {
+        return Collections.unmodifiableList(impl.getEnabledProtocols());
+    }
+
+    @Override
+    public SSLContext getSSLContext() {
+        return impl.getSSLContext();
+    }
+
+    @Override
+    public StartTLSExtendedRequest setSSLContext(final SSLContext sslContext) {
         throw new UnsupportedOperationException();
     }
 }

@@ -41,71 +41,43 @@ final class GenericIntermediateResponseImpl extends
     private String responseName = null;
     private ByteString responseValue = null;
 
-    /**
-     * Creates a new generic intermediate response with no name or value.
-     */
     GenericIntermediateResponseImpl() {
         // Nothing to do.
     }
 
-    /**
-     * Creates a new generic intermediate response that is an exact copy of the
-     * provided result.
-     *
-     * @param genericIntermediateResponse
-     *            The generic intermediate response to be copied.
-     * @throws NullPointerException
-     *             If {@code genericExtendedResult} was {@code null} .
-     */
     GenericIntermediateResponseImpl(final GenericIntermediateResponse genericIntermediateResponse) {
         super(genericIntermediateResponse);
         this.responseName = genericIntermediateResponse.getOID();
         this.responseValue = genericIntermediateResponse.getValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         return responseName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         return responseValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return responseValue != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericIntermediateResponse setOID(final String oid) {
         this.responseName = oid;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericIntermediateResponse setValue(final Object value) {
         this.responseValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

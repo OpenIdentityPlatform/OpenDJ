@@ -55,120 +55,75 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * the return of values, or other reasons.
  */
 public interface SearchResultEntry extends Response, Entry {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     boolean addAttribute(Attribute attribute);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry addAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry clearAttributes();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean containsAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean containsAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes(String attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Attribute getAttribute(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Attribute getAttribute(String attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     int getAttributeCount();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     DN getName();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean removeAttribute(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry removeAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean replaceAttribute(Attribute attribute);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry replaceAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry setName(DN dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchResultEntry setName(String dn);
 
 }

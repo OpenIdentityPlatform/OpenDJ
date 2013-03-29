@@ -40,35 +40,24 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * unrecognized or unsupported Intermediate responses to the client.
  */
 public interface GenericIntermediateResponse extends IntermediateResponse {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     GenericIntermediateResponse addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
     /**

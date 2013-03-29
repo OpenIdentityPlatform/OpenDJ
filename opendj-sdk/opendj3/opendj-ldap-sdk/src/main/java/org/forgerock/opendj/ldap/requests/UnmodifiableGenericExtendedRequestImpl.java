@@ -35,15 +35,17 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 final class UnmodifiableGenericExtendedRequestImpl extends
         AbstractUnmodifiableExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
         implements GenericExtendedRequest {
-    UnmodifiableGenericExtendedRequestImpl(GenericExtendedRequest impl) {
+    UnmodifiableGenericExtendedRequestImpl(final GenericExtendedRequest impl) {
         super(impl);
     }
 
-    public GenericExtendedRequest setOID(String oid) {
+    @Override
+    public GenericExtendedRequest setOID(final String oid) {
         throw new UnsupportedOperationException();
     }
 
-    public GenericExtendedRequest setValue(Object value) {
+    @Override
+    public GenericExtendedRequest setValue(final Object value) {
         throw new UnsupportedOperationException();
     }
 }

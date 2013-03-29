@@ -35,7 +35,7 @@ import com.forgerock.opendj.util.StaticUtils;
 final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<CRAMMD5SASLBindRequest> implements
         CRAMMD5SASLBindRequest {
-    UnmodifiableCRAMMD5SASLBindRequestImpl(CRAMMD5SASLBindRequest impl) {
+    UnmodifiableCRAMMD5SASLBindRequestImpl(final CRAMMD5SASLBindRequest impl) {
         super(impl);
     }
 
@@ -51,17 +51,17 @@ final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
     }
 
     @Override
-    public CRAMMD5SASLBindRequest setAuthenticationID(String authenticationID) {
+    public CRAMMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public CRAMMD5SASLBindRequest setPassword(byte[] password) {
+    public CRAMMD5SASLBindRequest setPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public CRAMMD5SASLBindRequest setPassword(char[] password) {
+    public CRAMMD5SASLBindRequest setPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 }

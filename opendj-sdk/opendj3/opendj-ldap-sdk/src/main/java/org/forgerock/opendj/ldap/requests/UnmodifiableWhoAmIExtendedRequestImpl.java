@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 final class UnmodifiableWhoAmIExtendedRequestImpl extends
         AbstractUnmodifiableExtendedRequest<WhoAmIExtendedRequest, WhoAmIExtendedResult> implements
         WhoAmIExtendedRequest {
-    UnmodifiableWhoAmIExtendedRequestImpl(WhoAmIExtendedRequest impl) {
+    UnmodifiableWhoAmIExtendedRequestImpl(final WhoAmIExtendedRequest impl) {
         super(impl);
     }
 }

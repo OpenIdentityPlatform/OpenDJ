@@ -46,52 +46,60 @@ import com.forgerock.opendj.util.Collections2;
  */
 final class UnmodifiableModifyRequestImpl extends AbstractUnmodifiableRequest<ModifyRequest>
         implements ModifyRequest {
-    UnmodifiableModifyRequestImpl(ModifyRequest impl) {
+    UnmodifiableModifyRequestImpl(final ModifyRequest impl) {
         super(impl);
     }
 
-    public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+    @Override
+    public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
-    public ModifyRequest addModification(Modification modification) {
+    @Override
+    public ModifyRequest addModification(final Modification modification) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyRequest addModification(ModificationType type, String attributeDescription,
-            Object... values) {
+    @Override
+    public ModifyRequest addModification(final ModificationType type,
+            final String attributeDescription, final Object... values) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public List<Modification> getModifications() {
         // We need to make all attributes unmodifiable as well.
-        Function<Modification, Modification, Void> function =
+        final Function<Modification, Modification, Void> function =
                 new Function<Modification, Modification, Void>() {
 
-                    public Modification apply(Modification value, Void p) {
-                        ModificationType type = value.getModificationType();
-                        Attribute attribute =
+                    @Override
+                    public Modification apply(final Modification value, final Void p) {
+                        final ModificationType type = value.getModificationType();
+                        final Attribute attribute =
                                 Attributes.unmodifiableAttribute(value.getAttribute());
                         return new Modification(type, attribute);
                     }
 
                 };
 
-        List<Modification> unmodifiableModifications =
+        final List<Modification> unmodifiableModifications =
                 Collections2.transformedList(impl.getModifications(), function, Functions
                         .<Modification> identityFunction());
         return Collections.unmodifiableList(unmodifiableModifications);
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
-    public ModifyRequest setName(DN dn) {
+    @Override
+    public ModifyRequest setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyRequest setName(String dn) {
+    @Override
+    public ModifyRequest setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 }

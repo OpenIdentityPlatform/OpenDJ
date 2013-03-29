@@ -36,57 +36,32 @@ import org.forgerock.opendj.ldap.ResultCode;
 final class BindResultImpl extends AbstractResultImpl<BindResult> implements BindResult {
     private ByteString credentials = null;
 
-    /**
-     * Creates a new bind result using the provided result code.
-     *
-     * @param resultCode
-     *            The result code.
-     * @throws NullPointerException
-     *             If {@code resultCode} was {@code null}.
-     */
-    BindResultImpl(final ResultCode resultCode) {
-        super(resultCode);
-    }
-
-    /**
-     * Creates a new bind result that is an exact copy of the provided result.
-     *
-     * @param bindResult
-     *            The bind result to be copied.
-     * @throws NullPointerException
-     *             If {@code bindResult} was {@code null} .
-     */
     BindResultImpl(final BindResult bindResult) {
         super(bindResult);
         this.credentials = bindResult.getServerSASLCredentials();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    BindResultImpl(final ResultCode resultCode) {
+        super(resultCode);
+    }
+
+    @Override
     public ByteString getServerSASLCredentials() {
         return credentials;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public boolean isSASLBindInProgress() {
         final ResultCode code = getResultCode();
         return code.equals(ResultCode.SASL_BIND_IN_PROGRESS);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public BindResult setServerSASLCredentials(final ByteString credentials) {
         this.credentials = credentials;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

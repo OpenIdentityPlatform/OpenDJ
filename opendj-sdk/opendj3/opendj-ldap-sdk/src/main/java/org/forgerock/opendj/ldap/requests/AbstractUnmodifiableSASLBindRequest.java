@@ -36,7 +36,7 @@ package org.forgerock.opendj.ldap.requests;
 abstract class AbstractUnmodifiableSASLBindRequest<R extends SASLBindRequest> extends
         AbstractUnmodifiableBindRequest<R> implements SASLBindRequest {
 
-    AbstractUnmodifiableSASLBindRequest(R impl) {
+    AbstractUnmodifiableSASLBindRequest(final R impl) {
         super(impl);
     }
 

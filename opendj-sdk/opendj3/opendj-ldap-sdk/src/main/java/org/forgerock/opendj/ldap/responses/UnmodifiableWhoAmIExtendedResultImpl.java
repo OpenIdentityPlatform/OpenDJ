@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap.responses;
 class UnmodifiableWhoAmIExtendedResultImpl extends
         AbstractUnmodifiableExtendedResultImpl<WhoAmIExtendedResult> implements
         WhoAmIExtendedResult {
-    UnmodifiableWhoAmIExtendedResultImpl(WhoAmIExtendedResult impl) {
+    UnmodifiableWhoAmIExtendedResultImpl(final WhoAmIExtendedResult impl) {
         super(impl);
     }
 
@@ -43,7 +43,7 @@ class UnmodifiableWhoAmIExtendedResultImpl extends
     }
 
     @Override
-    public WhoAmIExtendedResult setAuthorizationID(String authorizationID) {
+    public WhoAmIExtendedResult setAuthorizationID(final String authorizationID) {
         throw new UnsupportedOperationException();
     }
 }

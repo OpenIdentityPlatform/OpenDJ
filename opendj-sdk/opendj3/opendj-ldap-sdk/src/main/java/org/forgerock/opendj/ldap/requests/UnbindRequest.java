@@ -38,19 +38,14 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * The Unbind operation allows a client to terminate an LDAP session.
  */
 public interface UnbindRequest extends Request {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     UnbindRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 }

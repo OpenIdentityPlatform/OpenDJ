@@ -44,38 +44,12 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
         Result {
     // For local errors caused by internal exceptions.
     private Throwable cause = null;
-
     private String diagnosticMessage = "";
-
     private String matchedDN = "";
-
     private final List<String> referralURIs = new LinkedList<String>();
-
     private ResultCode resultCode;
 
-    /**
-     * Creates a new modifiable result implementation using the provided result
-     * code.
-     *
-     * @param resultCode
-     *            The result code.
-     * @throws NullPointerException
-     *             If {@code resultCode} was {@code null}.
-     */
-    AbstractResultImpl(final ResultCode resultCode) {
-        this.resultCode = resultCode;
-    }
-
-    /**
-     * Creates a new modifiable result that is an exact copy of the provided
-     * result.
-     *
-     * @param result
-     *            The result to be copied.
-     * @throws NullPointerException
-     *             If {@code result} was {@code null}.
-     */
-    AbstractResultImpl(Result result) {
+    AbstractResultImpl(final Result result) {
         super(result);
         this.cause = result.getCause();
         this.diagnosticMessage = result.getDiagnosticMessage();
@@ -84,9 +58,11 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
         this.resultCode = result.getResultCode();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    AbstractResultImpl(final ResultCode resultCode) {
+        this.resultCode = resultCode;
+    }
+
+    @Override
     public final S addReferralURI(final String uri) {
         Validator.ensureNotNull(uri);
 
@@ -94,68 +70,50 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final Throwable getCause() {
         return cause;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final String getDiagnosticMessage() {
         return diagnosticMessage;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final String getMatchedDN() {
         return matchedDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final List<String> getReferralURIs() {
         return referralURIs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final ResultCode getResultCode() {
         return resultCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final boolean isReferral() {
         final ResultCode code = getResultCode();
         return code.equals(ResultCode.REFERRAL);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final boolean isSuccess() {
         final ResultCode code = getResultCode();
         return !code.isExceptional();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final S setCause(final Throwable cause) {
         this.cause = cause;
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final S setDiagnosticMessage(final String message) {
         if (message == null) {
             this.diagnosticMessage = "";
@@ -166,9 +124,7 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final S setMatchedDN(final String dn) {
         if (dn == null) {
             this.matchedDN = "";
@@ -179,9 +135,7 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final S setResultCode(final ResultCode resultCode) {
         Validator.ensureNotNull(resultCode);
 

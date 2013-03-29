@@ -40,23 +40,23 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class UnmodifiableGSSAPISASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<GSSAPISASLBindRequest> implements GSSAPISASLBindRequest {
-    UnmodifiableGSSAPISASLBindRequestImpl(GSSAPISASLBindRequest impl) {
+    UnmodifiableGSSAPISASLBindRequestImpl(final GSSAPISASLBindRequest impl) {
         super(impl);
     }
 
     @Override
-    public GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value) {
+    public GSSAPISASLBindRequest addAdditionalAuthParam(final String name, final String value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public GSSAPISASLBindRequest addQOP(final String... qopValues) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Map<String, String> getAdditionalAuthParams() {
         return Collections.unmodifiableMap(impl.getAdditionalAuthParams());
-    }
-
-    @Override
-    public GSSAPISASLBindRequest addQOP(String... qopValues) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -111,52 +111,52 @@ final class UnmodifiableGSSAPISASLBindRequestImpl extends
     }
 
     @Override
-    public GSSAPISASLBindRequest setAuthenticationID(String authenticationID) {
+    public GSSAPISASLBindRequest setAuthenticationID(final String authenticationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setAuthorizationID(String authorizationID) {
+    public GSSAPISASLBindRequest setAuthorizationID(final String authorizationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setKDCAddress(String address) {
+    public GSSAPISASLBindRequest setKDCAddress(final String address) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setMaxReceiveBufferSize(int size) {
+    public GSSAPISASLBindRequest setMaxReceiveBufferSize(final int size) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setMaxSendBufferSize(int size) {
+    public GSSAPISASLBindRequest setMaxSendBufferSize(final int size) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setPassword(byte[] password) {
+    public GSSAPISASLBindRequest setPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setPassword(char[] password) {
+    public GSSAPISASLBindRequest setPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setRealm(String realm) {
+    public GSSAPISASLBindRequest setRealm(final String realm) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setServerAuth(boolean serverAuth) {
+    public GSSAPISASLBindRequest setServerAuth(final boolean serverAuth) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GSSAPISASLBindRequest setSubject(Subject subject) {
+    public GSSAPISASLBindRequest setSubject(final Subject subject) {
         throw new UnsupportedOperationException();
     }
 }

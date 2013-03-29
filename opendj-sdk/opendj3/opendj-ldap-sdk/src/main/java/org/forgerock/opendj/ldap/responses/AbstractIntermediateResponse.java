@@ -57,28 +57,19 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
      * @throws NullPointerException
      *             If {@code intermediateResponse} was {@code null} .
      */
-    protected AbstractIntermediateResponse(IntermediateResponse intermediateResponse) {
+    protected AbstractIntermediateResponse(final IntermediateResponse intermediateResponse) {
         super(intermediateResponse);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -94,9 +85,6 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     @SuppressWarnings("unchecked")
     final S getThis() {

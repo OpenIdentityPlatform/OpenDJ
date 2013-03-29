@@ -36,34 +36,17 @@ package org.forgerock.opendj.ldap.requests;
 abstract class AbstractBindRequest<R extends BindRequest> extends AbstractRequestImpl<R> implements
         BindRequest {
 
-    /**
-     * Creates a new abstract bind request.
-     */
-    protected AbstractBindRequest() {
+    AbstractBindRequest() {
         // Nothing to do.
     }
 
-    /**
-     * Creates a new abstract bind request that is an exact copy of the provided
-     * request.
-     *
-     * @param bindRequest
-     *            The bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code bindRequest} was {@code null} .
-     */
-    protected AbstractBindRequest(BindRequest bindRequest) {
+    AbstractBindRequest(final BindRequest bindRequest) {
         super(bindRequest);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract String getName();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     @SuppressWarnings("unchecked")
     final R getThis() {

@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap.requests;
 final class UnmodifiableAnonymousSASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<AnonymousSASLBindRequest> implements
         AnonymousSASLBindRequest {
-    UnmodifiableAnonymousSASLBindRequestImpl(AnonymousSASLBindRequest impl) {
+    UnmodifiableAnonymousSASLBindRequestImpl(final AnonymousSASLBindRequest impl) {
         super(impl);
     }
 
@@ -43,7 +43,7 @@ final class UnmodifiableAnonymousSASLBindRequestImpl extends
     }
 
     @Override
-    public AnonymousSASLBindRequest setTraceString(String traceString) {
+    public AnonymousSASLBindRequest setTraceString(final String traceString) {
         throw new UnsupportedOperationException();
     }
 }

@@ -33,17 +33,17 @@ package org.forgerock.opendj.ldap.responses;
 class UnmodifiableGenericIntermediateResponseImpl extends
         AbstractUnmodifiableIntermediateResponseImpl<GenericIntermediateResponse> implements
         GenericIntermediateResponse {
-    UnmodifiableGenericIntermediateResponseImpl(GenericIntermediateResponse impl) {
+    UnmodifiableGenericIntermediateResponseImpl(final GenericIntermediateResponse impl) {
         super(impl);
     }
 
     @Override
-    public GenericIntermediateResponse setOID(String oid) {
+    public GenericIntermediateResponse setOID(final String oid) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public GenericIntermediateResponse setValue(Object value) {
+    public GenericIntermediateResponse setValue(final Object value) {
         throw new UnsupportedOperationException();
     }
 }

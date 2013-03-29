@@ -32,29 +32,14 @@ package org.forgerock.opendj.ldap.requests;
  */
 final class UnbindRequestImpl extends AbstractRequestImpl<UnbindRequest> implements UnbindRequest {
 
-    /**
-     * Creates a new unbind request.
-     */
     UnbindRequestImpl() {
         // Do nothing.
     }
 
-    /**
-     * Creates a new unbind request that is an exact copy of the provided
-     * request.
-     *
-     * @param unbindRequest
-     *            The unbind request to be copied.
-     * @throws NullPointerException
-     *             If {@code unbindRequest} was {@code null} .
-     */
     UnbindRequestImpl(final UnbindRequest unbindRequest) {
         super(unbindRequest);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

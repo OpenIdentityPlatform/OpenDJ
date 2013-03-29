@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -38,67 +38,39 @@ import com.forgerock.opendj.util.Validator;
 final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest> implements DeleteRequest {
     private DN name;
 
-    /**
-     * Creates a new delete request using the provided distinguished name.
-     *
-     * @param name
-     *            The distinguished name of the entry to be deleted.
-     * @throws NullPointerException
-     *             If {@code name} was {@code null}.
-     */
-    DeleteRequestImpl(final DN name) {
-        this.name = name;
-    }
-
-    /**
-     * Creates a new delete request that is an exact copy of the provided
-     * request.
-     *
-     * @param deleteRequest
-     *            The add request to be copied.
-     * @throws NullPointerException
-     *             If {@code addRequest} was {@code null} .
-     */
     DeleteRequestImpl(final DeleteRequest deleteRequest) {
         super(deleteRequest);
         this.name = deleteRequest.getName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    DeleteRequestImpl(final DN name) {
+        this.name = name;
+    }
+
+    @Override
     public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DeleteRequest setName(final DN dn) {
         Validator.ensureNotNull(dn);
         this.name = dn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DeleteRequest setName(final String dn) {
         Validator.ensureNotNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

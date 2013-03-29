@@ -63,10 +63,10 @@ import com.forgerock.opendj.util.Validator;
 final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestMD5SASLBindRequest>
         implements DigestMD5SASLBindRequest {
     private final static class Client extends SASLBindClientImpl {
-        private final SaslClient saslClient;
         private final String authenticationID;
         private final ByteString password;
         private final String realm;
+        private final SaslClient saslClient;
 
         private Client(final DigestMD5SASLBindRequestImpl initialBindRequest,
                 final String serverName) throws ErrorResultException {
@@ -93,9 +93,10 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
                 } else if (cipher.equalsIgnoreCase(CIPHER_HIGH)) {
                     props.put(Sasl.STRENGTH, "high");
                 } else {
-                    // Default strength allows all ciphers, so specifying a
-                    // single cipher
-                    // cannot be incompatible with the strength.
+                    /*
+                     * Default strength allows all ciphers, so specifying a
+                     * single cipher cannot be incompatible with the strength.
+                     */
                     props.put("com.sun.security.sasl.digest.cipher", cipher);
                 }
             }
@@ -220,35 +221,21 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     }
 
     private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
-    private final List<String> qopValues = new LinkedList<String>();
-    private String cipher = null;
-
-    // Don't use primitives for these so that we can distinguish between default
-    // settings (null) and values set by the caller.
-    private Boolean serverAuth = null;
-    private Integer maxReceiveBufferSize = null;
-    private Integer maxSendBufferSize = null;
-
     private String authenticationID;
     private String authorizationID = null;
+
+    private String cipher = null;
+    private Integer maxReceiveBufferSize = null;
+    private Integer maxSendBufferSize = null;
     private byte[] password;
+    private final List<String> qopValues = new LinkedList<String>();
     private String realm = null;
-
-    DigestMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
-        this.authenticationID = authenticationID;
-        this.password = password;
-    }
-
-    /**
-     * Creates a new digest MD5 SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param digestMD5SASLBindRequest
-     *            The digest MD5 SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code digestMD5SASLBindRequest} was {@code null} .
+    /*
+     * Don't use primitives for these so that we can distinguish between default
+     * settings (null) and values set by the caller.
      */
+    private Boolean serverAuth = null;
+
     DigestMD5SASLBindRequestImpl(final DigestMD5SASLBindRequest digestMD5SASLBindRequest) {
         super(digestMD5SASLBindRequest);
         this.additionalAuthParams.putAll(digestMD5SASLBindRequest.getAdditionalAuthParams());
@@ -265,9 +252,12 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         this.realm = digestMD5SASLBindRequest.getRealm();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    DigestMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
+        Validator.ensureNotNull(authenticationID, password);
+        this.authenticationID = authenticationID;
+        this.password = password;
+    }
+
     @Override
     public DigestMD5SASLBindRequest addAdditionalAuthParam(final String name, final String value) {
         Validator.ensureNotNull(name, value);
@@ -275,9 +265,6 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest addQOP(final String... qopValues) {
         for (final String qopValue : qopValues) {
@@ -286,105 +273,66 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new Client(this, serverName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, String> getAdditionalAuthParams() {
         return additionalAuthParams;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAuthenticationID() {
         return authenticationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAuthorizationID() {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getCipher() {
         return cipher;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaxReceiveBufferSize() {
         return maxReceiveBufferSize == null ? 65536 : maxReceiveBufferSize;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaxSendBufferSize() {
         return maxSendBufferSize == null ? 65536 : maxSendBufferSize;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public byte[] getPassword() {
         return password;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<String> getQOPs() {
         return qopValues;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getRealm() {
         return realm;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isServerAuth() {
         return serverAuth == null ? false : serverAuth;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
         Validator.ensureNotNull(authenticationID);
@@ -392,45 +340,30 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setAuthorizationID(final String authorizationID) {
         this.authorizationID = authorizationID;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setCipher(final String cipher) {
         this.cipher = cipher;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setMaxReceiveBufferSize(final int size) {
         maxReceiveBufferSize = size;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setMaxSendBufferSize(final int size) {
         maxSendBufferSize = size;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setPassword(final byte[] password) {
         Validator.ensureNotNull(password);
@@ -438,9 +371,6 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setPassword(final char[] password) {
         Validator.ensureNotNull(password);
@@ -448,18 +378,12 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setRealm(final String realm) {
         this.realm = realm;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DigestMD5SASLBindRequest setServerAuth(final boolean serverAuth) {
         this.serverAuth = serverAuth;

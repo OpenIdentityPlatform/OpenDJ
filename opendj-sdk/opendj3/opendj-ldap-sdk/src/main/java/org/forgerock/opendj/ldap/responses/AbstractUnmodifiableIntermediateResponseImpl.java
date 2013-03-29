@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 abstract class AbstractUnmodifiableIntermediateResponseImpl<S extends IntermediateResponse> extends
         AbstractUnmodifiableResponseImpl<S> implements IntermediateResponse {
-    protected AbstractUnmodifiableIntermediateResponseImpl(S impl) {
+    AbstractUnmodifiableIntermediateResponseImpl(final S impl) {
         super(impl);
     }
 

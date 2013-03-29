@@ -58,6 +58,7 @@ final class PasswordModifyExtendedRequestImpl extends
         implements PasswordModifyExtendedRequest {
     static final class RequestDecoder implements
             ExtendedRequestDecoder<PasswordModifyExtendedRequest, PasswordModifyExtendedResult> {
+        @Override
         public PasswordModifyExtendedRequest decodeExtendedRequest(
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
@@ -97,12 +98,7 @@ final class PasswordModifyExtendedRequestImpl extends
 
     private static final class ResultDecoder extends
             AbstractExtendedResultDecoder<PasswordModifyExtendedResult> {
-        public PasswordModifyExtendedResult newExtendedErrorResult(final ResultCode resultCode,
-                final String matchedDN, final String diagnosticMessage) {
-            return Responses.newPasswordModifyExtendedResult(resultCode).setMatchedDN(matchedDN)
-                    .setDiagnosticMessage(diagnosticMessage);
-        }
-
+        @Override
         public PasswordModifyExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             if (result instanceof PasswordModifyExtendedResult) {
@@ -140,19 +136,23 @@ final class PasswordModifyExtendedRequestImpl extends
                 return newResult;
             }
         }
+
+        @Override
+        public PasswordModifyExtendedResult newExtendedErrorResult(final ResultCode resultCode,
+                final String matchedDN, final String diagnosticMessage) {
+            return Responses.newPasswordModifyExtendedResult(resultCode).setMatchedDN(matchedDN)
+                    .setDiagnosticMessage(diagnosticMessage);
+        }
     }
 
-    /**
-     * The ASN.1 element type that will be used to encode the userIdentity
-     * component in a password modify extended request.
-     */
-    private static final byte TYPE_PASSWORD_MODIFY_USER_ID = (byte) 0x80;
+    private static final ExtendedResultDecoder<PasswordModifyExtendedResult> RESULT_DECODER =
+            new ResultDecoder();
 
     /**
-     * The ASN.1 element type that will be used to encode the oldPasswd
-     * component in a password modify extended request.
+     * The ASN.1 element type that will be used to encode the genPasswd
+     * component in a password modify extended response.
      */
-    private static final byte TYPE_PASSWORD_MODIFY_OLD_PASSWORD = (byte) 0x81;
+    private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
 
     /**
      * The ASN.1 element type that will be used to encode the newPasswd
@@ -161,32 +161,26 @@ final class PasswordModifyExtendedRequestImpl extends
     private static final byte TYPE_PASSWORD_MODIFY_NEW_PASSWORD = (byte) 0x82;
 
     /**
-     * The ASN.1 element type that will be used to encode the genPasswd
-     * component in a password modify extended response.
+     * The ASN.1 element type that will be used to encode the oldPasswd
+     * component in a password modify extended request.
      */
-    private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
+    private static final byte TYPE_PASSWORD_MODIFY_OLD_PASSWORD = (byte) 0x81;
+
+    /**
+     * The ASN.1 element type that will be used to encode the userIdentity
+     * component in a password modify extended request.
+     */
+    private static final byte TYPE_PASSWORD_MODIFY_USER_ID = (byte) 0x80;
+    private byte[] newPassword = null;
+    private byte[] oldPassword = null;
 
     private ByteString userIdentity = null;
-    private byte[] oldPassword = null;
-    private byte[] newPassword = null;
-
-    private static final ExtendedResultDecoder<PasswordModifyExtendedResult> RESULT_DECODER =
-            new ResultDecoder();
 
     // Instantiation via factory.
     PasswordModifyExtendedRequestImpl() {
 
     }
 
-    /**
-     * Creates a new password modify extended request that is an exact copy of
-     * the provided request.
-     *
-     * @param passwordModifyExtendedRequest
-     *            The password modify extended request to be copied.
-     * @throws NullPointerException
-     *             If {@code passwordModifyExtendedRequest} was {@code null} .
-     */
     PasswordModifyExtendedRequestImpl(
             final PasswordModifyExtendedRequest passwordModifyExtendedRequest) {
         super(passwordModifyExtendedRequest);
@@ -195,53 +189,36 @@ final class PasswordModifyExtendedRequestImpl extends
         this.newPassword = passwordModifyExtendedRequest.getNewPassword();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte[] getNewPassword() {
         return newPassword;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte[] getOldPassword() {
         return oldPassword;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ExtendedResultDecoder<PasswordModifyExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ByteString getUserIdentity() {
         return userIdentity;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getUserIdentityAsString() {
         return userIdentity != null ? userIdentity.toString() : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -267,57 +244,41 @@ final class PasswordModifyExtendedRequestImpl extends
         return buffer.toByteString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedRequest setNewPassword(final byte[] newPassword) {
         this.newPassword = newPassword;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedRequest setNewPassword(final char[] newPassword) {
         this.newPassword = (newPassword != null) ? StaticUtils.getBytes(newPassword) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedRequest setOldPassword(final byte[] oldPassword) {
         this.oldPassword = oldPassword;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedRequest setOldPassword(final char[] oldPassword) {
         this.oldPassword = (oldPassword != null) ? StaticUtils.getBytes(oldPassword) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedRequest setUserIdentity(final Object userIdentity) {
         this.userIdentity = (userIdentity != null) ? ByteString.valueOf(userIdentity) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

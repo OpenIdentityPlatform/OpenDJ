@@ -39,9 +39,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * operation.
  */
 public interface SearchResultReference extends Response {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     SearchResultReference addControl(Control control);
 
     /**
@@ -59,15 +58,11 @@ public interface SearchResultReference extends Response {
      */
     SearchResultReference addURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

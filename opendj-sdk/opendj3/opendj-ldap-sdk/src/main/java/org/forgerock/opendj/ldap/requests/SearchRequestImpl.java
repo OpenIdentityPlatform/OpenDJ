@@ -41,54 +41,21 @@ import com.forgerock.opendj.util.Validator;
  * Search request implementation.
  */
 final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> implements SearchRequest {
-
     private final List<String> attributes = new LinkedList<String>();
-
-    private DN name;
-
     private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
-
     private Filter filter;
-
+    private DN name;
     private SearchScope scope;
-
     private int sizeLimit = 0;
-
     private int timeLimit = 0;
-
     private boolean typesOnly = false;
 
-    /**
-     * Creates a new search request using the provided distinguished name,
-     * scope, and filter, decoded using the default schema.
-     *
-     * @param name
-     *            The distinguished name of the base entry relative to which the
-     *            search is to be performed.
-     * @param scope
-     *            The scope of the search.
-     * @param filter
-     *            The filter that defines the conditions that must be fulfilled
-     *            in order for an entry to be returned.
-     * @throws NullPointerException
-     *             If the {@code name}, {@code scope}, or {@code filter} were
-     *             {@code null}.
-     */
     SearchRequestImpl(final DN name, final SearchScope scope, final Filter filter) {
         this.name = name;
         this.scope = scope;
         this.filter = filter;
     }
 
-    /**
-     * Creates a new search request that is an exact copy of the provided
-     * request.
-     *
-     * @param searchRequest
-     *            The search request to be copied.
-     * @throws NullPointerException
-     *             If {@code searchRequest} was {@code null} .
-     */
     SearchRequestImpl(final SearchRequest searchRequest) {
         super(searchRequest);
         this.attributes.addAll(searchRequest.getAttributes());
@@ -101,75 +68,55 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         this.typesOnly = searchRequest.isTypesOnly();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest addAttribute(final String... attributeDescriptions) {
-        for (String attributeDescription : attributeDescriptions) {
+        for (final String attributeDescription : attributeDescriptions) {
             attributes.add(Validator.ensureNotNull(attributeDescription));
         }
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public List<String> getAttributes() {
         return attributes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DereferenceAliasesPolicy getDereferenceAliasesPolicy() {
         return dereferenceAliasesPolicy;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public Filter getFilter() {
         return filter;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchScope getScope() {
         return scope;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public int getSizeLimit() {
         return sizeLimit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public int getTimeLimit() {
         return timeLimit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public boolean isTypesOnly() {
         return typesOnly;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setDereferenceAliasesPolicy(final DereferenceAliasesPolicy policy) {
         Validator.ensureNotNull(policy);
 
@@ -177,9 +124,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setFilter(final Filter filter) {
         Validator.ensureNotNull(filter);
 
@@ -187,17 +132,13 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setFilter(final String filter) {
         this.filter = Filter.valueOf(filter);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setName(final DN dn) {
         Validator.ensureNotNull(dn);
 
@@ -205,9 +146,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setName(final String dn) {
         Validator.ensureNotNull(dn);
 
@@ -215,9 +154,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setScope(final SearchScope scope) {
         Validator.ensureNotNull(scope);
 
@@ -225,9 +162,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setSizeLimit(final int limit) {
         Validator.ensureTrue(limit >= 0, "negative size limit");
 
@@ -235,9 +170,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setTimeLimit(final int limit) {
         Validator.ensureTrue(limit >= 0, "negative time limit");
 
@@ -245,17 +178,12 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SearchRequest setTypesOnly(final boolean typesOnly) {
         this.typesOnly = typesOnly;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

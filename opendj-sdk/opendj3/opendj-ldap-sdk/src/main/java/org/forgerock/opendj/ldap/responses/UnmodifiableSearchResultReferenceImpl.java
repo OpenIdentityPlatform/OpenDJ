@@ -34,12 +34,12 @@ import java.util.List;
  */
 class UnmodifiableSearchResultReferenceImpl extends
         AbstractUnmodifiableResponseImpl<SearchResultReference> implements SearchResultReference {
-    UnmodifiableSearchResultReferenceImpl(SearchResultReference impl) {
+    UnmodifiableSearchResultReferenceImpl(final SearchResultReference impl) {
         super(impl);
     }
 
     @Override
-    public SearchResultReference addURI(String uri) {
+    public SearchResultReference addURI(final String uri) {
         throw new UnsupportedOperationException();
     }
 

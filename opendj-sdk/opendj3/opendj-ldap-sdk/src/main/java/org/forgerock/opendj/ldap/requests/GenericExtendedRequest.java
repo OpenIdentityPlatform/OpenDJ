@@ -53,40 +53,26 @@ public interface GenericExtendedRequest extends ExtendedRequest<GenericExtendedR
     public static final ExtendedRequestDecoder<GenericExtendedRequest, GenericExtendedResult> DECODER =
             new GenericExtendedRequestImpl.RequestDecoder();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResultDecoder<GenericExtendedResult> getResultDecoder();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
     /**

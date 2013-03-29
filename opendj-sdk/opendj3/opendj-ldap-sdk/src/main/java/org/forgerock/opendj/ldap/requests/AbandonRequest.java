@@ -41,20 +41,15 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * Abandon, Bind, Unbind, and StartTLS operations cannot be abandoned.
  */
 public interface AbandonRequest extends Request {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     AbandonRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

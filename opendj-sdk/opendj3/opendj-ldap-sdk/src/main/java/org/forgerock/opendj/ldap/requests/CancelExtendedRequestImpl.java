@@ -56,6 +56,7 @@ final class CancelExtendedRequestImpl extends
         CancelExtendedRequest {
     static final class RequestDecoder implements
             ExtendedRequestDecoder<CancelExtendedRequest, ExtendedResult> {
+        @Override
         public CancelExtendedRequest decodeExtendedRequest(final ExtendedRequest<?> request,
                 final DecodeOptions options) throws DecodeException {
             final ByteString requestValue = request.getValue();
@@ -85,69 +86,51 @@ final class CancelExtendedRequestImpl extends
     }
 
     private static final class ResultDecoder extends AbstractExtendedResultDecoder<ExtendedResult> {
-        public ExtendedResult newExtendedErrorResult(final ResultCode resultCode,
-                final String matchedDN, final String diagnosticMessage) {
-            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
-                    .setDiagnosticMessage(diagnosticMessage);
-        }
-
+        @Override
         public ExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             // TODO: Should we check to make sure OID and value is null?
             return result;
         }
-    }
 
-    private int requestID;
+        @Override
+        public ExtendedResult newExtendedErrorResult(final ResultCode resultCode,
+                final String matchedDN, final String diagnosticMessage) {
+            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
+                    .setDiagnosticMessage(diagnosticMessage);
+        }
+    }
 
     // No need to expose this.
     private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
+
+    private int requestID;
+
+    CancelExtendedRequestImpl(final CancelExtendedRequest cancelExtendedRequest) {
+        super(cancelExtendedRequest);
+        this.requestID = cancelExtendedRequest.getRequestID();
+    }
 
     // Instantiation via factory.
     CancelExtendedRequestImpl(final int requestID) {
         this.requestID = requestID;
     }
 
-    /**
-     * Creates a new cancel extended request that is an exact copy of the
-     * provided request.
-     *
-     * @param cancelExtendedRequest
-     *            The cancel extended request to be copied.
-     * @throws NullPointerException
-     *             If {@code cancelExtendedRequest} was {@code null} .
-     */
-    CancelExtendedRequestImpl(final CancelExtendedRequest cancelExtendedRequest) {
-        super(cancelExtendedRequest);
-        this.requestID = cancelExtendedRequest.getRequestID();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getRequestID() {
-        return requestID;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public int getRequestID() {
+        return requestID;
+    }
+
     @Override
     public ExtendedResultDecoder<ExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder(6);
@@ -165,25 +148,17 @@ final class CancelExtendedRequestImpl extends
         return buffer.toByteString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CancelExtendedRequest setRequestID(final int id) {
         this.requestID = id;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

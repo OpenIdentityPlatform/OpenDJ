@@ -73,14 +73,10 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  */
 public interface WhoAmIExtendedResult extends ExtendedResult {
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult addReferralURI(String uri);
 
     /**
@@ -94,65 +90,41 @@ public interface WhoAmIExtendedResult extends ExtendedResult {
      */
     String getAuthorizationID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
     /**
@@ -174,24 +146,16 @@ public interface WhoAmIExtendedResult extends ExtendedResult {
      */
     WhoAmIExtendedResult setAuthorizationID(String authorizationID);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult setDiagnosticMessage(String message);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult setMatchedDN(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     WhoAmIExtendedResult setResultCode(ResultCode resultCode);
 
 }

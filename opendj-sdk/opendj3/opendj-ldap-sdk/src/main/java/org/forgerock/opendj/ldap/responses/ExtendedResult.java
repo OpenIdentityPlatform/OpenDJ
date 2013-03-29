@@ -43,40 +43,27 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * {@link #getOID} and {@link #getValue} methods respectively.
  */
 public interface ExtendedResult extends Result {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     ExtendedResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResult addReferralURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
     /**
@@ -87,14 +74,10 @@ public interface ExtendedResult extends Result {
      */
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
     /**
@@ -117,33 +100,21 @@ public interface ExtendedResult extends Result {
      */
     boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResult setDiagnosticMessage(String message);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResult setMatchedDN(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResult setResultCode(ResultCode resultCode);
 }

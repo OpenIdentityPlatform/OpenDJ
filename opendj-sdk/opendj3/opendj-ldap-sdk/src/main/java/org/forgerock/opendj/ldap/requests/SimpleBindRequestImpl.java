@@ -40,97 +40,61 @@ import com.forgerock.opendj.util.Validator;
  */
 final class SimpleBindRequestImpl extends AbstractBindRequest<SimpleBindRequest> implements
         SimpleBindRequest {
+    private String name = "".intern();
     private byte[] password = new byte[0];
 
-    private String name = "".intern();
-
-    /**
-     * Creates a new simple bind request having the provided name and password
-     * suitable for name/password authentication.
-     *
-     * @param name
-     *            The name of the Directory object that the client wishes to
-     *            bind as, which may be empty.
-     * @param password
-     *            The password of the Directory object that the client wishes to
-     *            bind as, which may be empty indicating that an unauthenticated
-     *            bind is to be performed.
-     * @throws NullPointerException
-     *             If {@code name} or {@code password} was {@code null}.
-     */
-    SimpleBindRequestImpl(final String name, final byte[] password) {
-        this.name = name;
-        this.password = password;
-    }
-
-    /**
-     * Creates a new simple bind request that is an exact copy of the provided
-     * request.
-     *
-     * @param simpleBindRequest
-     *            The simple bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code simpleBindRequest} was {@code null} .
-     */
     SimpleBindRequestImpl(final SimpleBindRequest simpleBindRequest) {
         super(simpleBindRequest);
         this.name = simpleBindRequest.getName();
         this.password = StaticUtils.copyOfBytes(simpleBindRequest.getPassword());
     }
 
+    SimpleBindRequestImpl(final String name, final byte[] password) {
+        this.name = name;
+        this.password = password;
+    }
+
+    @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new BindClientImpl(this).setNextAuthenticationValue(password);
     }
 
+    @Override
     public byte getAuthenticationType() {
         return TYPE_AUTHENTICATION_SIMPLE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte[] getPassword() {
         return password;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SimpleBindRequest setName(final String name) {
         Validator.ensureNotNull(name);
         this.name = name;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SimpleBindRequest setPassword(final byte[] password) {
         Validator.ensureNotNull(password);
         this.password = password;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public SimpleBindRequest setPassword(final char[] password) {
         Validator.ensureNotNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -39,48 +39,14 @@ import com.forgerock.opendj.util.Validator;
  */
 final class GenericBindRequestImpl extends AbstractBindRequest<GenericBindRequest> implements
         GenericBindRequest {
+    private byte authenticationType;
+
+    private byte[] authenticationValue;
+
     private final BindClient bindClient;
 
     private String name;
 
-    private byte[] authenticationValue;
-
-    private byte authenticationType;
-
-    /**
-     * Creates a new generic bind request using a generic bind client.
-     */
-    GenericBindRequestImpl(final String name, final byte authenticationType,
-            final byte[] authenticationValue) {
-        this.name = name;
-        this.authenticationType = authenticationType;
-        this.authenticationValue = authenticationValue;
-        this.bindClient = null; // Create a new bind client each time.
-    }
-
-    /**
-     * Creates a new generic bind request using the provided bind client.
-     * <p>
-     * This is intended for use by other bind client implementations in this
-     * package.
-     */
-    GenericBindRequestImpl(final String name, final byte authenticationType,
-            final byte[] authenticationValue, final BindClient bindClient) {
-        this.name = name;
-        this.authenticationType = authenticationType;
-        this.authenticationValue = authenticationValue;
-        this.bindClient = bindClient; // Always return same bind client.
-    }
-
-    /**
-     * Creates a new generic bind request that is an exact copy of the provided
-     * request.
-     *
-     * @param genericBindRequest
-     *            The generic bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code genericBindRequest} was {@code null} .
-     */
     GenericBindRequestImpl(final GenericBindRequest genericBindRequest) {
         super(genericBindRequest);
         this.name = genericBindRequest.getName();
@@ -89,6 +55,23 @@ final class GenericBindRequestImpl extends AbstractBindRequest<GenericBindReques
         this.bindClient = null; // Create a new bind client each time.
     }
 
+    GenericBindRequestImpl(final String name, final byte authenticationType,
+            final byte[] authenticationValue) {
+        this.name = name;
+        this.authenticationType = authenticationType;
+        this.authenticationValue = authenticationValue;
+        this.bindClient = null; // Create a new bind client each time.
+    }
+
+    GenericBindRequestImpl(final String name, final byte authenticationType,
+            final byte[] authenticationValue, final BindClient bindClient) {
+        this.name = name;
+        this.authenticationType = authenticationType;
+        this.authenticationValue = authenticationValue;
+        this.bindClient = bindClient; // Always return same bind client.
+    }
+
+    @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         if (bindClient == null) {
             return new BindClientImpl(this).setNextAuthenticationValue(authenticationValue);
@@ -97,57 +80,41 @@ final class GenericBindRequestImpl extends AbstractBindRequest<GenericBindReques
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte getAuthenticationType() {
         return authenticationType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte[] getAuthenticationValue() {
         return authenticationValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericBindRequest setAuthenticationType(final byte type) {
         this.authenticationType = type;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericBindRequest setAuthenticationValue(final byte[] bytes) {
         Validator.ensureNotNull(bytes);
         this.authenticationValue = bytes;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericBindRequest setName(final String name) {
         Validator.ensureNotNull(name);
         this.name = name;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -51,8 +51,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * create a new search request.
  *
  * <pre>
- * SearchRequest request = Requests.newSearchRequest(
- *          "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn");
+ * SearchRequest request = Requests.newSearchRequest(&quot;dc=example,dc=com&quot;, SearchScope.WHOLE_SUBTREE,
+ *         &quot;(sn=Jensen)&quot;, &quot;cn&quot;);
  * </pre>
  *
  * Alternatively, use the
@@ -82,9 +82,7 @@ public interface SearchRequest extends Request {
      */
     SearchRequest addAttribute(String... attributeDescriptions);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     SearchRequest addControl(Control control);
 
     /**
@@ -97,15 +95,11 @@ public interface SearchRequest extends Request {
      */
     List<String> getAttributes();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

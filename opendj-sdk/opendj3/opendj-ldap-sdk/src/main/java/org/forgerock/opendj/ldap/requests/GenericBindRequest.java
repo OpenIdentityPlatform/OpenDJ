@@ -43,19 +43,14 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * {@link ResultCode#AUTH_METHOD_NOT_SUPPORTED}.
  */
 public interface GenericBindRequest extends BindRequest {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     GenericBindRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindClient createBindClient(String serverName) throws ErrorResultException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     byte getAuthenticationType();
 
     /**
@@ -70,20 +65,14 @@ public interface GenericBindRequest extends BindRequest {
      */
     byte[] getAuthenticationValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getName();
 
     /**

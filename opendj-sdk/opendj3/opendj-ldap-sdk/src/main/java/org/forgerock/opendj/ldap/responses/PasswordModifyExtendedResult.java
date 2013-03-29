@@ -47,35 +47,23 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  */
 public interface PasswordModifyExtendedResult extends ExtendedResult {
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult addReferralURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
     /**
@@ -87,54 +75,34 @@ public interface PasswordModifyExtendedResult extends ExtendedResult {
      */
     byte[] getGeneratedPassword();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult setDiagnosticMessage(String message);
 
     /**
@@ -164,14 +132,10 @@ public interface PasswordModifyExtendedResult extends ExtendedResult {
      */
     PasswordModifyExtendedResult setGeneratedPassword(char[] password);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult setMatchedDN(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     PasswordModifyExtendedResult setResultCode(ResultCode resultCode);
 
 }

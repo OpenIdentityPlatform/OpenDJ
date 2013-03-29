@@ -31,21 +31,17 @@ package org.forgerock.opendj.ldap.requests;
  */
 final class UnmodifiableAbandonRequestImpl extends AbstractUnmodifiableRequest<AbandonRequest>
         implements AbandonRequest {
-    UnmodifiableAbandonRequestImpl(AbandonRequest request) {
+    UnmodifiableAbandonRequestImpl(final AbandonRequest request) {
         super(request);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public int getRequestID() {
         return impl.getRequestID();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public AbandonRequest setRequestID(int id) {
+    @Override
+    public AbandonRequest setRequestID(final int id) {
         throw new UnsupportedOperationException();
     }
 }

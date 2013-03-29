@@ -34,42 +34,20 @@ import org.forgerock.opendj.ldap.ResultCode;
  */
 final class CompareResultImpl extends AbstractResultImpl<CompareResult> implements CompareResult {
 
-    /**
-     * Creates a new compare result using the provided result code.
-     *
-     * @param resultCode
-     *            The result code.
-     * @throws NullPointerException
-     *             If {@code resultCode} was {@code null}.
-     */
-    CompareResultImpl(final ResultCode resultCode) {
-        super(resultCode);
-    }
-
-    /**
-     * Creates a new compare result that is an exact copy of the provided
-     * result.
-     *
-     * @param compareResult
-     *            The compare result to be copied.
-     * @throws NullPointerException
-     *             If {@code compareResult} was {@code null} .
-     */
     CompareResultImpl(final CompareResult compareResult) {
         super(compareResult);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    CompareResultImpl(final ResultCode resultCode) {
+        super(resultCode);
+    }
+
+    @Override
     public boolean matched() {
         final ResultCode code = getResultCode();
         return code.equals(ResultCode.COMPARE_TRUE);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

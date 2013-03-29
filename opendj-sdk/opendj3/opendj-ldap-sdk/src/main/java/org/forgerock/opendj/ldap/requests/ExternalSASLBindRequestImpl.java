@@ -102,44 +102,27 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
         // Nothing to do.
     }
 
-    /**
-     * Creates a new external SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param externalSASLBindRequest
-     *            The external SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code externalSASLBindRequest} was {@code null} .
-     */
     ExternalSASLBindRequestImpl(final ExternalSASLBindRequest externalSASLBindRequest) {
         super(externalSASLBindRequest);
         this.authorizationID = externalSASLBindRequest.getAuthorizationID();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new Client(this, serverName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getAuthorizationID() {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ExternalSASLBindRequest setAuthorizationID(final String authorizationID) {
         this.authorizationID = authorizationID;
         return this;

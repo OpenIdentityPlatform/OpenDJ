@@ -45,25 +45,18 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  * to a new location in the Directory.
  */
 public interface ModifyDNRequest extends Request, ChangeRecord {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ModifyDNRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -73,6 +66,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
      *
      * @return The distinguished name of the entry.
      */
+    @Override
     DN getName();
 
     /**

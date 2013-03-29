@@ -43,52 +43,35 @@ import com.forgerock.opendj.util.StaticUtils;
 final class PasswordModifyExtendedResultImpl extends
         AbstractExtendedResult<PasswordModifyExtendedResult> implements
         PasswordModifyExtendedResult {
-    private byte[] password;
-
     /**
      * The ASN.1 element type that will be used to encode the genPasswd
      * component in a password modify extended response.
      */
     private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
 
-    // Instantiation via factory.
-    PasswordModifyExtendedResultImpl(final ResultCode resultCode) {
-        super(resultCode);
-    }
+    private byte[] password;
 
-    /**
-     * Creates a new password modify extended result that is an exact copy of
-     * the provided result.
-     *
-     * @param passwordModifyExtendedResult
-     *            The password modify extended result to be copied.
-     * @throws NullPointerException
-     *             If {@code passwordModifyExtendedResult} was {@code null} .
-     */
     PasswordModifyExtendedResultImpl(final PasswordModifyExtendedResult passwordModifyExtendedResult) {
         super(passwordModifyExtendedResult);
         this.password = passwordModifyExtendedResult.getGeneratedPassword();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    // Instantiation via factory.
+    PasswordModifyExtendedResultImpl(final ResultCode resultCode) {
+        super(resultCode);
+    }
+
+    @Override
     public byte[] getGeneratedPassword() {
         return password;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         // No response name defined.
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         if (password != null) {
@@ -109,33 +92,23 @@ final class PasswordModifyExtendedResultImpl extends
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return password != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedResult setGeneratedPassword(final byte[] password) {
         this.password = password;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PasswordModifyExtendedResult setGeneratedPassword(final char[] password) {
         this.password = (password != null) ? StaticUtils.getBytes(password) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

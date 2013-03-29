@@ -35,23 +35,27 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  */
 final class UnmodifiableDeleteRequestImpl extends AbstractUnmodifiableRequest<DeleteRequest>
         implements DeleteRequest {
-    UnmodifiableDeleteRequestImpl(DeleteRequest impl) {
+    UnmodifiableDeleteRequestImpl(final DeleteRequest impl) {
         super(impl);
     }
 
-    public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+    @Override
+    public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
-    public DeleteRequest setName(DN dn) {
+    @Override
+    public DeleteRequest setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public DeleteRequest setName(String dn) {
+    @Override
+    public DeleteRequest setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 }

@@ -41,90 +41,57 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * operation.
  */
 public interface GenericExtendedResult extends ExtendedResult {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     GenericExtendedResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedResult addReferralURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedResult setDiagnosticMessage(String message);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedResult setMatchedDN(String dn);
 
     /**
@@ -140,9 +107,7 @@ public interface GenericExtendedResult extends ExtendedResult {
      */
     GenericExtendedResult setOID(String oid);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     GenericExtendedResult setResultCode(ResultCode resultCode);
 
     /**

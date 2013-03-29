@@ -60,22 +60,10 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
 
     private final List<Control> controls = new LinkedList<Control>();
 
-    /**
-     * Creates a new modifiable response implementation.
-     */
     AbstractResponseImpl() {
         // No implementation required.
     }
 
-    /**
-     * Creates a new abstract response that is an exact copy of the provided
-     * response.
-     *
-     * @param response
-     *            The response to be copied.
-     * @throws NullPointerException
-     *             If {@code response} was {@code null} .
-     */
     AbstractResponseImpl(final Response response) {
         Validator.ensureNotNull(response);
         for (final Control control : response.getControls()) {
@@ -84,9 +72,6 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final S addControl(final Control control) {
         Validator.ensureNotNull(control);
@@ -94,17 +79,11 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsControl(final String oid) {
         return getControl(controls, oid) != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
@@ -113,9 +92,6 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
         return control != null ? decoder.decodeControl(control, options) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final List<Control> getControls() {
         return controls;

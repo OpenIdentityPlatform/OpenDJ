@@ -38,18 +38,21 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 abstract class AbstractUnmodifiableBindRequest<R extends BindRequest> extends
         AbstractUnmodifiableRequest<R> implements BindRequest {
 
-    AbstractUnmodifiableBindRequest(R impl) {
+    AbstractUnmodifiableBindRequest(final R impl) {
         super(impl);
     }
 
-    public BindClient createBindClient(String serverName) throws ErrorResultException {
+    @Override
+    public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return impl.createBindClient(serverName);
     }
 
+    @Override
     public byte getAuthenticationType() {
         return impl.getAuthenticationType();
     }
 
+    @Override
     public String getName() {
         return impl.getName();
     }

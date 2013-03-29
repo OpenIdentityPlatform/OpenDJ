@@ -36,55 +36,67 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  */
 final class UnmodifiableModifyDNRequestImpl extends AbstractUnmodifiableRequest<ModifyDNRequest>
         implements ModifyDNRequest {
-    UnmodifiableModifyDNRequestImpl(ModifyDNRequest impl) {
+    UnmodifiableModifyDNRequestImpl(final ModifyDNRequest impl) {
         super(impl);
     }
 
-    public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+    @Override
+    public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
+    @Override
     public RDN getNewRDN() {
         return impl.getNewRDN();
     }
 
+    @Override
     public DN getNewSuperior() {
         return impl.getNewSuperior();
     }
 
+    @Override
     public boolean isDeleteOldRDN() {
         return impl.isDeleteOldRDN();
     }
 
-    public ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN) {
+    @Override
+    public ModifyDNRequest setDeleteOldRDN(final boolean deleteOldRDN) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setName(DN dn) {
+    @Override
+    public ModifyDNRequest setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setName(String dn) {
+    @Override
+    public ModifyDNRequest setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setNewRDN(RDN rdn) {
+    @Override
+    public ModifyDNRequest setNewRDN(final RDN rdn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setNewRDN(String rdn) {
+    @Override
+    public ModifyDNRequest setNewRDN(final String rdn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setNewSuperior(DN dn) {
+    @Override
+    public ModifyDNRequest setNewSuperior(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public ModifyDNRequest setNewSuperior(String dn) {
+    @Override
+    public ModifyDNRequest setNewSuperior(final String dn) {
         throw new UnsupportedOperationException();
     }
 }

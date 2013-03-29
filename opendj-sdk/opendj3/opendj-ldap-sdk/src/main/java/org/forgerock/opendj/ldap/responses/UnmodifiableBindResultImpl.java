@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 class UnmodifiableBindResultImpl extends AbstractUnmodifiableResultImpl<BindResult> implements
         BindResult {
-    public UnmodifiableBindResultImpl(BindResult impl) {
+    UnmodifiableBindResultImpl(final BindResult impl) {
         super(impl);
     }
 
@@ -49,7 +49,7 @@ class UnmodifiableBindResultImpl extends AbstractUnmodifiableResultImpl<BindResu
     }
 
     @Override
-    public BindResult setServerSASLCredentials(ByteString credentials) {
+    public BindResult setServerSASLCredentials(final ByteString credentials) {
         throw new UnsupportedOperationException();
     }
 }

@@ -31,7 +31,7 @@ package org.forgerock.opendj.ldap.responses;
  */
 class UnmodifiableCompareResultImpl extends AbstractUnmodifiableResultImpl<CompareResult> implements
         CompareResult {
-    UnmodifiableCompareResultImpl(CompareResult impl) {
+    UnmodifiableCompareResultImpl(final CompareResult impl) {
         super(impl);
     }
 

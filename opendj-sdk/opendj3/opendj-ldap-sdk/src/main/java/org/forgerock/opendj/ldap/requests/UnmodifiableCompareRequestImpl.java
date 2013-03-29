@@ -36,43 +36,52 @@ import org.forgerock.opendj.ldap.DN;
  */
 final class UnmodifiableCompareRequestImpl extends AbstractUnmodifiableRequest<CompareRequest>
         implements CompareRequest {
-    UnmodifiableCompareRequestImpl(CompareRequest impl) {
+    UnmodifiableCompareRequestImpl(final CompareRequest impl) {
         super(impl);
     }
 
+    @Override
     public ByteString getAssertionValue() {
         return impl.getAssertionValue();
     }
 
+    @Override
     public String getAssertionValueAsString() {
         return impl.getAssertionValueAsString();
     }
 
+    @Override
     public AttributeDescription getAttributeDescription() {
         return impl.getAttributeDescription();
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
-    public CompareRequest setAssertionValue(Object value) {
+    @Override
+    public CompareRequest setAssertionValue(final Object value) {
         throw new UnsupportedOperationException();
     }
 
-    public CompareRequest setAttributeDescription(AttributeDescription attributeDescription) {
+    @Override
+    public CompareRequest setAttributeDescription(final AttributeDescription attributeDescription) {
         throw new UnsupportedOperationException();
     }
 
-    public CompareRequest setAttributeDescription(String attributeDescription) {
+    @Override
+    public CompareRequest setAttributeDescription(final String attributeDescription) {
         throw new UnsupportedOperationException();
     }
 
-    public CompareRequest setName(DN dn) {
+    @Override
+    public CompareRequest setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public CompareRequest setName(String dn) {
+    @Override
+    public CompareRequest setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 }

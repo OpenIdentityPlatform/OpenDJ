@@ -61,22 +61,10 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
 
     private final List<Control> controls = new LinkedList<Control>();
 
-    /**
-     * Creates a new abstract request implementation.
-     */
     AbstractRequestImpl() {
         // No implementation required.
     }
 
-    /**
-     * Creates a new abstract request that is an exact copy of the provided
-     * request.
-     *
-     * @param request
-     *            The request to be copied.
-     * @throws NullPointerException
-     *             If {@code request} was {@code null} .
-     */
     AbstractRequestImpl(final Request request) {
         Validator.ensureNotNull(request);
         for (final Control control : request.getControls()) {
@@ -85,9 +73,6 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final R addControl(final Control control) {
         Validator.ensureNotNull(control);
@@ -95,17 +80,11 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
         return getThis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsControl(final String oid) {
         return getControl(controls, oid) != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
@@ -114,9 +93,6 @@ abstract class AbstractRequestImpl<R extends Request> implements Request {
         return control != null ? decoder.decodeControl(control, options) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final List<Control> getControls() {
         return controls;

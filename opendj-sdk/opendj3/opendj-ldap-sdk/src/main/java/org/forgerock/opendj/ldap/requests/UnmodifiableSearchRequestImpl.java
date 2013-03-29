@@ -40,79 +40,97 @@ import org.forgerock.opendj.ldap.SearchScope;
  */
 final class UnmodifiableSearchRequestImpl extends AbstractUnmodifiableRequest<SearchRequest>
         implements SearchRequest {
-    UnmodifiableSearchRequestImpl(SearchRequest impl) {
+    UnmodifiableSearchRequestImpl(final SearchRequest impl) {
         super(impl);
     }
 
-    public SearchRequest addAttribute(String... attributeDescriptions) {
+    @Override
+    public SearchRequest addAttribute(final String... attributeDescriptions) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public List<String> getAttributes() {
         return Collections.unmodifiableList(impl.getAttributes());
     }
 
+    @Override
     public DereferenceAliasesPolicy getDereferenceAliasesPolicy() {
         return impl.getDereferenceAliasesPolicy();
     }
 
+    @Override
     public Filter getFilter() {
         return impl.getFilter();
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
+    @Override
     public SearchScope getScope() {
         return impl.getScope();
     }
 
+    @Override
     public int getSizeLimit() {
         return impl.getSizeLimit();
     }
 
+    @Override
     public int getTimeLimit() {
         return impl.getTimeLimit();
     }
 
+    @Override
     public boolean isTypesOnly() {
         return impl.isTypesOnly();
     }
 
-    public SearchRequest setDereferenceAliasesPolicy(DereferenceAliasesPolicy policy) {
+    @Override
+    public SearchRequest setDereferenceAliasesPolicy(final DereferenceAliasesPolicy policy) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setFilter(Filter filter) {
+    @Override
+    public SearchRequest setFilter(final Filter filter) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setFilter(String filter) {
+    @Override
+    public SearchRequest setFilter(final String filter) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setName(DN dn) {
+    @Override
+    public SearchRequest setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setName(String dn) {
+    @Override
+    public SearchRequest setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setScope(SearchScope scope) {
+    @Override
+    public SearchRequest setScope(final SearchScope scope) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setSizeLimit(int limit) {
+    @Override
+    public SearchRequest setSizeLimit(final int limit) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setTimeLimit(int limit) {
+    @Override
+    public SearchRequest setTimeLimit(final int limit) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchRequest setTypesOnly(boolean typesOnly) {
+    @Override
+    public SearchRequest setTypesOnly(final boolean typesOnly) {
         throw new UnsupportedOperationException();
     }
 }

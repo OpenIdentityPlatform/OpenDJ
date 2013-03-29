@@ -47,57 +47,69 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
     private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
             new Function<Attribute, Attribute, Void>() {
 
+                @Override
                 public Attribute apply(final Attribute value, final Void p) {
                     return Attributes.unmodifiableAttribute(value);
                 }
 
             };
 
-    UnmodifiableSearchResultEntryImpl(SearchResultEntry impl) {
+    UnmodifiableSearchResultEntryImpl(final SearchResultEntry impl) {
         super(impl);
     }
 
-    public boolean addAttribute(Attribute attribute) {
+    @Override
+    public boolean addAttribute(final Attribute attribute) {
         throw new UnsupportedOperationException();
     }
 
-    public boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues) {
+    @Override
+    public boolean addAttribute(final Attribute attribute,
+            final Collection<? super ByteString> duplicateValues) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchResultEntry addAttribute(String attributeDescription, Object... values) {
+    @Override
+    public SearchResultEntry addAttribute(final String attributeDescription, final Object... values) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public SearchResultEntry clearAttributes() {
         throw new UnsupportedOperationException();
     }
 
-    public boolean containsAttribute(Attribute attribute,
-            Collection<? super ByteString> missingValues) {
+    @Override
+    public boolean containsAttribute(final Attribute attribute,
+            final Collection<? super ByteString> missingValues) {
         return impl.containsAttribute(attribute, missingValues);
     }
 
-    public boolean containsAttribute(String attributeDescription, Object... values) {
+    @Override
+    public boolean containsAttribute(final String attributeDescription, final Object... values) {
         return impl.containsAttribute(attributeDescription, values);
     }
 
+    @Override
     public Iterable<Attribute> getAllAttributes() {
         return Iterables.unmodifiableIterable(Iterables.transformedIterable(
                 impl.getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
-    public Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription) {
+    @Override
+    public Iterable<Attribute> getAllAttributes(final AttributeDescription attributeDescription) {
         return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
                 .getAllAttributes(attributeDescription), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
-    public Iterable<Attribute> getAllAttributes(String attributeDescription) {
+    @Override
+    public Iterable<Attribute> getAllAttributes(final String attributeDescription) {
         return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
                 .getAllAttributes(attributeDescription), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
-    public Attribute getAttribute(AttributeDescription attributeDescription) {
+    @Override
+    public Attribute getAttribute(final AttributeDescription attributeDescription) {
         final Attribute attribute = impl.getAttribute(attributeDescription);
         if (attribute != null) {
             return Attributes.unmodifiableAttribute(attribute);
@@ -106,7 +118,8 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
         }
     }
 
-    public Attribute getAttribute(String attributeDescription) {
+    @Override
+    public Attribute getAttribute(final String attributeDescription) {
         final Attribute attribute = impl.getAttribute(attributeDescription);
         if (attribute != null) {
             return Attributes.unmodifiableAttribute(attribute);
@@ -115,47 +128,61 @@ class UnmodifiableSearchResultEntryImpl extends AbstractUnmodifiableResponseImpl
         }
     }
 
+    @Override
     public int getAttributeCount() {
         return impl.getAttributeCount();
     }
 
+    @Override
     public DN getName() {
         return impl.getName();
     }
 
-    public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+    @Override
+    public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
         return impl.parseAttribute(attributeDescription);
     }
 
-    public AttributeParser parseAttribute(String attributeDescription) {
+    @Override
+    public AttributeParser parseAttribute(final String attributeDescription) {
         return impl.parseAttribute(attributeDescription);
     }
 
-    public boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues) {
+    @Override
+    public boolean removeAttribute(final Attribute attribute,
+            final Collection<? super ByteString> missingValues) {
         throw new UnsupportedOperationException();
     }
 
-    public boolean removeAttribute(AttributeDescription attributeDescription) {
+    @Override
+    public boolean removeAttribute(final AttributeDescription attributeDescription) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchResultEntry removeAttribute(String attributeDescription, Object... values) {
+    @Override
+    public SearchResultEntry removeAttribute(final String attributeDescription,
+            final Object... values) {
         throw new UnsupportedOperationException();
     }
 
-    public boolean replaceAttribute(Attribute attribute) {
+    @Override
+    public boolean replaceAttribute(final Attribute attribute) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchResultEntry replaceAttribute(String attributeDescription, Object... values) {
+    @Override
+    public SearchResultEntry replaceAttribute(final String attributeDescription,
+            final Object... values) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchResultEntry setName(DN dn) {
+    @Override
+    public SearchResultEntry setName(final DN dn) {
         throw new UnsupportedOperationException();
     }
 
-    public SearchResultEntry setName(String dn) {
+    @Override
+    public SearchResultEntry setName(final String dn) {
         throw new UnsupportedOperationException();
     }
 }

@@ -45,14 +45,11 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  *      SASL Authorization Identities (authzId) </a>
  */
 public interface SASLBindRequest extends BindRequest {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     SASLBindRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindClient createBindClient(String serverName) throws ErrorResultException;
 
     /**
@@ -61,17 +58,14 @@ public interface SASLBindRequest extends BindRequest {
      *
      * @return The authentication mechanism identifier.
      */
+    @Override
     byte getAuthenticationType();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -81,6 +75,7 @@ public interface SASLBindRequest extends BindRequest {
      * @return The name of the Directory object that the client wishes to bind
      *         as.
      */
+    @Override
     String getName();
 
     /**

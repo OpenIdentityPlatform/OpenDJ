@@ -61,14 +61,10 @@ public interface ExternalSASLBindRequest extends SASLBindRequest {
      */
     public static final String SASL_MECHANISM_NAME = "EXTERNAL";
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExternalSASLBindRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindClient createBindClient(String serverName) throws ErrorResultException;
 
     /**
@@ -77,6 +73,7 @@ public interface ExternalSASLBindRequest extends SASLBindRequest {
      *
      * @return The authentication mechanism identifier.
      */
+    @Override
     byte getAuthenticationType();
 
     /**
@@ -92,15 +89,11 @@ public interface ExternalSASLBindRequest extends SASLBindRequest {
      */
     String getAuthorizationID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -110,11 +103,10 @@ public interface ExternalSASLBindRequest extends SASLBindRequest {
      * @return The name of the Directory object that the client wishes to bind
      *         as.
      */
+    @Override
     String getName();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getSASLMechanism();
 
     /**
