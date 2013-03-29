@@ -254,6 +254,36 @@ public final class Connections {
 
     /**
      * Creates a new connection factory which binds internal client connections
+     * to the provided {@link RequestHandler}s.
+     * <p>
+     * When processing requests, {@code RequestHandler} implementations are
+     * passed an integer as the first parameter. This integer represents a
+     * pseudo {@code requestID} which is incremented for each successive
+     * internal request on a per client connection basis. The request ID may be
+     * useful for logging purposes.
+     * <p>
+     * An internal connection factory does not require {@code RequestHandler}
+     * implementations to return a result when processing requests. However, it
+     * is recommended that implementations do always return results even for
+     * abandoned requests. This is because application client threads may block
+     * indefinitely waiting for results.
+     *
+     * @param requestHandler
+     *            The request handler which will be used for all client
+     *            connections.
+     * @return The new internal connection factory.
+     * @throws NullPointerException
+     *             If {@code requestHandler} was {@code null}.
+     */
+    public static ConnectionFactory newInternalConnectionFactory(
+            final RequestHandler<RequestContext> requestHandler) {
+        Validator.ensureNotNull(requestHandler);
+        return new InternalConnectionFactory<Void>(Connections
+                .<Void> newServerConnectionFactory(requestHandler), null);
+    }
+
+    /**
+     * Creates a new connection factory which binds internal client connections
      * to {@link RequestHandler}s created using the provided
      * {@link RequestHandlerFactory}.
      * <p>
