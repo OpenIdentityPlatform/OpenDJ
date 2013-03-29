@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-reading'
@@ -267,10 +267,39 @@ try {
   cases, the SDK translates the strings and objects into the binary
   representation sent to the server over the network.</para>
 
-   <para>Equality is just one of the types of comparisons available in LDAP
-   filters. Comparison operators include the following.</para>
+  <para>Equality is just one of the types of comparisons available in LDAP
+  filters. Comparison operators include the following.</para>
 
-   <xinclude:include href="../shared/table-filter-operators.xml" />
+  <xinclude:include href="../shared/table-filter-operators.xml" />
+
+  <para>When taking user input, take care to protect against users providing
+  input that has unintended consequences. OpenDJ SDK offers several Filter
+  methods to help you. First, you can use strongly typed construction methods
+  such as <literal>Filter.equality()</literal>.</para>
+
+  <programlisting language="java">String userInput = getUserInput();
+Filter filter = Filter.equality("cn", userInput);
+
+// Invoking filter.toString() with input of "*" results in a filter
+// string "(cn=\2A)".</programlisting>
+
+  <para>You can also let the SDK escape user input by using a template with
+  <literal>Filter.format()</literal> as in the following example.</para>
+
+  <programlisting language="java">String template = "(|(cn=%s)(uid=user.%s))";
+String[] userInput = getUserInput();
+Filter filter = Filter.format(template, userInput[0], userInput[1]);</programlisting>
+
+  <para>Finally, you can explicitly escape user input with
+  <literal>Filter.escapeAssertionValue()</literal>.</para>
+
+  <programlisting language="java">String baseDN = "ou=people,dc=example,dc=com";
+String userInput = getUserInput();
+
+// Filter.escapeAssertionValue() transforms user input of "*" to "\2A".
+SearchRequest request = Requests.newSearchRequest(
+        baseDN, SearchScope.WHOLE_SUBTREE,
+        "(cn=" + Filter.escapeAssertionValue(userInput) + "*)", "cn", "mail");</programlisting>
  </section>
 
  <section xml:id="send-search-request">
