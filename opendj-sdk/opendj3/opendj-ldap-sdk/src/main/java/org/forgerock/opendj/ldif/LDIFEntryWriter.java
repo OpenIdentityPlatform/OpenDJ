@@ -22,13 +22,15 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Attribute;
@@ -48,6 +50,24 @@ import com.forgerock.opendj.util.Validator;
  *      Interchange Format (LDIF) - Technical Specification </a>
  */
 public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWriter {
+
+    /**
+     * Returns the LDIF string representation of the provided entry.
+     *
+     * @param entry
+     *            The entry.
+     * @return The LDIF string representation of the provided entry.
+     */
+    public static String toString(final Entry entry) {
+        final StringWriter writer = new StringWriter(128);
+        try {
+            new LDIFEntryWriter(writer).setAddUserFriendlyComments(true).writeEntry(entry).close();
+        } catch (final IOException e) {
+            // Should never happen.
+            throw new IllegalStateException(e);
+        }
+        return writer.toString();
+    }
 
     /**
      * Creates a new LDIF entry writer which will append lines of LDIF to the
@@ -72,8 +92,20 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     }
 
     /**
+     * Creates a new LDIF entry writer whose destination is the provided
+     * character stream writer.
+     *
+     * @param writer
+     *            The character stream writer to use.
+     */
+    public LDIFEntryWriter(final Writer writer) {
+        super(writer);
+    }
+
+    /**
      * {@inheritDoc}
      */
+    @Override
     public void close() throws IOException {
         close0();
     }
@@ -81,6 +113,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     /**
      * {@inheritDoc}
      */
+    @Override
     public void flush() throws IOException {
         flush0();
     }
@@ -235,6 +268,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFEntryWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);
         return this;
@@ -243,6 +277,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     /**
      * {@inheritDoc}
      */
+    @Override
     public LDIFEntryWriter writeEntry(final Entry entry) throws IOException {
         Validator.ensureNotNull(entry);
 

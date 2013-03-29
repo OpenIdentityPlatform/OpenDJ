@@ -22,15 +22,20 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_DN;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,6 +136,19 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      */
     public LDIFEntryReader(final List<String> ldifLines) {
         super(ldifLines);
+    }
+
+    /**
+     * Creates a new LDIF entry reader whose source is the provided character
+     * stream reader.
+     *
+     * @param reader
+     *            The character stream reader to use.
+     * @throws NullPointerException
+     *             If {@code reader} was {@code null}.
+     */
+    public LDIFEntryReader(final Reader reader) {
+        super(reader);
     }
 
     /**
@@ -366,8 +384,10 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
             }
 
             try {
-                // Read the DN of the entry and see if it is one that should be
-                // included in the import.
+                /*
+                 * Read the DN of the entry and see if it is one that should be
+                 * included in the import.
+                 */
                 final DN entryDN = readLDIFRecordDN(record);
                 if (entryDN == null) {
                     // Skip version record.

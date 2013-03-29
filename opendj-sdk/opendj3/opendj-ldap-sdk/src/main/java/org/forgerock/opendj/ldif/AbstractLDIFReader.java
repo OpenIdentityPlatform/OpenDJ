@@ -22,18 +22,31 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_DN;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_DN;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_LEADING_SPACE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_URL;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_ATTRIBUTE_NAME;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_ATTR_NAME;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_DN;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNEXPECTED_BINARY_OPTION;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_URL_IO_ERROR;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -63,7 +76,6 @@ import com.forgerock.opendj.util.Validator;
 abstract class AbstractLDIFReader extends AbstractLDIFStream {
     static final class KeyValuePair {
         String key;
-
         String value;
     }
 
@@ -94,9 +106,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
 
     static final class LDIFRecord {
         final Iterator<String> iterator;
-
         final LinkedList<String> ldifLines;
-
         final long lineNumber;
 
         private LDIFRecord(final long lineNumber, final LinkedList<String> ldifLines) {
@@ -110,22 +120,15 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
      * LDIF output stream writer implementation.
      */
     private static final class LDIFReaderInputStreamImpl implements LDIFReaderImpl {
-
         private BufferedReader reader;
 
-        /**
-         * Creates a new LDIF input stream reader implementation.
-         *
-         * @param in
-         *            The input stream to use.
-         */
-        LDIFReaderInputStreamImpl(final InputStream in) {
-            this.reader = new BufferedReader(new InputStreamReader(in));
+        LDIFReaderInputStreamImpl(final Reader reader) {
+            this.reader =
+                    reader instanceof BufferedReader ? (BufferedReader) reader
+                            : new BufferedReader(reader);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void close() throws IOException {
             if (reader != null) {
                 reader.close();
@@ -133,9 +136,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String readLine() throws IOException {
             String line = null;
             if (reader != null) {
@@ -153,29 +154,18 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
      * LDIF output stream writer implementation.
      */
     private static final class LDIFReaderListImpl implements LDIFReaderImpl {
-
         private final Iterator<String> iterator;
 
-        /**
-         * Creates a new LDIF list reader.
-         *
-         * @param ldifLines
-         *            The string list.
-         */
         LDIFReaderListImpl(final List<String> ldifLines) {
             this.iterator = ldifLines.iterator();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public void close() throws IOException {
             // Nothing to do.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         public String readLine() throws IOException {
             if (iterator.hasNext()) {
                 return iterator.next();
@@ -186,41 +176,48 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
     }
 
     RejectedLDIFListener rejectedRecordListener = RejectedLDIFListener.FAIL_FAST;
-
     Schema schema = Schema.getDefaultSchema().asNonStrictSchema();
-
     SchemaValidationPolicy schemaValidationPolicy = SchemaValidationPolicy.ignoreAll();
-
     private final LDIFReaderImpl impl;
-
     private long lineNumber = 0;
 
-    /**
-     * Creates a new LDIF entry reader whose source is the provided input
-     * stream.
-     *
-     * @param in
-     *            The input stream to use.
-     */
     AbstractLDIFReader(final InputStream in) {
-        Validator.ensureNotNull(in);
-        this.impl = new LDIFReaderInputStreamImpl(in);
+        this(new InputStreamReader(in));
     }
 
-    /**
-     * Creates a new LDIF entry reader which will read lines of LDIF from the
-     * provided list.
-     *
-     * @param ldifLines
-     *            The list from which lines of LDIF should be read.
-     */
     AbstractLDIFReader(final List<String> ldifLines) {
         Validator.ensureNotNull(ldifLines);
         this.impl = new LDIFReaderListImpl(ldifLines);
     }
 
+    AbstractLDIFReader(final Reader reader) {
+        this.impl = new LDIFReaderInputStreamImpl(reader);
+    }
+
     final void close0() throws IOException {
         impl.close();
+    }
+
+    final void handleMalformedRecord(final LDIFRecord record, final LocalizableMessage message)
+            throws DecodeException {
+        rejectedRecordListener.handleMalformedRecord(record.lineNumber, record.ldifLines, message);
+    }
+
+    final void handleSchemaValidationFailure(final LDIFRecord record,
+            final List<LocalizableMessage> messages) throws DecodeException {
+        rejectedRecordListener.handleSchemaValidationFailure(record.lineNumber, record.ldifLines,
+                messages);
+    }
+
+    final void handleSchemaValidationWarning(final LDIFRecord record,
+            final List<LocalizableMessage> messages) throws DecodeException {
+        rejectedRecordListener.handleSchemaValidationWarning(record.lineNumber, record.ldifLines,
+                messages);
+    }
+
+    final void handleSkippedRecord(final LDIFRecord record, final LocalizableMessage message)
+            throws DecodeException {
+        rejectedRecordListener.handleSkippedRecord(record.lineNumber, record.ldifLines, message);
     }
 
     final int parseColonPosition(final LDIFRecord record, final String ldifLine)
@@ -237,11 +234,12 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
     final ByteString parseSingleValue(final LDIFRecord record, final String ldifLine,
             final DN entryDN, final int colonPos, final String attrName) throws DecodeException {
 
-        // Look at the character immediately after the colon. If there is
-        // none, then assume an attribute with an empty value. If it is
-        // another colon, then the value must be base64-encoded. If it is a
-        // less-than sign, then assume that it is a URL. Otherwise, it is a
-        // regular value.
+        /*
+         * Look at the character immediately after the colon. If there is none,
+         * then assume an attribute with an empty value. If it is another colon,
+         * then the value must be base64-encoded. If it is a less-than sign,
+         * then assume that it is a URL. Otherwise, it is a regular value.
+         */
         final int length = ldifLine.length();
         ByteString value;
         if (colonPos == length - 1) {
@@ -249,8 +247,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         } else {
             final char c = ldifLine.charAt(colonPos + 1);
             if (c == ':') {
-                // The value is base64-encoded. Find the first non-blank
-                // character, take the rest of the line, and base64-decode it.
+                /*
+                 * The value is base64-encoded. Find the first non-blank
+                 * character, take the rest of the line, and base64-decode it.
+                 */
                 int pos = colonPos + 2;
                 while (pos < length && ldifLine.charAt(pos) == ' ') {
                     pos++;
@@ -259,15 +259,19 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 try {
                     value = ByteString.valueOfBase64(ldifLine.substring(pos));
                 } catch (final LocalizedIllegalArgumentException e) {
-                    // The value did not have a valid base64-encoding.
+                    /*
+                     * The value did not have a valid base64-encoding.
+                     */
                     final LocalizableMessage message =
                             ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR.get(entryDN.toString(),
                                     record.lineNumber, ldifLine, e.getMessageObject());
                     throw DecodeException.error(message);
                 }
             } else if (c == '<') {
-                // Find the first non-blank character, decode the rest of the
-                // line as a URL, and read its contents.
+                /*
+                 * Find the first non-blank character, decode the rest of the
+                 * line as a URL, and read its contents.
+                 */
                 int pos = colonPos + 2;
                 while (pos < length && ldifLine.charAt(pos) == ' ') {
                     pos++;
@@ -298,8 +302,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
 
                     value = builder.toByteString();
                 } catch (final Exception e) {
-                    // We were unable to read the contents of that URL for some
-                    // reason.
+                    /*
+                     * We were unable to read the contents of that URL for some
+                     * reason.
+                     */
                     final LocalizableMessage message =
                             ERR_LDIF_URL_IO_ERROR.get(entryDN.toString(), record.lineNumber,
                                     attrName, String.valueOf(contentURL), String.valueOf(e));
@@ -314,8 +320,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     }
                 }
             } else {
-                // The rest of the line should be the value. Skip over any
-                // spaces and take the rest of the line as the value.
+                /*
+                 * The rest of the line should be the value. Skip over any
+                 * spaces and take the rest of the line as the value.
+                 */
                 int pos = colonPos + 1;
                 while (pos < length && ldifLine.charAt(pos) == ' ') {
                     pos++;
@@ -332,13 +340,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         final StringBuilder lastLineBuilder = new StringBuilder();
         final LinkedList<String> ldifLines = new LinkedList<String>();
         long recordLineNumber = 0;
-
         final int stateStart = 0;
         final int stateStartCommentLine = 1;
         final int stateGotLDIFLine = 2;
         final int stateGotCommentLine = 3;
         final int appendingLDIFLine = 4;
-
         int state = stateStart;
 
         while (true) {
@@ -355,8 +361,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     // This is a comment at the start of the LDIF record.
                     state = stateStartCommentLine;
                 } else if (isContinuationLine(line)) {
-                    // Fatal: got a continuation line at the start of the
-                    // record.
+                    /*
+                     * Fatal: got a continuation line at the start of the
+                     * record.
+                     */
                     final LocalizableMessage message =
                             ERR_LDIF_INVALID_LEADING_SPACE.get(lineNumber, line);
                     throw DecodeException.fatalError(message);
@@ -473,9 +481,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 schemaErrors.add(message);
                 return true;
             default: // Ignore
-                // This should not happen: we should be using a non-strict
-                // schema for
-                // this policy.
+                /*
+                 * This should not happen: we should be using a non-strict
+                 * schema for this policy.
+                 */
                 throw new IllegalStateException("Schema is not consistent with policy", e);
             }
         } catch (final LocalizedIllegalArgumentException e) {
@@ -489,9 +498,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         final ByteString value =
                 parseSingleValue(record, ldifLine, entry.getName(), colonPos, attrDescr);
 
-        // Skip the attribute if requested before performing any schema
-        // checking: the attribute may have been excluded because it is
-        // known to violate the schema.
+        /*
+         * Skip the attribute if requested before performing any schema
+         * checking: the attribute may have been excluded because it is known to
+         * violate the schema.
+         */
         if (isAttributeExcluded(attributeDescription)) {
             return true;
         }
@@ -515,7 +526,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         final boolean checkAttributeValues =
                 schemaValidationPolicy.checkAttributeValues().needsChecking();
         if (checkAttributeValues) {
-            LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+            final LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
             if (!syntax.valueIsAcceptable(value, builder)) {
                 schemaErrors.add(builder.toMessage());
                 if (schemaValidationPolicy.checkAttributeValues().isReject()) {
@@ -586,10 +597,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             throw DecodeException.error(message);
         }
 
-        // Look at the character immediately after the colon. If there is
-        // none, then assume the null DN. If it is another colon, then the
-        // DN must be base64-encoded. Otherwise, it may be one or more
-        // spaces.
+        /*
+         * Look at the character immediately after the colon. If there is none,
+         * then assume the null DN. If it is another colon, then the DN must be
+         * base64-encoded. Otherwise, it may be one or more spaces.
+         */
         final int length = ldifLine.length();
         if (colonPos == length - 1) {
             return DN.rootDN();
@@ -598,8 +610,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         String dnString = null;
 
         if (ldifLine.charAt(colonPos + 1) == ':') {
-            // The DN is base64-encoded. Find the first non-blank character
-            // and take the rest of the line and base64-decode it.
+            /*
+             * The DN is base64-encoded. Find the first non-blank character and
+             * take the rest of the line and base64-decode it.
+             */
             int pos = colonPos + 2;
             while (pos < length && ldifLine.charAt(pos) == ' ') {
                 pos++;
@@ -616,8 +630,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 throw DecodeException.error(message);
             }
         } else {
-            // The rest of the value should be the DN. Skip over any spaces
-            // and attempt to decode the rest of the line as the DN.
+            /*
+             * The rest of the value should be the DN. Skip over any spaces and
+             * attempt to decode the rest of the line as the DN.
+             */
             int pos = colonPos + 1;
             while (pos < length && ldifLine.charAt(pos) == ' ') {
                 pos++;
@@ -645,8 +661,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         }
         pair.key = ldifLine.substring(0, colonPos);
 
-        // Look at the character immediately after the colon. If there is
-        // none, then no value was specified. Throw an exception
+        /*
+         * Look at the character immediately after the colon. If there is none,
+         * then no value was specified. Throw an exception
+         */
         final int length = ldifLine.length();
         if (colonPos == length - 1) {
             pair.key = null;
@@ -654,8 +672,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         }
 
         if (allowBase64 && ldifLine.charAt(colonPos + 1) == ':') {
-            // The value is base64-encoded. Find the first non-blank
-            // character, take the rest of the line, and base64-decode it.
+            /*
+             * The value is base64-encoded. Find the first non-blank character,
+             * take the rest of the line, and base64-decode it.
+             */
             int pos = colonPos + 2;
             while (pos < length && ldifLine.charAt(pos) == ' ') {
                 pos++;
@@ -668,9 +688,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                 return ldifLine;
             }
         } else {
-            // The rest of the value should be the changetype. Skip over any
-            // spaces and attempt to decode the rest of the line as the
-            // changetype string.
+            /*
+             * The rest of the value should be the changetype. Skip over any
+             * spaces and attempt to decode the rest of the line as the
+             * changetype string.
+             */
             int pos = colonPos + 1;
             while (pos < length && ldifLine.charAt(pos) == ' ') {
                 pos++;
@@ -682,33 +704,12 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         return ldifLine;
     }
 
-    final void handleMalformedRecord(final LDIFRecord record, final LocalizableMessage message)
-            throws DecodeException {
-        rejectedRecordListener.handleMalformedRecord(record.lineNumber, record.ldifLines, message);
-    }
-
-    final void handleSchemaValidationFailure(final LDIFRecord record,
-            final List<LocalizableMessage> messages) throws DecodeException {
-        rejectedRecordListener.handleSchemaValidationFailure(record.lineNumber, record.ldifLines,
-                messages);
-    }
-
-    final void handleSchemaValidationWarning(final LDIFRecord record,
-            final List<LocalizableMessage> messages) throws DecodeException {
-        rejectedRecordListener.handleSchemaValidationWarning(record.lineNumber, record.ldifLines,
-                messages);
-    }
-
-    final void handleSkippedRecord(final LDIFRecord record, final LocalizableMessage message)
-            throws DecodeException {
-        rejectedRecordListener.handleSkippedRecord(record.lineNumber, record.ldifLines, message);
-    }
-
-    // Determine whether the provided line is a continuation line. Note
-    // that while RFC 2849 technically only allows a space in this
-    // position, both OpenLDAP and the Sun Java System Directory Server
-    // allow a tab as well, so we will too for compatibility reasons. See
-    // issue #852 for details.
+    /*
+     * Determine whether the provided line is a continuation line. Note that
+     * while RFC 2849 technically only allows a space in this position, both
+     * OpenLDAP and the Sun Java System Directory Server allow a tab as well, so
+     * we will too for compatibility reasons. See issue #852 for details.
+     */
     private boolean isContinuationLine(final String line) {
         return line.charAt(0) == ' ' || line.charAt(0) == '\t';
     }
@@ -720,5 +721,4 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         }
         return line;
     }
-
 }
