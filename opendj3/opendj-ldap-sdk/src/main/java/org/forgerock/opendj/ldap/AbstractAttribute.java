@@ -131,21 +131,20 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
      */
     static String toString(final Attribute attribute) {
         final StringBuilder builder = new StringBuilder();
-        builder.append("Attribute(");
+        builder.append('"');
         builder.append(attribute.getAttributeDescriptionAsString());
-        builder.append(", {");
-
+        builder.append("\":[");
         boolean firstValue = true;
         for (final ByteString value : attribute) {
             if (!firstValue) {
-                builder.append(", ");
+                builder.append(',');
             }
-
+            builder.append('"');
             builder.append(value);
+            builder.append('"');
             firstValue = false;
         }
-
-        builder.append("})");
+        builder.append(']');
         return builder.toString();
     }
 

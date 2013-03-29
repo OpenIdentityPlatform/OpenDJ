@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -58,26 +58,17 @@ public abstract class AbstractEntry implements Entry {
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean addAttribute(final Attribute attribute) {
         return addAttribute(attribute, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Entry addAttribute(final String attributeDescription, final Object... values) {
         addAttribute(new LinkedAttribute(attributeDescription, values), null);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsAttribute(final Attribute attribute,
             final Collection<? super ByteString> missingValues) {
@@ -101,17 +92,11 @@ public abstract class AbstractEntry implements Entry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsAttribute(final String attributeDescription, final Object... values) {
         return containsAttribute(new LinkedAttribute(attributeDescription, values), null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(final Object object) {
         if (this == object) {
@@ -138,9 +123,6 @@ public abstract class AbstractEntry implements Entry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Iterable<Attribute> getAllAttributes(final AttributeDescription attributeDescription) {
         Validator.ensureNotNull(attributeDescription);
@@ -149,17 +131,11 @@ public abstract class AbstractEntry implements Entry {
                 attributeDescription);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Iterable<Attribute> getAllAttributes(final String attributeDescription) {
         return getAllAttributes(AttributeDescription.valueOf(attributeDescription));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Attribute getAttribute(final AttributeDescription attributeDescription) {
         for (final Attribute attribute : getAllAttributes()) {
@@ -171,17 +147,11 @@ public abstract class AbstractEntry implements Entry {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Attribute getAttribute(final String attributeDescription) {
         return getAttribute(AttributeDescription.valueOf(attributeDescription));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         int hashCode = this.getName().hashCode();
@@ -191,25 +161,16 @@ public abstract class AbstractEntry implements Entry {
         return hashCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
         return AttributeParser.parseAttribute(getAttribute(attributeDescription));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public AttributeParser parseAttribute(final String attributeDescription) {
         return AttributeParser.parseAttribute(getAttribute(attributeDescription));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean removeAttribute(final Attribute attribute,
             final Collection<? super ByteString> missingValues) {
@@ -238,33 +199,26 @@ public abstract class AbstractEntry implements Entry {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean removeAttribute(final AttributeDescription attributeDescription) {
         return removeAttribute(Attributes.emptyAttribute(attributeDescription), null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Entry removeAttribute(final String attributeDescription, final Object... values) {
         removeAttribute(new LinkedAttribute(attributeDescription, values), null);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean replaceAttribute(final Attribute attribute) {
         if (attribute.isEmpty()) {
             return removeAttribute(attribute.getAttributeDescription());
         } else {
-            // For consistency with addAttribute and removeAttribute, preserve
-            // the existing attribute if it already exists.
+            /*
+             * For consistency with addAttribute and removeAttribute, preserve
+             * the existing attribute if it already exists.
+             */
             final Attribute oldAttribute = getAttribute(attribute.getAttributeDescription());
             if (oldAttribute != null) {
                 oldAttribute.clear();
@@ -276,42 +230,32 @@ public abstract class AbstractEntry implements Entry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Entry replaceAttribute(final String attributeDescription, final Object... values) {
         replaceAttribute(new LinkedAttribute(attributeDescription, values));
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Entry setName(final String dn) {
         return setName(DN.valueOf(dn));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("Entry(");
+        builder.append('"');
         builder.append(this.getName());
-        builder.append(", {");
+        builder.append("\":{");
         boolean firstValue = true;
         for (final Attribute attribute : this.getAllAttributes()) {
             if (!firstValue) {
-                builder.append(", ");
+                builder.append(',');
             }
-
             builder.append(attribute);
             firstValue = false;
         }
-        builder.append("})");
+        builder.append('}');
         return builder.toString();
     }
 
