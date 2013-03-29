@@ -221,20 +221,6 @@ public class MemoryBackendTestCase extends SdkTestCase {
     }
 
     @Test
-    public void testModifyBindPostRead() throws Exception {
-        final Connection connection = getConnection();
-        assertThat(
-                connection.modify(
-                        newModifyRequest("dn: dc=example,dc=com", "changetype: modify",
-                                "add: description", "description: test description").addControl(
-                                PostReadRequestControl.newControl(true))).getControl(
-                        PostReadResponseControl.DECODER, new DecodeOptions()).getEntry())
-                .isEqualTo(
-                        valueOfLDIFEntry("dn: dc=example,dc=com", "objectClass: domain",
-                                "objectClass: top", "dc: example", "description: test description"));
-    }
-
-    @Test
     public void testModifyIncrement() throws Exception {
         final Connection connection = getConnection();
         connection.modify("dn: dc=example,dc=com", "changetype: modify", "add: integer",
@@ -288,16 +274,45 @@ public class MemoryBackendTestCase extends SdkTestCase {
     }
 
     @Test
-    public void testModifyPreRead() throws Exception {
+    public void testModifyPostRead() throws Exception {
         final Connection connection = getConnection();
         assertThat(
                 connection.modify(
                         newModifyRequest("dn: dc=example,dc=com", "changetype: modify",
                                 "add: description", "description: test description").addControl(
-                                PreReadRequestControl.newControl(true))).getControl(
-                        PreReadResponseControl.DECODER, new DecodeOptions()).getEntry()).isEqualTo(
-                valueOfLDIFEntry("dn: dc=example,dc=com", "objectClass: domain",
-                        "objectClass: top", "dc: example"));
+                                PostReadRequestControl.newControl(true))).getControl(
+                        PostReadResponseControl.DECODER, new DecodeOptions()).getEntry())
+                .isEqualTo(
+                        valueOfLDIFEntry("dn: dc=example,dc=com", "objectClass: domain",
+                                "objectClass: top", "dc: example", "description: test description"));
+    }
+
+    @Test
+    public void testModifyPostReadAttributesSelected() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(
+                connection.modify(
+                        newModifyRequest("dn: dc=example,dc=com", "changetype: modify",
+                                "add: description", "description: test description").addControl(
+                                PostReadRequestControl.newControl(true, "dc", "entryDN")))
+                        .getControl(PostReadResponseControl.DECODER, new DecodeOptions())
+                        .getEntry()).isEqualTo(
+                valueOfLDIFEntry("dn: dc=example,dc=com", "dc: example",
+                        "entryDN: dc=example,dc=com"));
+    }
+
+    @Test
+    public void testModifyPreReadAttributesSelected() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(
+                connection.modify(
+                        newModifyRequest("dn: dc=example,dc=com", "changetype: modify",
+                                "add: description", "description: test description").addControl(
+                                PreReadRequestControl.newControl(true, "dc", "entryDN")))
+                        .getControl(PreReadResponseControl.DECODER, new DecodeOptions()).getEntry())
+                .isEqualTo(
+                        valueOfLDIFEntry("dn: dc=example,dc=com", "dc: example",
+                                "entryDN: dc=example,dc=com"));
     }
 
     @Test(expectedExceptions = ConstraintViolationException.class)
@@ -310,6 +325,48 @@ public class MemoryBackendTestCase extends SdkTestCase {
     public void testModifyStrictWithMissingValues() throws Exception {
         final Connection connection = getConnection();
         connection.modify("dn: dc=example,dc=com", "changetype: modify", "delete: dc", "dc: xxx");
+    }
+
+    @Test
+    public void testSearchAttributesOperational() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(connection.readEntry("uid=test1,ou=People,dc=example,dc=com", "+")).isEqualTo(
+                valueOfLDIFEntry("dn: uid=test1,ou=People,dc=example,dc=com",
+                        "entryDN: uid=test1,ou=people,dc=example,dc=com",
+                        "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c"));
+    }
+
+    @Test
+    public void testSearchAttributesSelected() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(connection.readEntry("uid=test1,ou=People,dc=example,dc=com", "uid", "entryDN"))
+                .isEqualTo(
+                        valueOfLDIFEntry("dn: uid=test1,ou=People,dc=example,dc=com", "uid: test1",
+                                "entryDN: uid=test1,ou=People,dc=example,dc=com"));
+    }
+
+    @Test
+    public void testSearchAttributesRenamed() throws Exception {
+        final Connection connection = getConnection();
+        final Entry entry =
+                connection.readEntry("uid=test1,ou=People,dc=example,dc=com", "commonName",
+                        "ENTRYDN");
+        assertThat(entry)
+                .isEqualTo(
+                        valueOfLDIFEntry("dn: uid=test1,ou=People,dc=example,dc=com",
+                                "commonName: test user 1",
+                                "ENTRYDN: uid=test1,ou=People,dc=example,dc=com"));
+        assertThat(entry.getAttribute("cn").getAttributeDescriptionAsString()).isEqualTo(
+                "commonName");
+        assertThat(entry.getAttribute("entryDN").getAttributeDescriptionAsString()).isEqualTo(
+                "ENTRYDN");
+    }
+
+    @Test
+    public void testSearchAttributesUser() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(connection.readEntry("uid=test1,ou=People,dc=example,dc=com", "*")).isEqualTo(
+                getUser1Entry());
     }
 
     @Test
@@ -410,6 +467,8 @@ public class MemoryBackendTestCase extends SdkTestCase {
                         "objectClass: domain",
                         "objectClass: top",
                         "dc: example",
+                        "entryDN: dc=example,dc=com",
+                        "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
                         "",
                         "dn: ou=People,dc=example,dc=com",
                         "objectClass: organizationalunit",
@@ -423,6 +482,8 @@ public class MemoryBackendTestCase extends SdkTestCase {
                         "userpassword: password",
                         "cn: test user 1",
                         "sn: user 1",
+                        "entryDN: uid=test1,ou=people,dc=example,dc=com",
+                        "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
                         "",
                         "dn: uid=test2,ou=People,dc=example,dc=com",
                         "objectClass: top",

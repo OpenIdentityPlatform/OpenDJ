@@ -33,7 +33,6 @@ import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -324,10 +323,12 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final SearchScope scope = request.getScope();
             final Filter filter = request.getFilter();
             final Matcher matcher = filter.matcher(schema);
+            final AttributeFilter attributeFilter =
+                    new AttributeFilter(request.getAttributes(), schema);
 
             if (scope.equals(SearchScope.BASE_OBJECT)) {
                 if (matcher.matches(baseEntry).toBoolean()) {
-                    sendEntry(request, resultHandler, baseEntry);
+                    sendEntry(attributeFilter, resultHandler, baseEntry);
                 }
             } else if (scope.equals(SearchScope.SINGLE_LEVEL)) {
                 final NavigableMap<DN, Entry> subtree =
@@ -338,7 +339,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     final DN childDN = entry.getName();
                     if (childDN.isChildOf(dn)) {
                         if (matcher.matches(entry).toBoolean()
-                                && !sendEntry(request, resultHandler, entry)) {
+                                && !sendEntry(attributeFilter, resultHandler, entry)) {
                             // Caller has asked to stop sending results.
                             break;
                         }
@@ -351,7 +352,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     // Check for cancellation.
                     requestContext.checkIfCancelled(false);
                     if (matcher.matches(entry).toBoolean()
-                            && !sendEntry(request, resultHandler, entry)) {
+                            && !sendEntry(attributeFilter, resultHandler, entry)) {
                         // Caller has asked to stop sending results.
                         break;
                     }
@@ -378,8 +379,10 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 if (preRead.isCritical() && before == null) {
                     throw newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                 } else {
-                    result.addControl(PreReadResponseControl.newControl(filter(before, preRead
-                            .getAttributes())));
+                    final AttributeFilter filter =
+                            new AttributeFilter(preRead.getAttributes(), schema);
+                    result.addControl(PreReadResponseControl.newControl(filter
+                            .filteredViewOf(before)));
                 }
             }
 
@@ -390,19 +393,16 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 if (postRead.isCritical() && after == null) {
                     throw newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                 } else {
-                    result.addControl(PostReadResponseControl.newControl(filter(after, postRead
-                            .getAttributes())));
+                    final AttributeFilter filter =
+                            new AttributeFilter(postRead.getAttributes(), schema);
+                    result.addControl(PostReadResponseControl.newControl(filter
+                            .filteredViewOf(after)));
                 }
             }
             return result;
         } catch (final DecodeException e) {
             throw newErrorResult(ResultCode.PROTOCOL_ERROR, e);
         }
-    }
-
-    private Entry filter(final Entry entry, final Collection<String> attributes) {
-        // FIXME: attribute filtering not supported yet.
-        return entry;
     }
 
     private BindResult getBindResult(final BindRequest request, final Entry before,
@@ -453,9 +453,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 + "' does not exist");
     }
 
-    private boolean sendEntry(final SearchRequest request, final SearchResultHandler resultHandler,
-            final Entry entry) {
-        return resultHandler
-                .handleEntry(newSearchResultEntry(filter(entry, request.getAttributes())));
+    private boolean sendEntry(final AttributeFilter filter,
+            final SearchResultHandler resultHandler, final Entry entry) {
+        return resultHandler.handleEntry(newSearchResultEntry(filter.filteredViewOf(entry)));
     }
 }

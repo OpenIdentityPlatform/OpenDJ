@@ -496,7 +496,13 @@ public final class Attributes {
     public static final Attribute renameAttribute(final Attribute attribute,
             final AttributeDescription attributeDescription) {
         Validator.ensureNotNull(attribute, attributeDescription);
-        return new RenamedAttribute(attribute, attributeDescription);
+
+        // Optimize for the case where no renaming is required.
+        if (attribute.getAttributeDescription() == attributeDescription) {
+            return attribute;
+        } else {
+            return new RenamedAttribute(attribute, attributeDescription);
+        }
     }
 
     /**
