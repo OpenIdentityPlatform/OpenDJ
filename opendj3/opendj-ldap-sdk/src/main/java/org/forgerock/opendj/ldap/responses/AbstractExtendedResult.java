@@ -43,6 +43,19 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
         AbstractResultImpl<S> implements ExtendedResult {
 
     /**
+     * Creates a new extended result that is an exact copy of the provided
+     * result.
+     *
+     * @param extendedResult
+     *            The extended result to be copied.
+     * @throws NullPointerException
+     *             If {@code extendedResult} was {@code null} .
+     */
+    protected AbstractExtendedResult(final ExtendedResult extendedResult) {
+        super(extendedResult);
+    }
+
+    /**
      * Creates a new extended result using the provided result code.
      *
      * @param resultCode
@@ -54,37 +67,15 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
         super(resultCode);
     }
 
-    /**
-     * Creates a new extended result that is an exact copy of the provided
-     * result.
-     *
-     * @param extendedResult
-     *            The extended result to be copied.
-     * @throws NullPointerException
-     *             If {@code extendedResult} was {@code null} .
-     */
-    protected AbstractExtendedResult(ExtendedResult extendedResult) {
-        super(extendedResult);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -108,9 +99,6 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     @SuppressWarnings("unchecked")
     final S getThis() {

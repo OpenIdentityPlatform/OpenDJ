@@ -46,49 +46,32 @@ final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<Anonymo
 
     private String traceString;
 
-    AnonymousSASLBindRequestImpl(final String traceString) {
-        Validator.ensureNotNull(traceString);
-        this.traceString = traceString;
-    }
-
-    /**
-     * Creates a new anonymous SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param anonymousSASLBindRequest
-     *            The anonymous SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code anonymousSASLBindRequest} was {@code null} .
-     */
     AnonymousSASLBindRequestImpl(final AnonymousSASLBindRequest anonymousSASLBindRequest) {
         super(anonymousSASLBindRequest);
         this.traceString = anonymousSASLBindRequest.getTraceString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    AnonymousSASLBindRequestImpl(final String traceString) {
+        Validator.ensureNotNull(traceString);
+        this.traceString = traceString;
+    }
+
+    @Override
     public BindClient createBindClient(final String serverName) {
         return new Client(this, serverName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getTraceString() {
         return traceString;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public AnonymousSASLBindRequest setTraceString(final String traceString) {
         Validator.ensureNotNull(traceString);
         this.traceString = traceString;

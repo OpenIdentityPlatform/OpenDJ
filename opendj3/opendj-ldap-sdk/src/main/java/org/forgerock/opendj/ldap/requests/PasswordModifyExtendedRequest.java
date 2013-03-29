@@ -73,11 +73,6 @@ public interface PasswordModifyExtendedRequest extends
         ExtendedRequest<PasswordModifyExtendedResult> {
 
     /**
-     * The OID for the password modify extended operation request.
-     */
-    public static final String OID = "1.3.6.1.4.1.4203.1.11.1";
-
-    /**
      * A decoder which can be used to decode password modify extended operation
      * requests.
      */
@@ -85,19 +80,18 @@ public interface PasswordModifyExtendedRequest extends
             new PasswordModifyExtendedRequestImpl.RequestDecoder();
 
     /**
-     * {@inheritDoc}
+     * The OID for the password modify extended operation request.
      */
+    public static final String OID = "1.3.6.1.4.1.4203.1.11.1";
+
+    @Override
     PasswordModifyExtendedRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -109,9 +103,7 @@ public interface PasswordModifyExtendedRequest extends
      */
     byte[] getNewPassword();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
     /**
@@ -122,9 +114,7 @@ public interface PasswordModifyExtendedRequest extends
      */
     byte[] getOldPassword();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResultDecoder<PasswordModifyExtendedResult> getResultDecoder();
 
     /**
@@ -151,14 +141,10 @@ public interface PasswordModifyExtendedRequest extends
      */
     String getUserIdentityAsString();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
     /**

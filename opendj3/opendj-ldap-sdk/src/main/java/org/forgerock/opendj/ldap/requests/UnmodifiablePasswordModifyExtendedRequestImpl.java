@@ -38,45 +38,54 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
         extends
         AbstractUnmodifiableExtendedRequest<PasswordModifyExtendedRequest, PasswordModifyExtendedResult>
         implements PasswordModifyExtendedRequest {
-    UnmodifiablePasswordModifyExtendedRequestImpl(PasswordModifyExtendedRequest impl) {
+    UnmodifiablePasswordModifyExtendedRequestImpl(final PasswordModifyExtendedRequest impl) {
         super(impl);
     }
 
+    @Override
     public byte[] getNewPassword() {
         // Defensive copy.
         return StaticUtils.copyOfBytes(impl.getNewPassword());
     }
 
+    @Override
     public byte[] getOldPassword() {
         // Defensive copy.
         return StaticUtils.copyOfBytes(impl.getOldPassword());
     }
 
+    @Override
     public ByteString getUserIdentity() {
         return impl.getUserIdentity();
     }
 
+    @Override
     public String getUserIdentityAsString() {
         return impl.getUserIdentityAsString();
     }
 
-    public PasswordModifyExtendedRequest setNewPassword(byte[] newPassword) {
+    @Override
+    public PasswordModifyExtendedRequest setNewPassword(final byte[] newPassword) {
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setNewPassword(char[] newPassword) {
+    @Override
+    public PasswordModifyExtendedRequest setNewPassword(final char[] newPassword) {
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setOldPassword(byte[] oldPassword) {
+    @Override
+    public PasswordModifyExtendedRequest setOldPassword(final byte[] oldPassword) {
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setOldPassword(char[] oldPassword) {
+    @Override
+    public PasswordModifyExtendedRequest setOldPassword(final char[] oldPassword) {
         throw new UnsupportedOperationException();
     }
 
-    public PasswordModifyExtendedRequest setUserIdentity(Object userIdentity) {
+    @Override
+    public PasswordModifyExtendedRequest setUserIdentity(final Object userIdentity) {
         throw new UnsupportedOperationException();
     }
 }

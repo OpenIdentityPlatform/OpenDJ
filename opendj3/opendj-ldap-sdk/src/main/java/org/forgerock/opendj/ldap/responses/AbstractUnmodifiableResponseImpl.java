@@ -51,37 +51,21 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
 
     protected final S impl;
 
-    /**
-     * Creates a new unmodifiable response implementation.
-     *
-     * @param impl
-     *            The underlying response implementation to be made
-     *            unmodifiable.
-     */
     AbstractUnmodifiableResponseImpl(final S impl) {
         Validator.ensureNotNull(impl);
         this.impl = impl;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final S addControl(final Control control) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsControl(final String oid) {
         return impl.containsControl(oid);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
@@ -93,8 +77,9 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
             // Got a match. Return a defensive copy only if necessary.
             final C decodedControl = decoder.decodeControl(control, options);
             if (decodedControl != control) {
-                // This was not the original control so return it
-                // immediately.
+                /*
+                 * This was not the original control so return it immediately.
+                 */
                 return decodedControl;
             } else if (decodedControl instanceof GenericControl) {
                 // Generic controls are immutable, so return it immediately.
@@ -109,14 +94,12 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final List<Control> getControls() {
-        // We need to make all controls unmodifiable as well, which implies
-        // making
-        // defensive copies where necessary.
+        /*
+         * We need to make all controls unmodifiable as well, which implies
+         * making defensive copies where necessary.
+         */
         final Function<Control, Control, Void> function = new Function<Control, Control, Void>() {
 
             @Override
@@ -133,9 +116,6 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
         return Collections.unmodifiableList(unmodifiableControls);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final String toString() {
         return impl.toString();

@@ -50,9 +50,9 @@ import com.forgerock.opendj.util.Validator;
 final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBindRequest>
         implements PlainSASLBindRequest {
     private final static class Client extends SASLBindClientImpl {
-        private final SaslClient saslClient;
         private final String authenticationID;
         private final ByteString password;
+        private final SaslClient saslClient;
 
         private Client(final PlainSASLBindRequestImpl initialBindRequest, final String serverName)
                 throws ErrorResultException {
@@ -107,21 +107,6 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
 
     private byte[] password;
 
-    PlainSASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
-        this.authenticationID = authenticationID;
-        this.password = password;
-    }
-
-    /**
-     * Creates a new plain SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param plainSASLBindRequest
-     *            The plain SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code plainSASLBindRequest} was {@code null} .
-     */
     PlainSASLBindRequestImpl(final PlainSASLBindRequest plainSASLBindRequest) {
         super(plainSASLBindRequest);
         this.authenticationID = plainSASLBindRequest.getAuthenticationID();
@@ -129,49 +114,58 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
         this.password = StaticUtils.copyOfBytes(plainSASLBindRequest.getPassword());
     }
 
+    PlainSASLBindRequestImpl(final String authenticationID, final byte[] password) {
+        Validator.ensureNotNull(authenticationID, password);
+        this.authenticationID = authenticationID;
+        this.password = password;
+    }
+
+    @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new Client(this, serverName);
     }
 
+    @Override
     public String getAuthenticationID() {
         return authenticationID;
     }
 
+    @Override
     public String getAuthorizationID() {
         return authorizationID;
     }
 
+    @Override
     public byte[] getPassword() {
         return password;
     }
 
+    @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
+    @Override
     public PlainSASLBindRequest setAuthenticationID(final String authenticationID) {
         Validator.ensureNotNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PlainSASLBindRequest setAuthorizationID(final String authorizationID) {
         this.authorizationID = authorizationID;
         return this;
     }
 
+    @Override
     public PlainSASLBindRequest setPassword(final byte[] password) {
         Validator.ensureNotNull(password);
         this.password = password;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public PlainSASLBindRequest setPassword(final char[] password) {
         Validator.ensureNotNull(password);
         this.password = StaticUtils.getBytes(password);

@@ -38,14 +38,6 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     private final GenericBindRequest nextBindRequest;
 
-    /**
-     * Creates a new abstract bind client. The next bind request will be a copy
-     * of the provided initial bind request which should be updated in
-     * subsequent bind requests forming part of this authentication.
-     *
-     * @param initialBindRequest
-     *            The initial bind request.
-     */
     BindClientImpl(final BindRequest initialBindRequest) {
         this.nextBindRequest =
                 new GenericBindRequestImpl(initialBindRequest.getName(), initialBindRequest
@@ -58,6 +50,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Default implementation does nothing.
      */
+    @Override
     public void dispose() {
         // Do nothing.
     }
@@ -65,6 +58,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Default implementation does nothing and always returns {@code true}.
      */
+    @Override
     public boolean evaluateResult(final BindResult result) throws ErrorResultException {
         return true;
     }
@@ -72,6 +66,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Default implementation always returns {@code null}.
      */
+    @Override
     public ConnectionSecurityLayer getConnectionSecurityLayer() {
         return null;
     }
@@ -79,6 +74,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Returns the next bind request.
      */
+    @Override
     public final GenericBindRequest nextBindRequest() {
         return nextBindRequest;
     }
@@ -86,6 +82,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Default implementation just returns the copy of the bytes.
      */
+    @Override
     public byte[] unwrap(final byte[] incoming, final int offset, final int len)
             throws ErrorResultException {
         final byte[] copy = new byte[len];
@@ -96,6 +93,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
     /**
      * Default implementation just returns the copy of the bytes.
      */
+    @Override
     public byte[] wrap(final byte[] outgoing, final int offset, final int len)
             throws ErrorResultException {
         final byte[] copy = new byte[len];

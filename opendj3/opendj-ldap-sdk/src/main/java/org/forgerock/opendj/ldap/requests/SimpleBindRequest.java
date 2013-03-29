@@ -68,14 +68,11 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * </pre>
  */
 public interface SimpleBindRequest extends BindRequest {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     SimpleBindRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindClient createBindClient(String serverName) throws ErrorResultException;
 
     /**
@@ -84,22 +81,17 @@ public interface SimpleBindRequest extends BindRequest {
      *
      * @return The authentication mechanism identifier.
      */
+    @Override
     byte getAuthenticationType();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getName();
 
     /**

@@ -50,6 +50,7 @@ final class GenericExtendedRequestImpl extends
 
     static final class RequestDecoder implements
             ExtendedRequestDecoder<GenericExtendedRequest, GenericExtendedResult> {
+        @Override
         public GenericExtendedRequest decodeExtendedRequest(final ExtendedRequest<?> request,
                 final DecodeOptions options) throws DecodeException {
             if (request instanceof GenericExtendedRequest) {
@@ -71,12 +72,7 @@ final class GenericExtendedRequestImpl extends
     private static final class GenericExtendedResultDecoder extends
             AbstractExtendedResultDecoder<GenericExtendedResult> {
 
-        public GenericExtendedResult newExtendedErrorResult(final ResultCode resultCode,
-                final String matchedDN, final String diagnosticMessage) {
-            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
-                    .setDiagnosticMessage(diagnosticMessage);
-        }
-
+        @Override
         public GenericExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             if (result instanceof GenericExtendedResult) {
@@ -93,94 +89,64 @@ final class GenericExtendedRequestImpl extends
                 return newResult;
             }
         }
+
+        @Override
+        public GenericExtendedResult newExtendedErrorResult(final ResultCode resultCode,
+                final String matchedDN, final String diagnosticMessage) {
+            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
+                    .setDiagnosticMessage(diagnosticMessage);
+        }
     }
 
     private static final GenericExtendedResultDecoder RESULT_DECODER =
             new GenericExtendedResultDecoder();
 
-    private ByteString requestValue = null;
     private String requestName;
+    private ByteString requestValue = null;
 
-    /**
-     * Creates a new generic extended request using the provided name.
-     *
-     * @param requestName
-     *            The dotted-decimal representation of the unique OID
-     *            corresponding to this extended request.
-     * @throws NullPointerException
-     *             If {@code requestName} was {@code null}.
-     */
-    GenericExtendedRequestImpl(final String requestName) {
-        this.requestName = requestName;
-    }
-
-    /**
-     * Creates a new generic extended request that is an exact copy of the
-     * provided request.
-     *
-     * @param genericExtendedRequest
-     *            The generic extended request to be copied.
-     * @throws NullPointerException
-     *             If {@code extendedRequest} was {@code null} .
-     */
-    protected GenericExtendedRequestImpl(GenericExtendedRequest genericExtendedRequest) {
+    GenericExtendedRequestImpl(final GenericExtendedRequest genericExtendedRequest) {
         super(genericExtendedRequest);
         this.requestName = genericExtendedRequest.getOID();
         this.requestValue = genericExtendedRequest.getValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    GenericExtendedRequestImpl(final String requestName) {
+        this.requestName = requestName;
+    }
+
     @Override
     public String getOID() {
         return requestName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ExtendedResultDecoder<GenericExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         return requestValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return requestValue != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericExtendedRequest setOID(final String oid) {
         Validator.ensureNotNull(oid);
         this.requestName = oid;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericExtendedRequest setValue(final Object value) {
         this.requestValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

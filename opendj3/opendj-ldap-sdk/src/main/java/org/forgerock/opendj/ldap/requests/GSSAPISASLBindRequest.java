@@ -58,11 +58,6 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
 public interface GSSAPISASLBindRequest extends SASLBindRequest {
 
     /**
-     * The name of the SASL mechanism based on GSS-API authentication.
-     */
-    public static final String SASL_MECHANISM_NAME = "GSSAPI";
-
-    /**
      * Indicates that the client will accept authentication only. More
      * specifically, the underlying connection will not be protected using
      * integrity protection or encryption, unless previously established using
@@ -73,16 +68,21 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
 
     /**
      * Indicates that the client will accept authentication with connection
+     * integrity protection and encryption.
+     */
+    public static final String QOP_AUTH_CONF = "auth-conf";
+
+    /**
+     * Indicates that the client will accept authentication with connection
      * integrity protection. More specifically, the underlying connection will
      * not be encrypted, unless previously established using SSL/TLS.
      */
     public static final String QOP_AUTH_INT = "auth-int";
 
     /**
-     * Indicates that the client will accept authentication with connection
-     * integrity protection and encryption.
+     * The name of the SASL mechanism based on GSS-API authentication.
      */
-    public static final String QOP_AUTH_CONF = "auth-conf";
+    public static final String SASL_MECHANISM_NAME = "GSSAPI";
 
     /**
      * Adds the provided additional authentication parameter to the list of
@@ -102,20 +102,6 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
      */
     GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value);
 
-    /**
-     * Returns a map containing the provided additional authentication
-     * parameters to be passed to the underlying mechanism implementation. This
-     * method is provided in order to allow for future extensions.
-     *
-     * @return A map containing the provided additional authentication
-     *         parameters to be passed to the underlying mechanism
-     *         implementation.
-     */
-    Map<String, String> getAdditionalAuthParams();
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     GSSAPISASLBindRequest addControl(Control control);
 
@@ -141,11 +127,19 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
      */
     GSSAPISASLBindRequest addQOP(String... qopValues);
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     BindClient createBindClient(String serverName) throws ErrorResultException;
+
+    /**
+     * Returns a map containing the provided additional authentication
+     * parameters to be passed to the underlying mechanism implementation. This
+     * method is provided in order to allow for future extensions.
+     *
+     * @return A map containing the provided additional authentication
+     *         parameters to be passed to the underlying mechanism
+     *         implementation.
+     */
+    Map<String, String> getAdditionalAuthParams();
 
     /**
      * Returns the authentication ID of the user, which should be the user's
@@ -180,16 +174,10 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
      */
     String getAuthorizationID();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     List<Control> getControls();
 
@@ -269,9 +257,6 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
      */
     String getRealm();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     String getSASLMechanism();
 

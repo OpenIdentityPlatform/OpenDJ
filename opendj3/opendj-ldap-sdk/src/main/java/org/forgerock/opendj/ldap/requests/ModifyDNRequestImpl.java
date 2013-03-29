@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -38,39 +38,16 @@ import com.forgerock.opendj.util.Validator;
  */
 final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest> implements
         ModifyDNRequest {
+    private boolean deleteOldRDN = false;
     private DN name;
-
+    private RDN newRDN;
     private DN newSuperior = null;
 
-    private RDN newRDN;
-
-    private boolean deleteOldRDN = false;
-
-    /**
-     * Creates a new modify DN request using the provided distinguished name and
-     * new RDN.
-     *
-     * @param name
-     *            The distinguished name of the entry to be renamed.
-     * @param newRDN
-     *            The new RDN of the entry.
-     * @throws NullPointerException
-     *             If {@code name} or {@code newRDN} was {@code null}.
-     */
     ModifyDNRequestImpl(final DN name, final RDN newRDN) {
         this.name = name;
         this.newRDN = newRDN;
     }
 
-    /**
-     * Creates a new modify DN request that is an exact copy of the provided
-     * request.
-     *
-     * @param modifyDNRequest
-     *            The modify DN request to be copied.
-     * @throws NullPointerException
-     *             If {@code modifyDNRequest} was {@code null} .
-     */
     ModifyDNRequestImpl(final ModifyDNRequest modifyDNRequest) {
         super(modifyDNRequest);
         this.name = modifyDNRequest.getName();
@@ -79,104 +56,77 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest> imp
         this.deleteOldRDN = modifyDNRequest.isDeleteOldRDN();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public RDN getNewRDN() {
         return newRDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getNewSuperior() {
         return newSuperior;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public boolean isDeleteOldRDN() {
         return deleteOldRDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequestImpl setDeleteOldRDN(final boolean deleteOldRDN) {
         this.deleteOldRDN = deleteOldRDN;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setName(final DN dn) {
         Validator.ensureNotNull(dn);
         this.name = dn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setName(final String dn) {
         Validator.ensureNotNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setNewRDN(final RDN rdn) {
         Validator.ensureNotNull(rdn);
         this.newRDN = rdn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setNewRDN(final String rdn) {
         Validator.ensureNotNull(rdn);
         this.newRDN = RDN.valueOf(rdn);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setNewSuperior(final DN dn) {
         this.newSuperior = dn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyDNRequest setNewSuperior(final String dn) {
         this.newSuperior = (dn != null) ? DN.valueOf(dn) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

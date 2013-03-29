@@ -51,35 +51,20 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
 
     protected final R impl;
 
-    /**
-     * Creates a new unmodifiable request implementation.
-     *
-     * @param impl
-     *            The underlying request implementation to be made unmodifiable.
-     */
     AbstractUnmodifiableRequest(final R impl) {
         this.impl = impl;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final R addControl(final Control control) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean containsControl(final String oid) {
         return impl.containsControl(oid);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
@@ -107,9 +92,6 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final List<Control> getControls() {
         // We need to make all controls unmodifiable as well, which implies
@@ -130,9 +112,6 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
         return Collections.unmodifiableList(unmodifiableControls);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public final String toString() {
         return impl.toString();

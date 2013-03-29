@@ -35,15 +35,17 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 final class UnmodifiableCancelExtendedRequestImpl extends
         AbstractUnmodifiableExtendedRequest<CancelExtendedRequest, ExtendedResult> implements
         CancelExtendedRequest {
-    UnmodifiableCancelExtendedRequestImpl(CancelExtendedRequest impl) {
+    UnmodifiableCancelExtendedRequestImpl(final CancelExtendedRequest impl) {
         super(impl);
     }
 
+    @Override
     public int getRequestID() {
         return impl.getRequestID();
     }
 
-    public CancelExtendedRequest setRequestID(int id) {
+    @Override
+    public CancelExtendedRequest setRequestID(final int id) {
         throw new UnsupportedOperationException();
     }
 }

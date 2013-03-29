@@ -59,60 +59,39 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * </pre>
  */
 public interface CompareResult extends Result {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     CompareResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     CompareResult addReferralURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
     /**
@@ -128,24 +107,16 @@ public interface CompareResult extends Result {
      */
     boolean matched();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     CompareResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     CompareResult setDiagnosticMessage(String message);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     CompareResult setMatchedDN(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     CompareResult setResultCode(ResultCode resultCode);
 
 }

@@ -34,7 +34,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class UnmodifiablePlainSASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<PlainSASLBindRequest> implements PlainSASLBindRequest {
-    UnmodifiablePlainSASLBindRequestImpl(PlainSASLBindRequest impl) {
+    UnmodifiablePlainSASLBindRequestImpl(final PlainSASLBindRequest impl) {
         super(impl);
     }
 
@@ -55,22 +55,22 @@ final class UnmodifiablePlainSASLBindRequestImpl extends
     }
 
     @Override
-    public PlainSASLBindRequest setAuthenticationID(String authenticationID) {
+    public PlainSASLBindRequest setAuthenticationID(final String authenticationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public PlainSASLBindRequest setAuthorizationID(String authorizationID) {
+    public PlainSASLBindRequest setAuthorizationID(final String authorizationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public PlainSASLBindRequest setPassword(byte[] password) {
+    public PlainSASLBindRequest setPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public PlainSASLBindRequest setPassword(char[] password) {
+    public PlainSASLBindRequest setPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 }

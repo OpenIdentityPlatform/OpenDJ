@@ -61,33 +61,22 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
      * @throws NullPointerException
      *             If {@code extendedRequest} was {@code null} .
      */
-    protected AbstractExtendedRequest(ExtendedRequest<S> extendedRequest) {
+    protected AbstractExtendedRequest(final ExtendedRequest<S> extendedRequest) {
         super(extendedRequest);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract ExtendedResultDecoder<S> getResultDecoder();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public abstract boolean hasValue();
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -103,9 +92,6 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     @SuppressWarnings("unchecked")
     final R getThis() {

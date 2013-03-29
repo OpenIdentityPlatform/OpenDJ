@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap.requests;
 final class UnmodifiableExternalSASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<ExternalSASLBindRequest> implements
         ExternalSASLBindRequest {
-    UnmodifiableExternalSASLBindRequestImpl(ExternalSASLBindRequest impl) {
+    UnmodifiableExternalSASLBindRequestImpl(final ExternalSASLBindRequest impl) {
         super(impl);
     }
 
@@ -43,7 +43,7 @@ final class UnmodifiableExternalSASLBindRequestImpl extends
     }
 
     @Override
-    public ExternalSASLBindRequest setAuthorizationID(String authorizationID) {
+    public ExternalSASLBindRequest setAuthorizationID(final String authorizationID) {
         throw new UnsupportedOperationException();
     }
 }

@@ -34,24 +34,28 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class UnmodifiableGenericBindRequestImpl extends
         AbstractUnmodifiableBindRequest<GenericBindRequest> implements GenericBindRequest {
-    UnmodifiableGenericBindRequestImpl(GenericBindRequest impl) {
+    UnmodifiableGenericBindRequestImpl(final GenericBindRequest impl) {
         super(impl);
     }
 
+    @Override
     public byte[] getAuthenticationValue() {
         // Defensive copy.
         return StaticUtils.copyOfBytes(impl.getAuthenticationValue());
     }
 
-    public GenericBindRequest setAuthenticationType(byte type) {
+    @Override
+    public GenericBindRequest setAuthenticationType(final byte type) {
         throw new UnsupportedOperationException();
     }
 
-    public GenericBindRequest setAuthenticationValue(byte[] bytes) {
+    @Override
+    public GenericBindRequest setAuthenticationValue(final byte[] bytes) {
         throw new UnsupportedOperationException();
     }
 
-    public GenericBindRequest setName(String name) {
+    @Override
+    public GenericBindRequest setName(final String name) {
         throw new UnsupportedOperationException();
     }
 }

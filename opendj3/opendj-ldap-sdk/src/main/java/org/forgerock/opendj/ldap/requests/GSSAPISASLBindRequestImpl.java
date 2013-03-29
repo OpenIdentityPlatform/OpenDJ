@@ -121,12 +121,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             return subject;
         }
 
-        private final SaslClient saslClient;
         private final String authorizationID;
-        private final Subject subject;
-
-        private BindResult lastResult;
-
         private final PrivilegedExceptionAction<Boolean> evaluateAction =
                 new PrivilegedExceptionAction<Boolean>() {
                     @Override
@@ -150,6 +145,11 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         }
                     }
                 };
+        private BindResult lastResult;
+
+        private final SaslClient saslClient;
+
+        private final Subject subject;
 
         private Client(final GSSAPISASLBindRequestImpl initialBindRequest, final String serverName)
                 throws ErrorResultException {
@@ -170,8 +170,10 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         Subject.doAs(subject, new PrivilegedExceptionAction<SaslClient>() {
                             @Override
                             public SaslClient run() throws ErrorResultException {
-                                // Create property map containing all the
-                                // parameters.
+                                /*
+                                 * Create property map containing all the
+                                 * parameters.
+                                 */
                                 final Map<String, String> props = new HashMap<String, String>();
 
                                 final List<String> qopValues = initialBindRequest.getQOPs();
@@ -294,43 +296,28 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     }
 
-    // If null then authenticationID and password must be present.
-    private Subject subject = null;
+    private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
 
     // Ignored if subject is non-null.
     private String authenticationID = null;
-    private byte[] password = null;
-    private String realm = null;
-
-    private String kdcAddress = null;
-
     // Optional authorization ID.
     private String authorizationID = null;
+    private String kdcAddress = null;
 
-    private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
+    private Integer maxReceiveBufferSize = null;
+
+    private Integer maxSendBufferSize = null;
+
+    private byte[] password = null;
     private final List<String> qopValues = new LinkedList<String>();
 
+    private String realm = null;
     // Don't use primitives for these so that we can distinguish between default
     // settings (null) and values set by the caller.
     private Boolean serverAuth = null;
-    private Integer maxReceiveBufferSize = null;
-    private Integer maxSendBufferSize = null;
+    // If null then authenticationID and password must be present.
+    private Subject subject = null;
 
-    GSSAPISASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
-        this.authenticationID = authenticationID;
-        this.password = password;
-    }
-
-    /**
-     * Creates a new GSSAPI SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param gssapiSASLBindRequest
-     *            The GSSAPI SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code gssAPISASLBindRequest} was {@code null}.
-     */
     GSSAPISASLBindRequestImpl(final GSSAPISASLBindRequest gssapiSASLBindRequest) {
         super(gssapiSASLBindRequest);
         this.subject = gssapiSASLBindRequest.getSubject();
@@ -351,14 +338,17 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         this.maxSendBufferSize = gssapiSASLBindRequest.getMaxSendBufferSize();
     }
 
+    GSSAPISASLBindRequestImpl(final String authenticationID, final byte[] password) {
+        Validator.ensureNotNull(authenticationID, password);
+        this.authenticationID = authenticationID;
+        this.password = password;
+    }
+
     GSSAPISASLBindRequestImpl(final Subject subject) {
         Validator.ensureNotNull(subject);
         this.subject = subject;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest addAdditionalAuthParam(final String name, final String value) {
         Validator.ensureNotNull(name, value);
@@ -366,9 +356,6 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest addQOP(final String... qopValues) {
         for (final String qopValue : qopValues) {
@@ -377,113 +364,71 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new Client(this, serverName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, String> getAdditionalAuthParams() {
         return additionalAuthParams;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAuthenticationID() {
         return authenticationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAuthorizationID() {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getKDCAddress() {
         return kdcAddress;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaxReceiveBufferSize() {
         return maxReceiveBufferSize == null ? 65536 : maxReceiveBufferSize;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaxSendBufferSize() {
         return maxSendBufferSize == null ? 65536 : maxSendBufferSize;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public byte[] getPassword() {
         return password;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<String> getQOPs() {
         return qopValues;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getRealm() {
         return realm;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Subject getSubject() {
         return subject;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isServerAuth() {
         return serverAuth == null ? false : serverAuth;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setAuthenticationID(final String authenticationID) {
         Validator.ensureNotNull(authenticationID);
@@ -491,45 +436,30 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setAuthorizationID(final String authorizationID) {
         this.authorizationID = authorizationID;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setKDCAddress(final String address) {
         this.kdcAddress = address;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setMaxReceiveBufferSize(final int size) {
         maxReceiveBufferSize = size;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setMaxSendBufferSize(final int size) {
         maxSendBufferSize = size;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setPassword(final byte[] password) {
         Validator.ensureNotNull(password);
@@ -537,9 +467,6 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setPassword(final char[] password) {
         Validator.ensureNotNull(password);
@@ -547,36 +474,24 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setRealm(final String realm) {
         this.realm = realm;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setServerAuth(final boolean serverAuth) {
         this.serverAuth = serverAuth;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GSSAPISASLBindRequest setSubject(final Subject subject) {
         this.subject = subject;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

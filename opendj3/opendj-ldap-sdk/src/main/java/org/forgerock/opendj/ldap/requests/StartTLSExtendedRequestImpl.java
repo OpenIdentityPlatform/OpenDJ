@@ -54,6 +54,7 @@ final class StartTLSExtendedRequestImpl extends
     static final class RequestDecoder implements
             ExtendedRequestDecoder<StartTLSExtendedRequest, ExtendedResult> {
 
+        @Override
         public StartTLSExtendedRequest decodeExtendedRequest(final ExtendedRequest<?> request,
                 final DecodeOptions options) throws DecodeException {
             // TODO: Check the OID and that the value is not present.
@@ -66,49 +67,42 @@ final class StartTLSExtendedRequestImpl extends
     }
 
     private static final class ResultDecoder extends AbstractExtendedResultDecoder<ExtendedResult> {
-        public GenericExtendedResult newExtendedErrorResult(final ResultCode resultCode,
-                final String matchedDN, final String diagnosticMessage) {
-            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
-                    .setDiagnosticMessage(diagnosticMessage);
-        }
-
+        @Override
         public ExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             // TODO: Should we check oid is NOT null and matches but
             // value is null?
             return result;
         }
+
+        @Override
+        public GenericExtendedResult newExtendedErrorResult(final ResultCode resultCode,
+                final String matchedDN, final String diagnosticMessage) {
+            return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
+                    .setDiagnosticMessage(diagnosticMessage);
+        }
     }
 
-    private SSLContext sslContext;
+    // No need to expose this.
+    private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
 
     /**
      * The list of cipher suite.
      */
-    private List<String> enabledCipherSuites = new LinkedList<String>();
+    private final List<String> enabledCipherSuites = new LinkedList<String>();
 
     /**
      * the list of protocols.
      */
-    private List<String> enabledProtocols = new LinkedList<String>();
+    private final List<String> enabledProtocols = new LinkedList<String>();
 
-    // No need to expose this.
-    private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
+    private SSLContext sslContext;
 
     StartTLSExtendedRequestImpl(final SSLContext sslContext) {
         Validator.ensureNotNull(sslContext);
         this.sslContext = sslContext;
     }
 
-    /**
-     * Creates a new startTLS extended request that is an exact copy of the
-     * provided request.
-     *
-     * @param startTLSExtendedRequest
-     *            The startTLS extended request to be copied.
-     * @throws NullPointerException
-     *             If {@code startTLSExtendedRequest} was {@code null} .
-     */
     StartTLSExtendedRequestImpl(final StartTLSExtendedRequest startTLSExtendedRequest) {
         super(startTLSExtendedRequest);
         this.sslContext = startTLSExtendedRequest.getSSLContext();
@@ -121,91 +115,64 @@ final class StartTLSExtendedRequestImpl extends
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public String getOID() {
-        return OID;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ExtendedResultDecoder<ExtendedResult> getResultDecoder() {
-        return RESULT_DECODER;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public SSLContext getSSLContext() {
-        return sslContext;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public StartTLSExtendedRequest addEnabledProtocol(String... protocols) {
-        for (final String protocol : protocols) {
-            this.enabledProtocols.add(Validator.ensureNotNull(protocol));
-        }
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public StartTLSExtendedRequest addEnabledCipherSuite(String... suites) {
+    public StartTLSExtendedRequest addEnabledCipherSuite(final String... suites) {
         for (final String suite : suites) {
             this.enabledCipherSuites.add(Validator.ensureNotNull(suite));
         }
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public List<String> getEnabledProtocols() {
-        return this.enabledProtocols;
+    @Override
+    public StartTLSExtendedRequest addEnabledProtocol(final String... protocols) {
+        for (final String protocol : protocols) {
+            this.enabledProtocols.add(Validator.ensureNotNull(protocol));
+        }
+        return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public List<String> getEnabledCipherSuites() {
         return this.enabledCipherSuites;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public List<String> getEnabledProtocols() {
+        return this.enabledProtocols;
+    }
+
+    @Override
+    public String getOID() {
+        return OID;
+    }
+
+    @Override
+    public ExtendedResultDecoder<ExtendedResult> getResultDecoder() {
+        return RESULT_DECODER;
+    }
+
+    @Override
+    public SSLContext getSSLContext() {
+        return sslContext;
+    }
+
     @Override
     public ByteString getValue() {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public StartTLSExtendedRequest setSSLContext(final SSLContext sslContext) {
         Validator.ensureNotNull(sslContext);
         this.sslContext = sslContext;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

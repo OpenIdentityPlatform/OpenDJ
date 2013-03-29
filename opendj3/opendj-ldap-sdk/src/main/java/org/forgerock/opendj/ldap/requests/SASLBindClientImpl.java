@@ -74,6 +74,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler {
         this.saslMechanism = initialBindRequest.getSASLMechanism();
     }
 
+    @Override
     public final void handle(final Callback[] callbacks) throws IOException,
             UnsupportedCallbackException {
         for (final Callback callback : callbacks) {

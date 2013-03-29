@@ -48,55 +48,33 @@ final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtend
         super(resultCode);
     }
 
-    /**
-     * Creates a new who am I extended result that is an exact copy of the
-     * provided result.
-     *
-     * @param whoAmIExtendedResult
-     *            The who am I extended result to be copied.
-     * @throws NullPointerException
-     *             If {@code whoAmIExtendedResult} was {@code null} .
-     */
     WhoAmIExtendedResultImpl(final WhoAmIExtendedResult whoAmIExtendedResult) {
         super(whoAmIExtendedResult);
         this.authorizationID = whoAmIExtendedResult.getAuthorizationID();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getAuthorizationID() {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         // No response name defined.
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         return (authorizationID != null) ? ByteString.valueOf(authorizationID) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return (authorizationID != null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public WhoAmIExtendedResult setAuthorizationID(final String authorizationID) {
         if (authorizationID != null && authorizationID.length() != 0) {
             final int colonIndex = authorizationID.indexOf(':');
@@ -111,9 +89,6 @@ final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtend
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

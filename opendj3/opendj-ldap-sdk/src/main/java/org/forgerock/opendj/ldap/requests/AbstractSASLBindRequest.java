@@ -42,10 +42,11 @@ abstract class AbstractSASLBindRequest<R extends SASLBindRequest> extends Abstra
 
     }
 
-    AbstractSASLBindRequest(SASLBindRequest saslBindRequest) {
+    AbstractSASLBindRequest(final SASLBindRequest saslBindRequest) {
         super(saslBindRequest);
     }
 
+    @Override
     public final byte getAuthenticationType() {
         return TYPE_AUTHENTICATION_SASL;
     }

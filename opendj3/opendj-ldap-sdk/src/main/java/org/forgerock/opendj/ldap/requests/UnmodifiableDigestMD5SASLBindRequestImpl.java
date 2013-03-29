@@ -39,17 +39,17 @@ import com.forgerock.opendj.util.StaticUtils;
 final class UnmodifiableDigestMD5SASLBindRequestImpl extends
         AbstractUnmodifiableSASLBindRequest<DigestMD5SASLBindRequest> implements
         DigestMD5SASLBindRequest {
-    UnmodifiableDigestMD5SASLBindRequestImpl(DigestMD5SASLBindRequest impl) {
+    UnmodifiableDigestMD5SASLBindRequestImpl(final DigestMD5SASLBindRequest impl) {
         super(impl);
     }
 
     @Override
-    public DigestMD5SASLBindRequest addAdditionalAuthParam(String name, String value) {
+    public DigestMD5SASLBindRequest addAdditionalAuthParam(final String name, final String value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest addQOP(String... qopValues) {
+    public DigestMD5SASLBindRequest addQOP(final String... qopValues) {
         throw new UnsupportedOperationException();
     }
 
@@ -105,47 +105,47 @@ final class UnmodifiableDigestMD5SASLBindRequestImpl extends
     }
 
     @Override
-    public DigestMD5SASLBindRequest setAuthenticationID(String authenticationID) {
+    public DigestMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setAuthorizationID(String authorizationID) {
+    public DigestMD5SASLBindRequest setAuthorizationID(final String authorizationID) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setCipher(String cipher) {
+    public DigestMD5SASLBindRequest setCipher(final String cipher) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setMaxReceiveBufferSize(int size) {
+    public DigestMD5SASLBindRequest setMaxReceiveBufferSize(final int size) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setMaxSendBufferSize(int size) {
+    public DigestMD5SASLBindRequest setMaxSendBufferSize(final int size) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setPassword(byte[] password) {
+    public DigestMD5SASLBindRequest setPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setPassword(char[] password) {
+    public DigestMD5SASLBindRequest setPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setRealm(String realm) {
+    public DigestMD5SASLBindRequest setRealm(final String realm) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DigestMD5SASLBindRequest setServerAuth(boolean serverAuth) {
+    public DigestMD5SASLBindRequest setServerAuth(final boolean serverAuth) {
         throw new UnsupportedOperationException();
     }
 }

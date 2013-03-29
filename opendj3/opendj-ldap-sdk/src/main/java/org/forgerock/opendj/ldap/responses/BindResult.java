@@ -57,50 +57,33 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * the {@link #isSASLBindInProgress} method.
  */
 public interface BindResult extends Result {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     BindResult addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindResult addReferralURI(String uri);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getDiagnosticMessage();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getMatchedDN();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<String> getReferralURIs();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ResultCode getResultCode();
 
     /**
@@ -111,9 +94,7 @@ public interface BindResult extends Result {
      */
     ByteString getServerSASLCredentials();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isReferral();
 
     /**
@@ -130,29 +111,19 @@ public interface BindResult extends Result {
      */
     boolean isSASLBindInProgress();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean isSuccess();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindResult setCause(Throwable cause);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindResult setDiagnosticMessage(String message);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindResult setMatchedDN(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     BindResult setResultCode(ResultCode resultCode);
 
     /**

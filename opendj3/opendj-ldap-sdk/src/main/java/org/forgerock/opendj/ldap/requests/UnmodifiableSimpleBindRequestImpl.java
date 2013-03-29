@@ -34,24 +34,28 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class UnmodifiableSimpleBindRequestImpl extends
         AbstractUnmodifiableBindRequest<SimpleBindRequest> implements SimpleBindRequest {
-    UnmodifiableSimpleBindRequestImpl(SimpleBindRequest impl) {
+    UnmodifiableSimpleBindRequestImpl(final SimpleBindRequest impl) {
         super(impl);
     }
 
+    @Override
     public byte[] getPassword() {
         // Defensive copy.
         return StaticUtils.copyOfBytes(impl.getPassword());
     }
 
-    public SimpleBindRequest setName(String name) {
+    @Override
+    public SimpleBindRequest setName(final String name) {
         throw new UnsupportedOperationException();
     }
 
-    public SimpleBindRequest setPassword(byte[] password) {
+    @Override
+    public SimpleBindRequest setPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
-    public SimpleBindRequest setPassword(char[] password) {
+    @Override
+    public SimpleBindRequest setPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 }

@@ -32,48 +32,28 @@ package org.forgerock.opendj.ldap.requests;
  */
 final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest> implements
         AbandonRequest {
-
     private int requestID;
 
-    /**
-     * Creates a new abandon request using the provided message ID.
-     *
-     * @param requestID
-     *            The message ID of the request to be abandoned.
-     */
-    AbandonRequestImpl(final int requestID) {
-        this.requestID = requestID;
-    }
-
-    /**
-     * Creates a new abandon request that is an exact copy of the provided
-     * request.
-     *
-     * @param abandonRequest
-     *            The abandon request to be copied.
-     * @throws NullPointerException
-     *             If {@code abandonRequest} was {@code null} .
-     */
     AbandonRequestImpl(final AbandonRequest abandonRequest) {
         super(abandonRequest);
         this.requestID = abandonRequest.getRequestID();
     }
 
+    AbandonRequestImpl(final int requestID) {
+        this.requestID = requestID;
+    }
+
+    @Override
     public int getRequestID() {
         return requestID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public AbandonRequest setRequestID(final int id) {
         this.requestID = id;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

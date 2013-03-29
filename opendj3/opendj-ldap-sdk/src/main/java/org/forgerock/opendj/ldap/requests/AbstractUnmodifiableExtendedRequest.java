@@ -41,22 +41,26 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  */
 abstract class AbstractUnmodifiableExtendedRequest<R extends ExtendedRequest<S>, S extends ExtendedResult>
         extends AbstractUnmodifiableRequest<R> implements ExtendedRequest<S> {
-    AbstractUnmodifiableExtendedRequest(R impl) {
+    AbstractUnmodifiableExtendedRequest(final R impl) {
         super(impl);
     }
 
+    @Override
     public final String getOID() {
         return impl.getOID();
     }
 
+    @Override
     public final ExtendedResultDecoder<S> getResultDecoder() {
         return impl.getResultDecoder();
     }
 
+    @Override
     public final ByteString getValue() {
         return impl.getValue();
     }
 
+    @Override
     public final boolean hasValue() {
         return impl.hasValue();
     }

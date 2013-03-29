@@ -34,33 +34,14 @@ import org.forgerock.opendj.ldap.ResultCode;
  */
 final class ResultImpl extends AbstractResultImpl<Result> implements Result {
 
-    /**
-     * Creates a new generic result using the provided result code.
-     *
-     * @param resultCode
-     *            The result code.
-     * @throws NullPointerException
-     *             If {@code resultCode} was {@code null}.
-     */
-    ResultImpl(final ResultCode resultCode) {
-        super(resultCode);
-    }
-
-    /**
-     * Creates a new result that is an exact copy of the provided result.
-     *
-     * @param result
-     *            The result to be copied.
-     * @throws NullPointerException
-     *             If {@code result} was {@code null} .
-     */
     ResultImpl(final Result result) {
         super(result);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    ResultImpl(final ResultCode resultCode) {
+        super(resultCode);
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

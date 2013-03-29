@@ -39,42 +39,10 @@ import com.forgerock.opendj.util.Validator;
 final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest> implements
         CompareRequest {
 
-    private AttributeDescription attributeDescription;
-
     private ByteString assertionValue;
-
+    private AttributeDescription attributeDescription;
     private DN name;
 
-    /**
-     * Creates a new compare request using the provided distinguished name,
-     * attribute name, and assertion value.
-     *
-     * @param name
-     *            The distinguished name of the entry to be compared.
-     * @param attributeDescription
-     *            The name of the attribute to be compared.
-     * @param assertionValue
-     *            The assertion value to be compared.
-     * @throws NullPointerException
-     *             If {@code name}, {@code attributeDescription}, or
-     *             {@code assertionValue} was {@code null}.
-     */
-    CompareRequestImpl(final DN name, final AttributeDescription attributeDescription,
-            final ByteString assertionValue) {
-        this.name = name;
-        this.attributeDescription = attributeDescription;
-        this.assertionValue = assertionValue;
-    }
-
-    /**
-     * Creates a new compare request that is an exact copy of the provided
-     * request.
-     *
-     * @param compareRequest
-     *            The compare request to be copied.
-     * @throws NullPointerException
-     *             If {@code compareRequest} was {@code null} .
-     */
     CompareRequestImpl(final CompareRequest compareRequest) {
         super(compareRequest);
         this.name = compareRequest.getName();
@@ -82,82 +50,68 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest> imple
         this.assertionValue = compareRequest.getAssertionValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    CompareRequestImpl(final DN name, final AttributeDescription attributeDescription,
+            final ByteString assertionValue) {
+        this.name = name;
+        this.attributeDescription = attributeDescription;
+        this.assertionValue = assertionValue;
+    }
+
+    @Override
     public ByteString getAssertionValue() {
         return assertionValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getAssertionValueAsString() {
         return assertionValue.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public AttributeDescription getAttributeDescription() {
         return attributeDescription;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CompareRequest setAssertionValue(final Object value) {
         Validator.ensureNotNull(value);
         this.assertionValue = ByteString.valueOf(value);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CompareRequest setAttributeDescription(final AttributeDescription attributeDescription) {
         Validator.ensureNotNull(attributeDescription);
         this.attributeDescription = attributeDescription;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CompareRequest setAttributeDescription(final String attributeDescription) {
         Validator.ensureNotNull(attributeDescription);
         this.attributeDescription = AttributeDescription.valueOf(attributeDescription);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CompareRequest setName(final DN dn) {
         Validator.ensureNotNull(dn);
         this.name = dn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CompareRequest setName(final String dn) {
         Validator.ensureNotNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

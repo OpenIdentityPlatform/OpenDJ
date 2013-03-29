@@ -52,9 +52,9 @@ import com.forgerock.opendj.util.Validator;
 final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SASLBindRequest>
         implements CRAMMD5SASLBindRequest {
     private final static class Client extends SASLBindClientImpl {
-        private final SaslClient saslClient;
         private final String authenticationID;
         private final ByteString password;
+        private final SaslClient saslClient;
 
         private Client(final CRAMMD5SASLBindRequestImpl initialBindRequest, final String serverName)
                 throws ErrorResultException {
@@ -118,8 +118,13 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
     }
 
     private String authenticationID;
-
     private byte[] password;
+
+    CRAMMD5SASLBindRequestImpl(final CRAMMD5SASLBindRequest cramMD5SASLBindRequest) {
+        super(cramMD5SASLBindRequest);
+        this.authenticationID = cramMD5SASLBindRequest.getAuthenticationID();
+        this.password = copyOfBytes(cramMD5SASLBindRequest.getPassword());
+    }
 
     CRAMMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
         Validator.ensureNotNull(authenticationID, password);
@@ -127,70 +132,41 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
         this.password = password;
     }
 
-    /**
-     * Creates a new CRAM MD5 SASL bind request that is an exact copy of the
-     * provided request.
-     *
-     * @param cramMD5SASLBindRequest
-     *            The CRAM MD5 SASL bind request to be copied.
-     * @throws NullPointerException
-     *             If {@code cramMD5SASLBindRequest} was {@code null} .
-     */
-    CRAMMD5SASLBindRequestImpl(final CRAMMD5SASLBindRequest cramMD5SASLBindRequest) {
-        super(cramMD5SASLBindRequest);
-        this.authenticationID = cramMD5SASLBindRequest.getAuthenticationID();
-        this.password = copyOfBytes(cramMD5SASLBindRequest.getPassword());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public BindClient createBindClient(final String serverName) throws ErrorResultException {
         return new Client(this, serverName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getAuthenticationID() {
         return authenticationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public byte[] getPassword() {
         return password;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getSASLMechanism() {
         return SASL_MECHANISM_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CRAMMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
         Validator.ensureNotNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CRAMMD5SASLBindRequest setPassword(final byte[] password) {
         Validator.ensureNotNull(password);
         this.password = password;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public CRAMMD5SASLBindRequest setPassword(final char[] password) {
         Validator.ensureNotNull(password);
         this.password = StaticUtils.getBytes(password);

@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap.responses;
 class UnmodifiablePasswordModifyExtendedResultImpl extends
         AbstractUnmodifiableExtendedResultImpl<PasswordModifyExtendedResult> implements
         PasswordModifyExtendedResult {
-    UnmodifiablePasswordModifyExtendedResultImpl(PasswordModifyExtendedResult impl) {
+    UnmodifiablePasswordModifyExtendedResultImpl(final PasswordModifyExtendedResult impl) {
         super(impl);
     }
 
@@ -43,12 +43,12 @@ class UnmodifiablePasswordModifyExtendedResultImpl extends
     }
 
     @Override
-    public PasswordModifyExtendedResult setGeneratedPassword(byte[] password) {
+    public PasswordModifyExtendedResult setGeneratedPassword(final byte[] password) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public PasswordModifyExtendedResult setGeneratedPassword(char[] password) {
+    public PasswordModifyExtendedResult setGeneratedPassword(final char[] password) {
         throw new UnsupportedOperationException();
     }
 }

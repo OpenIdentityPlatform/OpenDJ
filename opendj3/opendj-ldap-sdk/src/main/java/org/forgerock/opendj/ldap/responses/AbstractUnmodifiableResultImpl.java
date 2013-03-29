@@ -41,60 +41,66 @@ import org.forgerock.opendj.ldap.ResultCode;
 abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
         AbstractUnmodifiableResponseImpl<S> implements Result {
 
-    /**
-     * Creates a new unmodifiable result implementation.
-     *
-     * @param impl
-     *            The underlying result implementation to be made unmodifiable.
-     */
     AbstractUnmodifiableResultImpl(final S impl) {
         super(impl);
     }
 
+    @Override
     public final S addReferralURI(final String uri) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final Throwable getCause() {
         return impl.getCause();
     }
 
+    @Override
     public final String getDiagnosticMessage() {
         return impl.getDiagnosticMessage();
     }
 
+    @Override
     public final String getMatchedDN() {
         return impl.getMatchedDN();
     }
 
+    @Override
     public final List<String> getReferralURIs() {
         return Collections.unmodifiableList(impl.getReferralURIs());
     }
 
+    @Override
     public final ResultCode getResultCode() {
         return impl.getResultCode();
     }
 
+    @Override
     public final boolean isReferral() {
         return impl.isReferral();
     }
 
+    @Override
     public final boolean isSuccess() {
         return impl.isSuccess();
     }
 
+    @Override
     public final S setCause(final Throwable cause) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final S setDiagnosticMessage(final String message) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final S setMatchedDN(final String dn) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final S setResultCode(final ResultCode resultCode) {
         throw new UnsupportedOperationException();
     }

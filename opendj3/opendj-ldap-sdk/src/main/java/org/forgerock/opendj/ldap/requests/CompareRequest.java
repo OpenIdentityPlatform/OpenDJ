@@ -63,9 +63,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * </pre>
  */
 public interface CompareRequest extends Request {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     CompareRequest addControl(Control control);
 
     /**
@@ -89,15 +88,11 @@ public interface CompareRequest extends Request {
      */
     AttributeDescription getAttributeDescription();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

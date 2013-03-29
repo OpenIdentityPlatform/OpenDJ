@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 abstract class AbstractUnmodifiableExtendedResultImpl<S extends ExtendedResult> extends
         AbstractUnmodifiableResultImpl<S> implements ExtendedResult {
-    protected AbstractUnmodifiableExtendedResultImpl(S impl) {
+    AbstractUnmodifiableExtendedResultImpl(final S impl) {
         super(impl);
     }
 

@@ -53,9 +53,6 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public S adaptDecodeException(final DecodeException exception) {
         final S adaptedResult =
@@ -64,9 +61,6 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
         return adaptedResult;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <R extends ExtendedResult> ResultHandler<S> adaptExtendedResultHandler(
             final ExtendedRequest<R> request, final ResultHandler<? super R> resultHandler,
@@ -98,16 +92,10 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public abstract S decodeExtendedResult(ExtendedResult result, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public abstract S newExtendedErrorResult(ResultCode resultCode, String matchedDN,
             String diagnosticMessage);

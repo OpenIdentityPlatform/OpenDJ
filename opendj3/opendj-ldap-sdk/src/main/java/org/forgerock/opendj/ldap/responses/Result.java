@@ -58,9 +58,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * </ul>
  */
 public interface Result extends Response {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     Result addControl(Control control);
 
     /**
@@ -85,15 +84,11 @@ public interface Result extends Response {
      */
     Throwable getCause();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

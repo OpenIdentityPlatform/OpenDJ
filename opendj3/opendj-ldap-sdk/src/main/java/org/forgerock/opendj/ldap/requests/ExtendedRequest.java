@@ -41,7 +41,6 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  * services not already available in the protocol; for example, to implement an
  * operation which installs transport layer security (see
  * {@link StartTLSExtendedRequest}).
- *
  * <p>
  * To determine whether a directory server supports a given extension, read the
  * list of supported extensions from the root DSE to get a collection of
@@ -63,20 +62,15 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  *            The type of result.
  */
 public interface ExtendedRequest<S extends ExtendedResult> extends Request {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     ExtendedRequest<S> addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

@@ -41,73 +41,43 @@ final class GenericExtendedResultImpl extends AbstractExtendedResult<GenericExte
     private String responseName = null;
     private ByteString responseValue = null;
 
-    /**
-     * Creates a new generic extended result using the provided result code.
-     *
-     * @param resultCode
-     *            The result code.
-     * @throws NullPointerException
-     *             If {@code resultCode} was {@code null}.
-     */
-    GenericExtendedResultImpl(final ResultCode resultCode) {
-        super(resultCode);
-    }
-
-    /**
-     * Creates a new generic extended result that is an exact copy of the
-     * provided result.
-     *
-     * @param genericExtendedResult
-     *            The generic extended result to be copied.
-     * @throws NullPointerException
-     *             If {@code genericExtendedResult} was {@code null} .
-     */
     GenericExtendedResultImpl(final GenericExtendedResult genericExtendedResult) {
         super(genericExtendedResult);
         this.responseName = genericExtendedResult.getOID();
         this.responseValue = genericExtendedResult.getValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    GenericExtendedResultImpl(final ResultCode resultCode) {
+        super(resultCode);
+    }
+
+    @Override
     public String getOID() {
         return responseName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ByteString getValue() {
         return responseValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public boolean hasValue() {
         return responseValue != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericExtendedResult setOID(final String oid) {
         this.responseName = oid;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public GenericExtendedResult setValue(final Object value) {
         this.responseValue = value != null ? ByteString.valueOf(value) : null;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

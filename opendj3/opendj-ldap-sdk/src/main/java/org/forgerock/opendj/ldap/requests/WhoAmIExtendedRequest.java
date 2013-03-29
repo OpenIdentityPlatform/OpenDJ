@@ -80,11 +80,6 @@ import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 public interface WhoAmIExtendedRequest extends ExtendedRequest<WhoAmIExtendedResult> {
 
     /**
-     * The OID for the who am I extended operation request.
-     */
-    public static final String OID = "1.3.6.1.4.1.4203.1.11.3";
-
-    /**
      * A decoder which can be used to decode who am I extended operation
      * requests.
      */
@@ -92,38 +87,29 @@ public interface WhoAmIExtendedRequest extends ExtendedRequest<WhoAmIExtendedRes
             new WhoAmIExtendedRequestImpl.RequestDecoder();
 
     /**
-     * {@inheritDoc}
+     * The OID for the who am I extended operation request.
      */
+    public static final String OID = "1.3.6.1.4.1.4203.1.11.3";
+
+    @Override
     WhoAmIExtendedRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResultDecoder<WhoAmIExtendedResult> getResultDecoder();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 }

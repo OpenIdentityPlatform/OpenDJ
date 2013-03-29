@@ -49,6 +49,7 @@ final class WhoAmIExtendedRequestImpl extends
     static final class RequestDecoder implements
             ExtendedRequestDecoder<WhoAmIExtendedRequest, WhoAmIExtendedResult> {
 
+        @Override
         public WhoAmIExtendedRequest decodeExtendedRequest(final ExtendedRequest<?> request,
                 final DecodeOptions options) throws DecodeException {
             // TODO: Check the OID and that the value is not present.
@@ -62,12 +63,7 @@ final class WhoAmIExtendedRequestImpl extends
 
     private static final class ResultDecoder extends
             AbstractExtendedResultDecoder<WhoAmIExtendedResult> {
-        public WhoAmIExtendedResult newExtendedErrorResult(final ResultCode resultCode,
-                final String matchedDN, final String diagnosticMessage) {
-            return Responses.newWhoAmIExtendedResult(resultCode).setMatchedDN(matchedDN)
-                    .setDiagnosticMessage(diagnosticMessage);
-        }
-
+        @Override
         public WhoAmIExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             if (result instanceof WhoAmIExtendedResult) {
@@ -94,6 +90,13 @@ final class WhoAmIExtendedRequestImpl extends
                 return newResult;
             }
         }
+
+        @Override
+        public WhoAmIExtendedResult newExtendedErrorResult(final ResultCode resultCode,
+                final String matchedDN, final String diagnosticMessage) {
+            return Responses.newWhoAmIExtendedResult(resultCode).setMatchedDN(matchedDN)
+                    .setDiagnosticMessage(diagnosticMessage);
+        }
     }
 
     // No need to expose this.
@@ -105,54 +108,30 @@ final class WhoAmIExtendedRequestImpl extends
         // Nothing to do.
     }
 
-    /**
-     * Creates a new Who Am I extended request that is an exact copy of the
-     * provided request.
-     *
-     * @param whoAmIExtendedRequest
-     *            The who Am I extended request to be copied.
-     * @throws NullPointerException
-     *             If {@code whoAmIExtendedRequest} was {@code null} .
-     */
     WhoAmIExtendedRequestImpl(final WhoAmIExtendedRequest whoAmIExtendedRequest) {
         super(whoAmIExtendedRequest);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ExtendedResultDecoder<WhoAmIExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ByteString getValue() {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasValue() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

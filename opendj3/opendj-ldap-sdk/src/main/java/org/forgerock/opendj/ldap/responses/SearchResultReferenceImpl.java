@@ -40,53 +40,27 @@ final class SearchResultReferenceImpl extends AbstractResponseImpl<SearchResultR
 
     private final List<String> uris = new LinkedList<String>();
 
-    /**
-     * Creates a new search result reference using the provided continuation
-     * reference URI.
-     *
-     * @param uri
-     *            The first continuation reference URI to be added to this
-     *            search result reference.
-     * @throws NullPointerException
-     *             If {@code uri} was {@code null}.
-     */
-    SearchResultReferenceImpl(final String uri) {
-        addURI(uri);
-    }
-
-    /**
-     * Creates a new search result reference that is an exact copy of the
-     * provided result.
-     *
-     * @param searchResultReference
-     *            The search result reference to be copied.
-     * @throws NullPointerException
-     *             If {@code searchResultReference} was {@code null} .
-     */
     SearchResultReferenceImpl(final SearchResultReference searchResultReference) {
         super(searchResultReference);
         this.uris.addAll(searchResultReference.getURIs());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    SearchResultReferenceImpl(final String uri) {
+        addURI(uri);
+    }
+
+    @Override
     public SearchResultReference addURI(final String uri) {
         Validator.ensureNotNull(uri);
         uris.add(uri);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public List<String> getURIs() {
         return uris;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

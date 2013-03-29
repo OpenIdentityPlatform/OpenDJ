@@ -44,62 +44,38 @@ import com.forgerock.opendj.util.Validator;
  */
 final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> implements ModifyRequest {
     private final List<Modification> changes = new LinkedList<Modification>();
-
     private DN name;
 
-    /**
-     * Creates a new modify request using the provided distinguished name.
-     *
-     * @param name
-     *            The distinguished name of the entry to be modified.
-     * @throws NullPointerException
-     *             If {@code name} was {@code null}.
-     */
     ModifyRequestImpl(final DN name) {
         this.name = name;
     }
 
-    /**
-     * Creates a new modify request that is an exact copy of the provided
-     * request.
-     *
-     * @param modifyRequest
-     *            The modify request to be copied.
-     * @throws NullPointerException
-     *             If {@code modifyRequest} was {@code null} .
-     */
     ModifyRequestImpl(final ModifyRequest modifyRequest) {
         super(modifyRequest);
         this.name = modifyRequest.getName();
 
         // Deep copy.
-        for (Modification modification : modifyRequest.getModifications()) {
-            ModificationType type = modification.getModificationType();
-            Attribute attribute = new LinkedAttribute(modification.getAttribute());
-            Modification copy = new Modification(type, attribute);
+        for (final Modification modification : modifyRequest.getModifications()) {
+            final ModificationType type = modification.getModificationType();
+            final Attribute attribute = new LinkedAttribute(modification.getAttribute());
+            final Modification copy = new Modification(type, attribute);
             this.changes.add(copy);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p) {
         return v.visitChangeRecord(p, this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyRequest addModification(final Modification change) {
         Validator.ensureNotNull(change);
         changes.add(change);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyRequest addModification(final ModificationType type,
             final String attributeDescription, final Object... values) {
         Validator.ensureNotNull(type, attributeDescription, values);
@@ -107,41 +83,30 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public List<Modification> getModifications() {
         return changes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyRequest setName(final DN dn) {
         Validator.ensureNotNull(dn);
         this.name = dn;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ModifyRequest setName(final String dn) {
         Validator.ensureNotNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

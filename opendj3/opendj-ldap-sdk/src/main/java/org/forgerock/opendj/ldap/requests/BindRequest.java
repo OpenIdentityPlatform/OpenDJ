@@ -41,9 +41,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * "authenticate" operation.
  */
 public interface BindRequest extends Request {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     BindRequest addControl(Control control);
 
     /**
@@ -70,15 +69,11 @@ public interface BindRequest extends Request {
      */
     byte getAuthenticationType();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**

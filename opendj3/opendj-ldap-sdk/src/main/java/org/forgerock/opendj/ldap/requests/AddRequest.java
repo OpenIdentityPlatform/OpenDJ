@@ -52,125 +52,78 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  * maintains these automatically.
  */
 public interface AddRequest extends Request, ChangeRecord, Entry {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean addAttribute(Attribute attribute);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest addAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest clearAttributes();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean containsAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean containsAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Iterable<Attribute> getAllAttributes(String attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Attribute getAttribute(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     Attribute getAttribute(String attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     int getAttributeCount();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     DN getName();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean removeAttribute(AttributeDescription attributeDescription);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest removeAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean replaceAttribute(Attribute attribute);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest replaceAttribute(String attributeDescription, Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest setName(DN dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     AddRequest setName(String dn);
 
 }

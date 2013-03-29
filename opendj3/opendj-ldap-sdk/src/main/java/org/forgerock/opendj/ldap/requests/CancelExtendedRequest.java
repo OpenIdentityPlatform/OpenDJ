@@ -51,35 +51,27 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult> {
 
     /**
-     * The OID for the cancel extended operation request.
-     */
-    public static final String OID = "1.3.6.1.1.8";
-
-    /**
      * A decoder which can be used to decode cancel extended operation requests.
      */
     public static final ExtendedRequestDecoder<CancelExtendedRequest, ExtendedResult> DECODER =
             new CancelExtendedRequestImpl.RequestDecoder();
 
     /**
-     * {@inheritDoc}
+     * The OID for the cancel extended operation request.
      */
+    public static final String OID = "1.3.6.1.1.8";
+
+    @Override
     CancelExtendedRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     String getOID();
 
     /**
@@ -89,19 +81,13 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult> {
      */
     int getRequestID();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ExtendedResultDecoder<ExtendedResult> getResultDecoder();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ByteString getValue();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     boolean hasValue();
 
     /**

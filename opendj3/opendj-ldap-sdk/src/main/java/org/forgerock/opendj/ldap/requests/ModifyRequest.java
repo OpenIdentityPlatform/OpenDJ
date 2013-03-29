@@ -58,14 +58,11 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  * </pre>
  */
 public interface ModifyRequest extends Request, ChangeRecord {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     ModifyRequest addControl(Control control);
 
     /**
@@ -110,15 +107,11 @@ public interface ModifyRequest extends Request, ChangeRecord {
     ModifyRequest addModification(ModificationType type, String attributeDescription,
             Object... values);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -137,6 +130,7 @@ public interface ModifyRequest extends Request, ChangeRecord {
      *
      * @return The distinguished name of the entry to be modified.
      */
+    @Override
     DN getName();
 
     /**

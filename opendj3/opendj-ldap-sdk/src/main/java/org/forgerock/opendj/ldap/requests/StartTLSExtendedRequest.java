@@ -69,11 +69,6 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult> {
 
     /**
-     * The OID for the start TLS extended operation request.
-     */
-    public static final String OID = "1.3.6.1.4.1.1466.20037";
-
-    /**
      * A decoder which can be used to decode start TLS extended operation
      * requests.
      */
@@ -81,61 +76,16 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
             new StartTLSExtendedRequestImpl.RequestDecoder();
 
     /**
-     * {@inheritDoc}
+     * The OID for the start TLS extended operation request.
      */
+    public static final String OID = "1.3.6.1.4.1.1466.20037";
+
+    @Override
     StartTLSExtendedRequest addControl(Control control);
 
     /**
-     * {@inheritDoc}
-     */
-    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
-            throws DecodeException;
-
-    /**
-     * {@inheritDoc}
-     */
-    List<Control> getControls();
-
-    /**
-     * {@inheritDoc}
-     */
-    String getOID();
-
-    /**
-     * {@inheritDoc}
-     */
-    ExtendedResultDecoder<ExtendedResult> getResultDecoder();
-
-    /**
-     * Returns the SSLContext that should be used when installing the TLS layer.
-     *
-     * @return The SSLContext that should be used when installing the TLS layer.
-     */
-    SSLContext getSSLContext();
-
-    /**
-     * Adds the protocol versions enabled for secure connections with the
-     * Directory Server.
-     *
-     * The protocols must be supported by the SSLContext specified in
-     * {@link #setSSLContext(SSLContext)}. Following a successful call to this
-     * method, only the protocols listed in the protocols parameter are enabled
-     * for use.
-     *
-     * @param protocols
-     *            Names of all the protocols to enable.
-     * @return A reference to this LDAP connection options.
-     * @throws UnsupportedOperationException
-     *             If this start TLS extended request does not permit the
-     *             enabled protocols to be set.
-     */
-    StartTLSExtendedRequest addEnabledProtocol(String... protocols);
-
-    /**
      * Adds the cipher suites enabled for secure connections with the Directory
-     * Server.
-     *
-     * The suites must be supported by the SSLContext specified in
+     * Server. The suites must be supported by the SSLContext specified in
      * {@link #setSSLContext(SSLContext)}. Following a successful call to this
      * method, only the suites listed in the protocols parameter are enabled for
      * use.
@@ -150,13 +100,27 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
     StartTLSExtendedRequest addEnabledCipherSuite(String... suites);
 
     /**
-     * Returns the names of the protocol versions which are currently enabled
-     * for secure connections with the Directory Server.
+     * Adds the protocol versions enabled for secure connections with the
+     * Directory Server. The protocols must be supported by the SSLContext
+     * specified in {@link #setSSLContext(SSLContext)}. Following a successful
+     * call to this method, only the protocols listed in the protocols parameter
+     * are enabled for use.
      *
-     * @return an array of protocols or empty set if the default protocols are
-     *         to be used.
+     * @param protocols
+     *            Names of all the protocols to enable.
+     * @return A reference to this LDAP connection options.
+     * @throws UnsupportedOperationException
+     *             If this start TLS extended request does not permit the
+     *             enabled protocols to be set.
      */
-    List<String> getEnabledProtocols();
+    StartTLSExtendedRequest addEnabledProtocol(String... protocols);
+
+    @Override
+    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+            throws DecodeException;
+
+    @Override
+    List<Control> getControls();
 
     /**
      * Returns the names of the protocol versions which are currently enabled
@@ -168,13 +132,31 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
     List<String> getEnabledCipherSuites();
 
     /**
-     * {@inheritDoc}
+     * Returns the names of the protocol versions which are currently enabled
+     * for secure connections with the Directory Server.
+     *
+     * @return an array of protocols or empty set if the default protocols are
+     *         to be used.
      */
-    ByteString getValue();
+    List<String> getEnabledProtocols();
+
+    @Override
+    String getOID();
+
+    @Override
+    ExtendedResultDecoder<ExtendedResult> getResultDecoder();
 
     /**
-     * {@inheritDoc}
+     * Returns the SSLContext that should be used when installing the TLS layer.
+     *
+     * @return The SSLContext that should be used when installing the TLS layer.
      */
+    SSLContext getSSLContext();
+
+    @Override
+    ByteString getValue();
+
+    @Override
     boolean hasValue();
 
     /**

@@ -57,25 +57,18 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
  * </pre>
  */
 public interface DeleteRequest extends Request, ChangeRecord {
-    /**
-     * {@inheritDoc}
-     */
+
+    @Override
     <R, P> R accept(ChangeRecordVisitor<R, P> v, P p);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     DeleteRequest addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     List<Control> getControls();
 
     /**
@@ -84,6 +77,7 @@ public interface DeleteRequest extends Request, ChangeRecord {
      *
      * @return The distinguished name of the entry.
      */
+    @Override
     DN getName();
 
     /**
