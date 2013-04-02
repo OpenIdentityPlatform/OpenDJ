@@ -58,6 +58,15 @@
   <property name="build.debuglevel"    value="lines,vars,source"       />
   <property name="ivy.install.version" value="2.3.0"/>
   <property name="ivy.jar.file"        value="${ext.dir}/ivy.jar"/>
+  <!-- example command line to invoke for building offline:
+    ant resolve -Dbuild.offline=
+  -->
+  <condition property="ivy.checkmodified" value="false" else="true">
+    <isset property="build.offline"/>
+  </condition>
+  <condition property="ivy.changingpattern" value="" else=".*-SNAPSHOT">
+    <isset property="build.offline"/>
+  </condition>
 
   <!-- Properties for build tools                                   -->
   <property name="buildtools.src.dir" location="src/build-tools" />
