@@ -324,8 +324,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final Filter filter = request.getFilter();
             final Matcher matcher = filter.matcher(schema);
             final AttributeFilter attributeFilter =
-                    new AttributeFilter(request.getAttributes(), schema);
-
+                    new AttributeFilter(request.getAttributes(), schema).typesOnly(request
+                            .isTypesOnly());
             if (scope.equals(SearchScope.BASE_OBJECT)) {
                 if (matcher.matches(baseEntry).toBoolean()) {
                     sendEntry(attributeFilter, resultHandler, baseEntry);
