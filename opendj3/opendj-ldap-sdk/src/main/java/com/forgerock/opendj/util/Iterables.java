@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -34,8 +35,14 @@ import org.forgerock.opendj.ldap.Function;
  * Utility methods for manipulating {@link Iterable}s.
  */
 public final class Iterables {
-    private static final class ArrayIterable<M> implements Iterable<M> {
+    private static abstract class AbstractIterable<M> implements Iterable<M> {
+        @Override
+        public String toString() {
+            return Iterables.toString(this);
+        }
+    }
 
+    private static final class ArrayIterable<M> extends AbstractIterable<M> {
         private final M[] a;
 
         // Constructed via factory methods.
@@ -43,28 +50,18 @@ public final class Iterables {
             this.a = a;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public Iterator<M> iterator() {
             return Iterators.arrayIterator(a);
         }
-
     }
 
-    private static final class EmptyIterable<M> implements Iterable<M> {
-
-        /**
-         * {@inheritDoc}
-         */
+    private static final class EmptyIterable<M> extends AbstractIterable<M> {
         public Iterator<M> iterator() {
             return Iterators.emptyIterator();
         }
-
     }
 
-    private static final class FilteredIterable<M, P> implements Iterable<M> {
-
+    private static final class FilteredIterable<M, P> extends AbstractIterable<M> {
         private final Iterable<M> iterable;
         private final P parameter;
         private final Predicate<? super M, P> predicate;
@@ -77,17 +74,12 @@ public final class Iterables {
             this.parameter = p;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public Iterator<M> iterator() {
             return Iterators.filteredIterator(iterable.iterator(), predicate, parameter);
         }
-
     }
 
-    private static final class SingletonIterable<M> implements Iterable<M> {
-
+    private static final class SingletonIterable<M> extends AbstractIterable<M> {
         private final M value;
 
         // Constructed via factory methods.
@@ -95,17 +87,12 @@ public final class Iterables {
             this.value = value;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public Iterator<M> iterator() {
             return Iterators.singletonIterator(value);
         }
-
     }
 
-    private static final class TransformedIterable<M, N, P> implements Iterable<N> {
-
+    private static final class TransformedIterable<M, N, P> extends AbstractIterable<N> {
         private final Function<? super M, ? extends N, P> function;
         private final Iterable<M> iterable;
         private final P parameter;
@@ -118,17 +105,12 @@ public final class Iterables {
             this.parameter = p;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public Iterator<N> iterator() {
             return Iterators.transformedIterator(iterable.iterator(), function, parameter);
         }
-
     }
 
-    private static final class UnmodifiableIterable<M> implements Iterable<M> {
-
+    private static final class UnmodifiableIterable<M> extends AbstractIterable<M> {
         private final Iterable<M> iterable;
 
         // Constructed via factory methods.
@@ -136,13 +118,9 @@ public final class Iterables {
             this.iterable = iterable;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public Iterator<M> iterator() {
             return Iterators.unmodifiableIterator(iterable.iterator());
         }
-
     }
 
     private static final Iterable<Object> EMPTY_ITERABLE = new EmptyIterable<Object>();
@@ -300,6 +278,30 @@ public final class Iterables {
      */
     public static <M> Iterable<M> unmodifiableIterable(final Iterable<M> iterable) {
         return new UnmodifiableIterable<M>(iterable);
+    }
+
+    /**
+     * Returns a string representation of the provided iterable composed of an
+     * opening square bracket, followed by each element separated by commas, and
+     * then a closing square bracket.
+     *
+     * @param iterable
+     *            The iterable whose string representation is to be returned.
+     * @return A string representation of the provided iterable.
+     */
+    public static String toString(Iterable<?> iterable) {
+        final StringBuilder builder = new StringBuilder();
+        boolean firstValue = true;
+        builder.append('[');
+        for (Object value : iterable) {
+            if (!firstValue) {
+                builder.append(',');
+            }
+            builder.append(String.valueOf(value));
+            firstValue = false;
+        }
+        builder.append(']');
+        return builder.toString();
     }
 
     // Prevent instantiation

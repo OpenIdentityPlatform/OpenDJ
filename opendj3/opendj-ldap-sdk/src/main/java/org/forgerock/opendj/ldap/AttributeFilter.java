@@ -40,6 +40,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 
+import com.forgerock.opendj.util.Iterables;
+
 /**
  * A configurable factory for filtering the attributes exposed by an entry. An
  * {@code AttributeFilter} is useful for performing fine-grained access control,
@@ -57,9 +59,10 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * </ul>
  */
 public final class AttributeFilter {
-    // TODO: exclude specific attributes, matched values, types only, custom predicates, etc.
-    private boolean includeAllOperationalAttributes;
-    private boolean includeAllUserAttributes;
+    // TODO: exclude specific attributes, matched values, custom predicates, etc.
+    private boolean includeAllOperationalAttributes = false;
+    private boolean includeAllUserAttributes; // Depends on constructor.
+    private boolean typesOnly = false;
 
     /**
      * Use a map so that we can perform membership checks as well as recover the
@@ -74,7 +77,6 @@ public final class AttributeFilter {
      */
     public AttributeFilter() {
         includeAllUserAttributes = true;
-        includeAllOperationalAttributes = false;
     }
 
     /**
@@ -106,7 +108,6 @@ public final class AttributeFilter {
         if (attributeDescriptions == null || attributeDescriptions.isEmpty()) {
             // Fast-path for common case.
             includeAllUserAttributes = true;
-            includeAllOperationalAttributes = false;
         } else {
             for (final String attribute : attributeDescriptions) {
                 includeAttribute(attribute, schema);
@@ -212,7 +213,7 @@ public final class AttributeFilter {
                                     throw new NoSuchElementException();
                                 }
                                 hasNextMustIterate = true;
-                                return next;
+                                return filterAttribute(next);
                             }
 
                             @Override
@@ -220,6 +221,11 @@ public final class AttributeFilter {
                                 throw new UnsupportedOperationException();
                             }
                         };
+                    }
+
+                    @Override
+                    public String toString() {
+                        return Iterables.toString(this);
                     }
                 };
             }
@@ -237,10 +243,10 @@ public final class AttributeFilter {
                     final AttributeType at = ad.getAttributeType();
                     final AttributeDescription requestedAd = requestedAttributes.get(ad);
                     if (requestedAd != null) {
-                        return renameAttribute(attribute, requestedAd);
+                        return filterAttribute(renameAttribute(attribute, requestedAd));
                     } else if ((at.isOperational() && includeAllOperationalAttributes)
                             || (!at.isOperational() && includeAllUserAttributes)) {
-                        return attribute;
+                        return filterAttribute(attribute);
                     }
                 }
                 return null;
@@ -397,9 +403,29 @@ public final class AttributeFilter {
         }
     }
 
+    /**
+     * Specifies whether or not filtered attributes are to contain both
+     * attribute descriptions and values, or just attribute descriptions.
+     *
+     * @param typesOnly
+     *            {@code true} if only attribute descriptions (and not values)
+     *            are to be included, or {@code false} (the default) if both
+     *            attribute descriptions and values are to be included.
+     * @return A reference to this attribute filter.
+     */
+    public AttributeFilter typesOnly(final boolean typesOnly) {
+        this.typesOnly = typesOnly;
+        return this;
+    }
+
     private void allocatedRequestedAttributes() {
         if (requestedAttributes.isEmpty()) {
             requestedAttributes = new HashMap<AttributeDescription, AttributeDescription>();
         }
+    }
+
+    private Attribute filterAttribute(final Attribute attribute) {
+        return typesOnly ? Attributes.emptyAttribute(attribute.getAttributeDescription())
+                : attribute;
     }
 }

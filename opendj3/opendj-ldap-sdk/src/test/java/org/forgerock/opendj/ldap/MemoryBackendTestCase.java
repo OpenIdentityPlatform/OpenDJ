@@ -42,6 +42,7 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.testng.annotations.Test;
@@ -343,6 +344,17 @@ public class MemoryBackendTestCase extends SdkTestCase {
                 .isEqualTo(
                         valueOfLDIFEntry("dn: uid=test1,ou=People,dc=example,dc=com", "uid: test1",
                                 "entryDN: uid=test1,ou=People,dc=example,dc=com"));
+    }
+
+    @Test
+    public void testSearchAttributesSelectedTypesOnly() throws Exception {
+        final Connection connection = getConnection();
+        assertThat(
+                connection.searchSingleEntry(Requests.newSearchRequest(
+                        "uid=test1,ou=People,dc=example,dc=com", SearchScope.BASE_OBJECT,
+                        "(objectClass=*)", "uid", "entryDN").setTypesOnly(true))).isEqualTo(
+                new LinkedHashMapEntry("uid=test1,ou=People,dc=example,dc=com").addAttribute("uid")
+                        .addAttribute("entryDN"));
     }
 
     @Test
