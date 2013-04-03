@@ -16,6 +16,8 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.json.resource.Requests.newDeleteRequest;
 import static org.forgerock.json.resource.Requests.newReadRequest;
 import static org.forgerock.json.resource.Resources.newCollection;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
@@ -25,6 +27,8 @@ import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
 
 import java.io.IOException;
 
+import org.forgerock.json.resource.ConflictException;
+import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.NotFoundException;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Resource;
@@ -45,6 +49,49 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     // FIXME: we need to test the request handler, not internal connections,
     // so that we can check that the request handler is returning everything.
     // FIXME: factor out test for re-use as common test suite (e.g. for InMemoryBackend).
+
+    @Test(enabled = false)
+    public void testDelete() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final Resource resource = connection.delete(c(), newDeleteRequest("/test1"));
+        checkTestUser1(resource);
+        try {
+            connection.read(c(), newReadRequest("/test1"));
+            fail("Read succeeded unexpectedly");
+        } catch (final NotFoundException e) {
+            // Expected.
+        }
+    }
+
+    @Test(enabled = false)
+    public void testDeleteMVCCMatch() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final Resource resource =
+                connection.delete(c(), newDeleteRequest("/test1").setRevision("12345"));
+        checkTestUser1(resource);
+        try {
+            connection.read(c(), newReadRequest("/test1"));
+            fail("Read succeeded unexpectedly");
+        } catch (final NotFoundException e) {
+            // Expected.
+        }
+    }
+
+    @Test(expectedExceptions = ConflictException.class, enabled = false)
+    public void testDeleteMVCCNoMatch() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.delete(c(), newDeleteRequest("/test1").setRevision("12346"));
+    }
+
+    @Test(expectedExceptions = NotFoundException.class, enabled = false)
+    public void testDeleteNotFound() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.delete(c(), newDeleteRequest("/missing"));
+    }
 
     @Test
     public void testRead() throws Exception {
