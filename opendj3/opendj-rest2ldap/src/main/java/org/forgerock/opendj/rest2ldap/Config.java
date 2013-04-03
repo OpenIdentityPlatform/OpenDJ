@@ -23,20 +23,22 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * Common configuration options.
  */
 final class Config {
+    private final AuthorizationPolicy authzPolicy;
     private final ConnectionFactory factory;
     private final DecodeOptions options;
-    private final AuthorizationPolicy authzPolicy;
     private final AuthzIdTemplate proxiedAuthzTemplate;
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
     private final Schema schema;
+    private final boolean useSubtreeDelete;
 
     Config(final ConnectionFactory factory, final ReadOnUpdatePolicy readOnUpdatePolicy,
             final AuthorizationPolicy authzPolicy, final AuthzIdTemplate proxiedAuthzTemplate,
-            final Schema schema) {
+            final boolean useSubtreeDelete, final Schema schema) {
         this.factory = factory;
         this.readOnUpdatePolicy = readOnUpdatePolicy;
         this.authzPolicy = authzPolicy;
         this.proxiedAuthzTemplate = proxiedAuthzTemplate;
+        this.useSubtreeDelete = useSubtreeDelete;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
     }
@@ -83,6 +85,17 @@ final class Config {
      */
     AuthzIdTemplate getProxiedAuthorizationTemplate() {
         return proxiedAuthzTemplate;
+    }
+
+    /**
+     * Returns {@code true} if delete requests should include the subtree delete
+     * control.
+     *
+     * @return {@code true} if delete requests should include the subtree delete
+     *         control.
+     */
+    boolean useSubtreeDelete() {
+        return useSubtreeDelete;
     }
 
     /**

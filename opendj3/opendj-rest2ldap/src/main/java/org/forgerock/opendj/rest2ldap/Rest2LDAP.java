@@ -79,12 +79,13 @@ public final class Rest2LDAP {
         private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private DN baseDN; // TODO: support template variables.
         private ConnectionFactory factory;
-        private MVCCStrategy mvccStrategy;
+        private AttributeDescription etagAttribute;
         private NameStrategy nameStrategy;
         private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
+        private boolean useSubtreeDelete;
 
         Builder() {
             useEtagAttribute();
@@ -142,8 +143,9 @@ public final class Rest2LDAP {
                 break;
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy,
-                    mvccStrategy, new Config(factory, readOnUpdatePolicy, authzPolicy,
-                            proxiedAuthzTemplate, schema), additionalLDAPAttributes);
+                    etagAttribute, new Config(factory, readOnUpdatePolicy, authzPolicy,
+                            proxiedAuthzTemplate, useSubtreeDelete, schema),
+                    additionalLDAPAttributes);
         }
 
         /**
@@ -192,6 +194,10 @@ public final class Rest2LDAP {
             final JsonValue etagAttribute = configuration.get("etagAttribute");
             if (!etagAttribute.isNull()) {
                 useEtagAttribute(etagAttribute.asString());
+            }
+
+            if (configuration.get("useSubtreeDelete").required().asBoolean()) {
+                useSubtreeDelete();
             }
 
             mapper(configureObjectMapper(configuration.get("attributes").required()));
@@ -267,7 +273,7 @@ public final class Rest2LDAP {
         }
 
         public Builder useEtagAttribute(final AttributeDescription attribute) {
-            this.mvccStrategy = new AttributeMVCCStrategy(attribute);
+            this.etagAttribute = attribute;
             return this;
         }
 
@@ -292,6 +298,11 @@ public final class Rest2LDAP {
 
         public Builder useServerNaming(final String dnAttribute, final String idAttribute) {
             return useServerNaming(at(dnAttribute), ad(idAttribute));
+        }
+
+        public Builder useSubtreeDelete() {
+            this.useSubtreeDelete = true;
+            return this;
         }
 
         private AttributeDescription ad(final String attribute) {
@@ -383,24 +394,6 @@ public final class Rest2LDAP {
             } else {
                 return WritabilityPolicy.READ_WRITE;
             }
-        }
-    }
-
-    private static final class AttributeMVCCStrategy extends MVCCStrategy {
-        private final AttributeDescription ldapAttribute;
-
-        private AttributeMVCCStrategy(final AttributeDescription ldapAttribute) {
-            this.ldapAttribute = ldapAttribute;
-        }
-
-        @Override
-        void getLDAPAttributes(final Context c, final Set<String> ldapAttributes) {
-            ldapAttributes.add(ldapAttribute.toString());
-        }
-
-        @Override
-        String getRevisionFromEntry(final Context c, final Entry entry) {
-            return entry.parseAttribute(ldapAttribute).asString();
         }
     }
 

@@ -136,6 +136,12 @@
             "/users" : {
                 "baseDN" : "ou=people,dc=example,dc=com",
                 "readOnUpdatePolicy" : "controls",
+                "useSubtreeDelete" : true,
+                "etagAttribute" : "etag",
+                "namingStrategy" : {
+                    "strategy" : "clientDNNaming",
+                    "dnAttribute" : "uid"
+                },
                 "additionalLDAPAttributes" : [
                     {
                         "type" : "objectClass",
@@ -147,11 +153,6 @@
                         ]
                     }
                 ],
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
-                    "dnAttribute" : "uid"
-                },
-                "etagAttribute" : "etag",
                 "attributes" : {
                     "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
                     "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },

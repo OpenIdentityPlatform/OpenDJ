@@ -54,6 +54,7 @@ import org.forgerock.json.resource.ServerContext;
 import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
@@ -62,10 +63,12 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -86,17 +89,17 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private final AttributeMapper attributeMapper;
     private final DN baseDN; // TODO: support template variables.
     private final Config config;
-    private final MVCCStrategy mvccStrategy;
+    private final AttributeDescription etagAttribute;
     private final NameStrategy nameStrategy;
 
     LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
-            final NameStrategy nameStrategy, final MVCCStrategy mvccStrategy, final Config config,
-            final List<Attribute> additionalLDAPAttributes) {
+            final NameStrategy nameStrategy, final AttributeDescription etagAttribute,
+            final Config config, final List<Attribute> additionalLDAPAttributes) {
         this.baseDN = baseDN;
         this.attributeMapper = mapper;
         this.config = config;
         this.nameStrategy = nameStrategy;
-        this.mvccStrategy = mvccStrategy;
+        this.etagAttribute = etagAttribute;
         this.additionalLDAPAttributes = additionalLDAPAttributes;
     }
 
@@ -167,8 +170,6 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        // FIXME: assertion and subtree delete controls.
-
         // Get connection then perform the search.
         c.run(h, new Runnable() {
             @Override
@@ -186,17 +187,26 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
                             @Override
                             public void handleResult(final SearchResultEntry entry) {
-                                // Perform delete operation.
-                                final ChangeRecord deleteRequest =
-                                        Requests.newDeleteRequest(entry.getName());
-                                if (config.readOnUpdatePolicy() == CONTROLS) {
-                                    final String[] attributes =
-                                            getLDAPAttributes(c, request.getFields());
-                                    deleteRequest.addControl(PreReadRequestControl.newControl(
-                                            false, attributes));
+                                try {
+                                    // Perform delete operation.
+                                    final ChangeRecord deleteRequest =
+                                            Requests.newDeleteRequest(entry.getName());
+                                    if (config.readOnUpdatePolicy() == CONTROLS) {
+                                        final String[] attributes =
+                                                getLDAPAttributes(c, request.getFields());
+                                        deleteRequest.addControl(PreReadRequestControl.newControl(
+                                                false, attributes));
+                                    }
+                                    if (config.useSubtreeDelete()) {
+                                        deleteRequest.addControl(SubtreeDeleteRequestControl
+                                                .newControl(true));
+                                    }
+                                    addAssertionControl(deleteRequest, request.getRevision());
+                                    c.getConnection().applyChangeAsync(deleteRequest, null,
+                                            postUpdateHandler(c, h));
+                                } catch (final Exception e) {
+                                    h.handleError(asResourceException(e));
                                 }
-                                c.getConnection().applyChangeAsync(deleteRequest, null,
-                                        postUpdateHandler(c, h));
                             }
                         });
             }
@@ -260,8 +270,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     }
 
                                     final String id = nameStrategy.getResourceId(c, entry);
-                                    final String revision =
-                                            mvccStrategy.getRevisionFromEntry(c, entry);
+                                    final String revision = getRevisionFromEntry(entry);
                                     final ResultHandler<JsonValue> mapHandler =
                                             new ResultHandler<JsonValue>() {
                                                 @Override
@@ -370,13 +379,27 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private void adaptEntry(final Context c, final Entry entry,
             final ResultHandler<Resource> handler) {
         final String actualResourceId = nameStrategy.getResourceId(c, entry);
-        final String revision = mvccStrategy.getRevisionFromEntry(c, entry);
+        final String revision = getRevisionFromEntry(entry);
         attributeMapper.toJSON(c, entry, transform(new Function<JsonValue, Resource, Void>() {
             @Override
             public Resource apply(final JsonValue value, final Void p) {
                 return new Resource(actualResourceId, revision, new JsonValue(value));
             }
         }, handler));
+    }
+
+    private void addAssertionControl(final ChangeRecord request, final String revision)
+            throws NotSupportedException {
+        if (revision != null) {
+            if (etagAttribute != null) {
+                request.addControl(AssertionRequestControl.newControl(true, Filter.equality(
+                        etagAttribute.toString(), revision)));
+            } else {
+                // FIXME: i18n
+                throw new NotSupportedException(
+                        "Multi-version concurrency control is not supported by this resource");
+            }
+        }
     }
 
     private DN getBaseDN(final Context context) {
@@ -410,7 +433,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
         // Get the LDAP attributes required by the Etag and name stategies.
         nameStrategy.getLDAPAttributes(c, requestedLDAPAttributes);
-        mvccStrategy.getLDAPAttributes(c, requestedLDAPAttributes);
+        if (etagAttribute != null) {
+            requestedLDAPAttributes.add(etagAttribute.toString());
+        }
         return requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
     }
 
@@ -588,6 +613,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 };
         // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
         queryFilter.accept(visitor, h);
+    }
+
+    private String getRevisionFromEntry(final Entry entry) {
+        return etagAttribute != null ? entry.parseAttribute(etagAttribute).asString() : null;
     }
 
     private org.forgerock.opendj.ldap.ResultHandler<Result> postUpdateHandler(final Context c,
