@@ -27,6 +27,7 @@
 
 package com.forgerock.opendj.util;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.forgerock.opendj.ldap.Function;
@@ -50,12 +51,14 @@ public final class Iterables {
             this.a = a;
         }
 
+        @Override
         public Iterator<M> iterator() {
             return Iterators.arrayIterator(a);
         }
     }
 
     private static final class EmptyIterable<M> extends AbstractIterable<M> {
+        @Override
         public Iterator<M> iterator() {
             return Iterators.emptyIterator();
         }
@@ -74,6 +77,7 @@ public final class Iterables {
             this.parameter = p;
         }
 
+        @Override
         public Iterator<M> iterator() {
             return Iterators.filteredIterator(iterable.iterator(), predicate, parameter);
         }
@@ -87,6 +91,7 @@ public final class Iterables {
             this.value = value;
         }
 
+        @Override
         public Iterator<M> iterator() {
             return Iterators.singletonIterator(value);
         }
@@ -105,6 +110,7 @@ public final class Iterables {
             this.parameter = p;
         }
 
+        @Override
         public Iterator<N> iterator() {
             return Iterators.transformedIterator(iterable.iterator(), function, parameter);
         }
@@ -118,6 +124,7 @@ public final class Iterables {
             this.iterable = iterable;
         }
 
+        @Override
         public Iterator<M> iterator() {
             return Iterators.unmodifiableIterator(iterable.iterator());
         }
@@ -199,6 +206,24 @@ public final class Iterables {
     }
 
     /**
+     * Returns {@code true} if the provided iterable does not contain any
+     * elements.
+     *
+     * @param iterable
+     *            The iterable.
+     * @return {@code true} if the provided iterable does not contain any
+     *         elements.
+     */
+    public static boolean isEmpty(final Iterable<?> iterable) {
+        if (iterable instanceof Collection) {
+            // Fall-through if possible and potentially avoid allocation.
+            return ((Collection<?>) iterable).isEmpty();
+        } else {
+            return !iterable.iterator().hasNext();
+        }
+    }
+
+    /**
      * Returns an iterable containing the single element {@code value}. The
      * returned iterable's iterator does not support element removal via the
      * {@code remove()} method.
@@ -211,6 +236,58 @@ public final class Iterables {
      */
     public static <M> Iterable<M> singletonIterable(final M value) {
         return new SingletonIterable<M>(value);
+    }
+
+    /**
+     * Returns the number of elements contained in the provided iterable.
+     *
+     * @param iterable
+     *            The iterable.
+     * @return The number of elements contained in the provided iterable.
+     */
+    public static int size(final Iterable<?> iterable) {
+        if (iterable instanceof Collection) {
+            // Fall-through if possible and potentially benefit from constant time calculation.
+            return ((Collection<?>) iterable).size();
+        } else {
+            final Iterator<?> i = iterable.iterator();
+            int sz = 0;
+            while (i.hasNext()) {
+                i.next();
+                sz++;
+            }
+            return sz;
+        }
+    }
+
+    /**
+     * Returns a string representation of the provided iterable composed of an
+     * opening square bracket, followed by each element separated by commas, and
+     * then a closing square bracket.
+     *
+     * @param iterable
+     *            The iterable whose string representation is to be returned.
+     * @return A string representation of the provided iterable.
+     * @see java.util.AbstractCollection#toString()
+     */
+    public static String toString(final Iterable<?> iterable) {
+        if (iterable instanceof Collection) {
+            // Fall-through if possible.
+            return ((Collection<?>) iterable).toString();
+        } else {
+            final StringBuilder builder = new StringBuilder();
+            boolean firstValue = true;
+            builder.append('[');
+            for (final Object value : iterable) {
+                if (!firstValue) {
+                    builder.append(", ");
+                }
+                builder.append(String.valueOf(value));
+                firstValue = false;
+            }
+            builder.append(']');
+            return builder.toString();
+        }
     }
 
     /**
@@ -278,30 +355,6 @@ public final class Iterables {
      */
     public static <M> Iterable<M> unmodifiableIterable(final Iterable<M> iterable) {
         return new UnmodifiableIterable<M>(iterable);
-    }
-
-    /**
-     * Returns a string representation of the provided iterable composed of an
-     * opening square bracket, followed by each element separated by commas, and
-     * then a closing square bracket.
-     *
-     * @param iterable
-     *            The iterable whose string representation is to be returned.
-     * @return A string representation of the provided iterable.
-     */
-    public static String toString(Iterable<?> iterable) {
-        final StringBuilder builder = new StringBuilder();
-        boolean firstValue = true;
-        builder.append('[');
-        for (Object value : iterable) {
-            if (!firstValue) {
-                builder.append(',');
-            }
-            builder.append(String.valueOf(value));
-            firstValue = false;
-        }
-        builder.append(']');
-        return builder.toString();
     }
 
     // Prevent instantiation

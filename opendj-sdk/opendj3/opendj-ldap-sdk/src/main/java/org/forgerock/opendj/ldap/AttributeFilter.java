@@ -253,13 +253,8 @@ public final class AttributeFilter {
             }
 
             @Override
-            @SuppressWarnings("unused")
             public int getAttributeCount() {
-                int i = 0;
-                for (final Attribute attribute : getAllAttributes()) {
-                    i++;
-                }
-                return i;
+                return Iterables.size(getAllAttributes());
             }
 
             @Override
