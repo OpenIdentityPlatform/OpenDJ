@@ -177,7 +177,12 @@
 
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
-    
+
+  <fileset id="opendj.runtime.jars" dir="${lib.dir}">
+    <include name="**/jar/*.jar" />
+    <include name="**/bundle/*.jar" />
+  </fileset>
+
   <!-- Prevent ant runtime from being included on classpath during
        compilation. -->  
   <presetdef name="javac">
@@ -705,9 +710,7 @@
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
@@ -857,9 +860,7 @@
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
@@ -955,9 +956,7 @@
     </copy>
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg value="-DGenerationDir=${configguide.dir}"/>
@@ -975,9 +974,7 @@
     </copy>
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg value="-DGenerationDir=${configguideldap.dir}"/>
@@ -1412,9 +1409,7 @@
          linksource="yes" windowtitle="${PRODUCT_NAME} API Documentation"
          maxmemory="${MEM}">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
 
         <fileset dir="${dsml.lib.dir}">
           <include name="*.jar" />
@@ -1522,9 +1517,7 @@
                 location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
     <java fork="true" classname="org.opends.server.tools.dsconfig.DSConfig" failonerror="true">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
@@ -1539,9 +1532,7 @@
     <property name="pdir"
               location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
     <path id="cp">
-      <fileset dir="${lib.dir}">
-        <include name="**/*.jar" />
-      </fileset>
+      <fileset refid="opendj.runtime.jars"/>
       <dirset dir="${classes.dir}" />
     </path>
     <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
@@ -1598,9 +1589,7 @@
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
         destdir="${classes.dir}">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
@@ -1636,9 +1625,7 @@
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}" excludes="org/opends/server/snmp/**">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
 
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
@@ -2120,9 +2107,7 @@
         <path refid="run.classpath" />
         <path refid="emma.lib" />
 
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
 
         <!-- Needed by quicksetup tests -->
         <fileset dir="${build.dir}/build-tools">
@@ -2136,9 +2121,9 @@
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar"/>
         </fileset>
-
       </classpath>
-      <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
+
+      <jvmarg value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Dorg.opends.server.BuildDir=${build.dir}" />
@@ -2155,6 +2140,7 @@
       <jvmarg value="${jvm.debug.arg2}" />
       <jvmarg value="${jvm.debug.arg3}" />
       <jvmarg value="${jvm.debug.arg4}" />
+
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
@@ -2504,9 +2490,7 @@
     <javac srcdir="${snmp.gen.dir}" destdir="${classes.dir}" >
       <compilerarg value="-Xlint:-serial" />
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar" />
         </fileset>
@@ -2515,9 +2499,7 @@
 
      <javac srcdir="${snmp.src.dir}" destdir="${classes.dir}">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar" />
         </fileset>
@@ -2572,9 +2554,7 @@
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
            includes="org/opends/server/snmp/**">
       <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
+        <fileset refid="opendj.runtime.jars"/>
 
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
