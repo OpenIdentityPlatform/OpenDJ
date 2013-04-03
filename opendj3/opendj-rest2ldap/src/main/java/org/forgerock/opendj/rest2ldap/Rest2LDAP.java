@@ -151,7 +151,7 @@ public final class Rest2LDAP {
          * configuration. The caller is still required to set the connection
          * factory. See the sample configuration file for a detailed description
          * of its content.
-         * 
+         *
          * @param configuration
          *            The JSON configuration.
          * @return A reference to this builder.
@@ -216,8 +216,9 @@ public final class Rest2LDAP {
 
         /**
          * Sets the policy which should be used in order to read an entry before
-         * it is deleted, or after it is added or modified.
-         * 
+         * it is deleted, or after it is added or modified. The default read on
+         * update policy is to use {@link ReadOnUpdatePolicy#CONTROLS controls}.
+         *
          * @param policy
          *            The policy which should be used in order to read an entry
          *            before it is deleted, or after it is added or modified.
@@ -231,7 +232,7 @@ public final class Rest2LDAP {
         /**
          * Sets the schema which should be used when attribute types and
          * controls.
-         * 
+         *
          * @param schema
          *            The schema which should be used when attribute types and
          *            controls.
@@ -500,7 +501,7 @@ public final class Rest2LDAP {
      * {@code Throwable} is an LDAP {@code ErrorResultException} then an
      * appropriate {@code ResourceException} is returned, otherwise an
      * {@code InternalServerErrorException} is returned.
-     * 
+     *
      * @param t
      *            The {@code Throwable} to be converted.
      * @return The equivalent resource exception.
@@ -548,7 +549,7 @@ public final class Rest2LDAP {
      * Creates a new connection factory using the named configuration in the
      * provided JSON list of factory configurations. See the sample
      * configuration file for a detailed description of its content.
-     * 
+     *
      * @param configuration
      *            The JSON configuration.
      * @param name
