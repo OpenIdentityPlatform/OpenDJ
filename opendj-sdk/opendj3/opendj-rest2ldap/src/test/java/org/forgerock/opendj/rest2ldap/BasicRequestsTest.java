@@ -27,9 +27,9 @@ import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
 
 import java.io.IOException;
 
-import org.forgerock.json.resource.ConflictException;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.NotFoundException;
+import org.forgerock.json.resource.PreconditionFailedException;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Resource;
 import org.forgerock.json.resource.RootContext;
@@ -79,7 +79,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         }
     }
 
-    @Test(expectedExceptions = ConflictException.class, enabled = false)
+    @Test(expectedExceptions = PreconditionFailedException.class)
     public void testDeleteMVCCNoMatch() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
