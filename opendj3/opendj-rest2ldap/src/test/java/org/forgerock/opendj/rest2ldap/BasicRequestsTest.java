@@ -82,6 +82,21 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(resource.getContent().get("rev").asString()).isNull();
     }
 
+    // Disabled - see CREST-86 (Should JSON resource fields be case insensitive?)
+    @Test(enabled = false)
+    public void testReadSelectPartialInsensitive() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Resource resource =
+                newInternalConnection(handler).read(c(),
+                        newReadRequest("/test1").addField("SURNAME"));
+        assertThat(resource.getId()).isEqualTo("test1");
+        assertThat(resource.getRevision()).isEqualTo("12345");
+        assertThat(resource.getContent().get("id").asString()).isNull();
+        assertThat(resource.getContent().get("displayName").asString()).isNull();
+        assertThat(resource.getContent().get("surname").asString()).isEqualTo("user 1");
+        assertThat(resource.getContent().get("rev").asString()).isNull();
+    }
+
     private Builder builder() throws IOException {
         return Rest2LDAP.builder().ldapConnectionFactory(getConnectionFactory()).baseDN("dc=test")
                 .useEtagAttribute().useClientDNNaming("uid").readOnUpdatePolicy(
