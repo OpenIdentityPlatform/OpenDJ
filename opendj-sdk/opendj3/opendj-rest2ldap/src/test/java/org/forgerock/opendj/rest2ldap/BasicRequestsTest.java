@@ -50,7 +50,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     // so that we can check that the request handler is returning everything.
     // FIXME: factor out test for re-use as common test suite (e.g. for InMemoryBackend).
 
-    @Test(enabled = false)
+    @Test
     public void testDelete() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
@@ -64,7 +64,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void testDeleteMVCCMatch() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
@@ -86,7 +86,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         connection.delete(c(), newDeleteRequest("/test1").setRevision("12346"));
     }
 
-    @Test(expectedExceptions = NotFoundException.class, enabled = false)
+    @Test(expectedExceptions = NotFoundException.class)
     public void testDeleteNotFound() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
