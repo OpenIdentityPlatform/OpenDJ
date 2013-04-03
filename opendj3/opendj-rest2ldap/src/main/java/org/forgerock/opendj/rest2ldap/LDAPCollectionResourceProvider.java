@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
+import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -71,6 +72,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ChangeRecord;
 
 /**
  * A {@code CollectionResourceProvider} implementation which maps a JSON
@@ -162,7 +164,43 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     @Override
     public void deleteInstance(final ServerContext context, final String resourceId,
             final DeleteRequest request, final ResultHandler<Resource> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+        final Context c = wrap(context);
+        final ResultHandler<Resource> h = wrap(c, handler);
+
+        // FIXME: assertion and subtree delete controls.
+
+        // Get connection then perform the search.
+        c.run(h, new Runnable() {
+            @Override
+            public void run() {
+                // Find the entry and then delete it.
+                final SearchRequest searchRequest =
+                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
+                                "1.1");
+                c.getConnection().searchSingleEntryAsync(searchRequest,
+                        new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+                            @Override
+                            public void handleErrorResult(final ErrorResultException error) {
+                                h.handleError(asResourceException(error));
+                            }
+
+                            @Override
+                            public void handleResult(final SearchResultEntry entry) {
+                                // Perform delete operation.
+                                final ChangeRecord deleteRequest =
+                                        Requests.newDeleteRequest(entry.getName());
+                                if (config.readOnUpdatePolicy() == CONTROLS) {
+                                    final String[] attributes =
+                                            getLDAPAttributes(c, request.getFields());
+                                    deleteRequest.addControl(PreReadRequestControl.newControl(
+                                            false, attributes));
+                                }
+                                c.getConnection().applyChangeAsync(deleteRequest, null,
+                                        postUpdateHandler(c, h));
+                            }
+                        });
+            }
+        });
     }
 
     @Override
@@ -195,8 +233,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                             h.handleResult(new QueryResult());
                         } else {
                             // Perform the search.
-                            final String[] attributes =
-                                    getLDAPAttributes(c, request.getFields());
+                            final String[] attributes = getLDAPAttributes(c, request.getFields());
                             final SearchRequest request =
                                     Requests.newSearchRequest(getBaseDN(c),
                                             SearchScope.SINGLE_LEVEL, ldapFilter == Filter
