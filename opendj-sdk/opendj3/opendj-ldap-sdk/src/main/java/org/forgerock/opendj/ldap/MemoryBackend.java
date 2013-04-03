@@ -35,7 +35,6 @@ import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry
 import java.io.IOException;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
@@ -94,7 +93,7 @@ import org.forgerock.opendj.ldif.EntryReader;
 public final class MemoryBackend implements RequestHandler<RequestContext> {
     private final DecodeOptions decodeOptions;
     private final ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<DN, Entry>();
-    private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    private final Object writeLock = new Object();
     private final Schema schema;
 
     /**
@@ -165,23 +164,22 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super Result> resultHandler) {
-        entryLock.writeLock().lock();
         try {
-            final DN dn = request.getName();
-            final DN parent = dn.parent();
-            if (entries.containsKey(dn)) {
-                throw newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '" + dn.toString()
-                        + "' already exists");
-            } else if (!entries.containsKey(parent)) {
-                noSuchObject(parent);
-            } else {
-                entries.put(dn, request);
-                resultHandler.handleResult(getResult(request, null, request));
+            synchronized (writeLock) {
+                final DN dn = request.getName();
+                final DN parent = dn.parent();
+                if (entries.containsKey(dn)) {
+                    throw newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '"
+                            + dn.toString() + "' already exists");
+                } else if (!entries.containsKey(parent)) {
+                    noSuchObject(parent);
+                } else {
+                    entries.put(dn, request);
+                }
             }
+            resultHandler.handleResult(getResult(request, null, request));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.writeLock().unlock();
         }
     }
 
@@ -190,26 +188,27 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super BindResult> resultHandler) {
-        entryLock.readLock().lock();
         try {
-            final DN username = DN.valueOf(request.getName(), schema);
-            final byte[] password;
-            if (request instanceof SimpleBindRequest) {
-                password = ((SimpleBindRequest) request).getPassword();
-            } else if (request instanceof GenericBindRequest
-                    && request.getAuthenticationType() == ((byte) 0x80)) {
-                password = ((GenericBindRequest) request).getAuthenticationValue();
-            } else {
-                throw newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "non-SIMPLE authentication not supported: "
-                                + request.getAuthenticationType());
+            final Entry entry;
+            synchronized (writeLock) {
+                final DN username = DN.valueOf(request.getName(), schema);
+                final byte[] password;
+                if (request instanceof SimpleBindRequest) {
+                    password = ((SimpleBindRequest) request).getPassword();
+                } else if (request instanceof GenericBindRequest
+                        && request.getAuthenticationType() == ((byte) 0x80)) {
+                    password = ((GenericBindRequest) request).getAuthenticationValue();
+                } else {
+                    throw newErrorResult(ResultCode.PROTOCOL_ERROR,
+                            "non-SIMPLE authentication not supported: "
+                                    + request.getAuthenticationType());
+                }
+                entry = getRequiredEntry(null, username);
+                if (!entry.containsAttribute("userPassword", password)) {
+                    throw newErrorResult(ResultCode.INVALID_CREDENTIALS, "Wrong password");
+                }
             }
-            final Entry entry = getRequiredEntry(null, username);
-            if (entry.containsAttribute("userPassword", password)) {
-                resultHandler.handleResult(getBindResult(request, entry, entry));
-            } else {
-                throw newErrorResult(ResultCode.INVALID_CREDENTIALS, "Wrong password");
-            }
+            resultHandler.handleResult(getBindResult(request, entry, entry));
         } catch (final LocalizedIllegalArgumentException e) {
             resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
         } catch (final EntryNotFoundException e) {
@@ -222,8 +221,6 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     "Unknown user"));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.readLock().unlock();
         }
     }
 
@@ -231,19 +228,20 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleCompare(final RequestContext requestContext, final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super CompareResult> resultHandler) {
-        entryLock.readLock().lock();
         try {
-            final DN dn = request.getName();
-            final Entry entry = getRequiredEntry(request, dn);
-            final Attribute assertion =
-                    singletonAttribute(request.getAttributeDescription(), request
-                            .getAssertionValue());
+            final Entry entry;
+            final Attribute assertion;
+            synchronized (writeLock) {
+                final DN dn = request.getName();
+                entry = getRequiredEntry(request, dn);
+                assertion =
+                        singletonAttribute(request.getAttributeDescription(), request
+                                .getAssertionValue());
+            }
             resultHandler.handleResult(getCompareResult(request, entry, entry.containsAttribute(
                     assertion, null)));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.readLock().unlock();
         }
     }
 
@@ -251,20 +249,22 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super Result> resultHandler) {
-        entryLock.writeLock().lock();
         try {
-            final DN dn = request.getName();
-            final Entry entry = getRequiredEntry(request, dn);
-            if (request.getControl(SubtreeDeleteRequestControl.DECODER, decodeOptions) != null) {
-                // Subtree delete.
-                entries.subMap(dn, dn.child(RDN.maxValue())).clear();
-            } else {
-                // Must be leaf.
-                final DN next = entries.higherKey(dn);
-                if (next == null || !next.isChildOf(dn)) {
-                    entries.remove(dn);
+            final Entry entry;
+            synchronized (writeLock) {
+                final DN dn = request.getName();
+                entry = getRequiredEntry(request, dn);
+                if (request.getControl(SubtreeDeleteRequestControl.DECODER, decodeOptions) != null) {
+                    // Subtree delete.
+                    entries.subMap(dn, dn.child(RDN.maxValue())).clear();
                 } else {
-                    throw newErrorResult(ResultCode.NOT_ALLOWED_ON_NONLEAF);
+                    // Must be leaf.
+                    final DN next = entries.higherKey(dn);
+                    if (next == null || !next.isChildOf(dn)) {
+                        entries.remove(dn);
+                    } else {
+                        throw newErrorResult(ResultCode.NOT_ALLOWED_ON_NONLEAF);
+                    }
                 }
             }
             resultHandler.handleResult(getResult(request, entry, null));
@@ -272,8 +272,6 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.writeLock().unlock();
         }
     }
 
@@ -290,17 +288,18 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleModify(final RequestContext requestContext, final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super Result> resultHandler) {
-        entryLock.writeLock().lock();
         try {
-            final DN dn = request.getName();
-            final Entry entry = getRequiredEntry(request, dn);
-            final Entry newEntry = new LinkedHashMapEntry(entry);
-            entries.put(dn, modifyEntry(newEntry, request));
+            final Entry entry;
+            final Entry newEntry;
+            synchronized (writeLock) {
+                final DN dn = request.getName();
+                entry = getRequiredEntry(request, dn);
+                newEntry = new LinkedHashMapEntry(entry);
+                entries.put(dn, modifyEntry(newEntry, request));
+            }
             resultHandler.handleResult(getResult(request, entry, newEntry));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.writeLock().unlock();
         }
     }
 
@@ -316,7 +315,6 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleSearch(final RequestContext requestContext, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final SearchResultHandler resultHandler) {
-        entryLock.readLock().lock();
         try {
             final DN dn = request.getName();
             final Entry baseEntry = getRequiredEntry(request, dn);
@@ -364,8 +362,6 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             resultHandler.handleResult(newResult(ResultCode.SUCCESS));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
-        } finally {
-            entryLock.readLock().unlock();
         }
     }
 
