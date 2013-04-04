@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -213,9 +213,11 @@ public class ReplicationServerHandler extends ServerHandler
         return;
       }
 
-      // Since we are going to send the topology message before having received
-      // one, we need to set the generation ID as soon as possible if it is
-      // currently uninitialized. See OpenDJ-121.
+      /*
+      Since we are going to send the topology message before having received
+      one, we need to set the generation ID as soon as possible if it is
+      currently uninitialized. See OpenDJ-121.
+      */
       if (localGenerationId < 0 && generationId > 0)
       {
         oldGenerationId = replicationServerDomain.changeGenerationId(
@@ -232,12 +234,13 @@ public class ReplicationServerHandler extends ServerHandler
 
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
-        // Only protocol version above V1 has a phase 2 handshake
+        /*
+        Only protocol version above V1 has a phase 2 handshake
+        NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
+        TopologyMsg then TopologyMsg (with a RS)
 
-        // NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
-        // TopologyMsg then TopologyMsg (with a RS)
-
-        // Send our own TopologyMsg to remote RS
+        Send our own TopologyMsg to remote RS
+        */
         TopologyMsg outTopoMsg = sendTopoToRemoteRS();
 
         // wait and process Topo from remote RS
@@ -254,12 +257,16 @@ public class ReplicationServerHandler extends ServerHandler
         // Create the monitoring publisher for the domain if not already started
         createMonitoringPublisher();
 
-        // FIXME: i think this should be done for all protocol version !!
-        // not only those > V1
+        /*
+        FIXME: i think this should be done for all protocol version !!
+        not only those > V1
+        */
         registerIntoDomain();
 
-        // Process TopologyMsg sent by remote RS: store matching new info
-        // (this will also warn our connected DSs of the new received info)
+        /*
+        Process TopologyMsg sent by remote RS: store matching new info
+        (this will also warn our connected DSs of the new received info)
+        */
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
       }
 
@@ -339,19 +346,22 @@ public class ReplicationServerHandler extends ServerHandler
       // log
       logStartHandshakeRCVandSND(inReplServerStartMsg, outReplServerStartMsg);
 
-      // until here session is encrypted then it depends on the negotiation
-      // The session initiator decides whether to use SSL.
+      /*
+      until here session is encrypted then it depends on the negotiation
+      The session initiator decides whether to use SSL.
+      */
       if (!sslEncryption)
         session.stopEncryption();
 
       TopologyMsg inTopoMsg = null;
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
-        // Only protocol version above V1 has a phase 2 handshake
-        // NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
-        // TopologyMsg then TopologyMsg (with a RS)
-
-        // wait and process Topo from remote RS
+        /*
+        Only protocol version above V1 has a phase 2 handshake
+        NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
+        TopologyMsg then TopologyMsg (with a RS)
+        wait and process Topo from remote RS
+        */
         inTopoMsg = waitAndProcessTopoFromRemoteRS();
         if (inTopoMsg == null)
         {
@@ -384,76 +394,17 @@ public class ReplicationServerHandler extends ServerHandler
           }
         } else
         {
-          if (localGenerationId > 0)
-          {
-            // if the local RS is initialized
-            if (generationId > 0)
-            {
-              // if the remote RS is initialized
-              if (generationId != localGenerationId)
-              {
-                // if the 2 RS have different generationID
-                if (replicationServerDomain.getGenerationIdSavedStatus())
-                {
-                  // if the present RS has received changes regarding its
-                  //     gen ID and so won't change without a reset
-                  // then  we are just degrading the peer.
-                  Message message = WARN_BAD_GENERATION_ID_FROM_RS
-                      .get(serverId,
-                          session.getReadableRemoteAddress(),
-                          generationId, getServiceId(),
-                          getReplicationServerId(), localGenerationId);
-                  logError(message);
-                } else
-                {
-                  // The present RS has never received changes regarding its
-                  // gen ID.
-                  //
-                  // Example case:
-                  // - we are in RS1
-                  // - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
-                  // - RS1 has genId1 from LS1 /genId1 comes from data in
-                  //   suffix
-                  // - we are in RS1 and we receive a START msg from RS2
-                  // - Each RS keeps its genID / is degraded and when LS2
-                  //   will be populated from LS1 everything will become ok.
-                  //
-                  // Issue:
-                  // FIXME : Would it be a good idea in some cases to just
-                  //         set the gen ID received from the peer RS
-                  //         specially if the peer has a non null state and
-                  //         we have a nul state ?
-                  // replicationServerDomain.
-                  // setGenerationId(generationId, false);
-                  Message message = WARN_BAD_GENERATION_ID_FROM_RS
-                      .get(serverId,
-                          session.getReadableRemoteAddress(),
-                          generationId, getServiceId(),
-                          getReplicationServerId(), localGenerationId);
-                  logError(message);
-                }
-              }
-            } else
-            {
-              // The remote RS has no genId. We don't change anything for the
-              // current RS.
-            }
-          } else
-          {
-            // The local RS is not initialized - take the one received
-            oldGenerationId =
-              replicationServerDomain.changeGenerationId(generationId, false);
-          }
+          checkGenerationId();
         }
-
-
-        // Note: the supported scenario for V1->V2 upgrade is to upgrade 1 by 1
-        // all the servers of the topology. We prefer not not send a TopologyMsg
-        // for giving partial/false information to the V2 servers as for
-        // instance we don't have the connected DS of the V1 RS...When the V1
-        // RS will be upgraded in his turn, topo info will be sent and accurate.
-        // That way, there is  no risk to have false/incomplete information in
-        // other servers.
+        /*
+        Note: the supported scenario for V1->V2 upgrade is to upgrade 1 by 1
+        all the servers of the topology. We prefer not not send a TopologyMsg
+        for giving partial/false information to the V2 servers as for
+        instance we don't have the connected DS of the V1 RS...When the V1
+        RS will be upgraded in his turn, topo info will be sent and accurate.
+        That way, there is  no risk to have false/incomplete information in
+        other servers.
+        */
       }
 
 
@@ -543,7 +494,7 @@ public class ReplicationServerHandler extends ServerHandler
   private TopologyMsg waitAndProcessTopoFromRemoteRS()
       throws DirectoryException
   {
-    ReplicationMsg msg = null;
+    ReplicationMsg msg;
     try
     {
       msg = session.receive();
@@ -582,12 +533,16 @@ public class ReplicationServerHandler extends ServerHandler
     }
     else
     {
-      // Remote RS uses protocol version prior to 4 : use default value for
-      // weight: 1
+      /*
+      Remote RS uses protocol version prior to 4 : use default value for
+      weight: 1
+      */
     }
 
-    // if the remote RS and the local RS have the same genID
-    // then it's ok and nothing else to do
+    /*
+    if the remote RS and the local RS have the same genID
+    then it's ok and nothing else to do
+    */
     if (generationId == localGenerationId)
     {
       if (debugEnabled())
@@ -601,75 +556,91 @@ public class ReplicationServerHandler extends ServerHandler
     }
     else
     {
-      if (localGenerationId > 0)
-      {
-        // if the local RS is initialized
-        if (generationId > 0)
-        {
-          // if the remote RS is initialized
-          if (generationId != localGenerationId)
-          {
-            // if the 2 RS have different generationID
-            if (replicationServerDomain.getGenerationIdSavedStatus())
-            {
-              // if the present RS has received changes regarding its
-              //     gen ID and so won't change without a reset
-              // then  we are just degrading the peer.
-              Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-                  serverId, session.getReadableRemoteAddress(),
-                  generationId, getServiceId(),
-                  getReplicationServerId(), localGenerationId);
-              logError(message);
-            }
-            else
-            {
-              // The present RS has never received changes regarding its
-              // gen ID.
-              //
-              // Example case:
-              // - we are in RS1
-              // - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
-              // - RS1 has genId1 from LS1 /genId1 comes from data in
-              //   suffix
-              // - we are in RS1 and we receive a START msg from RS2
-              // - Each RS keeps its genID / is degraded and when LS2
-              //   will be populated from LS1 everything will become ok.
-              //
-              // Issue:
-              // FIXME : Would it be a good idea in some cases to just
-              //         set the gen ID received from the peer RS
-              //         specially if the peer has a non null state and
-              //         we have a nul state ?
-              // replicationServerDomain.
-              // setGenerationId(generationId, false);
-              Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-                  serverId, session.getReadableRemoteAddress(),
-                  generationId, getServiceId(),
-                  getReplicationServerId(), localGenerationId);
-              logError(message);
-            }
-          }
-        }
-        else
-        {
-          // The remote RS has no genId. We don't change anything for the
-          // current RS.
-        }
-      }
-      else
-      {
-        // The local RS is not initialized - take the one received
-        // WARNING: Must be done before computing topo message to send
-        // to peer server as topo message must embed valid generation id
-        // for our server
-        oldGenerationId =
-          replicationServerDomain.changeGenerationId(generationId, false);
-      }
+      checkGenerationId();
     }
 
     return inTopoMsg;
   }
 
+  /**
+   * Checks local generation ID against the remote RS one,
+   * and logs Warning messages if needed.
+   */
+  private void checkGenerationId()
+  {
+    if (localGenerationId > 0)
+    {
+      // if the local RS is initialized
+      if (generationId > 0)
+      {
+        // if the remote RS is initialized
+        if (generationId != localGenerationId)
+        {
+          // if the 2 RS have different generationID
+          if (replicationServerDomain.getGenerationIdSavedStatus())
+          {
+            /*
+            if the present RS has received changes regarding its
+            gen ID and so won't change without a reset
+            then  we are just degrading the peer.
+            */
+            Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+                serverId, session.getReadableRemoteAddress(),
+                generationId, getServiceId(),
+                getReplicationServerId(), localGenerationId);
+            logError(message);
+          }
+          else
+          {
+            /*
+            The present RS has never received changes regarding its
+            gen ID.
+
+            Example case:
+            - we are in RS1
+            - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
+            - RS1 has genId1 from LS1 /genId1 comes from data in
+            suffix
+            - we are in RS1 and we receive a START msg from RS2
+            - Each RS keeps its genID / is degraded and when LS2
+            will be populated from LS1 everything will become ok.
+
+            Issue:
+            FIXME : Would it be a good idea in some cases to just
+            set the gen ID received from the peer RS
+            specially if the peer has a non null state and
+            we have a null state ?
+            replicationServerDomain.
+            setGenerationId(generationId, false);
+            */
+            Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+                serverId, session.getReadableRemoteAddress(),
+                generationId, getServiceId(),
+                getReplicationServerId(), localGenerationId);
+            logError(message);
+          }
+        }
+      }
+      else
+      {
+        /*
+        The remote RS has no genId. We don't change anything for the
+        current RS.
+        */
+      }
+    }
+    else
+    {
+      /*
+      The local RS is not initialized - take the one received
+      WARNING: Must be done before computing topo message to send
+      to peer server as topo message must embed valid generation id
+      for our server
+      */
+      oldGenerationId =
+          replicationServerDomain.changeGenerationId(generationId, false);
+    }
+  }
 
   /**
    * {@inheritDoc}
