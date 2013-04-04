@@ -22,9 +22,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS.
+ *      Copyright 2011-2013 ForgeRock AS.
  */
-
 package org.opends.server.extensions;
 
 
@@ -62,6 +61,7 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
@@ -2282,12 +2282,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   /**
    * Attribute list for searches requesting no attributes.
    */
-  static final LinkedHashSet<String> NO_ATTRIBUTES;
-
+  static final LinkedHashSet<String> NO_ATTRIBUTES = new LinkedHashSet<String>(
+      1);
   static
   {
-    NO_ATTRIBUTES = new LinkedHashSet<String>(1);
-    NO_ATTRIBUTES.add("1.1");
+    NO_ATTRIBUTES.add(SchemaConstants.NO_ATTRIBUTES);
   }
 
   // The provider which should be used by policies to create LDAP connections.

@@ -48,6 +48,7 @@ import javax.swing.tree.TreeNode;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
@@ -352,7 +353,7 @@ public class NodeRefresher extends AbstractNodeTask {
   {
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(new String[]{"1.1"});
+    ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     ctls.setCountLimit(1);
     NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
               controller.getFilter(),
@@ -701,8 +702,8 @@ public class NodeRefresher extends AbstractNodeTask {
       // It's enough to know if the entry has children or not.
       SearchControls ctls = controller.getBasicSearchControls();
       ctls.setCountLimit(1);
-      String[] attrs = {"1.1"};
-      ctls.setReturningAttributes(attrs);
+      ctls.setReturningAttributes(
+          new String[] { SchemaConstants.NO_ATTRIBUTES });
       if (useCustomFilter())
       {
         ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);

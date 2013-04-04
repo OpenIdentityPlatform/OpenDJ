@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
@@ -276,7 +278,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("1.1");
+    attrList.add(SchemaConstants.NO_ATTRIBUTES);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

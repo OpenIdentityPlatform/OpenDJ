@@ -50,6 +50,7 @@ import javax.naming.ldap.Rdn;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.schema.SchemaConstants;
 
 /**
  * The object of this class represent an OpenDS server.
@@ -1415,8 +1416,7 @@ public class ServerDescriptor
     {
       SearchControls sc = new SearchControls();
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      String[] attList = {"1.1"};
-      sc.setReturningAttributes(attList);
+      sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
           "(objectclass=ds-cfg-instance-key)", sc);
       ArrayList<String> dnsToDelete = new ArrayList<String>();

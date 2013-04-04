@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -44,6 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -127,9 +128,9 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
      );
     assertTrue(resultCode == 0);
  }
-  
-  
-  
+
+
+
   /**
    * Retrieves a set of entry DNs for use in testing the
    * governingStructureRule virtual attribute.
@@ -250,7 +251,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("1.1");
+    attrList.add(SchemaConstants.NO_ATTRIBUTES);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

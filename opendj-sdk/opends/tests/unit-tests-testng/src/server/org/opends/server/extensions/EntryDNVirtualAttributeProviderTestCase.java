@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -45,6 +45,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
@@ -188,7 +189,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("1.1");
+    attrList.add(SchemaConstants.NO_ATTRIBUTES);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

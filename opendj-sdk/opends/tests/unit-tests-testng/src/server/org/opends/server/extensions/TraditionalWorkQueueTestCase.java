@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -41,6 +42,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
@@ -127,7 +129,7 @@ public class TraditionalWorkQueueTestCase
       "-b", "",
       "-s", "base",
       "(objectClass=*)",
-      "1.1"
+      SchemaConstants.NO_ATTRIBUTES
     };
 
     for (int i=0; i < 7; i++)

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -67,6 +67,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.schema.SchemaConstants;
 
 
 /**
@@ -2274,7 +2275,7 @@ public class ADSContext
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-      sc.setReturningAttributes(new String[] {"1.1"});
+      sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> sr =
         getDirContext().search(dn, "(objectclass=*)", sc);
       result = false;

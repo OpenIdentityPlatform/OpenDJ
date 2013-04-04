@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -54,6 +54,8 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
+
+import org.opends.server.schema.SchemaConstants;
 
 /**
  * Class providing some utilities to create LDAP connections using JNDI and
@@ -629,7 +631,7 @@ public class ConnectionUtils
       searchControls.setSearchScope(
           SearchControls. OBJECT_SCOPE);
       searchControls.setReturningAttributes(
-          new String[] {"1.1"});
+          new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> sr =
        ctx.search("cn=config", "objectclass=*", searchControls);
       try
