@@ -194,6 +194,12 @@
             "/groups" : {
                 "baseDN" : "ou=groups,dc=example,dc=com",
                 "readOnUpdatePolicy" : "controls",
+                "useSubtreeDelete" : true,
+                "etagAttribute" : "etag",
+                "namingStrategy" : {
+                    "strategy" : "clientDNNaming",
+                    "dnAttribute" : "cn"
+                },
                 "additionalLDAPAttributes" : [
                     {
                         "type" : "objectClass",
@@ -203,11 +209,6 @@
                         ]
                     }
                 ],
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
-                    "dnAttribute" : "cn"
-                },
-                "etagAttribute" : "etag",
                 "attributes" : {
                     "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
                     "_id"         : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
