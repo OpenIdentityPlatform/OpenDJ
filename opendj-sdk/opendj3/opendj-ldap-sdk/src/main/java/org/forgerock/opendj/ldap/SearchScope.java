@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
@@ -85,6 +85,26 @@ public final class SearchScope {
             return null;
         }
         return ELEMENTS[intValue];
+    }
+
+    /**
+     * Returns the search scope having the specified name as defined in RFC 4511
+     * section 4.5.1.2.
+     *
+     * @param name
+     *          the name of the search scope to return
+     * @return The search scope, or {@code null} if there was no search scope
+     *         associated with {@code name}.
+     * @throws NullPointerException
+     *           if name is null
+     */
+    public static SearchScope valueOf(String name) {
+        for (SearchScope searchScope : ELEMENTS) {
+            if (searchScope.name.equals(name)) {
+                return searchScope;
+            }
+        }
+        return null;
     }
 
     /**
