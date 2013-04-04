@@ -32,6 +32,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -94,40 +95,8 @@ final class CollectClientConnectionsFilter implements Filter
     clientConnections.put(clientConnection, clientConnection);
     try
     {
-      String ipAddress = request.getRemoteAddr();
-      InetAddress clientAddr = InetAddress.getByName(ipAddress);
-
-      // Check to see if the core server rejected the
-      // connection (e.g., already too many connections
-      // established).
-      if (clientConnection.getConnectionID() < 0)
+      if (!canProcessRequest(request, clientConnection))
       {
-        // The connection will have already been closed.
-        return;
-      }
-
-      // Check to see if the client is on the denied list.
-      // If so, then reject it immediately.
-      ConnectionHandlerCfg config = this.connectionHandler.getCurrentConfig();
-      Collection<AddressMask> allowedClients = config.getAllowedClient();
-      Collection<AddressMask> deniedClients = config.getDeniedClient();
-      if (!deniedClients.isEmpty()
-          && AddressMask.maskListContains(clientAddr, deniedClients))
-      {
-        clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
-            false, ERR_CONNHANDLER_DENIED_CLIENT.get(clientConnection
-                .getClientHostPort(), clientConnection.getServerHostPort()));
-        return;
-      }
-      // Check to see if there is an allowed list and if
-      // there is whether the client is on that list. If
-      // not, then reject the connection.
-      if (!allowedClients.isEmpty()
-          && !AddressMask.maskListContains(clientAddr, allowedClients))
-      {
-        clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
-            false, ERR_CONNHANDLER_DISALLOWED_CLIENT.get(clientConnection
-                .getClientHostPort(), clientConnection.getServerHostPort()));
         return;
       }
 
@@ -165,6 +134,47 @@ final class CollectClientConnectionsFilter implements Filter
     {
       clientConnections.remove(clientConnection);
     }
+  }
+
+  private boolean canProcessRequest(ServletRequest request,
+      final HTTPClientConnection clientConnection) throws UnknownHostException
+  {
+    InetAddress clientAddr = InetAddress.getByName(request.getRemoteAddr());
+
+    // Check to see if the core server rejected the
+    // connection (e.g., already too many connections
+    // established).
+    if (clientConnection.getConnectionID() < 0)
+    {
+      // The connection will have already been closed.
+      return false;
+    }
+
+    // Check to see if the client is on the denied list.
+    // If so, then reject it immediately.
+    ConnectionHandlerCfg config = this.connectionHandler.getCurrentConfig();
+    Collection<AddressMask> allowedClients = config.getAllowedClient();
+    Collection<AddressMask> deniedClients = config.getDeniedClient();
+    if (!deniedClients.isEmpty()
+        && AddressMask.maskListContains(clientAddr, deniedClients))
+    {
+      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+          ERR_CONNHANDLER_DENIED_CLIENT.get(clientConnection
+              .getClientHostPort(), clientConnection.getServerHostPort()));
+      return false;
+    }
+    // Check to see if there is an allowed list and if
+    // there is whether the client is on that list. If
+    // not, then reject the connection.
+    if (!allowedClients.isEmpty()
+        && !AddressMask.maskListContains(clientAddr, allowedClients))
+    {
+      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+          ERR_CONNHANDLER_DISALLOWED_CLIENT.get(clientConnection
+              .getClientHostPort(), clientConnection.getServerHostPort()));
+      return false;
+    }
+    return true;
   }
 
   /** {@inheritDoc} */
