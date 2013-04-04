@@ -184,7 +184,7 @@
   </fileset>
 
   <!-- Prevent ant runtime from being included on classpath during
-       compilation. -->  
+       compilation. -->
   <presetdef name="javac">
     <javac optimize="true" includeantruntime="false"
         debug="on" debuglevel="${build.debuglevel}"
@@ -2607,7 +2607,7 @@
       </fileset>
     </delete>
   </target>
-  
+
   <target name="clean-ivy" description="--> clean the ivy installation">
     <delete file="${ivy.jar.file}"/>
   </target>
