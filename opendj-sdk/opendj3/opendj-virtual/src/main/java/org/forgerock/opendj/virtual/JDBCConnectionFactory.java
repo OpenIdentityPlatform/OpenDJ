@@ -22,25 +22,23 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
-
 package org.forgerock.opendj.virtual;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Create a JDBC driver instance which contains all the methods for 
+ * Create a JDBC driver instance which contains all the methods for
  * connection and commands to the database.
  */
-
 public class JDBCConnectionFactory {
-    String driverName = "com.mysql.jdbc.Driver";
-	Connection con = null;
-    
+
+    private String driverName = "com.mysql.jdbc.Driver";
+    private Connection con = null;
+
     public JDBCConnectionFactory() {
             try {
                     Class.forName(driverName);
@@ -48,12 +46,12 @@ public class JDBCConnectionFactory {
                     System.out.println(e.toString());
             }
     }
-    
+
     /**
      * Set up a JDBC connection using the defined parameters.
      *
      * @param host
-     *            The host address of the database. 
+     *            The host address of the database.
      * @param port
      *            The port used to connect to the database.
      * @param databaseName
@@ -78,7 +76,7 @@ public class JDBCConnectionFactory {
             }
             return con;
     }
-    
+
     /**
      * Close the open connection to the database.
      */
