@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -61,7 +61,7 @@ import org.opends.server.types.ResultCode;
  */
 public class DataServerHandler extends ServerHandler
 {
-  // Temporay generationId received in handshake/phase1,
+  // Temporary generationId received in handshake/phase1,
   // and used after handshake/phase2
   long tmpGenerationId;
 
@@ -204,7 +204,7 @@ public class DataServerHandler extends ServerHandler
 
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return;
@@ -393,7 +393,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return ServerStatus.INVALID_STATUS;
@@ -483,8 +483,21 @@ public class DataServerHandler extends ServerHandler
        * let the reader thread see the closure and cleanup any reference
        * to old connection. This must be done before taking the domain lock so
        * that the reader thread has a chance to stop the handler.
+       *
+       * TODO: This hack should be removed and disconnection/reconnection
+       * properly dealt with.
        */
-      replicationServerDomain.waitDisconnection(inServerStartMsg.getServerId());
+      if (replicationServerDomain.getConnectedDSs()
+          .containsKey(inServerStartMsg.getServerId()))
+      {
+        try {
+          Thread.sleep(100);
+        }
+        catch(Exception e){
+          abortStart(null);
+          return;
+        }
+      }
 
       // lock with no timeout
       lockDomain(false);
@@ -649,11 +662,10 @@ public class DataServerHandler extends ServerHandler
    */
   public DSInfo toDSInfo()
   {
-    DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
+
+    return new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
       eclIncludes, eclIncludesForDeletes, protocolVersion);
-
-    return dsInfo;
   }
 
   /**

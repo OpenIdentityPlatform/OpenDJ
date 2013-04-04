@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -133,7 +133,7 @@ public class StatusAnalyzer extends DirectoryThread
         if (debugEnabled())
         {
           TRACER.debugInfo("Status analyzer for dn " +
-            replicationServerDomain.getBaseDn().toString() + " DS " +
+              replicationServerDomain.getBaseDn() + " DS " +
             Integer.toString(serverHandler.getServerId()) + " has " + nChanges +
             " message(s) in writer queue. This is in RS " +
             replicationServerDomain.getReplicationServer().getServerId());
@@ -162,7 +162,7 @@ public class StatusAnalyzer extends DirectoryThread
               {
                 // Finish job and let thread die
                 TRACER.debugInfo("Status analyzer for dn " +
-                  replicationServerDomain.getBaseDn().toString() +
+                    replicationServerDomain.getBaseDn() +
                   " has been interrupted and will die. This is in RS " +
                   replicationServerDomain.getReplicationServer().getServerId());
                 break;
@@ -180,7 +180,7 @@ public class StatusAnalyzer extends DirectoryThread
               {
                 // Finish job and let thread die
                 TRACER.debugInfo("Status analyzer for dn " +
-                  replicationServerDomain.getBaseDn().toString() +
+                    replicationServerDomain.getBaseDn() +
                   " has been interrupted and will die. This is in RS " +
                   replicationServerDomain.getReplicationServer().getServerId());
                 break;
@@ -193,7 +193,7 @@ public class StatusAnalyzer extends DirectoryThread
 
     done = true;
     TRACER.debugInfo("Status analyzer for dn " +
-      replicationServerDomain.getBaseDn().toString() + " is terminated." +
+        replicationServerDomain.getBaseDn() + " is terminated." +
       " This is in RS " +
       replicationServerDomain.getReplicationServer().getServerId());
   }
@@ -227,7 +227,7 @@ public class StatusAnalyzer extends DirectoryThread
     {
       int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
       int n = 0;
-      while ((done == false) && (this.isAlive()))
+      while (!done && this.isAlive())
       {
         Thread.sleep(50);
         n++;
@@ -249,7 +249,7 @@ public class StatusAnalyzer extends DirectoryThread
    * Sets the threshold value.
    * @param degradedStatusThreshold The new threshold value.
    */
-  public void setDeradedStatusThreshold(int degradedStatusThreshold)
+  public void setDegradedStatusThreshold(int degradedStatusThreshold)
   {
     if (debugEnabled())
     {
