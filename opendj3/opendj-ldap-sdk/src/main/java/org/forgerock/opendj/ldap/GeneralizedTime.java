@@ -21,11 +21,23 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
+import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -1179,6 +1191,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compareTo(final GeneralizedTime o) {
         final Long timeMS1 = getTimeInMillis();
         final Long timeMS2 = o.getTimeInMillis();
@@ -1188,6 +1201,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
@@ -1221,6 +1235,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int hashCode() {
         return ((Long) getTimeInMillis()).hashCode();
     }
@@ -1234,14 +1249,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      * @return A {@code Calendar} representation of this generalized time.
      */
     public Calendar toCalendar() {
-        Calendar tmpCalendar = calendar;
-        if (tmpCalendar == null) {
-            tmpCalendar = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
-            tmpCalendar.setLenient(false);
-            tmpCalendar.setTimeInMillis(getTimeInMillis());
-            calendar = tmpCalendar;
-        }
-        return (Calendar) tmpCalendar.clone();
+        return (Calendar) getCalendar().clone();
     }
 
     /**
@@ -1264,13 +1272,14 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString() {
         String tmpString = stringValue;
         if (tmpString == null) {
             // Do this in a thread-safe non-synchronized fashion.
             // (Simple)DateFormat is neither fast nor thread-safe.
             final StringBuilder sb = new StringBuilder(19);
-            final Calendar tmpCalendar = toCalendar();
+            final Calendar tmpCalendar = getCalendar();
 
             // Format the year yyyy.
             int n = tmpCalendar.get(Calendar.YEAR);
@@ -1360,6 +1369,17 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             tmpString = sb.toString();
             stringValue = tmpString;
         }
-        return stringValue;
+        return tmpString;
+    }
+
+    private Calendar getCalendar() {
+        Calendar tmpCalendar = calendar;
+        if (tmpCalendar == null) {
+            tmpCalendar = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
+            tmpCalendar.setLenient(false);
+            tmpCalendar.setTimeInMillis(getTimeInMillis());
+            calendar = tmpCalendar;
+        }
+        return tmpCalendar;
     }
 }
