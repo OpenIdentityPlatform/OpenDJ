@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -60,6 +61,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.ServerConstants;
@@ -362,7 +364,8 @@ public class DeleteEntryTask extends Task
       ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       String filter =
         "(|(objectClass=*)(objectclass=ldapsubentry))";
-      ctls.setReturningAttributes(new String[] {"1.1"});
+      ctls.setReturningAttributes(
+          new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> entryDNs =
         ctx.search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
 

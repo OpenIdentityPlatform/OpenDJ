@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -53,6 +54,7 @@ import org.opends.admin.ads.util.TrustedSocketFactory;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
+import org.opends.server.schema.SchemaConstants;
 
 
 
@@ -232,7 +234,8 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     String filter = "(objectClass=*)";
     SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    controls.setReturningAttributes(new String[]{"1.1"});
+    controls
+        .setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     try {
       NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
           controls);

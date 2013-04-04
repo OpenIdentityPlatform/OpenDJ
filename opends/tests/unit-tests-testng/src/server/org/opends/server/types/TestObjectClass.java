@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -38,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.util.ServerConstants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -1629,7 +1631,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
   @DataProvider(name = "superiorData")
   public Object[][] createSuperiorData() {
     ObjectClassBuilder builder = new ObjectClassBuilder(
-        "parent1", "1.1");
+        "parent1", SchemaConstants.NO_ATTRIBUTES);
     builder.setObjectClassType(ObjectClassType.ABSTRACT);
     ObjectClass parent1 = builder.getInstance();
 

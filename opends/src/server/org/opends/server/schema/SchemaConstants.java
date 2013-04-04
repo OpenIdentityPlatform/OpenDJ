@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -32,9 +32,33 @@ package org.opends.server.schema;
 /**
  * This class defines a number of constants used by Directory Server schema
  * elements, like matching rules, syntaxes, attribute types, and objectclasses.
+ * <p>
+ * Here is a definition for the prefixes:
+ * <dl>
+ * <dt>AMR</dt>
+ * <dd>Approximate Matching Rule</dd>
+ * <dt>EMR</dt>
+ * <dd>Equality Matching Rule</dd>
+ * <dt>OMR</dt>
+ * <dd>Ordering Matching Rule</dd>
+ * <dt>SMR</dt>
+ * <dd>Syntax Matching Rule</dd>
+ * </dl>
+ * </p>
  */
 public class SchemaConstants
 {
+  /**
+   * RFC 2251, Section 4.5.1: 'If the client does not want any attributes
+   * returned, it can specify a list containing only the attribute with OID
+   * "1.1". This OID was chosen arbitrarily and does not correspond to any
+   * attribute in use.'
+   *
+   * @see <a href="http://www.rfc-editor.org/rfc/rfc2251.txt"
+   * >RFC 2251 for LDAP v3</a>
+   */
+  public static final String NO_ATTRIBUTES = "1.1";
+
   /**
    * The IANA-assigned base OID for all things under the OpenDS umbrella.
    */

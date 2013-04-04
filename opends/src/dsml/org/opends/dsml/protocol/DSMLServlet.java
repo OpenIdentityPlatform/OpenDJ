@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.dsml.protocol;
 
@@ -76,6 +76,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 import org.opends.server.tools.LDAPConnectionOptions;
@@ -260,7 +261,7 @@ public class DSMLServlet extends HttpServlet {
       throws LDAPConnectionException
   {
     LinkedHashSet<String>attributes = new LinkedHashSet<String>(1);
-    attributes.add("1.1");
+    attributes.add(SchemaConstants.NO_ATTRIBUTES);
     ArrayList<org.opends.server.types.Control> controls =
         new ArrayList<org.opends.server.types.Control>(1);
     org.opends.server.types.Control proxyAuthzControl =

@@ -23,9 +23,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -128,8 +127,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
- * An static class that provides miscellaneous functions.
- *
+ * A static class that provides miscellaneous functions.
  */
 public class Utilities
 {
@@ -2488,8 +2486,8 @@ public class Utilities
     SearchControls searchControls = new SearchControls();
     searchControls.setSearchScope(
     SearchControls. OBJECT_SCOPE);
-    searchControls.setReturningAttributes(
-    new String[] {"1.1"});
+    searchControls
+        .setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     NamingEnumeration<SearchResult> sr =
       ctx.search("cn=config", "objectclass=*", searchControls);
     try

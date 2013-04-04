@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -53,6 +53,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -115,7 +116,7 @@ public class UniqueAttributePlugin
        new LinkedHashSet<String>(1);
   static
   {
-    SEARCH_ATTRS.add("1.1");
+    SEARCH_ATTRS.add(SchemaConstants.NO_ATTRIBUTES);
   }
 
 

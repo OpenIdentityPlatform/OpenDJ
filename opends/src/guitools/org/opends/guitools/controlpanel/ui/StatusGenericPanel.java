@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -99,6 +99,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OpenDsException;
@@ -110,9 +111,7 @@ import org.opends.server.util.ServerConstants;
  * GenericDialog and specifies the kind of buttons that this dialog has.  The
  * StatusGenericPanel is also notified when the dialog is displayed (through
  * the toBeDisplayed method)
- *
  */
-
 public abstract class StatusGenericPanel extends JPanel
 implements ConfigChangeListener
 {
@@ -2072,9 +2071,7 @@ implements ConfigChangeListener
       SearchControls ctls = new SearchControls();
       ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
       ctls.setReturningAttributes(
-          new String[] {
-              "1.1"
-          });
+          new String[] { SchemaConstants.NO_ATTRIBUTES });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =
         getInfo().getDirContext().search(Utilities.getJNDIName(dn),
