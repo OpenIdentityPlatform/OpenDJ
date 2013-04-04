@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -99,7 +100,7 @@ public final class EntryEncodeConfig
 
 
   /**
-   * Creates a new encoded entry configuration wtih the default
+   * Creates a new encoded entry configuration with the default
    * settings.
    */
   public EntryEncodeConfig()
@@ -116,7 +117,7 @@ public final class EntryEncodeConfig
 
 
   /**
-   * Creates a new encoded entry configuration wtih the specified
+   * Creates a new encoded entry configuration with the specified
    * settings.
    *
    * @param  excludeDN                 Indicates whether to exclude
@@ -158,7 +159,7 @@ public final class EntryEncodeConfig
 
 
   /**
-   * Creates a new encoded entry configuration wtih the specified
+   * Creates a new encoded entry configuration with the specified
    * settings.
    *
    * @param  excludeDN                 Indicates whether to exclude
@@ -302,22 +303,19 @@ public final class EntryEncodeConfig
 
     boolean excludeDN = false;
     byte b = buffer.get();
-    if ((b & ENCODE_FLAG_EXCLUDE_DN) ==
-        ENCODE_FLAG_EXCLUDE_DN)
+    if ((b & ENCODE_FLAG_EXCLUDE_DN) == ENCODE_FLAG_EXCLUDE_DN)
     {
       excludeDN = true;
     }
 
     boolean compressAttrDescriptions = false;
-    if ((b & ENCODE_FLAG_COMPRESS_ADS) ==
-        ENCODE_FLAG_COMPRESS_ADS)
+    if ((b & ENCODE_FLAG_COMPRESS_ADS) == ENCODE_FLAG_COMPRESS_ADS)
     {
       compressAttrDescriptions = true;
     }
 
     boolean compressObjectClassSets = false;
-    if ((b & ENCODE_FLAG_COMPRESS_OCS) ==
-        ENCODE_FLAG_COMPRESS_OCS)
+    if ((b & ENCODE_FLAG_COMPRESS_OCS) == ENCODE_FLAG_COMPRESS_OCS)
     {
       compressObjectClassSets = true;
     }
