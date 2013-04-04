@@ -73,14 +73,16 @@
         //                   LDAP search using a filter constructed by
         //                   substituting the username into the
         //                   "searchFilterTemplate" using %s substitution.
-        "method" : "simple",
+        "method" : "search-simple",
         
         // The connection factory which will be exclusively used for
         // authenticating users using LDAP bind operations.
         "bindLDAPConnectionFactory" : "default",
         
         // The SASL AuthzID template which will be used for "sasl-plain"
-        // authentication.
+        // authentication. The %s format parameters will be substituted with
+        // the client-provided username, using DN character escaping for DN
+        // AuthzIDs.
         "saslAuthzIdTemplate" : "dn:uid=%s,ou=people,dc=example,dc=com",
         
         // The connection factory which will be used for performing LDAP
@@ -88,7 +90,9 @@
         // enabled.
         "searchLDAPConnectionFactory" : "root",
         
-        // The search parameters to use for "search-simple" authentication.
+        // The search parameters to use for "search-simple" authentication. The
+        // %s filter format parameters will be substituted with the
+        // client-provided username, using LDAP filter string character escaping.
         "searchBaseDN"         : "ou=people,dc=example,dc=com",
         "searchScope"          : "sub", // Or "one".
         "searchFilterTemplate" : "(&(objectClass=inetOrgPerson)(uid=%s))"
@@ -132,6 +136,12 @@
             "/users" : {
                 "baseDN" : "ou=people,dc=example,dc=com",
                 "readOnUpdatePolicy" : "controls",
+                "useSubtreeDelete" : true,
+                "etagAttribute" : "etag",
+                "namingStrategy" : {
+                    "strategy" : "clientDNNaming",
+                    "dnAttribute" : "uid"
+                },
                 "additionalLDAPAttributes" : [
                     {
                         "type" : "objectClass",
@@ -143,11 +153,6 @@
                         ]
                     }
                 ],
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
-                    "dnAttribute" : "uid"
-                },
-                "etagAttribute" : "etag",
                 "attributes" : {
                     "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
                     "_id"         : { "simple"   : { "ldapAttribute" : "uid", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
@@ -189,6 +194,12 @@
             "/groups" : {
                 "baseDN" : "ou=groups,dc=example,dc=com",
                 "readOnUpdatePolicy" : "controls",
+                "useSubtreeDelete" : true,
+                "etagAttribute" : "etag",
+                "namingStrategy" : {
+                    "strategy" : "clientDNNaming",
+                    "dnAttribute" : "cn"
+                },
                 "additionalLDAPAttributes" : [
                     {
                         "type" : "objectClass",
@@ -198,11 +209,6 @@
                         ]
                     }
                 ],
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
-                    "dnAttribute" : "cn"
-                },
-                "etagAttribute" : "etag",
                 "attributes" : {
                     "schemas"     : { "constant" : [ "urn:scim:schemas:core:1.0" ] },
                     "_id"         : { "simple"   : { "ldapAttribute" : "cn", "isSingleValued" : true, "isRequired" : true, "writability" : "createOnly" } },
