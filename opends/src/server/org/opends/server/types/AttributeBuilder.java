@@ -23,13 +23,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.types;
 
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.AbstractSet;
@@ -1300,12 +1299,25 @@ public final class AttributeBuilder
    */
   public boolean add(String valueString)
   {
-    AttributeValue value =
-        AttributeValues.create(attributeType, valueString);
-    return add(value);
+    return add(AttributeValues.create(attributeType, valueString));
   }
 
 
+
+  /**
+   * Adds the specified attribute value to this attribute builder if it is not
+   * already present.
+   *
+   * @param value
+   *          The {@link ByteString} representation of the attribute value to be
+   *          added to this attribute builder.
+   * @return <code>true</code> if this attribute builder did not already contain
+   *         the specified attribute value.
+   */
+  public boolean add(ByteString value)
+  {
+    return add(AttributeValues.create(attributeType, value));
+  }
 
   /**
    * Adds all the values from the specified attribute to this
