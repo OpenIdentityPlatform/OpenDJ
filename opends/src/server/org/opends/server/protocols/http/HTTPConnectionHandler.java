@@ -52,10 +52,12 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
+import javax.servlet.FilterRegistration;
 import javax.servlet.ServletException;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -63,6 +65,7 @@ import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.servlet.HttpServlet;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
@@ -70,7 +73,6 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.servlet.FilterRegistration;
 import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
@@ -714,18 +716,24 @@ public class HTTPConnectionHandler extends
       final String urlPattern = "/*";
       final WebappContext ctx = new WebappContext(servletName);
 
-      Filter filter = new CollectClientConnectionsFilter(this);
+      final JsonValue configuration =
+          parseJsonConfiguration(getFileForPath(this.currentConfig
+              .getConfigFile()));
+
+      final HTTPAuthenticationConfig authenticationConfig =
+          getAuthenticationConfig(configuration);
+
+      javax.servlet.Filter filter =
+          new CollectClientConnectionsFilter(this, authenticationConfig);
       FilterRegistration filterReg =
           ctx.addFilter("collectClientConnections", filter);
       // TODO JNR this is not working
       // filterReg.addMappingForServletNames(EnumSet.allOf(
       // DispatcherType.class), servletName);
       filterReg.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST),
-          urlPattern);
+          true, urlPattern);
 
-      ConnectionFactory connFactory =
-          getConnectionFactory(getFileForPath(this.currentConfig
-              .getConfigFile()));
+      ConnectionFactory connFactory = getConnectionFactory(configuration);
 
       final ServletRegistration reg =
           ctx.addServlet(servletName, new HttpServlet(connFactory,
@@ -757,19 +765,38 @@ public class HTTPConnectionHandler extends
     }
   }
 
-  private ConnectionFactory getConnectionFactory(File configFile)
-      throws Exception
+  private HTTPAuthenticationConfig getAuthenticationConfig(
+      final JsonValue configuration)
   {
-    // Parse the config file.
-    final Object content = JSON_MAPPER.readValue(configFile, Object.class);
-    if (!(content instanceof Map))
-    {
-      throw new ServletException("Servlet configuration file '" + configFile
-          + "' does not contain a valid JSON configuration");
-    }
-    final JsonValue configuration = new JsonValue(content);
+    final HTTPAuthenticationConfig result = new HTTPAuthenticationConfig();
+    final JsonValue val = configuration.get("authenticationFilter");
+    result.setBasicAuthenticationSupported(asBool(val,
+        "supportHTTPBasicAuthentication"));
+    result.setCustomHeadersAuthenticationSupported(asBool(val,
+        "supportAltAuthentication"));
+    result.setCustomHeaderUsername(val.get("altAuthenticationUsernameHeader")
+        .asString());
+    result.setCustomHeaderPassword(val.get("altAuthenticationPasswordHeader")
+        .asString());
+    final String searchBaseDN = asString(val, "searchBaseDN");
+    result.setSearchBaseDN(org.forgerock.opendj.ldap.DN.valueOf(searchBaseDN));
+    result.setSearchScope(SearchScope.valueOf(asString(val, "searchScope")));
+    result.setSearchFilterTemplate(asString(val, "searchFilterTemplate"));
+    return result;
+  }
 
-    // Create the router.
+  private String asString(JsonValue value, String key)
+  {
+    return value.get(key).required().asString();
+  }
+
+  private boolean asBool(JsonValue value, String key)
+  {
+    return value.get(key).defaultTo(false).asBoolean();
+  }
+
+  private ConnectionFactory getConnectionFactory(final JsonValue configuration)
+  {
     final Router router = new Router();
     final JsonValue mappings =
         configuration.get("servlet").get("mappings").required();
@@ -782,6 +809,23 @@ public class HTTPConnectionHandler extends
       router.addRoute(mappingUrl, provider);
     }
     return Resources.newInternalConnectionFactory(router);
+  }
+
+  private JsonValue parseJsonConfiguration(File configFile) throws IOException,
+      JsonParseException, JsonMappingException, ServletException
+  {
+    // Parse the config file.
+    final Object content = JSON_MAPPER.readValue(configFile, Object.class);
+    if (!(content instanceof Map))
+    {
+      throw new ServletException("Servlet configuration file '" + configFile
+          + "' does not contain a valid JSON configuration");
+    }
+
+    // TODO JNR should we restrict the possible configurations in this file?
+    // Should we remove any config that does not make any sense to the
+    // HTTP Connection Handler?
+    return new JsonValue(content);
   }
 
   private void stopHttpServer()

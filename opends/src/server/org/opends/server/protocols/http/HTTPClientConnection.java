@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletRequest;
 
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.messages.Message;
@@ -86,15 +87,22 @@ final class HTTPClientConnection extends ClientConnection
   {
 
     final Operation operation;
-    final AsynchronousFutureResult<Result, SearchResultHandler> futureResult;
+    final AsynchronousFutureResult<Result, ResultHandler<? super Result>>
+            futureResult;
 
     public OperationWithFutureResult(Operation operation,
-        AsynchronousFutureResult<Result, SearchResultHandler> futureResult)
+        AsynchronousFutureResult<Result, ResultHandler<? super Result>>
+        futureResult)
     {
       this.operation = operation;
       this.futureResult = futureResult;
     }
 
+    @Override
+    public String toString()
+    {
+      return operation.toString();
+    }
   }
 
   /** The tracer object for the debug logger. */
@@ -282,7 +290,8 @@ final class HTTPClientConnection extends ClientConnection
         this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
-      op.futureResult.getResultHandler().handleEntry(from(searchEntry));
+      ((SearchResultHandler) op.futureResult.getResultHandler())
+          .handleEntry(from(searchEntry));
     }
   }
 
@@ -295,7 +304,8 @@ final class HTTPClientConnection extends ClientConnection
         this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
-      op.futureResult.getResultHandler().handleReference(from(searchReference));
+      ((SearchResultHandler) op.futureResult.getResultHandler())
+          .handleReference(from(searchReference));
     }
     return connectionValid;
   }
@@ -402,8 +412,8 @@ final class HTTPClientConnection extends ClientConnection
    *           If an error occurs
    */
   void addOperationInProgress(Operation operation,
-      AsynchronousFutureResult<Result, SearchResultHandler> futureResult)
-      throws DirectoryException
+      AsynchronousFutureResult<Result, ResultHandler<? super Result>>
+          futureResult) throws DirectoryException
   {
     synchronized (opsInProgressLock)
     {

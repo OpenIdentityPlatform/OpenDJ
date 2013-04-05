@@ -31,6 +31,7 @@ import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.LinkedHashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
@@ -49,16 +50,20 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.Operation;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 
@@ -76,11 +81,11 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** The HTTP client connection being "adapted". */
   private final HTTPClientConnection clientConnection;
 
-  /** FIXME: do not use constants. */
-  private int messageID;
-
-  /** FIXME: do not use constants. */
-  private long operationID;
+  /**
+   * The next message ID (and operation ID) that should be used for this
+   * connection.
+   */
+  private AtomicInteger nextMessageID = new AtomicInteger(0);
 
   /** The queueing strategy used for this connection. */
   private QueueingStrategy queueingStrategy = new WorkQueueStrategy();
@@ -100,6 +105,34 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   public SdkConnectionAdapter(HTTPClientConnection clientConnection)
   {
     this.clientConnection = clientConnection;
+  }
+
+  private <R extends Result> FutureResult<R> enqueueOperation(
+      Operation operation, ResultHandler<? super R> resultHandler)
+  {
+    // TODO JNR set requestID, but where to get it?
+    final AsynchronousFutureResult<R, ResultHandler<? super R>> futureResult =
+       new AsynchronousFutureResult<R, ResultHandler<? super R>>(resultHandler);
+
+    try
+    {
+      clientConnection.addOperationInProgress(operation,
+          (AsynchronousFutureResult) futureResult);
+
+      queueingStrategy.enqueueRequest(operation);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      clientConnection.removeOperationInProgress(operation.getMessageID());
+      // TODO JNR add error message??
+      futureResult.handleErrorResult(ErrorResultException.newErrorResult(
+          ResultCode.OPERATIONS_ERROR, e));
+    }
+    return futureResult;
   }
 
   /** {@inheritDoc} */
@@ -146,12 +179,15 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super BindResult> resultHandler)
   {
-    // BindOperationBasis operation =
-    // new BindOperationBasis(clientConnection, operationID, messageID,
-    // to(request.getControls()), "3", to(request.getName()), "",
-    // getCredentials(new byte[] {}));
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    int messageID = nextMessageID.get();
+    String userName = request.getName();
+    byte[] password = ((SimpleBindRequest) request).getPassword();
+    BindOperationBasis operation =
+        new BindOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), "3", to(userName), ByteString
+                .wrap(password));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -243,35 +279,15 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     // TODO JNR attributes
     LinkedHashSet<String> attributes = null;
-    SearchOperationBasis op2 =
-        new SearchOperationBasis(clientConnection, operationID, messageID,
+    final int messageID = nextMessageID.getAndIncrement();
+    SearchOperationBasis operation =
+        new SearchOperationBasis(clientConnection, messageID, messageID,
             to(request.getControls()), to(valueOf(request.getName())),
             to(request.getScope()), to(request.getDereferenceAliasesPolicy()),
             request.getSizeLimit(), request.getTimeLimit(), request
                 .isTypesOnly(), to(request.getFilter()), attributes);
 
-    // TODO JNR set requestID
-    final AsynchronousFutureResult<Result, SearchResultHandler> futureResult =
-       new AsynchronousFutureResult<Result, SearchResultHandler>(resultHandler);
-
-    try
-    {
-      clientConnection.addOperationInProgress(op2, futureResult);
-
-      queueingStrategy.enqueueRequest(op2);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      clientConnection.removeOperationInProgress(messageID);
-      // TODO JNR add error message??
-      futureResult.handleErrorResult(ErrorResultException.newErrorResult(
-          ResultCode.OPERATIONS_ERROR, e));
-    }
-    return futureResult;
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */

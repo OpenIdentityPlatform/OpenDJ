@@ -27,7 +27,7 @@
  ! -->
 <!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version    "2.3-rc6">
+    <!ENTITY grizzly.version    "2.3">
     <!ENTITY opendj.sdk.version "3.0.0-SNAPSHOT">
     <!ENTITY crest.version      "2.0.0-SNAPSHOT">
 ]>
@@ -36,6 +36,8 @@
     xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
   <info organisation="org.forgerock" module="opendj"/>
   <dependencies>
+
+    <!-- compile + runtime libs -->
     <dependency org="javax.mail"            name="mail"                     rev="1.4.5" />
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
@@ -48,6 +50,11 @@
     <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
       <exclude module="javax.servlet-api" />
     </dependency>
+
+    <!-- Test libs -->
+    <!--dependency org="org.testng"            name="testng"                   rev="6.8.1" /-->
+    <dependency org="org.assertj"           name="assertj-core"             rev="1.0.0" />
+    <dependency org="org.mockito"           name="mockito-core"             rev="1.9.5" />
 
     <!-- Force download of the source jars -->
     <!--
