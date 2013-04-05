@@ -27,6 +27,7 @@
 package org.opends.server.protocols.http;
 
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
