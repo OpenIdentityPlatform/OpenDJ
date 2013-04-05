@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
-
+import static org.testng.Assert.*;
 
 import java.util.*;
 
@@ -38,12 +38,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
-
 /**
  * This class defines a set of tests for the
  * org.opends.server.core.AttributeBuilder class.
  */
+@SuppressWarnings("javadoc")
 public class AttributeBuilderTest extends TypesTestCase
 {
 
@@ -606,9 +605,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#addAll(Attribute)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderAddAllAttribute() throws Exception
@@ -634,9 +630,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#addAll(java.util.Collection)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderAddAllAttributeValues() throws Exception
@@ -665,9 +658,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#add(AttributeValue)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderAddAttributeValue() throws Exception
@@ -693,9 +683,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#add(String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderAddString() throws Exception
@@ -720,10 +707,31 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
+   * Tests {@link AttributeBuilder#add(ByteString)}.
+   */
+  @Test
+  public void testAttributeBuilderAddByteString() throws Exception
+  {
+    AttributeBuilder builder = new AttributeBuilder(cnType);
+
+    assertTrue(builder.add(ByteString.valueOf("value1")));
+    assertEquals(builder.size(), 1);
+
+    assertFalse(builder.add(ByteString.valueOf("value1")));
+    assertEquals(builder.size(), 1);
+
+    assertTrue(builder.add(ByteString.valueOf("value2")));
+    assertEquals(builder.size(), 2);
+
+    Attribute a = builder.toAttribute();
+    assertEquals(a.size(), 2);
+    assertTrue(a.contains(AttributeValues.create(cnType, "value1")));
+    assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
+  }
+
+
+  /**
    * Tests {@link AttributeBuilder#clear()}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderClear() throws Exception
@@ -744,9 +752,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#contains(AttributeValue)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderContains() throws Exception
@@ -764,9 +769,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#containsAll(java.util.Collection)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderContainsAll() throws Exception
@@ -797,9 +799,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#getAttributeType()}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderGetAttributeType() throws Exception
@@ -813,9 +812,6 @@ public class AttributeBuilderTest extends TypesTestCase
   /**
    * Tests {@link AttributeBuilder#toAttribute()} throws
    * IllegalStateException after default constructor.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(expectedExceptions = IllegalStateException.class)
   public void testAttributeBuilderIllegalStateException1() throws Exception
@@ -829,9 +825,6 @@ public class AttributeBuilderTest extends TypesTestCase
   /**
    * Tests {@link AttributeBuilder#toAttribute()} throws
    * IllegalStateException when called twice.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(expectedExceptions = IllegalStateException.class)
   public void testAttributeBuilderIllegalStateException2() throws Exception
@@ -854,9 +847,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#isEmpty()}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderIsEmpty() throws Exception
@@ -876,9 +866,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#iterator()}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderIterator() throws Exception
@@ -907,9 +894,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#removeAll(Attribute)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderRemoveAllAttribute() throws Exception
@@ -946,9 +930,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#removeAll(java.util.Collection)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderRemoveAllAttributeValues() throws Exception
@@ -986,9 +967,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#remove(AttributeValue)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderRemoveAttributeValue() throws Exception
@@ -1018,9 +996,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#remove(String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderRemoveString() throws Exception
@@ -1050,9 +1025,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#replaceAll(Attribute)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderReplaceAllAttribute() throws Exception
@@ -1073,9 +1045,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#replaceAll(java.util.Collection)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderReplaceAllAttributeValues() throws Exception
@@ -1099,9 +1068,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#replace(AttributeValue)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderReplaceAttributeValue() throws Exception
@@ -1121,9 +1087,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#replace(String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderReplaceString() throws Exception
@@ -1143,9 +1106,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#setAttributeType(AttributeType)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSetAttributeType1() throws Exception
@@ -1166,9 +1126,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#setAttributeType(String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSetAttributeType2() throws Exception
@@ -1189,9 +1146,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#setAttributeType(String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSetAttributeType3() throws Exception
@@ -1213,9 +1167,6 @@ public class AttributeBuilderTest extends TypesTestCase
   /**
    * Tests
    * {@link AttributeBuilder#setAttributeType(AttributeType, String)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSetAttributeType4() throws Exception
@@ -1236,9 +1187,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#setOptions(java.util.Collection)}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSetOptions() throws Exception
@@ -1255,9 +1203,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
   /**
    * Tests {@link AttributeBuilder#size()}.
-   *
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test
   public void testAttributeBuilderSize() throws Exception
@@ -1293,8 +1238,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeContains(int testCase, Attribute a,
@@ -1331,8 +1274,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeContainsAll(int testCase, Attribute a,
@@ -1382,8 +1323,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The second attribute.
    * @param isEqual
    *          The expected result of equals.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createCompareAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeEquals(int testCase, Attribute a1, Attribute a2,
@@ -1409,8 +1348,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeGetAttribute(int testCase, Attribute a,
@@ -1438,8 +1375,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeGetName(int testCase, Attribute a,
@@ -1466,8 +1401,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeGetNameWithOptions(int testCase, Attribute a,
@@ -1514,8 +1447,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeGetOptions(int testCase, Attribute a,
@@ -1557,8 +1488,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeHasAllOptions(int testCase, Attribute a,
@@ -1601,8 +1530,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The second attribute.
    * @param isEqual
    *          The expected result of equals.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createCompareAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeHashCode(int testCase, Attribute a1, Attribute a2,
@@ -1634,8 +1561,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeHasOption(int testCase, Attribute a,
@@ -1671,8 +1596,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeHasOptions(int testCase, Attribute a,
@@ -1707,8 +1630,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeIsEmpty(int testCase, Attribute a,
@@ -1743,8 +1664,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeIsVirtual(int testCase, Attribute a,
@@ -1772,8 +1691,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeIterator(int testCase, Attribute a,
@@ -1852,8 +1769,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes")
   public void testAttributeNotNull(int testCase, Attribute a,
@@ -1884,8 +1799,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeGetOptions")
   public void testAttributeOptionOptimization(int testCase, Attribute a,
@@ -1929,8 +1842,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeOptionsEquals(int testCase, Attribute a,
@@ -1976,8 +1887,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
   public void testAttributeSize(int testCase, Attribute a, AttributeType type,
@@ -2007,8 +1916,6 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute options.
    * @param values
    *          The expected attribute values.
-   * @throws Exception
-   *           If an unexpected error occurs.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeIterator")
   public void testAttributeValueOptimization(int testCase, Attribute a,
