@@ -29,7 +29,6 @@ import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -384,16 +383,11 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      * @throws ErrorResultException
      */
     @Test(groups = { "needRunningServer" })
-    public static void testgetCredentials() throws ErrorResultException {
+    public static void testgetCredentials() throws Exception {
         final PlainSASLBindRequest request =
                 Requests.newPlainSASLBindRequest("u:user.0", ("password").toCharArray());
 
-        String serverName = null;
-        try {
-            serverName = InetAddress.getByName(null).getCanonicalHostName();
-        } catch (UnknownHostException e) {
-            // nothing to do.
-        }
+        String serverName = InetAddress.getByName(null).getCanonicalHostName();
         final BindClient bindClient = request.createBindClient(serverName);
         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
         final org.opends.server.types.ByteString expectedValue =
@@ -409,16 +403,11 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      * @throws ErrorResultException
      */
     @Test(groups = { "needRunningServer" })
-    public static void testgetCredentialsEmptyByteString() throws ErrorResultException {
+    public static void testgetCredentialsEmptyByteString() throws Exception {
         final CRAMMD5SASLBindRequest request =
                 Requests.newCRAMMD5SASLBindRequest("u:user.2", ("password").toCharArray());
 
-        String serverName = null;
-        try {
-            serverName = InetAddress.getByName(null).getCanonicalHostName();
-        } catch (UnknownHostException e) {
-            // nothing to do.
-        }
+        String serverName = InetAddress.getByName(null).getCanonicalHostName();
         final BindClient bindClient = request.createBindClient(serverName);
         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
         final org.opends.server.types.ByteString expectedValue =

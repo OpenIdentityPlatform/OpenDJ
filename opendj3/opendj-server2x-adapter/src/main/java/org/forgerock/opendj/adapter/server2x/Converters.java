@@ -37,12 +37,16 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -50,14 +54,14 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
 
 /**
  * Common utility methods.
@@ -67,6 +71,30 @@ public final class Converters {
     // Prevent instantiation.
     private Converters() {
         throw new AssertionError();
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.responses.SearchResultEntry} to OpenDJ
+     * server {@link org.opends.server.types.SearchResultEntry}.
+     *
+     * @param value
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.opends.server.types.SearchResultEntry to(
+            final org.forgerock.opendj.ldap.responses.SearchResultEntry value) {
+        if (value != null) {
+            org.opends.server.types.Entry entry =
+                new org.opends.server.types.Entry(to(value.getName()), null, null, null);
+            org.opends.server.types.SearchResultEntry searchResultEntry =
+                new org.opends.server.types.SearchResultEntry(entry, to(value.getControls()));
+            List<AttributeValue> duplicateValues = new ArrayList<AttributeValue>();
+            for (org.opends.server.types.Attribute attribute : toAttributes(value.getAllAttributes())) {
+                searchResultEntry.addAttribute(attribute, duplicateValues);
+            }
+            return searchResultEntry;
+        }
+        return null;
     }
 
     /**
@@ -86,13 +114,29 @@ public final class Converters {
      * Converts from OpenDJ LDAP SDK {@link DN} to OpenDJ server
      * {@link org.opends.server.types.DN}.
      *
-     * @param userDn
+     * @param dn
      *          value to convert
      * @return the converted value
      */
-    public static org.opends.server.types.DN to(final DN userDn) {
+    public static org.opends.server.types.DN to(final DN dn) {
         try {
-            return org.opends.server.types.DN.decode(userDn.toString());
+            return org.opends.server.types.DN.decode(dn.toString());
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK {@link RDN} to OpenDJ server
+     * {@link org.opends.server.types.RDN}.
+     *
+     * @param rdn
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.opends.server.types.RDN to(final RDN rdn) {
+        try {
+            return org.opends.server.types.RDN.decode(rdn.toString());
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage());
         }
@@ -123,7 +167,7 @@ public final class Converters {
      */
     public static org.opends.server.types.SearchScope to(
             final org.forgerock.opendj.ldap.SearchScope searchScope) {
-        return SearchScope.values()[searchScope.intValue()];
+        return org.opends.server.types.SearchScope.values()[searchScope.intValue()];
     }
 
     /**
@@ -155,8 +199,8 @@ public final class Converters {
      */
     public static org.opends.server.types.SearchResultReference to(
             final org.forgerock.opendj.ldap.responses.SearchResultReference searchResultReference) {
-        return new SearchResultReference(searchResultReference.getURIs(), to(searchResultReference
-                .getControls()));
+        return new org.opends.server.types.SearchResultReference(
+                searchResultReference.getURIs(), to(searchResultReference.getControls()));
     }
 
     /**
@@ -194,12 +238,12 @@ public final class Converters {
      */
     public static List<org.opends.server.types.Control> to(
             final List<org.forgerock.opendj.ldap.controls.Control> listOfControl) {
-        List<org.opends.server.types.Control> toListofControl =
+        List<org.opends.server.types.Control> toListOfControl =
                 new ArrayList<org.opends.server.types.Control>(listOfControl.size());
         for (org.forgerock.opendj.ldap.controls.Control c : listOfControl) {
-            toListofControl.add(to(c));
+            toListOfControl.add(to(c));
         }
-        return toListofControl;
+        return toListOfControl;
     }
 
     /**
@@ -233,13 +277,13 @@ public final class Converters {
      */
     public static List<org.opends.server.types.RawAttribute> to(
             final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
-        List<org.opends.server.types.RawAttribute> toListofAttributes =
+        List<org.opends.server.types.RawAttribute> toListOfAttributes =
                 new ArrayList<org.opends.server.types.RawAttribute>(
                         ((Collection<org.forgerock.opendj.ldap.Attribute>) listOfAttributes).size());
         for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
-            toListofAttributes.add(to(a));
+            toListOfAttributes.add(to(a));
         }
-        return toListofAttributes;
+        return toListOfAttributes;
     }
 
     /**
@@ -266,14 +310,88 @@ public final class Converters {
      *          value to convert
      * @return the converted value
      */
-    public static List<org.opends.server.types.RawModification> toModifications(
+    public static List<org.opends.server.types.RawModification> toRawModifications(
             final List<org.forgerock.opendj.ldap.Modification> listOfModifications) {
-        List<org.opends.server.types.RawModification> toListofModifications =
+        List<org.opends.server.types.RawModification> toListOfModifications =
                 new ArrayList<org.opends.server.types.RawModification>(listOfModifications.size());
         for (org.forgerock.opendj.ldap.Modification m : listOfModifications) {
-            toListofModifications.add(to(m));
+            toListOfModifications.add(to(m));
         }
-        return toListofModifications;
+        return toListOfModifications;
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}
+     * to OpenDJ server {@link org.opends.server.types.Attribute}.
+     *
+     * @param attribute
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.opends.server.types.Attribute toAttribute(
+            final org.forgerock.opendj.ldap.Attribute attribute) {
+        final AttributeBuilder attrBuilder =
+            new AttributeBuilder(attribute.getAttributeDescriptionAsString());
+        final AttributeType attrType = attrBuilder.getAttributeType();
+        for (ByteString b : attribute.toArray()) {
+            attrBuilder.add(AttributeValues.create(attrType, to(b)));
+        }
+        return attrBuilder.toAttribute();
+    }
+
+    /**
+     * Converts from an <code>Iterable</code> of OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.Attribute} to a <code>List</code> of
+     * OpenDJ server {@link org.opends.server.types.RawAttribute}.
+     *
+     * @param listOfAttributes
+     *          value to convert
+     * @return the converted value
+     */
+    public static List<org.opends.server.types.Attribute> toAttributes(
+            final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
+        List<org.opends.server.types.Attribute> toListOfAttributes =
+                new ArrayList<org.opends.server.types.Attribute>(
+                        ((Collection<org.forgerock.opendj.ldap.Attribute>) listOfAttributes).size());
+        for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
+            toListOfAttributes.add(toAttribute(a));
+        }
+        return toListOfAttributes;
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.Modification} to OpenDJ server
+     * {@link org.opends.server.types.Modification}.
+     *
+     * @param modification
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.opends.server.types.Modification toModification(
+            final org.forgerock.opendj.ldap.Modification modification) {
+        return new org.opends.server.types.Modification(to(modification.getModificationType()),
+            toAttribute(modification.getAttribute()));
+    }
+
+    /**
+     * Converts from a <code>List</code> of OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.Modification} to a <code>List</code> of
+     * OpenDJ server {@link org.opends.server.types.Modification}.
+     *
+     * @param listOfModifications
+     *          value to convert
+     * @return the converted value
+     */
+    public static List<org.opends.server.types.Modification> toModifications(
+            final List<org.forgerock.opendj.ldap.Modification> listOfModifications) {
+        List<org.opends.server.types.Modification> toListOfModifications =
+                new ArrayList<org.opends.server.types.Modification>(
+                        listOfModifications.size());
+        for (org.forgerock.opendj.ldap.Modification m : listOfModifications) {
+            toListOfModifications.add(toModification(m));
+        }
+        return toListOfModifications;
     }
 
     /**
@@ -287,7 +405,7 @@ public final class Converters {
      */
     public static org.opends.server.types.ModificationType to(
             final org.forgerock.opendj.ldap.ModificationType modificationType) {
-        return ModificationType.values()[modificationType.intValue()];
+        return org.opends.server.types.ModificationType.values()[modificationType.intValue()];
     }
 
     /**
@@ -303,6 +421,19 @@ public final class Converters {
             return ByteString.wrap(value.toByteArray());
         }
         return null;
+    }
+
+    /**
+     * Converts from OpenDJ server {@link org.opends.server.types.SearchScope}. to
+     * OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.SearchScope}.
+     *
+     * @param searchScope
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.forgerock.opendj.ldap.SearchScope from(
+            final org.opends.server.types.SearchScope searchScope) {
+        return org.forgerock.opendj.ldap.SearchScope.values().get(searchScope.intValue());
     }
 
     /**
@@ -516,8 +647,19 @@ public final class Converters {
      *           when an error occurs
      */
     public static Result getResponseResult(final Operation operation) throws ErrorResultException {
-        Result result = Responses.newResult(getResultCode(operation));
-        return getResponseResult(operation, result);
+        return getResponseResult(operation, newSDKResult(operation));
+    }
+
+    private static Result newSDKResult(final Operation operation) {
+        ResultCode rc = getResultCode(operation);
+        if (operation instanceof BindOperation) {
+            return Responses.newBindResult(rc);
+        } else if (operation instanceof CompareOperation) {
+            return Responses.newCompareResult(rc);
+        } else if (operation instanceof ExtendedOperation) {
+            return Responses.newGenericExtendedResult(rc);
+        }
+        return Responses.newResult(rc);
     }
 
     /**

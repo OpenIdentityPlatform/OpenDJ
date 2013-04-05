@@ -248,7 +248,7 @@ public final class Adapters {
             @Override
             public Result modify(final ModifyRequest request) throws ErrorResultException {
                 final ModifyOperation modifyOperation =
-                        icc.processModify(to(valueOf(request.getName())), toModifications(request
+                        icc.processModify(to(valueOf(request.getName())), toRawModifications(request
                                 .getModifications()), to(request.getControls()));
                 return getResponseResult(modifyOperation);
             }
