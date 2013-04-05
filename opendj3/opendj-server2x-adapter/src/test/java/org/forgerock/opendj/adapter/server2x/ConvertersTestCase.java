@@ -27,13 +27,15 @@ package org.forgerock.opendj.adapter.server2x;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 import java.net.InetAddress;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
@@ -49,16 +51,29 @@ import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.GenericBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -96,18 +111,50 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     }
 
     /**
-     * Converts a SDK Distinguished Name to a LDAP server Distinguish Name.
-     * Needs a running server to work.
+     * Converts a SDK {@link SearchResultEntry} to an LDAP Server
+     * {@link SearchResultEntry}.
+     */
+    @Test()
+    public final void testToSearchResultEntry() throws Exception {
+        org.forgerock.opendj.ldap.responses.SearchResultEntry entry =
+            Responses.newSearchResultEntry(org.forgerock.opendj.ldap.DN
+                .valueOf("uid=scarter,ou=People,dc=example,dc=com"));
+        for (Control control : generateSdkControlsList()) {
+            entry.addControl(control);
+        }
+        entry.addAttribute(new LinkedAttribute("test", "value1"));
+        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOf("myValue")));
+
+        SearchResultEntry result = to(entry);
+        assertThat(result.getDN().toString()).isEqualTo(entry.getName().toString());
+        assertThat(result.getControls()).hasSize(entry.getControls().size());
+        assertThat(result.getAttributes()).hasSize(2);
+    }
+
+    /**
+     * Converts a SDK Distinguished Name to a LDAP server Distinguish Name. Needs
+     * a running server to work.
      *
      * @throws DirectoryException
      */
     @Test(groups = { "needRunningServer" })
     public final void testToDN() throws DirectoryException {
+        final String dnString = "uid=scarter,ou=People,dc=example,dc=com";
         org.forgerock.opendj.ldap.DN sdkDN =
-                org.forgerock.opendj.ldap.DN.valueOf("uid=scarter,ou=People,dc=example,dc=com");
+                org.forgerock.opendj.ldap.DN.valueOf(dnString);
 
         org.opends.server.types.DN srvDN = to(sdkDN);
-        assertThat(srvDN.toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+        assertThat(srvDN.toString()).isEqualTo(dnString);
+    }
+
+    @Test
+    public final void testToRDN() throws DirectoryException {
+        final String rdnString = "uid=scarter";
+        org.forgerock.opendj.ldap.RDN sdkRDN =
+                org.forgerock.opendj.ldap.RDN.valueOf(rdnString);
+
+        org.opends.server.types.RDN srvRDN = to(sdkRDN);
+        assertThat(srvRDN.toString()).isEqualTo(rdnString);
     }
 
     /**
@@ -179,7 +226,20 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test()
     public final void testToListOfControl() throws DirectoryException {
+        List<org.forgerock.opendj.ldap.controls.Control> mySDKControlsList =
+            generateSdkControlsList();
 
+        List<org.opends.server.types.Control> listofControl = to(mySDKControlsList);
+        assertThat(listofControl.size()).isEqualTo(3);
+        assertThat(listofControl.get(0).getOID()).isEqualTo(mySDKControlsList.get(0).getOID());
+        assertThat(listofControl.get(0).isCritical()).isFalse();
+        assertThat(listofControl.get(1).getOID()).isEqualTo(mySDKControlsList.get(1).getOID());
+        assertThat(listofControl.get(1).isCritical()).isTrue();
+        assertThat(listofControl.get(2).getOID()).isEqualTo(mySDKControlsList.get(2).getOID());
+        assertThat(listofControl.get(2).isCritical()).isTrue();
+    }
+
+    private List<org.forgerock.opendj.ldap.controls.Control> generateSdkControlsList() {
         final PersistentSearchRequestControl control =
                 PersistentSearchRequestControl.newControl(false, true,
                         true, // isCritical, changesOnly, returnECs
@@ -202,48 +262,53 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         mySDKControlsList.add(control);
         mySDKControlsList.add(control2);
         mySDKControlsList.add(control3);
-
-        List<org.opends.server.types.Control> listofControl = to(mySDKControlsList);
-        assertThat(listofControl.size()).isEqualTo(3);
-        assertThat(listofControl.get(0).getOID()).isEqualTo("2.16.840.1.113730.3.4.3");
-        assertThat(listofControl.get(0).isCritical()).isFalse();
-        assertThat(listofControl.get(1).getOID()).isEqualTo("1.3.6.1.1.13.2");
-        assertThat(listofControl.get(1).isCritical()).isTrue();
-        assertThat(listofControl.get(2).getOID()).isEqualTo("2.16.840.1.113730.3.4.18");
-        assertThat(listofControl.get(2).isCritical()).isTrue();
+        return mySDKControlsList;
     }
 
     /**
      * Converts an SDK attribute to an LDAP server attribute.
-     *
-     * @throws DirectoryException
      */
     @Test()
-    public final void testToAttribute() throws DirectoryException {
+    public final void testToRawAttribute() throws DirectoryException {
         org.forgerock.opendj.ldap.Attribute attribute = new LinkedAttribute("test", "value1");
 
         org.opends.server.types.RawAttribute srvAttribute = to(attribute);
-        assertThat(srvAttribute.getAttributeType().toString()).isEqualTo("test");
-        assertThat(srvAttribute.getValues().size()).isEqualTo(1);
+        assertThat(srvAttribute.getAttributeType()).isEqualTo("test");
+        assertThat(srvAttribute.getValues()).hasSize(1);
         assertThat(srvAttribute.getValues().get(0).toString()).isEqualTo("value1");
 
         org.forgerock.opendj.ldap.Attribute attribute2 =
                 new LinkedAttribute("Another", ByteString.valueOf("myValue"));
 
         org.opends.server.types.RawAttribute srvAttribute2 = to(attribute2);
-        assertThat(srvAttribute2.getAttributeType().toString()).isEqualTo("Another");
-        assertThat(srvAttribute2.getValues().size()).isEqualTo(1);
+        assertThat(srvAttribute2.getAttributeType()).isEqualTo("Another");
+        assertThat(srvAttribute2.getValues()).hasSize(1);
         assertThat(srvAttribute2.getValues().get(0).toString()).isEqualTo("myValue");
+    }
 
+    @Test(groups = { "needRunningServer" })
+    public final void testToAttribute() throws DirectoryException {
+        org.forgerock.opendj.ldap.Attribute attribute = new LinkedAttribute("test", "value1");
+
+        org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
+        assertThat(srvAttribute.getAttributeType().getNameOrOID().toString()).isEqualTo("test");
+        assertThat(srvAttribute.size()).isEqualTo(1);
+        assertThat(srvAttribute.iterator().next().toString()).isEqualTo("value1");
+
+        org.forgerock.opendj.ldap.Attribute attribute2 =
+                new LinkedAttribute("Another", ByteString.valueOf("myValue"));
+
+        org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
+        assertThat(srvAttribute2.getAttributeType().getNameOrOID().toString()).isEqualTo("Another");
+        assertThat(srvAttribute2.size()).isEqualTo(1);
+        assertThat(srvAttribute2.iterator().next().toString()).isEqualTo("myValue");
     }
 
     /**
      * Converts an SDK multi-valued attribute to an LDAP Server Attribute.
-     *
-     * @throws DirectoryException
      */
-    @Test()
-    public final void testToAttributeMultiValued() throws DirectoryException {
+    @Test(groups = { "needRunningServer" })
+    public final void testToRawAttributeMultiValued() throws DirectoryException {
         org.forgerock.opendj.ldap.Attribute attribute =
                 new LinkedAttribute("testMultiValuedAttribute", "value1", "value2");
 
@@ -266,14 +331,41 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         assertThat(srvAttribute2.getValues().get(1).toString()).isEqualTo("value2");
         assertThat(srvAttribute2.getValues().get(2).toString()).isEqualTo("value3");
         assertThat(srvAttribute2.getValues().get(3).toString()).isEqualTo("value4");
+    }
 
+    @Test
+    public final void testToAttributeMultiValued() throws DirectoryException {
+        org.forgerock.opendj.ldap.Attribute attribute =
+                new LinkedAttribute("testMultiValuedAttribute", "value1", "value2");
+
+        org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
+        assertThat(srvAttribute.getAttributeType().getNameOrOID().toString())
+            .isEqualTo("testMultiValuedAttribute");
+        assertThat(srvAttribute.size()).isEqualTo(2);
+        Iterator<AttributeValue> iter = srvAttribute.iterator();
+        assertThat(iter.next().toString()).isEqualTo("value1");
+        assertThat(iter.next().toString()).isEqualTo("value2");
+
+        org.forgerock.opendj.ldap.Attribute attribute2 =
+                new LinkedAttribute("AnotherMultiValuedAttribute", "value1", "value2", "value3",
+                        "value4");
+
+        org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
+        assertThat(srvAttribute2.getAttributeType().getNameOrOID().toString())
+            .isEqualTo("AnotherMultiValuedAttribute");
+        assertThat(srvAttribute2.size()).isEqualTo(4);
+        iter = srvAttribute2.iterator();
+        assertThat(iter.next().toString()).isEqualTo("value1");
+        assertThat(iter.next().toString()).isEqualTo("value2");
+        assertThat(iter.next().toString()).isEqualTo("value3");
+        assertThat(iter.next().toString()).isEqualTo("value4");
     }
 
     /**
      * Converts a SDK modification to an LDAP server raw modification.
      */
     @Test()
-    public final void testToModification() {
+    public final void testToRawModification() {
         org.forgerock.opendj.ldap.Attribute attribute =
                 new LinkedAttribute("test", ByteString.valueOf("value1"), ByteString
                         .valueOf("value2"));
@@ -290,10 +382,26 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         assertThat(srvModification.getModificationType().toString()).isEqualTo("Increment");
     }
 
+    @Test
+    public final void testToModification() {
+        org.forgerock.opendj.ldap.Attribute attribute =
+                new LinkedAttribute("test", ByteString.valueOf("value1"), ByteString
+                        .valueOf("value2"));
+
+        Modification mod = new Modification(ModificationType.ADD, attribute);
+
+        org.opends.server.types.Modification srvModification = toModification(mod);
+        assertThat(srvModification.getModificationType().toString()).isEqualTo("Add");
+        assertThat(srvModification.getAttribute().getAttributeType().getNameOrOID()).isEqualTo("test");
+        assertThat(srvModification.getAttribute().size()).isEqualTo(2);
+
+        mod = new Modification(ModificationType.INCREMENT, attribute);
+        srvModification = toModification(mod);
+        assertThat(srvModification.getModificationType().toString()).isEqualTo("Increment");
+    }
+
     /**
      * Converts a SDK filter to an LDAP server filter.
-     *
-     * @throws LDAPException
      */
     @Test()
     public final void testToFilter() throws LDAPException {
@@ -314,8 +422,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts a SDK search result reference to a LDAP server search result
      * reference.
-     *
-     * @throws LDAPException
      */
     @Test()
     public final void testToSearchResultReference() throws LDAPException {
@@ -379,8 +485,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * For an SASL bind request, credentials are composed by uid and password
      * (in this config).
-     *
-     * @throws ErrorResultException
      */
     @Test(groups = { "needRunningServer" })
     public static void testgetCredentials() throws Exception {
@@ -399,8 +503,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
 
     /**
      * For an CRAMMD5 SALS request, the credentials are empty.
-     *
-     * @throws ErrorResultException
      */
     @Test(groups = { "needRunningServer" })
     public static void testgetCredentialsEmptyByteString() throws Exception {
@@ -416,4 +518,52 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         assertThat(getCredentials(genericBindRequest.getAuthenticationValue())).isEqualTo(
                 expectedValue);
     }
+
+    @Test
+    public static void testToSearchScope() {
+        org.opends.server.types.SearchScope[] expected = org.opends.server.types.SearchScope.values();
+        List<org.forgerock.opendj.ldap.SearchScope> actual = org.forgerock.opendj.ldap.SearchScope.values();
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals(to(actual.get(i)), expected[i]);
+        }
+        assertNull(to((org.forgerock.opendj.ldap.SearchScope) null));
+    }
+
+    @Test
+    public static void testFromSearchScope() {
+        org.opends.server.types.SearchScope[] actual = org.opends.server.types.SearchScope.values();
+        List<org.forgerock.opendj.ldap.SearchScope> expected = org.forgerock.opendj.ldap.SearchScope.values();
+        for (int i = 0; i < actual.length; i++) {
+            assertEquals(from(actual[i]), expected.get(i));
+        }
+        assertNull(from((org.opends.server.types.SearchScope) null));
+    }
+
+    @DataProvider(name = "operation result type")
+    private Object[][] getOperationResultTypes() {
+        return new Object[][] {
+            { BindOperation.class, BindResult.class },
+            { CompareOperation.class, CompareResult.class },
+            { ExtendedOperation.class, GenericExtendedResult.class },
+            { SearchOperation.class, Result.class },
+        };
+    }
+
+    /**
+     * Tests the type of the result based on the type of the provided operation.
+     */
+    @Test(dataProvider = "operation result type")
+    public static <O extends Operation, R extends Result> void testGetResponseResultAndResultType(
+        Class<O> operationType, Class<R> resultType) throws Exception {
+        // Given
+        O operation = mock(operationType);
+        when(operation.getResultCode()).thenReturn(ResultCode.SUCCESS);
+        // When
+        Result result = getResponseResult(operation);
+        // Then
+        assertThat(result.getResultCode()).isEqualTo(
+            org.forgerock.opendj.ldap.ResultCode.SUCCESS);
+        assertThat(result).isInstanceOf(resultType);
+    }
+
 }
