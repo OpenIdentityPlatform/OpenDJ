@@ -181,6 +181,17 @@
   <fileset id="opendj.runtime.jars" dir="${lib.dir}">
     <include name="**/jar/*.jar" />
     <include name="**/bundle/*.jar" />
+
+    <exclude name="**/assertj-core.jar" />
+    <exclude name="**/mockito-core.jar" />
+    <exclude name="**/objenesis.jar" />
+  </fileset>
+
+  <fileset id="opendj.test.jars" dir="${lib.dir}">
+    <include name="**/assertj-core.jar" />
+    <include name="**/mockito-core.jar" />
+    <include name="**/hamcrest-core.jar" />
+    <include name="**/objenesis.jar" />
   </fileset>
 
   <!-- Prevent ant runtime from being included on classpath during
@@ -1590,6 +1601,7 @@
         destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
+        <fileset refid="opendj.test.jars"/>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
@@ -1626,6 +1638,7 @@
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}" excludes="org/opends/server/snmp/**">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
+        <fileset refid="opendj.test.jars"/>
 
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
@@ -2108,6 +2121,7 @@
         <path refid="emma.lib" />
 
         <fileset refid="opendj.runtime.jars"/>
+        <fileset refid="opendj.test.jars"/>
 
         <!-- Needed by quicksetup tests -->
         <fileset dir="${build.dir}/build-tools">
@@ -2555,6 +2569,7 @@
            includes="org/opends/server/snmp/**">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
+        <fileset refid="opendj.test.jars"/>
 
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
