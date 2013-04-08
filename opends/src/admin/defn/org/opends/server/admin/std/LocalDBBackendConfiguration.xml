@@ -24,7 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2010-2012 ForgeRock AS.
+  !      Portions Copyright 2010-2013 ForgeRock AS.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -515,7 +515,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>true</adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -653,7 +653,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>10mb</adm:value>
+        <adm:value>100mb</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -766,7 +766,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>20mb</adm:value>
+        <adm:value>500mb</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -929,7 +929,7 @@
       </adm:description>
       <adm:default-behavior>
           <adm:defined>
-              <adm:value>100 megabytes</adm:value>
+              <adm:value>200 megabytes</adm:value>
           </adm:defined>
       </adm:default-behavior>
       <adm:syntax>
@@ -954,7 +954,7 @@
       </adm:description>
       <adm:default-behavior>
           <adm:defined>
-              <adm:value>20 megabytes</adm:value>
+              <adm:value>100 megabytes</adm:value>
           </adm:defined>
       </adm:default-behavior>
       <adm:syntax>
