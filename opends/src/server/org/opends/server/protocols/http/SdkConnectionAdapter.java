@@ -56,9 +56,17 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.opends.server.core.AbandonOperationBasis;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.BindOperationBasis;
+import org.opends.server.core.CompareOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.ExtendedOperationBasis;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.SearchOperationBasis;
+import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
@@ -107,15 +115,18 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     this.clientConnection = clientConnection;
   }
 
-  private <R extends Result> FutureResult<R> enqueueOperation(
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private <R> FutureResult<R> enqueueOperation(
       Operation operation, ResultHandler<? super R> resultHandler)
   {
-    // TODO JNR set requestID, but where to get it?
     final AsynchronousFutureResult<R, ResultHandler<? super R>> futureResult =
-       new AsynchronousFutureResult<R, ResultHandler<? super R>>(resultHandler);
+        new AsynchronousFutureResult<R, ResultHandler<? super R>>(
+            resultHandler, operation.getMessageID());
 
     try
     {
+      // need this raw cast here to fool the compiler's generic type safety
+      // Problem here is due to the generic type R on enqueueOperation()
       clientConnection.addOperationInProgress(operation,
           (AsynchronousFutureResult) futureResult);
 
@@ -139,12 +150,12 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   @Override
   public FutureResult<Void> abandonAsync(AbandonRequest request)
   {
-    // TODO Auto-generated method stub
-    // for (ConnectionEventListener listener : this.listeners)
-    // {
-    // listener.
-    // }
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    AbandonOperationBasis operation =
+        new AbandonOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), request.getRequestID());
+
+    return enqueueOperation(operation, null);
   }
 
   /** {@inheritDoc} */
@@ -153,17 +164,13 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super Result> resultHandler)
   {
-    // AddOperationBasis operation =
-    // new AddOperationBasis(clientConnection, operationID, messageID,
-    // to(request.getControls()), to(valueOf(request.getName())),
-    // to(request.getAllAttributes()));
+    final int messageID = nextMessageID.getAndIncrement();
+    AddOperationBasis operation =
+        new AddOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), to(valueOf(request.getName())),
+            to(request.getAllAttributes()));
 
-    // DirectoryServer.enqueueRequest(operation);
-
-    // return StaticUtils.getResponseResult(addOperation);
-
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -179,7 +186,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super BindResult> resultHandler)
   {
-    int messageID = nextMessageID.get();
+    final int messageID = nextMessageID.get();
     String userName = request.getName();
     byte[] password = ((SimpleBindRequest) request).getPassword();
     BindOperationBasis operation =
@@ -194,9 +201,15 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   @Override
   public void close(UnbindRequest request, String reason)
   {
+    final int messageID = nextMessageID.get();
+    UnbindOperationBasis operation =
+        new UnbindOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()));
+
+    // run synchronous
+    operation.run();
+
     isClosed = true;
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
   }
 
   /** {@inheritDoc} */
@@ -205,8 +218,14 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super CompareResult> resultHandler)
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    CompareOperationBasis operation =
+        new CompareOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), to(valueOf(request.getName())),
+            request.getAttributeDescription().getAttributeType().getOID(),
+            to(request.getAssertionValue()));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -215,8 +234,12 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super Result> resultHandler)
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    DeleteOperationBasis operation =
+        new DeleteOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), to(valueOf(request.getName())));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -226,8 +249,13 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super R> resultHandler)
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    ExtendedOperationBasis operation =
+        new ExtendedOperationBasis(this.clientConnection, messageID, messageID,
+            to(request.getControls()), request.getOID(),
+            to(request.getValue()));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -250,8 +278,13 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super Result> resultHandler)
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    ModifyOperationBasis operation =
+        new ModifyOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), to(request.getName()),
+            toModifications(request.getModifications()));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -260,8 +293,14 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super Result> resultHandler)
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Not implemented");
+    final int messageID = nextMessageID.getAndIncrement();
+    ModifyDNOperationBasis operation =
+        new ModifyDNOperationBasis(clientConnection, messageID, messageID,
+            to(request.getControls()), to(request.getName()), to(request
+                .getNewRDN()), request.isDeleteOldRDN(), to(request
+                .getNewSuperior()));
+
+    return enqueueOperation(operation, resultHandler);
   }
 
   /** {@inheritDoc} */
@@ -277,15 +316,14 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       final IntermediateResponseHandler intermediateResponseHandler,
       final SearchResultHandler resultHandler)
   {
-    // TODO JNR attributes
-    LinkedHashSet<String> attributes = null;
     final int messageID = nextMessageID.getAndIncrement();
     SearchOperationBasis operation =
         new SearchOperationBasis(clientConnection, messageID, messageID,
             to(request.getControls()), to(valueOf(request.getName())),
             to(request.getScope()), to(request.getDereferenceAliasesPolicy()),
-            request.getSizeLimit(), request.getTimeLimit(), request
-                .isTypesOnly(), to(request.getFilter()), attributes);
+            request.getSizeLimit(), request.getTimeLimit(),
+            request.isTypesOnly(), to(request.getFilter()),
+            new LinkedHashSet<String>(request.getAttributes()));
 
     return enqueueOperation(operation, resultHandler);
   }
