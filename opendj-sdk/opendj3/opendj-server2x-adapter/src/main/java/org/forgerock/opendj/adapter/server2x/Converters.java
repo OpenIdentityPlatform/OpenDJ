@@ -55,9 +55,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
@@ -335,9 +333,8 @@ public final class Converters {
             final org.forgerock.opendj.ldap.Attribute attribute) {
         final AttributeBuilder attrBuilder =
             new AttributeBuilder(attribute.getAttributeDescriptionAsString());
-        final AttributeType attrType = attrBuilder.getAttributeType();
         for (ByteString b : attribute.toArray()) {
-            attrBuilder.add(AttributeValues.create(attrType, to(b)));
+            attrBuilder.add(to(b));
         }
         return attrBuilder.toAttribute();
     }
