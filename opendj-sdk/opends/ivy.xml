@@ -41,7 +41,7 @@
     <dependency org="javax.mail"            name="mail"                     rev="1.4.5" />
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
-    <dependency org="com.sleepycat"         name="je"                       rev="5.0.48" />
+    <dependency org="com.sleepycat"         name="je"                       rev="5.0.73" />
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" />
     <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
       <!-- This is the OpenDJ server module :) -->
