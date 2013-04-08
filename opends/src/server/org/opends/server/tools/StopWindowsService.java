@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -55,10 +55,6 @@ public class StopWindowsService
     */
   public static final int SERVICE_NOT_FOUND = 1;
   /**
-    * The service was already stopped.
-    */
-  public static final int SERVICE_ALREADY_STOPPED = 2;
-  /**
     * The service could not be stopped.
     */
   public static final int SERVICE_STOP_ERROR = 3;
@@ -79,9 +75,8 @@ public class StopWindowsService
    * Invokes the net stop on the service corresponding to this server, it writes
    * information and error messages in the provided streams.
    * @return <CODE>SERVICE_STOP_SUCCESSFUL</CODE>,
-   * <CODE>SERVICE_NOT_FOUND</CODE>, <CODE>SERVICE_ALREADY_STOPPED</CODE> or
-   * <CODE>SERVICE_STOP_ERROR</CODE> depending on whether the service could be
-   * stopped or not.
+   * <CODE>SERVICE_NOT_FOUND</CODE> or <CODE>SERVICE_STOP_ERROR</CODE>
+   * depending on whether the service could be stopped or not.
    * @param  outStream  The stream to write standard output messages.
    * @param  errStream  The stream to write error messages.
    */
@@ -143,7 +138,12 @@ public class StopWindowsService
       /* Check if is a running service */
       try
       {
-        if (Runtime.getRuntime().exec(cmd).waitFor() == 0)
+        int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
+        if (resultCode == 0)
+        {
+          returnValue = SERVICE_STOP_SUCCESSFUL;
+        }
+        else if (resultCode == 2)
         {
           returnValue = SERVICE_STOP_SUCCESSFUL;
         }
@@ -156,7 +156,8 @@ public class StopWindowsService
       {
 
         Message message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
-        out.println(message);
+        err.println(message);
+        err.println("Exception:" + t.toString());
         returnValue = SERVICE_STOP_ERROR;
       }
     }

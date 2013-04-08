@@ -23,7 +23,7 @@
 *
 *
 *      Copyright 2008-2010 Sun Microsystems, Inc.
-*      Portions Copyright 2011 ForgeRock AS
+*      Portions Copyright 2011-2013 ForgeRock AS
 */
 
 #include "service.h"
@@ -527,7 +527,7 @@ ServiceReturnCode doStartApplication()
 
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
-	sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
+  sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
     debug("doStartApplication: Launching batch file: %s", command);
     createOk = createBatchFileChildProcess(command, FALSE, &procInfo);
 
@@ -572,14 +572,14 @@ ServiceReturnCode doStartApplication()
       debug("The batch file process could not be created property");
     }
 
-	if (createOk && waitOk)
+  if (createOk && waitOk)
     {
-	  BOOL running;
+    BOOL running;
       // Just check once if the server is running or not: since the wait
       // wait was successful, if the server is getting the lock, it already
       // got it.
-	  isServerRunning(&running, TRUE);
-	  if (running)
+    isServerRunning(&running, TRUE);
+    if (running)
       {
         returnValue = SERVICE_RETURN_OK;
         debug("doStartApplication: server running.");
@@ -589,7 +589,7 @@ ServiceReturnCode doStartApplication()
         returnValue = SERVICE_RETURN_ERROR;
         debug("doStartApplication: server not running.");
       }
-	}
+  }
     else if (createOk)
     {
       // Try to see if server is really running
@@ -609,7 +609,7 @@ ServiceReturnCode doStartApplication()
       else
       {
         debug("OPENDJ_WINDOWS_SERVICE_START_NTRIES is not set.  Using default %d tries.", nTries);
-      }	
+      }
 
       debug(
           "doStartApplication: the spawn of the batch command worked.  Command: '%s'",
@@ -658,7 +658,7 @@ ServiceReturnCode doStartApplication()
 
 
 // ----------------------------------------------------
-// Start the application using stop-ds.bat
+// Stop the application using stop-ds.bat
 // The functions returns SERVICE_RETURN_OK if we could stop the server
 // and SERVICE_RETURN_ERROR otherwise.
 // ----------------------------------------------------
@@ -751,7 +751,7 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
   {
     // failed to get the path of the executable file
     returnValue = SERVICE_RETURN_ERROR;
-	debug("Could not get the path of the executable file.");
+  debug("Could not get the path of the executable file.");
   }
   else
   {
@@ -956,6 +956,53 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
 }  // updateServiceStatus
 
 // ----------------------------------------------------
+// Query the current status of the service serviceName into returnedStatus
+// return true if it was successful, false otherwise
+// ----------------------------------------------------
+BOOL getServiceStatus(char *serviceName, LPDWORD returnedState)
+{
+  SC_HANDLE hScm;
+  SC_HANDLE hService;
+  BOOL ret = FALSE;
+
+  if (openScm(SC_MANAGER_ALL_ACCESS, &hScm) != SERVICE_RETURN_OK)
+  {
+    debugError("getServiceStatus: openScm did not work. Last error = %d",
+    GetLastError());
+    return FALSE;
+  }
+
+
+  hService = OpenService(hScm, serviceName, SERVICE_QUERY_STATUS);
+  if(hService == NULL)
+  {
+    debugError("getServiceStatus: openService did not work. Last error = %d",
+      GetLastError());
+  }
+  else
+  {
+    SERVICE_STATUS ss;
+    memset(&ss, 0, sizeof(ss));
+    if (QueryServiceStatus(hService, &ss))
+    {
+      *returnedState = ss.dwCurrentState;
+    ret = TRUE;
+  }
+  else
+  {
+    debugError("getServiceStatus: Failed to query the service status. Last error = %d",
+                  GetLastError());
+    }
+    // close the service handle
+    CloseServiceHandle(hService);
+  }
+  // close the service control manager handle
+  CloseServiceHandle(hScm);
+
+  return ret;
+}
+
+// ----------------------------------------------------
 // This function is the "main" of the service. It has been registered
 // to the SCM by the main right after the service has been started through
 // NET START command.
@@ -1090,7 +1137,7 @@ void serviceMain(int argc, char* argv[])
   if (code == SERVICE_RETURN_OK)
   {
     BOOL updatedRunningStatus = FALSE;
-	DWORD returnValue;
+  DWORD returnValue;
     int refreshPeriodSeconds = 10;
     char *refreshPeriodEnv = getenv("OPENDJ_WINDOWS_SERVICE_REFRESH_PERIOD");
     if (refreshPeriodEnv != NULL)
@@ -1108,7 +1155,7 @@ void serviceMain(int argc, char* argv[])
       {
         returnValue = WaitForSingleObject (_terminationEvent, INFINITE);
         break;
-      }  
+      }
       else
       {
         running = FALSE;
@@ -1123,7 +1170,7 @@ void serviceMain(int argc, char* argv[])
           if (returnValue == WAIT_OBJECT_0)
           {
             debug("The application has exited.");
-            break;           
+            break;
           }
         }
         code = isServerRunning(&running, FALSE);
@@ -1134,16 +1181,16 @@ void serviceMain(int argc, char* argv[])
         else if (running)
         {
           _serviceCurStatus = SERVICE_RUNNING;
-		  if (!updatedRunningStatus)
-		  {
-		    WORD argCount = 1;
+      if (!updatedRunningStatus)
+      {
+        WORD argCount = 1;
             const char *argc[] = {_instanceDir};
             updateServiceStatus (
                _serviceCurStatus,
                NO_ERROR,
                0,
                checkPoint ++,
-		       TIMEOUT_NONE,
+           TIMEOUT_NONE,
                _serviceStatusHandle
              );
              reportLogEvent(
@@ -1151,27 +1198,35 @@ void serviceMain(int argc, char* argv[])
                WIN_EVENT_ID_SERVER_STARTED,
                argCount, argc
              );
-			 updatedRunningStatus = TRUE;
-		  }
+       updatedRunningStatus = TRUE;
+      }
         }
         else
         {
-	      WORD argCount = 1;
-          const char *argc[] = {_instanceDir};    
-          _serviceCurStatus = SERVICE_STOPPED;
-          debug("checking in serviceMain serviceHandler: service stopped.");
+      // Check current Status
+      DWORD state;
+      BOOL success = getServiceStatus(serviceName, &state);
+          if (!(success &&
+               ((state == SERVICE_STOPPED) ||
+                (state == SERVICE_STOP_PENDING))))
+          {
+          WORD argCount = 1;
+            const char *argc[] = {_instanceDir};
+            _serviceCurStatus = SERVICE_STOPPED;
+            debug("checking in serviceMain serviceHandler: service stopped with error.");
 
-          updateServiceStatus (
+            updateServiceStatus (
               _serviceCurStatus,
               ERROR_SERVICE_SPECIFIC_ERROR,
               -1,
               CHECKPOINT_NO_ONGOING_OPERATION,
               TIMEOUT_NONE,
               _serviceStatusHandle);
-          reportLogEvent(
+            reportLogEvent(
               EVENTLOG_ERROR_TYPE,
               WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
               argCount, argc);
+           }
           break;
         }
       }
@@ -1272,7 +1327,7 @@ void serviceHandler(DWORD controlCode)
       {
         WORD argCount = 1;
         const char *argc[] = {_instanceDir};
-		debug("serviceHandler: The server could not be stopped.");
+    debug("serviceHandler: The server could not be stopped.");
         // We could not stop the server
         reportLogEvent(
         EVENTLOG_ERROR_TYPE,
@@ -1374,7 +1429,7 @@ char* binPathName)
 
   if (myService == NULL)
   {
-	  debugError("getBinaryPathName: Failed to open the service '%s'.", serviceName);
+    debugError("getBinaryPathName: Failed to open the service '%s'.", serviceName);
   }
   else
   {
@@ -1423,8 +1478,8 @@ char* binPathName)
     }
     if (!CloseServiceHandle(myService))
     {
-	  debug("getBinaryPathName: error closing handle of service. Code [%d]",
-	        GetLastError());
+    debug("getBinaryPathName: error closing handle of service. Code [%d]",
+          GetLastError());
     }
   }
 
@@ -2237,7 +2292,7 @@ ERROR_SERVICE_ALREADY_RUNNING.";
       WIN_EVENT_ID_SERVER_START_FAILED,
       argCount, argc
       );
-	  debugError("startService: For instance dir '%s', %s", argc[0], argc[1]);
+    debugError("startService: For instance dir '%s', %s", argc[0], argc[1]);
     }
     deregisterEventLog();
   }
