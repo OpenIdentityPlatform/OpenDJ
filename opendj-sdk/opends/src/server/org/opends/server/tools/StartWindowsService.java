@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.tools;
@@ -151,7 +152,8 @@ public class StartWindowsService
       {
 
         Message message = ERR_WINDOWS_SERVICE_START_ERROR.get();
-        out.println(message);
+        err.println(message);
+        err.println("Exception:" + t.toString());
         returnValue = SERVICE_START_ERROR;
       }
     }

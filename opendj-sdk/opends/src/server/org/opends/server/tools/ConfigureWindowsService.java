@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -686,6 +686,7 @@ public class ConfigureWindowsService
       returnValue = SERVICE_CLEANUP_ERROR;
       msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
       err.println(msg);
+      err.println("Exception:" + t.toString());
     }
     return returnValue;
   }
@@ -763,10 +764,10 @@ public class ConfigureWindowsService
         break;
       case 2:
         returnValue = SERVICE_STATE_ERROR;
-        if (out != null)
+        if (err != null)
         {
           msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
-          out.println(msg);
+          err.println(msg);
         }
         break;
       default:
@@ -784,7 +785,8 @@ public class ConfigureWindowsService
       if (err != null)
       {
         msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
-        err.println(wrapText(msg, MAX_LINE_WIDTH));
+        err.println(msg);
+        err.println(wrapText(t.toString(), MAX_LINE_WIDTH));
       }
     }
     return returnValue;
@@ -806,8 +808,7 @@ public class ConfigureWindowsService
        * Do a best effort to avoid having a relative representation (for
        * instance to avoid having ../../../).
        */
-      File canonical = f.getCanonicalFile();
-      f = canonical;
+      f = f.getCanonicalFile();
     }
     catch (IOException ioe)
     {
