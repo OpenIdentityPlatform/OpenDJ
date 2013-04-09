@@ -127,8 +127,6 @@ public class DSMLServlet extends HttpServlet {
   private static final String GATEWAY_INTERNAL_ERROR = "gatewayInternalError";
   private static final String UNRESOLVABLE_URI = "unresolvableURI";
 
-  private static final String UNKNOWN_ERROR = "Unknown error";
-
   // definitions of onError values
   private static final String ON_ERROR_RESUME = "resume";
   private static final String ON_ERROR_EXIT = "exit";
@@ -649,7 +647,7 @@ public class DSMLServlet extends HttpServlet {
           break;
 
         default:
-          errorResponse.setType(UNKNOWN_ERROR);
+          errorResponse.setType(MALFORMED_REQUEST);
           break;
       }
     } else if ( t instanceof LDAPConnectionException ) {
