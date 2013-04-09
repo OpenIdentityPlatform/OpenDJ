@@ -50,7 +50,11 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     /**
      * The base DN is replicated.
      */
-    REPLICATED
+    REPLICATED,
+    /**
+     * Replication is disabled.
+     */
+    DISABLED
   }
 
   private int nEntries;

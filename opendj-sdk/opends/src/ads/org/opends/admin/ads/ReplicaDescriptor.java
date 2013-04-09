@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock, AS.
  */
 
 package org.opends.admin.ads;
 
 import java.util.HashSet;
 import java.util.Set;
+
 
 /**
  * The object of this class represent a Replica (i.e. a suffix in a given
@@ -62,6 +64,16 @@ public class ReplicaDescriptor
   public boolean isReplicated()
   {
     return replicationId != -1;
+  }
+
+  /**
+   * Returns whether replication is replicated on this server or not.
+   * @return <CODE>true</CODE> if replication is enabled and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isReplicationEnabled()
+  {
+    return server.isReplicationEnabled();
   }
 
   /**

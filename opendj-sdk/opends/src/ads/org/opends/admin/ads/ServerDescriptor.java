@@ -228,6 +228,17 @@ public class ServerDescriptor
   }
 
   /**
+   * Tells whether replication is enabled on this server or not.
+   * @return <CODE>true</CODE> if replication is enabled and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isReplicationEnabled()
+  {
+    return Boolean.TRUE.equals(
+        serverProperties.get(ServerProperty.IS_REPLICATION_ENABLED));
+  }
+
+  /**
    * Returns the String representation of this replication server based
    * on the information we have ("hostname":"replication port") and
    * <CODE>null</CODE> if this is not a replication server.
