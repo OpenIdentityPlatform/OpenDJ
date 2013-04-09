@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -470,6 +470,30 @@ public final class Connections {
             final RequestHandlerFactory<C, RequestContext> factory) {
         Validator.ensureNotNull(factory);
         return new RequestHandlerFactoryAdapter<C>(factory);
+    }
+
+    /**
+     * Returns an uncloseable view of the provided connection. Attempts to call
+     * {@link Connection#close()} or
+     * {@link Connection#close(org.forgerock.opendj.ldap.requests.UnbindRequest, String)}
+     * will be ignored.
+     *
+     * @param connection
+     *            The connection whose {@code close} methods are to be disabled.
+     * @return An uncloseable view of the provided connection.
+     */
+    public static Connection uncloseable(Connection connection) {
+        return new AbstractConnectionWrapper(connection) {
+            @Override
+            public void close() {
+                // Do nothing.
+            }
+
+            public void close(org.forgerock.opendj.ldap.requests.UnbindRequest request,
+                    String reason) {
+                // Do nothing.
+            };
+        };
     }
 
     // Prevent instantiation.
