@@ -63,7 +63,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
-import com.forgerock.opendj.util.ConnectionDecorator;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
@@ -76,7 +75,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     /**
      * A connection that sends heart beats and supports all operations.
      */
-    private final class ConnectionImpl extends ConnectionDecorator implements
+    private final class ConnectionImpl extends AbstractConnectionWrapper implements
             ConnectionEventListener, SearchResultHandler {
 
         /**

@@ -25,21 +25,10 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.util;
+package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.ResultHandler;
-import org.forgerock.opendj.ldap.SearchResultHandler;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -60,24 +49,26 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
+import com.forgerock.opendj.util.Validator;
+
 /**
- * A base class from which connection decorators may be easily implemented. The
- * default implementation of each method is to delegate to the decorated
- * connection.
+ * An abstract base class from which connection wrappers may be easily
+ * implemented. The default implementation of each method is to delegate to the
+ * wrapped connection.
  */
-public abstract class ConnectionDecorator implements Connection {
+public abstract class AbstractConnectionWrapper implements Connection {
     /**
-     * The decorated connection.
+     * The wrapped connection.
      */
     protected final Connection connection;
 
     /**
-     * Creates a new connection decorator.
+     * Creates a new connection wrapper.
      *
      * @param connection
-     *            The connection to be decorated.
+     *            The connection to be wrapped.
      */
-    protected ConnectionDecorator(final Connection connection) {
+    protected AbstractConnectionWrapper(final Connection connection) {
         Validator.ensureNotNull(connection);
         this.connection = connection;
     }
@@ -140,7 +131,17 @@ public abstract class ConnectionDecorator implements Connection {
      * The default implementation is to delegate.
      */
     @Override
-    public Result applyChange(ChangeRecord request) throws ErrorResultException {
+    public void addConnectionEventListener(final ConnectionEventListener listener) {
+        connection.addConnectionEventListener(listener);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default implementation is to delegate.
+     */
+    @Override
+    public Result applyChange(final ChangeRecord request) throws ErrorResultException {
         return connection.applyChange(request);
     }
 
@@ -154,16 +155,6 @@ public abstract class ConnectionDecorator implements Connection {
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<? super Result> resultHandler) {
         return connection.applyChangeAsync(request, intermediateResponseHandler, resultHandler);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * The default implementation is to delegate.
-     */
-    @Override
-    public void addConnectionEventListener(final ConnectionEventListener listener) {
-        connection.addConnectionEventListener(listener);
     }
 
     /**
