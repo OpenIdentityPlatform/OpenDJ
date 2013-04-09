@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock, AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -642,9 +643,13 @@ implements Comparator<BaseDNDescriptor>
     {
       s = INFO_BASEDN_REPLICATED_LABEL.get();
     }
-    else
+    else if (rep.getType() == BaseDNDescriptor.Type.NOT_REPLICATED)
     {
       s = INFO_BASEDN_NOT_REPLICATED_LABEL.get();
+    }
+    else
+    {
+      s = INFO_BASEDN_DISABLED_LABEL.get();
     }
     return s.toString();
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock, AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -330,7 +331,9 @@ public class ConfigFromFile extends ConfigReader
                 {
                   if (baseDN.getDn().equals(dn))
                   {
-                    baseDN.setType(BaseDNDescriptor.Type.REPLICATED);
+                    baseDN.setType(sync.isEnabled() ?
+                        BaseDNDescriptor.Type.REPLICATED :
+                          BaseDNDescriptor.Type.DISABLED);
                     baseDN.setReplicaID(domain.getServerId());
                   }
                 }

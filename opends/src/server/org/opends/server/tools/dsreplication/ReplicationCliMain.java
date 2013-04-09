@@ -7416,7 +7416,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         // Replication enabled
         tableBuilder.appendCell(
-          Message.raw(Boolean.toString(replica.isReplicated())));
+          Message.raw(Boolean.toString(replica.isReplicationEnabled())));
 
         // DS instance ID
         tableBuilder.appendCell(
@@ -7494,8 +7494,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           tableBuilder.appendCell(Message.raw(""));
         }
-        tableBuilder.appendCell(
-          Message.raw(Boolean.toString(replica.isReplicated())));
+        tableBuilder.appendCell(Message.raw(""));
       }
     }
 
@@ -7522,7 +7521,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       // Replication enabled
-      tableBuilder.appendCell(Message.raw(Boolean.toString(true)));
+      tableBuilder.appendCell(Boolean.toString(true));
 
       // DS ID
       tableBuilder.appendCell(Message.raw(""));
