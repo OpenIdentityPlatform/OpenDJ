@@ -183,14 +183,15 @@
     <include name="**/bundle/*.jar" />
 
     <exclude name="**/assertj-core.jar" />
+    <exclude name="**/hamcrest-core.jar" />
     <exclude name="**/mockito-core.jar" />
     <exclude name="**/objenesis.jar" />
   </fileset>
 
   <fileset id="opendj.test.jars" dir="${lib.dir}">
     <include name="**/assertj-core.jar" />
-    <include name="**/mockito-core.jar" />
     <include name="**/hamcrest-core.jar" />
+    <include name="**/mockito-core.jar" />
     <include name="**/objenesis.jar" />
   </fileset>
 
@@ -1101,13 +1102,8 @@
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
 
-    <copy todir="${pdir}/lib">
-        <fileset dir="${lib.dir}/jar">
-          <include name="**/*.jar" />
-        </fileset>
-        <fileset dir="${lib.dir}/bundle">
-          <include name="**/*.jar" />
-        </fileset>
+    <copy todir="${pdir}/lib" flatten="true">
+        <fileset refid="opendj.runtime.jars"/>
     </copy>
 
     <copy todir="${pdir}/lib">
