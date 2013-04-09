@@ -178,7 +178,7 @@
   <mediaobject xml:id="figure-replication-topologies-wrong">
    <alt>Two replication topologies, one of which does not work</alt>
    <imageobject>
-    <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
+    <imagedata fileref="images/repl-topologies-wrong.png" format="PNG" />
    </imageobject>
    <textobject>
     <para>You cannot have all servers replicating both
