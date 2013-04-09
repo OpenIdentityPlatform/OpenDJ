@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -430,9 +431,14 @@ public final class Rest2LDAPAuthnFilter implements Filter {
 
                     @Override
                     public void handleResult(final BindResult result) {
-                        // Cache the pre-authenticated connection.
+                        /*
+                         * Cache the pre-authenticated connection and prevent
+                         * downstream components from closing it since this
+                         * filter will close it.
+                         */
                         if (reuseAuthenticatedConnection) {
-                            request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, connection);
+                            request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, Connections
+                                    .uncloseable(connection));
                         }
 
                         // Pass through the authentication ID and authorization principals.

@@ -17,13 +17,13 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 
 import java.io.Closeable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.ResourceException;
@@ -121,7 +121,10 @@ final class Context implements Closeable {
         }
 
         FutureResult<Result> getFutureResult() {
-            // Perform uninterrupted wait since this method is unlikely to block for a long time.
+            /*
+             * Perform uninterrupted wait since this method is unlikely to block
+             * for a long time.
+             */
             boolean wasInterrupted = false;
             while (true) {
                 try {
@@ -197,23 +200,25 @@ final class Context implements Closeable {
     };
 
     private final Config config;
-    private final AtomicReference<Connection> connection = new AtomicReference<Connection>();
     private final ServerContext context;
-    private final Connection preAuthenticatedConnection;
+    private Connection connection;
     private Control proxiedAuthzControl = null;
 
     Context(final Config config, final ServerContext context) {
         this.config = config;
         this.context = context;
 
-        // Re-use the pre-authenticated connection if available and the authorization policy allows.
+        /*
+         * Re-use the pre-authenticated connection if available and the
+         * authorization policy allows.
+         */
         if (config.getAuthorizationPolicy() != AuthorizationPolicy.NONE
                 && context.containsContext(AuthenticatedConnectionContext.class)) {
             final Connection connection =
                     context.asContext(AuthenticatedConnectionContext.class).getConnection();
-            this.preAuthenticatedConnection = connection != null ? wrap(connection) : null;
+            this.connection = wrap(connection);
         } else {
-            this.preAuthenticatedConnection = null;
+            this.connection = null; // We'll allocate the connection.
         }
     }
 
@@ -222,15 +227,7 @@ final class Context implements Closeable {
      */
     @Override
     public void close() {
-        /*
-         * Only release the connection that we acquired. Don't release the
-         * cached connection since that is the responsibility of the component
-         * which acquired it.
-         */
-        final Connection c = connection.getAndSet(null);
-        if (c != null) {
-            c.close();
-        }
+        connection.close();
     }
 
     Config getConfig() {
@@ -238,7 +235,7 @@ final class Context implements Closeable {
     }
 
     Connection getConnection() {
-        return preAuthenticatedConnection != null ? preAuthenticatedConnection : connection.get();
+        return connection;
     }
 
     ServerContext getServerContext() {
@@ -268,8 +265,7 @@ final class Context implements Closeable {
          * cached connection since cached connections are supposed to have been
          * pre-authenticated and therefore do not require proxied authorization.
          */
-        if (preAuthenticatedConnection == null
-                && config.getAuthorizationPolicy() == AuthorizationPolicy.PROXY) {
+        if (connection == null && config.getAuthorizationPolicy() == AuthorizationPolicy.PROXY) {
             if (context.containsContext(SecurityContext.class)) {
                 try {
                     final SecurityContext securityContext =
@@ -283,9 +279,9 @@ final class Context implements Closeable {
                     return;
                 }
             } else {
-                // FIXME: i18n.
                 handler.handleError(new InternalServerErrorException(
-                        "The request could not be authorized because it did not contain a security context"));
+                        i18n("The request could not be authorized because it did "
+                                + "not contain a security context")));
                 return;
             }
         }
@@ -295,7 +291,7 @@ final class Context implements Closeable {
          * requests. A null factory indicates that Rest2LDAP has been configured
          * to re-use the LDAP connection which was used for authentication.
          */
-        if (preAuthenticatedConnection != null) {
+        if (connection != null) {
             // Invoke the handler immediately since a connection is available.
             runnable.run();
         } else if (config.connectionFactory() != null) {
@@ -307,17 +303,14 @@ final class Context implements Closeable {
 
                 @Override
                 public final void handleResult(final Connection result) {
-                    if (!connection.compareAndSet(null, wrap(result))) {
-                        // This should never happen.
-                        throw new IllegalStateException("LDAP connection obtained multiple times");
-                    }
+                    connection = wrap(result);
                     runnable.run();
                 }
             });
         } else {
-            // FIXME: i18n
             handler.handleError(new InternalServerErrorException(
-                    "The request could not be processed because there was no LDAP connection available for use"));
+                    i18n("The request could not be processed because there was no LDAP "
+                            + "connection available for use")));
         }
     }
 

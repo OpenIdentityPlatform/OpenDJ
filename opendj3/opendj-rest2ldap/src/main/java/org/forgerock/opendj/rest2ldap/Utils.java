@@ -57,10 +57,10 @@ final class Utils {
      *            The type of result.
      */
     private static final class AccumulatingResultHandler<V> implements ResultHandler<V> {
+        private ResourceException exception; // Guarded by latch.
         private final ResultHandler<List<V>> handler;
         private final AtomicInteger latch;
         private final List<V> results;
-        private ResourceException exception; // Guarded by latch.
 
         private AccumulatingResultHandler(final int size, final ResultHandler<List<V>> handler) {
             if (size <= 0) {
@@ -88,9 +88,12 @@ final class Utils {
         }
 
         private void latch() {
-            // Invoke the handler once all results have been received. Avoid failing-fast
-            // when an error occurs because some in-flight tasks may depend on resources
-            // (e.g. connections) which are automatically closed on completion.
+            /*
+             * Invoke the handler once all results have been received. Avoid
+             * failing-fast when an error occurs because some in-flight tasks
+             * may depend on resources (e.g. connections) which are
+             * automatically closed on completion.
+             */
             if (latch.decrementAndGet() == 0) {
                 if (exception != null) {
                     handler.handleError(exception);
@@ -217,6 +220,19 @@ final class Utils {
         return a.getAttributeDescription().withoutOption("binary").toString();
     }
 
+    /**
+     * Stub formatter for i18n strings.
+     *
+     * @param format
+     *            The format string.
+     * @param args
+     *            The string arguments.
+     * @return The formatted string.
+     */
+    static String i18n(final String format, final Object... args) {
+        return String.format(format, args);
+    }
+
     static boolean isJSONPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
@@ -322,7 +338,7 @@ final class Utils {
             public void handleResult(final M result) {
                 try {
                     handler.handleResult(f.apply(result, null));
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     handler.handleError(asResourceException(t));
                 }
             }
