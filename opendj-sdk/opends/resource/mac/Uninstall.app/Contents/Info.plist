@@ -47,6 +47,8 @@
 			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_TW.jar</string>
 			</array>
 	</dict>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 </dict>
 </plist>
 
