@@ -28,6 +28,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
@@ -36,7 +37,6 @@ import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
-import com.forgerock.opendj.util.ConnectionDecorator;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.Validator;
@@ -67,7 +67,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      * An authenticated connection supports all operations except Bind
      * operations.
      */
-    static final class AuthenticatedConnection extends ConnectionDecorator {
+    static final class AuthenticatedConnection extends AbstractConnectionWrapper {
 
         private final BindRequest request;
 
