@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -61,7 +62,6 @@ public enum PersistentSearchChangeType {
     MODIFY_DN(8, "modifyDN");
 
     private final String name;
-
     private final int intValue;
 
     private PersistentSearchChangeType(final int intValue, final String name) {
@@ -78,11 +78,12 @@ public enum PersistentSearchChangeType {
     }
 
     /**
-     * Returns the integer value for this change type.
+     * Returns the integer value for this change type as defined in the internet
+     * draft.
      *
      * @return The integer value for this change type.
      */
-    int intValue() {
+    public int intValue() {
         return intValue;
     }
 }
