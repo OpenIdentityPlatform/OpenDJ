@@ -16,6 +16,7 @@
 
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.isJSONPrimitive;
 
 import java.util.ArrayList;
@@ -53,8 +54,8 @@ final class AuthzIdTemplate {
                 DN.valueOf(authzId.substring(3), schema);
             } catch (final IllegalArgumentException e) {
                 throw new ForbiddenException(
-                        "The request could not be authorized because the required security principal "
-                                + " was not a valid LDAP DN");
+                        i18n("The request could not be authorized because the required "
+                                + "security principal was not a valid LDAP DN"));
             }
             return authzId;
         }
@@ -135,15 +136,13 @@ final class AuthzIdTemplate {
             if (isJSONPrimitive(value)) {
                 values[i] = String.valueOf(value);
             } else if (value == null) {
-                // FIXME: i18n.
-                throw new ForbiddenException(
-                        "The request could not be authorized because the required security principal "
-                                + key + " could not be determined");
+                throw new ForbiddenException(i18n(
+                        "The request could not be authorized because the required "
+                                + "security principal '%s' could not be determined", key));
             } else {
-                // FIXME: i18n.
-                throw new ForbiddenException(
-                        "The request could not be authorized because the required security principal "
-                                + key + " had an invalid data type");
+                throw new ForbiddenException(i18n(
+                        "The request could not be authorized because the required "
+                                + "security principal '%s' had an invalid data type", key));
             }
         }
         return values;

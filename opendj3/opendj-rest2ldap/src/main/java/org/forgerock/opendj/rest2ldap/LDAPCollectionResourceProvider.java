@@ -17,9 +17,14 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
+import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
@@ -39,8 +44,10 @@ import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
+import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchRequest;
+import org.forgerock.json.resource.PreconditionFailedException;
 import org.forgerock.json.resource.QueryFilter;
 import org.forgerock.json.resource.QueryFilterVisitor;
 import org.forgerock.json.resource.QueryRequest;
@@ -61,16 +68,19 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
+import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
+import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -126,22 +136,31 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             @Override
             public void run() {
                 // Calculate entry content.
-                attributeMapper.toLDAP(c, request.getContent(),
-                        new ResultHandler<List<Attribute>>() {
+                attributeMapper.toLDAP(c, new JsonPointer(), null, request.getContent(),
+                        new ResultHandler<List<Modification>>() {
                             @Override
                             public void handleError(final ResourceException error) {
                                 h.handleError(error);
                             }
 
                             @Override
-                            public void handleResult(final List<Attribute> result) {
+                            public void handleResult(final List<Modification> result) {
                                 // Perform add operation.
-                                final AddRequest addRequest = Requests.newAddRequest(DN.rootDN());
+                                final AddRequest addRequest = newAddRequest(DN.rootDN());
                                 for (final Attribute attribute : additionalLDAPAttributes) {
                                     addRequest.addAttribute(attribute);
                                 }
-                                for (final Attribute attribute : result) {
-                                    addRequest.addAttribute(attribute);
+                                for (final Modification modification : result) {
+                                    if (modification.getModificationType() == ModificationType.ADD
+                                            || modification.getModificationType() == ModificationType.REPLACE) {
+                                        addRequest.addAttribute(modification.getAttribute());
+                                    } else {
+                                        // Attribute mappers must return add/replace updates.
+                                        h.handleError(new InternalServerErrorException(
+                                                i18n("Attribute mapper returned a modification which "
+                                                        + "does not add an attribute")));
+                                        return;
+                                    }
                                 }
                                 try {
                                     nameStrategy.setResourceId(c, getBaseDN(c), request
@@ -175,9 +194,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             @Override
             public void run() {
                 // Find the entry and then delete it.
+                final String ldapAttribute =
+                        (etagAttribute != null && request.getRevision() != null) ? etagAttribute
+                                .toString() : "1.1";
                 final SearchRequest searchRequest =
                         nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
-                                "1.1");
+                                ldapAttribute);
                 c.getConnection().searchSingleEntryAsync(searchRequest,
                         new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
                             @Override
@@ -188,9 +210,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                             @Override
                             public void handleResult(final SearchResultEntry entry) {
                                 try {
+                                    // Fail-fast if there is a version mismatch.
+                                    ensureMVCCVersionMatches(entry, request.getRevision());
+
                                     // Perform delete operation.
                                     final ChangeRecord deleteRequest =
-                                            Requests.newDeleteRequest(entry.getName());
+                                            newDeleteRequest(entry.getName());
                                     if (config.readOnUpdatePolicy() == CONTROLS) {
                                         final String[] attributes =
                                                 getLDAPAttributes(c, request.getFields());
@@ -225,7 +250,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final QueryResultHandler h = wrap(c, handler);
 
-        // Get the connection, then calculate the search filter, then perform the search.
+        /*
+         * Get the connection, then calculate the search filter, then perform
+         * the search.
+         */
         c.run(h, new Runnable() {
             @Override
             public void run() {
@@ -238,17 +266,19 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
                     @Override
                     public void handleResult(final Filter ldapFilter) {
-                        // Avoid performing a search if the filter could not be mapped or if it will never match.
+                        /*
+                         * Avoid performing a search if the filter could not be
+                         * mapped or if it will never match.
+                         */
                         if (ldapFilter == null || ldapFilter == alwaysFalse()) {
                             h.handleResult(new QueryResult());
                         } else {
                             // Perform the search.
                             final String[] attributes = getLDAPAttributes(c, request.getFields());
                             final SearchRequest request =
-                                    Requests.newSearchRequest(getBaseDN(c),
-                                            SearchScope.SINGLE_LEVEL, ldapFilter == Filter
-                                                    .alwaysTrue() ? Filter.objectClassPresent()
-                                                    : ldapFilter, attributes);
+                                    newSearchRequest(getBaseDN(c), SearchScope.SINGLE_LEVEL,
+                                            ldapFilter == Filter.alwaysTrue() ? Filter
+                                                    .objectClassPresent() : ldapFilter, attributes);
                             c.getConnection().searchAsync(request, null, new SearchResultHandler() {
                                 private final AtomicInteger pendingResourceCount =
                                         new AtomicInteger();
@@ -291,7 +321,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             };
 
                                     pendingResourceCount.incrementAndGet();
-                                    attributeMapper.toJSON(c, entry, mapHandler);
+                                    attributeMapper.toJSON(c, new JsonPointer(), entry, mapHandler);
                                     return true;
                                 }
 
@@ -373,31 +403,132 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     @Override
     public void updateInstance(final ServerContext context, final String resourceId,
             final UpdateRequest request, final ResultHandler<Resource> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+        /*
+         * Update operations are a bit awkward because there is not direct
+         * mapping to LDAP. We need to convert the update request into an LDAP
+         * modify operation which means reading the current LDAP entry,
+         * generating the new entry content, then comparing the two in order to
+         * obtain a set of changes. We also need to handle read-only fields
+         * correctly: if a read-only field is included with the new resource
+         * then it must match exactly the value of the existing field.
+         */
+        final Context c = wrap(context);
+        final ResultHandler<Resource> h = wrap(c, handler);
+
+        // Get connection then perform the search.
+        c.run(h, new Runnable() {
+            @Override
+            public void run() {
+                // First of all read the existing entry.
+                final String[] attributes =
+                        getLDAPAttributes(c, Collections.<JsonPointer> emptyList());
+                final SearchRequest searchRequest =
+                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
+                                attributes);
+                c.getConnection().searchSingleEntryAsync(searchRequest,
+                        new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+                            @Override
+                            public void handleErrorResult(final ErrorResultException error) {
+                                h.handleError(asResourceException(error));
+                            }
+
+                            @Override
+                            public void handleResult(final SearchResultEntry entry) {
+                                try {
+                                    // Fail-fast if there is a version mismatch.
+                                    ensureMVCCVersionMatches(entry, request.getRevision());
+
+                                    //  Create the modify request.
+                                    final ModifyRequest modifyRequest =
+                                            newModifyRequest(entry.getName());
+                                    if (config.readOnUpdatePolicy() == CONTROLS) {
+                                        final String[] attributes =
+                                                getLDAPAttributes(c, request.getFields());
+                                        modifyRequest.addControl(PostReadRequestControl.newControl(
+                                                false, attributes));
+                                    }
+                                    if (config.usePermissiveModify()) {
+                                        modifyRequest.addControl(PermissiveModifyRequestControl
+                                                .newControl(true));
+                                    }
+                                    addAssertionControl(modifyRequest, request.getRevision());
+
+                                    /*
+                                     * Determine the set of changes that need to
+                                     * be performed.
+                                     */
+                                    attributeMapper.toLDAP(c, new JsonPointer(), entry, request
+                                            .getNewContent(),
+                                            new ResultHandler<List<Modification>>() {
+                                                @Override
+                                                public void handleError(
+                                                        final ResourceException error) {
+                                                    h.handleError(error);
+                                                }
+
+                                                @Override
+                                                public void handleResult(
+                                                        final List<Modification> result) {
+                                                    // Perform the modify operation.
+                                                    modifyRequest.getModifications().addAll(result);
+                                                    c.getConnection().applyChangeAsync(
+                                                            modifyRequest, null,
+                                                            postUpdateHandler(c, h));
+                                                }
+                                            });
+                                } catch (final Exception e) {
+                                    h.handleError(asResourceException(e));
+                                }
+                            }
+                        });
+            }
+        });
     }
 
     private void adaptEntry(final Context c, final Entry entry,
             final ResultHandler<Resource> handler) {
         final String actualResourceId = nameStrategy.getResourceId(c, entry);
         final String revision = getRevisionFromEntry(entry);
-        attributeMapper.toJSON(c, entry, transform(new Function<JsonValue, Resource, Void>() {
-            @Override
-            public Resource apply(final JsonValue value, final Void p) {
-                return new Resource(actualResourceId, revision, new JsonValue(value));
-            }
-        }, handler));
+        attributeMapper.toJSON(c, new JsonPointer(), entry, transform(
+                new Function<JsonValue, Resource, Void>() {
+                    @Override
+                    public Resource apply(final JsonValue value, final Void p) {
+                        return new Resource(actualResourceId, revision, new JsonValue(value));
+                    }
+                }, handler));
     }
 
-    private void addAssertionControl(final ChangeRecord request, final String revision)
-            throws NotSupportedException {
-        if (revision != null) {
-            if (etagAttribute != null) {
-                request.addControl(AssertionRequestControl.newControl(true, Filter.equality(
-                        etagAttribute.toString(), revision)));
-            } else {
-                // FIXME: i18n
-                throw new NotSupportedException(
-                        "Multi-version concurrency control is not supported by this resource");
+    private void addAssertionControl(final ChangeRecord request, final String expectedRevision)
+            throws ResourceException {
+        if (expectedRevision != null) {
+            ensureMVCCSupported();
+            request.addControl(AssertionRequestControl.newControl(true, Filter.equality(
+                    etagAttribute.toString(), expectedRevision)));
+        }
+    }
+
+    private void ensureMVCCSupported() throws NotSupportedException {
+        if (etagAttribute == null) {
+            throw new NotSupportedException(
+                    i18n("Multi-version concurrency control is not supported by this resource"));
+        }
+    }
+
+    private void ensureMVCCVersionMatches(final Entry entry, final String expectedRevision)
+            throws ResourceException {
+        if (expectedRevision != null) {
+            ensureMVCCSupported();
+            final String actualRevision = entry.parseAttribute(etagAttribute).asString();
+            if (actualRevision == null) {
+                throw new PreconditionFailedException(i18n(
+                        "The resource could not be accessed because it did not contain any "
+                                + "version information, when the version '%s' was expected",
+                        expectedRevision));
+            } else if (!expectedRevision.equals(actualRevision)) {
+                throw new PreconditionFailedException(i18n(
+                        "The resource could not be accessed because the expected version '%s' "
+                                + "does not match the current version '%s'", expectedRevision,
+                        actualRevision));
             }
         }
     }
@@ -422,12 +553,14 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         if (requestedAttributes.isEmpty()) {
             // Full read.
             requestedLDAPAttributes = new LinkedHashSet<String>();
-            attributeMapper.getLDAPAttributes(c, new JsonPointer(), requestedLDAPAttributes);
+            attributeMapper.getLDAPAttributes(c, new JsonPointer(), new JsonPointer(),
+                    requestedLDAPAttributes);
         } else {
             // Partial read.
             requestedLDAPAttributes = new LinkedHashSet<String>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributes(c, requestedAttribute, requestedLDAPAttributes);
+                attributeMapper.getLDAPAttributes(c, new JsonPointer(), requestedAttribute,
+                        requestedLDAPAttributes);
             }
         }
 
@@ -488,16 +621,16 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Void visitContainsFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.CONTAINS, field, null,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.CONTAINS, null, valueAssertion, p);
                         return null;
                     }
 
                     @Override
                     public Void visitEqualsFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.EQUAL_TO, field, null,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.EQUAL_TO, null, valueAssertion, p);
                         return null;
                     }
 
@@ -505,40 +638,40 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     public Void visitExtendedMatchFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final String operator,
                             final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.EXTENDED, field, operator,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.EXTENDED, operator, valueAssertion, p);
                         return null;
                     }
 
                     @Override
                     public Void visitGreaterThanFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.GREATER_THAN, field, null,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.GREATER_THAN, null, valueAssertion, p);
                         return null;
                     }
 
                     @Override
                     public Void visitGreaterThanOrEqualToFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.GREATER_THAN_OR_EQUAL_TO,
-                                field, null, valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.GREATER_THAN_OR_EQUAL_TO, null, valueAssertion, p);
                         return null;
                     }
 
                     @Override
                     public Void visitLessThanFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.LESS_THAN, field, null,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.LESS_THAN, null, valueAssertion, p);
                         return null;
                     }
 
                     @Override
                     public Void visitLessThanOrEqualToFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.LESS_THAN_OR_EQUAL_TO, field,
-                                null, valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.LESS_THAN_OR_EQUAL_TO, null, valueAssertion, p);
                         return null;
                     }
 
@@ -598,20 +731,24 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Void visitPresentFilter(final ResultHandler<Filter> p,
                             final JsonPointer field) {
-                        attributeMapper.getLDAPFilter(c, FilterType.PRESENT, field, null, null, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.PRESENT, null, null, p);
                         return null;
                     }
 
                     @Override
                     public Void visitStartsWithFilter(final ResultHandler<Filter> p,
                             final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, FilterType.STARTS_WITH, field, null,
-                                valueAssertion, p);
+                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
+                                FilterType.STARTS_WITH, null, valueAssertion, p);
                         return null;
                     }
 
                 };
-        // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
+        /*
+         * Note that the returned LDAP filter may be null if it could not be
+         * mapped by any attribute mappers.
+         */
         queryFilter.accept(visitor, h);
     }
 

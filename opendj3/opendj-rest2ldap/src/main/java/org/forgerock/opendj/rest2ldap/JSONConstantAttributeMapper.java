@@ -27,9 +27,9 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.Modification;
 
 /**
  * An attribute mapper which maps a single JSON attribute to a fixed value.
@@ -42,16 +42,17 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void getLDAPAttributes(final Context c, final JsonPointer jsonAttribute,
+    void getLDAPAttributes(final Context c, final JsonPointer path, final JsonPointer subPath,
             final Set<String> ldapAttributes) {
         // Nothing to do.
     }
 
     @Override
-    void getLDAPFilter(final Context c, final FilterType type, final JsonPointer jsonAttribute,
-            final String operator, final Object valueAssertion, final ResultHandler<Filter> h) {
+    void getLDAPFilter(final Context c, final JsonPointer path, final JsonPointer subPath,
+            final FilterType type, final String operator, final Object valueAssertion,
+            final ResultHandler<Filter> h) {
         final Filter filter;
-        final JsonValue subValue = value.get(jsonAttribute);
+        final JsonValue subValue = value.get(subPath);
         if (subValue == null) {
             filter = alwaysFalse();
         } else if (type == FilterType.PRESENT) {
@@ -86,14 +87,16 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void toJSON(final Context c, final Entry e, final ResultHandler<JsonValue> h) {
+    void toJSON(final Context c, final JsonPointer path, final Entry e,
+            final ResultHandler<JsonValue> h) {
         h.handleResult(value.copy());
     }
 
     @Override
-    void toLDAP(final Context c, final JsonValue v, final ResultHandler<List<Attribute>> h) {
+    void toLDAP(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
+            final ResultHandler<List<Modification>> h) {
         // FIXME: should we check if the provided value matches the constant?
-        h.handleResult(Collections.<Attribute> emptyList());
+        h.handleResult(Collections.<Modification> emptyList());
     }
 
     private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,
