@@ -583,7 +583,6 @@ public final class TextAccessLogPublisher extends
       // down below
       buffer.append(" authFailureID=");
       buffer.append(failureMessage.getDescriptor().getId());
-      buffer.append(" ");
       appendLabel(buffer, "authFailureReason", failureMessage);
       if (bindOperation.getSASLMechanism() != null
           && bindOperation.getSASLAuthUserEntry() != null)
@@ -821,7 +820,6 @@ public final class TextAccessLogPublisher extends
     buffer.append("]");
     buffer.append(" DISCONNECT conn=");
     buffer.append(connectionID);
-    buffer.append(" ");
     appendLabel(buffer, "reason", disconnectReason);
     appendLabelIfNotNull(buffer, "msg", message);
 
