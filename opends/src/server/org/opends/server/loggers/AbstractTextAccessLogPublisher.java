@@ -29,9 +29,8 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -1063,8 +1062,14 @@ public abstract class AbstractTextAccessLogPublisher
 
 
 
-    // Determines whether the provided operation should be logged.
-    private boolean isLoggable(final Operation operation)
+    /**
+     * Determines whether the provided operation should be logged.
+     *
+     * @param operation
+     *          the operation to check
+     * @return true if the operation is loggable, false otherwise
+     */
+    boolean isLoggable(final Operation operation)
     {
       final long connectionID = operation.getConnectionID();
       if (connectionID < 0)
