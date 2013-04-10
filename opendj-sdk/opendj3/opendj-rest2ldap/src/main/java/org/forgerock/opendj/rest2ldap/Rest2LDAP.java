@@ -198,11 +198,19 @@ public final class Rest2LDAP {
                 useEtagAttribute(etagAttribute.asString());
             }
 
+            /*
+             * Default to false, even though it is supported by OpenDJ, because
+             * it requires additional permissions.
+             */
             if (configuration.get("useSubtreeDelete").defaultTo(false).asBoolean()) {
                 useSubtreeDelete();
             }
 
-            if (configuration.get("usePermissiveModify").defaultTo(false).asBoolean()) {
+            /*
+             * Default to true because it is supported by OpenDJ and does not
+             * require additional permissions.
+             */
+            if (configuration.get("usePermissiveModify").defaultTo(true).asBoolean()) {
                 usePermissiveModify();
             }
 

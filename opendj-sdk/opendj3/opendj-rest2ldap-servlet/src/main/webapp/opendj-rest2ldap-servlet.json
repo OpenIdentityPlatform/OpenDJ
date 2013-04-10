@@ -136,7 +136,7 @@
             "/users" : {
                 "baseDN"              : "ou=people,dc=example,dc=com",
                 "readOnUpdatePolicy"  : "controls",
-                "useSubtreeDelete"    : true,
+                "useSubtreeDelete"    : false,
                 "usePermissiveModify" : true,
                 "etagAttribute"       : "etag",
                 "namingStrategy"      : {
@@ -195,7 +195,7 @@
             "/groups" : {
                 "baseDN"              : "ou=groups,dc=example,dc=com",
                 "readOnUpdatePolicy"  : "controls",
-                "useSubtreeDelete"    : true,
+                "useSubtreeDelete"    : false,
                 "usePermissiveModify" : true,
                 "etagAttribute"       : "etag",
                 "namingStrategy"      : {
