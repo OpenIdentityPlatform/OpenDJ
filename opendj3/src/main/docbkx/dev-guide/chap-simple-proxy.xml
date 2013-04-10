@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-simple-proxy'
@@ -122,9 +122,38 @@ factories.add(Connections.newFixedConnectionPool(Connections
   of connection factories, such as those that you set up for connection
   pooling.</para>
 
+  <para>The following excerpt shows how to set up round robin load balancing
+  across directory servers.</para>
+
   <programlisting language="java"
->final RoundRobinLoadBalancingAlgorithm algorithm =
+  >final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
+
+// Set up a ConnectionFactory for each directory server in the pool as shown in
+// the previous example, and then set up a load balancer.
+
+final RoundRobinLoadBalancingAlgorithm algorithm =
         new RoundRobinLoadBalancingAlgorithm(factories);
+
+final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
+
+  <para>With multiple pools of directory servers, for example in a deployment
+  across multiple data centers, also use fail over load balancing. Fail over
+  load balancing directs all requests to the first (preferred) pool of servers
+  until problems are encountered with the connections to that pool. Then it
+  fails over to the next pool in the list. Therefore in each data center you
+  can set up round robin load balancing, and then set up fail over load
+  balancing across data centers.</para>
+
+  <programlisting language="java"
+  >// localFactory:  ConnectionFactory to servers in the local data center
+// remoteFactory: ConnectionFactory for servers in a remote data center
+// localFactory and remoteFactory use round robin load balancing "internally".
+
+final List&lt;ConnectionFactory&gt; factories =
+        Arrays.asList(localFactory, remoteFactory);
+
+final FailoverLoadBalancingAlgorithm algorithm =
+        new FailoverLoadBalancingAlgorithm(factories);
 
 final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
 
