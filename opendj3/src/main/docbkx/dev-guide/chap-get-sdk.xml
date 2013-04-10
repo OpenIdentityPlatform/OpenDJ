@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-get-sdk'
@@ -48,7 +48,7 @@
   for use with any server that complies with the <citetitle>Lightweight
   Directory Access Protocol (LDAP): Technical Specification Road
   Map</citetitle>, <link xlink:href='http://tools.ietf.org/html/rfc4510'
-  >RFC 4510</link>.</para>
+  xlink:show="new">RFC 4510</link>.</para>
 
   <para>OpenDJ LDAP SDK brings you easy-to-use connection management, connection
   pooling, load balancing, and all the standard LDAP operations to read and
@@ -83,7 +83,7 @@
   <para>Before you either download a build of OpenDJ LDAP SDK, or get the
   source code to build your own SDK, make sure you have a Java Development Kit
   installed. See the <citetitle>Release Notes</citetitle> section on
-  <link xlink:href="release-notes#prerequisites-java"
+  <link xlink:href="release-notes#prerequisites-java" xlink:show="new"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
   Environment</citetitle></link> requirements.</para>
 
@@ -131,17 +131,17 @@
    </step>
   </procedure>
 
-  <procedure xml:id="install-stable-sdk">
-   <title>To Install the Latest Stable SDK &amp; Tools</title>
+  <procedure xml:id="install-latest-sdk">
+   <title>To Install the Latest SDK &amp; Tools</title>
    <indexterm>
     <primary>Installing</primary>
     <secondary>From download</secondary>
    </indexterm>
 
    <step>
-    <para>Download the latest OpenDJ LDAP Client Toolkit from the <link
-    xlink:href="http://forgerock.org/opendj.html"
-    xlink:show="new">download page</link>.</para>
+    <para>Download the latest OpenDJ LDAP Client Toolkit nightly build from the
+    <link xlink:href="http://forgerock.org/opendj.html" xlink:show="new"
+    >Nightly Builds</link> page.</para>
    </step>
    <step>
     <para>Unzip the bundle,
@@ -162,12 +162,12 @@ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat:%PA
      <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
      <screen>(UNIX)
 $ export CLASSPATH=/path/to/lib/grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/i18n-core-1.4.0.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
 C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.4.0.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:%CLASSPATH%</screen>
     </step>
   </procedure>
@@ -186,20 +186,8 @@ C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.ja
    <step>
     <para>Check out the source code.</para>
     <screen>$ svn co https://svn.forgerock.org/opendj/trunk/opendj3
-Error validating server certificate for 'https://svn.forgerock.org:443':
- - The certificate is not issued by a trusted authority. Use the
-   fingerprint to validate the certificate manually!
-Certificate information:
- - Hostname: svn.forgerock.org
- - Valid: from Wed, 23 Feb 2011 00:30:37 GMT until Thu, 23 Feb 2012 21:00:01 GMT
- - Issuer: Secure Digital Certificate Signing, StartCom Ltd., IL
- - Fingerprint: 73:96:5c:68:2c:f3:57:0e:e9:ee:6d:74:08:1b:34:16:53:b8:bd:39
-(R)eject, accept (t)emporarily or accept (p)ermanently? p
 ...
-A    opendj3/README
-U    opendj3
-...
-Checked out revision 6985.</screen>
+Checked out revision <replaceable>XXXX</replaceable>.</screen>
    </step>
    <step>
     <para>Build the modules and install them in the local repository.</para>
@@ -207,20 +195,23 @@ Checked out revision 6985.</screen>
 $ mvn install
 [INFO] Scanning for projects...
 [INFO] ------------------------------------------------------------------------
-[INFO] Reactor build order:
-[INFO] 
+[INFO] Reactor Build Order:
+[INFO]
 [INFO] OpenDJ Directory Services Project
-[INFO] OpenDJ Maven Build Tools
 [INFO] OpenDJ LDAP SDK
 [INFO] OpenDJ LDAP Toolkit
 [INFO] OpenDJ LDAP SDK Examples
-...
+[INFO] OpenDJ Commons REST Adapter
+[INFO] OpenDJ Commons REST LDAP Gateway
+[INFO] OpenDJ Server 2.x Adapter
+[INFO]
+       ...
 [INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESSFUL
+[INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 56.658s
-[INFO] Finished at: Wed Jun 08 09:19:57 CEST 2011
-[INFO] Final Memory: 27M/87M
+[INFO] Total time: 2:51.315s
+[INFO] Finished at: Wed Apr 10 14:28:36 CEST 2013
+[INFO] Final Memory: 37M/382M
 [INFO] ------------------------------------------------------------------------</screen>
    </step>
    <step>
@@ -230,15 +221,17 @@ $ mvn install
    <step>
     <para>Add the <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>
     (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat</filename>
-    (Windows) directory to your
-    PATH.</para>
+    (Windows) directory to your PATH.</para>
    </step>
    <step>
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
     <filename>opendj-ldap-sdk-<?eval ${currentSDKVersion}?>.jar</filename>, 
-    the I18N core library, <filename>i18n-core-1.4.0.jar</filename>, and the Grizzly
-    framework, <filename>grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar</filename>
-    under <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
+    the I18N core library,
+    <filename>i18n-core-<?eval ${i18nFrameworkVersion}?>.jar</filename>, and the
+    Grizzly framework,
+    <filename>grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar</filename>
+    under
+    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
    </step>
   </procedure>
 

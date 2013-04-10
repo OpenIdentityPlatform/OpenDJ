@@ -40,7 +40,7 @@
   <step xml:id="check-for-java">
    <para>Make sure you have the correct Java environment installed, as
    described in the <citetitle>Release Notes</citetitle> section on <link
-   xlink:href="release-notes#prerequisites-java"
+   xlink:href="release-notes#prerequisites-java" xlink:show="new"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
    Environment</citetitle></link> requirements.</para>
 
@@ -56,22 +56,25 @@
   <step xml:id="download-opendj">
    <indexterm><primary>Downloading OpenDJ</primary></indexterm>
    
-   <para>Get the appropriate installation packages from the <link
-     xlink:href='http://www.forgerock.org/opendj.html'
-     >OpenDJ download page</link>.</para>
+   <xinclude:include href="../shared/itemizedlist-download.xml" />
+
    <variablelist>
+    <para>The following server software is available.</para>
+
     <varlistentry>
      <term>OpenDJ-<?eval ${docTargetVersion}?>.zip</term>
      <listitem>
       <para>Cross-platform OpenDJ directory server installation files</para>
      </listitem>
     </varlistentry>
+
     <varlistentry>
      <term>opendj.zip</term>
      <listitem>
       <para>SVR4 format native packages for Solaris</para>
      </listitem>
     </varlistentry>
+
     <varlistentry>
      <term>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</term>
      <listitem>
@@ -232,7 +235,7 @@ To see basic server configuration status and configuration you can launch \
       <term>Initial root user password</term>
       <listitem>
         <para>The root user will use simple, password-based authentication.
-        Later you can limit cleartext access to avoid snooping, but for
+        Later you can limit clear text access to avoid snooping, but for
         now use a strong password here unless this is a throwaway server.</para>
       </listitem>
     </varlistentry>
@@ -523,8 +526,8 @@ To see basic server configuration status and configuration you can launch
    <para>The following command reads Babs Jensen's entry through the gateway
    to the backend holding data from <filename>Example.ldif</filename>.</para>
 
-   <screen>$ curl
- http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
+   <screen
+   >$ curl http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
 {
   "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],

@@ -77,9 +77,9 @@
    <para>You can find the tools under the <filename>bin/</filename> or
    <filename>bat\</filename> folder where you installed OpenDJ LDAP SDK
    toolkit as described in the procedure explaining how <link
-   xlink:href="dev-guide#install-stable-sdk"
+   xlink:href="dev-guide#install-latest-sdk"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install the
-   Latest Stable SDK &amp; Tools</citetitle></link>. For example,
+   Latest SDK &amp; Tools</citetitle></link>. For example,
    <filename>/path/to/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>.</para>
   </partintro>
 
