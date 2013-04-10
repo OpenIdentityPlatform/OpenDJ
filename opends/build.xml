@@ -178,6 +178,7 @@
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
 
+  <!-- sort-of Maven like properties for opendj dependencies-->
   <fileset id="opendj.runtime.jars" dir="${lib.dir}">
     <include name="**/jar/*.jar" />
     <include name="**/bundle/*.jar" />
@@ -1214,16 +1215,41 @@
     </chmod>
 
     <chmod perm="755">
-      <fileset dir="${pdir}/bin">
-      </fileset>
+      <fileset dir="${pdir}/bin" />
     </chmod>
     <chmod file="${pdir}/lib/_client-script.sh" perm="755" />
     <chmod file="${pdir}/lib/_server-script.sh" perm="755" />
-    <chmod file="${pdir}/lib/_mixed-script.sh" perm="755" />
-    <chmod file="${pdir}/lib/_script-util.sh" perm="755" />
+    <chmod file="${pdir}/lib/_mixed-script.sh"  perm="755" />
+    <chmod file="${pdir}/lib/_script-util.sh"   perm="755" />
+
+    <!-- Append all the claspath entries to the plist files for MacOS -->
+    <taskdef name="foreach" classname="net.sf.antcontrib.logic.ForEach" classpath="${ant.lib.dir}/ant-contrib-1.0b3.jar" />
+    <foreach target="append-jar-to-plist-file" param="classpath.entry" inheritall="true">
+      <path>
+        <fileset dir="${pdir}/lib">
+          <include name="*.jar" />
+        </fileset>
+      </path>
+    </foreach>
   </target>
 
 
+  <target name="append-jar-to-plist-file">
+    <basename property="jarfile" file="${classpath.entry}" />
+    <echo message="appending ${jarfile}" />
+    <replace file="${pdir}/bin/ControlPanel.app/Contents/Info.plist"
+             token="&lt;/array&gt;"
+             value="&lt;string&gt;$JAVAROOT/../../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
+    />
+    <replace file="${pdir}/QuickSetup.app/Contents/Info.plist"
+             token="&lt;/array&gt;"
+             value="&lt;string&gt;$JAVAROOT/../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
+    />
+    <replace file="${pdir}/Uninstall.app/Contents/Info.plist"
+             token="&lt;/array&gt;"
+             value="&lt;string&gt;$JAVAROOT/../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
+    />
+  </target>
 
 
   <!-- Package the Directory Server for distribution. -->

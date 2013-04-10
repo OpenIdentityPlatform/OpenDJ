@@ -31,21 +31,9 @@
 		<key>JVMVersion</key>
 		<string>1.6+</string>
 		<key>ClassPath</key>
-			<array>
-			<string>$JAVAROOT/../../../../lib/OpenDJ.jar</string>
-			<string>$JAVAROOT/../../../../lib/activation.jar</string>
-			<string>$JAVAROOT/../../../../lib/je.jar</string>
-			<string>$JAVAROOT/../../../../lib/mail.jar</string>
-			<string>$JAVAROOT/../../../../lib/quicksetup.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_ca_ES.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_de.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_es.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_fr.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_ja.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_pl.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_CN.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_TW.jar</string>
-			</array>
+		<array>
+<string>$JAVAROOT/../../../../classes</string>
+		</array>
 	</dict>
 	<key>NSHighResolutionCapable</key>
 	<true/>
