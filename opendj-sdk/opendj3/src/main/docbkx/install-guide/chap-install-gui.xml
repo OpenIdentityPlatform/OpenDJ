@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-install-gui'
@@ -35,19 +35,17 @@
  
  <para>If you want only to try OpenDJ server software, and you do not plan to
  store any real or important data that you want to keep, then read only this
- section, or just try out installation without reading any further. Visit the
- <link xlink:href='http://www.forgerock.org/opendj.html'>download
- page</link>, and click the first link on the left for the latest release
- to start the Java WebStart installer directly from your browser.</para>
+ section, or just try out installation without reading any further.</para>
 
- <para>Java WebStart lets you perform an installation of OpenDJ directory
- server starting with a click in your web browser, which can be a great way
- to try OpenDJ directory server for the first time, or to do a quick test
- installation. You can also upgrade an OpenDJ directory server through the
- WebStart installer.</para>
+ <xinclude:include href="../shared/itemizedlist-download.xml" />
+
+ <para>The Quick Setup and Nightly Build links use Java WebStart to let you
+ perform an installation of OpenDJ directory server starting with a click in
+ your web browser, which can be a great way to try OpenDJ directory server for
+ the first time, or to do a quick test installation.</para>
 
  <note>
-  <para>OpenDJ directory server relies on Java 6, so if your browser
+  <para>OpenDJ directory server relies on Java 6 or later, so if your browser
   picks up an old installation of Java 5 for example, installation can
   fail. You might see an application error message such as this:</para>
  
@@ -71,12 +69,6 @@
 
  <screen>$ export PATH=/path/to/java6/bin:$PATH
 $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
-
- <para>The <replaceable>URL-to-QuickSetup-Installer</replaceable> includes the
- version of OpenDJ. For example,
- <replaceable>URL-to-QuickSetup-Installer</replaceable> for version
- <?eval ${docTargetVersion}?> is
- <literal>http://download.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/install/QuickSetup.jnlp</literal>.</para>
 
  <para>The WebStart installer corresponds to what you start if you download
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
@@ -147,7 +139,7 @@ $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
   <caption><para>Run <command>OpenDJ-<?eval
   ${docTargetVersion}?>/bin/control-panel</command> (UNIX), double-click
   <command>OpenDJ-<?eval ${docTargetVersion}?>\bat\control-panel.bat</command>
-  (Windows), or bin/Control Panel.app (Mac OS X) to launch the Control Panel
-  again later.</para></caption>
+  (Windows), or <command>bin/Control Panel.app</command> (Mac OS X) to launch
+  the Control Panel again later.</para></caption>
  </mediaobject>
 </chapter>
