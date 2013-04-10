@@ -30,15 +30,17 @@ final class Config {
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
     private final Schema schema;
     private final boolean useSubtreeDelete;
+    private final boolean usePermissiveModify;
 
     Config(final ConnectionFactory factory, final ReadOnUpdatePolicy readOnUpdatePolicy,
             final AuthorizationPolicy authzPolicy, final AuthzIdTemplate proxiedAuthzTemplate,
-            final boolean useSubtreeDelete, final Schema schema) {
+            final boolean useSubtreeDelete, final boolean usePermissiveModify, final Schema schema) {
         this.factory = factory;
         this.readOnUpdatePolicy = readOnUpdatePolicy;
         this.authzPolicy = authzPolicy;
         this.proxiedAuthzTemplate = proxiedAuthzTemplate;
         this.useSubtreeDelete = useSubtreeDelete;
+        this.usePermissiveModify = usePermissiveModify;
         this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
     }
@@ -85,6 +87,17 @@ final class Config {
      */
     AuthzIdTemplate getProxiedAuthorizationTemplate() {
         return proxiedAuthzTemplate;
+    }
+
+    /**
+     * Returns {@code true} if modify requests should include the permissive
+     * modify control.
+     *
+     * @return {@code true} if modify requests should include the permissive
+     *         modify control.
+     */
+    boolean usePermissiveModify() {
+        return usePermissiveModify;
     }
 
     /**

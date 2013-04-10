@@ -21,9 +21,9 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.Modification;
 
 /**
  * An attribute mapper is responsible for converting JSON values to and from
@@ -56,7 +56,8 @@ public abstract class AttributeMapper {
      *            The set into which the required LDAP attribute names should be
      *            put.
      */
-    abstract void getLDAPAttributes(Context c, JsonPointer jsonAttribute, Set<String> ldapAttributes);
+    abstract void getLDAPAttributes(Context c, JsonPointer path, JsonPointer subPath,
+            Set<String> ldapAttributes);
 
     /**
      * Transforms the provided REST comparison filter parameters to an LDAP
@@ -86,7 +87,7 @@ public abstract class AttributeMapper {
      * @param h
      *            The result handler.
      */
-    abstract void getLDAPFilter(Context c, FilterType type, JsonPointer jsonAttribute,
+    abstract void getLDAPFilter(Context c, JsonPointer path, JsonPointer subPath, FilterType type,
             String operator, Object valueAssertion, ResultHandler<Filter> h);
 
     /**
@@ -113,7 +114,7 @@ public abstract class AttributeMapper {
      * @param h
      *            The result handler.
      */
-    abstract void toJSON(Context c, Entry e, ResultHandler<JsonValue> h);
+    abstract void toJSON(Context c, JsonPointer path, Entry e, ResultHandler<JsonValue> h);
 
     /**
      * Maps a JSON value to one or more LDAP attributes, invoking a completion
@@ -139,7 +140,8 @@ public abstract class AttributeMapper {
      * @param h
      *            The result handler.
      */
-    abstract void toLDAP(Context c, JsonValue v, ResultHandler<List<Attribute>> h);
+    abstract void toLDAP(Context c, JsonPointer path, Entry e, JsonValue v,
+            ResultHandler<List<Modification>> h);
 
     // TODO: methods for obtaining schema information (e.g. name, description,
     // type information).

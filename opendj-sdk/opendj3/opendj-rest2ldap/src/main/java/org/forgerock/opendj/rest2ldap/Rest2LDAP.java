@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
@@ -86,6 +87,7 @@ public final class Rest2LDAP {
         private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
         private boolean useSubtreeDelete;
+        private boolean usePermissiveModify;
 
         Builder() {
             useEtagAttribute();
@@ -144,7 +146,7 @@ public final class Rest2LDAP {
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy,
                     etagAttribute, new Config(factory, readOnUpdatePolicy, authzPolicy,
-                            proxiedAuthzTemplate, useSubtreeDelete, schema),
+                            proxiedAuthzTemplate, useSubtreeDelete, usePermissiveModify, schema),
                     additionalLDAPAttributes);
         }
 
@@ -196,8 +198,12 @@ public final class Rest2LDAP {
                 useEtagAttribute(etagAttribute.asString());
             }
 
-            if (configuration.get("useSubtreeDelete").required().asBoolean()) {
+            if (configuration.get("useSubtreeDelete").defaultTo(false).asBoolean()) {
                 useSubtreeDelete();
+            }
+
+            if (configuration.get("usePermissiveModify").defaultTo(false).asBoolean()) {
+                usePermissiveModify();
             }
 
             mapper(configureObjectMapper(configuration.get("attributes").required()));
@@ -305,6 +311,11 @@ public final class Rest2LDAP {
             return this;
         }
 
+        public Builder usePermissiveModify() {
+            this.usePermissiveModify = true;
+            return this;
+        }
+
         private AttributeDescription ad(final String attribute) {
             return AttributeDescription.valueOf(attribute, schema);
         }
@@ -322,9 +333,6 @@ public final class Rest2LDAP {
                         simple(ad(config.get("ldapAttribute").required().asString()));
                 if (config.isDefined("defaultJSONValue")) {
                     s.defaultJSONValue(config.get("defaultJSONValue").getObject());
-                }
-                if (config.isDefined("defaultLDAPValue")) {
-                    s.defaultLDAPValue(config.get("defaultLDAPValue").getObject());
                 }
                 if (config.get("isBinary").defaultTo(false).asBoolean()) {
                     s.isBinary();
@@ -507,6 +515,14 @@ public final class Rest2LDAP {
             return e;
         } catch (final AssertionFailureException e) {
             resourceResultCode = ResourceException.VERSION_MISMATCH;
+        } catch (final ConstraintViolationException e) {
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ResultCode.ENTRY_ALREADY_EXISTS)) {
+                resourceResultCode = ResourceException.VERSION_MISMATCH; // Consistent with MVCC.
+            } else {
+                // Schema violation, etc.
+                resourceResultCode = ResourceException.BAD_REQUEST;
+            }
         } catch (final AuthenticationException e) {
             resourceResultCode = 401;
         } catch (final AuthorizationException e) {

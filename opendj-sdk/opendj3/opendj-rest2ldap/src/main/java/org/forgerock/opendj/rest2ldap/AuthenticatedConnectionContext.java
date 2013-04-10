@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.Context;
@@ -88,7 +89,7 @@ public final class AuthenticatedConnectionContext extends Context {
     AuthenticatedConnectionContext(final JsonValue savedContext, final PersistenceConfig config)
             throws ResourceException {
         super(savedContext, config);
-        throw new InternalServerErrorException("Cached LDAP connections cannot be restored");
+        throw new InternalServerErrorException(i18n("Cached LDAP connections cannot be restored"));
     }
 
     /**
@@ -98,7 +99,7 @@ public final class AuthenticatedConnectionContext extends Context {
     protected void saveToJson(final JsonValue savedContext, final PersistenceConfig config)
             throws ResourceException {
         super.saveToJson(savedContext, config);
-        throw new InternalServerErrorException("Cached LDAP connections cannot be persisted");
+        throw new InternalServerErrorException(i18n("Cached LDAP connections cannot be persisted"));
     }
 
     /**
