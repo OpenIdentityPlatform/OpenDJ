@@ -32,6 +32,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
@@ -41,6 +42,7 @@ import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -288,6 +290,27 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     {
       resp.setHeader("WWW-Authenticate",
           "Basic realm=\"org.forgerock.opendj\"");
+    }
+
+    try
+    {
+      // Send error JSON document out
+      resp.setHeader("Content-Type", "application/json");
+
+      ServletOutputStream out = resp.getOutputStream();
+      out.println("{");
+      out.println("    \"code\": 401,");
+      out.println("    \"message\": \"Invalid Credentials\",");
+      out.println("    \"reason\": \"Unauthorized\"");
+      out.println("}");
+    }
+    catch (IOException ignore)
+    {
+      // nothing else we can do in this case
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ignore);
+      }
     }
   }
 

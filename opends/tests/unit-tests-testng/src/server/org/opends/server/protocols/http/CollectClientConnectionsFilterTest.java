@@ -29,6 +29,9 @@ package org.opends.server.protocols.http;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -81,26 +84,45 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 
   @Test
   public void sendUnauthorizedResponseWithHttpBasicAuthWillChallengeUserAgent()
+      throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
+    ServletOutputStream oStream = mock(ServletOutputStream.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
+    when(response.getOutputStream()).thenReturn(oStream);
     filter.sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(response).setHeader("WWW-Authenticate",
         "Basic realm=\"org.forgerock.opendj\"");
+    verifyUnauthorizedOutputMessage(response, oStream);
   }
 
   @Test
   public void sendUnauthorizedResponseWithoutHttpBasicAuthWillNotChallengeUserAgent()
+      throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
     HttpServletResponse response = mock(HttpServletResponse.class);
+    ServletOutputStream oStream = mock(ServletOutputStream.class);
+    when(response.getOutputStream()).thenReturn(oStream);
     filter.sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verifyUnauthorizedOutputMessage(response, oStream);
+  }
+
+  private void verifyUnauthorizedOutputMessage(HttpServletResponse response,
+      ServletOutputStream oStream) throws IOException
+  {
+    verify(response).getOutputStream();
+    verify(oStream).println("{");
+    verify(oStream).println("    \"code\": 401,");
+    verify(oStream).println("    \"message\": \"Invalid Credentials\",");
+    verify(oStream).println("    \"reason\": \"Unauthorized\"");
+    verify(oStream).println("}");
   }
 
   @Test
