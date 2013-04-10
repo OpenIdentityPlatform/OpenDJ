@@ -355,6 +355,11 @@ final class Context implements Closeable {
             }
 
             @Override
+            public void close() {
+                connection.close();
+            }
+
+            @Override
             public void close(final UnbindRequest request, final String reason) {
                 connection.close(request, reason);
             }
