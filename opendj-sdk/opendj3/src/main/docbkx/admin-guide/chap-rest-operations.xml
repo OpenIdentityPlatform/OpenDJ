@@ -148,6 +148,7 @@
 
     <screen>$ curl
  --request PUT
+ --user kvaughan:bribery
  --header "Content-Type: application/json"
  --header "If-None-Match: *"
  --data '{
@@ -170,12 +171,8 @@
  }'
  http://opendj.example.com:8080/users/newuser?_prettyPrint=true
 {
-  "_rev" : "0000000035c03ca9",
+  "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
-  "manager" : [ {
-    "_id" : "kvaughan",
-    "displayName" : "Kirsten Vaughan"
-  } ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1212",
     "emailAddress" : "newuser@example.com"
@@ -188,8 +185,12 @@
   "userName" : "newuser@example.com",
   "displayName" : "New User",
   "meta" : {
-    "created" : "2013-03-26T10:44:26Z"
-  }
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
 }</screen>
    </listitem>
 
@@ -206,25 +207,31 @@
 
   <para>To read a resource, perform an HTTP GET.</para>
 
-  <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+  <screen>$ curl
+ --request GET
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
 {
-  "_rev" : "00000000315fb731",
+  "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
-  "manager" : [ {
-    "_id" : "trigden",
-    "displayName" : "Torrey Rigden"
-  } ],
   "contactInformation" : {
-    "telephoneNumber" : "+1 408 555 1862",
-    "emailAddress" : "bjensen@example.com"
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
   },
-  "_id" : "bjensen",
+  "_id" : "newuser",
   "name" : {
-    "familyName" : "Jensen",
-    "givenName" : "Barbara"
+    "familyName" : "New",
+    "givenName" : "User"
   },
-  "userName" : "bjensen@example.com",
-  "displayName" : "Barbara Jensen"
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
 }</screen>
  </section>
 
@@ -237,7 +244,148 @@
  <section xml:id="delete-rest">
   <title>Deleting Resources</title>
 
-  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-692</para>
+  <para>To delete a resource, perform an HTTP DELETE on the resource URL.
+  On success, the operation returns the resource you deleted.</para>
+
+  <screen>$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "000000003a5f3cb2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+
+  <para>To delete a resource only if the resource matches a particular version,
+  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
+  header.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_fields=_rev
+{"_rev":"000000006d8d7358"}
+$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ --header "If-Match: 000000006d8d7358"
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "00000000383f3cae",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T12:48:48Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+
+  <orderedlist>
+   <para>To delete a resource and all its children, you must change the
+   configuration, get the REST LDAP gateway or HTTP Connection Handler to
+   reload its configuration, and perform the operation as a user who has the
+   access rights required. The following steps show one way to do this with
+   the HTTP Connection Handler.</para>
+
+   <para>In this case the LDAP view of the user to delete shows two child
+   entries.</para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&amp;)" dn
+dn: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</screen>
+
+   <listitem>
+    <para>In the configuration file for the HTTP Connection Handler, by default
+    <filename>/path/to/OpenDJ/config/http-config.json</filename>, set
+    <literal>"useSubtreeDelete" : true</literal>.</para>
+
+    <note>
+     <para>After this change, only users who have access to request a tree
+     delete can delete resources.</para>
+    </note>
+   </listitem>
+
+   <listitem>
+    <para>Force the HTTP Connection Handler to reread its configuration.</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ <emphasis>--set enabled:false</emphasis>
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ <emphasis>--set enabled:true</emphasis>
+ --no-prompt</screen>
+   </listitem>
+
+   <listitem>
+    <para>Delete as a user who has rights to perform a subtree delete on
+    the resource.</para>
+
+    <screen>$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/nbohr?_prettyPrint=true
+{
+  "_rev" : "000000003d912113",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "nbohr@example.com"
+  },
+  "_id" : "nbohr",
+  "name" : {
+    "familyName" : "Bohr",
+    "givenName" : "Niels"
+  },
+  "userName" : "nbohr@example.com",
+  "displayName" : "Niels Bohr"
+}</screen>
+   </listitem>
+  </orderedlist>
  </section>
 
  <section xml:id="patch-rest">
@@ -261,6 +409,7 @@
   <para>TODO, fix pending https://bugster.forgerock.org/jira/browse/OPENDJ-775</para>
   <screen width="82">$ curl
  --request POST
+ --user kvaughan:bribery
  --header "Content-Type: application/json"
  --data '{
   "_id": "newuser",
@@ -282,12 +431,8 @@
  }'
  "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"
 {
-  "_rev" : "00000000343b3ca6",
+  "_rev" : "0000000034a23ca7",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
-  "manager" : [ {
-    "_id" : "kvaughan",
-    "displayName" : "Kirsten Vaughan"
-  } ],
   "contactInformation" : {
     "telephoneNumber" : "+1 408 555 1212",
     "emailAddress" : "newuser@example.com"
@@ -300,8 +445,12 @@
   "userName" : "newuser@example.com",
   "displayName" : "New User",
   "meta" : {
-    "created" : "2013-03-26T10:52:42Z"
-  }
+    "created" : "2013-04-11T11:19:08Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
 }</screen>
 
   <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-695</para>
@@ -343,7 +492,7 @@
         <para>Matches when the pointer equals the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+eq+"bjensen@example.com"&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -378,7 +527,7 @@
         <para>Matches when the pointer contains the value, as in the following
         example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+co+"jensen"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -409,7 +558,7 @@
         <para>Matches when the pointer starts with the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+sw+"ab"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -430,7 +579,7 @@
         <para>Matches when the pointer is less than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+lt+"ac"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -451,7 +600,7 @@
         <para>Matches when the pointer is less than or equal to the value, as
         in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+le+"ad"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -474,7 +623,7 @@
         <para>Matches when the pointer is greater than the value, as in the
         following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+gt+"tt"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -497,7 +646,7 @@
         <para>Matches when the pointer is greater than or equal to the value,
         as in the following example.</para>
 
-        <screen>$ curl 'http://opendj.example.com:8080
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName+ge+"tw"&amp;_fields=userName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -532,7 +681,7 @@
      any resource on which the <replaceable>json-pointer</replaceable> is
      present, as in the following example.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=userName%20pr&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -581,7 +730,7 @@
      <para>In other words you can list all resources in a collection as in the
      following example.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /groups?_queryFilter=true&amp;_fields=displayName&amp;_prettyPrint=true'
 {
   "result" : [ {
@@ -616,7 +765,7 @@
      nested inside the <literal>name</literal> and <literal>manager</literal>
      objects.</para>
 
-     <screen>$ curl 'http://opendj.example.com:8080
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
  /users?_queryFilter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
  &amp;_fields=displayName&amp;_prettyPrint=true'
 {
