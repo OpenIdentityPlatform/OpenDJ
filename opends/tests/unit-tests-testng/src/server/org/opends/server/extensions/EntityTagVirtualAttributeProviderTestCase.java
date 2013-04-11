@@ -22,18 +22,26 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -46,6 +54,10 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.controls.LDAPPostReadRequestControl;
+import org.opends.server.controls.LDAPPostReadResponseControl;
+import org.opends.server.controls.LDAPPreReadRequestControl;
+import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
@@ -55,7 +67,23 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
+import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -68,11 +96,15 @@ import org.testng.annotations.Test;
 public class EntityTagVirtualAttributeProviderTestCase extends
     ExtensionsTestCase
 {
+  private static final String DESCRIPTION = "description";
+  private static final String ETAG = "etag";
+
   private final AttributeValue dummyValue = AttributeValues.create(
       ByteString.valueOf("dummy"), ByteString.valueOf("dummy"));
   private final EntityTagVirtualAttributeProvider provider = new EntityTagVirtualAttributeProvider();
   private boolean changeListenerRemoved = false;
   private boolean changeListenerAdded = false;
+
   private final EntityTagVirtualAttributeCfg config = new EntityTagVirtualAttributeCfg()
   {
     private final TreeSet<AttributeType> excludedAttributes = new TreeSet<AttributeType>();
@@ -554,7 +586,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     };
 
     VirtualAttributeRule rule = new VirtualAttributeRule(
-        DirectoryServer.getAttributeType("etag"), provider,
+        DirectoryServer.getAttributeType(ETAG), provider,
         Collections.<DN> emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN> emptySet(), Collections.<SearchFilter> emptySet(),
         VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL);
@@ -579,8 +611,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   public void testOptimisticConcurrency() throws Exception
   {
     // Use an internal connection.
-    AttributeType etagType = DirectoryServer.getAttributeType("etag");
-    AttributeType descrType = DirectoryServer.getAttributeType("description");
+    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
+    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
     String userDN = "uid=test.user,ou=People,o=test";
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();
@@ -616,11 +648,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // Apply a change using the assertion control for optimistic concurrency.
     List<RawModification> mods = Collections
         .<RawModification> singletonList(new LDAPModification(
-            ModificationType.REPLACE, RawAttribute.create("description",
+            ModificationType.REPLACE, RawAttribute.create(DESCRIPTION,
                 "first modify")));
     List<Control> ctrls = Collections
         .<Control> singletonList(new LDAPAssertionRequestControl(true,
-            LDAPFilter.createEqualityFilter("etag", ByteString.valueOf(etag1))));
+            LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOf(etag1))));
     ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -640,7 +672,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
     // Simulate a concurrent update: perform another update using the old etag.
     mods = Collections.<RawModification> singletonList(new LDAPModification(
-        ModificationType.REPLACE, RawAttribute.create("description",
+        ModificationType.REPLACE, RawAttribute.create(DESCRIPTION,
             "second modify")));
     modifyOperation = conn.processModify(userDN, mods, ctrls);
     assertEquals(modifyOperation.getResultCode(), ResultCode.ASSERTION_FAILED);
@@ -662,12 +694,190 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+  /**
+   * Tests that the etag returned with a pre-read control after a modify
+   * operation is correct. See OPENDJ-861.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = false)
+  public void testPreReadControl() throws Exception
+  {
+    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
+    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
+    String userDN = "uid=test.user,ou=People,o=test";
+
+    // Use an internal connection.
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    // Create a test backend containing the user entry to be modified.
+    TestCaseUtils.initializeTestBackend(true);
+
+    // @formatter:off
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: uid=test.user,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "description: initial value");
+    // @formatter:on
+
+    // Read the user entry and get the etag.
+    Entry e1 = readEntry(conn, userDN);
+    String etag1 = e1
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag1);
+
+    // Apply a change using the pre and post read controls.
+    List<RawModification> mods = Collections
+        .<RawModification> singletonList(new LDAPModification(
+            ModificationType.REPLACE, RawAttribute.create(DESCRIPTION,
+                "modified value")));
+    List<Control> ctrls = singletonList((Control) new LDAPPreReadRequestControl(
+        true, singleton(ETAG)));
+    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+    // Reread the entry and check that the description has been added and that
+    // the etag has changed.
+    Entry e2 = readEntry(conn, userDN);
+
+    String etag2 = e2
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag2);
+    assertFalse(etag1.equals(etag2));
+
+    String description2 = e2.getAttributeValue(descrType,
+        DirectoryStringSyntax.DECODER);
+    assertNotNull(description2);
+    assertEquals(description2, "modified value");
+
+    // Now check that the pre-read is the same as the initial etag.
+    LDAPPreReadResponseControl preReadControl = null;
+    for (Control control : modifyOperation.getResponseControls())
+    {
+      if (control instanceof LDAPPreReadResponseControl)
+      {
+        preReadControl = (LDAPPreReadResponseControl) control;
+        break;
+      }
+    }
+    assertNotNull(preReadControl);
+    String etagPreRead = preReadControl.getSearchEntry().getAttributeValue(
+        etagType, DirectoryStringSyntax.DECODER);
+    assertEquals(etagPreRead, etag1);
+  }
+
+
+
+  /**
+   * Tests that the etag returned with a post-read control after a modify
+   * operation is correct. See OPENDJ-861.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = false)
+  public void testPostReadControl() throws Exception
+  {
+    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
+    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
+    String userDN = "uid=test.user,ou=People,o=test";
+
+    // Use an internal connection.
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    // Create a test backend containing the user entry to be modified.
+    TestCaseUtils.initializeTestBackend(true);
+
+    // @formatter:off
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: uid=test.user,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "description: initial value");
+    // @formatter:on
+
+    // Read the user entry and get the etag.
+    Entry e1 = readEntry(conn, userDN);
+    String etag1 = e1
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag1);
+
+    // Apply a change using the pre and post read controls.
+    List<RawModification> mods = Collections
+        .<RawModification> singletonList(new LDAPModification(
+            ModificationType.REPLACE, RawAttribute.create(DESCRIPTION,
+                "modified value")));
+    List<Control> ctrls = singletonList((Control) new LDAPPostReadRequestControl(
+        true, singleton(ETAG)));
+    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+    // Reread the entry and check that the description has been added and that
+    // the etag has changed.
+    Entry e2 = readEntry(conn, userDN);
+
+    String etag2 = e2
+        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    assertNotNull(etag2);
+    assertFalse(etag1.equals(etag2));
+
+    String description2 = e2.getAttributeValue(descrType,
+        DirectoryStringSyntax.DECODER);
+    assertNotNull(description2);
+    assertEquals(description2, "modified value");
+
+    // Now check that the post-read is the same as the initial etag.
+    LDAPPostReadResponseControl postReadControl = null;
+    for (Control control : modifyOperation.getResponseControls())
+    {
+      if (control instanceof LDAPPostReadResponseControl)
+      {
+        postReadControl = (LDAPPostReadResponseControl) control;
+        break;
+      }
+    }
+    assertNotNull(postReadControl);
+    String etagPostRead = postReadControl.getSearchEntry().getAttributeValue(
+        etagType, DirectoryStringSyntax.DECODER);
+    assertEquals(etagPostRead, etag1);
+  }
+
+
+
   private Entry readEntry(InternalClientConnection conn, String userDN)
       throws DirectoryException
   {
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(2);
     attrList.add("*");
-    attrList.add("etag");
+    attrList.add(ETAG);
     InternalSearchOperation searchOperation = conn.processSearch(userDN,
         SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
         false, "(objectClass=*)", attrList);
