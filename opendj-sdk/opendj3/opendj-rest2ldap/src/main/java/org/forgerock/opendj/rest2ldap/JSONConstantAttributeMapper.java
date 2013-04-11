@@ -17,6 +17,8 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
@@ -26,6 +28,7 @@ import java.util.Set;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
@@ -95,7 +98,15 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     @Override
     void toLDAP(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
             final ResultHandler<List<Modification>> h) {
-        // FIXME: should we check if the provided value matches the constant?
+        if (!isNullOrEmpty(v)) {
+            // A value was provided so it must match.
+            if (!v.getObject().equals(value.getObject())) {
+                h.handleError(new BadRequestException(i18n(
+                        "The request cannot be processed because it attempts to modify "
+                                + "the read-only field '%s'", path)));
+                return;
+            }
+        }
         h.handleResult(Collections.<Modification> emptyList());
     }
 

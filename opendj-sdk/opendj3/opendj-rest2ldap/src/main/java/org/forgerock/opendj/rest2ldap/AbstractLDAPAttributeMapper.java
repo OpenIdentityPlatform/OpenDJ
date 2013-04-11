@@ -19,6 +19,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
 import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
@@ -44,7 +46,6 @@ import org.forgerock.opendj.ldap.ModificationType;
  */
 abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper<T>> extends
         AttributeMapper {
-    Object defaultJSONValue = null;
     List<Object> defaultJSONValues = emptyList();
     final AttributeDescription ldapAttributeName;
     private boolean isRequired = false;
@@ -90,10 +91,6 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         return getThis();
     }
 
-    boolean attributeIsRequired() {
-        return isRequired && defaultJSONValue == null;
-    }
-
     boolean attributeIsSingleValued() {
         return isSingleValued || ldapAttributeName.getAttributeType().isSingleValue();
     }
@@ -131,7 +128,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                     "The request cannot be processed because an array of values was "
                             + "provided for the single valued field '%s'", path)));
         } else {
-            getNewLDAPAttributes(c, path, asList(v), new ResultHandler<Attribute>() {
+            final ResultHandler<Attribute> attributeHandler = new ResultHandler<Attribute>() {
                 @Override
                 public void handleError(final ResourceException error) {
                     h.handleError(error);
@@ -166,11 +163,26 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                         if (oldLDAPAttribute.isEmpty() && newLDAPAttribute.isEmpty()) {
                             // No change.
                             modifications = Collections.<Modification> emptyList();
-                        } else if (oldLDAPAttribute.isEmpty() || newLDAPAttribute.isEmpty()) {
-                            // Delete or add.
+                        } else if (oldLDAPAttribute.isEmpty()) {
+                            // The attribute is being added.
                             modifications =
                                     singletonList(new Modification(ModificationType.REPLACE,
                                             newLDAPAttribute));
+                        } else if (newLDAPAttribute.isEmpty()) {
+                            /*
+                             * The attribute is being deleted - this is not
+                             * allowed if the attribute is required.
+                             */
+                            if (isRequired) {
+                                h.handleError(new BadRequestException(i18n(
+                                        "The request cannot be processed because it attempts to remove "
+                                                + "the required field '%s'", path)));
+                                return;
+                            } else {
+                                modifications =
+                                        singletonList(new Modification(ModificationType.REPLACE,
+                                                newLDAPAttribute));
+                            }
                         } else {
                             /*
                              * We could do a replace, but try to save bandwidth
@@ -200,12 +212,20 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                         h.handleResult(modifications);
                     }
                 }
-            });
+            };
+
+            final List<Object> newValues = asList(v);
+            if (newValues.isEmpty()) {
+                // Skip sub-class implementation if there are no values.
+                attributeHandler.handleResult(Attributes.emptyAttribute(ldapAttributeName));
+            } else {
+                getNewLDAPAttributes(c, path, asList(v), attributeHandler);
+            }
         }
     }
 
     private List<Object> asList(final JsonValue v) {
-        if (v == null || v.isNull() || (v.isList() && v.size() == 0)) {
+        if (isNullOrEmpty(v)) {
             return defaultJSONValues;
         } else if (v.isList()) {
             return v.asList();
@@ -213,5 +233,4 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
             return singletonList(v.getObject());
         }
     }
-
 }

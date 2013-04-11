@@ -28,6 +28,7 @@ import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
 import static org.forgerock.opendj.rest2ldap.Utils.jsonToByteString;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -77,7 +78,6 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      * @return This attribute mapper.
      */
     public SimpleAttributeMapper defaultJSONValue(final Object defaultValue) {
-        this.defaultJSONValue = defaultValue;
         this.defaultJSONValues = defaultValue != null ? singletonList(defaultValue) : emptyList();
         return this;
     }
@@ -157,11 +157,13 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
         try {
             final Object value;
             if (attributeIsSingleValued()) {
-                value = e.parseAttribute(ldapAttributeName).as(decoder(), defaultJSONValue);
+                value =
+                        e.parseAttribute(ldapAttributeName).as(decoder(),
+                                defaultJSONValues.isEmpty() ? null : defaultJSONValues.get(0));
             } else {
                 final Set<Object> s =
                         e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJSONValues);
-                value = s.isEmpty() ? null : s;
+                value = s.isEmpty() ? null : new ArrayList<Object>(s);
             }
             h.handleResult(value != null ? new JsonValue(value) : null);
         } catch (final Exception ex) {

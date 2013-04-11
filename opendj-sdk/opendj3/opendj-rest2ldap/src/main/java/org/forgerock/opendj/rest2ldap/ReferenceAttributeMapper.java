@@ -38,7 +38,6 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -183,12 +182,6 @@ public final class ReferenceAttributeMapper extends
     @Override
     void getNewLDAPAttributes(final Context c, final JsonPointer path,
             final List<Object> newValues, final ResultHandler<Attribute> h) {
-        // No need to do anything if there are no values.
-        if (newValues.isEmpty()) {
-            h.handleResult(Attributes.emptyAttribute(ldapAttributeName));
-            return;
-        }
-
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
          * key, the perform a search for each one to find the corresponding
@@ -252,21 +245,25 @@ public final class ReferenceAttributeMapper extends
                                                     try {
                                                         throw error;
                                                     } catch (final EntryNotFoundException e) {
-                                                        // FIXME: improve error message.
                                                         re =
                                                                 new BadRequestException(
-                                                                        "the resource referenced by '"
-                                                                                + primaryKeyValue
-                                                                                        .toString()
-                                                                                + "' does not exist");
+                                                                        i18n("The request cannot be processed "
+                                                                                + "because the resource '%s' "
+                                                                                + "referenced in field '%s' does "
+                                                                                + "not exist",
+                                                                                primaryKeyValue
+                                                                                        .toString(),
+                                                                                path));
                                                     } catch (final MultipleEntriesFoundException e) {
-                                                        // FIXME: improve error message.
                                                         re =
                                                                 new BadRequestException(
-                                                                        "the resource referenced by '"
-                                                                                + primaryKeyValue
-                                                                                        .toString()
-                                                                                + "' is ambiguous");
+                                                                        i18n("The request cannot be processed "
+                                                                                + "because the resource '%s' "
+                                                                                + "referenced in field '%s' is "
+                                                                                + "ambiguous",
+                                                                                primaryKeyValue
+                                                                                        .toString(),
+                                                                                path));
                                                     } catch (final ErrorResultException e) {
                                                         re = asResourceException(e);
                                                     }
