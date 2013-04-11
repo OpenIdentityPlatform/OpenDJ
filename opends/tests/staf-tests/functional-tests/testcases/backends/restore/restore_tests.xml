@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   <!--- Test Case information
@@ -334,8 +334,7 @@
 
           <call function="'restore'">
             { 'backupDir'           : '%s/backends/backup3' % remote.temp ,
-              'extraParams'         : '-l' ,
-              'knownIssue'          : '4203'
+              'extraParams'         : '-l'
             }
           </call>
           <script>

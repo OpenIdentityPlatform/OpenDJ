@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -76,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Restore Tasks Tests
                   #@TestName                  backend-restore
-                  #@TestIssue                 475
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for regular users to add restore tasks
                   #@TestPreamble              Admin add import task to add entries.
                   #@TestStep                  Admin adding backup task.
@@ -266,7 +266,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Restore Tasks Tests
                   #@TestName                  backend-restore, Directory Manager
-                  #@TestIssue                 475
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for Directory Manager to add restore tasks
                   #@TestPreamble              Alternative root user add import task to add entries.
                   #@TestStep                  Alternative root user adding backup task.
@@ -436,7 +436,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Restore Tasks Tests
                   #@TestName                  backend-restore, New User Root
-                  #@TestIssue                 475
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for new root user to add restore tasks
                   #@TestPreamble              Alternative root user adding new root user.
                   #@TestStep                  Alternative root user add import task to add entries.

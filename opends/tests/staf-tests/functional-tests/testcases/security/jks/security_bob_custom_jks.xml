@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -49,7 +50,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 1
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Add entries through a secure port.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -85,7 +86,7 @@
             The tag, TestMarker, be the same as the marker, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 2
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Add an RDN to an existing entry through a secure port.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -120,7 +121,7 @@
             The tag, TestMarker, be the same as the marker, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 3
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Add a jpeg photo to an existing entry through a secure port.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -155,7 +156,7 @@
             The tag, TestMarker, be the same as the marker, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 4
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Replace a jpeg photo in an existing entry through a secure port.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -190,7 +191,7 @@
             The tag, TestMarker, be the same as the marker, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 5
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Delete an existing entry through a secure port.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -225,7 +226,7 @@
             The tag, TestMarker, be the same as the marker, TestSuiteName.
             #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 6
-            #@TestIssue                 1830
+            #@TestIssue                 none
             #@TestPurpose               List properties using dsconfig.
             #@TestPreamble              none
             #@TestStep                  Client calls dsconfig

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -46,7 +47,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  Multiple Schemes Preamble
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Add BASE64 password scheme
             #@TestPreamble              none
             #@TestStep                  Admin deletes Salted SHA-1.
@@ -142,7 +143,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  Check for SSHA Password Scheme
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test for the default SSHA scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
@@ -188,7 +189,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  Check for BASE64 Password Scheme
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test for the BASE64 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
@@ -234,7 +235,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  Check for SHA-1 Password Scheme
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test for the SHA-1 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
@@ -280,7 +281,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  user Password Change
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test that a user's password is stored in the new schemes.
             #@TestPreamble              none
             #@TestStep                  User changes his password.
@@ -358,7 +359,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  User Password Change
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test that a user's password is stored in the new schemes.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry and
@@ -404,7 +405,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  User Password Change
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test that a user's password is stored in the new schemes.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry and
@@ -451,7 +452,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  User Improper Password Add
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Test the response when a user improperly adds a password.
             #@TestPreamble              none
             #@TestStep                  User adds a pasword to his entry
@@ -487,7 +488,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Multiple Schemes
             #@TestName                  Multiple Schemes Postamble
-            #@TestIssue                 322
+            #@TestIssue                 none
             #@TestPurpose               Reset back to SSHA storage scheme alone
             #@TestPreamble              none
             #@TestStep                  Admin create new SSHA password scheme.

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -157,10 +158,6 @@
                       'expectedString'     : 'Processed 100002 entries' }
                 </call>
                 
-                <!--<call function="'setKnownIssue'">
-                    { 'issueId' : '2535' }
-                </call>-->
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -212,10 +209,6 @@
                   'startDS'         : 'no'
                 }
                 </call>
-              
-                <!--<call function="'setKnownIssue'">
-                    { 'issueId' : '2535' }
-                </call>-->
                 
                 <call function="'testCase_Postamble'"/>
     

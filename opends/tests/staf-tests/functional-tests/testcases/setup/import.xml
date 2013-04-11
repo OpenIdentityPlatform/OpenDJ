@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -223,8 +223,7 @@
               'dsBaseDN'        : "o=o2",
               'dsFilter'        : 'objectclass=*',
               'dsAttributes'    : 'dn',
-              'expectedRC'      : 0,
-              'knownIssue'      : '4212'
+              'expectedRC'      : 0
             }
           </call>
           

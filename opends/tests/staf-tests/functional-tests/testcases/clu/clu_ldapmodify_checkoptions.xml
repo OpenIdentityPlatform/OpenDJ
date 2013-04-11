@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -112,7 +113,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: empty hostname
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapmodify.
               #@TestPreamble        none
               #@TestStep            Do an ldapmodify with an empty hostname.
@@ -136,8 +137,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilename'       : dsfilename ,
-                  'expectedRC'       : 89,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
                 
@@ -188,7 +188,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: invalid port (bad_port)
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapmodify.
               #@TestPreamble        none
               #@TestStep            Do an ldapmodify with an invalid port.
@@ -213,8 +213,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilename'       : dsfilename ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
                 
@@ -227,7 +226,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: invalid port (-1)
-              #@TestIssue           2762
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapmodify.
               #@TestPreamble        none
               #@TestStep            Do an ldapmodify with an invalid port.
@@ -251,8 +250,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilename'       : dsfilename ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2762'
+                  'expectedRC'       : 89
                   }
                 </call>
                 
@@ -340,7 +338,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: no password
-              #@TestIssue           2624
+              #@TestIssue           none
               #@TestPurpose         Verify an inappropriate authentication error 
                                     doing an ldapmodify.
               #@TestPreamble        none
@@ -367,8 +365,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsFilename'       : dsfilename ,
-                  'expectedRC'       : 48 ,
-                  'knownIssue'       : '2624'
+                  'expectedRC'       : 48
                   }
                 </call>
   
@@ -420,7 +417,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: empty filename
-              #@TestIssue           2619
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapmodify.
               #@TestPreamble        none
               #@TestStep            Do an ldapmodify with an empty filename.
@@ -444,8 +441,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilename'       : ' ' ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2619'
+                  'expectedRC'       : 89
                   }
                 </call>
                 
@@ -458,7 +454,7 @@
             <!--- Test Case information
               #@TestMarker          ldapmodify check options tests
               #@TestName            ldapmodify: bad filename
-              #@TestIssue           2763
+              #@TestIssue           none
               #@TestPurpose         Verify a parameter error doing an ldapmodify.
               #@TestPreamble        none
               #@TestStep            Do an ldapmodify with a bad filename.
@@ -482,8 +478,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsFilename'       : 'bad' ,
-                  'expectedRC'       : 89 ,
-                  'knownIssue'       : '2763'
+                  'expectedRC'       : 89
                   }
                 </call>
                 

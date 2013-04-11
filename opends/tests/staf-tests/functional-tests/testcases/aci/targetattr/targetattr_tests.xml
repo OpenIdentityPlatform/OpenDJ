@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
               
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Preamble
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Client searches entry for an attribute in a branch dn.
@@ -136,7 +136,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr equals one attribute
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr set equal to a specific attribute
       #@TestPreamble              Admin adds an aci to one branch with the targetattr equal to a specific attribute.
       #@TestStep                  Client searches entry with the targeted dn for the targetattr.
@@ -295,7 +295,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr not equals one attribute
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr set to not equal (!=) a specific attribute
       #@TestPreamble              Admin adds an aci to one branch with the targetattr not equal to a specific attribute.
       #@TestStep                  Client searches entry with the targeted dn for the targetattr.
@@ -454,7 +454,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr equals three attributes
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr set equal to three specific attributes
       #@TestPreamble              Admin adds an aci with the targetattr equal to three specific attributes in one branch.
       #@TestStep                  Client searches entry with the targeted dn for the targetattrs.
@@ -625,7 +625,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr not equals three attributes
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr set to not equal (!=) to three specific attributes
       #@TestPreamble              Admin adds an aci with the targetattr not equal (!=) to three specific attributes in one branch.
       #@TestStep                  Client searches entry with the targeted dn for the targetattr.
@@ -796,7 +796,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Targetattr Tests
     #@TestName                  Attribute mispelled or non-existent in the entry - Use Not Equals
-    #@TestIssue                 435
+    #@TestIssue                 none
     #@TestPurpose               Test if an aci is allowed where the targetattr has an attribute not in the entry
     #@TestPreamble              none
     #@TestStep                  Admin adds an aci to an existing entry
@@ -946,7 +946,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Multiple targetattrs
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed to contain multiple targetattrs
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1031,7 +1031,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  targetattr mispelled
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that has the keyword targetattr mispelled
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1116,7 +1116,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  targetattr with missing quotes
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that has the keyword targetattr with missing quotes
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1201,7 +1201,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetattr Tests
         #@TestName                  Targetattr With Spaces
-        #@TestIssue                 435
+        #@TestIssue                 none
         #@TestPurpose               Test with the targetattr that has spaces
         #@TestPreamble              Admin adds an aci to one branch with a targetattr with spaces.
         #@TestStep                  Client searches entry with the targeted dn for the targetattr.
@@ -1360,7 +1360,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr not equals wildcard 
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr not equal to wildcard
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1508,7 +1508,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Targetattr equals one attribute with wildcard
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test with the targetattr set equal to a specific attribute with wildcard
       #@TestPreamble              Admin adds an aci to one branch with the targetattr equal to a specific attribute.
       #@TestStep                  Client searches entry with the targeted dn for the targetattr.
@@ -1571,7 +1571,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetattr Tests
       #@TestName                  Postamble
-      #@TestIssue                 435
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Client searches entry for an attribute in a branch dn.

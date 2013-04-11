@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                AES Tests
             #@TestName                  AES Preamble
-            #@TestIssue                 316
+            #@TestIssue                 none
             #@TestPurpose               Change password storage scheme to AES.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -80,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                AES Tests
             #@TestName                  AES Test 1
-            #@TestIssue                 316
+            #@TestIssue                 none
             #@TestPurpose               Test AES password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -159,7 +160,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                AES Tests
             #@TestName                  AES Postamble
-            #@TestIssue                 316
+            #@TestIssue                 none
             #@TestPurpose               Reset password storage scheme to the default, SSHA.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 

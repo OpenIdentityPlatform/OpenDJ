@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA256 Tests
             #@TestName                  SSHA256 Preamble
-            #@TestIssue                 314
+            #@TestIssue                 none
             #@TestPurpose               Change password storage scheme to SSHA256.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -79,7 +80,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA256 Tests
             #@TestName                  SSHA256 Test 1
-            #@TestIssue                 314
+            #@TestIssue                 none
             #@TestPurpose               Test SSHA256 password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -157,7 +158,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA256 Tests
             #@TestName                  SSHA256 Postamble
-            #@TestIssue                 314
+            #@TestIssue                 none
             #@TestPurpose               Reset password storage scheme to the default, SSHA.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -116,10 +117,6 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult 
                 }
-              </call>
-              
-              <call function="'setKnownIssue'">
-                    { 'issueId' : '2262' }
               </call>
 
               <call function="'testCase_Postamble'"/>

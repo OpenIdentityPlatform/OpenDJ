@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
 ! -->
 <stax>
   <defaultcall function="dsml_setup" />
@@ -375,8 +375,7 @@
                   <call function="'checktestString'">
                     {
                     'returnString'     : returnString ,
-                    'expectedString'   : 'Total number of matching entries: %s' % nbEntriesExpected,
-                    'issue'            : '4178'
+                    'expectedString'   : 'Total number of matching entries: %s' % nbEntriesExpected
                     }
                   </call>
 

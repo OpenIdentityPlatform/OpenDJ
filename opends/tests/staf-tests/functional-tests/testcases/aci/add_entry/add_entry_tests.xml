@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
                       
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Add Entry Tests
         #@TestName                  Preamble
-        #@TestIssue                 439
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Add extra branches where new entries will be added
@@ -89,7 +89,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry - userdn equals all
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACi where userdn equals all
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -219,7 +219,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - userdn equals a dn
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI where userdn equals a dn 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -364,7 +364,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - userdn not equals a dn
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI where the userdn not equals a dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -509,7 +509,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - add not allowed
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry where the ACI does not allow an add
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -612,7 +612,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targetfilter with one statement
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with one targetfilter.
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -742,7 +742,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targetfilter with non-existent attribute
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with a targetfilter with non-existent attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -861,7 +861,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targetattr with one attribute
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with a targetattr with one attribute.
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -992,7 +992,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targattrfilter with add:,del:
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with a targattrfilter with add:,del:.
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1122,7 +1122,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targattrfilter with add: only
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with a targattrfilter with add: only.
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1252,7 +1252,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - targattrfilter with add: statement false
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against an ACI with a targattrfilter with add: statement false.
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1370,7 +1370,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - Multi ACIs 1, overall deny
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against two ACIs with with overall deny
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1487,7 +1487,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - Multi ACIs 2, overall allow
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against two ACIs with an overall allow
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1603,7 +1603,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - Multi ACIs 3, mixed allow and deny 
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against multiple ACIs where the allow or deny depends on specific userds
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1734,7 +1734,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - Multi ACIs 4, overall allow with many ACIs
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against many ACIs with an overall allow
       #@TestPreamble              Admin adds many acis.
       #@TestStep                  Client adds an entry in the targeted branch.
@@ -1850,7 +1850,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Add Entry Tests
       #@TestName                  Add Entry  - Multi ACIs 5, mixed allow and deny with many ACIs
-      #@TestIssue                 439
+      #@TestIssue                 none
       #@TestPurpose               Add an entry against many ACIs where the allow or deny depends on specific userds
       #@TestPreamble              Admin adds many acis.
       #@TestStep                  Client adds an entry in the targeted branch.

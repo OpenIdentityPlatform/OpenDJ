@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -48,7 +49,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Teardown Tests
             #@TestName                  JKS Teardown Test 
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Unconfigure JKS keystore.
             #@TestPreamble              none
             #@TestStep                  Delete entries that were used for the JKS tests.

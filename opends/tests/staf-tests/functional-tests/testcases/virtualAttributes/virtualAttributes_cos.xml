@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 Forgerock AS
+ !      Portions Copyright 2011-2013 Forgerock AS
  ! -->
 
 <stax>
@@ -864,8 +864,7 @@
                 <call function="'searchString'">
                   {
                   'expectedString' : '%s' % descDefaultValue ,
-                  'returnString'   : ldapsearchReturn ,
-                  'knownIssue'     : '3779'
+                  'returnString'   : ldapsearchReturn
                   }
                 </call>
   

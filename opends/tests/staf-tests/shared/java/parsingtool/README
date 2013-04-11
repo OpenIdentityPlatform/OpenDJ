@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 
 The purpose of the parsing tool is to parse comments from the functional test xml files.
@@ -123,7 +124,7 @@ functional-tests/testcases/security/pwd_storage/security_pwd_MD5.xml
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                MD5 Tests
             #@TestName                  MD5 Preamble
-            #@TestIssue                 312
+            #@TestIssue                 xyz
             #@TestPurpose               Change password storage scheme to MD5.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -141,7 +142,7 @@ Note that this example contains three test steps.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                MD5 Tests
             #@TestName                  MD5 Test 1
-            #@TestIssue                 312
+            #@TestIssue                 xyz
             #@TestPurpose               Test MD5 password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 

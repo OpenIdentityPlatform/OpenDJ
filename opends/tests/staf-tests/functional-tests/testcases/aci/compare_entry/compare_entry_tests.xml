@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Preamble
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Modify global ACIs
       #@TestPreamble              none
       #@TestStep                  Directory Manager removes global ACI allowing compares
@@ -87,7 +87,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn equals all
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals all
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -217,7 +217,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn not equals a dn
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn not equals a dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -363,7 +363,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn equals a branch dn
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals a branch dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -499,7 +499,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn not equals a branch dn
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals a branch dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -653,7 +653,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn equals two dns
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals two dns
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -807,7 +807,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - userdn not equals two dns
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals a branch dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -943,7 +943,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - compare not allowed
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI where compare is not allowed
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1062,7 +1062,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - targetattr with one attribute
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattr with one attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1208,7 +1208,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - targetfilter with one statement
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI with a targetfilter with one statement
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1354,7 +1354,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - targattrfilters with add:,del:
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI with a targattrfilters with add:,del
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1508,7 +1508,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - targattrfilters with add:,del:, returns false
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against an ACI with a targattrfilters with add:,del
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1662,7 +1662,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - Multi ACIs 1, overall deny
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against two ACIs, overall deny 
       #@TestPreamble              Admin adds acis.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1766,7 +1766,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Compare Tests
       #@TestName                  Compare Attr - Multi ACIs 2, overall allow
-      #@TestIssue                 441
+      #@TestIssue                 none
       #@TestPurpose               Compare an attribute in an entry against two ACIs, overall allow 
       #@TestPreamble              Admin adds acis.
       #@TestStep                  Client compares an attribute in an entry in the targeted branch.
@@ -1880,7 +1880,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Compare Tests
     #@TestName                  Postamble
-    #@TestIssue                 441
+    #@TestIssue                 none
     #@TestPurpose               Reset global ACI to default settings
     #@TestPreamble              none
     #@TestStep                  Directory Manager replaces default global aci.

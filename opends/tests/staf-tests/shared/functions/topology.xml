@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   <function name="createTopology">
@@ -638,20 +638,7 @@
         { 'location' : syncserver.getHostname(),
            'dsPath'  : syncserverPath
          }
-      </call>
-        
-      <!-- WORK-AROUND for issue #2201 -->
-      <call function="'addEntry'">
-        { 'location'       : syncserver.getHostname(),
-          'dsPath'         : syncserverPath,
-          'dsInstanceHost' : syncserver.getHostname(),
-          'dsInstancePort' : syncserver.getPort(), 
-          'dsInstanceDn'   : syncserver.getRootDn(),
-          'dsInstancePswd' : syncserver.getRootPwd(),
-          'entryToBeAdded' : '%s/%s/replication/workaround-2201.ldif' \
-                             % (syncserver.getDir(),remote.reldatadir)
-        }
-      </call>        
+      </call>  
       
       <message>
         'List synchronization providers'
@@ -1173,15 +1160,12 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      <!-- dsreplication initialize(-all) may fail due to issue:
-       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
         { 'name'       : 'Initialize Replication',
           'location'   : location,
           'command'    : STAFCmd,
           'arguments'  : STAFCmdParams,
-          'expectedRC' : expectedRC,
-          'knownIssue' : '4495'
+          'expectedRC' : expectedRC
         }
       </call>
       <return>
@@ -1688,14 +1672,11 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      <!-- dsreplication pre-external-initialization may fail due to issue:
-       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
         { 'name'       : 'Pre-Initialize Replication',
           'location'   : location,
           'command'    : STAFCmd,
-          'arguments'  : STAFCmdParams,
-          'knownIssue' : '4495'
+          'arguments'  : STAFCmdParams
         }
       </call>
       <script>
@@ -1834,14 +1815,11 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      <!-- dsreplication post-external-initialization may fail due to issue:
-       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
         { 'name'       : 'Post-Initialize Replication',
           'location'   : location,
           'command'    : STAFCmd,
-          'arguments'  : STAFCmdParams,
-          'knownIssue' : '4495'
+          'arguments'  : STAFCmdParams
         }
       </call>
       <script>
@@ -2400,8 +2378,7 @@
                                               'dsInstanceDn'    : directoryServer.dn        ,
                                               'dsInstancePswd'  : directoryServer.password  ,
                                               'dsDn'            : ['%s' % server.suffix]    ,
-                                              'expectedRC'      : 'noCheck'                 ,
-                                              'knownIssue'      : '6917970' }
+                                              'expectedRC'      : 'noCheck' }
                     }
                   </call>
                 </sequence>

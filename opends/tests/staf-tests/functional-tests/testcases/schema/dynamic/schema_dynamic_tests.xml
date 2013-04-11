@@ -35,7 +35,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Dynamic Schema Tests
     #@TestName                  Update via a file
-    #@TestIssue                 367
+    #@TestIssue                 none
     #@TestPurpose               To make sure the schema can be updated by a file.
     #@TestPreamble              none
     #@TestStep                  Create a task that will cause the server to 
@@ -131,7 +131,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Dynamic Schema Tests
     #@TestName                  Update Over Protocol: Add schema object
-    #@TestIssue                 366
+    #@TestIssue                 none
     #@TestPurpose               To verify the schema can be updated over protocol.
     #@TestPreamble              none
     #@TestStep                  Update the schema over protocol adding 
@@ -227,7 +227,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Dynamic Schema Tests
     #@TestName                  Update Over Protocol: Replace  Schema Object
-    #@TestIssue                 366
+    #@TestIssue                 none
     #@TestPurpose               To verify attributes and objectclasses can be replaced over protocol.
     #@TestPreamble              none
     #@TestStep                  Update the schema over protocol by replacing  
@@ -323,7 +323,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Dynamic Schema Tests
     #@TestName                  Update Over Protocol: Remove Schema Object 
-    #@TestIssue                 366
+    #@TestIssue                 none
     #@TestPurpose               To verify attributes and objectclasses can be removed over protocol.
     #@TestPreamble              none
     #@TestStep                  Update the schema over protocol by removing

@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -46,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  SASL DIGEST-MD5 Preamble
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Prepare for SASL DIGEST-MD5 tests.
             #@TestPreamble              none
             #@TestStep                  Admin change password storage scheme to
@@ -126,7 +126,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (u:) Bind
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
@@ -160,7 +160,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
@@ -193,7 +193,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind authzid
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid.
@@ -226,7 +226,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind another authzid
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with another authzid.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid of another unauthorized user.
@@ -260,7 +260,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind with authzid without authid
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind without an authorization ID but with an authzid.
             #@TestPreamble              none
             #@TestStep                  User bind without authid but with an authzid.
@@ -294,7 +294,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Admin Change authzid Attribute
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test if authzid attribute may be changed
             #@TestPreamble              none
             #@TestStep                  Admin change authzid attribute to sn.
@@ -328,7 +328,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind authzid after attr change
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid using the default, uid.
@@ -362,7 +362,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind authzid after attr change 2
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid using sn.
@@ -395,7 +395,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Admin Reset authzid Attribute
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test if authzid attribute may be reset
             #@TestPreamble              none
             #@TestStep                  Admin change authzid attribute to the default, uid
@@ -429,7 +429,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind authzid after attr reset
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid using the default, uid.
@@ -462,7 +462,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (dn:) Bind
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format.
@@ -495,7 +495,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (dn:) Bind authzid
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs with an authzid that maps to multiple DNs.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format and with authzid.
@@ -529,7 +529,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format.
@@ -562,7 +562,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Create realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Admin add realm to SASL DIGEST-MD5 mechanism.
             #@TestPreamble              none
             #@TestStep                  ldapmodify used to add a realm.
@@ -596,7 +596,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (u:) Bind With Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format 
@@ -631,7 +631,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind With Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. Realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format 
@@ -665,7 +665,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (dn:) Bind With Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs. Realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format 
@@ -699,7 +699,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind With Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format 
@@ -733,7 +733,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (u:) Bind With Undefined Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Undefined realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format 
@@ -768,7 +768,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (u:) Bind With Undefined Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. Undefined realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format 
@@ -803,7 +803,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (dn:) Bind With Undefined Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs. Undefined realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format 
@@ -838,7 +838,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind With Undefined Realm
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Undefined realm specified.
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format 
@@ -872,7 +872,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind with ACI with authmethod equal sasl
-            #@TestIssue                 460
+            #@TestIssue                 none
             #@TestPurpose               Test bind where an ACI authmethod equal sasl applies.
             #@TestPreamble              none
             #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
@@ -1108,7 +1108,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind with ACI with authmethod equal simple
-            #@TestIssue                 460
+            #@TestIssue                 none
             #@TestPurpose               Test bind where an ACI authmethod equal simple applies.
             #@TestPreamble              none
             #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
@@ -1348,7 +1348,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind with ACI with authmethod not equals simple
-            #@TestIssue                 460
+            #@TestIssue                 none
             #@TestPurpose               Test bind where an ACI authmethod not equals simple applies.
             #@TestPreamble              none
             #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
@@ -1588,7 +1588,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind with ACI with authmethod equals none
-            #@TestIssue                 460
+            #@TestIssue                 none
             #@TestPurpose               Test bind where an ACI authmethod equals none applies.
             #@TestPreamble              none
             #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
@@ -3191,12 +3191,9 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf',
-                'knownIssue'       : '3967'
+                'protection'       : 'auth-conf'
               }
             </call>
-            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
-                 with java 1.5 -->
                         
             <call function="'testCase_Postamble'"/>
             
@@ -3537,12 +3534,9 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf',
-                'knownIssue'       : '3967'
+                'protection'       : 'auth-conf'
               }
             </call>
-            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
-                 with java 1.5-->
 
             <script> 
               returnString = STAXResult[0][1]
@@ -4055,12 +4049,11 @@
               'Search result:   %s' % returnString
             </message>
 
-            <!-- #3723: SSF bind rule: != operator not working -->
+            <!-- SSF bind rule: != operator not working -->
             <call function="'searchString'">
               { 'returnString'   : returnString,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1,
-                'knownIssue'     : '3723'
+                'expectedRC'     : 1
               }
             </call>
 
@@ -4141,12 +4134,10 @@
               'Search result:   %s' % returnString
             </message>
 
-            <!-- #3723: SSF bind rule: != operator not working -->
+            <!-- SSF bind rule: != operator not working -->
             <call function="'searchString'">
               { 'returnString'   : returnString,
-                'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0,
-                'knownIssue'     : '3723'
+                'expectedString' : 'uid=tmorris,ou=People'
               }
             </call>
 
@@ -4215,12 +4206,9 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf',
-                'knownIssue'       : '3967'
+                'protection'       : 'auth-conf'
               }
             </call>
-            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
-                 with java 1.5-->
 
             <script> 
               returnString = STAXResult[0][1]
@@ -4230,12 +4218,10 @@
               'Search result:   %s' % returnString
             </message>
 
-            <!-- #3723: SSF bind rule: != operator not working -->
+            <!-- SSF bind rule: != operator not working -->
             <call function="'searchString'">
               { 'returnString'   : returnString,
-                'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0,
-                'knownIssue'     : '3723'
+                'expectedString' : 'uid=tmorris,ou=People'
               }
             </call>
 
@@ -4572,7 +4558,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  SASL DIGEST-MD5 Postamble
-            #@TestIssue                 345
+            #@TestIssue                 none
             #@TestPurpose               Reset configuration and entries.
             #@TestPreamble              none
             #@TestStep                  Admin change password storage scheme to SSHA.

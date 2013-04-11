@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetcontrol Tests
       #@TestName                  Preamble
-      #@TestIssue                 452
+      #@TestIssue                 none
       #@TestPurpose               Prepare for targetcontrol tests
       #@TestPreamble              none
       #@TestStep                  Admin removes global search ACI
@@ -121,7 +121,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetcontrol Tests
       #@TestName                  Targetcontrol using search effective rights with control allow
-      #@TestIssue                 452
+      #@TestIssue                 none
       #@TestPurpose               Test targetcontrol with search effective rights with control allow
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -283,7 +283,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetcontrol Tests
       #@TestName                  Targetcontrol using search effective rights with control deny 
-      #@TestIssue                 452
+      #@TestIssue                 none
       #@TestPurpose               Test targetcontrol with search effective rights with control deny
       #@TestPreamble              Admin adds an ACI to deny effective rights control and Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -512,7 +512,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetcontrol Tests
       #@TestName                  Targetcontrol using search effective rights with control allow 2
-      #@TestIssue                 452
+      #@TestIssue                 none
       #@TestPurpose               Test targetcontrol with search effective rights with control allow
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -674,7 +674,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetcontrol Tests
       #@TestName                  Postamble
-      #@TestIssue                 452
+      #@TestIssue                 none
       #@TestPurpose               Reset targetcontrol tests
       #@TestPreamble              none
       #@TestStep                  Admin deletes ACI to access effective rights

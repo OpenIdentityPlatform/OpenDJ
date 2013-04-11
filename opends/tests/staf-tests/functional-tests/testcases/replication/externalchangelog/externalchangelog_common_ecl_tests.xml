@@ -7383,13 +7383,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -7643,13 +7636,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -7946,13 +7932,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -8243,13 +8222,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -8518,13 +8490,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -8870,13 +8835,6 @@
                         <message log="1" level="'Error'">
                          'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <!-- We may have come across issue CR 6954670:
-                         !   ECL - draft: update ECL-disabled suffix, then
-                         !   non-disabled suffix, make lastChangenumber
-                         !   incoherent --> 
-                        <call function="'setKnownIssue'">
-                          { 'issueId' : 6954670 }
-                        </call>
                       </sequence>
                     </else>
                   </if>

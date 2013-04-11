@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Auth Pwd Syntax Default Policy Tests
             #@TestName                  Auth Pwd Syntax Default Policy  Preamble
-            #@TestIssue                 319
+            #@TestIssue                 none
             #@TestPurpose               Check for existence of default password policy
             #@TestPreamble              none
             #@TestStep                  Client modifies the default password policy.
@@ -80,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Auth Pwd Syntax Default Policy Tests
             #@TestName                  Add New Users
-            #@TestIssue                 319
+            #@TestIssue                 none
             #@TestPurpose               Add new users that use authPassword
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -151,7 +152,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Auth Pwd Syntax Default Policy Tests
             #@TestName                  Auth Pwd Syntax Default Policy  Postamble
-            #@TestIssue                 319
+            #@TestIssue                 none
             #@TestPurpose               Reset configuration
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
