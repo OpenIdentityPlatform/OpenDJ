@@ -20,7 +20,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2012 ForgeRock AS
+#      Portions Copyright 2012-2013 ForgeRock AS
 #
 #
 # dc=com sample LDIF file
@@ -66,11 +66,14 @@ aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
  "userPassword")(version 3.0;acl "Anonymous read-search access";
  allow (read, search, compare)(userdn = "ldap:///anyone");)
 aci: (target="ldap:///dc=example,dc=com") (targetattr =
- "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
- "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+ "*")(version 3.0; acl "allow all Admin group"; allow(all,export,import,proxy
+ ) groupdn = "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
 aci: (target="ldap:///dc=example,dc=com") (targetattr ="*
  ")(version 3.0; acl "Allow apps proxied auth"; allow(all, proxy
  )(userdn = "ldap:///cn=*,ou=Apps,dc=example,dc=com");)
+aci: (targetcontrol="1.2.840.113556.1.4.805") (version 3.0; acl "
+ Tree delete for Admins"; allow(all) groupdn ="
+ ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
 
 dn: ou=Company Servers,dc=example,dc=com
 objectClass: organizationalUnit
@@ -3930,6 +3933,43 @@ ou: Product Development
 ou: People
 uidNumber: 1110
 gidNumber: 1000
+
+dn: uid=nbohr,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: nbohr
+#classOfService: gold
+userpassword: password
+facsimileTelephoneNumber: +1 408 555 1213
+givenName: Niels
+cn: Niels Bohr
+telephoneNumber: +1 408 555 1212
+sn: Bohr
+roomNumber: 0007
+homeDirectory: /home/nbohr
+mail: nbohr@example.com
+l: San Francisco
+ou: People
+uidNumber: 1111
+gidNumber: 1000
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+objectClass: device
+objectClass: top
+cn: quantum dot
+serialNumber: WI-3005
+owner: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com
+objectClass: device
+objectClass: top
+cn: qubit generator
+serialNumber: XF551426
+owner: uid=nbohr,ou=People,dc=example,dc=com
 
 # Quotas by class of service
 dn: cn=Bronze Class of Service,dc=example,dc=com
