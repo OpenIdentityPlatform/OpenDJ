@@ -134,12 +134,13 @@
         // The REST APIs and their LDAP attribute mappings.
         "mappings" : {
             "/users" : {
-                "baseDN" : "ou=people,dc=example,dc=com",
-                "readOnUpdatePolicy" : "controls",
-                "useSubtreeDelete" : true,
-                "etagAttribute" : "etag",
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
+                "baseDN"              : "ou=people,dc=example,dc=com",
+                "readOnUpdatePolicy"  : "controls",
+                "useSubtreeDelete"    : false,
+                "usePermissiveModify" : true,
+                "etagAttribute"       : "etag",
+                "namingStrategy"      : {
+                    "strategy"    : "clientDNNaming",
                     "dnAttribute" : "uid"
                 },
                 "additionalLDAPAttributes" : [
@@ -192,12 +193,13 @@
                 }
             },
             "/groups" : {
-                "baseDN" : "ou=groups,dc=example,dc=com",
-                "readOnUpdatePolicy" : "controls",
-                "useSubtreeDelete" : true,
-                "etagAttribute" : "etag",
-                "namingStrategy" : {
-                    "strategy" : "clientDNNaming",
+                "baseDN"              : "ou=groups,dc=example,dc=com",
+                "readOnUpdatePolicy"  : "controls",
+                "useSubtreeDelete"    : false,
+                "usePermissiveModify" : true,
+                "etagAttribute"       : "etag",
+                "namingStrategy"      : {
+                    "strategy"    : "clientDNNaming",
                     "dnAttribute" : "cn"
                 },
                 "additionalLDAPAttributes" : [
