@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
                         
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Preamble
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Client searches entry in a branch.
@@ -136,7 +136,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with one statement
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with one statement
         #@TestPreamble              Admin adds an aci with the targetfilter containing one statement.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -327,7 +327,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with one statement 2
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with one statement
         #@TestPreamble              Admin adds an aci with the targetfilter containing one statement.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -517,7 +517,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with one statement 3
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with one statement
         #@TestPreamble              Admin adds an aci with the targetfilter containing one statement.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -679,7 +679,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter set to negative of one statement
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with (not equals) one statement
         #@TestPreamble              Admin adds an aci with the targetfilter containing a negative of one statement.
         #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
@@ -869,7 +869,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with or, one statement true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with or and one statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with or.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -1059,7 +1059,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter (not equals) with three statements with or, one statement true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with not equals three statements with or and one statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with or.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -1249,7 +1249,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with or, no statement true 
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with or and no statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with or.
         #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
@@ -1396,7 +1396,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with and, one statement true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with and and one statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with and.
         #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
@@ -1542,7 +1542,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with and, all statements true 
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with and and all statements are true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with and.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -1732,7 +1732,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter (not equals) with three statements with and, all statements true 
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with not equals three statements with and and all statements are true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with and.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -1922,7 +1922,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with wildcard and or, one statement true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with wildcard and or and one statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard and or.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -2112,7 +2112,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with two wildcards and or, one statement true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with two wildcards and or and one statement is true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard and or.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -2302,7 +2302,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with wildcard and and, all statements true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with wildcard with and and all statements true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard with and.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -2492,7 +2492,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with three statements with three wildcards and and, all statements true
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with three statements with three wildcards with and and all statements true
         #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with three wildcards with and.
         #@TestStep                  Client searches entry which should be allowed with the targetfilter.
@@ -2682,7 +2682,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with extra spaces 
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with extra spaces
         #@TestPreamble              Admin adds an aci with the targetfilter containing extra spaces.
         #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
@@ -2803,7 +2803,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with missing quotes
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with missing quotes
         #@TestPreamble              none
         #@TestStep                  Admin adds an aci with the targetfilter with missing quotes.
@@ -2888,7 +2888,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with misplaced quotes
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with misplaced quotes
         #@TestPreamble              none
         #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
@@ -2973,7 +2973,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with Improperly Formatted Filter with or
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with improperly formatted filter with or
         #@TestPreamble              none
         #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
@@ -3058,7 +3058,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targetfilter Tests 
         #@TestName                  Targetfilter with Improperly Formatted Filter with and
-        #@TestIssue                 436
+        #@TestIssue                 none
         #@TestPurpose               Test with a targetfilter with improperly formatted filter with and
         #@TestPreamble              none
         #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
@@ -3143,7 +3143,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targetfilter Tests 
       #@TestName                  Postamble
-      #@TestIssue                 436
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Client searches entry in one branch.

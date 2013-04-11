@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   <!--- Test Case information
@@ -86,8 +86,7 @@
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupDir'           : '%s/backends/backup1' % remote.temp,
-              'extraParams'         : '--completionNotify foo@example.com',
-              'knownIssue'          : '6947587'
+              'extraParams'         : '--completionNotify foo@example.com'
             }
           </call>
           

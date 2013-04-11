@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="fractional-replication_basic"/>
@@ -527,15 +527,6 @@
                                             ],
                   }
                 </call>
-
-                <if expr="RC != 0">
-                  <sequence>
-                    <call function="'setKnownIssue'">
-                      { 'issueId' : 0000 }
-                    </call>
-                    <break/>
-                  </sequence>
-                </if>
                </sequence>
             </else>
           </if>

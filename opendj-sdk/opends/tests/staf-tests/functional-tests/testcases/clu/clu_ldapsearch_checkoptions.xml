@@ -305,7 +305,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check options tests
               #@TestName            ldapsearch: no password provided
-              #@TestIssue           2624
+              #@TestIssue           none
               #@TestPurpose         Verify an inappropriate authentication error 
                                     doing an ldapsearch.
               #@TestPreamble        none
@@ -333,8 +333,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsBaseDN'         : basedn ,
                   'dsFilter'         : dsfilter ,
-                  'expectedRC'       : 48 ,
-                  'knownIssue'       : '2624'
+                  'expectedRC'       : 48
                   }
                 </call>
   

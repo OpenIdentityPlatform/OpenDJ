@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -1429,8 +1429,7 @@
             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
             'dsCountEntries'   : 'True' ,
             'dsBaseDN'         : 'ou=people,dc=example,dc=com',
-            'dsFilter'         : 'objectClass=*',
-            'knownIssue'       : '6962694'
+            'dsFilter'         : 'objectClass=*'
           }
           </call>
 

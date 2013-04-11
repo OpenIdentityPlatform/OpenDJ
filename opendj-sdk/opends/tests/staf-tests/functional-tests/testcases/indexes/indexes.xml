@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="main_indexes" />
@@ -165,8 +166,7 @@
                 <call function="'runFunction'">
                   { 'functionName'      : 'rebuildIndexWithScript' ,
                     'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
-                                            'dsIndexList' : [ 'uid' ] ,
-                                            'knownIssue'  : '6931704'
+                                            'dsIndexList' : [ 'uid' ]
                                           }
                   }
                 </call>
@@ -218,8 +218,7 @@
                 <call function="'runFunction'">
                   { 'functionName'      : 'rebuildIndexWithScript' ,
                     'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
-                                            'dsIndexList' : [ 'uid' ] ,
-                                            'knownIssue'  : '6931704'
+                                            'dsIndexList' : [ 'uid' ]
                                           }
                   }
                 </call>
@@ -266,7 +265,7 @@
       subString search and then verifies that it worked
       #@TestMarker                indexes
       #@TestName                  indexes_dynamic_modify
-      #@TestIssue                 1480
+      #@TestIssue                 none
       #@TestPurpose               harden the default indexes
       #@TestPreamble              none
       #@TestStep                  iterate through file search.filters
@@ -309,8 +308,7 @@
                         'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                         'dsBaseDN'            : DIRECTORY_INSTANCE_SFX,
-                        'dsIndexList'         : [ 'uid' ],
-                        'knownIssue'          : '6931704'
+                        'dsIndexList'         : [ 'uid' ]
                       }
                   }
                 </call>
@@ -349,8 +347,7 @@
                 <call function="'runFunction'">
                   { 'functionName'      : 'rebuildIndexWithScript' ,
                     'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
-                                            'dsIndexList' : [ 'uid' ] ,
-                                            'knownIssue'  : '6931704'
+                                            'dsIndexList' : [ 'uid' ]
                                           }
                   }
                 </call>
@@ -446,8 +443,7 @@
                 <call function="'runFunction'">
                   { 'functionName'      : 'rebuildIndexWithScript' ,
                     'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
-                                            'dsIndexList' : [ 'l' ] ,
-                                            'knownIssue'  : '6931704'
+                                            'dsIndexList' : [ 'l' ]
                                           }
                   }
                 </call>
@@ -512,7 +508,7 @@
       attribute and then verifies that it worked
       #@TestMarker              indexes
       #@TestName                indexes_dynamic_add
-      #@TestIssue               1480
+      #@TestIssue               none
       #@TestPurpose             check if the user can add her own indexes
                                 dynamically
       #@TestPreamble            none
@@ -558,8 +554,7 @@
                         'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                         'dsBaseDN'            : DIRECTORY_INSTANCE_SFX,
-                        'dsIndexList'         : [ 'l' ],
-                        'knownIssue'          : '6931704'
+                        'dsIndexList'         : [ 'l' ]
                       }
                   }
                 </call>
@@ -656,8 +651,7 @@
                 <call function="'runFunction'">
                   { 'functionName'      : 'rebuildIndexWithScript' ,
                     'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
-                                            'dsIndexList' : [ 'l' ] ,
-                                            'knownIssue'  : '6931704'
+                                            'dsIndexList' : [ 'l' ]
                                           }
                   }
                 </call>

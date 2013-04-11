@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="main_sample" />
@@ -177,7 +178,7 @@
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
               'dsFilter'         : 'wrongfilter' ,
-              'knownIssue'       : '2619'         }
+              'knownIssue'       : 'xyz'         }
             </call>
             <call function="'testCase_Postamble'" />
           </sequence>

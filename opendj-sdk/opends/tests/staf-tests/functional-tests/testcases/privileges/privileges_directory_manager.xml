@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -75,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  bypass-acl 
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for Directory Manager
                   #@TestPreamble              Alternate root user removes global search ACI.
                   #@TestStep                  Directory Manager searches entry.
@@ -271,7 +272,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  bypass-acl, alternate bind DN
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for Directory Manager using alternate bind dn
                   #@TestPreamble              Alternate root user removes global search ACI.
                   #@TestStep                  Directory Manager searches entry.
@@ -396,7 +397,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  modify-acl - add aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for Directory Manager - add aci
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager adds ACI, default behavior.
@@ -545,7 +546,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  modify-acl - replace aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for Directory Manager - replace aci
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager replaces ACI, default behavior.
@@ -656,7 +657,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  modify-acl - delete aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for Directory Manager - delete aci
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager deletes ACI, default behavior.
@@ -754,7 +755,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  config-read 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-read privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager searches cn=config, default behavior.
@@ -886,7 +887,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  config-write 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager modifies cn=config, default behavior.
@@ -1063,7 +1064,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  config-write - add global aci
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for Directory Manager - add global aci
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager adds global ACI, default behavior.
@@ -1264,7 +1265,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  password-reset 
-                  #@TestIssue                 479
+                  #@TestIssue                 none
                   #@TestPurpose               password-reset privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager resets user password, default behavior.
@@ -1371,7 +1372,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  update-schema 
-                  #@TestIssue                 468
+                  #@TestIssue                 none
                   #@TestPurpose               update-schema privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user adds entry that uses new object class.
@@ -1517,7 +1518,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  privilege-change
-                  #@TestIssue                 1213
+                  #@TestIssue                 none
                   #@TestPurpose               privilege-change privilege for Directory Manager
                   #@TestPreamble              Alternate root user adding write ACI
                   #@TestStep                  Alternate root user removes privilege.
@@ -1699,7 +1700,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  server-shutdown
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-shutdown privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user removes privilege.
@@ -1834,7 +1835,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Directory Manager Tests
                   #@TestName                  server-restart
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-restart privilege for Directory Manager
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user removes privilege.

@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 Forgerock AS
+ !      Portions Copyright 2011-2013 Forgerock AS
  ! -->
 <stax>
 
@@ -76,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  bypass-acl 
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for normal users
                   #@TestPreamble              User searches entry.
                   #@TestStep                  Admin removes global search ACI.
@@ -279,7 +279,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  bypass-acl with proxy 
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for normal users with proxy permission
                   #@TestPreamble              Admin removes global search ACI.
                   #@TestStep                  Admin adds privilege.
@@ -518,7 +518,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  bypass-acl removal with minus notation
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for normal users with minus notation
                   #@TestPreamble              Admin removes global search ACI.
                   #@TestStep                  Admin adds privilege.
@@ -753,7 +753,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  bypass-acl self-modify add
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for normal users with self-modify add
                   #@TestPreamble              Admin removes global search ACI.
                   #@TestStep                  User adds ACI to itself.
@@ -868,7 +868,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  modify-acl - add aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for normal users - add aci
                   #@TestPreamble              none
                   #@TestStep                  User adds ACI, check default behavior.
@@ -1074,7 +1074,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  modify-acl - add aci - disable privilege
-                  #@TestIssue                 1683
+                  #@TestIssue                 none
                   #@TestPurpose               disable privilege for modify-acl privilege for normal users - add aci
                   #@TestPreamble              none
                   #@TestStep                  Admin adds write ACI.
@@ -1258,7 +1258,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  modify-acl - replace aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for normal users - replace aci
                   #@TestPreamble              none
                   #@TestStep                  User replaces ACI, check default behavior.
@@ -1440,7 +1440,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  modify-acl - delete aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for normal users - delete aci
                   #@TestPreamble              none
                   #@TestStep                  User deletes ACI, check default behavior.
@@ -1586,7 +1586,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  config-read 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-read privilege for normal users
                   #@TestPreamble              none
                   #@TestStep                  User searches cn=config, check default behavior.
@@ -1718,7 +1718,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  config-read - disable privilege
-                  #@TestIssue                 1683
+                  #@TestIssue                 none
                   #@TestPurpose               config-read privilege for normal users
                   #@TestPreamble              none
                   #@TestStep                  User searches cn=config, check default behavior.
@@ -1847,7 +1847,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  config-write 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for normal users
                   #@TestPreamble              none
                   #@TestStep                  User modifies cn=config, check default behavior.
@@ -2093,7 +2093,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  config-write - add global aci
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for normal users - add global aci
                   #@TestPreamble              none
                   #@TestStep                  User adds global ACI, check default behavior.
@@ -2363,7 +2363,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  password-reset 
-                  #@TestIssue                 479
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for normal users
                   #@TestPreamble              Admin adds write ACI
                   #@TestStep                  User resets another users password, check default behavior.
@@ -2553,7 +2553,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  update-schema 
-                  #@TestIssue                 468
+                  #@TestIssue                 none
                   #@TestPurpose               update-schema privilege for normal users
                   #@TestPreamble              Admin adds write ACI
                   #@TestStep                  User adds new schema object, check default behavior.
@@ -2782,7 +2782,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  privilege-change
-                  #@TestIssue                 1213
+                  #@TestIssue                 none
                   #@TestPurpose               privilege-change privilege for normal users
                   #@TestPreamble              Admin adds write ACI
                   #@TestStep                  Admin adds privilege-change privilege to first user.
@@ -2938,7 +2938,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  server-shutdown
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-shutdown privilege for normal users
                   #@TestPreamble              none
                   #@TestStep                  User adds shutdown task, check default behavior.
@@ -3127,7 +3127,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Users Tests
                   #@TestName                  server-restart
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-restart privilege for normal users
                   #@TestPreamble              none
                   #@TestStep                  User adds restart task, check default behavior.

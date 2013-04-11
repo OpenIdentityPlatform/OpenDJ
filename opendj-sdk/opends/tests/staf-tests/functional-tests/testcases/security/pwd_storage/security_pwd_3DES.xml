@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                3DES Tests
             #@TestName                  3DES Preamble
-            #@TestIssue                 315
+            #@TestIssue                 none
             #@TestPurpose               Change password storage scheme to 3DES.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -80,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                3DES Tests
             #@TestName                  3DES Test 1
-            #@TestIssue                 315
+            #@TestIssue                 none
             #@TestPurpose               Test 3DES password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -159,7 +160,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                3DES Tests
             #@TestName                  3DES Postamble
-            #@TestIssue                 315
+            #@TestIssue                 none
             #@TestPurpose               Reset password storage scheme to the default, SSHA.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -75,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  preamble 
-                  #@TestIssue                 468
+                  #@TestIssue                 none
                   #@TestPurpose               Preamble - add a new root user
                   #@TestPreamble              none
                   #@TestStep                  Admin adds a new root user.
@@ -110,7 +111,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  bypass-acl 
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for new root user
                   #@TestPreamble              Alternate root user removes global search ACI.
                   #@TestStep                  New root user searches entry.
@@ -300,7 +301,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  bypass-acl, alternate bind DN
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               bypass-acl privilege for new root user using alternate bind dn
                   #@TestPreamble              Alternate root user removes global search ACI.
                   #@TestStep                  New root user searches entry.
@@ -421,7 +422,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  modify-acl - add aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for new root user - add aci
                   #@TestPreamble              none
                   #@TestStep                  New root user adds ACI, default behavior.
@@ -565,7 +566,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  modify-acl - replace aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for new root user - replace aci
                   #@TestPreamble              none
                   #@TestStep                  New root user replaces ACI, default behavior.
@@ -673,7 +674,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  modify-acl - delete aci
-                  #@TestIssue                 471
+                  #@TestIssue                 none
                   #@TestPurpose               modify-acl privilege for new root user - delete aci
                   #@TestPreamble              none
                   #@TestStep                  New root user deletes ACI, default behavior.
@@ -769,7 +770,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  config-read 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-read privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  New root user searches cn=config, default behavior.
@@ -899,7 +900,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  config-write 
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  New root user modifies cn=config, default behavior.
@@ -1071,7 +1072,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  config-write - add global aci
-                  #@TestIssue                 472
+                  #@TestIssue                 none
                   #@TestPurpose               config-write privilege for new root user - add global aci
                   #@TestPreamble              none
                   #@TestStep                  New root user adds global ACI, default behavior.
@@ -1265,7 +1266,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  password-reset 
-                  #@TestIssue                 479
+                  #@TestIssue                 none
                   #@TestPurpose               password-reset privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  New root user resets user password, default behavior.
@@ -1369,7 +1370,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  update-schema 
-                  #@TestIssue                 468
+                  #@TestIssue                 none
                   #@TestPurpose               update-schema privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user adds entry that uses new object class.
@@ -1509,7 +1510,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  privilege-change
-                  #@TestIssue                 1213
+                  #@TestIssue                 none
                   #@TestPurpose               privilege-change privilege for new root user
                   #@TestPreamble              Alternate root user adding write ACI
                   #@TestStep                  Alternate root user removes privilege.
@@ -1684,7 +1685,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  server-shutdown
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-shutdown privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user removes privilege.
@@ -1817,7 +1818,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges New Root User Tests
                   #@TestName                  server-restart
-                  #@TestIssue                 477
+                  #@TestIssue                 none
                   #@TestPurpose               server-restart privilege for new root user
                   #@TestPreamble              none
                   #@TestStep                  Alternate root user removes privilege.

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS 
  ! -->
 <stax>
 
@@ -75,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Import Tasks Tests
                   #@TestName                  ldif-import
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for regular users to add import tasks
                   #@TestPreamble              none
                   #@TestStep                  User adding import task.
@@ -233,7 +234,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Import Tasks Tests
                   #@TestName                  ldif-import, Directory Manager
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for Directory Manager to add import tasks
                   #@TestPreamble              none
                   #@TestStep                  Alternative root user removing privilege from Directory Manager.
@@ -356,7 +357,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Import Task Tests
                   #@TestName                  ldif-import, New Root User
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for new root user to add import tasks
                   #@TestPreamble              Admin adds new root user.
                   #@TestStep                  Alternative root user removing privilege from new root user.

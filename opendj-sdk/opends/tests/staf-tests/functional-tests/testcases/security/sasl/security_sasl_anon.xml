@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL ANONYMOUS Tests
             #@TestName                  SASL ANONYMOUS Preamble
-            #@TestIssue                 351
+            #@TestIssue                 none
             #@TestPurpose               Prepare for SASL ANONYMOUS tests.
             #@TestPreamble              none
             #@TestStep                  Admin enable SASL ANONYMOUS mechanism.
@@ -88,7 +89,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL ANONYMOUS Tests
             #@TestName                  Anonymous bind
-            #@TestIssue                 351
+            #@TestIssue                 none
             #@TestPurpose               Test anonymous bind.
             #@TestPreamble              none
             #@TestStep                  Anonymous bind to OpenDS.
@@ -121,7 +122,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL ANONYMOUS Tests
             #@TestName                  SASL ANONYMOUS Postamble
-            #@TestIssue                 351
+            #@TestIssue                 none
             #@TestPurpose               Reset configuration.
             #@TestPreamble              none
             #@TestStep                  Admin disable SASL ANONYMOUS mechanism.

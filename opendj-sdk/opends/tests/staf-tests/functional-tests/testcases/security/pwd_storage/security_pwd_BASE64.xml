@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                BASE64 Tests
             #@TestName                  BASE64 Preamble
-            #@TestIssue                 310
+            #@TestIssue                 none
             #@TestPurpose               Change password storage scheme to BASE64.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -80,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                BASE64 Tests
             #@TestName                  BASE64 Test 1
-            #@TestIssue                 310
+            #@TestIssue                 none
             #@TestPurpose               Test BASE64 password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -159,7 +160,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                BASE64 Tests
             #@TestName                  BASE64 Postamble
-            #@TestIssue                 310
+            #@TestIssue                 none
             #@TestPurpose               Reset password storage scheme to the default, SSHA.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 

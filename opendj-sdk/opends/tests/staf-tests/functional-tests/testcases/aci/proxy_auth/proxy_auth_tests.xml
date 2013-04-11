@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Preamble
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Client searches entry for an attribute in a branch dn.
@@ -160,7 +160,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user, one proxied user
       #@TestPreamble              none
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -368,7 +368,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user, one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user, one proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -633,7 +633,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user for adds, one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user for adds, one proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -874,7 +874,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user for searches, one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user for searches, one proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -1128,7 +1128,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user for searches reads separate level, one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user for searches reads separate level, one proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -1395,7 +1395,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with many users with wildcard, one proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with many users with wildcard, one proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -1662,7 +1662,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user, many proxied users with wildcard
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user, many proxied users with wildcard
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -1917,7 +1917,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with one user, one bad proxied user
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with one user, one bad proxied user
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -2194,7 +2194,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Proxy rights with Directory Manager as proxy
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test ACI with proxy rights with Directory Manager as proxy
       #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
       #@TestStep                  Client searches entry in targeted branch as user.
@@ -2480,7 +2480,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Proxy Authorization Tests
       #@TestName                  Postamble
-      #@TestIssue                 1489
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Client searches entry for an attribute in a branch dn.

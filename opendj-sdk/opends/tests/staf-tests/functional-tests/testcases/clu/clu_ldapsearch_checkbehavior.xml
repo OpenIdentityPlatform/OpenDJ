@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -77,7 +78,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check behavior tests
               #@TestName            ldapsearch: check number of entries
-              #@TestIssue           2764
+              #@TestIssue           none
               #@TestPurpose         Verify that the operation is successful and
                                     the number of returned entries is correct.
               #@TestPreamble        none
@@ -105,8 +106,7 @@
                   'dsTypesOnly'      : 'True' ,
                   'dsCountEntries'   : 'True' ,
                   'dsBaseDN'         : basedn ,
-                  'dsFilter'         : 'uid=user.1*' ,
-                  'knownIssue'       : '2764'
+                  'dsFilter'         : 'uid=user.1*'
                   }                
                 </call>
                 
@@ -130,7 +130,7 @@
             <!--- Test Case information
               #@TestMarker          ldapsearch check behavior tests
               #@TestName            ldapsearch: check behavior with default basedn
-              #@TestIssue           2934
+              #@TestIssue           none
               #@TestPurpose         Verify that the number of returned entries is
                                     correct with a base DN of "".
               #@TestPreamble        none
@@ -370,8 +370,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'     : returnString ,
-                  'expectedString'   : 'Total number of matching entries: 11',
-                  'issue'            : '2934'
+                  'expectedString'   : 'Total number of matching entries: 11'
                   }
                 </call>
                 

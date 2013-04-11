@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -50,7 +51,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Setup Tests
             #@TestName                  JKS Startup Test 
-            #@TestIssue                 413
+            #@TestIssue                 none
             #@TestPurpose               Setup OpenDS for JKS keystore.
             #@TestPreamble              none
             #@TestStep                  Generate server certificate.

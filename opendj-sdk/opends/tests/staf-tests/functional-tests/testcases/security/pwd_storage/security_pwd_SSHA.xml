@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA Tests
             #@TestName                  SSHA Preamble
-            #@TestIssue                 313
+            #@TestIssue                 none
             #@TestPurpose               Check for the default storage scheme. SSHA.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapcompare 
@@ -80,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA Tests
             #@TestName                  SSHA Default Test
-            #@TestIssue                 313
+            #@TestIssue                 none
             #@TestPurpose               Test the default, SSHA, password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves a user's password and 
@@ -125,7 +126,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA Tests
             #@TestName                  SSHA Test 1
-            #@TestIssue                 313
+            #@TestIssue                 none
             #@TestPurpose               Test SSHA password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -203,7 +204,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SSHA Tests
             #@TestName                  SSHA Unsupported Scheme Test
-            #@TestIssue                 313
+            #@TestIssue                 none
             #@TestPurpose               Test an unsupported storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes to an unsupported storage scheme.

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -45,7 +46,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  SASL New Preamble
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Prepare for SASL New tests.
             #@TestPreamble              none
             #@TestStep                  User change his password.
@@ -136,7 +137,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  uid (u:) Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
@@ -170,7 +171,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  uid Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=[name] format.
@@ -203,7 +204,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  uid (dn:) Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to a single DN. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[name] format.
@@ -236,7 +237,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  Dupe uid (u:) Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
@@ -270,7 +271,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  Dupe uid (dn:) Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to multiple DNs. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[name] format.
@@ -303,7 +304,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  Dupe uid Bind
-            #@TestIssue                 353
+            #@TestIssue                 none
             #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to multiple DNs. 
             #@TestPreamble              none
             #@TestStep                  User bind with authid=[dn] format.
@@ -337,7 +338,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL New Tests
             #@TestName                  SASL New Postamble
-            #@TestIssue                 1240
+            #@TestIssue                 none
             #@TestPurpose               Reset configuration and entries.
             #@TestPreamble              none
             #@TestStep                  Admin change password storage scheme to SSHA.

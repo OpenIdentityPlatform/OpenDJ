@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -76,7 +76,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Export Tasks Tests
                   #@TestName                  ldif-export
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for regular users to add export tasks
                   #@TestPreamble              none
                   #@TestStep                  User adding export task.
@@ -258,7 +258,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Export Tasks Tests
                   #@TestName                  ldif-export, Directory Manager
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for Directory Manager to add export tasks
                   #@TestPreamble              none
                   #@TestStep                  Directory Manager adding export task.
@@ -367,7 +367,7 @@
                   The tag, TestMarker, must be the same as the tag, TestSuiteName.
                   #@TestMarker                Privileges Export Tasks Tests
                   #@TestName                  ldif-export, New Root User
-                  #@TestIssue                 474
+                  #@TestIssue                 none
                   #@TestPurpose               Privileges for new root user to add export tasks
                   #@TestPreamble              Admin adds new root user.
                   #@TestStep                  New root user adding export task.

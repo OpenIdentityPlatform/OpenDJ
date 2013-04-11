@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -369,8 +370,7 @@
               <call function="'rebuildIndexWithScript'">
                 {
                 'dsBaseDN'            : 'dc=com' ,
-                'dsRebuildAll'        : 'True' ,
-                'knownIssue'          : '6928546'
+                'dsRebuildAll'        : 'True'
                 }
               </call>
 
