@@ -166,7 +166,15 @@ PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
-for LIBFILE in "${PRODUCT_NAME}.jar" je.jar quicksetup.jar
+
+# The 'grep -v' filters out localization jars
+for LIBFILE in `ls ${PKG_LIB_DIR}/*.jar | grep -v "${PRODUCT_NAME}_"`
+do
+  LIBFILE=`basename "${LIBFILE}"`
+  LIBFILES="${LIBFILES} ${LIBFILE}"
+done
+
+for LIBFILE in ${LIBFILES}
 do
   echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
@@ -211,12 +219,33 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
   <resources>
     <j2se version="1.6+" java-vm-args="-client"/>
     <jar href="lib/quicksetup.jar" download="eager" main="true"/>
-    <jar href="lib/${PRODUCT_NAME}.jar" download="lazy"/>
-    <jar href="lib/je.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>
+ENDOFINSTALLJNLP
+
+for LIBFILE in ${LIBFILES}
+do
+  if test "${LIBFILE}" != "quicksetup.jar"
+  then
+    echo "    <jar href=\"lib/${LIBFILE}.jar\" download=\"lazy\"/>" >> "${INSTALL_JNLP_FILENAME}"
+  fi
+done
+
+cat >> "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <property name="org.opends.quicksetup.iswebstart" value="true" />
     <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.installandupgrader.InstallAndUpgrader"/>
-    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/${PRODUCT_NAME}.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
+ENDOFINSTALLJNLP
+
+echo -n "    <property name=\"org.opends.quicksetup.lazyjarurls\" value=\"${INSTALLER_URI}/lib/zipped.jar" >> "${INSTALL_JNLP_FILENAME}"
+for LIBFILE in ${LIBFILES}
+do
+  if test "${LIBFILE}" != "quicksetup.jar"
+  then
+    echo -n " ${INSTALLER_URI}/lib/${LIBFILE}" >> "${INSTALL_JNLP_FILENAME}"
+  fi
+done
+echo "\" />" >> "${INSTALL_JNLP_FILENAME}"
+
+cat >> "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
 
