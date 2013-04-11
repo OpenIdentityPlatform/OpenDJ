@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
@@ -235,6 +236,10 @@ final class Utils {
 
     static boolean isJSONPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
+    }
+
+    static boolean isNullOrEmpty(final JsonValue v) {
+        return v == null || v.isNull() || (v.isList() && v.size() == 0);
     }
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad) {

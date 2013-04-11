@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
@@ -23,6 +24,7 @@ import static org.forgerock.json.resource.Requests.newUpdateRequest;
 import static org.forgerock.json.resource.Resources.newCollection;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
 import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.constant;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.object;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
 import static org.forgerock.opendj.rest2ldap.TestUtils.asResource;
@@ -163,6 +165,64 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     @Test
+    public void testUpdateAddOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.put("description", asList("one", "two"));
+        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testUpdateConstantAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.put("schemas", asList("junk"));
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+    }
+
+    @Test
+    public void testUpdateDeleteOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.put("description", asList("one", "two"));
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        newContent.remove("description");
+        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testUpdateMissingRequiredAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.remove("surname");
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+    }
+
+    @Test
+    public void testUpdateModifyOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.put("description", asList("one", "two"));
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        newContent.put("description", asList("three"));
+        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test
     public void testUpdateMVCCMatch() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
@@ -197,12 +257,32 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         connection.update(ctx(), newUpdateRequest("/test1", getTestUser1Updated(99999)));
     }
 
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testUpdateSingleValuedAttributeWithMultipleValues() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.put("surname", asList("black", "white"));
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testUpdateUnknownAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.add("dummy", "junk");
+        connection.update(ctx(), newUpdateRequest("/test1", newContent));
+    }
+
     private Builder builder() throws IOException {
         return Rest2LDAP.builder().ldapConnectionFactory(getConnectionFactory()).baseDN("dc=test")
                 .useEtagAttribute().useClientDNNaming("uid").readOnUpdatePolicy(
                         ReadOnUpdatePolicy.CONTROLS).authorizationPolicy(AuthorizationPolicy.NONE)
-                .additionalLDAPAttribute("objectClass", "top", "person").mapper(
-                        object().attribute(
+                .additionalLDAPAttribute("objectClass", "top", "person")
+                .mapper(object()
+                        .attribute("schemas", constant(asList("urn:scim:schemas:core:1.0")))
+                        .attribute(
                                 "_id",
                                 simple("uid").isSingleValued().isRequired().writability(
                                         WritabilityPolicy.CREATE_ONLY)).attribute("displayName",
@@ -210,7 +290,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                                 simple("sn").isSingleValued().isRequired()).attribute(
                                 "_rev",
                                 simple("etag").isSingleValued().isRequired().writability(
-                                        WritabilityPolicy.READ_ONLY)));
+                                        WritabilityPolicy.READ_ONLY)).attribute("description",
+                                simple("description")));
     }
 
     private void checkResourcesAreEqual(final Resource actual, final JsonValue expected) {
@@ -254,12 +335,14 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     private JsonValue getTestUser1(final int rev) {
-        return content(object(field("_id", "test1"), field("_rev", String.valueOf(rev)), field(
-                "displayName", "test user 1"), field("surname", "user 1")));
+        return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
+                "test1"), field("_rev", String.valueOf(rev)), field("displayName", "test user 1"),
+                field("surname", "user 1")));
     }
 
     private JsonValue getTestUser1Updated(final int rev) {
-        return content(object(field("_id", "test1"), field("_rev", String.valueOf(rev)), field(
-                "displayName", "changed"), field("surname", "user 1")));
+        return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
+                "test1"), field("_rev", String.valueOf(rev)), field("displayName", "changed"),
+                field("surname", "user 1")));
     }
 }
