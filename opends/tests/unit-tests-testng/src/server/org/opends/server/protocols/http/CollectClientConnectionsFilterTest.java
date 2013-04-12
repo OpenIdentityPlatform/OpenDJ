@@ -28,6 +28,7 @@ package org.opends.server.protocols.http;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.protocols.http.CollectClientConnectionsFilter.*;
 
 import java.io.IOException;
 
@@ -36,15 +37,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.util.Base64;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 {
 
-  private static final String AUTHORIZATION =
-      CollectClientConnectionsFilter.HTTP_BASIC_AUTH_HEADER;
   private static final String USERNAME = "Aladdin";
   private static final String PASSWORD = "open sesame";
   private static final String BASE64_USERPASS = Base64
@@ -131,7 +132,7 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     authConfig.setBasicAuthenticationSupported(true);
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(AUTHORIZATION)).thenReturn(
+    when(request.getHeader(HTTP_BASIC_AUTH_HEADER)).thenReturn(
         "Basic " + BASE64_USERPASS);
 
     assertThat(filter.extractUsernamePassword(request)).containsExactly(
@@ -154,6 +155,25 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 
     assertThat(filter.extractUsernamePassword(request)).containsExactly(
         USERNAME, PASSWORD);
+  }
+
+  /**
+   * Tests that getAuthenticationInfo() without basic auth header or custom
+   * headers returns an unauthenticated info when the server accepts
+   * unauthenticated requests.
+   */
+  @Test
+  public void getAuthenticationInfoReturnsUnauthenticatedInfo()
+      throws Exception
+  {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HTTPConnectionHandler cfg = mock(HTTPConnectionHandler.class);
+    when(cfg.acceptUnauthenticatedRequests()).thenReturn(true);
+
+    filter = new CollectClientConnectionsFilter(cfg, authConfig);
+    AuthenticationInfo authInfo = filter.getAuthenticationInfo(request, null);
+    assertThat(authInfo).isNotNull();
+    assertThat(authInfo.isAuthenticated()).isFalse();
   }
 
 }
