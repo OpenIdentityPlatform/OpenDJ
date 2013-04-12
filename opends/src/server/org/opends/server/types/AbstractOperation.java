@@ -23,29 +23,25 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-
 
 import static org.opends.server.core.CoreConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.*;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.util.Validator;
-import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.loggers.debug.
-    DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.controls.ControlDecoder;
-import org.opends.server.protocols.ldap.LDAPControl;
 
 
 /**
@@ -64,8 +60,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
      mayExtend=false,
      mayInvoke=true)
 public abstract class AbstractOperation
-       implements Operation, PreParseOperation, PostResponseOperation,
-                  Runnable
+       implements Operation, PreParseOperation, PostResponseOperation
 {
   /**
    * The tracer object for the debug logger.
@@ -225,6 +220,7 @@ public abstract class AbstractOperation
    *
    * @return  The operation type for this operation.
    */
+  @Override
   public abstract OperationType getOperationType();
 
 
@@ -245,6 +241,7 @@ public abstract class AbstractOperation
    *                           may be {@code null} if no notification
    *                           is to be sent.
    */
+  @Override
   public void disconnectClient(DisconnectReason disconnectReason,
                                boolean sendNotification,
                                Message message)
@@ -266,6 +263,7 @@ public abstract class AbstractOperation
    * @return  A standard set of elements that should be logged in
    *          requests and responses for all types of operations.
    */
+  @Override
   public final String[][] getCommonLogElements()
   {
     // Note that no debugging will be done in this method because
@@ -296,6 +294,7 @@ public abstract class AbstractOperation
    * @return  A standard set of elements that should be logged in
    *          requests for this type of operation.
    */
+  @Override
   public abstract String[][] getRequestLogElements();
 
 
@@ -311,6 +310,7 @@ public abstract class AbstractOperation
    * @return  A standard set of elements that should be logged in
    *          responses for this type of operation.
    */
+  @Override
   public abstract String[][] getResponseLogElements();
 
 
@@ -322,6 +322,7 @@ public abstract class AbstractOperation
    * @return  The client connection with which this operation is
    *          associated.
    */
+  @Override
   public final ClientConnection getClientConnection()
   {
     return clientConnection;
@@ -336,6 +337,7 @@ public abstract class AbstractOperation
    * @return  The unique identifier that is assigned to the client
    *          connection that submitted this operation.
    */
+  @Override
   public final long getConnectionID()
   {
     return clientConnection.getConnectionID();
@@ -348,6 +350,7 @@ public abstract class AbstractOperation
    *
    * @return  The operation ID for this operation.
    */
+  @Override
   public final long getOperationID()
   {
     return operationID;
@@ -360,6 +363,7 @@ public abstract class AbstractOperation
    *
    * @return  The message ID assigned to this operation.
    */
+  @Override
   public final int getMessageID()
   {
     return messageID;
@@ -374,6 +378,7 @@ public abstract class AbstractOperation
    * @return  The set of controls included in the request from the
    *          client.
    */
+  @Override
   public final List<Control> getRequestControls()
   {
     return requestControls;
@@ -382,6 +387,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   public final <T extends Control> T getRequestControl(
       ControlDecoder<T> d) throws DirectoryException
@@ -416,6 +422,7 @@ public abstract class AbstractOperation
    * @param  control  The control to add to the set of request
    *                  controls for this operation.
    */
+  @Override
   public final void addRequestControl(Control control)
   {
     requestControls.add(control);
@@ -431,6 +438,7 @@ public abstract class AbstractOperation
    * @param  control  The control to remove from the set of request
    *                  controls for this operation.
    */
+  @Override
   public final void removeRequestControl(Control control)
   {
     requestControls.remove(control);
@@ -445,6 +453,7 @@ public abstract class AbstractOperation
    * @return  The set of controls to include in the response to the
    *          client.
    */
+  @Override
   public abstract List<Control> getResponseControls();
 
 
@@ -457,6 +466,7 @@ public abstract class AbstractOperation
    * @param  control  The control to add to the set of controls to
    *                  include in the response to the client.
    */
+  @Override
   public abstract void addResponseControl(Control control);
 
 
@@ -469,6 +479,7 @@ public abstract class AbstractOperation
    * @param  control  The control to remove from the set of controls
    *                  to include in the response to the client.
    */
+  @Override
   public abstract void removeResponseControl(Control control);
 
 
@@ -480,6 +491,7 @@ public abstract class AbstractOperation
    *          {@code UNDEFINED} if the operation has not yet
    *          completed.
    */
+  @Override
   public final ResultCode getResultCode()
   {
     return resultCode;
@@ -493,6 +505,7 @@ public abstract class AbstractOperation
    *
    * @param  resultCode  The result code for this operation.
    */
+  @Override
   public final void setResultCode(ResultCode resultCode)
   {
     this.resultCode = resultCode;
@@ -507,6 +520,7 @@ public abstract class AbstractOperation
    *
    * @return  The error message for this operation.
    */
+  @Override
   public final MessageBuilder getErrorMessage()
   {
     return errorMessage;
@@ -520,6 +534,7 @@ public abstract class AbstractOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
+  @Override
   public final void setErrorMessage(MessageBuilder errorMessage)
   {
     if (errorMessage == null)
@@ -543,6 +558,7 @@ public abstract class AbstractOperation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
+  @Override
   public final void appendErrorMessage(Message message)
   {
     if (errorMessage == null)
@@ -565,6 +581,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
     if (additionalLogItems == null)
@@ -582,6 +599,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
     Validator.ensureNotNull(item);
@@ -600,6 +618,7 @@ public abstract class AbstractOperation
    * @return The matched DN for this operation, or {@code null} if the operation
    *         has not yet completed or does not have a matched DN.
    */
+  @Override
   public final DN getMatchedDN()
   {
     return matchedDN;
@@ -613,6 +632,7 @@ public abstract class AbstractOperation
    *
    * @param  matchedDN  The matched DN for this operation.
    */
+  @Override
   public final void setMatchedDN(DN matchedDN)
   {
     this.matchedDN = matchedDN;
@@ -628,6 +648,7 @@ public abstract class AbstractOperation
    *          {@code null} if the operation is not yet complete or
    *          does not have a set of referral URLs.
    */
+  @Override
   public final List<String> getReferralURLs()
   {
     return referralURLs;
@@ -642,6 +663,7 @@ public abstract class AbstractOperation
    * @param  referralURLs  The set of referral URLs for this
    *                       operation.
    */
+  @Override
   public final void setReferralURLs(List<String> referralURLs)
   {
     this.referralURLs = referralURLs;
@@ -658,6 +680,7 @@ public abstract class AbstractOperation
    *                             information to use for the response
    *                             elements.
    */
+  @Override
   public final void setResponseData(
                          DirectoryException directoryException)
   {
@@ -677,6 +700,7 @@ public abstract class AbstractOperation
    * @return  {@code true} if this is an internal operation, or
    *          {@code false} if it is not.
    */
+  @Override
   public final boolean isInternalOperation()
   {
     return isInternalOperation;
@@ -694,6 +718,7 @@ public abstract class AbstractOperation
    *                              that was requested by an external
    *                              client.
    */
+  @Override
   public final void setInternalOperation(boolean isInternalOperation)
   {
     this.isInternalOperation = isInternalOperation;
@@ -708,6 +733,7 @@ public abstract class AbstractOperation
    * @return  {@code true} if this is a data synchronization
    *          operation, or {@code false} if it is not.
    */
+  @Override
   public final boolean isSynchronizationOperation()
   {
     return isSynchronizationOperation;
@@ -726,6 +752,7 @@ public abstract class AbstractOperation
    *                                     requested by an external
    *                                     client.
    */
+  @Override
   public final void setSynchronizationOperation(
                          boolean isSynchronizationOperation)
   {
@@ -742,6 +769,7 @@ public abstract class AbstractOperation
    *          synchronized, or {@code false} if it should be
    *          synchronized.
    */
+  @Override
   public boolean dontSynchronize()
   {
     return dontSynchronizeFlag;
@@ -757,6 +785,7 @@ public abstract class AbstractOperation
    *                          synchronized to other copies
    *                          of the data.
    */
+  @Override
   public final void setDontSynchronize(boolean dontSynchronize)
   {
     this.dontSynchronizeFlag = dontSynchronize;
@@ -780,6 +809,7 @@ public abstract class AbstractOperation
    *          {@code null} if the authorization identity should be the
    *          unauthenticated  user.
    */
+  @Override
   public final Entry getAuthorizationEntry()
   {
     return authorizationEntry;
@@ -798,6 +828,7 @@ public abstract class AbstractOperation
    *                             if it should be the unauthenticated
    *                             user.
    */
+  @Override
   public final void setAuthorizationEntry(Entry authorizationEntry)
   {
     this.authorizationEntry = authorizationEntry;
@@ -818,6 +849,7 @@ public abstract class AbstractOperation
    * @return  The authorization DN for this operation, or the null DN
    *          if it should be the unauthenticated user..
    */
+  @Override
   public final DN getAuthorizationDN()
   {
     if (authorizationEntry == null)
@@ -838,6 +870,7 @@ public abstract class AbstractOperation
    *
    * @return  The set of attachments defined for this operation.
    */
+  @Override
   public final Map<String,Object> getAttachments()
   {
     return attachments;
@@ -851,6 +884,7 @@ public abstract class AbstractOperation
    * @param attachments - Attachments to register within the
    *                      operation
    */
+  @Override
   public final void setAttachments(Map<String, Object> attachments)
   {
     this.attachments = attachments;
@@ -867,6 +901,7 @@ public abstract class AbstractOperation
    * @return  The requested attachment object, or {@code null} if it
    *          does not exist.
    */
+  @Override
   public final Object getAttachment(String name)
   {
     return attachments.get(name);
@@ -883,6 +918,7 @@ public abstract class AbstractOperation
    * @return  The attachment that was removed, or {@code null} if it
    *          does not exist.
    */
+  @Override
   public final Object removeAttachment(String name)
   {
     return attachments.remove(name);
@@ -902,6 +938,7 @@ public abstract class AbstractOperation
    *          name, or {@code null} if there was previously no such
    *          attachment.
    */
+  @Override
   public final Object setAttachment(String name, Object value)
   {
     return attachments.put(name, value);
@@ -914,6 +951,7 @@ public abstract class AbstractOperation
    * successfully and that the client should perform any associated
    * cleanup work.
    */
+  @Override
   public final void operationCompleted()
   {
     // Notify the client connection that this operation is complete
@@ -933,6 +971,7 @@ public abstract class AbstractOperation
    * @return  A code providing information on the result of the
    *          cancellation.
    */
+  @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
     abort(cancelRequest);
@@ -975,6 +1014,7 @@ public abstract class AbstractOperation
    * @param  cancelRequest  Information about the way in which the
    *                        operation should be canceled.
    */
+  @Override
   public synchronized void abort(CancelRequest cancelRequest)
   {
     if(cancelResult == null && this.cancelRequest == null)
@@ -988,6 +1028,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized final void
     checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException {
@@ -1007,6 +1048,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final CancelRequest getCancelRequest()
   {
     return cancelRequest;
@@ -1015,6 +1057,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final CancelResult getCancelResult()
   {
     return cancelResult;
@@ -1027,6 +1070,7 @@ public abstract class AbstractOperation
    *
    * @return  A string representation of this operation.
    */
+  @Override
   public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -1043,6 +1087,7 @@ public abstract class AbstractOperation
    * @param  buffer  The buffer into which a string representation of
    *                 this operation should be appended.
    */
+  @Override
   public abstract void toString(StringBuilder buffer);
 
 
@@ -1052,6 +1097,7 @@ public abstract class AbstractOperation
    *
    * @return  The time that processing started for this operation.
    */
+  @Override
   public final long getProcessingStartTime()
   {
     return processingStartTime;
@@ -1080,6 +1126,7 @@ public abstract class AbstractOperation
    *
    * @return  The time that processing stopped for this operation.
    */
+  @Override
   public final long getProcessingStopTime()
   {
     return processingStopTime;
@@ -1112,6 +1159,7 @@ public abstract class AbstractOperation
    * @return  The length of time in milliseconds that
    *          the server spent processing this operation.
    */
+  @Override
   public final long getProcessingTime()
   {
     return (processingStopTime - processingStartTime);
@@ -1129,6 +1177,7 @@ public abstract class AbstractOperation
    *          spent processing this operation or -1 if its not
    *          available.
    */
+  @Override
   public final long getProcessingNanoTime()
   {
     if(useNanoTime)
@@ -1150,6 +1199,7 @@ public abstract class AbstractOperation
    * and any other work that might need to be done in the course of
    * processing.
    */
+  @Override
   public abstract void run();
 
 
@@ -1157,6 +1207,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void registerPostResponseCallback(Runnable callback)
   {
     if (postResponseCallbacks == null)
@@ -1171,6 +1222,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int hashCode()
   {
     return clientConnection.hashCode() * (int) operationID;
@@ -1181,6 +1233,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean equals(Object obj)
   {
     if (this == obj)
