@@ -186,6 +186,20 @@ public class HTTPConnectionHandler extends
     super(DEFAULT_FRIENDLY_NAME);
   }
 
+  /**
+   * Returns whether unauthenticated HTTP requests are allowed. The server
+   * checks whether unauthenticated requests are allowed server-wide first then
+   * for the HTTP Connection Handler second.
+   *
+   * @return true if unauthenticated requests are allowed, false otherwise.
+   */
+  public boolean acceptUnauthenticatedRequests()
+  {
+    // the global setting overrides the more specific setting here.
+    return !DirectoryServer.rejectUnauthenticatedRequests()
+        && !this.currentConfig.isAuthenticationRequired();
+  }
+
   /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(

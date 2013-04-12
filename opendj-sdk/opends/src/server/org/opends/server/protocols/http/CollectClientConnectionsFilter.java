@@ -134,29 +134,24 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
       Connection connection = new SdkConnectionAdapter(clientConnection);
 
-      String[] userPassword = extractUsernamePassword(request);
-      if (userPassword != null && userPassword.length == 2)
+      AuthenticationInfo authInfo = getAuthenticationInfo(request, connection);
+      if (authInfo != null)
       {
-        AuthenticationInfo authInfo =
-            authenticate(userPassword[0], userPassword[1], connection);
-        if (authInfo != null)
-        {
-          clientConnection.setAuthenticationInfo(authInfo);
+        clientConnection.setAuthenticationInfo(authInfo);
 
-          /*
-           * WARNING: This action triggers 3-4 others: Set the connection for
-           * use with this request on the HttpServletRequest. It will make
-           * Rest2LDAPContextFactory create an AuthenticatedConnectionContext
-           * which will in turn ensure Rest2LDAP uses the supplied Connection
-           * object
-           */
-          request.setAttribute(
-              Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION, connection);
+        /*
+         * WARNING: This action triggers 3-4 others: Set the connection for use
+         * with this request on the HttpServletRequest. It will make
+         * Rest2LDAPContextFactory create an AuthenticatedConnectionContext
+         * which will in turn ensure Rest2LDAP uses the supplied Connection
+         * object.
+         */
+        request.setAttribute(
+            Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION, connection);
 
-          // send the request further down the filter chain or pass to servlet
-          chain.doFilter(request, response);
-          return;
-        }
+        // send the request further down the filter chain or pass to servlet
+        chain.doFilter(request, response);
+        return;
       }
 
       // The user could not be authenticated. Send an HTTP Basic authentication
@@ -224,6 +219,37 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       return false;
     }
     return true;
+  }
+
+  /**
+   * Returns an {@link AuthenticationInfo} object if the request is accepted. An
+   * {@link AuthenticationInfo} object will be returned if authentication
+   * credentials were valid or if unauthenticated requests are allowed on this
+   * server.
+   *
+   * @param request
+   *          the request used to extract the {@link AuthenticationInfo}
+   * @param connection
+   *          the connection used to retrieve the {@link AuthenticationInfo}
+   * @return an {@link AuthenticationInfo} if the request is accepted, null if
+   *         the request was rejected
+   * @throws Exception
+   *           if any problem occur
+   */
+  AuthenticationInfo getAuthenticationInfo(ServletRequest request,
+      Connection connection) throws Exception
+  {
+    String[] userPassword = extractUsernamePassword(request);
+    if (userPassword != null && userPassword.length == 2)
+    {
+      return authenticate(userPassword[0], userPassword[1], connection);
+    }
+    else if (this.connectionHandler.acceptUnauthenticatedRequests())
+    {
+      // return unauthenticated
+      return new AuthenticationInfo();
+    }
+    return null;
   }
 
   /**

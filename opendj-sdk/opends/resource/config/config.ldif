@@ -498,6 +498,7 @@ ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
 ds-cfg-config-file: config/http-config.json
+ds-cfg-authentication-required: true
 
 dn: cn=LDIF Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top
