@@ -3641,49 +3641,9 @@ public final class Schema
           continue;
         }
 
-        String value;
-        String lowerLine = toLowerCase(line);
-        if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
-        {
-          value = line.substring(
-                       ATTR_ATTRIBUTE_TYPES.length()+1).trim();
-          attributeTypes.add(value);
-        }
-        else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
-        {
-          value = line.substring(
-                       ATTR_OBJECTCLASSES.length()+1).trim();
-          objectClasses.add(value);
-        }
-        else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
-        {
-          value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
-          nameForms.add(value);
-        }
-        else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
-        {
-          value = line.substring(
-                     ATTR_DIT_CONTENT_RULES.length()+1).trim();
-          ditContentRules.add(value);
-        }
-        else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
-        {
-          value = line.substring(
-                     ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
-          ditStructureRules.add(value);
-        }
-        else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
-        {
-          value = line.substring(
-                     ATTR_MATCHING_RULE_USE.length()+1).trim();
-          matchingRuleUses.add(value);
-        }
-        else if(lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
-        {
-          value = line.substring(
-                     ATTR_LDAP_SYNTAXES.length()+1).trim();
-          ldapSyntaxes.add(value);
-        }
+        parseSchemaLine(line, attributeTypes, objectClasses,
+            nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
+            ldapSyntaxes);
       }
     }
   }
@@ -3740,55 +3700,88 @@ public final class Schema
       {
         break;
       }
-
-      String value;
-      String lowerLine = toLowerCase(line);
-      if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
-      {
-        value =
-             line.substring(ATTR_ATTRIBUTE_TYPES.length()+1).trim();
-        attributeTypes.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
-      {
-        value = line.substring(ATTR_OBJECTCLASSES.length()+1).trim();
-        objectClasses.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
-      {
-        value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
-        nameForms.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
-      {
-        value = line.substring(
-                     ATTR_DIT_CONTENT_RULES.length()+1).trim();
-        ditContentRules.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
-      {
-        value = line.substring(
-                     ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
-        ditStructureRules.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
-      {
-        value = line.substring(
-                     ATTR_MATCHING_RULE_USE.length()+1).trim();
-        matchingRuleUses.add(value);
-      }
-      else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
-      {
-        value = line.substring(
-                  ATTR_LDAP_SYNTAXES.length()+1).trim();
-        ldapSyntaxes.add(value);
-      }
+      parseSchemaLine(line, attributeTypes, objectClasses,
+          nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
+          ldapSyntaxes);
     }
 
     reader.close();
   }
 
+  /**
+   * Parse a line of a schema file into the provided sets.
+   *
+   * @param line                The current line of schema.
+   * @param  attributeTypes     The set into which to place the
+   *                            attribute type if the line represents
+   *                            one.
+   * @param  objectClasses      The set into which to place the object
+   *                            class if the line represents one.
+   * @param  nameForms          The set into which to place the name
+   *                            form if the line represents one.
+   * @param  ditContentRules    The set into which to place the DIT
+   *                            content rule if the line represents one.
+   * @param  ditStructureRules  The set into which to place the DIT
+   *                            structure rule if the line represents one.
+   * @param  matchingRuleUses   The set into which to place the
+   *                            matching rule use if the line represents
+   *                            one.
+   * @param ldapSyntaxes        The set into which to place the ldap
+   *                            syntax if the line represents one.
+   */
 
+  private static void parseSchemaLine(String line,
+                               LinkedHashSet<String> attributeTypes,
+                               LinkedHashSet<String> objectClasses,
+                               LinkedHashSet<String> nameForms,
+                               LinkedHashSet<String> ditContentRules,
+                               LinkedHashSet<String> ditStructureRules,
+                               LinkedHashSet<String> matchingRuleUses,
+                               LinkedHashSet<String> ldapSyntaxes)
+  {
+    String value;
+    String lowerLine = toLowerCase(line);
+    if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
+    {
+      value =
+          line.substring(ATTR_ATTRIBUTE_TYPES.length()+1).trim();
+      attributeTypes.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
+    {
+      value = line.substring(ATTR_OBJECTCLASSES.length()+1).trim();
+      objectClasses.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
+    {
+      value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
+      nameForms.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
+    {
+      value = line.substring(
+          ATTR_DIT_CONTENT_RULES.length()+1).trim();
+      ditContentRules.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
+    {
+      value = line.substring(
+          ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
+      ditStructureRules.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
+    {
+      value = line.substring(
+          ATTR_MATCHING_RULE_USE.length()+1).trim();
+      matchingRuleUses.add(value);
+    }
+    else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
+    {
+      value = line.substring(
+          ATTR_LDAP_SYNTAXES.length()+1).trim();
+      ldapSyntaxes.add(value);
+    }
+  }
 
   /**
    * Compares the provided sets of schema element definitions and
