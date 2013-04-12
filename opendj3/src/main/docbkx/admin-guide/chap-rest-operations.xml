@@ -238,7 +238,128 @@
  <section xml:id="update-rest">
   <title>Updating Resources</title>
 
-  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-693</para>
+  <para>To update a resource, perform an HTTP PUT with the changes to the
+  resource. For read-only fields, either include unmodified versions, or omit
+  them from your updated version.</para>
+
+  <para>The following example adds a manager for Sam Carter.</para>
+
+  <screen>$ curl
+ --request PUT
+ --user kvaughan:bribery
+ --header "Content-Type: application/json"
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }'
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true
+{
+  "_rev" : "00000000a1923db2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 4798",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
+  "meta" : {
+    "lastModified" : "2013-04-12T07:42:34Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ]
+}</screen>
+
+  <para>To update a resource only if the resource matches a particular version,
+  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
+  header.</para>
+
+  <screen> $ curl
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/scarter?_fields=_rev
+<emphasis>{"_rev":"00000000b017c5b8"}</emphasis>
+$ curl
+ --request PUT
+ --user kvaughan:bribery
+ <emphasis>--header "If-Match: 00000000b017c5b8"</emphasis>
+ --header "Content-Type: application/json"
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 1212",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }'
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true
+{
+  "_rev" : "00000000a1ee3da3",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "meta" : {
+    "lastModified" : "2013-04-12T07:47:45Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
  </section>
 
  <section xml:id="delete-rest">
