@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -1400,7 +1400,7 @@ public final class TextAccessLogPublisher extends
     buffer.append(" filter=\"");
     searchOperation.getRawFilter().toString(buffer);
 
-    final LinkedHashSet<String> attrs = searchOperation.getAttributes();
+    final Set<String> attrs = searchOperation.getAttributes();
     if ((attrs == null) || attrs.isEmpty())
     {
       buffer.append("\" attrs=\"ALL\"");
