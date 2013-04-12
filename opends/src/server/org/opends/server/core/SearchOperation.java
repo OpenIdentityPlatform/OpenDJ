@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
@@ -196,7 +196,7 @@ public interface SearchOperation extends Operation
    *
    * @return  The set of requested attributes for this search operation.
    */
-  public abstract LinkedHashSet<String> getAttributes();
+  public abstract Set<String> getAttributes();
 
   /**
    * Specifies the set of requested attributes for this search operation.  It
@@ -205,7 +205,7 @@ public interface SearchOperation extends Operation
    * @param  attributes  The set of requested attributes for this search
    *                     operation.
    */
-  public abstract void setAttributes(LinkedHashSet<String> attributes);
+  public abstract void setAttributes(Set<String> attributes);
 
   /**
    * Retrieves the number of entries sent to the client for this search

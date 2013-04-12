@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 
 
 
-import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.opends.server.types.*;
 
@@ -145,7 +146,7 @@ public interface PostResponseSearchOperation
    * @return  The set of requested attributes for this search
    *          operation.
    */
-  public LinkedHashSet<String> getAttributes();
+  public Set<String> getAttributes();
 
 
 

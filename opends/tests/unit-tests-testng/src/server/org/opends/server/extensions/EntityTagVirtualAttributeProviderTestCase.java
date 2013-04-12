@@ -701,7 +701,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false)
+  @Test
   public void testPreReadControl() throws Exception
   {
     AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
@@ -790,7 +790,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false)
+  @Test
   public void testPostReadControl() throws Exception
   {
     AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
@@ -867,7 +867,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertNotNull(postReadControl);
     String etagPostRead = postReadControl.getSearchEntry().getAttributeValue(
         etagType, DirectoryStringSyntax.DECODER);
-    assertEquals(etagPostRead, etag1);
+    assertEquals(etagPostRead, etag2);
   }
 
 

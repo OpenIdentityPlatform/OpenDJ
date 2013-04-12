@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.api.AuthenticationPolicyState;
@@ -133,7 +134,7 @@ public class SearchOperationBasis
   private RawFilter rawFilter;
 
   // The set of attributes that should be returned in matching entries.
-  private LinkedHashSet<String> attributes;
+  private Set<String> attributes;
 
   // The set of response controls for this search operation.
   private List<Control> responseControls;
@@ -544,7 +545,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final LinkedHashSet<String> getAttributes()
+  public final Set<String> getAttributes()
   {
     return attributes;
   }
@@ -552,7 +553,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final void setAttributes(LinkedHashSet<String> attributes)
+  public final void setAttributes(Set<String> attributes)
   {
     if (attributes == null)
     {

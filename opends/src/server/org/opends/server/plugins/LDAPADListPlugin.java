@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -51,6 +52,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.PluginMessages.*;
 
+import static org.opends.server.types.DirectoryConfig.getObjectClass;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -71,6 +73,79 @@ public final class LDAPADListPlugin
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
+
+  /**
+   * Filters the set of attributes provided in a search request or pre- / post-
+   * read controls according to RFC 4529. More specifically, this method
+   * iterates through the requested attributes to see if any of them reference
+   * an object class, as indicated by a "@" prefix, and substitutes the object
+   * class reference with the attribute types contained in the object class, as
+   * well as any of the attribute types contained in any superior object
+   * classes.
+   *
+   * @param attributes
+   *          The attribute list to be normalized.
+   * @return The normalized attribute list.
+   */
+  public static Set<String> normalizedObjectClasses(Set<String> attributes)
+  {
+    boolean foundOC = false;
+    for (String attrName : attributes)
+    {
+      if (attrName.startsWith("@"))
+      {
+        foundOC = true;
+        break;
+      }
+    }
+
+    if (foundOC)
+    {
+      final LinkedHashSet<String> newAttrs = new LinkedHashSet<String>();
+      for (final String attrName : attributes)
+      {
+        if (attrName.startsWith("@"))
+        {
+          final String lowerName = toLowerCase(attrName.substring(1));
+          final ObjectClass oc = getObjectClass(lowerName, false);
+          if (oc == null)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugWarning("Cannot replace unknown objectclass %s",
+                                  lowerName);
+            }
+          }
+          else
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Replacing objectclass %s", lowerName);
+            }
+
+            for (final AttributeType at : oc.getRequiredAttributeChain())
+            {
+              newAttrs.add(at.getNameOrOID());
+            }
+
+            for (final AttributeType at : oc.getOptionalAttributeChain())
+            {
+              newAttrs.add(at.getNameOrOID());
+            }
+          }
+        }
+        else
+        {
+          newAttrs.add(attrName);
+        }
+      }
+      attributes = newAttrs;
+    }
+
+    return attributes;
+  }
 
 
 
@@ -145,68 +220,11 @@ public final class LDAPADListPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PluginResult.PreParse
-               doPreParse(PreParseSearchOperation searchOperation)
+  public final PluginResult.PreParse doPreParse(
+      PreParseSearchOperation searchOperation)
   {
-    // Iterate through the requested attributes to see if any of them start with
-    // an "@" symbol.  If not, then we don't need to do anything.  If so, then
-    // keep track of them.
-    LinkedHashSet<String> attributes = searchOperation.getAttributes();
-    boolean foundOC = false;
-    for (String attrName : attributes)
-    {
-      if (attrName.startsWith("@"))
-      {
-        foundOC = true;
-        break;
-      }
-    }
-
-    if (foundOC)
-    {
-      LinkedHashSet<String> newAttrs = new LinkedHashSet<String>();
-      for (String attrName : attributes)
-      {
-        if (attrName.startsWith("@"))
-        {
-          String lowerName = toLowerCase(attrName.substring(1));
-          ObjectClass oc = DirectoryConfig.getObjectClass(lowerName, false);
-          if (oc == null)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugWarning("Cannot replace unknown objectclass %s",
-                                  lowerName);
-            }
-          }
-          else
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Replacing objectclass %s", lowerName);
-            }
-
-            for (AttributeType at : oc.getRequiredAttributeChain())
-            {
-              newAttrs.add(at.getNameOrOID());
-            }
-
-            for (AttributeType at : oc.getOptionalAttributeChain())
-            {
-              newAttrs.add(at.getNameOrOID());
-            }
-          }
-        }
-        else
-        {
-          newAttrs.add(attrName);
-        }
-      }
-
-      searchOperation.setAttributes(newAttrs);
-    }
-
-
+    searchOperation.setAttributes(normalizedObjectClasses(searchOperation
+        .getAttributes()));
     return PluginResult.PreParse.continueOperationProcessing();
   }
 

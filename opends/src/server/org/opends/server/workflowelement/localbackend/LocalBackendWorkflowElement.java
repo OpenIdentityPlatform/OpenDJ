@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -384,61 +383,36 @@ public class LocalBackendWorkflowElement extends
       return;
     }
 
-    // Even though the associated update succeeded, we should still check
-    // whether or not we should return the entry.
-    final SearchResultEntry unfilteredEntry =
-      new SearchResultEntry(entry, null);
+    /*
+     * Virtual and collective attributes are only added to an entry when it is
+     * read from the backend, not before it is written, so we need to add them
+     * ourself.
+     */
+    final Entry fullEntry = entry.duplicate(true);
+
+    /*
+     * Even though the associated update succeeded, we should still check
+     * whether or not we should return the entry.
+     */
+    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(
+        fullEntry, null);
     if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .maySend(operation, unfilteredEntry) == false)
+        .maySend(operation, unfilteredSearchEntry))
     {
-      return;
+      // Filter the entry based on the control's attribute list.
+      final Entry filteredEntry = fullEntry.filterEntry(
+          postReadRequest.getRequestedAttributes(), false, false, false);
+      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(
+          filteredEntry, null);
+
+      // Strip out any attributes which access control denies access to.
+      AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
+
+      final LDAPPostReadResponseControl responseControl =
+          new LDAPPostReadResponseControl(filteredSearchEntry);
+      operation.addResponseControl(responseControl);
     }
-
-    final SearchResultEntry filteredEntry = new SearchResultEntry(
-        entry.duplicate(true), null);
-
-    if (!postReadRequest.allowsAttribute(DirectoryServer
-        .getObjectClassAttributeType()))
-    {
-      filteredEntry.removeAttribute(DirectoryServer
-          .getObjectClassAttributeType());
-    }
-
-    if (!postReadRequest.returnAllUserAttributes())
-    {
-      Iterator<AttributeType> iterator = filteredEntry.getUserAttributes()
-          .keySet().iterator();
-      while (iterator.hasNext())
-      {
-        final AttributeType attrType = iterator.next();
-        if (!postReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    if (!postReadRequest.returnAllOperationalAttributes())
-    {
-      final Iterator<AttributeType> iterator = filteredEntry
-          .getOperationalAttributes().keySet().iterator();
-      while (iterator.hasNext())
-      {
-        AttributeType attrType = iterator.next();
-        if (!postReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    // Strip out any attributes which access control denies access to.
-    AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .filterEntry(operation, unfilteredEntry, filteredEntry);
-
-    final LDAPPostReadResponseControl responseControl =
-      new LDAPPostReadResponseControl(filteredEntry);
-    operation.addResponseControl(responseControl);
   }
 
 
@@ -461,61 +435,29 @@ public class LocalBackendWorkflowElement extends
       return;
     }
 
-    // Even though the associated update succeeded, we should still check
-    // whether or not we should return the entry.
-    final SearchResultEntry unfilteredEntry =
-      new SearchResultEntry(entry, null);
+    /*
+     * Even though the associated update succeeded, we should still check
+     * whether or not we should return the entry.
+     */
+    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(
+        entry, null);
     if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .maySend(operation, unfilteredEntry) == false)
+        .maySend(operation, unfilteredSearchEntry))
     {
-      return;
+      // Filter the entry based on the control's attribute list.
+      final Entry filteredEntry = entry.filterEntry(
+          preReadRequest.getRequestedAttributes(), false, false, false);
+      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(
+          filteredEntry, null);
+
+      // Strip out any attributes which access control denies access to.
+      AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
+
+      final LDAPPreReadResponseControl responseControl =
+          new LDAPPreReadResponseControl(filteredSearchEntry);
+      operation.addResponseControl(responseControl);
     }
-
-    final SearchResultEntry filteredEntry = new SearchResultEntry(
-        entry.duplicate(true), null);
-
-    if (!preReadRequest.allowsAttribute(DirectoryServer
-        .getObjectClassAttributeType()))
-    {
-      filteredEntry.removeAttribute(DirectoryServer
-          .getObjectClassAttributeType());
-    }
-
-    if (!preReadRequest.returnAllUserAttributes())
-    {
-      Iterator<AttributeType> iterator = filteredEntry.getUserAttributes()
-          .keySet().iterator();
-      while (iterator.hasNext())
-      {
-        final AttributeType attrType = iterator.next();
-        if (!preReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    if (!preReadRequest.returnAllOperationalAttributes())
-    {
-      final Iterator<AttributeType> iterator = filteredEntry
-          .getOperationalAttributes().keySet().iterator();
-      while (iterator.hasNext())
-      {
-        AttributeType attrType = iterator.next();
-        if (!preReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    // Strip out any attributes which access control denies access to.
-    AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .filterEntry(operation, unfilteredEntry, filteredEntry);
-
-    final LDAPPreReadResponseControl responseControl =
-      new LDAPPreReadResponseControl(filteredEntry);
-    operation.addResponseControl(responseControl);
   }
 
 

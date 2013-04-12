@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
 
@@ -117,7 +118,7 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public LinkedHashSet<String> getAttributes()
+  public Set<String> getAttributes()
   {
     return search.getAttributes();
   }
@@ -221,7 +222,7 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public void setAttributes(LinkedHashSet<String> attributes)
+  public void setAttributes(Set<String> attributes)
   {
     search.setAttributes(attributes);
   }
@@ -432,7 +433,6 @@ public abstract class SearchOperationWrapper extends OperationWrapper
 
   /**
    * {@inheritDoc}
-   * @throws DirectoryException
    */
   public void sendSearchEntry(SearchResultEntry entry)
     throws DirectoryException
@@ -442,7 +442,6 @@ public abstract class SearchOperationWrapper extends OperationWrapper
 
   /**
    * {@inheritDoc}
-   * @throws DirectoryException
    */
   public boolean sendSearchReference(SearchResultReference reference)
     throws DirectoryException

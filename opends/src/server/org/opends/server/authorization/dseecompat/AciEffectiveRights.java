@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -32,9 +32,9 @@ import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class implements the dseecompat geteffectiverights evaluation.
@@ -189,7 +189,7 @@ public class AciEffectiveRights {
    *                   privilege was found.
    */
   public static void addRightsToEntry(AciHandler handler,
-      LinkedHashSet<String> searchAttributes,
+      Set<String> searchAttributes,
       AciLDAPOperationContainer container, final Entry e,
       boolean skipCheck)
   {
