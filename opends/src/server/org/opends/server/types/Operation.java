@@ -638,5 +638,13 @@ public interface Operation extends Runnable
    */
   public void registerPostResponseCallback(Runnable callback);
 
+  /**
+   * Performs the work of actually processing this operation. This should
+   * include all processing for the operation, including invoking pre-parse and
+   * post-response plugins, logging messages and any other work that might need
+   * to be done in the course of processing.
+   */
+  @Override
+  void run();
 }
 

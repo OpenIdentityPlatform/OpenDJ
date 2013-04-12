@@ -95,7 +95,7 @@ public abstract class AbstractOperation
 
 
   /**
-   * Wether nanotime was used for this operation.
+   * Whether nanotime was used for this operation.
    */
   protected final boolean useNanoTime;
 
@@ -111,62 +111,70 @@ public abstract class AbstractOperation
    */
   protected CancelResult cancelResult;
 
-  // Indicates whether this is an internal operation triggered within
-  // the server itself rather than requested by an external client.
+  /**
+   * Indicates whether this is an internal operation triggered within the server
+   * itself rather than requested by an external client.
+   */
   private boolean isInternalOperation;
 
-  // Indicates whether this operation is involved in data
-  // synchronization processing.
+  /**
+   * Indicates whether this operation is involved in data synchronization
+   * processing.
+   */
   private boolean isSynchronizationOperation;
 
-  // The matched DN for this operation.
+  /** The matched DN for this operation. */
   private DN matchedDN;
 
-  // The entry for the authorization identify for this operation.
+  /** The entry for the authorization identify for this operation. */
   private Entry authorizationEntry;
 
-  // A set of attachments associated with this operation that might
-  // be used by various components during its processing.
+  /**
+   * A set of attachments associated with this operation that might be used by
+   * various components during its processing.
+   */
   private Map<String,Object> attachments;
 
-  // The set of controls included in the request from the client.
+  /** The set of controls included in the request from the client. */
   private List<Control> requestControls;
 
-  // The set of referral URLs for this operation.
+  /** The set of referral URLs for this operation. */
   private List<String> referralURLs;
 
-  // The result code for this operation.
+  /** The result code for this operation. */
   private ResultCode resultCode;
 
-  // Additional information that should be included in the log but
-  // not sent to the client.
+  /**
+   * Additional information that should be included in the log but not sent to
+   * the client.
+   */
   private List<AdditionalLogItem> additionalLogItems;
 
-  // The error message for this operation that should be included in
-  // the log and in the response to the client.
+  /**
+   * The error message for this operation that should be included in the log and
+   * in the response to the client.
+   */
   private MessageBuilder errorMessage;
 
-  // Indicates whether this operation nneds to be synchronized to
-  // other copies of the data.
+  /**
+   * Indicates whether this operation needs to be synchronized to other copies
+   * of the data.
+   */
   private boolean dontSynchronizeFlag;
 
-  // The time that processing started on this operation in
-  // milliseconds.
+  /** The time that processing started on this operation in milliseconds. */
   private long processingStartTime;
 
-  // The time that processing ended on this operation in
-  // milliseconds.
+  /** The time that processing ended on this operation in milliseconds. */
   private long processingStopTime;
 
-  // The time that processing started on this operation in
-  // nanoseconds.
+  /** The time that processing started on this operation in nanoseconds. */
   private long processingStartNanoTime;
 
-  // The time that processing ended on this operation in
-  // nanoseconds.
+  /** The time that processing ended on this operation in nanoseconds. */
   private long processingStopNanoTime;
 
-  // The callbacks to be invoked once a response has been sent.
+  /** The callbacks to be invoked once a response has been sent. */
   private List<Runnable> postResponseCallbacks = null;
 
   /**
@@ -216,20 +224,10 @@ public abstract class AbstractOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
-   */
-  @Override
-  public abstract OperationType getOperationType();
-
-
-
-  /**
    * Terminates the client connection being used to process this
    * operation.  If this is called by a plugin, then that plugin must
    * return a result indicating that the  client connection has been
-   * teriminated.
+   * terminated.
    *
    * @param  disconnectReason  The disconnect reason that provides the
    *                           generic cause for the disconnect.
@@ -280,38 +278,6 @@ public abstract class AbstractOperation
           String.valueOf(messageID) }
     };
   }
-
-
-
-  /**
-   * Retrieves a standard set of elements that should be logged in
-   * requests for this type of operation.  Each element in the array
-   * will itself be a two-element array in which the first element is
-   * the name of the field and the second is a string representation
-   * of the value, or {@code null} if there is no value for that
-   * field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          requests for this type of operation.
-   */
-  @Override
-  public abstract String[][] getRequestLogElements();
-
-
-
-  /**
-   * Retrieves a standard set of elements that should be logged in
-   * responses for this type of operation.  Each element in the array
-   * will itself be a two-element array in which the first element is
-   * the name of the field and the second is a string representation
-   * of the value, or {@code null} if there is no value for that
-   * field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          responses for this type of operation.
-   */
-  @Override
-  public abstract String[][] getResponseLogElements();
 
 
 
@@ -443,44 +409,6 @@ public abstract class AbstractOperation
   {
     requestControls.remove(control);
   }
-
-
-
-  /**
-   * Retrieves the set of controls to include in the response to the
-   * client.  The contents of this list must not be altered.
-   *
-   * @return  The set of controls to include in the response to the
-   *          client.
-   */
-  @Override
-  public abstract List<Control> getResponseControls();
-
-
-
-  /**
-   * Adds the provided control to the set of controls to include in
-   * the response to the client.  This method may not be called by
-   * post-response plugins.
-   *
-   * @param  control  The control to add to the set of controls to
-   *                  include in the response to the client.
-   */
-  @Override
-  public abstract void addResponseControl(Control control);
-
-
-
-  /**
-   * Removes the provided control from the set of controls to include
-   * in the response to the client.  This method may not be called by
-   * post-response plugins.
-   *
-   * @param  control  The control to remove from the set of controls
-   *                  to include in the response to the client.
-   */
-  @Override
-  public abstract void removeResponseControl(Control control);
 
 
 
@@ -1081,18 +1009,6 @@ public abstract class AbstractOperation
 
 
   /**
-   * Appends a string representation of this operation to the provided
-   * buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of
-   *                 this operation should be appended.
-   */
-  @Override
-  public abstract void toString(StringBuilder buffer);
-
-
-
-  /**
    * Retrieves the time that processing started for this operation.
    *
    * @return  The time that processing started for this operation.
@@ -1189,18 +1105,6 @@ public abstract class AbstractOperation
       return -1;
     }
   }
-
-
-
-  /**
-   * Performs the work of actually processing this operation.  This
-   * should include all processing for the operation, including
-   * invoking pre-parse and post-response plugins, logging messages
-   * and any other work that might need to be done in the course of
-   * processing.
-   */
-  @Override
-  public abstract void run();
 
 
 
