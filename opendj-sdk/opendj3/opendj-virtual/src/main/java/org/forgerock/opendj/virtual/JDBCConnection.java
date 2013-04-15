@@ -475,4 +475,11 @@ public final class JDBCConnection implements Connection {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+  @Override
+  public Result deleteSubtree(String name) throws ErrorResultException
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
