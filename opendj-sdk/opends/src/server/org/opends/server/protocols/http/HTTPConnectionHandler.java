@@ -200,6 +200,17 @@ public class HTTPConnectionHandler extends
         && !this.currentConfig.isAuthenticationRequired();
   }
 
+  /**
+   * Registers a client connection to track it.
+   *
+   * @param clientConnection
+   *          the client connection to register
+   */
+  void addClientConnection(ClientConnection clientConnection)
+  {
+    clientConnections.put(clientConnection, clientConnection);
+  }
+
   /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
@@ -345,16 +356,6 @@ public class HTTPConnectionHandler extends
   public Collection<ClientConnection> getClientConnections()
   {
     return clientConnections.keySet();
-  }
-
-  /**
-   * Gives access to the clientConnections to classes in this package.
-   *
-   * @return the Map containing the current client connections
-   */
-  Map<ClientConnection, ClientConnection> getClientConnectionsMap()
-  {
-    return clientConnections;
   }
 
   /** {@inheritDoc} */
@@ -642,6 +643,17 @@ public class HTTPConnectionHandler extends
         // to return ASAP.
       }
     }
+  }
+
+  /**
+   * Unregisters a client connection to stop tracking it.
+   *
+   * @param clientConnection
+   *          the client connection to unregister
+   */
+  void removeClientConnection(ClientConnection clientConnection)
+  {
+    clientConnections.remove(clientConnection);
   }
 
   /** {@inheritDoc} */

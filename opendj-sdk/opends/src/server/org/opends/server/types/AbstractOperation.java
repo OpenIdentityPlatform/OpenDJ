@@ -116,6 +116,7 @@ public abstract class AbstractOperation
    * itself rather than requested by an external client.
    */
   private boolean isInternalOperation;
+  private Boolean isInnerOperation;
 
   /**
    * Indicates whether this operation is involved in data synchronization
@@ -621,65 +622,47 @@ public abstract class AbstractOperation
 
 
 
-  /**
-   * Indicates whether this is an internal operation rather than one
-   * that was requested by an external client.
-   *
-   * @return  {@code true} if this is an internal operation, or
-   *          {@code false} if it is not.
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean isInternalOperation()
   {
     return isInternalOperation;
   }
 
-
-
-  /**
-   * Specifies whether this is an internal operation rather than one
-   * that was requested by an external client.  This may not be called
-   * from within a plugin.
-   *
-   * @param  isInternalOperation  Specifies whether this is an
-   *                              internal operation rather than one
-   *                              that was requested by an external
-   *                              client.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setInternalOperation(boolean isInternalOperation)
   {
     this.isInternalOperation = isInternalOperation;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public boolean isInnerOperation()
+  {
+    if (this.isInnerOperation != null)
+    {
+      return this.isInnerOperation;
+    }
+    return isInternalOperation();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setInnerOperation(boolean isInnerOperation)
+  {
+    this.isInnerOperation = isInnerOperation;
+  }
 
 
-  /**
-   * Indicates whether this is a synchronization operation rather than
-   * one that was requested by an external client.
-   *
-   * @return  {@code true} if this is a data synchronization
-   *          operation, or {@code false} if it is not.
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean isSynchronizationOperation()
   {
     return isSynchronizationOperation;
   }
 
-
-
-  /**
-   * Specifies whether this is a synchronization operation rather than
-   * one that was requested by an external client.  This method may
-   * not be called from within a plugin.
-   *
-   * @param  isSynchronizationOperation  Specifies whether this is a
-   *                                     synchronization operation
-   *                                     rather than one that was
-   *                                     requested by an external
-   *                                     client.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setSynchronizationOperation(
                          boolean isSynchronizationOperation)

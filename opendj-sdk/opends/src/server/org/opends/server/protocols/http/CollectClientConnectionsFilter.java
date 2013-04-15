@@ -28,6 +28,7 @@ package org.opends.server.protocols.http;
 
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -37,7 +38,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -61,7 +61,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AddressMask;
@@ -120,17 +119,18 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   public void doFilter(ServletRequest request, ServletResponse response,
       FilterChain chain)
   {
-    final Map<ClientConnection, ClientConnection> clientConnections =
-        this.connectionHandler.getClientConnectionsMap();
     final HTTPClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
-    clientConnections.put(clientConnection, clientConnection);
+    this.connectionHandler.addClientConnection(clientConnection);
     try
     {
       if (!canProcessRequest(request, clientConnection))
       {
         return;
       }
+      // logs the connect after all the possible disconnect reasons have been
+      // checked.
+      logConnect(clientConnection);
 
       Connection connection = new SdkConnectionAdapter(clientConnection);
 
@@ -157,6 +157,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       // The user could not be authenticated. Send an HTTP Basic authentication
       // challenge if HTTP Basic authentication is enabled.
       sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
+      clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS, false,
+          null);
     }
     catch (Exception e)
     {
@@ -174,10 +176,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       clientConnection
           .disconnect(DisconnectReason.SERVER_ERROR, false, message);
     }
-    finally
-    {
-      clientConnections.remove(clientConnection);
-    }
   }
 
   private boolean canProcessRequest(ServletRequest request,
@@ -190,7 +188,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     // established).
     if (clientConnection.getConnectionID() < 0)
     {
-      // The connection will have already been closed.
+      clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
+          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
       return false;
     }
 

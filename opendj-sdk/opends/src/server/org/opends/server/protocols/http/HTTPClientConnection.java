@@ -28,6 +28,7 @@ package org.opends.server.protocols.http;
 
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.net.InetAddress;
@@ -47,7 +48,6 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -171,11 +171,6 @@ final class HTTPClientConnection extends ClientConnection
     this.request = request;
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
-    if (this.connectionID < 0)
-    {
-      disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
-    }
   }
 
   /** {@inheritDoc} */
@@ -187,7 +182,7 @@ final class HTTPClientConnection extends ClientConnection
 
   /** {@inheritDoc} */
   @Override
-  public ConnectionHandler<?> getConnectionHandler()
+  public HTTPConnectionHandler getConnectionHandler()
   {
     return connectionHandler;
   }
@@ -315,8 +310,7 @@ final class HTTPClientConnection extends ClientConnection
   protected boolean sendIntermediateResponseMessage(
       IntermediateResponse intermediateResponse)
   {
-    // TODO Auto-generated method stub
-    return false;
+    throw new RuntimeException("Not implemented");
   }
 
   /**
@@ -372,6 +366,10 @@ final class HTTPClientConnection extends ClientConnection
           .getClosureMessage()));
     }
     finalizeConnectionInternal();
+
+
+    this.connectionHandler.removeClientConnection(this);
+    logDisconnect(this, disconnectReason, message);
   }
 
   /** {@inheritDoc} */
@@ -475,7 +473,7 @@ final class HTTPClientConnection extends ClientConnection
             op.operation.abort(cancelRequest);
           }
           catch (Exception e)
-          { // make sure all operations are cancelled, no mattter what
+          { // make sure all operations are cancelled, no matter what
             if (debugEnabled())
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -592,5 +590,12 @@ final class HTTPClientConnection extends ClientConnection
   boolean isConnectionValid()
   {
     return connectionValid;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isInnerConnection()
+  {
+    return true;
   }
 }

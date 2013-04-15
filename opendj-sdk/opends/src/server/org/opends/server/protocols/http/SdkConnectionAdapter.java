@@ -69,8 +69,10 @@ import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
@@ -125,6 +127,8 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
     try
     {
+      operation.setInnerOperation(this.clientConnection.isInnerConnection());
+
       // need this raw cast here to fool the compiler's generic type safety
       // Problem here is due to the generic type R on enqueueOperation()
       clientConnection.addOperationInProgress(operation,
@@ -201,14 +205,21 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   @Override
   public void close(UnbindRequest request, String reason)
   {
-    final int messageID = nextMessageID.get();
-    UnbindOperationBasis operation =
-        new UnbindOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()));
+    AuthenticationInfo authInfo = this.clientConnection.getAuthenticationInfo();
+    if (authInfo != null && authInfo.isAuthenticated())
+    {
+      final int messageID = nextMessageID.get();
+      UnbindOperationBasis operation =
+          new UnbindOperationBasis(clientConnection, messageID, messageID,
+              to(request.getControls()));
 
-    // run synchronous
-    operation.run();
-
+      // run synchronous
+      operation.run();
+    }
+    else
+    {
+      this.clientConnection.disconnect(DisconnectReason.UNBIND, false, null);
+    }
     isClosed = true;
   }
 

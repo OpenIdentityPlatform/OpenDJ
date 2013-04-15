@@ -519,11 +519,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
-    if (connectionID < 0)
-    {
-      disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
-    }
   }
 
   /**

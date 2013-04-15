@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -109,41 +109,47 @@ public abstract class ClientConnection
    */
   protected AtomicBoolean bindOrStartTLSInProgress;
 
-  // Indicates whether any necessary finalization work has been done
-  // for this client connection.
+  /**
+   *  Indicates whether any necessary finalization work has been done for this
+   *  client connection.
+   */
   private boolean finalized;
 
-  // The set of privileges assigned to this client connection.
+  /** The set of privileges assigned to this client connection. */
   private HashSet<Privilege> privileges;
 
-  // The size limit for use with this client connection.
+  /** The size limit for use with this client connection. */
   private int sizeLimit;
 
-  // The time limit for use with this client connection.
+  /** The time limit for use with this client connection. */
   private int timeLimit;
 
-  // The lookthrough limit for use with this client connection.
+  /** The lookthrough limit for use with this client connection. */
   private int lookthroughLimit;
 
-  // The time that this client connection was established.
+  /** The time that this client connection was established. */
   private final long connectTime;
 
-  // The idle time limit for this client connection.
+  /** The idle time limit for this client connection. */
   private long idleTimeLimit;
 
-  // The opaque information used for storing intermediate state
-  // information needed across multi-stage SASL binds.
+  /**
+   * The opaque information used for storing intermediate state information
+   * needed across multi-stage SASL binds.
+   */
   private Object saslAuthState;
 
-  // A string representation of the time that this client connection
-  // was established.
+  /**
+   * A string representation of the time that this client connection was
+   * established.
+   */
   private final String connectTimeString;
 
-  // A set of persistent searches registered for this client.
+  /** A set of persistent searches registered for this client. */
   private final CopyOnWriteArrayList<PersistentSearch>
       persistentSearches;
 
-  // The network group to which the connection belongs to.
+  /** The network group to which the connection belongs to. */
   private NetworkGroup networkGroup;
 
   /** Need to evaluate the network group for the first operation. */
@@ -1767,5 +1773,17 @@ public abstract class ClientConnection
   {
     saslBindInProgress.set(false);
   }
-}
 
+  /**
+   * Returns whether this connection is used for inner work not directly
+   * requested by an external client.
+   *
+   * @return {@code true} if this is an inner connection, {@code false}
+   *         otherwise
+   */
+  public boolean isInnerConnection()
+  {
+    return getConnectionID() < 0;
+  }
+
+}
