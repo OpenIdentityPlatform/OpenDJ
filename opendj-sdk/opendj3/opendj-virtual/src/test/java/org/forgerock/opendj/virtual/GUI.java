@@ -27,11 +27,14 @@
 
 package org.forgerock.opendj.virtual;
 
+import java.awt.Font;
 import java.awt.event.*;
 import java.sql.SQLException;
 
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -44,9 +47,10 @@ public class GUI implements ActionListener{
   static JFrame frame = new JFrame("Login Screen");
   
   private JPanel totalGUI;
-  private JLabel label, label_1, label_2, label_3, label_4,label_5, label_6, lblBasedn, label_8, label_9;
+  private JLabel label, label_1, label_2, label_3, label_4, label_5, label_6, lblBasedn, label_8, label_9, lblDirectory, lblDatabase;
   private JPanel buttonPane;
   private JButton btnLogin, btnCancel;
+  private Border loweredetched;
   
   //login pane Normal
   private JPanel loginPane;
@@ -61,129 +65,140 @@ public class GUI implements ActionListener{
   public JPanel createContentPane (){
     totalGUI = new JPanel();
     totalGUI.setLayout(null);
-
+    
+    loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+    
     buttonPane = new JPanel();
     buttonPane.setLayout(null);
-    buttonPane.setBounds(143, 143, 291, 30);
+    buttonPane.setBounds(295, 221, 284, 30);
     totalGUI.add(buttonPane);
 
     btnLogin = new JButton("Login");
-    btnLogin.setBounds(0, 0, 145, 30);
+    btnLogin.setBounds(14, 0, 120, 30);
     btnLogin.addActionListener(this);
     buttonPane.add(btnLogin);
 
     btnCancel = new JButton("Cancel");
-    btnCancel.setBounds(145, 1, 147, 29);
+    btnCancel.setBounds(148, 0, 120, 30);
     btnCancel.addActionListener(this);
     buttonPane.add(btnCancel);
 
     loginPane = new JPanel();
     loginPane.setLayout(null);
-    loginPane.setBounds(6, 6, 274, 125);
+    loginPane.setBounds(6, 6, 285, 203);
+    loginPane.setBorder(loweredetched);
     totalGUI.add(loginPane);
 
     label = new JLabel("Host");
-    label.setHorizontalAlignment(SwingConstants.TRAILING);
-    label.setBounds(0, 2, 112, 23);
+    label.setBounds(11, 43, 99, 30);
     loginPane.add(label);
 
     txtHost = new JTextField();
     txtHost.setColumns(10);
-    txtHost.setBounds(124, 2, 146, 23);
+    txtHost.setBounds(114, 43, 165, 30);
     loginPane.add(txtHost);
 
     label_1 = new JLabel("Port");
-    label_1.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_1.setBounds(0, 25, 112, 23);
+    label_1.setBounds(11, 74, 99, 30);
     loginPane.add(label_1);
 
     txtPort = new JTextField();
     txtPort.setColumns(10);
-    txtPort.setBounds(124, 25, 146, 23);
+    txtPort.setBounds(114, 73, 165, 30);
     loginPane.add(txtPort);
 
     label_2 = new JLabel("DatabaseName");
-    label_2.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_2.setBounds(0, 48, 112, 23);
+    label_2.setBounds(11, 104, 99, 30);
     loginPane.add(label_2);
 
     txtDatabaseName = new JTextField();
     txtDatabaseName.setColumns(10);
-    txtDatabaseName.setBounds(124, 48, 146, 23);
+    txtDatabaseName.setBounds(114, 103, 165, 30);
     loginPane.add(txtDatabaseName);
 
     label_3 = new JLabel("Username");
-    label_3.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_3.setBounds(0, 71, 112, 23);
+    label_3.setBounds(11, 135, 99, 30);
     loginPane.add(label_3);
 
     txtUsername = new JTextField();
     txtUsername.setColumns(10);
-    txtUsername.setBounds(124, 71, 146, 23);
+    txtUsername.setBounds(114, 133, 165, 30);
     loginPane.add(txtUsername);
 
     label_4 = new JLabel("Password");
-    label_4.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_4.setBounds(0, 94, 112, 23);
+    label_4.setBounds(11, 166, 99, 30);
     loginPane.add(label_4);
 
     txtPassword = new JPasswordField();
-    txtPassword.setBounds(124, 94, 146, 23);
+    txtPassword.setBounds(114, 163, 165, 30);
     loginPane.add(txtPassword);
 
     loginPaneLdap = new JPanel();
     loginPaneLdap.setLayout(null);
-    loginPaneLdap.setBounds(292, 6, 274, 125);
+    loginPaneLdap.setBounds(295, 6, 285, 203);
+    loginPaneLdap.setBorder(loweredetched);
     totalGUI.add(loginPaneLdap);
 
     label_5 = new JLabel("Host");
-    label_5.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_5.setBounds(0, 2, 112, 23);
+    label_5.setHorizontalAlignment(SwingConstants.LEFT);
+    label_5.setBounds(11, 43, 90, 30);
     loginPaneLdap.add(label_5);
 
     txtHostLdap = new JTextField();
     txtHostLdap.setColumns(10);
-    txtHostLdap.setBounds(124, 2, 146, 23);
+    txtHostLdap.setBounds(114, 43, 165, 30);
     loginPaneLdap.add(txtHostLdap);
 
     label_6 = new JLabel("Port");
-    label_6.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_6.setBounds(0, 25, 112, 23);
+    label_6.setHorizontalAlignment(SwingConstants.LEFT);
+    label_6.setBounds(11, 74, 90, 30);
     loginPaneLdap.add(label_6);
 
     txtPortLdap = new JTextField();
     txtPortLdap.setColumns(10);
-    txtPortLdap.setBounds(124, 25, 146, 23);
+    txtPortLdap.setBounds(114, 73, 165, 30);
     loginPaneLdap.add(txtPortLdap);
 
     lblBasedn = new JLabel("BaseDN");
-    lblBasedn.setHorizontalAlignment(SwingConstants.TRAILING);
-    lblBasedn.setBounds(0, 48, 112, 23);
+    lblBasedn.setHorizontalAlignment(SwingConstants.LEFT);
+    lblBasedn.setBounds(11, 104, 90, 30);
     loginPaneLdap.add(lblBasedn);
 
     txtBaseDN = new JTextField();
     txtBaseDN.setColumns(10);
-    txtBaseDN.setBounds(124, 48, 146, 23);
+    txtBaseDN.setBounds(114, 103, 165, 30);
     loginPaneLdap.add(txtBaseDN);
 
     label_8 = new JLabel("Username");
-    label_8.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_8.setBounds(0, 71, 112, 23);
+    label_8.setHorizontalAlignment(SwingConstants.LEFT);
+    label_8.setBounds(11, 135, 90, 30);
     loginPaneLdap.add(label_8);
 
     txtUsernameLdap = new JTextField();
     txtUsernameLdap.setColumns(10);
-    txtUsernameLdap.setBounds(124, 71, 146, 23);
+    txtUsernameLdap.setBounds(114, 133, 165, 30);
     loginPaneLdap.add(txtUsernameLdap);
 
     label_9 = new JLabel("Password");
-    label_9.setHorizontalAlignment(SwingConstants.TRAILING);
-    label_9.setBounds(0, 94, 112, 23);
+    label_9.setHorizontalAlignment(SwingConstants.LEFT);
+    label_9.setBounds(11, 166, 90, 30);
     loginPaneLdap.add(label_9);
 
     txtPasswordLdap = new JPasswordField();
-    txtPasswordLdap.setBounds(124, 94, 146, 23);
+    txtPasswordLdap.setBounds(114, 163, 165, 30);
     loginPaneLdap.add(txtPasswordLdap);
+    
+    lblDatabase = new JLabel("Database");
+    lblDatabase.setHorizontalAlignment(SwingConstants.CENTER);
+    lblDatabase.setFont(lblDatabase.getFont().deriveFont(lblDatabase.getFont().getStyle() | Font.BOLD, lblDatabase.getFont().getSize() + 2f));
+    lblDatabase.setBounds(1, 6, 270, 16);
+    loginPane.add(lblDatabase);
+    
+    lblDirectory = new JLabel("Directory");
+    lblDirectory.setHorizontalAlignment(SwingConstants.CENTER);
+    lblDirectory.setFont(lblDirectory.getFont().deriveFont(lblDirectory.getFont().getStyle() | Font.BOLD, lblDirectory.getFont().getSize() + 2f));
+    lblDirectory.setBounds(1, 6, 270, 16);
+    loginPaneLdap.add(lblDirectory);
 
     txtHost.setText("localhost");
     txtPort.setText("3306");
@@ -239,26 +254,26 @@ public class GUI implements ActionListener{
             
             JDBC = new JDBCConnectionFactory(aHost, intaPort, aDatabase);
             final Connection jdbcconnection = JDBC.getConnection(); 
-		    jdbcconnection.bind(aUsername, txtPassword.getPassword());
-		    
-		    LDAP = new LDAPConnectionFactory(lHost, intlPort);
-	        final Connection ldapconnection = LDAP.getConnection();
-	        ldapconnection.bind(lUsername, txtPasswordLdap.getPassword());
-	        
+                    jdbcconnection.bind(aUsername, txtPassword.getPassword());
+                    
+                    LDAP = new LDAPConnectionFactory(lHost, intlPort);
+                final Connection ldapconnection = LDAP.getConnection();
+                ldapconnection.bind(lUsername, txtPasswordLdap.getPassword());
+                
             //TODO aanpassen connection failed
             frame.dispose();
             new GUIMap(JDBC, LDAP);
           } catch (NumberFormatException ex){
             JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
           } catch (ErrorResultException e1) {
-			e1.printStackTrace();
-		} catch (ErrorResultIOException e1) {
-			e1.printStackTrace();
-		} catch (SearchResultReferenceIOException e1) {
-			e1.printStackTrace();
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
+                        e1.printStackTrace();
+                } catch (ErrorResultIOException e1) {
+                        e1.printStackTrace();
+                } catch (SearchResultReferenceIOException e1) {
+                        e1.printStackTrace();
+                } catch (SQLException e1) {
+                        e1.printStackTrace();
+                }
         }
       }
       catch (IllegalArgumentException x)   {   // catch the error
@@ -278,21 +293,24 @@ public class GUI implements ActionListener{
         //System.out.println(info.getName());
         if ("Nimbus".equals(info.getName())) {
           UIManager.setLookAndFeel(info.getClassName());
+          //System.out.println("Used = " + info.getName());
           break;
-        }
+       } else {
+         UIManager.setLookAndFeel(info.getClassName());
+         }
       }
     } catch (Exception e) {
-      // If Nimbus is not available, you can set the GUI to another look and feel.
+      //System.out.println(e.toString());
     }
     //Create and set up the content pane.
     GUI gui = new GUI();
     frame.setContentPane(gui.createContentPane());
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(600, 225);
+    frame.setSize(585, 281);
+    frame.setLocationRelativeTo(null);
     frame.setVisible(true);
     frame.setResizable(false);  
     frame.setEnabled(true);
-    frame.setLocationRelativeTo(null);
   }
   public static void main(String[] args) {
     //Schedule a job for the event-dispatching thread:
