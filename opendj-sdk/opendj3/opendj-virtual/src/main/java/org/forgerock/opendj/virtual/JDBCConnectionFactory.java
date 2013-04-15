@@ -22,72 +22,73 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
+
 package org.forgerock.opendj.virtual;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.ResultHandler;
 
 /**
- * Create a JDBC driver instance which contains all the methods for
- * connection and commands to the database.
+ * Create a JDBC driver instance which contains all the methods for 
+ * connection to the database.
  */
-public class JDBCConnectionFactory {
 
-    private String driverName = "com.mysql.jdbc.Driver";
-    private Connection con = null;
-
-    public JDBCConnectionFactory() {
-            try {
-                    Class.forName(driverName);
-            } catch (ClassNotFoundException e) {
-                    System.out.println(e.toString());
-            }
-    }
-
-    /**
-     * Set up a JDBC connection using the defined parameters.
+public final class JDBCConnectionFactory implements ConnectionFactory {
+	private String ConnectionUrl = "";
+	private final String Host;
+	private final int Port;
+	private final String DbName;
+    private JDBCConnection jdbc;
+	
+	/**
+     * Set up a JDBC connection configuration.
      *
      * @param host
-     *            The host address of the database.
+     *            The hostname of the database to connect. 
      * @param port
-     *            The port used to connect to the database.
-     * @param databaseName
-     *            The name of the database to connect with.
+     * 			  The port used to connect to the database.
+     * @param dbName
+     *            The name of the database.
      * @param userName
      *            The username required for authentication to the database.
      * @param userPass
      * 			  The password required for authentication to the database.
-     * @return The created connection.
      */
-    public Connection createConnection(String host, String port, String databaseName, String userName, String userPass) {
-            try {
-                    String connectionUrl="jdbc:mysql://"
-		                    		.concat(host+":")
-		                    		.concat(port+"/")
-		                    		.concat(databaseName);
-                    con = DriverManager
-                                    .getConnection(connectionUrl,userName,userPass);
-                    System.out.println("Connection created.");
-                    } catch (SQLException e) {
-                    System.out.println(e.toString());
-            }
-            return con;
+    public JDBCConnectionFactory(final String host, final int port, final String dbName) {
+        this.Host = host;
+        this.Port = port;
+        this.DbName = dbName;
+        
+        this.ConnectionUrl="jdbc:mysql://"
+        		.concat(this.Host+":")
+        		.concat(this.Port+"/")
+        		.concat(this.DbName);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Connection getConnection() throws ErrorResultException {
+    	if (this.jdbc == null){
+    		this.jdbc = new JDBCConnection(this.ConnectionUrl);
+    	}
+        	return this.jdbc;
     }
 
-    /**
-     * Close the open connection to the database.
-     */
-    public void closeConnection(){
-            try{
-                    this.con.close();
-            System.out.println("Connection terminated.");
-            }catch(Exception e){
-                    System.out.println(e.toString());
-            }
-    }
+	@Override
+	public FutureResult<Connection> getConnectionAsync(
+			ResultHandler<? super Connection> handler) {
+		//TODO
+		return null;
+	}
+	
 }
 
 
