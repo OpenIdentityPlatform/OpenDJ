@@ -33,8 +33,8 @@ import java.util.Map;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.*;
 import org.opends.server.controls.ControlDecoder;
+import org.opends.server.types.*;
 
 
 /**
@@ -355,6 +355,15 @@ public class OperationWrapper implements Operation
    * {@inheritDoc}
    */
   @Override
+  public boolean isInnerOperation()
+  {
+    return operation.isInnerOperation();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isInternalOperation()
   {
     return operation.isInternalOperation();
@@ -448,6 +457,15 @@ public class OperationWrapper implements Operation
   public void setErrorMessage(MessageBuilder errorMessage)
   {
     operation.setErrorMessage(errorMessage);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setInnerOperation(boolean isInnerOperation)
+  {
+    operation.setInnerOperation(isInnerOperation);
   }
 
   /**

@@ -367,6 +367,31 @@ public interface Operation extends Runnable
       isInternalOperation);
 
   /**
+   * Indicates whether this is an inner operation rather than one that was
+   * directly requested by an external client. Said otherwise, inner operations
+   * include internal operations, but also operations in the server indirectly
+   * mandated by external requests like Rest2LDAP for example. This may not be
+   * called from within a plugin.
+   *
+   * @return {@code true} if this is an inner operation, or {@code false} if it
+   *         is not.
+   */
+  boolean isInnerOperation();
+
+  /**
+   * Specifies whether this is an inner operation rather than one that was
+   * directly requested by an external client. Said otherwise, inner operations
+   * include internal operations, but also operations in the server indirectly
+   * mandated by external requests like Rest2LDAP for example. This may not be
+   * called from within a plugin.
+   *
+   * @param isInnerOperation
+   *          Specifies whether this is an inner operation rather than one that
+   *          was requested by an external client.
+   */
+  void setInnerOperation(boolean isInnerOperation);
+
+  /**
    * Indicates whether this is a synchronization operation rather than
    * one that was requested by an external client.
    *

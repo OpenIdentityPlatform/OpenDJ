@@ -42,40 +42,42 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   @DataProvider(name = "isLoggableData")
   public Object[][] getIsLoggableData()
   {
+    // when suppress is set to true and the corresponding operation is set to
+    // true too, then the operation is not loggable.
+    // You can read the array like this: read two by two from line start, if
+    // both are true in a pair, then the expected result is false (not loggable)
     return new Object[][] {
-      { 1L, false, false, false, false, true },
-      { -1L, true, true, true, true, false },
-      { -1L, true, true, true, false, false },
-      { -1L, true, true, false, true, false },
-      { -1L, true, true, false, false, false },
-      { -1L, true, false, true, true, false },
-      { -1L, true, false, true, false, false },// this will change
-      { -1L, true, false, false, true, true },
-      { -1L, true, false, false, false, true },
-      { -1L, false, true, true, true, true },// this will change
-      { -1L, false, true, true, false, true },
-      { -1L, false, true, false, true, true },
-      { -1L, false, true, false, false, true },
-      { -1L, false, false, true, true, false },
-      { -1L, false, false, true, false, false },// this will change
-      { -1L, false, false, false, true, true },
-      { -1L, false, false, false, false, true }, };
+      { true, true, true, true, false },
+      { true, true, true, false, false },
+      { true, true, false, true, false },
+      { true, true, false, false, false },
+      { true, false, true, true, false },
+      { true, false, true, false, true },
+      { true, false, false, true, true },
+      { true, false, false, false, true },
+      { false, true, true, true, false },
+      { false, true, true, false, true },
+      { false, true, false, true, true },
+      { false, true, false, false, true },
+      { false, false, true, true, false },
+      { false, false, true, false, true },
+      { false, false, false, true, true },
+      { false, false, false, false, true }, };
   }
 
   @Test(dataProvider = "isLoggableData")
-  public void rootFilterIsLoggable(long connectionID,
-      boolean suppressSynchronization, boolean isSynchronizationOp,
-      boolean suppressInternal, boolean isInternalOp, boolean testResult)
+  public void rootFilterIsLoggable(boolean suppressSynchronization,
+      boolean isSynchronizationOp, boolean suppressInternal,
+      boolean isInternalOp, boolean expectedTestResult)
   {
     final Operation operation = mock(Operation.class);
-    when(operation.getConnectionID()).thenReturn(connectionID);
     when(operation.isSynchronizationOperation())
         .thenReturn(isSynchronizationOp);
-    when(operation.isInternalOperation()).thenReturn(isInternalOp);
+    when(operation.isInnerOperation()).thenReturn(isInternalOp);
 
     final RootFilter filter =
         new RootFilter(suppressInternal, suppressSynchronization, null, null);
-    assertEquals(filter.isLoggable(operation), testResult);
+    assertEquals(filter.isLoggable(operation), expectedTestResult);
   }
 
 }

@@ -962,8 +962,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
-      final long connectionID = connection.getConnectionID();
-      if (connectionID >= 0 || !suppressInternalOperations)
+      if (!connection.isInnerConnection() || !suppressInternalOperations)
       {
         switch (policy)
         {
@@ -989,8 +988,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
-      final long connectionID = connection.getConnectionID();
-      if (connectionID >= 0 || !suppressInternalOperations)
+      if (!connection.isInnerConnection() || !suppressInternalOperations)
       {
         switch (policy)
         {
@@ -1071,21 +1069,9 @@ public abstract class AbstractTextAccessLogPublisher
      */
     boolean isLoggable(final Operation operation)
     {
-      final long connectionID = operation.getConnectionID();
-      if (connectionID < 0)
-      {
-        // This is an internal operation.
-        if (operation.isSynchronizationOperation())
-        {
-          return !suppressSynchronizationOperations;
-        }
-        else
-        {
-          return !suppressInternalOperations;
-        }
-      }
-
-      return true;
+      return !((suppressInternalOperations && operation.isInnerOperation())
+          || (suppressSynchronizationOperations
+              && operation.isSynchronizationOperation()));
     }
   }
 

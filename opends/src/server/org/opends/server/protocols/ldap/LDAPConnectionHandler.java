@@ -1239,7 +1239,8 @@ public final class LDAPConnectionHandler extends
         clientChannel, getProtocol());
     if (clientConnection.getConnectionID() < 0)
     {
-      // The connection will have already been closed.
+      clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
+          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
       return;
     }
 
