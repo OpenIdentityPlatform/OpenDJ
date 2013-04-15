@@ -21,9 +21,22 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.virtual;
 
+import org.forgerock.opendj.ldap.Connection;
+
+
+/**
+ * This class provides tests the JDBCConnection.
+ */
+public class JDBCConnectionTestCase {
+	 public static void main(String args[])throws Exception {		       
+		    final JDBCConnectionFactory JDBC = new JDBCConnectionFactory("localhost", 3306, "opendj_db");
+		    Connection con = JDBC.getConnection();
+		    con.bind("root", "".toCharArray());
+	    }
+}
