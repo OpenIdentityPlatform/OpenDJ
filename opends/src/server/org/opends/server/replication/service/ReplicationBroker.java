@@ -29,6 +29,7 @@ package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -55,10 +56,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.messages.Severity;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.DSInfo;
@@ -888,9 +887,9 @@ public class ReplicationBroker
        * out which one is the best to connect to.
        */
       if (debugEnabled())
-        debugInfo("serverId: " + serverId +
-            " phase 1 : will perform PhaseOneH with each RS in " +
-          " order to elect the preferred one");
+        TRACER.debugInfo("serverId: " + serverId
+          + " phase 1 : will perform PhaseOneH with each RS in "
+          + " order to elect the preferred one");
 
       // Get info from every available replication servers
       replicationServerInfos = collectReplicationServersInfo();
@@ -905,9 +904,9 @@ public class ReplicationBroker
 
         // Best found, now initialize connection to this one (handshake phase 1)
         if (debugEnabled())
-          debugInfo("serverId: " + serverId +
-            " phase 2 : will perform PhaseOneH with the preferred RS="
-              + electedRsInfo);
+          TRACER.debugInfo("serverId: " + serverId
+            + " phase 2 : will perform PhaseOneH with the preferred RS="
+            + electedRsInfo);
         electedRsInfo = performPhaseOneHandshake(
           electedRsInfo.getServerURL(), true, false);
 
@@ -1139,9 +1138,9 @@ public class ReplicationBroker
 
         if (debugEnabled())
         {
-          debugInfo("RB for dn " + baseDn +
-            " and with server id " + Integer.toString(serverId) + " computed " +
-            Integer.toString(nChanges) + " changes late.");
+          TRACER.debugInfo("RB for dn " + baseDn
+            + " and with server id " + Integer.toString(serverId)
+            + " computed " + Integer.toString(nChanges) + " changes late.");
         }
 
         /*
@@ -1247,9 +1246,9 @@ public class ReplicationBroker
       ReplicationMsg msg = localSession.receive();
       if (debugEnabled())
       {
-        debugInfo("In RB for " + baseDn + "\nRB HANDSHAKE SENT:\n"
-            + serverStartMsg.toString() + "\nAND RECEIVED:\n"
-            + msg.toString());
+        TRACER.debugInfo("In RB for " + baseDn + "\nRB HANDSHAKE SENT:\n"
+          + serverStartMsg.toString() + "\nAND RECEIVED:\n"
+          + msg.toString());
       }
 
       // Wrap received message in a server info object
@@ -1349,7 +1348,7 @@ public class ReplicationBroker
 
           if (debugEnabled())
           {
-            debugInfo(errorMessage.toString());
+            TRACER.debugInfo(errorMessage.toString());
           }
         }
       }
@@ -1384,9 +1383,8 @@ public class ReplicationBroker
        */
       if (debugEnabled())
       {
-        debugInfo("In RB for " + baseDn +
-          "\nRB HANDSHAKE SENT:\n" + startECLSessionMsg.toString());
-        //  +   "\nAND RECEIVED:\n" + topologyMsg.toString());
+        TRACER.debugInfo("In RB for " + baseDn
+          + "\nRB HANDSHAKE SENT:\n" + startECLSessionMsg.toString());
       }
 
       // Alright set the timeout to the desired value
@@ -1460,9 +1458,9 @@ public class ReplicationBroker
 
       if (debugEnabled())
       {
-        debugInfo("In RB for " + baseDn +
-          "\nRB HANDSHAKE SENT:\n" + startSessionMsg.toString() +
-          "\nAND RECEIVED:\n" + topologyMsg.toString());
+        TRACER.debugInfo("In RB for " + baseDn
+          + "\nRB HANDSHAKE SENT:\n" + startSessionMsg.toString()
+          + "\nAND RECEIVED:\n" + topologyMsg.toString());
       }
 
       // Alright set the timeout to the desired value
@@ -1569,7 +1567,7 @@ public class ReplicationBroker
     {
       if (firstConnection)
       {
-        // We are no connected to a server yet
+        // We are not connected to a server yet
         return computeBestServerForWeight(bestServers, -1, -1);
       } else
       {
@@ -2183,8 +2181,8 @@ public class ReplicationBroker
 
     if (debugEnabled())
     {
-      debugInfo(this + " end restart : connected=" + connected + " with RSid="
-          + this.getRsServerId() + " genid=" + this.generationID);
+      TRACER.debugInfo(this + " end restart : connected=" + connected
+        + " with RSid=" + this.getRsServerId() + " genid=" + this.generationID);
     }
   }
 
@@ -2243,8 +2241,8 @@ public class ReplicationBroker
 
         if (debugEnabled())
         {
-          debugInfo("ReplicationBroker.publish() Publishing a " +
-            "message is not possible due to existing connection error.");
+          TRACER.debugInfo("ReplicationBroker.publish() Publishing a "
+            + "message is not possible due to existing connection error.");
         }
 
         return false;
@@ -2345,8 +2343,8 @@ public class ReplicationBroker
             // ignore
             if (debugEnabled())
             {
-              debugInfo("ReplicationBroker.publish() " +
-                "Interrupted exception raised : " + e.getLocalizedMessage());
+              TRACER.debugInfo("ReplicationBroker.publish() "
+                + "Interrupted exception raised : " + e.getLocalizedMessage());
             }
           }
         }
@@ -2355,8 +2353,8 @@ public class ReplicationBroker
         // just loop.
         if (debugEnabled())
         {
-          debugInfo("ReplicationBroker.publish() " +
-            "Interrupted exception raised." + e.getLocalizedMessage());
+          TRACER.debugInfo("ReplicationBroker.publish() "
+            + "Interrupted exception raised." + e.getLocalizedMessage());
         }
       }
     }
@@ -2649,9 +2647,9 @@ public class ReplicationBroker
   public void stop()
   {
     if (debugEnabled())
-      debugInfo("ReplicationBroker " + serverId + " is stopping and will" +
-        " close the connection to replication server " + rsServerId + " for" +
-        " domain " + baseDn);
+      TRACER.debugInfo("ReplicationBroker " + serverId + " is stopping and will"
+        + " close the connection to replication server " + rsServerId + " for"
+        + " domain " + baseDn);
 
     synchronized (startStopLock)
     {
@@ -2819,17 +2817,6 @@ public class ReplicationBroker
     return connected;
   }
 
-  private boolean debugEnabled()
-  {
-    return false;
-  }
-
-  private static void debugInfo(String s)
-  {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
-    TRACER.debugInfo(s);
-  }
-
   /**
    * Determine whether the connection to the replication server is encrypted.
    * @return true if the connection is encrypted, false otherwise.
@@ -2940,7 +2927,7 @@ public class ReplicationBroker
   public void receiveTopo(TopologyMsg topoMsg)
   {
     if (debugEnabled())
-      debugInfo(this + " receive TopologyMsg=" + topoMsg);
+      TRACER.debugInfo(this + " receive TopologyMsg=" + topoMsg);
 
     // Store new DS list
     dsList = topoMsg.getDsList();
@@ -3029,8 +3016,8 @@ public class ReplicationBroker
     } else
     {
       if (debugEnabled())
-        debugInfo(this +
-        " is not configured to send CN heartbeat interval");
+        TRACER.debugInfo(this
+          + " is not configured to send CN heartbeat interval");
     }
   }
 
