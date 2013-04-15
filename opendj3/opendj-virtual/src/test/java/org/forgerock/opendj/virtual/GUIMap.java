@@ -31,7 +31,6 @@ import java.awt.event.*;
 import java.awt.*;
 
 import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.*;
@@ -124,7 +123,7 @@ public class GUIMap extends JPanel implements ActionListener {
     frame.setContentPane(createContentPane());    
     frame.setEnabled(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(524, 513);
+    frame.setSize(524, 505);
     frame.setLocationRelativeTo(null);
     frame.setVisible(true); 
   }
@@ -156,7 +155,7 @@ public class GUIMap extends JPanel implements ActionListener {
      tableList.addActionListener(this);
      inputPane.add(tableList);   
 
-     directoryOUList = new JComboBox<Object>(OUNameList);
+     directoryOUList = new JComboBox<Objects>(OUNameList);
      directoryOUList.setToolTipText("Click to change OU");
      directoryOUList.setMaximumRowCount(4);
      directoryOUList.setBounds(271, 29, 230, 27);
@@ -189,26 +188,26 @@ public class GUIMap extends JPanel implements ActionListener {
 
      btnPane = new JPanel();
      btnPane.setLayout(null);
-     btnPane.setBounds(6, 420, 507, 61);
+     btnPane.setBounds(6, 411, 512, 68);
      totalGUI.add(btnPane);
 
      btnSetMap = new JButton("Save current mapping");
-     btnSetMap.setBounds(87, 3, 175, 30);
+     btnSetMap.setBounds(87, 3, 169, 28);
      btnSetMap.addActionListener(this);
      btnPane.add(btnSetMap);
 
      btnResetMap = new JButton("Reset current mapping");
-     btnResetMap.setBounds(254, 3, 175, 30);
+     btnResetMap.setBounds(270, 3, 169, 28);
      btnResetMap.addActionListener(this);
      btnPane.add(btnResetMap);
 
      btnSave = new JButton("Save to file");
-     btnSave.setBounds(117, 28, 145, 30);
+     btnSave.setBounds(127, 36, 129, 28);
      btnSave.addActionListener(this);
      btnPane.add(btnSave);
 
      btnQuitConnection = new JButton("Close");
-     btnQuitConnection.setBounds(254, 28, 145, 30);
+     btnQuitConnection.setBounds(270, 36, 129, 28);
      btnQuitConnection.addActionListener(this);
      btnPane.add(btnQuitConnection);
 
