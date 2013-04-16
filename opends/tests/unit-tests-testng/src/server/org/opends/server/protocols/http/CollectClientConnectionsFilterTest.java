@@ -36,6 +36,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.forgerock.json.resource.ResourceException;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.util.Base64;
@@ -65,6 +66,7 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 
   @Test(dataProvider = "Invalid HTTP basic auth strings")
   public void parseUsernamePasswordFromInvalidAuthZHeader(String authZHeader)
+      throws Exception
   {
     assertThat(filter.parseUsernamePassword(authZHeader)).isNull();
   }
@@ -78,6 +80,7 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 
   @Test(dataProvider = "Valid HTTP basic auth strings")
   public void parseUsernamePasswordFromValidAuthZHeader(String authZHeader)
+      throws Exception
   {
     assertThat(filter.parseUsernamePassword(authZHeader)).containsExactly(
         USERNAME, PASSWORD);
@@ -92,7 +95,7 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     ServletOutputStream oStream = mock(ServletOutputStream.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.getOutputStream()).thenReturn(oStream);
-    filter.sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
+    sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(response).setHeader("WWW-Authenticate",
@@ -109,25 +112,32 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     HttpServletResponse response = mock(HttpServletResponse.class);
     ServletOutputStream oStream = mock(ServletOutputStream.class);
     when(response.getOutputStream()).thenReturn(oStream);
-    filter.sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
+    sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verifyUnauthorizedOutputMessage(response, oStream);
+  }
+
+  private void sendUnauthorizedResponseWithHTTPBasicAuthChallenge(
+      HttpServletResponse response)
+  {
+    filter.sendErrorReponse(response, true, ResourceException.getException(
+        HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
   }
 
   private void verifyUnauthorizedOutputMessage(HttpServletResponse response,
       ServletOutputStream oStream) throws IOException
   {
     verify(response).getOutputStream();
-    verify(oStream).println("{");
-    verify(oStream).println("    \"code\": 401,");
-    verify(oStream).println("    \"message\": \"Invalid Credentials\",");
-    verify(oStream).println("    \"reason\": \"Unauthorized\"");
-    verify(oStream).println("}");
+    verify(oStream).println(
+        "{\n" + "    \"code\": 401,\n"
+            + "    \"message\": \"Invalid Credentials\",\n"
+            + "    \"reason\": \"Unauthorized\"\n" + "}");
   }
 
   @Test
   public void extractUsernamePasswordHttpBasicAuthWillAcceptUserAgent()
+      throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
@@ -140,7 +150,7 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void extractUsernamePasswordCustomHeaders()
+  public void extractUsernamePasswordCustomHeaders() throws Exception
   {
     final String customHeaderUsername = "X-OpenIDM-Username";
     final String customHeaderPassword = "X-OpenIDM-Password";
