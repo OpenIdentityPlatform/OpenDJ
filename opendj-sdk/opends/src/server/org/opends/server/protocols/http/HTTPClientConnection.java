@@ -119,7 +119,7 @@ final class HTTPClientConnection extends ClientConnection
    * Indicates whether the Directory Server believes this connection to be valid
    * and available for communication.
    */
-  private volatile boolean connectionValid;
+  private volatile boolean connectionValid = true;
 
   /**
    * Indicates whether this connection is about to be closed. This will be used

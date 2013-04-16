@@ -48,6 +48,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -58,6 +59,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -119,6 +121,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   public void doFilter(ServletRequest request, ServletResponse response,
       FilterChain chain)
   {
+    final boolean prettyPrint =
+        Boolean.parseBoolean(request.getParameter("_prettyPrint"));
+
     final HTTPClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
     this.connectionHandler.addClientConnection(clientConnection);
@@ -156,7 +161,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
       // The user could not be authenticated. Send an HTTP Basic authentication
       // challenge if HTTP Basic authentication is enabled.
-      sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
+      sendErrorReponse(response, prettyPrint, ResourceException.getException(
+          HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
+
       clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS, false,
           null);
     }
@@ -166,6 +173,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
+
+      sendErrorReponse(response, prettyPrint, Rest2LDAP.asResourceException(e));
 
       Message message =
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
@@ -262,8 +271,11 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
    *          the request where to extract the username and password from
    * @return the array containing the username/password couple if both exist,
    *         null otherwise
+   * @throws ResourceException
+   *           if any error occur
    */
   String[] extractUsernamePassword(ServletRequest request)
+      throws ResourceException
   {
     HttpServletRequest req = (HttpServletRequest) request;
 
@@ -299,19 +311,25 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   }
 
   /**
-   * Sends an Unauthorized status code and a challenge for HTTP Basic
-   * authentication if HTTP basic authentication is enabled.
+   * Sends an error response back to the client. If the error response is
+   * "Unauthorized", then it will send a challenge for HTTP Basic authentication
+   * if HTTP Basic authentication is enabled.
    *
    * @param response
    *          where to send the Unauthorized status code.
+   * @param prettyPrint
+   *          whether to format the JSON document output
+   * @param re
+   *          the resource exception with the error response content
    */
-  void sendUnauthorizedResponseWithHTTPBasicAuthChallenge(
-      ServletResponse response)
+  void sendErrorReponse(ServletResponse response, boolean prettyPrint,
+      ResourceException re)
   {
     HttpServletResponse resp = (HttpServletResponse) response;
-    resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    resp.setStatus(re.getCode());
 
-    if (authConfig.isBasicAuthenticationSupported())
+    if (re.getCode() == HttpServletResponse.SC_UNAUTHORIZED
+        && authConfig.isBasicAuthenticationSupported())
     {
       resp.setHeader("WWW-Authenticate",
           "Basic realm=\"org.forgerock.opendj\"");
@@ -323,11 +341,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       resp.setHeader("Content-Type", "application/json");
 
       ServletOutputStream out = resp.getOutputStream();
-      out.println("{");
-      out.println("    \"code\": 401,");
-      out.println("    \"message\": \"Invalid Credentials\",");
-      out.println("    \"reason\": \"Unauthorized\"");
-      out.println("}");
+      out.println(toJSON(prettyPrint, re));
     }
     catch (IOException ignore)
     {
@@ -340,6 +354,32 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   }
 
   /**
+   * Returns a JSON representation of the {@link ResourceException}.
+   *
+   * @param prettyPrint
+   *          whether to format the resulting JSON document
+   * @param re
+   *          the resource exception to convert to a JSON document
+   * @return a String containing the JSON representation of the
+   *         {@link ResourceException}.
+   */
+  private String toJSON(boolean prettyPrint, ResourceException re)
+  {
+    final String indent = "\n    ";
+    final StringBuilder sb = new StringBuilder();
+    sb.append("{");
+    if (prettyPrint) sb.append(indent);
+    sb.append("\"code\": ").append(re.getCode()).append(",");
+    if (prettyPrint) sb.append(indent);
+    sb.append("\"message\": \"").append(re.getMessage()).append("\",");
+    if (prettyPrint) sb.append(indent);
+    sb.append("\"reason\": \"").append(re.getReason()).append("\"");
+    if (prettyPrint) sb.append("\n");
+    sb.append("}");
+    return sb.toString();
+  }
+
+  /**
    * Parses username and password from the authentication header used in HTTP
    * basic authentication.
    *
@@ -347,8 +387,10 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
    *          the authentication header obtained from the request
    * @return an array containing the username at index 0 and the password at
    *         index 1, or null if the header cannot be parsed successfully
+   * @throws ResourceException
+   *           if the base64 password cannot be decoded
    */
-  String[] parseUsernamePassword(String authHeader)
+  String[] parseUsernamePassword(String authHeader) throws ResourceException
   {
     if (authHeader != null
         && (authHeader.startsWith("Basic") || authHeader.startsWith("basic")))
@@ -370,10 +412,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       }
       catch (ParseException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        throw Rest2LDAP.asResourceException(e);
       }
     }
     return null;
@@ -392,9 +431,11 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
    *          the connection to use for search and bind
    * @return the {@link AuthenticationInfo} for the supplied credentials, null
    *         if authentication was unsuccessful.
+   * @throws ErrorResultException
+   *           if a Rest2LDAP result comes back with an error or cancel state
    */
   private AuthenticationInfo authenticate(String userName, String password,
-      Connection connection)
+      Connection connection) throws ErrorResultException
   {
     // TODO JNR do the next steps in an async way
     SearchResultEntry resultEntry = searchUniqueEntryDN(userName, connection);
@@ -411,7 +452,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   }
 
   private SearchResultEntry searchUniqueEntryDN(String userName,
-      Connection connection)
+      Connection connection) throws ErrorResultException
   {
     // use configured rights to find the user DN
     final Filter filter =
@@ -419,37 +460,16 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     final SearchRequest searchRequest =
         Requests.newSearchRequest(authConfig.getSearchBaseDN(), authConfig
             .getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
-    try
-    {
-      return connection.searchSingleEntry(searchRequest);
-    }
-    catch (ErrorResultException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    return null;
+    return connection.searchSingleEntry(searchRequest);
   }
 
   private boolean bind(String bindDN, String password, Connection connection)
+      throws ErrorResultException
   {
-    BindRequest bindRequest =
+    final BindRequest bindRequest =
         Requests.newSimpleBindRequest(bindDN, password.getBytes());
-    try
-    {
-      BindResult bindResult = connection.bind(bindRequest);
-      return ResultCode.SUCCESS.equals(bindResult.getResultCode());
-    }
-    catch (ErrorResultException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    return false;
+    final BindResult bindResult = connection.bind(bindRequest);
+    return ResultCode.SUCCESS.equals(bindResult.getResultCode());
   }
 
   /** {@inheritDoc} */
