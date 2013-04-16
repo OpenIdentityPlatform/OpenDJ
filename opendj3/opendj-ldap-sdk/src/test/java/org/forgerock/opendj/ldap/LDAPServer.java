@@ -617,8 +617,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
     /**
      * Starts the server.
      *
-     * @param port
-     * @exception IOException
+     * @exception Exception
      */
     public synchronized void start() throws Exception {
         if (isRunning) {
