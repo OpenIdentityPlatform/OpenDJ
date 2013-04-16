@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -34,14 +35,11 @@ import org.opends.server.types.*;
 /**
  * This abstract class wraps/decorates a given bind operation.
  * This class will be extended by sub-classes to enhance the
- * functionnality of the BindOperationBasis.
+ * functionality of the BindOperationBasis.
  */
-public abstract class BindOperationWrapper extends OperationWrapper
-       implements BindOperation
+public abstract class BindOperationWrapper extends
+    OperationWrapper<BindOperation> implements BindOperation
 {
-  // The wrapped operation.
-  private BindOperation bind;
-
   /**
    * Creates a new bind operation based on the provided bind operation.
    *
@@ -50,190 +48,211 @@ public abstract class BindOperationWrapper extends OperationWrapper
   protected BindOperationWrapper(BindOperation bind)
   {
     super(bind);
-    this.bind = bind;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public AuthenticationInfo getAuthenticationInfo()
   {
-    return bind.getAuthenticationInfo();
+    return getOperation().getAuthenticationInfo();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public AuthenticationType getAuthenticationType()
   {
-    return bind.getAuthenticationType();
+    return getOperation().getAuthenticationType();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getAuthFailureReason()
   {
-    return bind.getAuthFailureReason();
+    return getOperation().getAuthFailureReason();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getBindDN()
   {
-    return bind.getBindDN();
+    return getOperation().getBindDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getRawBindDN()
   {
-    return bind.getRawBindDN();
+    return getOperation().getRawBindDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getSASLAuthUserEntry()
   {
-    return bind.getSASLAuthUserEntry();
+    return getOperation().getSASLAuthUserEntry();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getSASLCredentials()
   {
-    return bind.getSASLCredentials();
+    return getOperation().getSASLCredentials();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getSASLMechanism()
   {
-    return bind.getSASLMechanism();
+    return getOperation().getSASLMechanism();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getServerSASLCredentials()
   {
-    return bind.getServerSASLCredentials();
+    return getOperation().getServerSASLCredentials();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getSimplePassword()
   {
-    return bind.getSimplePassword();
+    return getOperation().getSimplePassword();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getUserEntryDN()
   {
-    return bind.getUserEntryDN();
+    return getOperation().getUserEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
-    bind.setAuthenticationInfo(authInfo);
+    getOperation().setAuthenticationInfo(authInfo);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAuthFailureReason(Message reason)
   {
     if (DirectoryServer.returnBindErrorMessages())
     {
-      bind.appendErrorMessage(reason);
+      getOperation().appendErrorMessage(reason);
     }
     else
     {
-      bind.setAuthFailureReason(reason);
+      getOperation().setAuthFailureReason(reason);
     }
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawBindDN(ByteString rawBindDN)
   {
-    bind.setRawBindDN(rawBindDN);
+    getOperation().setRawBindDN(rawBindDN);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
-    bind.setSASLAuthUserEntry(saslAuthUserEntry);
+    getOperation().setSASLAuthUserEntry(saslAuthUserEntry);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setSASLCredentials(String saslMechanism,
       ByteString saslCredentials)
   {
-    bind.setSASLCredentials(saslMechanism, saslCredentials);
+    getOperation().setSASLCredentials(saslMechanism, saslCredentials);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
-    bind.setServerSASLCredentials(serverSASLCredentials);
+    getOperation().setServerSASLCredentials(serverSASLCredentials);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setSimplePassword(ByteString simplePassword)
   {
-    bind.setSimplePassword(simplePassword);
+    getOperation().setSimplePassword(simplePassword);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setUserEntryDN(DN userEntryDN){
-    bind.setUserEntryDN(userEntryDN);
+    getOperation().setUserEntryDN(userEntryDN);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    return bind.toString();
+    return getOperation().toString();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProtocolVersion(String protocolVersion)
   {
-    bind.setProtocolVersion(protocolVersion);
+    getOperation().setProtocolVersion(protocolVersion);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getProtocolVersion()
   {
-    return bind.getProtocolVersion();
+    return getOperation().getProtocolVersion();
   }
 
 }
