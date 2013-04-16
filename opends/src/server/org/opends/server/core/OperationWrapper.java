@@ -38,13 +38,16 @@ import org.opends.server.types.*;
 
 
 /**
- * This abstract class is a generic operation wrapper intended to be
- * subclassed by a specific operation wrapper.
+ * This abstract class is a generic operation wrapper intended to be subclassed
+ * by a specific operation wrapper.
+ *
+ * @param <W>
+ *          the type of the object wrapped by this class
  */
-public class OperationWrapper implements Operation
+public class OperationWrapper<W extends Operation> implements Operation
 {
   /** The wrapped operation. */
-  private Operation operation;
+  private W operation;
 
 
   /**
@@ -52,7 +55,7 @@ public class OperationWrapper implements Operation
    *
    * @param operation  the generic operation to wrap
    */
-  public OperationWrapper(Operation operation)
+  public OperationWrapper(W operation)
   {
     this.operation = operation;
   }
@@ -231,6 +234,16 @@ public class OperationWrapper implements Operation
   public int getMessageID()
   {
     return operation.getMessageID();
+  }
+
+  /**
+   * Returns the wrapped {@link Operation}.
+   *
+   * @return the wrapped {@link Operation}.
+   */
+  protected W getOperation()
+  {
+    return operation;
   }
 
   /**

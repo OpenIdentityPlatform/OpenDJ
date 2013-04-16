@@ -23,27 +23,24 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
+import java.util.Set;
 
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import java.util.Set;
 
 /**
  * This abstract class wraps/decorates a given compare operation.
  * This class will be extended by sub-classes to enhance the
- * functionnality of the CompareOperationBasis.
+ * functionality of the CompareOperationBasis.
  */
-public abstract class CompareOperationWrapper
-  extends OperationWrapper
-  implements CompareOperation
+public abstract class CompareOperationWrapper extends
+    OperationWrapper<CompareOperation> implements CompareOperation
 {
-  // The wrapped operation
-  private CompareOperation compare;
-
 
   /**
    * Creates a new compare operation based on the provided compare operation.
@@ -53,124 +50,136 @@ public abstract class CompareOperationWrapper
   public CompareOperationWrapper(CompareOperation compare)
   {
     super(compare);
-    this.compare = compare;
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getRawEntryDN()
   {
-    return compare.getRawEntryDN();
+    return getOperation().getRawEntryDN();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
-    compare.setRawEntryDN(rawEntryDN);
+    getOperation().setRawEntryDN(rawEntryDN);
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN()
   {
-    return compare.getEntryDN();
+    return getOperation().getEntryDN();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getRawAttributeType()
   {
-    return compare.getRawAttributeType();
+    return getOperation().getRawAttributeType();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawAttributeType(String rawAttributeType)
   {
-    compare.setRawAttributeType(rawAttributeType);
+    getOperation().setRawAttributeType(rawAttributeType);
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType getAttributeType()
   {
-    return compare.getAttributeType();
+    return getOperation().getAttributeType();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttributeType(AttributeType attributeType)
   {
-    compare.setAttributeType(attributeType);
+    getOperation().setAttributeType(attributeType);
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getAttributeOptions()
   {
-    return compare.getAttributeOptions();
+    return getOperation().getAttributeOptions();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttributeOptions(Set<String> attributeOptions)
   {
-    compare.setAttributeOptions(attributeOptions);
+    getOperation().setAttributeOptions(attributeOptions);
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getAssertionValue()
   {
-    return compare.getAssertionValue();
+    return getOperation().getAssertionValue();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAssertionValue(ByteString assertionValue)
   {
-    compare.setAssertionValue(assertionValue);
+    getOperation().setAssertionValue(assertionValue);
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
-    return compare.getProxiedAuthorizationDN();
+    return getOperation().getProxiedAuthorizationDN();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
-    compare.setProxiedAuthorizationDN(proxiedAuthorizationDN);
+    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }

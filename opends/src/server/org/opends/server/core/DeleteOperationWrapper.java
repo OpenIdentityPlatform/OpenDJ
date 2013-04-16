@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -34,13 +35,11 @@ import org.opends.server.types.DN;
 /**
  * This abstract class wraps/decorates a given delete operation.
  * This class will be extended by sub-classes to enhance the
- * functionnality of the DeleteOperationBasis.
+ * functionality of the DeleteOperationBasis.
  */
-public abstract class DeleteOperationWrapper extends OperationWrapper
-       implements DeleteOperation
+public abstract class DeleteOperationWrapper extends
+    OperationWrapper<DeleteOperation> implements DeleteOperation
 {
-  // The wrapped operation.
-  DeleteOperation delete;
 
   /**
    * Creates a new delete operation based on the provided delete operation.
@@ -50,71 +49,78 @@ public abstract class DeleteOperationWrapper extends OperationWrapper
   public DeleteOperationWrapper(DeleteOperation delete)
   {
     super(delete);
-    this.delete = delete;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN()
   {
-    return delete.getEntryDN();
+    return getOperation().getEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getRawEntryDN()
   {
-    return delete.getRawEntryDN();
+    return getOperation().getRawEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
-    delete.setRawEntryDN(rawEntryDN);
+    getOperation().setRawEntryDN(rawEntryDN);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber()
   {
-    return delete.getChangeNumber();
+    return getOperation().getChangeNumber();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setChangeNumber(long changeNumber)
   {
-    delete.setChangeNumber(changeNumber);
+    getOperation().setChangeNumber(changeNumber);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    return delete.toString();
+    return getOperation().toString();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
-    return delete.getProxiedAuthorizationDN();
+    return getOperation().getProxiedAuthorizationDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
-    delete.setProxiedAuthorizationDN(proxiedAuthorizationDN);
+    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }

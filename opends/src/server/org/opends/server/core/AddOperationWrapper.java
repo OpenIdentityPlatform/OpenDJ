@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -35,13 +36,11 @@ import org.opends.server.types.*;
 /**
  * This abstract class wraps/decorates a given add operation.
  * This class will be extended by sub-classes to enhance the
- * functionnality of the AddOperationBasis.
+ * functionality of the AddOperationBasis.
  */
-public abstract class AddOperationWrapper extends OperationWrapper
-       implements AddOperation
+public abstract class AddOperationWrapper extends
+    OperationWrapper<AddOperation> implements AddOperation
 {
-  // The wrapped operation.
-  private AddOperation add;
 
   /**
    * Creates a new add operation based on the provided add operation.
@@ -51,152 +50,169 @@ public abstract class AddOperationWrapper extends OperationWrapper
   public AddOperationWrapper(AddOperation add)
   {
     super(add);
-    this.add = add;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addObjectClass(ObjectClass objectClass, String name)
   {
-    add.addObjectClass(objectClass, name);
+    getOperation().addObjectClass(objectClass, name);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addRawAttribute(RawAttribute rawAttribute)
   {
-    add.addRawAttribute(rawAttribute);
+    getOperation().addRawAttribute(rawAttribute);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getChangeNumber()
   {
-    return add.getChangeNumber();
+    return getOperation().getChangeNumber();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN()
   {
-    return add.getEntryDN();
+    return getOperation().getEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<ObjectClass, String> getObjectClasses()
   {
-    return add.getObjectClasses();
+    return getOperation().getObjectClasses();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<AttributeType, List<Attribute>> getOperationalAttributes()
   {
-    return add.getOperationalAttributes();
+    return getOperation().getOperationalAttributes();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<RawAttribute> getRawAttributes()
   {
-    return add.getRawAttributes();
+    return getOperation().getRawAttributes();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getRawEntryDN()
   {
-    return add.getRawEntryDN();
+    return getOperation().getRawEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Map<AttributeType, List<Attribute>> getUserAttributes()
   {
-    return add.getUserAttributes();
+    return getOperation().getUserAttributes();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeAttribute(AttributeType attributeType)
   {
-    add.removeAttribute(attributeType);
+    getOperation().removeAttribute(attributeType);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeObjectClass(ObjectClass objectClass)
   {
-    add.removeObjectClass(objectClass);
+    getOperation().removeObjectClass(objectClass);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttribute(AttributeType attributeType,
       List<Attribute> attributeList)
   {
-    add.setAttribute(attributeType, attributeList);
+    getOperation().setAttribute(attributeType, attributeList);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setChangeNumber(long changeNumber)
   {
-    add.setChangeNumber(changeNumber);
+    getOperation().setChangeNumber(changeNumber);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawAttributes(List<RawAttribute> rawAttributes)
   {
-    add.setRawAttributes(rawAttributes);
+    getOperation().setRawAttributes(rawAttributes);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
-    add.setRawEntryDN(rawEntryDN);
+    getOperation().setRawEntryDN(rawEntryDN);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    return add.toString();
+    return getOperation().toString();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
-    return add.getProxiedAuthorizationDN();
+    return getOperation().getProxiedAuthorizationDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
-    add.setProxiedAuthorizationDN(proxiedAuthorizationDN);
+    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }

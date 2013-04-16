@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -36,13 +36,11 @@ import org.opends.server.types.*;
 /**
  * This abstract class wraps/decorates a given modify operation.
  * This class will be extended by sub-classes to enhance the
- * functionnality of the ModifyOperationBasis.
+ * functionality of the ModifyOperationBasis.
  */
-public abstract class ModifyOperationWrapper extends OperationWrapper
-       implements ModifyOperation
+public abstract class ModifyOperationWrapper extends
+    OperationWrapper<ModifyOperation> implements ModifyOperation
 {
-  // The wrapped operation.
-  private ModifyOperation modify;
 
   /**
    * Creates a new modify operation based on the provided modify operation.
@@ -52,110 +50,122 @@ public abstract class ModifyOperationWrapper extends OperationWrapper
   protected ModifyOperationWrapper(ModifyOperation modify)
   {
     super(modify);
-    this.modify = modify;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addModification(Modification modification)
     throws DirectoryException
   {
-    modify.addModification(modification);
+    getOperation().addModification(modification);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addRawModification(RawModification rawModification)
   {
-    modify.addRawModification(rawModification);
+    getOperation().addRawModification(rawModification);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN()
   {
-    return modify.getEntryDN();
+    return getOperation().getEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<Modification> getModifications()
   {
-    return modify.getModifications();
+    return getOperation().getModifications();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString getRawEntryDN()
   {
-    return modify.getRawEntryDN();
+    return getOperation().getRawEntryDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<RawModification> getRawModifications()
   {
-    return modify.getRawModifications();
+    return getOperation().getRawModifications();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
-    modify.setRawEntryDN(rawEntryDN);
+    getOperation().setRawEntryDN(rawEntryDN);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawModifications(List<RawModification> rawModifications)
   {
-    modify.setRawModifications(rawModifications);
+    getOperation().setRawModifications(rawModifications);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
-    return modify.toString();
+    return getOperation().toString();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber(){
-    return modify.getChangeNumber();
+    return getOperation().getChangeNumber();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setChangeNumber(long changeNumber)
   {
-    modify.setChangeNumber(changeNumber);
+    getOperation().setChangeNumber(changeNumber);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
-    return modify.getProxiedAuthorizationDN();
+    return getOperation().getProxiedAuthorizationDN();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN){
-    modify.setProxiedAuthorizationDN(proxiedAuthorizationDN);
+    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }
