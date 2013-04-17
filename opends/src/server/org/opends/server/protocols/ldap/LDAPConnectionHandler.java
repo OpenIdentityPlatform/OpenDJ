@@ -1008,14 +1008,7 @@ public final class LDAPConnectionHandler extends
           logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
-        try
-        {
-          Thread.sleep(1000);
-        }
-        catch (InterruptedException wokenUp)
-        {
-        }
-
+        StaticUtils.sleep(1000);
         continue;
       }
 
