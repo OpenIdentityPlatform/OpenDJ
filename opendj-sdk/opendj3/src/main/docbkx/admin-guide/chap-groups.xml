@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-groups'
@@ -400,6 +400,20 @@ cn: My Static Group
 member: uid=ahunter,ou=People,dc=example,dc=com
 member: uid=bjensen,ou=People,dc=example,dc=com
 member: uid=tmorris,ou=People,dc=example,dc=com</screen>
+
+ <para>By default the referential integrity plugin is configured to manage
+ <literal>member</literal> and <literal>uniqueMember</literal> attributes.
+ These attributes take values that are DNs, and are indexed for equality by
+ default. Before you add an additional attribute to manage, make sure that
+ it has DN syntax and that it is indexed for equality. OpenDJ requires that
+ the attribute be indexed because an unindexed search for integrity would
+ potentially consume too many of the server's resources. Attribute syntax is
+ explained in the chapter on <link xlink:href="admin-guide#chap-schema"
+ xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+ >Managing Schema</citetitle></link>. For instructions on indexing attributes,
+ see the section on <link xlink:href="admin-guide#configure-indexes"
+ xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+  >Configuring &amp; Rebuilding Indexes</citetitle></link>.</para>
 
  <para>You can also configure the referential integrity plugin to check that
  new entries added to groups actually exist in the directory by setting the
