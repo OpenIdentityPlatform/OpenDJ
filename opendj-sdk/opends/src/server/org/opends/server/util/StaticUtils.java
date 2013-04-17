@@ -4693,6 +4693,24 @@ public final class StaticUtils
   }
 
   /**
+   * Calls {@link Thread#sleep(long)}, surrounding it with the mandatory
+   * <code>try</code> / <code>catch(InterruptedException)</code> block.
+   *
+   * @param millis
+   *          the length of time to sleep in milliseconds
+   */
+  public static void sleep(long millis)
+  {
+    try
+    {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException wokenUp)
+    {
+    }
+  }
+
+  /**
    * Returns an {@link Iterable} returning the passed in {@link Iterator}. THis
    * allows using methods returning Iterators with foreach statements.
    * <p>

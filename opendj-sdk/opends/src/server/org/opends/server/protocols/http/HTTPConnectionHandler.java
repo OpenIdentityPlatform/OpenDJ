@@ -100,6 +100,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.SelectableCertificateKeyManager;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This class defines a connection handler that will be used for communicating
@@ -673,14 +674,14 @@ public class HTTPConnectionHandler extends
           stopHttpServer();
         }
 
-        sleep(1000);
+        StaticUtils.sleep(1000);
         continue;
       }
 
       if (isListening())
       {
         // If already listening, then sleep for a bit and check again.
-        sleep(1000);
+        StaticUtils.sleep(1000);
         continue;
       }
 
@@ -861,17 +862,6 @@ public class HTTPConnectionHandler extends
     this.httpServer = null;
     TRACER.debugInfo("HTTP server stopped");
     logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
-  }
-
-  private void sleep(int millis)
-  {
-    try
-    {
-      Thread.sleep(millis);
-    }
-    catch (InterruptedException wokenUp)
-    {
-    }
   }
 
   /** {@inheritDoc} */
