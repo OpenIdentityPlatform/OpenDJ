@@ -200,7 +200,7 @@ public final class ResultCode {
      * because it referenced an attribute that is not defined in the server
      * schema.
      * <p>
-     * This result code corresponds to the LDAP result code value of {@code 15}.
+     * This result code corresponds to the LDAP result code value of {@code 17}.
      */
     public static final ResultCode UNDEFINED_ATTRIBUTE_TYPE = registerErrorResultCode(17,
             INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get());
