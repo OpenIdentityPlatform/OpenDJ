@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-privileges-acis'
@@ -455,7 +455,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>To match when the bind DN corresponds to the
       <replaceable>attr</replaceable> value on the target entry, use
       <replaceable>attr</replaceable>#USERDN.</para>
-      <para>The optional inheritence specification,
+      <para>The optional inheritance specification,
       <literal>parent[<replaceable>child-level</replaceable>].</literal>, lets
       you specify how many levels below the target entry inherit the ACI.
       Here <replaceable>child-level</replaceable> is a number from 0 to 9, with
