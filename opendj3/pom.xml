@@ -105,7 +105,7 @@
     <sdkDocTargetVersion>3.0.0</sdkDocTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
-    <grizzlyFrameworkVersion>2.2.19</grizzlyFrameworkVersion>
+    <grizzlyFrameworkVersion>2.3</grizzlyFrameworkVersion>
     <gaId>UA-23412190-8</gaId>
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional/>
