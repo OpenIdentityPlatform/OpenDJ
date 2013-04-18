@@ -22,133 +22,139 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+
 import java.io.IOException;
+import java.util.logging.Level;
 
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
+import com.forgerock.opendj.util.ReferenceCountedObject;
+
 /**
  * The default {@link TCPNIOTransport} which all {@code LDAPConnectionFactory}s
  * and {@code LDAPListener}s will use unless otherwise specified in their
  * options.
  */
-final class DefaultTCPNIOTransport {
-    private static TCPNIOTransport defaultTransport = null;
-
-    /**
-     * Returns the default {@link TCPNIOTransport} which all
-     * {@code LDAPConnectionFactory}s and {@code LDAPListener}s will use unless
-     * otherwise specified in their options.
-     *
-     * @return The default {@link TCPNIOTransport}.
-     */
-    static synchronized TCPNIOTransport getInstance() {
-        if (defaultTransport == null) {
-            final TCPNIOTransportBuilder builder = TCPNIOTransportBuilder.newInstance();
-
-            // Determine which threading strategy to use, and total number of
-            // threads.
-            final String useWorkerThreadsStr =
-                    System.getProperty("org.forgerock.opendj.transport.useWorkerThreads");
-            final boolean useWorkerThreadStrategy;
-            if (useWorkerThreadsStr != null) {
-                useWorkerThreadStrategy = Boolean.parseBoolean(useWorkerThreadsStr);
-            } else {
-                // The most best performing strategy to use is the
-                // SameThreadIOStrategy, however it can only be used in cases
-                // where result listeners will not block.
-                useWorkerThreadStrategy = true;
-            }
-
-            if (useWorkerThreadStrategy) {
-                builder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
-            } else {
-                builder.setIOStrategy(SameThreadIOStrategy.getInstance());
-            }
-
-            // Calculate thread counts.
-            final int cpus = Runtime.getRuntime().availableProcessors();
-
-            // Calculate the number of selector threads.
-            final String selectorsStr =
-                    System.getProperty("org.forgerock.opendj.transport.selectors");
-            final int selectorThreadCount;
-
-            if (selectorsStr != null) {
-                selectorThreadCount = Integer.parseInt(selectorsStr);
-            } else {
-                selectorThreadCount =
-                        useWorkerThreadStrategy ? Math.max(2, cpus / 4) : Math.max(5,
-                                (cpus / 2) - 1);
-            }
-
-            builder.getSelectorThreadPoolConfig().setCorePoolSize(selectorThreadCount)
-                    .setMaxPoolSize(selectorThreadCount).setPoolName(
-                            "OpenDJ LDAP SDK Grizzly selector thread");
-
-            // Calculate the number of worker threads.
-            if (builder.getWorkerThreadPoolConfig() != null) {
-                final String workersStr =
-                        System.getProperty("org.forgerock.opendj.transport.workers");
-                final int workerThreadCount;
-
-                if (workersStr != null) {
-                    workerThreadCount = Integer.parseInt(workersStr);
-                } else {
-                    workerThreadCount = useWorkerThreadStrategy ? Math.max(5, (cpus * 2)) : 0;
-                }
-
-                builder.getWorkerThreadPoolConfig().setCorePoolSize(workerThreadCount)
-                        .setMaxPoolSize(workerThreadCount).setPoolName(
-                                "OpenDJ LDAP SDK Grizzly worker thread");
-            }
-
-            // Parse IO related options.
-            final String lingerStr = System.getProperty("org.forgerock.opendj.transport.linger");
-            if (lingerStr != null) {
-                // Disabled by default.
-                builder.setLinger(Integer.parseInt(lingerStr));
-            }
-
-            final String tcpNoDelayStr =
-                    System.getProperty("org.forgerock.opendj.transport.tcpNoDelay");
-            if (tcpNoDelayStr != null) {
-                // Enabled by default.
-                builder.setTcpNoDelay(Boolean.parseBoolean(tcpNoDelayStr));
-            }
-
-            final String reuseAddressStr =
-                    System.getProperty("org.forgerock.opendj.transport.reuseAddress");
-            if (reuseAddressStr != null) {
-                // Enabled by default.
-                builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
-            }
-
-            defaultTransport = builder.build();
-
-            // FIXME: raise bug in Grizzly. We should not need to do this, but
-            // failure to do so causes many deadlocks.
-            defaultTransport.setSelectorRunnersCount(selectorThreadCount);
-
-            try {
-                defaultTransport.start();
-            } catch (final IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return defaultTransport;
-    }
+final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport> {
+    static final DefaultTCPNIOTransport DEFAULT_TRANSPORT = new DefaultTCPNIOTransport();
 
     private DefaultTCPNIOTransport() {
         // Prevent instantiation.
+    }
+
+    @Override
+    protected void destroyInstance(final TCPNIOTransport instance) {
+        try {
+            instance.stop();
+        } catch (final IOException e) {
+            DEBUG_LOG.log(Level.WARNING,
+                    "An error occurred while shutting down the Grizzly transport", e.getMessage());
+        }
+    }
+
+    @Override
+    protected TCPNIOTransport newInstance() {
+        final TCPNIOTransportBuilder builder = TCPNIOTransportBuilder.newInstance();
+
+        /*
+         * Determine which threading strategy to use, and total number of
+         * threads.
+         */
+        final String useWorkerThreadsStr =
+                System.getProperty("org.forgerock.opendj.transport.useWorkerThreads");
+        final boolean useWorkerThreadStrategy;
+        if (useWorkerThreadsStr != null) {
+            useWorkerThreadStrategy = Boolean.parseBoolean(useWorkerThreadsStr);
+        } else {
+            /*
+             * The most best performing strategy to use is the
+             * SameThreadIOStrategy, however it can only be used in cases where
+             * result listeners will not block.
+             */
+            useWorkerThreadStrategy = true;
+        }
+
+        if (useWorkerThreadStrategy) {
+            builder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
+        } else {
+            builder.setIOStrategy(SameThreadIOStrategy.getInstance());
+        }
+
+        // Calculate thread counts.
+        final int cpus = Runtime.getRuntime().availableProcessors();
+
+        // Calculate the number of selector threads.
+        final String selectorsStr = System.getProperty("org.forgerock.opendj.transport.selectors");
+        final int selectorThreadCount;
+
+        if (selectorsStr != null) {
+            selectorThreadCount = Integer.parseInt(selectorsStr);
+        } else {
+            selectorThreadCount =
+                    useWorkerThreadStrategy ? Math.max(2, cpus / 4) : Math.max(5, (cpus / 2) - 1);
+        }
+
+        builder.getSelectorThreadPoolConfig().setCorePoolSize(selectorThreadCount).setMaxPoolSize(
+                selectorThreadCount).setPoolName("OpenDJ LDAP SDK Grizzly selector thread");
+
+        // Calculate the number of worker threads.
+        if (builder.getWorkerThreadPoolConfig() != null) {
+            final String workersStr = System.getProperty("org.forgerock.opendj.transport.workers");
+            final int workerThreadCount;
+
+            if (workersStr != null) {
+                workerThreadCount = Integer.parseInt(workersStr);
+            } else {
+                workerThreadCount = useWorkerThreadStrategy ? Math.max(5, (cpus * 2)) : 0;
+            }
+
+            builder.getWorkerThreadPoolConfig().setCorePoolSize(workerThreadCount).setMaxPoolSize(
+                    workerThreadCount).setPoolName("OpenDJ LDAP SDK Grizzly worker thread");
+        }
+
+        // Parse IO related options.
+        final String lingerStr = System.getProperty("org.forgerock.opendj.transport.linger");
+        if (lingerStr != null) {
+            // Disabled by default.
+            builder.setLinger(Integer.parseInt(lingerStr));
+        }
+
+        final String tcpNoDelayStr =
+                System.getProperty("org.forgerock.opendj.transport.tcpNoDelay");
+        if (tcpNoDelayStr != null) {
+            // Enabled by default.
+            builder.setTcpNoDelay(Boolean.parseBoolean(tcpNoDelayStr));
+        }
+
+        final String reuseAddressStr =
+                System.getProperty("org.forgerock.opendj.transport.reuseAddress");
+        if (reuseAddressStr != null) {
+            // Enabled by default.
+            builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
+        }
+
+        final TCPNIOTransport transport = builder.build();
+
+        // FIXME: raise bug in Grizzly. We should not need to do this, but
+        // failure to do so causes many deadlocks.
+        transport.setSelectorRunnersCount(selectorThreadCount);
+
+        try {
+            transport.start();
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transport;
     }
 
 }

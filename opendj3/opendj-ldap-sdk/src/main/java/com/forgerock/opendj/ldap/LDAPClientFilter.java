@@ -513,7 +513,6 @@ final class LDAPClientFilter extends BaseFilter {
     }
 
     void registerConnection(final Connection<?> connection, final LDAPConnection ldapConnection) {
-        TimeoutChecker.INSTANCE.addConnection(ldapConnection);
         LDAP_CONNECTION_ATTR.set(connection, ldapConnection);
     }
 }

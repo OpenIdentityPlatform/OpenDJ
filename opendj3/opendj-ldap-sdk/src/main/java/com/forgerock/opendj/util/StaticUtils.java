@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -48,6 +48,7 @@ import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,9 +87,30 @@ public final class StaticUtils {
     // UTC TimeZone is assumed to never change over JVM lifetime
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone(TIME_ZONE_UTC);
 
-    private static ScheduledExecutorService defaultScheduler = null;
+    /**
+     * The default scheduler which should be used when the application does not
+     * provide one.
+     */
+    public static final ReferenceCountedObject<ScheduledExecutorService> DEFAULT_SCHEDULER =
+            new ReferenceCountedObject<ScheduledExecutorService>() {
 
-    private static final Object DEFAULT_SCHEDULER_LOCK = new Object();
+                @Override
+                protected ScheduledExecutorService newInstance() {
+                    final ThreadFactory factory =
+                            newThreadFactory(null, "OpenDJ LDAP SDK Default Scheduler", true);
+                    return Executors.newSingleThreadScheduledExecutor(factory);
+                }
+
+                @Override
+                protected void destroyInstance(ScheduledExecutorService instance) {
+                    instance.shutdown();
+                    try {
+                        instance.awaitTermination(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            };
 
     /**
      * Retrieves a string representation of the provided byte in hexadecimal.
@@ -1392,22 +1414,6 @@ public final class StaticUtils {
 
             return s.getBytes();
         }
-    }
-
-    /**
-     * Returns the default scheduler which should be used by the SDK.
-     *
-     * @return The default scheduler.
-     */
-    public static ScheduledExecutorService getDefaultScheduler() {
-        synchronized (DEFAULT_SCHEDULER_LOCK) {
-            if (defaultScheduler == null) {
-                final ThreadFactory factory =
-                        newThreadFactory(null, "OpenDJ SDK Default Scheduler", true);
-                defaultScheduler = Executors.newSingleThreadScheduledExecutor(factory);
-            }
-        }
-        return defaultScheduler;
     }
 
     /**

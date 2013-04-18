@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -39,9 +39,10 @@ import com.forgerock.opendj.util.Validator;
  * Server.
  */
 public final class LDAPConnectionFactory implements ConnectionFactory {
-    // We implement the factory using the pimpl idiom in order to avoid making
-    // too many implementation classes public.
-
+    /*
+     * We implement the factory using the pimpl idiom in order to avoid making
+     * too many implementation classes public.
+     */
     private final LDAPConnectionFactoryImpl impl;
 
     /**
@@ -125,18 +126,17 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        impl.close();
+    }
+
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
         return impl.getConnectionAsync(handler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Connection getConnection() throws ErrorResultException {
         return impl.getConnection();
@@ -183,9 +183,6 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
         return impl.getSocketAddress();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return impl.toString();

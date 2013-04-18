@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 import static org.testng.Assert.assertTrue;
 
@@ -35,6 +36,8 @@ import java.net.SocketAddress;
 
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * Tests DefaultTCPNIOTransport class.
@@ -52,9 +55,10 @@ public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
     @Test(enabled = false)
     public void testGetInstance() throws Exception {
         // Create a transport.
-        final TCPNIOTransport transport = DefaultTCPNIOTransport.getInstance();
+        final ReferenceCountedObject<TCPNIOTransport>.Reference transport =
+                DEFAULT_TRANSPORT.acquire();
         SocketAddress socketAddress = findFreeSocketAddress();
-        transport.bind(socketAddress);
+        transport.get().bind(socketAddress);
 
         // Establish a socket connection to see if the transport factory works.
         final Socket socket = new Socket();
@@ -66,6 +70,7 @@ public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
             // Don't stop the transport because it is shared with the ldap server.
         } finally {
             socket.close();
+            transport.release();
         }
     }
 }

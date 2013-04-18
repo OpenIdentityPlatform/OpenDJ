@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
+
+import java.io.Closeable;
 
 /**
  * A load balancing algorithm distributes connection requests across one or more
@@ -32,7 +35,15 @@ package org.forgerock.opendj.ldap;
  *
  * @see Connections#newLoadBalancer(LoadBalancingAlgorithm) newLoadBalancer
  */
-public interface LoadBalancingAlgorithm {
+public interface LoadBalancingAlgorithm extends Closeable {
+
+    /**
+     * Releases any resources associated with this algorithm, including any
+     * associated connection factories.
+     */
+    @Override
+    public void close();
+
     /**
      * Returns a connection factory which should be used in order to satisfy the
      * next connection request.

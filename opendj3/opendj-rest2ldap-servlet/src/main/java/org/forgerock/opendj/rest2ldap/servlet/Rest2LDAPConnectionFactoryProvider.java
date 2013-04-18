@@ -15,6 +15,9 @@
  */
 package org.forgerock.opendj.rest2ldap.servlet;
 
+import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.configureConnectionFactory;
+
 import java.io.InputStream;
 import java.util.Map;
 
@@ -25,8 +28,11 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.ConnectionFactory;
-import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.FutureResult;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
@@ -90,8 +96,8 @@ public final class Rest2LDAPConnectionFactoryProvider {
             final org.forgerock.opendj.ldap.ConnectionFactory ldapFactory;
             if (ldapFactoryName != null) {
                 ldapFactory =
-                        Rest2LDAP.configureConnectionFactory(configuration.get(
-                                "ldapConnectionFactories").required(), ldapFactoryName);
+                        configureConnectionFactory(configuration.get("ldapConnectionFactories")
+                                .required(), ldapFactoryName);
             } else {
                 ldapFactory = null;
             }
@@ -107,7 +113,33 @@ public final class Rest2LDAPConnectionFactoryProvider {
                                 .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
-            return Resources.newInternalConnectionFactory(router);
+            final ConnectionFactory factory = newInternalConnectionFactory(router);
+            if (ldapFactory != null) {
+                /*
+                 * Return a wrapper which will release resources associated with
+                 * the LDAP connection factory (pooled connections, transport,
+                 * etc).
+                 */
+                return new ConnectionFactory() {
+                    @Override
+                    public FutureResult<Connection> getConnectionAsync(
+                            ResultHandler<Connection> handler) {
+                        return factory.getConnectionAsync(handler);
+                    }
+
+                    @Override
+                    public Connection getConnection() throws ResourceException {
+                        return factory.getConnection();
+                    }
+
+                    @Override
+                    public void close() {
+                        ldapFactory.close();
+                    }
+                };
+            } else {
+                return factory;
+            }
         } catch (final ServletException e) {
             // Rethrow.
             throw e;

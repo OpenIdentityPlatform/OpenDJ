@@ -27,11 +27,14 @@
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static com.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLEngine;
 
@@ -55,6 +58,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
+import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * LDAP connection factory implementation.
@@ -154,10 +158,14 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         }
 
         private LDAPConnection adaptConnection(final org.glassfish.grizzly.Connection<?> connection) {
-            // Test shows that its much faster with non block writes but risk
-            // running out of memory if the server is slow.
+            /*
+             * Test shows that its much faster with non block writes but risk
+             * running out of memory if the server is slow.
+             */
             connection.configureBlocking(true);
-            final LDAPConnection ldapConnection = new LDAPConnection(connection, options);
+            final LDAPConnection ldapConnection =
+                    new LDAPConnection(connection, LDAPConnectionFactoryImpl.this);
+            timeoutChecker.get().addConnection(ldapConnection);
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
         }
@@ -194,7 +202,10 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
     private final SocketAddress socketAddress;
-    private final TCPNIOTransport transport;
+    private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
+    private final AtomicBoolean isClosed = new AtomicBoolean();
+    private final ReferenceCountedObject<TimeoutChecker>.Reference timeoutChecker = TIMEOUT_CHECKER
+            .acquire();
 
     /**
      * Creates a new LDAP connection factory implementation which can be used to
@@ -207,11 +218,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      *            The LDAP connection options to use when creating connections.
      */
     public LDAPConnectionFactoryImpl(final SocketAddress address, final LDAPOptions options) {
-        if (options.getTCPNIOTransport() == null) {
-            this.transport = DefaultTCPNIOTransport.getInstance();
-        } else {
-            this.transport = options.getTCPNIOTransport();
-        }
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
         this.clientFilter =
@@ -220,9 +227,14 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                 FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        if (isClosed.compareAndSet(false, true)) {
+            transport.release();
+            timeoutChecker.release();
+        }
+    }
+
     @Override
     public Connection getConnection() throws ErrorResultException {
         try {
@@ -232,14 +244,12 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
         final SocketConnectorHandler connectorHandler =
-                TCPNIOConnectorHandler.builder(transport).processor(defaultFilterChain).build();
+                TCPNIOConnectorHandler.builder(transport.get()).processor(defaultFilterChain)
+                        .build();
         final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
                 new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
         final CompletionHandlerAdapter cha = new CompletionHandlerAdapter(future);
@@ -256,9 +266,14 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         return socketAddress;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    TimeoutChecker getTimeoutChecker() {
+        return timeoutChecker.get();
+    }
+
+    LDAPOptions getLDAPOptions() {
+        return options;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

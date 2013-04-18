@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -51,43 +51,34 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      * An authenticated connection supports all operations except Bind
      * operations.
      */
-    public static final class AuthenticatedConnection extends AbstractConnectionWrapper {
+    public static final class AuthenticatedConnection extends AbstractConnectionWrapper<Connection> {
 
         private AuthenticatedConnection(final Connection connection) {
             super(connection);
         }
 
-        /**
+        /*
          * Bind operations are not supported by pre-authenticated connections.
-         * This method will always throw {@code UnsupportedOperationException}.
+         * These methods will always throw {@code UnsupportedOperationException}.
          */
 
-        /**
-         * {@inheritDoc}
-         */
         public FutureResult<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<? super BindResult> resultHandler) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+
         public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+
         public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("AuthenticatedConnection(");
@@ -100,11 +91,8 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     private static final class FutureResultImpl {
         private final FutureResultTransformer<BindResult, Connection> futureBindResult;
-
         private final RecursiveFutureResult<Connection, BindResult> futureConnectionResult;
-
         private final BindRequest bindRequest;
-
         private Connection connection;
 
         private FutureResultImpl(final BindRequest request,
@@ -148,7 +136,6 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
     }
 
     private final BindRequest request;
-
     private final ConnectionFactory parentFactory;
 
     /**
@@ -169,9 +156,12 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         this.request = request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        // Delegate.
+        parentFactory.close();
+    }
+
     public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         boolean bindSucceeded = false;
@@ -183,14 +173,15 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
                 connection.close();
             }
         }
-        // If the bind didn't succeed then an exception will have been thrown
-        // and this line will not be reached.
+
+        /*
+         * If the bind didn't succeed then an exception will have been thrown
+         * and this line will not be reached.
+         */
         return new AuthenticatedConnection(connection);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
@@ -200,9 +191,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         return future.futureBindResult;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");

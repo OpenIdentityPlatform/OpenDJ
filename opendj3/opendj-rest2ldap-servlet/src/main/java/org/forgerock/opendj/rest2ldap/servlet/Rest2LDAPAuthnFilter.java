@@ -104,17 +104,16 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private boolean supportHTTPBasicAuthentication = true;
     private ServletApiVersionAdapter syncFactory;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void destroy() {
-        // TODO: We should release any resources maintained by the filter, such as connection pools.
+        if (searchLDAPConnectionFactory != null) {
+            searchLDAPConnectionFactory.close();
+        }
+        if (bindLDAPConnectionFactory != null) {
+            bindLDAPConnectionFactory.close();
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void doFilter(final ServletRequest request, final ServletResponse response,
             final FilterChain chain) throws IOException, ServletException {
@@ -295,9 +294,6 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void init(final FilterConfig config) throws ServletException {
         // FIXME: make it possible to configure the filter externally, especially

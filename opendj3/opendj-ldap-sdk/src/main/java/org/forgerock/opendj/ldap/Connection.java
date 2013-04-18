@@ -439,7 +439,10 @@ public interface Connection extends Closeable {
      *
      * Calling {@code close} on a connection that is already closed has no
      * effect.
+     *
+     * @see Connections#uncloseable(Connection)
      */
+    @Override
     void close();
 
     /**

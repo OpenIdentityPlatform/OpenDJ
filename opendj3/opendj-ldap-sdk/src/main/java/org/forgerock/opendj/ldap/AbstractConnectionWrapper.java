@@ -55,12 +55,15 @@ import com.forgerock.opendj.util.Validator;
  * An abstract base class from which connection wrappers may be easily
  * implemented. The default implementation of each method is to delegate to the
  * wrapped connection.
+ *
+ * @param <C>
+ *            The type of wrapped connection.
  */
-public abstract class AbstractConnectionWrapper implements Connection {
+public abstract class AbstractConnectionWrapper<C extends Connection> implements Connection {
     /**
      * The wrapped connection.
      */
-    protected final Connection connection;
+    protected final C connection;
 
     /**
      * Creates a new connection wrapper.
@@ -68,7 +71,7 @@ public abstract class AbstractConnectionWrapper implements Connection {
      * @param connection
      *            The connection to be wrapped.
      */
-    protected AbstractConnectionWrapper(final Connection connection) {
+    protected AbstractConnectionWrapper(final C connection) {
         Validator.ensureNotNull(connection);
         this.connection = connection;
     }
