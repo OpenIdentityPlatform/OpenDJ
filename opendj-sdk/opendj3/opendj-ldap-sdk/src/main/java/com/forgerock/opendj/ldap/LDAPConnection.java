@@ -27,6 +27,7 @@
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
@@ -81,7 +82,6 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -109,7 +109,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     private final org.glassfish.grizzly.Connection<?> connection;
     private final LDAPWriter ldapWriter = new LDAPWriter();
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
-    private final LDAPOptions options;
+    private final LDAPConnectionFactoryImpl factory;
     private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
             new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
     private final Object stateLock = new Object();
@@ -120,22 +120,12 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     private boolean isFailed = false;
     private List<ConnectionEventListener> listeners = null;
 
-    /**
-     * Creates a new LDAP connection.
-     *
-     * @param connection
-     *            The Grizzly connection.
-     * @param options
-     *            The LDAP client options.
-     */
-    LDAPConnection(final org.glassfish.grizzly.Connection<?> connection, final LDAPOptions options) {
+    LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
+            final LDAPConnectionFactoryImpl factory) {
         this.connection = connection;
-        this.options = options;
+        this.factory = factory;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Void> abandonAsync(final AbandonRequest request) {
         final AbstractLDAPFutureResultImpl<?> pendingRequest;
@@ -148,9 +138,11 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 pendingRequest = pendingRequests.remove(request.getRequestID());
             }
             if (pendingRequest == null) {
-                // There has never been a request with the specified message ID or
-                // the response has already been received and handled. We can ignore
-                // this abandon request.
+                /*
+                 * There has never been a request with the specified message ID
+                 * or the response has already been received and handled. We can
+                 * ignore this abandon request.
+                 */
 
                 // Message ID will be -1 since no request was sent.
                 return new CompletedFutureResult<Void>((Void) null);
@@ -173,9 +165,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -208,9 +197,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
         Validator.ensureNotNull(listener);
@@ -236,9 +222,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<BindResult> bindAsync(final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -308,9 +291,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close(final UnbindRequest request, final String reason) {
         // FIXME: I18N need to internationalize this message.
@@ -321,9 +301,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                         "Connection closed by client" + (reason != null ? ": " + reason : "")));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<CompareResult> compareAsync(final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -356,9 +333,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Result> deleteAsync(final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -391,9 +365,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
             final ExtendedRequest<R> request,
@@ -447,9 +418,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isClosed() {
         synchronized (stateLock) {
@@ -457,9 +425,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isValid() {
         synchronized (stateLock) {
@@ -467,9 +432,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Result> modifyAsync(final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -502,9 +464,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -537,9 +496,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
         Validator.ensureNotNull(listener);
@@ -550,9 +506,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Result> searchAsync(final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -585,9 +538,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return future;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -600,7 +550,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     }
 
     long cancelExpiredRequests(final long currentTime) {
-        final long timeout = options.getTimeout(TimeUnit.MILLISECONDS);
+        final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
         long delay = timeout;
         if (timeout > 0) {
             for (final int requestID : pendingRequests.keySet()) {
@@ -608,10 +558,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 if (future != null) {
                     final long diff = (future.getTimestamp() + timeout) - currentTime;
                     if (diff <= 0 && pendingRequests.remove(requestID) != null) {
-                        StaticUtils.DEBUG_LOG.fine("Cancelling expired future result: " + future);
+                        DEBUG_LOG.fine("Cancelling expired future result: " + future);
                         final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
                         future.adaptErrorResult(result);
-
                         abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
                     } else {
                         delay = Math.min(delay, diff);
@@ -691,7 +640,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 // Underlying channel prob blown up. Just ignore.
             }
         }
-        TimeoutChecker.INSTANCE.removeConnection(this);
+        factory.getTimeoutChecker().removeConnection(this);
         connection.closeSilently();
 
         // Notify listeners.
@@ -721,7 +670,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     }
 
     LDAPOptions getLDAPOptions() {
-        return options;
+        return factory.getLDAPOptions();
     }
 
     AbstractLDAPFutureResultImpl<?> getPendingRequest(final Integer messageID) {
@@ -837,12 +786,14 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     private void checkConnectionIsValid() throws ErrorResultException {
         if (!isValid0()) {
             if (failedDueToDisconnect) {
-                // Connection termination was triggered remotely. We don't want
-                // to blindly pass on the result code to requests since it could
-                // be confused for a genuine response. For example, if the
-                // disconnect contained the invalidCredentials result code then
-                // this could be misinterpreted as a genuine authentication
-                // failure for subsequent bind requests.
+                /*
+                 * Connection termination was triggered remotely. We don't want
+                 * to blindly pass on the result code to requests since it could
+                 * be confused for a genuine response. For example, if the
+                 * disconnect contained the invalidCredentials result code then
+                 * this could be misinterpreted as a genuine authentication
+                 * failure for subsequent bind requests.
+                 */
                 throw newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN,
                         "Connection closed by server");
             } else {

@@ -67,10 +67,9 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      * An authenticated connection supports all operations except Bind
      * operations.
      */
-    static final class AuthenticatedConnection extends AbstractConnectionWrapper {
+    static final class AuthenticatedConnection extends AbstractConnectionWrapper<Connection> {
 
         private final BindRequest request;
-
         private volatile BindResult result;
 
         private AuthenticatedConnection(final Connection connection, final BindRequest request,
@@ -80,28 +79,19 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
             this.result = result;
         }
 
-        /**
+        /*
          * Bind operations are not supported by pre-authenticated connections.
-         * This method will always throw {@code UnsupportedOperationException}.
+         * These methods will always throw {@code UnsupportedOperationException}.
          */
 
-        /**
-         * {@inheritDoc}
-         */
         public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public FutureResult<BindResult> bindAsync(BindRequest request,
                 IntermediateResponseHandler intermediateResponseHandler,
                 ResultHandler<? super BindResult> resultHandler) {
@@ -140,15 +130,19 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
                 throw new UnsupportedOperationException();
             }
 
-            // Wrap the client handler so that we can update the connection
-            // state.
+            /*
+             * Wrap the client handler so that we can update the connection
+             * state.
+             */
             final ResultHandler<? super BindResult> clientHandler = handler;
 
             final ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>() {
 
                 public void handleErrorResult(final ErrorResultException error) {
-                    // This connection is now unauthenticated so prevent
-                    // further use.
+                    /*
+                     * This connection is now unauthenticated so prevent further
+                     * use.
+                     */
                     connection.close();
 
                     if (clientHandler != null) {
@@ -170,9 +164,6 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
             return connection.bindAsync(request, null, handlerWrapper);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("AuthenticatedConnection(");
@@ -255,9 +246,11 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         this.request = request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        parentFactory.close();
+    }
+
     public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         BindResult bindResult = null;
@@ -268,14 +261,14 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
                 connection.close();
             }
         }
-        // If the bind didn't succeed then an exception will have been thrown
-        // and this line will not be reached.
+
+        /*
+         * If the bind didn't succeed then an exception will have been thrown
+         * and this line will not be reached.
+         */
         return new AuthenticatedConnection(connection, request, bindResult);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
         final FutureResultImpl future = new FutureResultImpl(request, handler);
@@ -317,9 +310,6 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");

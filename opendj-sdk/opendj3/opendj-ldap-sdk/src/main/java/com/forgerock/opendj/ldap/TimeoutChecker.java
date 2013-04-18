@@ -22,47 +22,64 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
-import org.glassfish.grizzly.utils.LinkedTransferQueue;
-
-import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * Checks connection for pending requests that have timed out.
  */
 final class TimeoutChecker {
-    static final TimeoutChecker INSTANCE = new TimeoutChecker();
+    static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
+            new ReferenceCountedObject<TimeoutChecker>() {
+                @Override
+                protected void destroyInstance(final TimeoutChecker instance) {
+                    instance.shutdown();
+                }
 
-    private final LinkedTransferQueue<LDAPConnection> connections;
-    private transient final ReentrantLock lock;
-    private transient final Condition available;
+                @Override
+                protected TimeoutChecker newInstance() {
+                    return new TimeoutChecker();
+                }
+            };
+
+    private final Condition available;
+    private final List<LDAPConnection> connections;
+    private final ReentrantLock lock;
+    private boolean shutdownRequested = false;
 
     private TimeoutChecker() {
-        this.connections = new LinkedTransferQueue<LDAPConnection>();
+        this.connections = new LinkedList<LDAPConnection>();
         this.lock = new ReentrantLock();
         this.available = lock.newCondition();
 
-        final Thread checkerThread = new Thread("Timeout Checker") {
+        final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
             @Override
             public void run() {
-                StaticUtils.DEBUG_LOG.fine("Timeout Checker Starting");
-                final ReentrantLock lock = TimeoutChecker.this.lock;
+                DEBUG_LOG.fine("Timeout Checker Starting");
                 lock.lock();
                 try {
-                    while (true) {
+                    while (!shutdownRequested) {
                         final long currentTime = System.currentTimeMillis();
                         long delay = 0;
 
                         for (final LDAPConnection connection : connections) {
-                            StaticUtils.DEBUG_LOG.finer("Checking connection " + connection
-                                    + " delay = " + delay);
+                            if (DEBUG_LOG.isLoggable(Level.FINER)) {
+                                DEBUG_LOG.finer("Checking connection " + connection + " delay = "
+                                        + delay);
+                            }
                             final long newDelay = connection.cancelExpiredRequests(currentTime);
                             if (newDelay > 0) {
                                 if (delay > 0) {
@@ -75,15 +92,17 @@ final class TimeoutChecker {
 
                         try {
                             if (delay <= 0) {
-                                StaticUtils.DEBUG_LOG.finer("There are no connections with "
+                                DEBUG_LOG.finer("There are no connections with "
                                         + "timeout specified. Sleeping");
                                 available.await();
                             } else {
-                                StaticUtils.DEBUG_LOG.finer("Sleeping for " + delay + "ms");
+                                if (DEBUG_LOG.isLoggable(Level.FINER)) {
+                                    DEBUG_LOG.log(Level.FINER, "Sleeping for " + delay + " ms");
+                                }
                                 available.await(delay, TimeUnit.MILLISECONDS);
                             }
                         } catch (final InterruptedException e) {
-                            // Just go around again.
+                            shutdownRequested = true;
                         }
                     }
                 } finally {
@@ -97,7 +116,6 @@ final class TimeoutChecker {
     }
 
     void addConnection(final LDAPConnection connection) {
-        final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             connections.add(connection);
@@ -108,10 +126,19 @@ final class TimeoutChecker {
     }
 
     void removeConnection(final LDAPConnection connection) {
-        final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             connections.remove(connection);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void shutdown() {
+        lock.lock();
+        try {
+            shutdownRequested = true;
+            available.signalAll();
         } finally {
             lock.unlock();
         }

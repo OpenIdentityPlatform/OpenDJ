@@ -145,6 +145,11 @@ public final class Adapters {
         ConnectionFactory factory = new ConnectionFactory() {
 
             @Override
+            public void close() {
+                // Nothing to do.
+            }
+
+            @Override
             public FutureResult<Connection> getConnectionAsync(
                     ResultHandler<? super Connection> handler) {
                 if (handler != null) {

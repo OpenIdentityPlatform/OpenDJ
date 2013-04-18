@@ -386,6 +386,11 @@ public final class Connections {
         return new ConnectionFactory() {
 
             @Override
+            public void close() {
+                factory.close();
+            }
+
+            @Override
             public Connection getConnection() throws ErrorResultException {
                 return factory.getConnection();
             }
@@ -396,9 +401,6 @@ public final class Connections {
                 return factory.getConnectionAsync(handler);
             }
 
-            /**
-             * {@inheritDoc}
-             */
             @Override
             public String toString() {
                 return name;
@@ -483,7 +485,7 @@ public final class Connections {
      * @return An uncloseable view of the provided connection.
      */
     public static Connection uncloseable(Connection connection) {
-        return new AbstractConnectionWrapper(connection) {
+        return new AbstractConnectionWrapper<Connection>(connection) {
             @Override
             public void close() {
                 // Do nothing.
@@ -493,6 +495,36 @@ public final class Connections {
                     String reason) {
                 // Do nothing.
             };
+        };
+    }
+
+    /**
+     * Returns an uncloseable view of the provided connection factory. Attempts
+     * to call {@link ConnectionFactory#close()} will be ignored.
+     *
+     * @param factory
+     *            The connection factory whose {@code close} method is to be
+     *            disabled.
+     * @return An uncloseable view of the provided connection factory.
+     */
+    public static ConnectionFactory uncloseable(final ConnectionFactory factory) {
+        return new ConnectionFactory() {
+
+            @Override
+            public FutureResult<Connection> getConnectionAsync(
+                    ResultHandler<? super Connection> handler) {
+                return factory.getConnectionAsync(handler);
+            }
+
+            @Override
+            public Connection getConnection() throws ErrorResultException {
+                return factory.getConnection();
+            }
+
+            @Override
+            public void close() {
+                // Do nothing.
+            }
         };
     }
 

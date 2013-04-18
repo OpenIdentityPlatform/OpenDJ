@@ -75,18 +75,17 @@ final class FixedConnectionPool implements ConnectionPool {
      * the pool completes.
      */
     private final class ConnectionResultHandler implements ResultHandler<Connection> {
-        /**
-         * {@inheritDoc}
-         */
+
         @Override
         public void handleErrorResult(final ErrorResultException error) {
             // Connection attempt failed, so decrease the pool size.
             currentPoolSize.release();
 
             if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                DEBUG_LOG.fine(String.format("Connection attempt failed: " + error.getMessage()
-                        + " currentPoolSize=%d, poolSize=%d", poolSize
-                        - currentPoolSize.availablePermits(), poolSize));
+                DEBUG_LOG.fine(String.format(
+                        "Connection attempt failed: %s, currentPoolSize=%d, poolSize=%d", error
+                                .getMessage(), poolSize - currentPoolSize.availablePermits(),
+                        poolSize));
             }
 
             QueueElement holder;
@@ -103,17 +102,13 @@ final class FixedConnectionPool implements ConnectionPool {
             holder.getWaitingFuture().handleErrorResult(error);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleResult(final Connection connection) {
             if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                DEBUG_LOG.fine(String.format("Connection attempt succeeded: "
-                        + " currentPoolSize=%d, poolSize=%d", poolSize
-                        - currentPoolSize.availablePermits(), poolSize));
+                DEBUG_LOG.fine(String.format(
+                        "Connection attempt succeeded:  currentPoolSize=%d, poolSize=%d", poolSize
+                                - currentPoolSize.availablePermits(), poolSize));
             }
-
             publishConnection(connection);
         }
     }
@@ -173,10 +168,12 @@ final class FixedConnectionPool implements ConnectionPool {
                 notifyErrorOccurred = error != null;
                 if (!notifyClose) {
                     if (listeners == null) {
-                        // Create and register first listener. If an error has
-                        // already occurred on the underlying connection, then
-                        // the listener may be immediately invoked so ensure
-                        // that it is already in the list.
+                        /*
+                         * Create and register first listener. If an error has
+                         * already occurred on the underlying connection, then
+                         * the listener may be immediately invoked so ensure
+                         * that it is already in the list.
+                         */
                         listeners = new CopyOnWriteArrayList<ConnectionEventListener>();
                         listeners.add(listener);
                         connection.addConnectionEventListener(this);
@@ -235,8 +232,10 @@ final class FixedConnectionPool implements ConnectionPool {
                 tmpListeners = listeners;
             }
 
-            // Remove underlying listener if needed and do this before
-            // subsequent connection events may occur.
+            /*
+             * Remove underlying listener if needed and do this before
+             * subsequent connection events may occur.
+             */
             if (tmpListeners != null) {
                 connection.removeConnectionEventListener(this);
             }
@@ -245,18 +244,20 @@ final class FixedConnectionPool implements ConnectionPool {
             if (connection.isValid()) {
                 publishConnection(connection);
             } else {
-                // The connection may have been disconnected by the remote
-                // server, but the server may still be available. In order to
-                // avoid leaving pending futures hanging indefinitely, we should
-                // try to reconnect immediately. No need to release/acquire
-                // currentPoolSize.
+                /*
+                 * The connection may have been disconnected by the remote
+                 * server, but the server may still be available. In order to
+                 * avoid leaving pending futures hanging indefinitely, we should
+                 * try to reconnect immediately. No need to release/acquire
+                 * currentPoolSize.
+                 */
                 connection.close();
                 factory.getConnectionAsync(connectionResultHandler);
 
                 if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format("Connection no longer valid. "
-                            + "currentPoolSize=%d, poolSize=%d", poolSize
-                            - currentPoolSize.availablePermits(), poolSize));
+                    DEBUG_LOG.fine(String.format(
+                            "Connection no longer valid: currentPoolSize=%d, poolSize=%d", poolSize
+                                    - currentPoolSize.availablePermits(), poolSize));
                 }
             }
 
@@ -542,7 +543,9 @@ final class FixedConnectionPool implements ConnectionPool {
         }
 
         QueueElement(final ResultHandler<? super Connection> handler) {
-            this.value = new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
+            this.value =
+                    new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(
+                            handler);
         }
 
         @Override
@@ -575,24 +578,12 @@ final class FixedConnectionPool implements ConnectionPool {
     private final int poolSize;
     private final LinkedList<QueueElement> queue = new LinkedList<QueueElement>();
 
-    /**
-     * Creates a new connection pool which will maintain {@code poolSize}
-     * connections created using the provided connection factory.
-     *
-     * @param factory
-     *            The connection factory to use for creating new connections.
-     * @param poolSize
-     *            The maximum size of the connection pool.
-     */
     FixedConnectionPool(final ConnectionFactory factory, final int poolSize) {
         this.factory = factory;
         this.poolSize = poolSize;
         this.currentPoolSize = new Semaphore(poolSize);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() {
         final LinkedList<Connection> idleConnections;
@@ -602,8 +593,10 @@ final class FixedConnectionPool implements ConnectionPool {
             }
             isClosed = true;
 
-            // Remove any connections which are waiting in the queue as these
-            // can be closed immediately.
+            /*
+             * Remove any connections which are waiting in the queue as these
+             * can be closed immediately.
+             */
             idleConnections = new LinkedList<Connection>();
             while (hasWaitingConnections()) {
                 final QueueElement holder = queue.removeFirst();
@@ -621,11 +614,11 @@ final class FixedConnectionPool implements ConnectionPool {
         for (final Connection connection : idleConnections) {
             closeConnection(connection);
         }
+
+        // Close the underlying factory.
+        factory.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Connection getConnection() throws ErrorResultException {
         try {
@@ -635,9 +628,6 @@ final class FixedConnectionPool implements ConnectionPool {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
@@ -672,9 +662,9 @@ final class FixedConnectionPool implements ConnectionPool {
                     currentPoolSize.release();
 
                     if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                        DEBUG_LOG.fine(String.format("Connection no longer valid. "
-                                + "currentPoolSize=%d, poolSize=%d", poolSize
-                                - currentPoolSize.availablePermits(), poolSize));
+                        DEBUG_LOG.fine(String.format(
+                                "Connection no longer valid: currentPoolSize=%d, poolSize=%d",
+                                poolSize - currentPoolSize.availablePermits(), poolSize));
                     }
                 }
             } else {
@@ -688,9 +678,6 @@ final class FixedConnectionPool implements ConnectionPool {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -719,7 +706,7 @@ final class FixedConnectionPool implements ConnectionPool {
 
         if (DEBUG_LOG.isLoggable(Level.FINE)) {
             DEBUG_LOG.fine(String.format("Closing connection because connection pool is closing: "
-                    + " currentPoolSize=%d, poolSize=%d", poolSize
+                    + "currentPoolSize=%d, poolSize=%d", poolSize
                     - currentPoolSize.availablePermits(), poolSize));
         }
     }
@@ -763,14 +750,14 @@ final class FixedConnectionPool implements ConnectionPool {
                 holder.getWaitingFuture().handleErrorResult(e);
 
                 if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format("Connection attempt failed: " + e.getMessage()
-                            + " currentPoolSize=%d, poolSize=%d", poolSize
-                            - currentPoolSize.availablePermits(), poolSize));
+                    DEBUG_LOG.fine(String.format(
+                            "Connection attempt failed: %s, currentPoolSize=%d, poolSize=%d", e
+                                    .getMessage(), poolSize - currentPoolSize.availablePermits(),
+                            poolSize));
                 }
             }
         } else {
-            final PooledConnection pooledConnection = new PooledConnection(connection);
-            holder.getWaitingFuture().handleResult(pooledConnection);
+            holder.getWaitingFuture().handleResult(new PooledConnection(connection));
         }
     }
 

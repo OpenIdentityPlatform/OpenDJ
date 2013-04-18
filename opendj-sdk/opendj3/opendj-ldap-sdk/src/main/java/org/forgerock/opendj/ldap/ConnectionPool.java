@@ -21,12 +21,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2012 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
-
-import java.io.Closeable;
 
 /**
  * A connection factory which maintains and re-uses a pool of connections.
@@ -41,7 +39,7 @@ import java.io.Closeable;
  * Since pooled connections are re-used, applications must use operations such
  * as binds and StartTLS with extreme caution.
  */
-public interface ConnectionPool extends ConnectionFactory, Closeable {
+public interface ConnectionPool extends ConnectionFactory {
     /**
      * Releases any resources associated with this connection pool. Pooled
      * connections will be permanently closed and this connection pool will no

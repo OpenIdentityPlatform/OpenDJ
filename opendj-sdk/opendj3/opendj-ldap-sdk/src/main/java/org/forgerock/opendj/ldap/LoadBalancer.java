@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -37,28 +37,22 @@ import com.forgerock.opendj.util.Validator;
 final class LoadBalancer implements ConnectionFactory {
     private final LoadBalancingAlgorithm algorithm;
 
-    /**
-     * Creates a new load balancer using the provided algorithm.
-     *
-     * @param algorithm
-     *            The load balancing algorithm which will be used to obtain the
-     *            next connection factory.
-     */
-    public LoadBalancer(final LoadBalancingAlgorithm algorithm) {
+    LoadBalancer(final LoadBalancingAlgorithm algorithm) {
         Validator.ensureNotNull(algorithm);
         this.algorithm = algorithm;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        // Delegate to the algorithm.
+        algorithm.close();
+    }
+
+    @Override
     public Connection getConnection() throws ErrorResultException {
         return algorithm.getConnectionFactory().getConnection();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> resultHandler) {
@@ -76,9 +70,7 @@ final class LoadBalancer implements ConnectionFactory {
         return factory.getConnectionAsync(resultHandler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LoadBalancer(");

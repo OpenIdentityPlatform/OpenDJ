@@ -22,14 +22,18 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -43,16 +47,17 @@ import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
-import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * LDAP listener implementation.
  */
 public final class LDAPListenerImpl implements Closeable {
-    private final TCPNIOTransport transport;
+    private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final FilterChain defaultFilterChain;
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
     private final TCPNIOServerConnection serverConnection;
+    private final AtomicBoolean isClosed = new AtomicBoolean();
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -72,11 +77,7 @@ public final class LDAPListenerImpl implements Closeable {
     public LDAPListenerImpl(final SocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        if (options.getTCPNIOTransport() == null) {
-            this.transport = DefaultTCPNIOTransport.getInstance();
-        } else {
-            this.transport = options.getTCPNIOTransport();
-        }
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
         this.connectionFactory = factory;
 
         final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
@@ -85,26 +86,22 @@ public final class LDAPListenerImpl implements Closeable {
                         new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
                                 .getMaxRequestSize())).build();
         final TCPNIOBindingHandler bindingHandler =
-                TCPNIOBindingHandler.builder(transport).processor(defaultFilterChain).build();
+                TCPNIOBindingHandler.builder(transport.get()).processor(defaultFilterChain).build();
         this.serverConnection = bindingHandler.bind(address, options.getBacklog());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() {
-        try {
-            serverConnection.close().get();
-        } catch (final InterruptedException e) {
-            // Cannot handle here.
-            Thread.currentThread().interrupt();
-        } catch (final Exception e) {
-            // Ignore the exception.
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING)) {
-                StaticUtils.DEBUG_LOG.log(Level.WARNING,
-                        "Exception occurred while closing listener:" + e.getMessage(), e);
+        if (isClosed.compareAndSet(false, true)) {
+            try {
+                serverConnection.close().get();
+            } catch (final InterruptedException e) {
+                // Cannot handle here.
+                Thread.currentThread().interrupt();
+            } catch (final Exception e) {
+                DEBUG_LOG.log(Level.WARNING, "Exception occurred while closing listener", e);
             }
+            transport.release();
         }
     }
 
@@ -117,9 +114,7 @@ public final class LDAPListenerImpl implements Closeable {
         return serverConnection.getLocalAddress();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPListener(");

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -50,9 +50,7 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  *            The type of client context.
  */
 final class InternalConnectionFactory<C> implements ConnectionFactory {
-
     private final ServerConnectionFactory<C, Integer> factory;
-
     private final C clientContext;
 
     InternalConnectionFactory(final ServerConnectionFactory<C, Integer> factory,
@@ -61,17 +59,16 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
         this.clientContext = clientContext;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public void close() {
+        // Nothing to do.
+    }
+
     public Connection getConnection() throws ErrorResultException {
         final ServerConnection<Integer> serverConnection = factory.handleAccept(clientContext);
         return new InternalConnection(serverConnection);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
         final ServerConnection<Integer> serverConnection;
@@ -91,9 +88,6 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
         return new CompletedFutureResult<Connection>(connection);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("InternalConnectionFactory(");
