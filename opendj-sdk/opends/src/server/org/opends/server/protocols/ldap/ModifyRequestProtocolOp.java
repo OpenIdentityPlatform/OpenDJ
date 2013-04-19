@@ -23,23 +23,23 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.io.IOException;
+import java.util.List;
 
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.RawModification;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.RawModification;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 /**
  * This class defines the structures and methods for an LDAP modify request
@@ -54,10 +54,10 @@ public class ModifyRequestProtocolOp
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The set of modifications for this modify request.
-  private ArrayList<RawModification> modifications;
+  /** The set of modifications for this modify request. */
+  private List<RawModification> modifications;
 
-  // The DN for this modify request.
+  /** The DN for this modify request. */
   private ByteString dn;
 
 
@@ -84,7 +84,7 @@ public class ModifyRequestProtocolOp
    * @param  modifications  The set of modifications for this modify request.
    */
   public ModifyRequestProtocolOp(ByteString dn,
-                                 ArrayList<RawModification> modifications)
+      List<RawModification> modifications)
   {
     this.dn = dn;
 
@@ -118,7 +118,7 @@ public class ModifyRequestProtocolOp
    *
    * @return  The set of modifications for this modify request.
    */
-  public ArrayList<RawModification> getModifications()
+  public List<RawModification> getModifications()
   {
     return modifications;
   }
@@ -130,6 +130,7 @@ public class ModifyRequestProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_MODIFY_REQUEST;
@@ -142,6 +143,7 @@ public class ModifyRequestProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Modify Request";
@@ -153,6 +155,7 @@ public class ModifyRequestProtocolOp
    * @param stream The ASN.1 output stream to write to.
    * @throws IOException If a problem occurs while writing to the stream.
    */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
@@ -176,6 +179,7 @@ public class ModifyRequestProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ModifyRequest(dn=");
@@ -207,6 +211,7 @@ public class ModifyRequestProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

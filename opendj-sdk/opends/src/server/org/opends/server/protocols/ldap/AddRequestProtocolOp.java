@@ -23,28 +23,25 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Base64;
 
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP add request
@@ -58,10 +55,10 @@ public class AddRequestProtocolOp
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The set of attributes for this add request.
+  /** The set of attributes for this add request. */
   private List<RawAttribute> attributes;
 
-  // The DN for this add request.
+  /** The DN for this add request. */
   private ByteString dn;
 
 
@@ -87,8 +84,7 @@ public class AddRequestProtocolOp
    * @param  dn          The DN for this add request.
    * @param  attributes  The set of attributes for this add request.
    */
-  public AddRequestProtocolOp(ByteString dn,
-                              ArrayList<RawAttribute> attributes)
+  public AddRequestProtocolOp(ByteString dn, List<RawAttribute> attributes)
   {
     this.dn = dn;
 
@@ -133,6 +129,7 @@ public class AddRequestProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_ADD_REQUEST;
@@ -145,6 +142,7 @@ public class AddRequestProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Add Request";
@@ -156,6 +154,7 @@ public class AddRequestProtocolOp
    * @param stream The ASN.1 output stream to write to.
    * @throws IOException If a problem occurs while writing to the stream.
    */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_ADD_REQUEST);
@@ -180,6 +179,7 @@ public class AddRequestProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("AddRequest(dn=");
@@ -211,6 +211,7 @@ public class AddRequestProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);
