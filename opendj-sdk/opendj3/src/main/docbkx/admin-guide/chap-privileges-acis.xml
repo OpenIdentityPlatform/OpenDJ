@@ -24,20 +24,40 @@
   !    
 -->
 <chapter xml:id='chap-privileges-acis'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Configuring Privileges &amp; Access Control</title>
 
- <para>OpenDJ supports use of both access control instructions and privileges.
- Access control instructions can be added to directory data for fine-grained
- control over what a given user or group member is authorized to do.
- Privileges are implemented independently from access control. By default,
- privileges restrict administrative access to directory root users. You can
- configure OpenDJ to extend privileges to other administrators as well.</para>
- 
+ <para>OpenDJ supports two mechanisms to protect access to the directory,
+ <firstterm>access control instructions</firstterm> and
+ <firstterm>privileges</firstterm>.</para>
+
+ <para>Access control instructions apply to directory data, providing
+ fine-grained control over what a user or group member is authorized to do in
+ terms of LDAP operations. Most access control instructions specify scopes
+ (targets) to which they apply such that an administrative user who has all
+ access to <literal>dc=example,dc=com</literal> need not have any access to
+ <literal>dc=example,dc=org</literal>.</para>
+
+ <para>Privileges control the administrative tasks that users can perform,
+ such as bypassing the access control mechanism, performing backup and restore
+ operations, making changes to the configuration, and so forth. Privileges are
+ implemented independently from access control. By default, privileges restrict
+ administrative access to directory root users, though any user can be assigned
+ a privilege. Privileges apply to a directory server, and do not have a
+ scope.</para>
+
+ <para>Some operations require both privileges and also access control
+ instructions. For example, in order to reset user's passwords, an administrator
+ needs both the <literal>password-reset</literal> privilege and also access
+ control to write <literal>userPassword</literal> values on the user entries.
+ By combining an access control instruction with a privilege, you can
+ effectively restrict the scope of that privilege to a particular branch of
+ the Directory Information Tree.</para>
+
  <para>This chapter covers both access control instructions and privileges,
  demonstrating how to configure both.</para>
  
@@ -46,13 +66,15 @@
   <indexterm><primary>Access control</primary></indexterm>
   
   <para>OpenDJ directory server access control instructions (ACIs) exist as
-  <literal>aci</literal> attribute values in the directory data. ACIs apply
-  to a scope defined in the instruction, and set permissions that depend on
-  what operation is requested, who requested the operation, and how the client
-  connected to the server. For example, the ACIs on the following
-  entry allow anonymous read access to all attributes except passwords, and
-  allow full read-write access to directory administrators under
-  <literal>dc=example,dc=com</literal>.</para>
+  operational <literal>aci</literal> attribute values on directory entries, and
+  as global ACIs stored in the configuration. ACIs apply to a scope defined in
+  the instruction, and set permissions that depend on what operation is
+  requested, who requested the operation, and how the client connected to the
+  server.</para>
+
+  <para>For example, the ACIs on the following entry allow anonymous read
+  access to all attributes except passwords, and allow full read-write access
+  to directory administrators under <literal>dc=example,dc=com</literal>.</para>
   
   <programlisting language="ldif">dn: dc=example,dc=com
 objectClass: domain
@@ -65,11 +87,23 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
  "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
   </programlisting>
+
+  <para>OpenDJ directory server's default behavior is to deny access that is not
+  specifically granted by an access control instruction.</para>
+  
+  <para>OpenDJ directory server provides several global ACIs out of the box to
+  facilitate evaluation while maintaining a reasonable security policy. By
+  default users are allow to read the root DSE, to read the schema, to use
+  certain controls and extended operations, to modify their own entries, to
+  bind, and so forth. Global ACIs are defined on the access control handler,
+  and apply to the entire directory server. You must adjust the default global
+  ACIs to match the security policies for your organization, for example to
+  restrict anonymous access.</para>
   
   <para>ACI attribute values use a specific language described in this section.
   Although ACI attribute values can become difficult to read in LDIF, the
   basic syntax is simple.</para>
-  
+
   <literallayout class="monospaced"><replaceable
   >targets</replaceable>(version 3.0;acl "<replaceable
   >name</replaceable>";<replaceable>permissions</replaceable> <replaceable
