@@ -23,21 +23,25 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.server.types.*;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.List;
+
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
+import org.testng.annotations.Test;
 
 /**
  * This class defines a set of tests for the
@@ -81,18 +85,15 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
    * @return              The generate attributes.
    *
    */
-  private ArrayList<RawModification> generateModifications(int numAttributes,
+  private List<RawModification> generateModifications(int numAttributes,
                                                            String prefix)
   {
-    ArrayList<RawModification> modifies = new ArrayList<RawModification>();
-    LDAPAttribute attribute;
+    List<RawModification> modifies = new ArrayList<RawModification>();
     ModificationType modificationType;
-    Random randomGenerator = new Random(0);
-    int i, j;
 
-    for(i = 0; i < numAttributes; i++)
+    for(int i = 0; i < numAttributes; i++)
     {
-      attribute = new LDAPAttribute("testAttribute"+i);
+      LDAPAttribute attribute = new LDAPAttribute("testAttribute" + i);
       switch(i % 4)
       {
         case 0 : modificationType = ModificationType.ADD;
@@ -112,22 +113,18 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     return modifies;
   }
 
-  private Boolean modificationsEquals(ArrayList<RawModification> modifies1,
-                                      ArrayList<RawModification> modifies2)
+  private Boolean modificationsEquals(List<RawModification> modifies1,
+                                      List<RawModification> modifies2)
   {
     if(modifies1.size() != modifies2.size())
     {
       return false;
     }
 
-    int i, j;
-    RawModification modify1;
-    RawModification modify2;
-
-    for(i = 0; i < modifies1.size(); i++)
+    for(int i = 0; i < modifies1.size(); i++)
     {
-      modify1 = modifies1.get(i);
-      modify2 = modifies2.get(i);
+      RawModification modify1 = modifies1.get(i);
+      RawModification modify2 = modifies2.get(i);
       if(!modify1.getAttribute().getAttributeType().equals(
           modify2.getAttribute().getAttributeType()))
       {
@@ -179,7 +176,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   public void testConstructors() throws Exception
   {
     ModifyRequestProtocolOp modifyRequest;
-    ArrayList<RawModification> modifications;
+    List<RawModification> modifications;
 
     //Test to make sure the constructor with dn param works.
     modifyRequest = new ModifyRequestProtocolOp(dn);
@@ -280,13 +277,12 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
     ModifyRequestProtocolOp modifyEncoded;
-    ModifyRequestProtocolOp modifyDecoded;
 
     modifyEncoded = new ModifyRequestProtocolOp(null, null);
     modifyEncoded.write(writer);
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
-    modifyDecoded = (ModifyRequestProtocolOp)LDAPReader.readProtocolOp(reader);
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -301,7 +297,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     ASN1Writer writer = ASN1.getWriter(builder);
     ModifyRequestProtocolOp modifyEncoded;
     ModifyRequestProtocolOp modifyDecoded;
-    ArrayList<RawModification> modifies;
+    List<RawModification> modifies;
 
 
     //Test case for a full encode decode operation with normal params.
@@ -348,20 +344,17 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    ModifyRequestProtocolOp modifyRequest;
-    ArrayList<RawModification> modifications;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
-    int i;
-    int numModifications;
-
-    numModifications = 10;
-    modifications = generateModifications(numModifications, "test");
-    modifyRequest = new ModifyRequestProtocolOp(dn, modifications);
+    int numModifications = 10;
+    List<RawModification> modifications =
+        generateModifications(numModifications, "test");
+    ModifyRequestProtocolOp modifyRequest =
+        new ModifyRequestProtocolOp(dn, modifications);
     modifyRequest.toString(buffer);
 
     key.append("ModifyRequest(dn="+dn+", mods={");
-    for(i = 0; i < numModifications; i++)
+    for (int i = 0; i < numModifications; i++)
     {
       modifications.get(i).toString(key);
       if(i < numModifications - 1)
@@ -382,21 +375,19 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringMultiLine() throws Exception
   {
-    ModifyRequestProtocolOp modifyRequest;
-    ArrayList<RawModification> modifications;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
-    int i;
-    int numModifications,  indent;
 
-    numModifications = 10;
-    indent = 5;
-    modifications = generateModifications(numModifications, "test");
-    modifyRequest = new ModifyRequestProtocolOp(dn, modifications);
+    int numModifications = 10;
+    int indent = 5;
+    List<RawModification> modifications =
+        generateModifications(numModifications, "test");
+    ModifyRequestProtocolOp modifyRequest =
+        new ModifyRequestProtocolOp(dn, modifications);
     modifyRequest.toString(buffer, indent);
 
     StringBuilder indentBuf = new StringBuilder(indent);
-    for (i=0 ; i < indent; i++)
+    for (int i = 0; i < indent; i++)
     {
       indentBuf.append(' ');
     }

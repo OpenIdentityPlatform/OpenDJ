@@ -23,23 +23,25 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.io.IOException;
+import java.util.Set;
 
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.*;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP search request
@@ -53,28 +55,28 @@ public class SearchRequestProtocolOp
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The typesOnly flag for this search request.
+  /** The typesOnly flag for this search request. */
   private boolean typesOnly;
 
-  // The alias dereferencing policy for this search request.
+  /** The alias dereferencing policy for this search request. */
   private DereferencePolicy dereferencePolicy;
 
-  // The base DN for this search request.
+  /** The base DN for this search request. */
   private ByteString baseDN;
 
-  // The size limit for this search request.
+  /** The size limit for this search request. */
   private int sizeLimit;
 
-  // The time limit for this search request.
+  /** The time limit for this search request. */
   private int timeLimit;
 
-  // The filter for this search request.
+  /** The filter for this search request. */
   private RawFilter filter;
 
-  // The set of requested attributes for this search request.
-  private LinkedHashSet<String> attributes;
+  /** The set of requested attributes for this search request. */
+  private Set<String> attributes;
 
-  // The scope for this search request.
+  /** The scope for this search request. */
   private SearchScope scope;
 
 
@@ -97,7 +99,7 @@ public class SearchRequestProtocolOp
                                  DereferencePolicy dereferencePolicy,
                                  int sizeLimit, int timeLimit,
                                  boolean typesOnly, RawFilter filter,
-                                 LinkedHashSet<String> attributes)
+                                 Set<String> attributes)
   {
     this.baseDN            = baseDN;
     this.scope             = scope;
@@ -207,7 +209,7 @@ public class SearchRequestProtocolOp
    *
    * @return  The set of requested attributes for this search request.
    */
-  public LinkedHashSet<String> getAttributes()
+  public Set<String> getAttributes()
   {
     return attributes;
   }
@@ -219,6 +221,7 @@ public class SearchRequestProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_SEARCH_REQUEST;
@@ -231,6 +234,7 @@ public class SearchRequestProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Search Request";
@@ -242,6 +246,7 @@ public class SearchRequestProtocolOp
    * @param stream The ASN.1 output stream to write to.
    * @throws IOException If a problem occurs while writing to the stream.
    */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
@@ -271,6 +276,7 @@ public class SearchRequestProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchRequest(baseDN=");
@@ -314,6 +320,7 @@ public class SearchRequestProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

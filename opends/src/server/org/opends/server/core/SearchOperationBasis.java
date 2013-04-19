@@ -27,9 +27,6 @@
  */
 package org.opends.server.core;
 
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -38,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -54,12 +53,12 @@ import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.core.CoreConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -78,86 +77,98 @@ public class SearchOperationBasis
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // Indicates whether a search result done response has been sent to the
-  // client.
+  /**
+   * Indicates whether a search result done response has been sent to the
+   * client.
+   */
   private AtomicBoolean responseSent;
 
-  // Indicates whether the client is able to handle referrals.
+  /** Indicates whether the client is able to handle referrals. */
   private boolean clientAcceptsReferrals;
 
-  // Indicates whether to include the account usable control with search result
-  // entries.
+  /**
+   * Indicates whether to include the account usable control with search result
+   * entries.
+   */
   private boolean includeUsableControl;
 
-  // Indicates whether to only real attributes should be returned.
+  /** Indicates whether to only real attributes should be returned. */
   private boolean realAttributesOnly;
 
-  // Indicates whether only LDAP subentries should be returned.
+  /** Indicates whether only LDAP subentries should be returned. */
   private boolean returnSubentriesOnly;
 
-  // Indicates whether the filter references subentry or ldapSubentry object
-  // class.
+  /**
+   * Indicates whether the filter references subentry or ldapSubentry object
+   * class.
+   */
   private boolean filterIncludesSubentries;
   private boolean filterNeedsCheckingForSubentries = true;
 
-  // Indicates whether to include attribute types only or both types and values.
+  /**
+   * Indicates whether to include attribute types only or both types and values.
+   */
   private boolean typesOnly;
 
-  // Indicates whether to only virtual attributes should be returned.
+  /** Indicates whether to only virtual attributes should be returned. */
   private boolean virtualAttributesOnly;
 
-  // The raw, unprocessed base DN as included in the request from the client.
+  /**
+   * The raw, unprocessed base DN as included in the request from the client.
+   */
   private ByteString rawBaseDN;
 
-  // The dereferencing policy for the search operation.
+  /** The dereferencing policy for the search operation. */
   private DereferencePolicy derefPolicy;
 
-  // The base DN for the search operation.
+  /** The base DN for the search operation. */
   private DN baseDN;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The number of entries that have been sent to the client.
+  /** The number of entries that have been sent to the client. */
   private int entriesSent;
 
-  // The number of search result references that have been sent to the client.
+  /**
+   * The number of search result references that have been sent to the client.
+   */
   private int referencesSent;
 
-  // The size limit for the search operation.
+  /** The size limit for the search operation. */
   private int sizeLimit;
 
-  // The time limit for the search operation.
+  /** The time limit for the search operation. */
   private int timeLimit;
 
-  // The raw, unprocessed filter as included in the request from the client.
+  /** The raw, unprocessed filter as included in the request from the client. */
   private RawFilter rawFilter;
 
-  // The set of attributes that should be returned in matching entries.
+  /** The set of attributes that should be returned in matching entries. */
   private Set<String> attributes;
 
-  // The set of response controls for this search operation.
+  /** The set of response controls for this search operation. */
   private List<Control> responseControls;
 
-  // The time that processing started on this operation.
+  /** The time that processing started on this operation. */
   private long processingStartTime;
 
-  // The time that processing ended on this operation.
+  /** The time that processing ended on this operation. */
   private long processingStopTime;
 
-  // The time that the search time limit has expired.
+  /** The time that the search time limit has expired. */
   private long timeLimitExpiration;
 
-  // The matched values control associated with this search operation.
+  /** The matched values control associated with this search operation. */
   private MatchedValuesControl matchedValuesControl;
 
-  // The search filter for the search operation.
+  /** The search filter for the search operation. */
   private SearchFilter filter;
 
-  // The search scope for the search operation.
+  /** The search scope for the search operation. */
   private SearchScope scope;
 
-  // Indicates wether to send the search result done to the client or not
+  /** Indicates whether to send the search result done to the client or not. */
   private boolean sendResponse = true;
 
   /**
@@ -188,7 +199,7 @@ public class SearchOperationBasis
                          ByteString rawBaseDN, SearchScope scope,
                          DereferencePolicy derefPolicy, int sizeLimit,
                          int timeLimit, boolean typesOnly, RawFilter rawFilter,
-                         LinkedHashSet<String> attributes)
+                         Set<String> attributes)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -287,7 +298,7 @@ public class SearchOperationBasis
                          DN baseDN, SearchScope scope,
                          DereferencePolicy derefPolicy, int sizeLimit,
                          int timeLimit, boolean typesOnly, SearchFilter filter,
-                         LinkedHashSet<String> attributes)
+                         Set<String> attributes)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -363,6 +374,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawBaseDN()
   {
     return rawBaseDN;
@@ -373,6 +385,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawBaseDN(ByteString rawBaseDN)
   {
     this.rawBaseDN = rawBaseDN;
@@ -384,6 +397,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getBaseDN()
   {
     try
@@ -412,6 +426,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setBaseDN(DN baseDN)
   {
     this.baseDN = baseDN;
@@ -420,6 +435,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final SearchScope getScope()
   {
     return scope;
@@ -428,6 +444,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setScope(SearchScope scope)
   {
     this.scope = scope;
@@ -436,6 +453,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DereferencePolicy getDerefPolicy()
   {
     return derefPolicy;
@@ -444,6 +462,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setDerefPolicy(DereferencePolicy derefPolicy)
   {
     this.derefPolicy = derefPolicy;
@@ -452,6 +471,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int getSizeLimit()
   {
     return sizeLimit;
@@ -460,6 +480,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setSizeLimit(int sizeLimit)
   {
     this.sizeLimit = sizeLimit;
@@ -468,6 +489,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int getTimeLimit()
   {
     return timeLimit;
@@ -476,6 +498,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setTimeLimit(int timeLimit)
   {
     this.timeLimit = timeLimit;
@@ -484,6 +507,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean getTypesOnly()
   {
     return typesOnly;
@@ -492,6 +516,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setTypesOnly(boolean typesOnly)
   {
     this.typesOnly = typesOnly;
@@ -500,6 +525,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final RawFilter getRawFilter()
   {
     return rawFilter;
@@ -508,6 +534,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawFilter(RawFilter rawFilter)
   {
     this.rawFilter = rawFilter;
@@ -518,6 +545,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final SearchFilter getFilter()
   {
     try
@@ -545,6 +573,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Set<String> getAttributes()
   {
     return attributes;
@@ -553,6 +582,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setAttributes(Set<String> attributes)
   {
     if (attributes == null)
@@ -568,6 +598,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int getEntriesSent()
   {
     return entriesSent;
@@ -576,6 +607,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int getReferencesSent()
   {
     return referencesSent;
@@ -584,6 +616,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
     return returnEntry(entry, controls, true);
@@ -592,6 +625,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean returnEntry(Entry entry, List<Control> controls,
                                    boolean evaluateAci)
   {
@@ -856,6 +890,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean returnReference(DN dn, SearchResultReference reference)
   {
     return returnReference(dn, reference, true);
@@ -864,6 +899,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean returnReference(DN dn, SearchResultReference reference,
                                        boolean evaluateAci)
   {
@@ -944,6 +980,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void sendSearchResultDone()
   {
     // Send the search result done message to the client.  We want to make sure
@@ -1087,6 +1124,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -1157,6 +1195,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setTimeLimitExpiration(Long timeLimitExpiration){
     this.timeLimitExpiration = timeLimitExpiration;
   }
@@ -1164,6 +1203,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isReturnSubentriesOnly()
   {
     return returnSubentriesOnly;
@@ -1172,6 +1212,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setReturnSubentriesOnly(boolean returnLDAPSubentries)
   {
     this.returnSubentriesOnly = returnLDAPSubentries;
@@ -1180,6 +1221,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public MatchedValuesControl getMatchedValuesControl()
   {
     return matchedValuesControl;
@@ -1188,6 +1230,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setMatchedValuesControl(MatchedValuesControl controls)
   {
     this.matchedValuesControl = controls;
@@ -1196,6 +1239,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isIncludeUsableControl()
   {
     return includeUsableControl;
@@ -1204,6 +1248,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setIncludeUsableControl(boolean includeUsableControl)
   {
     this.includeUsableControl = includeUsableControl;
@@ -1212,6 +1257,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public Long getTimeLimitExpiration()
   {
     return timeLimitExpiration;
@@ -1220,6 +1266,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isClientAcceptsReferrals()
   {
     return clientAcceptsReferrals;
@@ -1228,6 +1275,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setClientAcceptsReferrals(boolean clientAcceptReferrals)
   {
     this.clientAcceptsReferrals = clientAcceptReferrals;
@@ -1236,6 +1284,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void incrementEntriesSent()
   {
     entriesSent++;
@@ -1244,6 +1293,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void incrementReferencesSent()
   {
     referencesSent++;
@@ -1252,6 +1302,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSendResponse()
   {
     return sendResponse;
@@ -1260,15 +1311,16 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setSendResponse(boolean sendResponse)
   {
     this.sendResponse = sendResponse;
-
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isRealAttributesOnly()
   {
     return this.realAttributesOnly;
@@ -1277,6 +1329,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVirtualAttributesOnly()
   {
     return this.virtualAttributesOnly;
@@ -1285,6 +1338,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRealAttributesOnly(boolean realAttributesOnly)
   {
     this.realAttributesOnly = realAttributesOnly;
@@ -1293,6 +1347,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setVirtualAttributesOnly(boolean virtualAttributesOnly)
   {
     this.virtualAttributesOnly = virtualAttributesOnly;
@@ -1301,17 +1356,19 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void sendSearchEntry(SearchResultEntry searchEntry)
-    throws DirectoryException
-    {
+      throws DirectoryException
+  {
     getClientConnection().sendSearchEntry(this, searchEntry);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean sendSearchReference(SearchResultReference searchReference)
-  throws DirectoryException
+      throws DirectoryException
   {
     return getClientConnection().sendSearchReference(this, searchReference);
   }
@@ -1319,6 +1376,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;

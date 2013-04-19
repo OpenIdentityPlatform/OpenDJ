@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -31,6 +32,7 @@ package org.opends.server.protocols.internal;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperationBasis;
@@ -62,14 +64,13 @@ import org.opends.server.types.SearchScope;
 public final class InternalSearchOperation
        extends SearchOperationBasis
 {
-  // The internal search listener for this search, if one was
-  // provided.
+  /** The internal search listener for this search, if one was provided. */
   private InternalSearchListener searchListener;
 
-  // The set of matching entries returned for this search.
+  /** The set of matching entries returned for this search. */
   private LinkedList<SearchResultEntry> entryList;
 
-  // The set of search references returned for this search.
+  /** The set of search references returned for this search. */
   private LinkedList<SearchResultReference> referenceList;
 
 
@@ -113,7 +114,7 @@ public final class InternalSearchOperation
               List<Control> requestControls, ByteString rawBaseDN,
               SearchScope scope, DereferencePolicy derefPolicy,
               int sizeLimit, int timeLimit, boolean typesOnly,
-              RawFilter rawFilter, LinkedHashSet<String> attributes,
+              RawFilter rawFilter, Set<String> attributes,
               InternalSearchListener searchListener)
   {
     super(internalConnection, operationID, messageID, requestControls,
