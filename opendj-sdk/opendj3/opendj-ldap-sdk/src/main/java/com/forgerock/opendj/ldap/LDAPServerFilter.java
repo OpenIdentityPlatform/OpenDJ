@@ -688,14 +688,14 @@ final class LDAPServerFilter extends BaseFilter {
 
                 @Override
                 public void bindRequest(final FilterChainContext ctx, final int messageID,
-                        final int version, final GenericBindRequest bindContext)
+                        final int version, final GenericBindRequest request)
                         throws UnexpectedRequestException {
                     final ClientContextImpl clientContext =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (clientContext != null) {
                         final ServerConnection<Integer> conn = clientContext.getServerConnection();
                         final BindHandler handler = new BindHandler(clientContext, messageID);
-                        conn.handleBind(messageID, version, bindContext, handler, handler);
+                        conn.handleBind(messageID, version, request, handler, handler);
                     }
                 }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -208,7 +208,7 @@ public final class Proxy {
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<? super BindResult> resultHandler) {
 
-            if (request.getAuthenticationType() != ((byte) 0x80)) {
+            if (request.getAuthenticationType() != BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
                 // TODO: SASL authentication not implemented.
                 resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
                         "non-SIMPLE authentication not supported: "
