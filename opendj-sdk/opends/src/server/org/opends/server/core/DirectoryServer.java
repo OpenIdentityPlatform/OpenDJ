@@ -37,10 +37,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -7287,15 +7285,16 @@ public final class DirectoryServer
 
 
   /**
-   * Adds the provided operation to the work queue so that it will be processed
-   * by one of the worker threads.
+   * Runs all the necessary checks prior to adding an operation to the work
+   * queue. It throws a DirectoryException if one of the check fails.
    *
-   * @param  operation  The operation to be added to the work queue.
-   *
-   * @throws  DirectoryException  If a problem prevents the operation from being
-   *                              added to the queue (e.g., the queue is full).
+   * @param operation
+   *          The operation to be added to the work queue.
+   * @throws DirectoryException
+   *           If a check failed preventing the operation from being added to
+   *           the queue
    */
-  public static void enqueueRequest(Operation operation)
+  private static void checkCanEnqueueRequest(Operation operation)
          throws DirectoryException
   {
     ClientConnection clientConnection = operation.getClientConnection();
@@ -7348,7 +7347,6 @@ public final class DirectoryServer
          break;
 
       }
-
     }
 
 
@@ -7420,12 +7418,41 @@ public final class DirectoryServer
           // determination up to the modify operation itself.
       }
     }
+  }
 
-
-
+  /**
+   * Adds the provided operation to the work queue so that it will be processed
+   * by one of the worker threads.
+   *
+   * @param  operation  The operation to be added to the work queue.
+   *
+   * @throws  DirectoryException  If a problem prevents the operation from being
+   *                              added to the queue (e.g., the queue is full).
+   */
+  public static void enqueueRequest(Operation operation)
+      throws DirectoryException
+  {
+    checkCanEnqueueRequest(operation);
     directoryServer.workQueue.submitOperation(operation);
   }
 
+  /**
+   * Tries to add the provided operation to the work queue if not full so that
+   * it will be processed by one of the worker threads.
+   *
+   * @param operation
+   *          The operation to be added to the work queue.
+   * @return true if the operation could be enqueued, false otherwise
+   * @throws DirectoryException
+   *           If a problem prevents the operation from being added to the queue
+   *           (e.g., the queue is full).
+   */
+  public static boolean tryEnqueueRequest(Operation operation)
+      throws DirectoryException
+  {
+    checkCanEnqueueRequest(operation);
+    return directoryServer.workQueue.trySubmitOperation(operation);
+  }
 
 
   /**

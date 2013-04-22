@@ -55,10 +55,10 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
@@ -419,7 +419,13 @@ public abstract class ClientConnection
    */
   public abstract InetAddress getLocalAddress();
 
-
+  /**
+   * Returns whether the Directory Server believes this connection to be valid
+   * and available for communication.
+   *
+   * @return true if the connection is valid, false otherwise
+   */
+  public abstract boolean isConnectionValid();
 
   /**
    * Indicates whether this client connection is currently using a

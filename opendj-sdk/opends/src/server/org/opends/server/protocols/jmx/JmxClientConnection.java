@@ -88,7 +88,7 @@ public class JmxClientConnection
   /**
    * Indicate that the disconnect process is started.
    */
-  private Boolean disconnectStarted = false;
+  private boolean disconnectStarted = false;
 
 
   /**
@@ -357,7 +357,12 @@ public class JmxClientConnection
     return null;
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConnectionValid()
+  {
+    return !disconnectStarted;
+  }
 
   /**
    * Indicates whether this client connection is currently using a secure

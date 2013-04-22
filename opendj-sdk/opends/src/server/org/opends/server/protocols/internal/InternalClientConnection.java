@@ -617,7 +617,13 @@ public final class InternalClientConnection
     // time limit for internal client connections.
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConnectionValid()
+  {
+    // This connection is always valid
+    return true;
+  }
 
   /**
    * Indicates whether this client connection is currently using a

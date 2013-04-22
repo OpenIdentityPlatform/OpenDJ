@@ -29,6 +29,11 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -51,11 +56,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -146,7 +146,8 @@ public class ParallelWorkQueue
     configuration.addParallelChangeListener(this);
 
     // Get the necessary configuration from the provided entry.
-    numWorkerThreads = getNumWorkerThreads(configuration);
+    numWorkerThreads =
+        computeNumWorkerThreads(configuration.getNumWorkerThreads());
 
     // Create the actual work queue.
     opQueue = new ConcurrentLinkedQueue<Operation>();
@@ -286,6 +287,14 @@ public class ParallelWorkQueue
     opsSubmitted.incrementAndGet();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public boolean trySubmitOperation(Operation operation)
+      throws DirectoryException
+  {
+    submitOperation(operation);
+    return true;
+  }
 
 
   /**
@@ -515,7 +524,8 @@ public class ParallelWorkQueue
                                  ParallelWorkQueueCfg configuration)
   {
     ArrayList<Message> resultMessages = new ArrayList<Message>();
-    int newNumThreads  = getNumWorkerThreads(configuration);
+    int newNumThreads =
+        computeNumWorkerThreads(configuration.getNumWorkerThreads());
 
     // Apply a change to the number of worker threads if appropriate.
     int currentThreads = workerThreads.size();
@@ -583,25 +593,14 @@ public class ParallelWorkQueue
     }
   }
 
-
-
-  // Determine the number of worker threads.
-  private int getNumWorkerThreads(ParallelWorkQueueCfg configuration)
+  /**
+   * Return the number of worker threads used by this WorkQueue.
+   *
+   * @return the number of worker threads used by this WorkQueue
+   */
+  @Override
+  public int getNumWorkerThreads()
   {
-    if (configuration.getNumWorkerThreads() == null)
-    {
-      // Automatically choose based on the number of processors.
-      int cpus = Runtime.getRuntime().availableProcessors();
-      int value = Math.max(24, cpus * 2);
-
-      Message message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
-      logError(message);
-
-      return value;
-    }
-    else
-    {
-      return configuration.getNumWorkerThreads();
-    }
+    return this.numWorkerThreads;
   }
 }
