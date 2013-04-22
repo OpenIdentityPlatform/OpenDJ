@@ -582,12 +582,9 @@ final class HTTPClientConnection extends ClientConnection
     return 0;
   }
 
-  /**
-   * Returns whether the client connection is valid.
-   *
-   * @return true if the connection is valid, false otherwise
-   */
-  boolean isConnectionValid()
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConnectionValid()
   {
     return connectionValid;
   }
