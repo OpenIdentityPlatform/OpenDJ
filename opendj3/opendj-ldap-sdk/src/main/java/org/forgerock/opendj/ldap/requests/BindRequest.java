@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -41,6 +41,17 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * "authenticate" operation.
  */
 public interface BindRequest extends Request {
+
+    /**
+     * The authentication type value (0x80) reserved for simple authentication.
+     */
+    public static final byte AUTHENTICATION_TYPE_SIMPLE = (byte) 0x80;
+
+    /**
+     * The authentication type value (0xA3) reserved for SASL authentication.
+     */
+    public static final byte AUTHENTICATION_TYPE_SASL = (byte) 0xA3;
+
 
     @Override
     BindRequest addControl(Control control);
@@ -61,9 +72,10 @@ public interface BindRequest extends Request {
 
     /**
      * Returns the authentication mechanism identifier for this generic bind
-     * request as defined by the LDAP protocol. Note that value {@code 0x80} is
-     * reserved for simple authentication and {@code 0xA3} is reserved for SASL
-     * authentication.
+     * request as defined by the LDAP protocol. Note that the value
+     * {@link #AUTHENTICATION_TYPE_SIMPLE} ({@code 0x80}) is reserved for simple
+     * authentication and the value {@link #AUTHENTICATION_TYPE_SASL} (
+     * {@code 0xA3}) is reserved for SASL authentication.
      *
      * @return The authentication mechanism identifier.
      */

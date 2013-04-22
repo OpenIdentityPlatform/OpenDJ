@@ -196,7 +196,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 if (request instanceof SimpleBindRequest) {
                     password = ((SimpleBindRequest) request).getPassword();
                 } else if (request instanceof GenericBindRequest
-                        && request.getAuthenticationType() == ((byte) 0x80)) {
+                        && request.getAuthenticationType() == BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
                     password = ((GenericBindRequest) request).getAuthenticationValue();
                 } else {
                     throw newErrorResult(ResultCode.PROTOCOL_ERROR,
