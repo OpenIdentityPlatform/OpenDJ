@@ -1342,7 +1342,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             }
 
             // Format the timezone.
-            n = tmpCalendar.get(Calendar.ZONE_OFFSET); /* ms */
+            n = tmpCalendar.get(Calendar.ZONE_OFFSET) + tmpCalendar.get(Calendar.DST_OFFSET);
             if (n == 0) {
                 sb.append('Z');
             } else {

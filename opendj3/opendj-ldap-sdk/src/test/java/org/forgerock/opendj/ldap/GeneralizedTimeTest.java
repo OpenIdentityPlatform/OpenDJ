@@ -22,17 +22,20 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Generalized time tests.
@@ -41,10 +44,29 @@ import static org.fest.assertions.Assertions.assertThat;
 public class GeneralizedTimeTest extends SdkTestCase {
 
     @DataProvider
-    public Object[][] validStrings() {
-        return new Object[][] { { "2006090613Z" }, { "20060906135030+01" }, { "200609061350Z" },
-            { "20060906135030Z" }, { "20061116135030Z" }, { "20061126135030Z" },
-            { "20061231235959Z" }, { "20060906135030+0101" }, { "20060906135030+2359" }, };
+    public Object[][] calendars() {
+        // Test time zone.
+        final GregorianCalendar europeWinter = new GregorianCalendar();
+        europeWinter.setLenient(false);
+        europeWinter.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        europeWinter.set(2013, 0, 1, 13, 0, 0);
+        europeWinter.set(Calendar.MILLISECOND, 0);
+
+        // Test daylight savings.
+        final GregorianCalendar europeSummer = new GregorianCalendar();
+        europeSummer.setLenient(false);
+        europeSummer.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        europeSummer.set(2013, 5, 1, 13, 0, 0);
+        europeSummer.set(Calendar.MILLISECOND, 0);
+
+        return new Object[][] { { europeWinter }, { europeSummer } };
+    }
+
+    @Test(dataProvider = "calendars")
+    public void fromToCalendary(final Calendar calendar) {
+        final String s1 = GeneralizedTime.valueOf(calendar).toString();
+        final Calendar reparsed1 = GeneralizedTime.valueOf(s1).toCalendar();
+        assertThat(reparsed1.getTimeInMillis()).isEqualTo(calendar.getTimeInMillis());
     }
 
     @DataProvider
@@ -58,75 +80,82 @@ public class GeneralizedTimeTest extends SdkTestCase {
             { "20061231#35959Z" }, { "2006" }, };
     }
 
-    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class },
-            dataProvider = "invalidStrings")
-    public void testValueOfInvalidString(String s) {
-        GeneralizedTime.valueOf(s);
-    }
-
-    @Test(dataProvider = "validStrings")
-    public void testValueOfValidString(String s) {
-        assertThat(GeneralizedTime.valueOf(s).toString()).isEqualTo(s);
+    @Test
+    public void testCompareEquals() {
+        final GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
+        final GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906125030Z");
+        assertThat(gt1.compareTo(gt2)).isEqualTo(0);
     }
 
     @Test
-    public void testValueOfLong() {
-        Date date = new Date();
-        GeneralizedTime time = GeneralizedTime.valueOf(date.getTime());
-        assertThat(time.getTimeInMillis()).isEqualTo(date.getTime());
-        assertThat(time.toDate()).isEqualTo(date);
+    public void testCompareGreaterThan() {
+        final GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030Z");
+        final GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030+01");
+        assertThat(gt1.compareTo(gt2) > 0).isTrue();
     }
 
     @Test
-    public void testValueOfDate() {
-        Date date = new Date();
-        GeneralizedTime time = GeneralizedTime.valueOf(date);
-        assertThat(time.getTimeInMillis()).isEqualTo(date.getTime());
-        assertThat(time.toDate()).isEqualTo(date);
+    public void testCompareLessThan() {
+        final GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
+        final GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030Z");
+        assertThat(gt1.compareTo(gt2) < 0).isTrue();
+    }
+
+    @Test
+    public void testEqualsFalse() {
+        final GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030Z");
+        final GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030+01");
+        assertThat(gt1).isNotEqualTo(gt2);
+    }
+
+    @Test
+    public void testEqualsTrue() {
+        final GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
+        final GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906125030Z");
+        assertThat(gt1).isEqualTo(gt2);
     }
 
     @Test
     public void testValueOfCalendar() {
-        Calendar calendar = Calendar.getInstance();
-        GeneralizedTime time = GeneralizedTime.valueOf(calendar);
+        final Calendar calendar = Calendar.getInstance();
+        final GeneralizedTime time = GeneralizedTime.valueOf(calendar);
         assertThat(time.getTimeInMillis()).isEqualTo(calendar.getTimeInMillis());
         assertThat(time.toCalendar()).isEqualTo(calendar);
         assertThat(time.toDate()).isEqualTo(calendar.getTime());
     }
 
     @Test
-    public void testEqualsTrue() {
-        GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
-        GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906125030Z");
-        assertThat(gt1).isEqualTo(gt2);
+    public void testValueOfDate() {
+        final Date date = new Date();
+        final GeneralizedTime time = GeneralizedTime.valueOf(date);
+        assertThat(time.getTimeInMillis()).isEqualTo(date.getTime());
+        assertThat(time.toDate()).isEqualTo(date);
+    }
+
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class },
+            dataProvider = "invalidStrings")
+    public void testValueOfInvalidString(final String s) {
+        GeneralizedTime.valueOf(s);
     }
 
     @Test
-    public void testEqualsFalse() {
-        GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030Z");
-        GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030+01");
-        assertThat(gt1).isNotEqualTo(gt2);
+    public void testValueOfLong() {
+        final Date date = new Date();
+        final GeneralizedTime time = GeneralizedTime.valueOf(date.getTime());
+        assertThat(time.getTimeInMillis()).isEqualTo(date.getTime());
+        assertThat(time.toDate()).isEqualTo(date);
     }
 
-    @Test
-    public void testCompareEquals() {
-        GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
-        GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906125030Z");
-        assertThat(gt1.compareTo(gt2)).isEqualTo(0);
+    @Test(dataProvider = "validStrings")
+    public void testValueOfValidString(final String s) {
+        assertThat(GeneralizedTime.valueOf(s).toString()).isEqualTo(s);
     }
 
-    @Test
-    public void testCompareLessThan() {
-        GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030+01");
-        GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030Z");
-        assertThat(gt1.compareTo(gt2) < 0).isTrue();
-    }
-
-    @Test
-    public void testCompareGreaterThan() {
-        GeneralizedTime gt1 = GeneralizedTime.valueOf("20060906135030Z");
-        GeneralizedTime gt2 = GeneralizedTime.valueOf("20060906135030+01");
-        assertThat(gt1.compareTo(gt2) > 0).isTrue();
+    @DataProvider
+    public Object[][] validStrings() {
+        return new Object[][] { { "2006090613Z" }, { "20060906135030+01" }, { "200609061350Z" },
+            { "20060906135030Z" }, { "20061116135030Z" }, { "20061126135030Z" },
+            { "20061231235959Z" }, { "20060906135030+0101" }, { "20060906135030+2359" }, };
     }
 
 }
