@@ -2298,7 +2298,7 @@
       </not>
     </condition>
 
-    <exec executable="${ant.home}/bin/${antcmd}" failonerror="true">
+    <exec executable="${ant.dir}/bin/${antcmd}" failonerror="true">
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
       <arg value="-Dbuild.dir=${build.dir}" />
