@@ -481,4 +481,31 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="max-concurrent-ops-per-connection">
+    <adm:synopsis>
+      Specifies the maximum number of internal operations that each
+      HTTP client connection can execute concurrently.
+    </adm:synopsis>
+    <adm:description>
+      This property allow to limit the impact that each HTTP request can have on
+      the whole server by limiting the number of internal operations that each
+      HTTP request can execute concurrently.
+      A value of 0 means that no limit is enforced.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-concurrent-ops-per-connection</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

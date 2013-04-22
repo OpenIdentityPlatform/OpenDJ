@@ -59,6 +59,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.BindOperationBasis;
+import org.opends.server.core.BoundedWorkQueueStrategy;
 import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.ExtendedOperationBasis;
@@ -67,7 +68,6 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperationBasis;
-import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
@@ -98,7 +98,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   private AtomicInteger nextMessageID = new AtomicInteger(0);
 
   /** The queueing strategy used for this connection. */
-  private QueueingStrategy queueingStrategy = new WorkQueueStrategy();
+  private final QueueingStrategy queueingStrategy;
 
   /**
    * Whether this connection has been closed by calling {@link #close()} or
@@ -115,6 +115,9 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   public SdkConnectionAdapter(HTTPClientConnection clientConnection)
   {
     this.clientConnection = clientConnection;
+    this.queueingStrategy =
+        new BoundedWorkQueueStrategy(clientConnection.getConnectionHandler()
+            .getCurrentConfig().getMaxConcurrentOpsPerConnection());
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -267,6 +270,16 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
             to(request.getValue()));
 
     return enqueueOperation(operation, resultHandler);
+  }
+
+  /**
+   * Return the queueing strategy used by this connection.
+   *
+   * @return The queueing strategy used by this connection
+   */
+  public QueueingStrategy getQueueingStrategy()
+  {
+    return queueingStrategy;
   }
 
   /** {@inheritDoc} */

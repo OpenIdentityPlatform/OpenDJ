@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -56,6 +57,7 @@ import org.opends.server.types.SearchResultReference;
 /**
  * A mock connection for connection criteria testing.
  */
+@SuppressWarnings("javadoc")
 public final class MockClientConnection extends ClientConnection
 {
   private final int clientPort;
@@ -68,7 +70,7 @@ public final class MockClientConnection extends ClientConnection
 
   /**
    * Creates a new mock client connection.
-   *
+   * 
    * @param clientPort
    *          The client port.
    * @param isSecure
@@ -76,7 +78,7 @@ public final class MockClientConnection extends ClientConnection
    * @param bindDN
    *          The client bind DN.
    * @param authMethod
-   *          The client authentication mathod.
+   *          The client authentication method.
    * @throws Exception
    *           If an unexpected exception occurred.
    */
@@ -271,7 +273,12 @@ public final class MockClientConnection extends ClientConnection
     return 0;
   }
 
-
+  @Override
+  public boolean isConnectionValid()
+  {
+    // This connection is always valid
+    return true;
+  }
 
   @Override
   public boolean isSecure()

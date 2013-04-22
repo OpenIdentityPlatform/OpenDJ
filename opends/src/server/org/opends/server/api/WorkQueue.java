@@ -27,6 +27,9 @@
  */
 package org.opends.server.api;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.config.ConfigException;
@@ -106,6 +109,22 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
 
 
   /**
+   * Tries to submit an operation to be processed in the server, without
+   * blocking.
+   *
+   * @param operation
+   *          The operation to be processed.
+   * @return true if the operation could be submitted to the queue, false if the
+   *         queue was full
+   * @throws DirectoryException
+   *           If the provided operation is not accepted for some reason (e.g.,
+   *           if the server is shutting down).
+   */
+  public abstract boolean trySubmitOperation(Operation operation)
+      throws DirectoryException;
+
+
+  /**
    * Indicates whether the work queue is currently processing any
    * requests.  Note that this is a point-in-time determination, and
    * if any component of the server wishes to depend on a quiescent
@@ -119,6 +138,42 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
   public abstract boolean isIdle();
 
 
+  /**
+   * Return the maximum number of worker threads that can be used by this
+   * WorkQueue (The WorkQueue could have a thread pool which adjusts its size).
+   *
+   * @return the maximum number of worker threads that can be used by this
+   *         WorkQueue
+   */
+  public abstract int getNumWorkerThreads();
+
+
+  /**
+   * Computes the number of worker threads to use by the working queue based on
+   * the configured number.
+   *
+   * @param configuredNumWorkerThreads
+   *          the configured number of worker threads to use
+   * @return the number of worker threads to use
+   */
+  protected int computeNumWorkerThreads(Integer configuredNumWorkerThreads)
+  {
+    if (configuredNumWorkerThreads != null)
+    {
+      return configuredNumWorkerThreads;
+    }
+    else
+    {
+      // Automatically choose based on the number of processors.
+      int cpus = Runtime.getRuntime().availableProcessors();
+      int value = Math.max(24, cpus * 2);
+
+      Message message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
+      logError(message);
+
+      return value;
+    }
+  }
 
   /**
    * Waits for the work queue to become idle before returning.  Note

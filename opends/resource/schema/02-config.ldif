@@ -3855,7 +3855,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size $
         ds-cfg-config-file $
-        ds-cfg-authentication-required )
+        ds-cfg-authentication-required $
+        ds-cfg-max-concurrent-ops-per-connection )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
   NAME 'ds-cfg-entry-cache'

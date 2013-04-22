@@ -664,7 +664,12 @@ public final class LDAPClientConnection extends ClientConnection implements
     return clientChannel.socket().getLocalAddress();
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConnectionValid()
+  {
+    return this.connectionValid;
+  }
 
   /**
    * Indicates whether this client connection is currently using a
