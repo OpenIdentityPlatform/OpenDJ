@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.forgerock.json.resource.ResourceException;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.util.Base64;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -165,25 +164,6 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 
     assertThat(filter.extractUsernamePassword(request)).containsExactly(
         USERNAME, PASSWORD);
-  }
-
-  /**
-   * Tests that getAuthenticationInfo() without basic auth header or custom
-   * headers returns an unauthenticated info when the server accepts
-   * unauthenticated requests.
-   */
-  @Test
-  public void getAuthenticationInfoReturnsUnauthenticatedInfo()
-      throws Exception
-  {
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    HTTPConnectionHandler cfg = mock(HTTPConnectionHandler.class);
-    when(cfg.acceptUnauthenticatedRequests()).thenReturn(true);
-
-    filter = new CollectClientConnectionsFilter(cfg, authConfig);
-    AuthenticationInfo authInfo = filter.getAuthenticationInfo(request, null);
-    assertThat(authInfo).isNotNull();
-    assertThat(authInfo.isAuthenticated()).isFalse();
   }
 
 }

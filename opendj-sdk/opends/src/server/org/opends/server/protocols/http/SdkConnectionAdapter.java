@@ -193,7 +193,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler,
       ResultHandler<? super BindResult> resultHandler)
   {
-    final int messageID = nextMessageID.get();
+    final int messageID = nextMessageID.getAndIncrement();
     String userName = request.getName();
     byte[] password = ((SimpleBindRequest) request).getPassword();
     BindOperationBasis operation =
@@ -211,7 +211,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     AuthenticationInfo authInfo = this.clientConnection.getAuthenticationInfo();
     if (authInfo != null && authInfo.isAuthenticated())
     {
-      final int messageID = nextMessageID.get();
+      final int messageID = nextMessageID.getAndIncrement();
       UnbindOperationBasis operation =
           new UnbindOperationBasis(clientConnection, messageID, messageID,
               to(request.getControls()));

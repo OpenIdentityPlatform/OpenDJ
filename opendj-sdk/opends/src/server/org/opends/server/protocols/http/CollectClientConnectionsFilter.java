@@ -36,9 +36,11 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collection;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -53,7 +55,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -77,6 +79,105 @@ import org.opends.server.util.Base64;
  */
 final class CollectClientConnectionsFilter implements javax.servlet.Filter
 {
+
+  /** This class holds all the necessary data to complete an HTTP request. */
+  private final class HTTPRequestContext
+  {
+    private AsyncContext asyncContext;
+    private ServletRequest request;
+    private ServletResponse response;
+    private FilterChain chain;
+
+    private HTTPClientConnection clientConnection;
+    private Connection connection;
+
+    /** Whether to pretty print the resulting JSON. */
+    private boolean prettyPrint;
+    /** Can be used for the bind request. */
+    private String password;
+  }
+
+  /**
+   * This result handler calls {@link javax.servlet.Filter#doFilter()} after a
+   * successful bind.
+   */
+  private final class CallDoFilterResultHandler implements
+      ResultHandler<BindResult>
+  {
+
+    private final HTTPRequestContext ctx;
+    private final SearchResultEntry resultEntry;
+
+    private CallDoFilterResultHandler(HTTPRequestContext ctx,
+        SearchResultEntry resultEntry)
+    {
+      this.ctx = ctx;
+      this.resultEntry = resultEntry;
+    }
+
+    @Override
+    public void handleErrorResult(ErrorResultException error)
+    {
+      onFailure(error, ctx);
+    }
+
+    @Override
+    public void handleResult(BindResult result)
+    {
+      final AuthenticationInfo authInfo =
+          new AuthenticationInfo(to(resultEntry), to(resultEntry.getName()),
+              ByteString.valueOf(ctx.password), false);
+      try
+      {
+        doFilter(ctx, authInfo);
+      }
+      catch (Exception e)
+      {
+        onFailure(e, ctx);
+      }
+    }
+
+  }
+
+  /**
+   * This result handler invokes a bind after a successful search on the user
+   * name used for authentication.
+   */
+  private final class DoBindResultHandler implements
+      ResultHandler<SearchResultEntry>
+  {
+    private HTTPRequestContext ctx;
+
+    private DoBindResultHandler(HTTPRequestContext ctx)
+    {
+      this.ctx = ctx;
+    }
+
+    @Override
+    public void handleErrorResult(ErrorResultException error)
+    {
+      onFailure(error, ctx);
+    }
+
+    @Override
+    public void handleResult(SearchResultEntry resultEntry)
+    {
+      final DN bindDN = resultEntry.getName();
+      if (bindDN == null)
+      {
+        sendAuthenticationFailure(ctx);
+      }
+      else
+      {
+        final BindRequest bindRequest =
+            Requests.newSimpleBindRequest(bindDN.toString(), ctx.password
+                .getBytes(Charset.forName("UTF-8")));
+        ctx.connection.bindAsync(bindRequest, null,
+            new CallDoFilterResultHandler(ctx, resultEntry));
+      }
+    }
+
+  }
 
   /** HTTP Header sent by the client with HTTP basic authentication. */
   static final String HTTP_BASIC_AUTH_HEADER = "Authorization";
@@ -127,6 +228,15 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     final HTTPClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
     this.connectionHandler.addClientConnection(clientConnection);
+
+    final HTTPRequestContext ctx = new HTTPRequestContext();
+    ctx.request = request;
+    ctx.response = response;
+    ctx.chain = chain;
+
+    ctx.clientConnection = clientConnection;
+    ctx.prettyPrint = prettyPrint;
+
     try
     {
       if (!canProcessRequest(request, clientConnection))
@@ -137,53 +247,95 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       // checked.
       logConnect(clientConnection);
 
-      Connection connection = new SdkConnectionAdapter(clientConnection);
+      ctx.connection = new SdkConnectionAdapter(clientConnection);
 
-      AuthenticationInfo authInfo = getAuthenticationInfo(request, connection);
-      if (authInfo != null)
+      final String[] userPassword = extractUsernamePassword(request);
+      if (userPassword != null && userPassword.length == 2)
       {
-        clientConnection.setAuthenticationInfo(authInfo);
+        final String userName = userPassword[0];
+        ctx.password = userPassword[1];
 
-        /*
-         * WARNING: This action triggers 3-4 others: Set the connection for use
-         * with this request on the HttpServletRequest. It will make
-         * Rest2LDAPContextFactory create an AuthenticatedConnectionContext
-         * which will in turn ensure Rest2LDAP uses the supplied Connection
-         * object.
-         */
-        request.setAttribute(
-            Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION, connection);
+        final AsyncContext asyncContext = getAsyncContext(request);
+        asyncContext.setTimeout(60 * 1000);
+        ctx.asyncContext = asyncContext;
 
-        // send the request further down the filter chain or pass to servlet
-        chain.doFilter(request, response);
-        return;
+        ctx.connection.searchSingleEntryAsync(buildSearchRequest(userName),
+            new DoBindResultHandler(ctx));
       }
-
-      // The user could not be authenticated. Send an HTTP Basic authentication
-      // challenge if HTTP Basic authentication is enabled.
-      sendErrorReponse(response, prettyPrint, ResourceException.getException(
-          HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
-
-      clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS, false,
-          null);
+      else if (this.connectionHandler.acceptUnauthenticatedRequests())
+      {
+        // use unauthenticated user
+        doFilter(ctx, new AuthenticationInfo());
+      }
+      else
+      {
+        sendAuthenticationFailure(ctx);
+      }
     }
     catch (Exception e)
+    {
+      onFailure(e, ctx);
+    }
+  }
+
+  private void doFilter(HTTPRequestContext ctx, AuthenticationInfo authInfo)
+      throws Exception
+  {
+    ctx.clientConnection.setAuthenticationInfo(authInfo);
+
+    /*
+     * WARNING: This action triggers 3-4 others: Set the connection for use with
+     * this request on the HttpServletRequest. It will make
+     * Rest2LDAPContextFactory create an AuthenticatedConnectionContext which
+     * will in turn ensure Rest2LDAP uses the supplied Connection object.
+     */
+    ctx.request.setAttribute(
+        Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION, ctx.connection);
+
+    // send the request further down the filter chain or pass to servlet
+    ctx.chain.doFilter(ctx.request, ctx.response);
+  }
+
+  private void sendAuthenticationFailure(HTTPRequestContext ctx)
+  {
+    // The user could not be authenticated. Send an HTTP Basic authentication
+    // challenge if HTTP Basic authentication is enabled.
+    ResourceException unauthorizedException =
+        ResourceException.getException(HttpServletResponse.SC_UNAUTHORIZED,
+            "Invalid Credentials");
+    sendErrorReponse(ctx.response, ctx.prettyPrint, unauthorizedException);
+
+    ctx.clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS,
+        false, null);
+  }
+
+  private void onFailure(Exception e, HTTPRequestContext ctx)
+  {
+    try
     {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      sendErrorReponse(response, prettyPrint, Rest2LDAP.asResourceException(e));
+      sendErrorReponse(ctx.response, ctx.prettyPrint, Rest2LDAP
+          .asResourceException(e));
 
       Message message =
-          INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
-              .getClientHostPort(), clientConnection.getServerHostPort(),
+          INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(ctx.clientConnection
+              .getClientHostPort(), ctx.clientConnection.getServerHostPort(),
               getExceptionMessage(e));
       logError(message);
 
-      clientConnection
-          .disconnect(DisconnectReason.SERVER_ERROR, false, message);
+      ctx.clientConnection.disconnect(DisconnectReason.SERVER_ERROR, false,
+          message);
+    }
+    finally
+    {
+      if (ctx.asyncContext != null)
+      {
+        ctx.asyncContext.complete();
+      }
     }
   }
 
@@ -227,37 +379,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       return false;
     }
     return true;
-  }
-
-  /**
-   * Returns an {@link AuthenticationInfo} object if the request is accepted. An
-   * {@link AuthenticationInfo} object will be returned if authentication
-   * credentials were valid or if unauthenticated requests are allowed on this
-   * server.
-   *
-   * @param request
-   *          the request used to extract the {@link AuthenticationInfo}
-   * @param connection
-   *          the connection used to retrieve the {@link AuthenticationInfo}
-   * @return an {@link AuthenticationInfo} if the request is accepted, null if
-   *         the request was rejected
-   * @throws Exception
-   *           if any problem occur
-   */
-  AuthenticationInfo getAuthenticationInfo(ServletRequest request,
-      Connection connection) throws Exception
-  {
-    String[] userPassword = extractUsernamePassword(request);
-    if (userPassword != null && userPassword.length == 2)
-    {
-      return authenticate(userPassword[0], userPassword[1], connection);
-    }
-    else if (this.connectionHandler.acceptUnauthenticatedRequests())
-    {
-      // return unauthenticated
-      return new AuthenticationInfo();
-    }
-    return null;
   }
 
   /**
@@ -418,58 +539,19 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     return null;
   }
 
-  /**
-   * Authenticates the user by doing a search on the user name + bind the
-   * returned user entry DN, then return the authentication info if search and
-   * bind were successful.
-   *
-   * @param userName
-   *          the user name to authenticate
-   * @param password
-   *          the password to use with the user
-   * @param connection
-   *          the connection to use for search and bind
-   * @return the {@link AuthenticationInfo} for the supplied credentials, null
-   *         if authentication was unsuccessful.
-   * @throws ErrorResultException
-   *           if a Rest2LDAP result comes back with an error or cancel state
-   */
-  private AuthenticationInfo authenticate(String userName, String password,
-      Connection connection) throws ErrorResultException
+  private AsyncContext getAsyncContext(ServletRequest request)
   {
-    // TODO JNR do the next steps in an async way
-    SearchResultEntry resultEntry = searchUniqueEntryDN(userName, connection);
-    if (resultEntry != null)
-    {
-      DN bindDN = resultEntry.getName();
-      if (bindDN != null && bind(bindDN.toString(), password, connection))
-      {
-        return new AuthenticationInfo(to(resultEntry), to(bindDN), ByteString
-            .valueOf(password), false);
-      }
-    }
-    return null;
+    return request.isAsyncStarted() ? request.getAsyncContext() : request
+        .startAsync();
   }
 
-  private SearchResultEntry searchUniqueEntryDN(String userName,
-      Connection connection) throws ErrorResultException
+  private SearchRequest buildSearchRequest(String userName)
   {
     // use configured rights to find the user DN
     final Filter filter =
         Filter.format(authConfig.getSearchFilterTemplate(), userName);
-    final SearchRequest searchRequest =
-        Requests.newSearchRequest(authConfig.getSearchBaseDN(), authConfig
-            .getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
-    return connection.searchSingleEntry(searchRequest);
-  }
-
-  private boolean bind(String bindDN, String password, Connection connection)
-      throws ErrorResultException
-  {
-    final BindRequest bindRequest =
-        Requests.newSimpleBindRequest(bindDN, password.getBytes());
-    final BindResult bindResult = connection.bind(bindRequest);
-    return ResultCode.SUCCESS.equals(bindResult.getResultCode());
+    return Requests.newSearchRequest(authConfig.getSearchBaseDN(), authConfig
+        .getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
   }
 
   /** {@inheritDoc} */
