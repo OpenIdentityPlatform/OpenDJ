@@ -99,6 +99,57 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   }
 
   /**
+   * This result handler invokes a bind after a successful search on the user
+   * name used for authentication.
+   */
+  private final class DoBindResultHandler implements
+      ResultHandler<SearchResultEntry>
+  {
+    private HTTPRequestContext ctx;
+
+    private DoBindResultHandler(HTTPRequestContext ctx)
+    {
+      this.ctx = ctx;
+    }
+
+    @Override
+    public void handleErrorResult(ErrorResultException error)
+    {
+      final ResultCode rc = error.getResult().getResultCode();
+      if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
+          || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
+      {
+        // Avoid information leak:
+        // do not hint to the user that it is the username that is invalid
+        sendAuthenticationFailure(ctx);
+      }
+      else
+      {
+        onFailure(error, ctx);
+      }
+    }
+
+    @Override
+    public void handleResult(SearchResultEntry resultEntry)
+    {
+      final DN bindDN = resultEntry.getName();
+      if (bindDN == null)
+      {
+        sendAuthenticationFailure(ctx);
+      }
+      else
+      {
+        final BindRequest bindRequest =
+            Requests.newSimpleBindRequest(bindDN.toString(), ctx.password
+                .getBytes(Charset.forName("UTF-8")));
+        ctx.connection.bindAsync(bindRequest, null,
+            new CallDoFilterResultHandler(ctx, resultEntry));
+      }
+    }
+
+  }
+
+  /**
    * This result handler calls {@link javax.servlet.Filter#doFilter()} after a
    * successful bind.
    */
@@ -135,55 +186,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       catch (Exception e)
       {
         onFailure(e, ctx);
-      }
-    }
-
-  }
-
-  /**
-   * This result handler invokes a bind after a successful search on the user
-   * name used for authentication.
-   */
-  private final class DoBindResultHandler implements
-      ResultHandler<SearchResultEntry>
-  {
-    private HTTPRequestContext ctx;
-
-    private DoBindResultHandler(HTTPRequestContext ctx)
-    {
-      this.ctx = ctx;
-    }
-
-    @Override
-    public void handleErrorResult(ErrorResultException error)
-    {
-      final ResultCode rc = error.getResult().getResultCode();
-      if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
-          || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
-      {
-        sendAuthenticationFailure(ctx);
-      }
-      else
-      {
-        onFailure(error, ctx);
-      }
-    }
-
-    @Override
-    public void handleResult(SearchResultEntry resultEntry)
-    {
-      final DN bindDN = resultEntry.getName();
-      if (bindDN == null)
-      {
-        sendAuthenticationFailure(ctx);
-      }
-      else
-      {
-        final BindRequest bindRequest =
-            Requests.newSimpleBindRequest(bindDN.toString(), ctx.password
-                .getBytes(Charset.forName("UTF-8")));
-        ctx.connection.bindAsync(bindRequest, null,
-            new CallDoFilterResultHandler(ctx, resultEntry));
       }
     }
 
