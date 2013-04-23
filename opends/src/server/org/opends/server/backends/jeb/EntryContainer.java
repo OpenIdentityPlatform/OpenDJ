@@ -1063,9 +1063,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             {
               /*
                 There is no sort key associated with the sort control. Since it
-                came here it means that the critificality is false so let the
+                came here it means that the criticality is false so let the
                 server return all search results unsorted and include the
-                sortKeyResponseControl inthe searchResultDone message.
+                sortKeyResponseControl in the searchResultDone message.
               */
               searchOperation.addResponseControl(
                       new ServerSideSortResponseControl
