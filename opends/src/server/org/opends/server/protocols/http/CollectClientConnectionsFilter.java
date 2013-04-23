@@ -55,6 +55,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -156,7 +157,16 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     @Override
     public void handleErrorResult(ErrorResultException error)
     {
-      onFailure(error, ctx);
+      final ResultCode rc = error.getResult().getResultCode();
+      if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
+          || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
+      {
+        sendAuthenticationFailure(ctx);
+      }
+      else
+      {
+        onFailure(error, ctx);
+      }
     }
 
     @Override
@@ -255,9 +265,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
         final String userName = userPassword[0];
         ctx.password = userPassword[1];
 
-        final AsyncContext asyncContext = getAsyncContext(request);
-        asyncContext.setTimeout(60 * 1000);
-        ctx.asyncContext = asyncContext;
+        ctx.asyncContext = getAsyncContext(request);
 
         ctx.connection.searchSingleEntryAsync(buildSearchRequest(userName),
             new DoBindResultHandler(ctx));
@@ -298,15 +306,25 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
   private void sendAuthenticationFailure(HTTPRequestContext ctx)
   {
-    // The user could not be authenticated. Send an HTTP Basic authentication
-    // challenge if HTTP Basic authentication is enabled.
-    ResourceException unauthorizedException =
-        ResourceException.getException(HttpServletResponse.SC_UNAUTHORIZED,
-            "Invalid Credentials");
-    sendErrorReponse(ctx.response, ctx.prettyPrint, unauthorizedException);
+    try
+    {
+      // The user could not be authenticated. Send an HTTP Basic authentication
+      // challenge if HTTP Basic authentication is enabled.
+      ResourceException unauthorizedException =
+          ResourceException.getException(HttpServletResponse.SC_UNAUTHORIZED,
+              "Invalid Credentials");
+      sendErrorReponse(ctx.response, ctx.prettyPrint, unauthorizedException);
 
-    ctx.clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS,
-        false, null);
+      ctx.clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS,
+          false, null);
+    }
+    finally
+    {
+      if (ctx.asyncContext != null)
+      {
+        ctx.asyncContext.complete();
+      }
+    }
   }
 
   private void onFailure(Exception e, HTTPRequestContext ctx)
