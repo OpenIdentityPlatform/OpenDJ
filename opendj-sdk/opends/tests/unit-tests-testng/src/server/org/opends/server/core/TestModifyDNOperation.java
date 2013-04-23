@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.core;
 
@@ -394,6 +395,179 @@ public class TestModifyDNOperation extends OperationTestCase
     examineCompletedOperation(modifyDNOperation);
   }
 
+  /**
+   * Test if it's possible to modify an rdn to a value that matches the current value
+   * by changing the case of some characters
+   */
+  @Test
+  public void testModifySameDN() throws Exception
+  {
+    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+                               noControls,
+                               DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
+                               RDN.decode("uid=USER.0"), true,
+                               null);
+    
+    modifyDNOperation.run();
+    assertEquals(modifyDNOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
+    Entry newEntry = DirectoryServer.getEntry(DN.decode(
+        "uid=user.0,ou=People,dc=example,dc=com"));
+    assertNotNull(newEntry);
+    
+    assertTrue(newEntry.getDN().toString().equals("uid=USER.0,ou=People,dc=example,dc=com"));
+    
+    AttributeType at = DirectoryServer.getAttributeType("uid");
+    List<Attribute> attrList = newEntry.getAttribute(at);
+
+    // There should be only one value for "uid"
+    assertEquals(attrList.size(),1);
+
+    // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
+    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
+    ByteString valueFromRDN = newEntry.getDN().getRDN().getAttributeValue(at).getValue();
+    assertEquals(valueFromEntry,valueFromRDN);
+
+    examineCompletedOperation(modifyDNOperation);
+    InvocationCounterPlugin.resetAllCounters();
+
+    modifyDNOperation =
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+                               noControls,
+                               DN.decode("uid=USER.0,ou=People,dc=example,dc=com"),
+                               RDN.decode("uid=user.0"), true,
+                               null);
+
+    modifyDNOperation.run();
+    assertEquals(modifyDNOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
+    newEntry = DirectoryServer.getEntry(DN.decode(
+        "uid=user.0,ou=People,dc=example,dc=com"));
+    assertNotNull(newEntry);
+
+    examineCompletedOperation(modifyDNOperation);
+  }  
+  
+  /**
+   * Add another attribute to the RDN and change case of the existing value
+   */
+  @Test
+  public void testModifyDNchangeCaseAndAddValue() throws Exception
+  {
+    TestCaseUtils.addEntry(
+         "dn: uid=userid.0,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: userid.0",
+         "givenName: Babs",
+         "sn: Jensen",
+         "cn: Babs Jensen");
+    
+    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+                               noControls,
+                               DN.decode("uid=userid.0,ou=People,dc=example,dc=com"),
+                               RDN.decode("uid=UserID.0+cn=Test"), false,
+                               null);
+    
+    modifyDNOperation.run();
+    assertEquals(modifyDNOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
+    Entry newEntry = DirectoryServer.getEntry(DN.decode(
+        "uid=userid.0+cn=test,ou=People,dc=example,dc=com"));
+    assertNotNull(newEntry);
+    
+    assertTrue(newEntry.getDN().toString().equals("uid=UserID.0+cn=Test,ou=People,dc=example,dc=com"));
+    
+    AttributeType at = DirectoryServer.getAttributeType("uid");
+    List<Attribute> attrList = newEntry.getAttribute(at);
+
+    // There should be only one value for "uid"
+    assertEquals(attrList.size(),1);
+
+    // Even though the value of the RDN changed, the representation of the entry's value should be preserved
+    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
+    ByteString valueFromRDN = newEntry.getDN().getRDN().getAttributeValue(at).getValue();
+    assertEquals(valueFromEntry,ByteString.valueOf("userid.0"));
+
+    examineCompletedOperation(modifyDNOperation);
+    TestCaseUtils.deleteEntry(DN.decode("uid=UserID.0+cn=Test,ou=People,dc=example,dc=com"));
+  }
+  
+  /**
+   * Add a value to the RDN which is already part of the entry, but with another string representation
+   */
+  @Test
+  public void testModifyDNchangeCaseOfExistingEntryValue() throws Exception
+  {
+    TestCaseUtils.addEntry(
+         "dn: uid=userid.0,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: userid.0",
+         "givenName: Babs",
+         "sn: Jensen",
+         "cn: Babs Jensen");
+    
+    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+                               noControls,
+                               DN.decode("uid=userid.0,ou=People,dc=example,dc=com"),
+                               RDN.decode("uid=userid.0+sn=JENSEN"), false,
+                               null);
+    
+    modifyDNOperation.run();
+    assertEquals(modifyDNOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
+    Entry newEntry = DirectoryServer.getEntry(DN.decode(
+        "uid=userid.0+sn=jensen,ou=People,dc=example,dc=com"));
+    assertNotNull(newEntry);
+    
+    assertTrue(newEntry.getDN().toString().equals("uid=userid.0+sn=JENSEN,ou=People,dc=example,dc=com"));
+    
+    AttributeType at = DirectoryServer.getAttributeType("sn");
+    List<Attribute> attrList = newEntry.getAttribute(at);
+
+    // There should be only one value for "sn"
+    assertEquals(attrList.size(),1);
+
+    // Even though the representation of the sn value differs in the RDN,
+    // the representation of the entry's value should be preserved
+    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
+    ByteString valueFromRDN = newEntry.getDN().getRDN().getAttributeValue(at).getValue();
+    assertEquals(valueFromEntry,ByteString.valueOf("Jensen"));
+
+    examineCompletedOperation(modifyDNOperation);
+    TestCaseUtils.deleteEntry(DN.decode("uid=userid.0+sn=Jensen,ou=People,dc=example,dc=com"));
+  }
+  
   @Test
   public void testRawDeleteOldRDNModify() throws Exception
   {
