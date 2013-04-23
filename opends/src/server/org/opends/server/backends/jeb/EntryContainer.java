@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -2428,7 +2429,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     try
     {
       // Check whether the renamed entry already exists.
-      if (dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
+      if (!currentDN.equals(entry.getDN()) &&
+          dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
       {
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
             entry.getDN().toString());
