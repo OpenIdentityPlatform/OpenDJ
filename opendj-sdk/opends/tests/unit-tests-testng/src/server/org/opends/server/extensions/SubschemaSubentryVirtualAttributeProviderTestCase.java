@@ -44,7 +44,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -165,18 +164,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT, filter);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchEmptyAttrs(entryDN, subschemaSubentryType);
   }
 
 
@@ -194,22 +182,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(SchemaConstants.NO_ATTRIBUTES);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchNoAttrs(entryDN, subschemaSubentryType);
   }
 
 
@@ -227,22 +200,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("*");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchAllUserAttrs(entryDN, subschemaSubentryType);
   }
 
 
@@ -260,22 +218,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("+");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchAllOperationalAttrs(entryDN, subschemaSubentryType);
   }
 
 
@@ -293,22 +236,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttr(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("subschemasubentry");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchAttr(entryDN, "subschemasubentry", subschemaSubentryType);
   }
 
 
@@ -326,22 +254,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchExcludeSubschemaSubentryAttr(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("objectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(subschemaSubentryType));
+    ExtensionTestUtils.testSearchExcludeAttr(entryDN, subschemaSubentryType);
   }
 
 

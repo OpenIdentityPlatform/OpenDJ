@@ -44,7 +44,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -219,18 +218,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT, filter);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchEmptyAttrs(entryDN, governingStructureRuleType);
   }
 
 
@@ -248,22 +236,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(SchemaConstants.NO_ATTRIBUTES);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchNoAttrs(entryDN, governingStructureRuleType);
   }
 
 
@@ -281,22 +254,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("*");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchAllUserAttrs(entryDN, governingStructureRuleType);
   }
 
 
@@ -314,22 +272,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("+");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchAllOperationalAttrs(entryDN, governingStructureRuleType);
   }
 
 
@@ -347,22 +290,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGoverningStructureRulesAttr(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("governingStructureRule");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchAttr(entryDN, "governingStructureRule", governingStructureRuleType);
   }
 
 
@@ -380,22 +308,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchExcludeGovStructRuleAttr(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("objectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(governingStructureRuleType));
+    ExtensionTestUtils.testSearchExcludeAttr(entryDN, governingStructureRuleType);
   }
 
 

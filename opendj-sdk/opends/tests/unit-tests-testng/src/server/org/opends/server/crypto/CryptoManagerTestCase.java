@@ -23,67 +23,58 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.crypto;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
-import org.opends.server.TestCaseUtils;
-import org.opends.server.types.*;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.TimeThread;
-import org.opends.server.util.EmbeddedUtils;
-
-import org.opends.server.core.DirectoryServer;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.admin.ads.ADSContext;
-import org.opends.messages.Message;
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
-import java.util.LinkedList;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.lang.reflect.Method;
-import java.security.MessageDigest;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.annotations.DataProvider;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.crypto.Mac;
-import javax.naming.directory.*;
-import javax.naming.ldap.LdapName;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapName;
+
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.*;
+import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  This class tests the CryptoManager.
  */
+@SuppressWarnings("javadoc")
 public class CryptoManagerTestCase extends CryptoTestCase {
-  /**
-   Setup..
-   @throws Exception  If an unexpected problem occurs.
-   */
+
   @BeforeClass()
   public void setUp()
          throws Exception {
     TestCaseUtils.startServer();
   }
 
-  /**
-   Cleanup.
-   @throws Exception If an exceptional condition arises.
-   */
   @AfterClass()
   public void CleanUp() throws Exception {
     // Removes at least secret keys added in this test case.
@@ -128,7 +119,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertTrue(StaticUtils.bytesToHexNoSpace(
          md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
 
-    // Call twice to ensure idempotent. 
+    // Call twice to ensure idempotent.
     CryptoManagerImpl.publishInstanceKeyEntryInADS();
     CryptoManagerImpl.publishInstanceKeyEntryInADS();
   }
@@ -240,10 +231,10 @@ public class CryptoManagerTestCase extends CryptoTestCase {
             ? cm.encrypt(secretMessage.getBytes()) // default
             : cm.encrypt(cp.getTransformation(), cp.getKeyLength(),
                          secretMessage.getBytes());
-    assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
+    assertEquals(-1, new String(cipherText).indexOf(secretMessage));
 
     final byte[] plainText = cm.decrypt(cipherText);
-    assertEquals((new String(plainText)), secretMessage);
+    assertEquals(new String(plainText), secretMessage);
   }
 
 
@@ -304,19 +295,12 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
     // test cycle
     final byte[] plainText = cm.decrypt(cipherText2);
-    assertEquals((new String(plainText)), secretMessage);
+    assertEquals(new String(plainText), secretMessage);
 
     // test for identical keys
-    try {
-      Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
-              Integer.TYPE, Integer.TYPE);
-      final byte[] keyID = (byte[])m.invoke(null, cipherText, 1, 16);
-      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 1, 16);
-      assertEquals(keyID, keyID2);
-    }
-    catch (NoSuchMethodException ex) {
-      // skip this test - requires at least Java 6
-    }
+    final byte[] keyID = Arrays.copyOfRange(cipherText, 1, 16);
+    final byte[] keyID2 = Arrays.copyOfRange(cipherText2, 1, 16);
+    assertTrue(Arrays.equals(keyID, keyID2));
 
     // test for distinct ciphertext
     assertTrue(! Arrays.equals(cipherText, cipherText2));
@@ -347,9 +331,9 @@ public class CryptoManagerTestCase extends CryptoTestCase {
             DirectoryServer.getEnvironmentConfig());
 
     byte[] plainText = cm.decrypt(cipherText);
-    assertEquals((new String(plainText)), secretMessage);
+    assertEquals(new String(plainText), secretMessage);
     plainText = cm.decrypt(cipherText2);
-    assertEquals((new String(plainText)), secretMessage);
+    assertEquals(new String(plainText), secretMessage);
   }
 
 
@@ -425,7 +409,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     //Wait so the above asynchronous modification can be applied. The crypto
     //manager's cipherKeyEntryCache needs to be updated before the encrypt()
     //method is called below.
-    Thread.sleep(1000); 
+    Thread.sleep(1000);
     // Use the transformation and key length again. A new cipher key
     // should be produced.
     final byte[] cipherText2 = cm.encrypt(cipherTransformationName,
@@ -441,7 +425,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // 2. Confirm ciphertext produced using the compromised key can still be
     // decrypted.
     final byte[] plainText = cm.decrypt(cipherText);
-    assertEquals((new String(plainText)), secretMessage);
+    assertEquals(new String(plainText), secretMessage);
 
     // 3. Delete the compromised entry(ies) and ensure ciphertext produced
     // using a compromised key can no longer be decrypted.

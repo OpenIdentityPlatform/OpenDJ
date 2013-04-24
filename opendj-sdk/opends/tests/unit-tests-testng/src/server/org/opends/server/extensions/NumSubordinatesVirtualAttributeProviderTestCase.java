@@ -27,7 +27,6 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
@@ -248,18 +247,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchEmptyAttrs(DN entryDN, int count)
       throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT, filter);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchEmptyAttrs(entryDN, numSubordinatesType);
   }
 
 
@@ -276,22 +264,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchNoAttrs(DN entryDN, int count)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(SchemaConstants.NO_ATTRIBUTES);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchNoAttrs(entryDN, numSubordinatesType);
   }
 
 
@@ -309,22 +282,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchAllUserAttrs(DN entryDN, int count)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("*");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchAllUserAttrs(entryDN, numSubordinatesType);
   }
 
 
@@ -342,22 +300,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchAllOperationalAttrs(DN entryDN, int count)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("+");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchAllOperationalAttrs(entryDN, numSubordinatesType);
   }
 
 
@@ -375,22 +318,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchnumSubordinatesAttr(DN entryDN, int count)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("numSubordinates");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchAttr(entryDN, "numSubordinates", numSubordinatesType);
   }
 
 
@@ -408,22 +336,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchExcludenumSubordinatesAttr(DN entryDN, int count)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("objectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(numSubordinatesType));
+    ExtensionTestUtils.testSearchExcludeAttr(entryDN, numSubordinatesType);
   }
 
 

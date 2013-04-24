@@ -27,7 +27,6 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
@@ -247,18 +246,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchEmptyAttrs(DN entryDN, boolean hasSubs)
       throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT, filter);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchEmptyAttrs(entryDN, hasSubordinatesType);
   }
 
 
@@ -275,22 +263,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchNoAttrs(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(SchemaConstants.NO_ATTRIBUTES);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchNoAttrs(entryDN, hasSubordinatesType);
   }
 
 
@@ -308,22 +281,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchAllUserAttrs(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("*");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchAllUserAttrs(entryDN, hasSubordinatesType);
   }
 
 
@@ -341,22 +299,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchAllOperationalAttrs(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("+");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchAllOperationalAttrs(entryDN, hasSubordinatesType);
   }
 
 
@@ -374,22 +317,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttr(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("hasSubordinates");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchAttr(entryDN, "hasSubordinates", hasSubordinatesType);
   }
 
 
@@ -407,22 +335,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchExcludehasSubordinatesAttr(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("objectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            filter, attrList);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(hasSubordinatesType));
+    ExtensionTestUtils.testSearchExcludeAttr(entryDN, hasSubordinatesType);
   }
 
 
