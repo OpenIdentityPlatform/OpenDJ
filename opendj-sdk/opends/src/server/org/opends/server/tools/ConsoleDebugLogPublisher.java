@@ -23,33 +23,36 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
-
-import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.loggers.LogCategory;
-import org.opends.server.loggers.debug.TraceSettings;
-import org.opends.server.loggers.debug.DebugStackTraceFormatter;
-import org.opends.server.loggers.debug.DebugMessageFormatter;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.config.ConfigException;
-import com.sleepycat.je.*;
 
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.LogCategory;
+import org.opends.server.loggers.LogLevel;
+import org.opends.server.loggers.debug.DebugMessageFormatter;
+import org.opends.server.loggers.debug.DebugStackTraceFormatter;
+import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogCategory;
+import org.opends.server.types.InitializationException;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
+
+import com.sleepycat.je.*;
+
 /**
  * The debug log publisher implementation that writes debug messages in a
  * friendly for console output.
  */
-public class ConsoleDebugLogPublisher extends DebugLogPublisher
+public class ConsoleDebugLogPublisher extends
+    DebugLogPublisher<DebugLogPublisherCfg>
 {
   /**
    * The print stream where tracing will be sent.
@@ -74,14 +77,16 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
-  public void initializeDebugLogPublisher(DebugLogPublisherCfg config)
+  @Override
+  public void initializeLogPublisher(DebugLogPublisherCfg config)
       throws ConfigException, InitializationException {
-    // This pubisher is not configurable.
+    // This publisher is not configurable.
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceConstructor(LogLevel level,
                                TraceSettings settings,
                                String signature,
@@ -109,6 +114,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceMethodEntry(LogLevel level,
                                TraceSettings settings,
                                String signature,
@@ -136,6 +142,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceStaticMethodEntry(LogLevel level,
                                      TraceSettings settings,
                                      String signature,
@@ -162,6 +169,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceReturn(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -195,6 +203,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceThrown(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -226,6 +235,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceMessage(LogLevel level,
                            TraceSettings settings,
                            String signature,
@@ -247,6 +257,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceCaught(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -278,6 +289,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceJEAccess(LogLevel level,
                             TraceSettings settings,
                             String signature,
@@ -353,6 +365,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceData(LogLevel level,
                         TraceSettings settings,
                         String signature,
@@ -384,6 +397,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceProtocolElement(LogLevel level,
                                    TraceSettings settings,
                                    String signature,
@@ -405,6 +419,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     // Nothing to do.
@@ -465,6 +480,7 @@ public class ConsoleDebugLogPublisher extends DebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     // There is no configuration DN associated with this publisher.

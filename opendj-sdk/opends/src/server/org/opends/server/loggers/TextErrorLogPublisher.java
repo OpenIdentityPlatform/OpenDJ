@@ -23,32 +23,29 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.server.api.*;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.*;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.LoggerMessages.*;
-import org.opends.messages.Severity;
 import org.opends.messages.Category;
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
-import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
+import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
+import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
-import static org.opends.server.util.ServerConstants.*;
 
 
 /**
@@ -112,7 +109,8 @@ public class TextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
-  public void initializeErrorLogPublisher(FileBasedErrorLogPublisherCfg config)
+  @Override
+  public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(config.getLogFile());
@@ -292,18 +290,16 @@ public class TextErrorLogPublisher
    * {@inheritDoc}
    */
   @Override()
-  public boolean isConfigurationAcceptable(ErrorLogPublisherCfg configuration,
-                                           List<Message> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+      FileBasedErrorLogPublisherCfg config, List<Message> unacceptableReasons)
   {
-    FileBasedErrorLogPublisherCfg config =
-         (FileBasedErrorLogPublisherCfg) configuration;
-
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedErrorLogPublisherCfg config, List<Message> unacceptableReasons)
   {
@@ -384,6 +380,7 @@ public class TextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedErrorLogPublisherCfg config)
   {
@@ -591,6 +588,7 @@ public class TextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     writer.shutdown();
@@ -605,12 +603,13 @@ public class TextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logError(Message message)
   {
     Severity severity = message.getDescriptor().getSeverity();
     Category category = message.getDescriptor().getCategory();
     int msgId = message.getDescriptor().getId();
-    HashSet<Severity> severities = definedSeverities.get(category);
+    Set<Severity> severities = definedSeverities.get(category);
     if(severities == null)
     {
       severities = defaultSeverities;
@@ -634,6 +633,7 @@ public class TextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     if(currentConfig != null)

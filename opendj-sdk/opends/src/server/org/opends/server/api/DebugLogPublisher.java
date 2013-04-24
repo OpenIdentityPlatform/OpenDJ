@@ -23,32 +23,25 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
-
-
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.sleepycat.je.Transaction;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.DN;
-
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -62,8 +55,8 @@ import org.opends.server.types.DN;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class DebugLogPublisher
-       <T extends DebugLogPublisherCfg>
+public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
+    implements LogPublisher<T>
 {
   //The default global settings key.
   private static final String GLOBAL= "_global";
@@ -91,56 +84,13 @@ public abstract class DebugLogPublisher
 
 
 
-  /**
-   * Initializes this debug publisher provider based on the
-   * information in the provided debug publisher configuration.
-   *
-   * @param  config  The debug publisher configuration that contains
-   *                 the information to use to initialize this debug
-   *                 publisher.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization as a result of the
-   *                           server configuration.
-   *
-   * @throws   InitializationException  If a problem occurs during
-   *                                    initialization that is not
-   *                                    related to the server
-   *                                    configuration.
-   */
-  public abstract void initializeDebugLogPublisher(T config)
-         throws ConfigException, InitializationException;
-
-
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this debug log publisher.  It should be possible to call this
-   * method on an uninitialized debug log publisher instance in
-   * order to determine whether the debug log publisher would be able
-   * to use the provided configuration.
-   * <BR><BR>
-   * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration
-   * to the appropriate subclass type.
-   *
-   * @param  configuration        The debug log publisher
-   *                              configuration for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   *
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this debug log publisher, or {@code false} if not.
-   */
-  public boolean isConfigurationAcceptable(
-                      DebugLogPublisherCfg configuration,
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConfigurationAcceptable(T configuration,
                       List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
-    // validation.  It should be overridden by debug log publisher
+    // validation. It should be overridden by debug log publisher
     // implementations that wish to perform more detailed validation.
     return true;
   }
@@ -400,7 +350,7 @@ public abstract class DebugLogPublisher
    *
    * @param  level           The log level for the message.
    * @param  settings        The current trace settings in effect.
-   * @param  signature       The constuctor signature.
+   * @param  signature       The constructor signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  args            The parameters provided to the
    *                         constructor.
@@ -596,7 +546,7 @@ public abstract class DebugLogPublisher
    * @param  settings        The current trace settings in effect.
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
-   * @param  decodedForm     The string reprentation of the protocol
+   * @param  decodedForm     The string representation of the protocol
    *                         element.
    * @param  stackTrace      The stack trace at the time the protocol
    *                         element is logged or null if its not
@@ -609,17 +559,4 @@ public abstract class DebugLogPublisher
                                             String decodedForm,
                                       StackTraceElement[] stackTrace);
 
-  /**
-   * Close this publisher.
-   */
-  public abstract void close();
-
-  /**
-   * Gets the DN of the configuration entry for this debug log
-   * publisher.
-   *
-   * @return The configuration entry DN.
-   */
-  public abstract DN getDN();
 }
-

@@ -23,32 +23,33 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.loggers.debug;
-import org.opends.messages.Message;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.loggers.*;
-import org.opends.server.types.*;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
+import org.opends.messages.Message;
+import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.messages.ConfigMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.loggers.LogLevel;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -182,6 +183,7 @@ public class DebugLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(DebugLogPublisherCfg config,
                                               List<Message> unacceptableReasons)
   {
@@ -192,6 +194,7 @@ public class DebugLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(DebugLogPublisherCfg config,
                                               List<Message> unacceptableReasons)
   {
@@ -202,6 +205,7 @@ public class DebugLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(DebugLogPublisherCfg config)
   {
     // Default result code.
@@ -240,6 +244,7 @@ public class DebugLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       DebugLogPublisherCfg config)
   {
@@ -295,6 +300,7 @@ public class DebugLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(DebugLogPublisherCfg config,
                                              List<Message> unacceptableReasons)
   {
@@ -310,12 +316,12 @@ public class DebugLogger implements
     }
 
     return debugLogPublisher != null;
-
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult
          applyConfigurationDelete(DebugLogPublisherCfg config)
   {
@@ -351,12 +357,12 @@ public class DebugLogger implements
     DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a DebugLogPublisher.
-    DebugLogPublisher publisher = null;
-    Class<? extends DebugLogPublisher> theClass;
     try {
-      theClass = pd.loadClass(className, DebugLogPublisher.class);
-      publisher = theClass.newInstance();
+      // Load the class and cast it to a DebugLogPublisher.
+      DebugLogPublisher<DebugLogPublisherCfg> publisher =
+          pd.loadClass(className, DebugLogPublisher.class).newInstance();
+      // The class is valid as far as we can tell.
+      return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
       Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
               className,
@@ -365,31 +371,6 @@ public class DebugLogger implements
       unacceptableReasons.add(message);
       return false;
     }
-    // Check that the implementation class implements the correct interface.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-                                         DebugLogPublisherCfg.class,
-                                         List.class);
-      Boolean acceptable = (Boolean) method.invoke(publisher, config,
-                                                   unacceptableReasons);
-
-      if (! acceptable)
-      {
-        return false;
-      }
-    } catch (Exception e) {
-      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
-              className,
-              config.dn().toString(),
-              String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   private DebugLogPublisher getDebugPublisher(DebugLogPublisherCfg config)
@@ -398,27 +379,13 @@ public class DebugLogger implements
     DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a DebugLogPublisher.
-    Class<? extends DebugLogPublisher> theClass;
-    DebugLogPublisher debugLogPublisher;
     try {
-      theClass = pd.loadClass(className, DebugLogPublisher.class);
-      debugLogPublisher = theClass.newInstance();
-
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeDebugLogPublisher", config
-          .configurationClass());
-      method.invoke(debugLogPublisher, config);
-    }
-    catch (InvocationTargetException ite)
-    {
-      // Rethrow the exceptions thrown be the invoked method.
-      Throwable e = ite.getTargetException();
-      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
-          className, config.dn().toString(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
+      // Load the class and cast it to a DebugLogPublisher.
+      DebugLogPublisher<DebugLogPublisherCfg> debugLogPublisher =
+          pd.loadClass(className, DebugLogPublisher.class).newInstance();
+      debugLogPublisher.initializeLogPublisher(config);
+      // The debug publisher has been successfully initialized.
+      return debugLogPublisher;
     }
     catch (Exception e)
     {
@@ -426,9 +393,6 @@ public class DebugLogger implements
           className, config.dn().toString(), String.valueOf(e));
       throw new ConfigException(message, e);
     }
-
-    // The debug publisher has been successfully initialized.
-    return debugLogPublisher;
   }
 
   /**
