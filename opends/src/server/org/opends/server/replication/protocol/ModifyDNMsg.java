@@ -331,14 +331,13 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
   {
-    int bodyLength = 0;
     byte[] byteNewSuperior = null;
     byte[] byteNewSuperiorId = null;
 
     // calculate the length necessary to encode the parameters
 
     byte[] byteNewRdn = newRDN.getBytes("UTF-8");
-    bodyLength = byteNewRdn.length + 1 + 1;
+    int bodyLength = byteNewRdn.length + 1 + 1;
 
     if (newSuperior != null)
     {
@@ -438,10 +437,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     pos += length + 1;
 
     /* get the deleteoldrdn flag */
-    if (in[pos] == 0)
-      deleteOldRdn = false;
-    else
-      deleteOldRdn = true;
+    deleteOldRdn = in[pos] != 0;
     pos++;
 
     // For easiness (no additional method), simply compare PDU type to
@@ -501,10 +497,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     pos += length + 1;
 
     /* get the deleteoldrdn flag */
-    if (in[pos] == 0)
-      deleteOldRdn = false;
-    else
-      deleteOldRdn = true;
+    deleteOldRdn = in[pos] != 0;
     pos++;
 
     // Read mods len

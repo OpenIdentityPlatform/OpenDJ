@@ -70,8 +70,9 @@ public class ReplicationServerHandler extends ServerHandler
    * @return Whether the remote server requires encryption or not.
    * @throws DirectoryException When a problem occurs.
    */
-  public boolean processStartFromRemote(ReplServerStartMsg inReplServerStartMsg)
-  throws DirectoryException
+  private boolean processStartFromRemote(
+        ReplServerStartMsg inReplServerStartMsg)
+        throws DirectoryException
   {
     try
     {
@@ -358,7 +359,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         /*
         Only protocol version above V1 has a phase 2 handshake
-        NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
+        NOW PROCEED WITH SECOND PHASE OF HANDSHAKE:
         TopologyMsg then TopologyMsg (with a RS)
         wait and process Topo from remote RS
         */
@@ -524,21 +525,15 @@ public class ReplicationServerHandler extends ServerHandler
     // Remote RS sent his topo msg
     TopologyMsg inTopoMsg = (TopologyMsg) msg;
 
-    // Store remore RS weight if it has one
+    /* Store remote RS weight if it has one.
+     * For protocol version < 4, use default value of 1 for weight
+     */
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       // List should only contain RS info for sender
       RSInfo rsInfo = inTopoMsg.getRsList().get(0);
       weight = rsInfo.getWeight();
     }
-    else
-    {
-      /*
-      Remote RS uses protocol version prior to 4 : use default value for
-      weight: 1
-      */
-    }
-
     /*
     if the remote RS and the local RS have the same genID
     then it's ok and nothing else to do
@@ -569,11 +564,10 @@ public class ReplicationServerHandler extends ServerHandler
   private void checkGenerationId()
   {
     if (localGenerationId > 0)
-    {
-      // if the local RS is initialized
+    { // the local RS is initialized
       if (generationId > 0)
-      {
-        // if the remote RS is initialized
+      { // the remote RS is initialized.
+        // If not, there's nothing to do anyway.
         if (generationId != localGenerationId)
         {
           // if the 2 RS have different generationID
@@ -620,13 +614,6 @@ public class ReplicationServerHandler extends ServerHandler
             logError(message);
           }
         }
-      }
-      else
-      {
-        /*
-        The remote RS has no genId. We don't change anything for the
-        current RS.
-        */
       }
     }
     else

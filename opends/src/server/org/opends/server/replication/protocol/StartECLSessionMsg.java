@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ChangeNumber;
@@ -63,8 +65,6 @@ public class StartECLSessionMsg extends ReplicationMsg
    */
   public final static short REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER = 2;
 
-
-
   /**
    * This specifies that the request on the ECL is a PERSISTENT search
    * with changesOnly = false.
@@ -81,8 +81,6 @@ public class StartECLSessionMsg extends ReplicationMsg
    * with changesOnly = true.
    */
   public final static short PERSISTENT_CHANGES_ONLY = 2;
-
-
 
   // The type of request as defined by REQUEST_TYPE_...
   private short  eclRequestType;
@@ -182,10 +180,7 @@ public class StartECLSessionMsg extends ReplicationMsg
       if (excludedDNsString.length()>0)
       {
         String[] excludedDNsStr = excludedDNsString.split(";");
-        for (String excludedDNStr : excludedDNsStr)
-        {
-          this.excludedServiceIDs.add(excludedDNStr);
-        }
+        Collections.addAll(this.excludedServiceIDs, excludedDNsStr);
       }
       pos += length + 1;
 
@@ -219,7 +214,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public byte[] getBytes()
   {
-    String excludedSIDsString = new String();
+    String excludedSIDsString = "";
     for (String excludedServiceID : excludedServiceIDs)
     {
       excludedSIDsString = excludedSIDsString.concat(excludedServiceID+";");

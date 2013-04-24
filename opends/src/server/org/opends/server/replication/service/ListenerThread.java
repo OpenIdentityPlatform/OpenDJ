@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.service;
 import org.opends.messages.Message;
@@ -96,7 +96,7 @@ public class ListenerThread extends DirectoryThread
         // queue
         while ((!shutdown) && ((updateMsg = repDomain.receive()) != null))
         {
-          if (repDomain.processUpdate(updateMsg) == true)
+          if (repDomain.processUpdate(updateMsg))
           {
             repDomain.processUpdateDoneSynchronous(updateMsg);
           }
@@ -138,7 +138,7 @@ public class ListenerThread extends DirectoryThread
     {
       int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
       int n = 0;
-      while ((done == false) && (this.isAlive()))
+      while (!done && this.isAlive())
       {
         Thread.sleep(50);
         n++;

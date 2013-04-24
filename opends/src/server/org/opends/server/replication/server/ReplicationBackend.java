@@ -151,11 +151,6 @@ public class ReplicationBackend
   private ReplicationServer server;
 
   /**
-   * The configuration of this backend.
-   */
-  private BackendCfg cfg;
-
-  /**
    * The number of milliseconds between job progress reports.
    */
   private long progressInterval = 10000;
@@ -214,7 +209,7 @@ public class ReplicationBackend
     if (config != null)
     {
       Validator.ensureTrue(config instanceof BackendCfg);
-      cfg = (BackendCfg)config;
+      BackendCfg cfg = (BackendCfg) config;
       DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(newBaseDNs);
       setBaseDNs(newBaseDNs);
@@ -655,7 +650,7 @@ public class ReplicationBackend
                                attrs);
       ldifWriter.writeChangeRecord(changeRecord);
     }
-    catch (Exception e) {}
+    catch (Exception e) { /* do nothing */ }
 
     for (ReplicationServerDomain exportContainer : exportContainers)
     {
@@ -718,7 +713,7 @@ public class ReplicationBackend
     for (int serverId : rsd.getServers())
     {
       if (exportConfig != null && exportConfig.isCancelled())
-      {
+      { // Abort if cancelled
         break;
       }
 
@@ -764,7 +759,7 @@ public class ReplicationBackend
           while (ri.getChange() != null)
           {
             if (exportConfig != null && exportConfig.isCancelled())
-            {
+            { // abort if cancelled
               break;
             }
             if (searchOperation != null)
@@ -988,8 +983,7 @@ public class ReplicationBackend
             LDIFWriter ldifWriter2 = writer.getLDIFWriter();
             ldifWriter2.writeChangeRecord(changeRecord);
             LDIFReader reader = writer.getLDIFReader();
-            Entry modDNEntry = reader.readEntry();
-            entry = modDNEntry;
+            entry = reader.readEntry();
           }
         }
 

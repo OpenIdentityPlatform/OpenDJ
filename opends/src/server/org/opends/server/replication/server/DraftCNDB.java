@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -95,7 +95,7 @@ public class DraftCNDB
     try
     {
       DatabaseEntry key = new ReplicationDraftCNKey(draftCN);
-      DatabaseEntry data = new DraftCNData(draftCN,
+      DatabaseEntry data = new DraftCNData(
           value, domainBaseDN, changeNumber);
 
       // Use a transaction so that we can override durability.
@@ -625,8 +625,7 @@ public class DraftCNDB
       try
       {
         String str = decodeUTF8(key.getData());
-        int draftCN = new Integer(str);
-        return draftCN;
+        return Integer.valueOf(str);
       }
       catch (Exception e)
       {

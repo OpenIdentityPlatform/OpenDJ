@@ -1234,7 +1234,7 @@ public class ReplicationBroker
       }
       else
       {
-        serverStartMsg = new ServerStartECLMsg(baseDn, 0, 0, 0, 0,
+        serverStartMsg = new ServerStartECLMsg(0, 0, 0, 0,
             maxRcvWindow, heartbeatInterval, state,
             ProtocolVersion.getCurrentVersion(),
             this.getGenerationID(), isSslEncryption, groupId);
@@ -2605,13 +2605,14 @@ public class ReplicationBroker
     {
       synchronized (monitorResponse)
       {
-        if (monitorResponse.get() == false)
+        if (!monitorResponse.get())
         {
           monitorResponse.wait(10000);
         }
       }
     } catch (InterruptedException e)
     {
+      Thread.currentThread().interrupt();
     }
     return replicaStates;
   }

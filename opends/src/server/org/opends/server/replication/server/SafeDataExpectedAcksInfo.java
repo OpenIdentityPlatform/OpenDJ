@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.replication.server;
@@ -106,14 +107,10 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
       return false;
     } else
     {
-
       // Mark this ack received for the server
       expectedServersAckStatus.put(ackingServerId, true);
       numReceivedAcks++;
-      if (numReceivedAcks == safeDataLevel)
-        return true;
-      else
-        return false;
+      return numReceivedAcks == safeDataLevel;
     }
   }
 
@@ -128,7 +125,7 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
     {
       // Fill collected errors info
       ack.setHasTimeout(true);
-      // Tell wich servers did not send an ack in time
+      // Tell which servers did not send an ack in time
       List<Integer> failedServers = new ArrayList<Integer>();
       Set<Integer> serverIds = expectedServersAckStatus.keySet();
       serversInTimeout = new ArrayList<Integer>(); // Use next loop to fill it

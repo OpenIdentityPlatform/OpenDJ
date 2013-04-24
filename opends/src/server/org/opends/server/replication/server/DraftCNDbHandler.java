@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -70,10 +70,6 @@ public class DraftCNDbHandler implements Runnable
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  // A dedicated thread loops trim().
-  // trim()  : deletes from the DB a number of changes that are older than a
-  //           certain date.
-  //
   static int NO_KEY = 0;
 
   private DraftCNDB db;
@@ -82,16 +78,20 @@ public class DraftCNDbHandler implements Runnable
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean trimDone = false;
-  private DirectoryThread thread = null;
-  private ReplicationServer replicationServer;
-
+  /*
+  A dedicated thread loops trim().
+  trim()  : deletes from the DB a number of changes that are older than a
+  certain date.
+  */
+  private DirectoryThread thread;
   /**
-   *
    * The trim age in milliseconds. Changes record in the change DB that
    * are older than this age are removed.
-   *
    */
   private long trimAge;
+
+  private ReplicationServer replicationServer;
+
 
   /**
    * Creates a new dbHandler associated to a given LDAP server.
@@ -113,7 +113,7 @@ public class DraftCNDbHandler implements Runnable
     firstkey = db.readFirstDraftCN();
     lastkey = db.readLastDraftCN();
 
-    // Triming thread
+    // Trimming thread
     thread = new DirectoryThread(this, "Replication DraftCN db ");
     thread.start();
 
@@ -204,7 +204,7 @@ public class DraftCNDbHandler implements Runnable
       cursor.close();
     }
     catch(Exception e)
-    {
+    { /* do nothing */
     }
   }
 
@@ -226,9 +226,7 @@ public class DraftCNDbHandler implements Runnable
   public DraftCNDbIterator generateIterator(int startDraftCN)
                            throws DatabaseException, Exception
   {
-    DraftCNDbIterator it =
-      new DraftCNDbIterator(db, startDraftCN);
-    return it;
+    return new DraftCNDbIterator(db, startDraftCN);
   }
 
   /**
@@ -236,7 +234,7 @@ public class DraftCNDbHandler implements Runnable
    */
   public void shutdown()
   {
-    if (shutdown == true)
+    if (shutdown)
     {
       return;
     }
@@ -248,14 +246,14 @@ public class DraftCNDbHandler implements Runnable
     }
 
     synchronized (this)
-    {
-      while (trimDone  == false)
+    { /* Can we just do a thread.join() ? */
+      while (!trimDone)
       {
         try
         {
           this.wait();
         } catch (Exception e)
-        {}
+        { /* do nothing */ }
       }
     }
 
@@ -271,7 +269,7 @@ public class DraftCNDbHandler implements Runnable
    */
   public void run()
   {
-    while (shutdown == false)
+    while (!shutdown)
     {
       try {
         trim();
@@ -282,7 +280,9 @@ public class DraftCNDbHandler implements Runnable
           {
             this.wait(1000);
           } catch (InterruptedException e)
-          { }
+          {
+            Thread.currentThread().interrupt();
+          }
         }
       } catch (Exception end)
       {
@@ -393,7 +393,7 @@ public class DraftCNDbHandler implements Runnable
             continue;
           }
 
-          ServerState cnVector = null;
+          ServerState cnVector;
           try
           {
             Map<String,ServerState> cnStartStates =

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -176,31 +177,13 @@ public class AckMsg extends ReplicationMsg
       pos += length + 1;
 
       /* Read the hasTimeout flag */
-      if (in[pos++] == 1)
-      {
-        hasTimeout = true;
-      } else
-      {
-        hasTimeout = false;
-      }
+      hasTimeout = in[pos++] == 1;
 
       /* Read the hasWrongStatus flag */
-      if (in[pos++] == 1)
-      {
-        hasWrongStatus = true;
-      } else
-      {
-        hasWrongStatus = false;
-      }
+      hasWrongStatus = in[pos++] == 1;
 
       /* Read the hasReplayError flag */
-      if (in[pos++] == 1)
-      {
-        hasReplayError = true;
-      } else
-      {
-        hasReplayError = false;
-      }
+      hasReplayError = in[pos++] == 1;
 
       /* Read the list of failed server ids */
       while (pos < in.length)
@@ -318,7 +301,7 @@ public class AckMsg extends ReplicationMsg
    */
   public String errorsToString()
   {
-    String idList = null;
+    String idList;
     if (failedServers.size() > 0)
     {
       idList = "[";
@@ -334,12 +317,10 @@ public class AckMsg extends ReplicationMsg
       idList="none";
     }
 
-    String ackErrorStr = "hasTimeout: " + (hasTimeout ? "yes" : "no")  + ", " +
+    return "hasTimeout: " + (hasTimeout ? "yes" : "no")  + ", " +
       "hasWrongStatus: " + (hasWrongStatus ? "yes" : "no")  + ", " +
       "hasReplayError: " + (hasReplayError ? "yes" : "no")  + ", " +
       "concerned server ids: " + idList;
-
-    return ackErrorStr;
   }
 
 }

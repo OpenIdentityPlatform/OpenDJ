@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -118,9 +119,6 @@ public class AttrValueHistorical
    */
   public boolean isUpdate()
   {
-    if (valueUpdateTime != null)
-      return true;
-    else
-      return false;
+    return valueUpdateTime != null;
   }
 }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -681,21 +681,21 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 1234567, 45678);
 
     ArrayList<Integer> fservers1 = new ArrayList<Integer>();
-    fservers1.add(new Integer(12345));
-    fservers1.add(new Integer(-12345));
-    fservers1.add(new Integer(31657));
-    fservers1.add(new Integer(-28456));
-    fservers1.add(new Integer(0));
+    fservers1.add(12345);
+    fservers1.add(-12345);
+    fservers1.add(31657);
+    fservers1.add(-28456);
+    fservers1.add(0);
     ArrayList<Integer> fservers2 = new ArrayList<Integer>();
     ArrayList<Integer> fservers3 = new ArrayList<Integer>();
-    fservers3.add(new Integer(0));
+    fservers3.add(0);
     ArrayList<Integer> fservers4 = new ArrayList<Integer>();
-    fservers4.add(new Integer(100));
-    fservers4.add(new Integer(2000));
-    fservers4.add(new Integer(30000));
-    fservers4.add(new Integer(-100));
-    fservers4.add(new Integer(-2000));
-    fservers4.add(new Integer(-30000));
+    fservers4.add(100);
+    fservers4.add(2000);
+    fservers4.add(30000);
+    fservers4.add(-100);
+    fservers4.add(-2000);
+    fservers4.add(-30000);
 
     return new Object[][] {
         {cn1, true, false, false, fservers1},
@@ -1421,7 +1421,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void startECLMsgTest(int serverId, String baseDN, int window,
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
-    ServerStartECLMsg msg = new ServerStartECLMsg(baseDN,
+    ServerStartECLMsg msg = new ServerStartECLMsg(
         window, window, window, window, window, window, state,
         ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
     ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes());
@@ -1447,13 +1447,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     // data
     ChangeNumber changeNumber = new ChangeNumber(TimeThread.getTime(), 123,  45);
-    String generalizedState = new String("fakegenstate");
+    String generalizedState = "fakegenstate";
     ServerState state = new ServerState();
     assertTrue(state.update(new ChangeNumber((long)75, 5,263)));
     short mode = 3;
     int firstDraftChangeNumber = 13;
     int lastDraftChangeNumber  = 14;
-    String myopid = new String("fakeopid");
+    String myopid = "fakeopid";
     // create original
     StartECLSessionMsg msg = new StartECLSessionMsg();
     msg.setChangeNumber(changeNumber);

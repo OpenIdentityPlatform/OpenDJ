@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -176,10 +177,8 @@ public abstract class StartMsg extends ReplicationMsg
   {
     /* first byte is the type */
     boolean foundMatchingType = false;
-    for (int i = 0; i < types.length; i++)
-    {
-      if (types[i] == encodedMsg[0])
-      {
+    for (byte type : types) {
+      if (type == encodedMsg[0]) {
         foundMatchingType = true;
         break;
       }

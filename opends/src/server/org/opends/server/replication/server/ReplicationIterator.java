@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -106,7 +106,7 @@ public class ReplicationIterator
    */
   public boolean next()
   {
-    boolean hasNext = false;
+    boolean hasNext;
 
     currentChange = cursor.next(); // can return null
 

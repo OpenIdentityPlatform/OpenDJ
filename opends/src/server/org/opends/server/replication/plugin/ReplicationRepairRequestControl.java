@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -47,7 +48,7 @@ import java.io.IOException;
 public class ReplicationRepairRequestControl extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private final static class Decoder
       implements ControlDecoder<ReplicationRepairRequestControl>
@@ -84,7 +85,6 @@ public class ReplicationRepairRequestControl extends Control
   public static final String
           OID_REPLICATION_REPAIR_CONTROL = "1.3.6.1.4.1.26027.1.5.2";
 
-
   /**
    * Creates a new instance of the replication repair request control with the
    * default settings.
@@ -94,8 +94,6 @@ public class ReplicationRepairRequestControl extends Control
     super(OID_REPLICATION_REPAIR_CONTROL, false);
 
   }
-
-
 
   /**
    * Creates a new instance of the replication repair control with the
@@ -111,7 +109,7 @@ public class ReplicationRepairRequestControl extends Control
   }
 
   /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * Writes this control value to an ASN.1 writer. The value (if any) must be
    * written as an ASN1OctetString.
    *
    * @param writer The ASN.1 writer to use.
@@ -121,8 +119,6 @@ public class ReplicationRepairRequestControl extends Control
   protected void writeValue(ASN1Writer writer) throws IOException {
     // No value element
   }
-
-
 
   /**
    * Appends a string representation of this replication repair request control

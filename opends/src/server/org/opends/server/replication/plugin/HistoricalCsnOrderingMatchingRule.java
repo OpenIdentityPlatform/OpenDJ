@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -144,7 +144,7 @@ public class HistoricalCsnOrderingMatchingRule
       String csn = value.subSequence(csnIndex, csnIndex + 28).toString();
       ByteStringBuilder builder = new ByteStringBuilder(14);
       builder.append(hexStringToByteArray(csn.substring(16, 20)));
-      builder.append(hexStringToByteArray(csn.substring(00, 16)));
+      builder.append(hexStringToByteArray(csn.substring(0, 16)));
       builder.append(hexStringToByteArray(csn.substring(20, 28)));
       return builder.toByteString();
     }

@@ -677,20 +677,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             sourceHandler.sendAck(ack);
           } else
           {
-            if (safeDataLevel != (byte) 0)
-            {
-              /**
-               * level > 1 : We need further acks
-               * The message will be posted in assured mode to eligible
-               * servers. The embedded safe data level is not changed, and his
-               * value will be used by a remote RS to determine if he must send
-               * an ack (level > 1) or not (level = 1)
-               */
-              interestedInAcks = true;
-            } else
-            {
-              // Should never happen
-            }
+            /**
+             * level > 1 : We need further acks
+             * The message will be posted in assured mode to eligible
+             * servers. The embedded safe data level is not changed, and his
+             * value will be used by a remote RS to determine if he must send
+             * an ack (level > 1) or not (level = 1)
+             */
+            interestedInAcks = true;
           }
         } else
         { // A RS sent us the safe data message, for sure no further ack to wait
@@ -1752,7 +1746,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           monitorData.getApproxFirstMissingDate(replicaId), true);
     }
 
-    // Add the informations about the Replication Servers
+    // Add the information about the Replication Servers
     // currently in the topology.
     it = monitorData.rsIterator();
     while (it.hasNext())

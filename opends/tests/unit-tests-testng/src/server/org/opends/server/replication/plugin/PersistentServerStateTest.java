@@ -23,26 +23,20 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.common.ServerState;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
+
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Test the PersistentServerState class.
@@ -65,11 +59,11 @@ public class PersistentServerStateTest extends ReplicationTestCase
    * retrieve ServerState to persistent storage.
    */
   @Test(dataProvider = "suffix")
-  public void persistenServerStateTest(String dn)
+  public void persistentServerStateTest(String dn)
          throws Exception
   {
     /*
-     * Create a new PersitentServerState,
+     * Create a new PersistentServerState,
      * update it with 2 new ChangeNumbers with 2 different server Ids
      * save it
      *
@@ -108,68 +102,5 @@ public class PersistentServerStateTest extends ReplicationTestCase
     assertEquals(cn1Saved, null,
         "cn1 has not been saved after clear for " + dn);
 
-  }
-
-  /**
-   * Ensures that the Directory Server is able to
-   * translate a ruv entry to a sever state.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translateRuvEntryTest()
-         throws Exception
-  {
-    LDAPReplicationDomain replDomain = null;
-
-    try
-    {
-      String RuvString =
-        "dn: nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff, o=test\n"
-        +"objectClass: top\n"
-        +"objectClass: ldapsubentry\n"
-        +"objectClass: extensibleobject\n"
-        +"nsds50ruv: {replicageneration} 49098853000000010000\n"
-        +"nsds50ruv: {replica 3 ldap://kawax:3389} 491d517b000000030000 "
-        +"491d564a000000030000\n"
-        +"nsds50ruv: {replica 1 ldap://kawax:1389} 490989e8000000010000 "
-        +"490989e8000000010000\n"
-        +"ds6ruv: {PRIO 3 ldap://kawax:3389}\n"
-        +"ds6ruv: {PRIO 1 ldap://kawax:1389}\n"
-        +"entryUUID: ffffffff-ffff-ffff-ffff-ffffffffffff\n";
-
-      Entry RuvEntry = TestCaseUtils.entryFromLdifString(RuvString);
-      AddOperationBasis addOp = new AddOperationBasis(InternalClientConnection.
-          getRootConnection(), InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(), null, RuvEntry.getDN(),
-          RuvEntry.getObjectClasses(), RuvEntry.getUserAttributes(),
-          RuvEntry.getOperationalAttributes());
-
-      addOp.setInternalOperation(true);
-      addOp.run();
-
-      assertTrue(addOp.getResultCode() == ResultCode.SUCCESS);
-
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg("o=test", 1, "localhost:3389");
-      replDomain = MultimasterReplication.createNewDomain(domainConf);
-      replDomain.start();
-
-      // Then check serverSate and GenId
-      assertTrue(replDomain.getGenerationID() == 1225361491);
-
-      ServerState state = replDomain.getServerState();
-      assertTrue(state.getMaxChangeNumber( 1).
-          compareTo(new ChangeNumber("0000011d4d42b240000100000000")) == 0);
-      assertTrue(state.getMaxChangeNumber( 3).
-          compareTo(new ChangeNumber("0000011d9a991110000300000000")) == 0);
-
-    }
-    finally
-    {
-      if (replDomain != null)
-        MultimasterReplication.deleteDomain(DN.decode("o=test"));
-    }
   }
 }

@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
+
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -75,7 +77,7 @@ public class ReplicationDB
   //
   // A counter record has to follow the order of the db, so it needs to have
   // a changenumber key that follow the order.
-  // A counter record must have its own chagenumber key since the Db does not
+  // A counter record must have its own changenumber key since the Db does not
   // support duplicate key (it is a compatibility breaker character of the DB).
   //
   // We define 2 conditions to store a counter record :
@@ -813,9 +815,10 @@ public class ReplicationDB
           return null;
         }
 
+        ChangeNumber cn = null;
         try
         {
-          ChangeNumber cn = new ChangeNumber(
+          cn = new ChangeNumber(
               decodeUTF8(key.getData()));
           if (ReplicationDB.isaCounter(cn))
           {
@@ -833,9 +836,14 @@ public class ReplicationDB
            * happen if the database is corrupted. There is not much more that we
            * can do at this point except trying to continue with the next
            * record. In such case, it is therefore possible that we miss some
-           * changes. TODO. log an error message. TODO : REPAIR : Such problem
-           * should be handled by the repair functionality.
+           * changes.
+           * TODO : This should be handled by the repair functionality.
            */
+          Message message = ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD
+              .get(replicationServer.getServerId(),
+                  (cn == null ? "" : cn.toString()),
+                  e.getMessage());
+          logError(message);
         }
       }
       return currentChange;
@@ -1085,7 +1093,6 @@ public class ReplicationDB
 
   /**
    * Encode the provided counter value in a database entry.
-   * @param entry The provided entry.
    * @return The database entry with the counter value encoded inside.
    */
   static private DatabaseEntry encodeCounterValue(int value)

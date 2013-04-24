@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -128,10 +129,7 @@ public class EntryMsg extends RoutableMsg
       // data
       length = in.length - (pos + 1);
       this.entryByteArray = new byte[length];
-      for (int i=0; i<length; i++)
-      {
-        entryByteArray[i] = in[pos+i];
-      }
+      System.arraycopy(in, pos, entryByteArray, 0, length);
     }
     catch (UnsupportedEncodingException e)
     {

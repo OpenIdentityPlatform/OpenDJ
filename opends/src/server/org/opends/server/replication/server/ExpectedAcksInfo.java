@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.replication.server;
@@ -47,10 +48,10 @@ import org.opends.server.replication.protocol.AckMsg;
 public abstract class ExpectedAcksInfo
 {
   // The server handler of the server that sent the assured update message and
-  // to whow we want to return the final ack
+  // to who we want to return the final ack
   private ServerHandler requesterServerHandler = null;
 
-  // The requested assured mode of matcching update message
+  // The requested assured mode of matching update message
   private AssuredMode assuredMode = null;
 
   /**
@@ -63,8 +64,8 @@ public abstract class ExpectedAcksInfo
    * This is used for concurrent access to this object by either the assured
    * timeout task or the code for processing an ack for the matching update
    * message. This should be set to true when the treatment of the expected
-   * acks is completed or an ack timeout has occured and we are going to remove
-   * this object from the map where it is stored.
+   * acks is completed or an ack timeout has occurred and we are going to
+   * remove this object from the map where it is stored.
    */
   private boolean completed = false;
 

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.*;
@@ -168,9 +168,6 @@ public class ReplicationDbEnv
           if (str[0].equals(GENERATION_ID_TAG))
           {
             long generationId;
-
-            String baseDn;
-
             try
             {
               // <generationId>
@@ -186,7 +183,7 @@ public class ReplicationDbEnv
                   + "<" + str[1] + ">"));
             }
 
-            baseDn = str[2];
+            String baseDn = str[2];
 
             if (debugEnabled())
               TRACER.debugInfo(
@@ -213,7 +210,7 @@ public class ReplicationDbEnv
       status = cursor.getFirst(key, data, LockMode.DEFAULT);
       while (status == OperationStatus.SUCCESS)
       {
-        String stringData = null;
+        String stringData;
         try
         {
           stringData = new String(data.getData(), "UTF-8");
@@ -234,7 +231,7 @@ public class ReplicationDbEnv
         String[] str = stringData.split(FIELD_SEPARATOR, 2);
         if (!str[0].equals(GENERATION_ID_TAG))
         {
-          int serverId = -1;
+          int serverId;
           try
           {
             // <serverId>
@@ -561,14 +558,14 @@ public class ReplicationDbEnv
             txn.abort();
         }
         catch(Exception e)
-        {}
+        { /* do nothing */ }
       }
     }
 
     /**
      * Get or create a db to manage integer change  number associated
      * to multidomain server state.
-     * TODO:ECL how to manage compatibilty of this db with  new domains
+     * TODO:ECL how to manage compatibility of this db with  new domains
      * added or removed ?
      * @return the retrieved or created db.
      * @throws DatabaseException when a problem occurs.
@@ -583,8 +580,7 @@ public class ReplicationDbEnv
       DatabaseConfig dbConfig = new DatabaseConfig();
       dbConfig.setAllowCreate(true);
       dbConfig.setTransactional(true);
-      Database db = dbEnvironment.openDatabase(null, stringId, dbConfig);
 
-      return db;
+      return dbEnvironment.openDatabase(null, stringId, dbConfig);
     }
 }

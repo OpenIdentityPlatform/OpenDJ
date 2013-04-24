@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -124,10 +125,7 @@ extends InputStream
       copiedLength = len;
     }
 
-    for (int i =0; i<copiedLength; i++)
-    {
-      b[off+i] = bytes[index+i];
-    }
+    System.arraycopy(bytes, index, b, off, copiedLength);
     index += copiedLength;
 
     if (index == bytes.length)

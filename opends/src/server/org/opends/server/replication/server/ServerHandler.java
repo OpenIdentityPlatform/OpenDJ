@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -170,11 +170,12 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The associated ServerWriter that sends messages to the remote server.
    */
-  protected ServerReader reader;
+  protected ServerWriter writer = null;
+
   /**
    * The associated ServerReader that receives messages from the remote server.
    */
-  protected ServerWriter writer = null;
+  protected ServerReader reader;
 
   // window
   private int rcvWindow;
@@ -366,7 +367,7 @@ public abstract class ServerHandler extends MessageHandler
         session.setSoTimeout(0);
       }
       catch(Exception e)
-      {
+      { /* do nothing */
       }
 
       // sendWindow MUST be created before starting the writer
@@ -1148,10 +1149,9 @@ public abstract class ServerHandler extends MessageHandler
    */
   public RSInfo toRSInfo()
   {
-    RSInfo rsInfo = new RSInfo(serverId, serverURL, generationId, groupId,
-      weight);
 
-    return rsInfo;
+    return new RSInfo(serverId, serverURL, generationId, groupId,
+      weight);
   }
 
   /**

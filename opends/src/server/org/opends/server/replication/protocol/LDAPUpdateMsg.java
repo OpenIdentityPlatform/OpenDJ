@@ -87,7 +87,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Creates a new UpdateMsg with the given informations.
+   * Creates a new UpdateMsg with the given information.
    *
    * @param ctx The replication Context of the operation for which the
    *            update message must be created,.
@@ -103,7 +103,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Creates a new UpdateMessage with the given informations.
+   * Creates a new UpdateMessage with the given information.
    *
    * @param cn        The ChangeNumber of the operation for which the
    *                  UpdateMessage is created.
@@ -491,9 +491,9 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
        /* Read the changeNumber */
        int pos = 2;
        int length = getNextLength(encodedMsg, pos);
-       String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
+       String changeNumberStr = new String(encodedMsg, pos, length, "UTF-8");
        pos += length + 1;
-       changeNumber = new ChangeNumber(changenumberStr);
+       changeNumber = new ChangeNumber(changeNumberStr);
 
        /* Read the dn */
        length = getNextLength(encodedMsg, pos);
@@ -506,10 +506,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
        pos += length + 1;
 
        /* Read the assured information */
-       if (encodedMsg[pos++] == 1)
-         assuredFlag = true;
-       else
-         assuredFlag = false;
+       assuredFlag = encodedMsg[pos++] == 1;
 
        /* Read the assured mode */
        assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);
@@ -556,15 +553,12 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
       /* read the changeNumber */
       int pos = 1;
       int length = getNextLength(encodedMsg, pos);
-      String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
+      String changeNumberStr = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;
-      changeNumber = new ChangeNumber(changenumberStr);
+      changeNumber = new ChangeNumber(changeNumberStr);
 
       /* read the assured information */
-      if (encodedMsg[pos++] == 1)
-        assuredFlag = true;
-      else
-        assuredFlag = false;
+      assuredFlag = encodedMsg[pos++] == 1;
 
       /* read the dn */
       length = getNextLength(encodedMsg, pos);
@@ -628,7 +622,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * Decode a provided byte array as a list of RawAttribute.
    * @param in The provided byte array.
-   * @return The list of Rawattribute objects.
+   * @return The list of RawAttribute objects.
    * @throws LDAPException when it occurs.
    * @throws ASN1Exception when it occurs.
    */

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -106,7 +106,7 @@ public class DbHandler implements Runnable
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean done = false;
-  private DirectoryThread thread = null;
+  private DirectoryThread thread;
   private final Object flushLock = new Object();
   private ReplicationServer replicationServer;
 
@@ -141,7 +141,7 @@ public class DbHandler implements Runnable
     this.baseDn = baseDn;
     trimAge = replicationServer.getTrimAge();
     queueMaxSize = queueSize;
-    queueLowmark = queueSize * 1 / 5;
+    queueLowmark = queueSize / 5;
     queueHimark = queueSize * 4 / 5;
     queueMaxBytes = 200 * queueMaxSize;
     queueLowmarkBytes = 200 * queueLowmark;
@@ -281,9 +281,7 @@ public class DbHandler implements Runnable
     {
       flush();
     }
-    ReplicationIterator it =
-      new ReplicationIterator(serverId, db, changeNumber, this);
-    return it;
+    return new ReplicationIterator(serverId, db, changeNumber, this);
   }
 
   /**
@@ -313,7 +311,7 @@ public class DbHandler implements Runnable
    */
   public void shutdown()
   {
-    if (shutdown == true)
+    if (shutdown)
     {
       return;
     }
@@ -325,14 +323,14 @@ public class DbHandler implements Runnable
     }
 
     synchronized (this)
-    {
-      while (done  == false)
+    { /* Can this be replaced with thread.join() ? */
+      while (!done)
       {
         try
         {
           this.wait();
         } catch (Exception e)
-        {}
+        { /* do nothing */}
       }
     }
 
@@ -351,7 +349,7 @@ public class DbHandler implements Runnable
    */
   public void run()
   {
-    while (shutdown == false)
+    while (!shutdown)
     {
       try
       {
@@ -367,7 +365,9 @@ public class DbHandler implements Runnable
             {
               msgQueue.wait(1000);
             } catch (InterruptedException e)
-            { }
+            {
+              Thread.currentThread().interrupt();
+            }
           }
         }
       } catch (Exception end)

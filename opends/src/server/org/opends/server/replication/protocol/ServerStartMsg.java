@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -405,7 +406,7 @@ public class ServerStartMsg extends StartMsg
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
       "\ngroupId: " + groupId +
-      "\nbaseDn: " + baseDn.toString() +
+      "\nbaseDn: " + baseDn +
       "\nheartbeatInterval: " + heartbeatInterval +
       "\nmaxReceiveDelay: " + maxReceiveDelay +
       "\nmaxReceiveQueue: " + maxReceiveQueue +

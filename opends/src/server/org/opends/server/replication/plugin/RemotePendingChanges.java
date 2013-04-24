@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -58,7 +59,7 @@ import org.opends.server.types.Operation;
  * One of this object is instantiated for each ReplicationDomain.
  *
  */
-public class RemotePendingChanges
+public final class RemotePendingChanges
 {
   /**
    * A map used to store the pending changes.

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -552,8 +552,7 @@ public class AddMsg extends LDAPUpdateMsg
    */
   public List<Attribute> getAttributes() throws LDAPException, ASN1Exception
   {
-    List<Attribute> attrs = decodeAttributes(encodedAttributes);
-    return attrs;
+    return decodeAttributes(encodedAttributes);
   }
 
   /**

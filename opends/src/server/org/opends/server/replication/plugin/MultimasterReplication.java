@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -85,7 +85,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
  *
  * It also extends the SynchronizationProvider class in order to have some
  * replication code running during the operation process
- * as pre-op, conflictRsolution, and post-op.
+ * as pre-op, conflictResolution, and post-op.
  */
 public class MultimasterReplication
        extends SynchronizationProvider<ReplicationSynchronizationProviderCfg>
@@ -140,7 +140,7 @@ public class MultimasterReplication
      * Don't run the special replication code on Operation that are
      * specifically marked as don't synchronize.
      */
-    if ((pluginOp != null) && (pluginOp instanceof Operation))
+    if (pluginOp != null && pluginOp instanceof Operation)
     {
         Operation op = ((Operation) pluginOp);
 
@@ -154,7 +154,7 @@ public class MultimasterReplication
          * so that the core server let the operation modify the entryuuid
          * and ds-sync-hist attributes.
          * They are also tagged as dontSynchronize so that the replication
-         * code running later do not generate ChnageNumber, solve conflicts
+         * code running later do not generate ChangeNumber, solve conflicts
          * and forward the operation to the replication server.
          */
         for (Control c : op.getRequestControls())
@@ -163,10 +163,12 @@ public class MultimasterReplication
           {
             op.setSynchronizationOperation(true);
             op.setDontSynchronize(true);
-            // remove this control from the list of controls since
-            // it has now been processed and the local backend will
-            // fail if it finds a control that it does not know about and
-            // that is marked as critical.
+            /*
+            remove this control from the list of controls since
+            it has now been processed and the local backend will
+            fail if it finds a control that it does not know about and
+            that is marked as critical.
+            */
             List<Control> controls = op.getRequestControls();
             controls.remove(c);
             return null;
@@ -175,7 +177,7 @@ public class MultimasterReplication
     }
 
 
-    LDAPReplicationDomain domain = null;
+    LDAPReplicationDomain domain;
     DN temp = dn;
     do
     {
@@ -333,7 +335,7 @@ public class MultimasterReplication
   }
 
   /**
-   * Stope the threads that are waiting for incoming update messages.
+   * Stop the threads that are waiting for incoming update messages.
    */
   private synchronized static void stopReplayThreads()
   {
@@ -345,7 +347,14 @@ public class MultimasterReplication
 
     for (ReplayThread replayThread : replayThreads)
     {
-      replayThread.waitForShutdown();
+      try
+      {
+        replayThread.join();
+      }
+      catch(InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+      }
     }
     replayThreads.clear();
   }
@@ -377,7 +386,7 @@ public class MultimasterReplication
     } catch (ConfigException e)
     {
       // we should never get to this point because the configEntry has
-      // already been validated in configAddisAcceptable
+      // already been validated in isConfigurationAddAcceptable()
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
     }
   }
@@ -544,7 +553,7 @@ public class MultimasterReplication
     DN operationDN = modifyDNOperation.getEntryDN();
     LDAPReplicationDomain domain = findDomain(operationDN, modifyDNOperation);
 
-    if ((domain == null) || (!domain.solveConflict()))
+    if (domain == null || !domain.solveConflict())
       return new SynchronizationProviderResult.ContinueProcessing();
 
     // The historical object is retrieved from the attachment created
@@ -563,7 +572,7 @@ public class MultimasterReplication
 
     historicalInformation.setPurgeDelay(domain.getHistoricalPurgeDelay());
 
-    // Add to the operation the historical attribute : "dn:changeNumger:moddn"
+    // Add to the operation the historical attribute : "dn:changeNumber:moddn"
     historicalInformation.setHistoricalAttrToOperation(modifyDNOperation);
 
     return new SynchronizationProviderResult.ContinueProcessing();
@@ -586,7 +595,7 @@ public class MultimasterReplication
     if (!addOperation.isSynchronizationOperation())
       domain.doPreOperation(addOperation);
 
-    // Add to the operation the historical attribute : "dn:changeNumger:add"
+    // Add to the operation the historical attribute : "dn:changeNumber:add"
     EntryHistorical.setHistoricalAttrToOperation(addOperation);
 
     return new SynchronizationProviderResult.ContinueProcessing();
@@ -777,12 +786,9 @@ public class MultimasterReplication
   private void genericPostOperation(PostOperationOperation operation, DN dn)
   {
     LDAPReplicationDomain domain = findDomain(dn, operation);
-    if (domain == null)
-      return;
-
-    domain.synchronize(operation);
-
-    return;
+    if (domain != null) {
+      domain.synchronize(operation);
+    }
   }
 
   /**

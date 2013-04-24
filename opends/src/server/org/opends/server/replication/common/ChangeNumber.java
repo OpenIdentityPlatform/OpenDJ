@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -121,12 +122,9 @@ public class ChangeNumber implements java.io.Serializable,
     if (obj instanceof ChangeNumber)
     {
       ChangeNumber cn = (ChangeNumber) obj;
-      if ((this.seqnum == cn.seqnum)  &&
-          (this.serverId == cn.serverId) &&
-          (this.timeStamp == cn.timeStamp) )
-        return true;
-      else
-        return false;
+      return this.seqnum == cn.seqnum &&
+          this.serverId == cn.serverId &&
+          this.timeStamp == cn.timeStamp;
     }
     else
       return false;
@@ -274,10 +272,7 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public Boolean older(ChangeNumber CN)
   {
-    if (compare(this, CN) < 0)
-      return true;
-
-    return false;
+    return compare(this, CN) < 0;
   }
 
   /**
@@ -288,10 +283,7 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public Boolean olderOrEqual(ChangeNumber CN)
   {
-    if (compare(this, CN) <= 0)
-      return true;
-
-    return false;
+    return compare(this, CN) <= 0;
   }
 
   /**
@@ -301,10 +293,7 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public boolean newerOrEquals(ChangeNumber CN)
   {
-    if (compare(this, CN) >= 0)
-      return true;
-
-    return false;
+    return compare(this, CN) >= 0;
   }
 
   /**
@@ -314,10 +303,7 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public boolean newer(ChangeNumber CN)
   {
-    if (compare(this, CN) > 0)
-      return true;
-
-    return false;
+    return compare(this, CN) > 0;
   }
 
   /**

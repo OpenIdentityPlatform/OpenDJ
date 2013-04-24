@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -105,13 +105,13 @@ public class AttrHistoricalMultiple extends AttrHistorical
     * Duplicate an object.
     * ChangeNumber are duplicated by references
     * @return the duplicated object.
+    *
+    * Method only called in tests
     */
    AttrHistoricalMultiple duplicate()
    {
-     AttrHistoricalMultiple dup =
-       new AttrHistoricalMultiple(this.deleteTime, this.lastUpdateTime,
-           this.valuesHist);
-     return dup;
+     return new AttrHistoricalMultiple(this.deleteTime, this.lastUpdateTime,
+         this.valuesHist);
    }
 
    /**

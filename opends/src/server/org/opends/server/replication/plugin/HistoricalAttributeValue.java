@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -196,15 +197,6 @@ public class HistoricalAttributeValue
   }
 
   /**
-   * Get the String form of the attribute.
-   * @return The String form of the attribute.
-   */
-  public String getStringValue()
-  {
-    return stringValue;
-  }
-
-  /**
    * Get the Attribute Value.
    * @return The Attribute Value.
    */
@@ -261,7 +253,7 @@ public class HistoricalAttributeValue
    */
   public boolean isADDOperation()
   {
-    return ((attrType == null) && (ismodDN == false));
+    return attrType == null && !ismodDN;
   }
 
   /**
@@ -273,6 +265,6 @@ public class HistoricalAttributeValue
    */
   public boolean isMODDNOperation()
   {
-    return ((attrType == null) && (ismodDN == true));
+    return attrType == null && ismodDN;
   }
 }
