@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -93,7 +94,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
 
       int maxLen = bytes.length;
-      int pos = -1;
+      int pos;
       int nZeroFound = 0; // Number of 0 value found
       boolean found = false;
 
@@ -143,7 +144,6 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
 
       maxLen = bytes.length;
-      pos = -1;
       nZeroFound = 0; // Number of 0 value found
       found = false;
 
@@ -183,13 +183,6 @@ public class NotAssuredUpdateMsg extends UpdateMsg
 
     } else
     {
-      if (!(realUpdateMsg instanceof UpdateMsg))
-      {
-        // Should never happen
-        throw new UnsupportedEncodingException(
-          "Unknown underlying real message type.");
-      }
-
       /**
        * Prepare VLATEST serialized form of the message:
        * Get the encoding form of the real message then overwrite the assured
@@ -204,7 +197,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
 
       int maxLen = bytes.length;
-      int pos = -1;
+      int pos;
       int nZeroFound = 0; // Number of 0 value found
       boolean found = false;
 

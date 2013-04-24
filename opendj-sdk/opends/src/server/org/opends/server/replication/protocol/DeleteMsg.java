@@ -65,7 +65,7 @@ public class DeleteMsg extends LDAPUpdateMsg
         isSubtreeDelete = true;
     }
     catch(Exception e)
-    {}
+    {/* do nothing */}
   }
 
   /**

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -51,13 +51,12 @@ public class DraftCNData extends DatabaseEntry
 
   /**
    * Creates a record to be stored in the DraftCNDB.
-   * @param draftCN The DraftCN key.
    * @param value The value (cookie).
    * @param serviceID The serviceID (domain DN).
    * @param changeNumber The replication change number.
    */
-  public DraftCNData(int draftCN, String value,
-      String serviceID, ChangeNumber changeNumber)
+  public DraftCNData(String value,
+                     String serviceID, ChangeNumber changeNumber)
   {
     String record = value
                    + FIELD_SEPARATOR + serviceID
@@ -156,8 +155,8 @@ public class DraftCNData extends DatabaseEntry
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("DraftCNData : [value=" + value);
-    buffer.append("] [serviceID=" + serviceID);
-    buffer.append("] [changeNumber=" + changeNumber + "]");
+    buffer.append("DraftCNData : [value=").append(value);
+    buffer.append("] [serviceID=").append(serviceID);
+    buffer.append("] [changeNumber=").append(changeNumber).append("]");
   }
 }

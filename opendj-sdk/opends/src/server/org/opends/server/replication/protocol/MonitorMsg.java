@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -45,7 +46,7 @@ import org.opends.server.types.ByteSequenceReader;
 /**
  * This message is part of the replication protocol.
  * RS1 sends a MonitorRequestMessage to RS2 to requests its monitoring
- * informations.
+ * information.
  * When RS2 receives a MonitorRequestMessage from RS1, RS2 responds with a
  * MonitorMsg.
  */
@@ -64,7 +65,7 @@ public class MonitorMsg extends RoutableMsg
 
   /**
    * Data structure to manage the state of this replication server
-   * and the state informations for the servers connected to it.
+   * and the state information for the servers connected to it.
    *
    */
   class SubTopoMonitorData
@@ -120,7 +121,7 @@ public class MonitorMsg extends RoutableMsg
   }
 
   /**
-   * Sets the informations of an LDAP server.
+   * Sets the information of an LDAP server.
    * @param serverId The serverID.
    * @param state The server state.
    * @param approxFirstMissingDate  The approximation of the date
@@ -313,8 +314,7 @@ public class MonitorMsg extends RoutableMsg
       }
       asn1Reader.readEndSequence();
     } catch(Exception e)
-    {
-
+    { /* do nothing */
     }
   }
 
@@ -374,7 +374,7 @@ public class MonitorMsg extends RoutableMsg
       }
       writer.writeEndSequence();
 
-      // then the LDAP server datas
+      // then the LDAP server data
       Set<Integer> servers = data.ldapStates.keySet();
       for (Integer sid : servers)
       {
@@ -512,11 +512,10 @@ public class MonitorMsg extends RoutableMsg
                sd.state.toString() + "]" +
                " afmd=" + sd.approxFirstMissingDate + "]";
     }
-    String me = this.getClass().getCanonicalName() +
+    return this.getClass().getCanonicalName() +
     "[ sender=" + this.senderID +
     " destination=" + this.destination +
     " data=[" + stateS + "]" +
     "]";
-    return me;
   }
 }

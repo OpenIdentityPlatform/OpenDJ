@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -117,13 +117,7 @@ public class TopologyMsg extends ReplicationMsg
 
         /* Read DS assured flag */
         boolean assuredFlag;
-        if (in[pos++] == 1)
-        {
-          assuredFlag = true;
-        } else
-        {
-          assuredFlag = false;
-        }
+        assuredFlag = in[pos++] == 1;
 
         /* Read DS assured mode */
         AssuredMode assuredMode = AssuredMode.valueOf(in[pos++]);
@@ -188,7 +182,7 @@ public class TopologyMsg extends ReplicationMsg
           }
 
           /* Read Protocol version */
-          protocolVersion = Short.valueOf(in[pos++]);
+          protocolVersion = (short)in[pos++];
         }
 
         /* Now create DSInfo and store it in list */

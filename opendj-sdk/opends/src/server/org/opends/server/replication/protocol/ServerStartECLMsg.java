@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -66,7 +67,6 @@ public class ServerStartECLMsg extends StartMsg
    * Server after being connected to a replication server for a given
    * replication domain.
    *
-   * @param baseDn   The base DN.
    * @param maxReceiveDelay The max receive delay for this server.
    * @param maxReceiveQueue The max receive Queue for this server.
    * @param maxSendDelay The max Send Delay from this server.
@@ -77,18 +77,18 @@ public class ServerStartECLMsg extends StartMsg
    * @param protocolVersion The replication protocol version of the creator.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
-   *                      after the start messages have been exchanged.
+*                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartECLMsg(String baseDn, int maxReceiveDelay,
-                            int maxReceiveQueue, int maxSendDelay,
-                            int maxSendQueue, int windowSize,
-                            long heartbeatInterval,
-                            ServerState serverState,
-                            short protocolVersion,
-                            long generationId,
-                            boolean sslEncryption,
-                            byte groupId)
+  public ServerStartECLMsg(int maxReceiveDelay,
+                           int maxReceiveQueue, int maxSendDelay,
+                           int maxSendQueue, int windowSize,
+                           long heartbeatInterval,
+                           ServerState serverState,
+                           short protocolVersion,
+                           long generationId,
+                           boolean sslEncryption,
+                           byte groupId)
   {
     super(protocolVersion, generationId);
 

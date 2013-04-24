@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -140,7 +141,7 @@ public abstract class ReplicationMsg
    * @param buffer    The encode form of the ReplicationMsg.
    * @param version   The version to use to decode the msg.
    *
-   * @return The generated SycnhronizationMessage.
+   * @return The generated SynchronizationMessage.
    *
    * @throws DataFormatException If the encoded form was not a valid msg.
    * @throws UnsupportedEncodingException If UTF8 is not supported.
@@ -153,7 +154,7 @@ public abstract class ReplicationMsg
                 throws DataFormatException, UnsupportedEncodingException,
                 NotSupportedOldVersionPDUException
   {
-    ReplicationMsg msg = null;
+    ReplicationMsg msg;
     switch (buffer[0])
     {
       case MSG_TYPE_SERVER_START_V1:

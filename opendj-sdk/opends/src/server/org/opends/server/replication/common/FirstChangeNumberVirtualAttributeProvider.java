@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -172,8 +172,7 @@ public class FirstChangeNumberVirtualAttributeProvider
       AttributeValues.create(
           ByteString.valueOf(first),
           ByteString.valueOf(first));
-    Set<AttributeValue> values=Collections.singleton(value);
-    return values;
+    return Collections.singleton(value);
   }
 
 

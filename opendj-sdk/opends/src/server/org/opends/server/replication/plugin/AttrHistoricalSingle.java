@@ -158,9 +158,7 @@ public class AttrHistoricalSingle extends AttrHistorical
     case DELETE:
       if (changeNumber.newer(addTime))
       {
-        if ((newValue == null) ||
-              ((newValue != null) && (newValue.equals(value))) ||
-              (value == null))
+        if (newValue == null || newValue.equals(value) || value == null)
         {
           if (changeNumber.newer(deleteTime))
           {

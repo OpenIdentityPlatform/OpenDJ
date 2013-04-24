@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -77,7 +78,7 @@ public class UpdateMsg extends ReplicationMsg
   {}
 
   /**
-   * Creates a new UpdateMsg with the given informations.
+   * Creates a new UpdateMsg with the given information.
    *
    * @param bytes A Byte Array with the encoded form of the message.
    *
@@ -157,16 +158,8 @@ public class UpdateMsg extends ReplicationMsg
   @Override
   public boolean equals(Object obj)
   {
-    if (obj != null)
-    {
-      if (obj.getClass() != this.getClass())
-        return false;
-      return changeNumber.equals(((UpdateMsg) obj).changeNumber);
-    }
-    else
-    {
-      return false;
-    }
+    return obj != null && obj.getClass() == this.getClass() &&
+        changeNumber.equals(((UpdateMsg) obj).changeNumber);
   }
 
   /**
@@ -343,10 +336,7 @@ public class UpdateMsg extends ReplicationMsg
       changeNumber = new ChangeNumber(changenumberStr);
 
       /* Read the assured information */
-      if (encodedMsg[pos++] == 1)
-        assuredFlag = true;
-      else
-        assuredFlag = false;
+      assuredFlag = encodedMsg[pos++] == 1;
 
       /* Read the assured mode */
       assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);

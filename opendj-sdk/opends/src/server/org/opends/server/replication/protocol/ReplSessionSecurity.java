@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -136,8 +136,8 @@ public final class ReplSessionSecurity
     }
     else
     {
-      this.sslCipherSuites = new String[sslProtocols.size()];
-      sslProtocols.toArray(this.sslCipherSuites);
+      this.sslCipherSuites = new String[sslCipherSuites.size()];
+      sslCipherSuites.toArray(this.sslCipherSuites);
     }
 
     this.sslEncryption = sslEncryption;

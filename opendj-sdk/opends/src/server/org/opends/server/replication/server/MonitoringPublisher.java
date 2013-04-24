@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -184,7 +184,7 @@ public class MonitoringPublisher extends DirectoryThread
     {
       int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
       int n = 0;
-      while ((done == false) && (this.isAlive()))
+      while ((!done) && (this.isAlive()))
       {
         Thread.sleep(50);
         n++;

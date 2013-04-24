@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -121,8 +121,7 @@ public class ProtocolVersion
    */
   public static short minWithCurrent(short version)
   {
-    short newVersion = (version < currentVersion ? version : currentVersion);
-    return newVersion;
+    return (version < currentVersion ? version : currentVersion);
   }
 }
 

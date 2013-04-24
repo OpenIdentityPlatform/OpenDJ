@@ -168,21 +168,6 @@ public class ModifyMsg extends ModifyCommonMsg
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
-      String mods = "";
-      try
-      {
-        ArrayList<RawModification> ldapmods = decodeRawMods(encodedMods);
-
-        for (RawModification mod : ldapmods)
-        {
-          mods += mod.toString();
-        }
-      } catch (LDAPException e)
-      {
-      } catch (ASN1Exception e)
-      {
-      }
-
       return "ModifyMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
@@ -191,8 +176,8 @@ public class ModifyMsg extends ModifyCommonMsg
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +
         " safeDataLevel: " + safeDataLevel +
-        " size: " + encodedMods.length +
-        mods;
+        " size: " + encodedMods.length;
+      /* Do not append mods, they can be too long */
 
 
     }

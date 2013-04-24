@@ -115,7 +115,6 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.server.types.operation.PreOperationOperation;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -277,7 +276,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private volatile boolean done = true;
 
-  private ServerStateFlush flushThread;
+  private final ServerStateFlush flushThread;
 
   /**
    * The attribute name used to store the generation id in the backend.
@@ -400,7 +399,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       done = false;
 
-      while (shutdown == false)
+      while (!shutdown)
       {
         try
         {
@@ -584,21 +583,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     /*
      * Create a new Persistent Server State that will be used to store
-     * the last ChangeNmber seen from all LDAP servers in the topology.
+     * the last ChangeNumber seen from all LDAP servers in the topology.
      */
     state = new PersistentServerState(baseDn, serverId, getServerState());
 
-    /* Check if a ReplicaUpdateVector entry is present
-     * if so, and no state is already initialized
-     * translate the ruv into a serverState and
-     * a generationId
-     */
-    Long compatGenId  = state.checkRUVCompat();
-    if (compatGenId != null)
-    {
-      generationId = compatGenId;
-      saveGenerationId(generationId);
-    }
+    flushThread = new ServerStateFlush();
 
     /*
      * ChangeNumberGenerator is used to create new unique ChangeNumbers
@@ -620,7 +609,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // listen for changes on the configuration
     configuration.addChangeListener(this);
 
-    // register as an AltertGenerator
+    // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
   }
 
@@ -638,8 +627,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     boolean needReconnection = false;
 
     byte newSdLevel = (byte) configuration.getAssuredSdLevel();
-    if ((isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)) &&
-      (newSdLevel != getAssuredSdLevel()))
+    if (isAssured() && getAssuredMode() == AssuredMode.SAFE_DATA_MODE &&
+        newSdLevel != getAssuredSdLevel())
     {
       needReconnection = true;
     }
@@ -654,15 +643,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         break;
       case SAFE_DATA:
-        if (!isAssured() ||
-          (isAssured() && (getAssuredMode() == AssuredMode.SAFE_READ_MODE)))
+        if (!isAssured() || getAssuredMode() == AssuredMode.SAFE_READ_MODE)
         {
           needReconnection = true;
         }
         break;
       case SAFE_READ:
-        if (!isAssured() ||
-          (isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)))
+        if (!isAssured() || getAssuredMode() == AssuredMode.SAFE_DATA_MODE)
         {
           needReconnection = true;
         }
@@ -882,17 +869,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     if (!found)
     {
-      // The backend is probably empty: if there is some fractional
-      // configuration in memory, we do not let the domain being connected,
-      // otherwise, it's ok
-      if (fractionalConfig.isFractional())
-      {
-        return false;
-      }
-      else
-      {
-        return true;
-      }
+      /*
+      The backend is probably empty: if there is some fractional
+      configuration in memory, we do not let the domain being connected,
+      otherwise, it's ok
+      */
+      return !fractionalConfig.isFractional();
     }
 
     /*
@@ -1275,7 +1257,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @param performFiltering Tells if the effective modifications should
    * be performed or if the call is just to analyze if there are some
    * inconsistency with fractional configuration
-   * @return true if the operation is inconsistent with fractional configuration
+   * @return true if the operation is inconsistent with fractional
+   * configuration
    */
   public boolean fractionalFilterOperation(
     PreOperationModifyDNOperation modifyDNOperation, boolean performFiltering)
@@ -1287,8 +1270,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       if (modifyDNOperation.deleteOldRDN())
       {
-        // The core will remove any occurence of attribute that was part of the
-        // old RDN, nothing more to do.
+        // The core will remove any occurrence of attribute that was part
+        // of the old RDN, nothing more to do.
         return true; // Will not be used as analyze was not requested
       }
     }
@@ -1307,9 +1290,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // No attributes to filter
       return false;
 
-    /**
+    /*
      * Analyze the old and new rdn to see if they are some attributes to be
-     * removed: if the oldnRDN contains some forbidden attributes (for instance
+     * removed: if the oldRDN contains some forbidden attributes (for instance
      * it is possible if the entry was created with an add operation and the
      * RDN used contains a forbidden attribute: in this case the attribute value
      * has been kept to be consistent with the dn of the entry.) that are no
@@ -1342,10 +1325,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         !newRdn.hasAttributeType(attributeType) &&
         !modifyDNOperation.deleteOldRDN())
       {
-        // A forbidden attribute is in the old RDN and no more in the new RDN,
-        // and it has not been requested to remove attributes from old RDN:
-        // remove ourself the attribute from the entry to stay consistent with
-        // fractional configuration
+        /*
+         * A forbidden attribute is in the old RDN and no more in the new RDN,
+         * and it has not been requested to remove attributes from old RDN:
+         * let's remove the attribute from the entry to stay consistent with
+         * fractional configuration
+         */
         Modification modification = new Modification(ModificationType.DELETE,
           Attributes.empty(attributeType));
         modifyDNOperation.addModification(modification);
@@ -1451,11 +1436,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // entry as it is forbidden
           if (entryRdn.hasAttributeType(attributeType))
           {
-            // We must remove all values of the attributes map for this
-            // attribute type but the one that has the value which is in the RDN
-            // of the entry. In fact the (underlying )attribute list does not
-            // suppot remove so we have to create a new list, keeping only the
-            // attribute value which is the same as in the RDN
+            /*
+            We must remove all values of the attributes map for this
+            attribute type but the one that has the value which is in the RDN
+            of the entry. In fact the (underlying )attribute list does not
+            support remove so we have to create a new list, keeping only the
+            attribute value which is the same as in the RDN
+            */
             AttributeValue rdnAttributeValue =
               entryRdn.getAttributeValue(attributeType);
             List<Attribute> attrList = attributesMap.get(attributeType);
@@ -1467,17 +1454,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               Attribute attr = attrIt.next();
               if (attr.contains(rdnAttributeValue))
               {
-                Iterator<AttributeValue> attrValues = attr.iterator();
-                while(attrValues.hasNext())
-                {
-                  AttributeValue attrValue = attrValues.next();
-                  if (rdnAttributeValue.equals(attrValue))
-                  {
+                for (AttributeValue attrValue : attr) {
+                  if (rdnAttributeValue.equals(attrValue)) {
                     // Keep the value we want
                     sameAttrValue = attrValue;
-                  }
-                  else
-                  {
+                  } else {
                     hasSomeAttributesToFilter = true;
                   }
                 }
@@ -1492,17 +1473,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               // Paranoia check: should never be the case as we should always
               // find the attribute/value pair matching the pair in the RDN
             {
-              // Construct and store new atribute list
+              // Construct and store new attribute list
               List<Attribute> newRdnAttrList = new ArrayList<Attribute>();
               AttributeBuilder attrBuilder =
                 new AttributeBuilder(attributeType);
               attrBuilder.add(sameAttrValue);
               newRdnAttrList.add(attrBuilder.toAttribute());
               newRdnAttrLists.add(newRdnAttrList);
-              // Store matching attribute type
-              // The mapping will be done using object from rdnAttrTypes as key
-              // and object from newRdnAttrLists (at same index) as value in
-              // the user attribute map to be modified
+              /*
+              Store matching attribute type
+              The mapping will be done using object from rdnAttrTypes as key
+              and object from newRdnAttrLists (at same index) as value in
+              the user attribute map to be modified
+              */
               rdnAttrTypes.add(attributeType);
             }
           }
@@ -1516,7 +1499,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         else
         {
           // The call was just to check : at least one attribute to filter
-          // found, return immediatly the answer;
+          // found, return immediately the answer;
           return true;
         }
       }
@@ -1684,7 +1667,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           continue;
         }
         // Is the current attribute part of the established list ?
-        boolean foundAttribute =
+        boolean foundAttribute = attributeName != null &&
           fractionalConcernedAttributes.contains(attributeName.toLowerCase());
         if (!foundAttribute)
         {
@@ -1713,7 +1696,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           else
           {
             // The call was just to check : at least one attribute to filter
-            // found, return immediatly the answer;
+            // found, return immediately the answer;
             return FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
           }
         }
@@ -1806,7 +1789,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          PreOperationDeleteOperation deleteOperation)
   {
     if ((!deleteOperation.isSynchronizationOperation())
-        && (!brokerIsConnected(deleteOperation)))
+        && (!brokerIsConnected()))
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -1834,7 +1817,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Probably the original entry was renamed and replaced with
          * another entry.
          * We must not let the change proceed, return a negative
-         * result and set the result code to NO_SUCH_OBJET.
+         * result and set the result code to NO_SUCH_OBJECT.
          * When the operation will return, the thread that started the
          * operation will try to find the correct entry and restart a new
          * operation.
@@ -1882,7 +1865,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       PreOperationAddOperation addOperation)
   {
     if ((!addOperation.isSynchronizationOperation())
-        && (!brokerIsConnected(addOperation)))
+        && (!brokerIsConnected()))
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -1980,16 +1963,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Check that the broker associated to this ReplicationDomain has found
    * a Replication Server and that this LDAP server is therefore able to
    * process operations.
-   * If not set the ResultCode and the response message,
+   * If not, set the ResultCode, the response message,
    * interrupt the operation, and return false
    *
-   * @param   op  The Operation that needs to be checked.
-   *
    * @return  true when it OK to process the Operation, false otherwise.
-   *          When false is returned the resultCode and the reponse message
+   *          When false is returned the resultCode and the response message
    *          is also set in the Operation.
    */
-  private boolean brokerIsConnected(PreOperationOperation op)
+  private boolean brokerIsConnected()
   {
     if (isolationPolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
     {
@@ -2020,7 +2001,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       PreOperationModifyDNOperation modifyDNOperation)
   {
     if ((!modifyDNOperation.isSynchronizationOperation())
-        && (!brokerIsConnected(modifyDNOperation)))
+        && (!brokerIsConnected()))
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -2076,7 +2057,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Probably the original entry was renamed and replaced with
          * another entry.
          * We must not let the change proceed, return a negative
-         * result and set the result code to NO_SUCH_OBJET.
+         * result and set the result code to NO_SUCH_OBJECT.
          * When the operation will return, the thread that started the
          * operation will try to find the correct entry and restart a new
          * operation.
@@ -2140,7 +2121,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          PreOperationModifyOperation modifyOperation)
   {
     if ((!modifyOperation.isSynchronizationOperation())
-        && (!brokerIsConnected(modifyOperation)))
+        && (!brokerIsConnected()))
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -2198,8 +2179,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
     if (ctx == null)
     {
-      // No replication ctxt attached => not a replicated operation
-      // - create a ctxt with : changeNumber, entryUUID
+      // No replication ctx attached => not a replicated operation
+      // - create a ctx with : changeNumber, entryUUID
       // - attach the context to the op
 
       ChangeNumber changeNumber = generateChangeNumber(modifyOperation);
@@ -2210,7 +2191,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     else
     {
-      // Replication ctxt attached => this is a replicated operation being
+      // Replication ctx attached => this is a replicated operation being
       // replayed here, it is necessary to
       // - check if the entry has been renamed
       // - check for conflicts
@@ -2225,7 +2206,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Probably the original entry was renamed and replaced with
          * another entry.
          * We must not let the modification proceed, return a negative
-         * result and set the result code to NO_SUCH_OBJET.
+         * result and set the result code to NO_SUCH_OBJECT.
          * When the operation will return, the thread that started the
          * operation will try to find the correct entry and restart a new
          * operation.
@@ -2347,7 +2328,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       catch  (NoSuchElementException e)
       {
         Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-            curChangeNumber.toString(), op.toString());
+            op.toString(), curChangeNumber.toString());
         logError(message);
         return;
       }
@@ -2361,7 +2342,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         generationIdSavedStatus = false;
       }
 
-      if (generationIdSavedStatus != true)
+      if (!generationIdSavedStatus)
       {
         this.saveGenerationId(generationId);
       }
@@ -2448,27 +2429,27 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        attrs, null);
 
      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
-     Entry entrytoRename = null;
-     ChangeNumber entrytoRenameDate = null;
+     Entry entryToRename = null;
+     ChangeNumber entryToRenameCN = null;
      for (SearchResultEntry entry : entries)
      {
        EntryHistorical history = EntryHistorical.newInstanceFromEntry(entry);
-       if (entrytoRename == null)
+       if (entryToRename == null)
        {
-         entrytoRename = entry;
-         entrytoRenameDate = history.getDNDate();
+         entryToRename = entry;
+         entryToRenameCN = history.getDNDate();
        }
-       else if (!history.addedOrRenamedAfter(entrytoRenameDate))
+       else if (!history.addedOrRenamedAfter(entryToRenameCN))
        {
          // this conflict is older than the previous, keep it.
-         entrytoRename = entry;
-         entrytoRenameDate = history.getDNDate();
+         entryToRename = entry;
+         entryToRenameCN = history.getDNDate();
        }
      }
 
-     if (entrytoRename != null)
+     if (entryToRename != null)
      {
-       DN entryDN = entrytoRename.getDN();
+       DN entryDN = entryToRename.getDN();
        ModifyDNOperationBasis newOp = renameEntry(
            entryDN, freedDN.getRDN(), freedDN.getParent(), false);
 
@@ -2601,7 +2582,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
     } catch (InterruptedException e)
     {
-      // stop waiting when interrupted.
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -2924,12 +2905,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * search if the entry has been renamed, and return the new dn
        * of the entry.
        */
-      DN newdn = findEntryDN(entryUUID);
-      if (newdn != null)
+      DN newDN = findEntryDN(entryUUID);
+      if (newDN != null)
       {
         // There is an entry with the same unique id as this modify operation
         // replay the modify using the current dn of this entry.
-        msg.setDn(newdn.toString());
+        msg.setDn(newDN.toString());
         numResolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -2974,15 +2955,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             // current RDN value(s);
             mod.setModificationType(ModificationType.REPLACE);
             Attribute newAttribute = mod.getAttribute();
-            AttributeBuilder attrBuilder;
-            if (newAttribute == null)
-            {
-              attrBuilder = new AttributeBuilder(modAttrType);
-            }
-            else
-            {
-              attrBuilder = new AttributeBuilder(newAttribute);
-            }
+            AttributeBuilder attrBuilder = new AttributeBuilder(newAttribute);
             attrBuilder.add(currentRDN.getAttributeValue(modAttrType));
             mod.setAttribute(attrBuilder.toAttribute());
           }
@@ -3224,8 +3197,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         /*
          * This entry is the base dn of the backend.
          * It is quite surprising that the operation result be NO_SUCH_OBJECT.
-         * There is nothing more we can do except TODO log a
+         * There is nothing more we can do except log a
          * message for the repair tool to look at this problem.
+         * TODO : Log the message
          */
         return true;
       }
@@ -3265,7 +3239,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        *  - two adds are done on different servers but with the
        *    same target DN.
        *  - the same ADD is being replayed for the second time on this server.
-       * if the nsunique ID already exist, assume this is a replay and
+       * if the entryUUID already exist, assume this is a replay and
        *        don't do anything
        * if the entry unique id do not exist, generate conflict.
        */
@@ -3315,11 +3289,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
       attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
-      SearchFilter ALLMATCH;
-      ALLMATCH = SearchFilter.createFilterFromString("(objectClass=*)");
       InternalSearchOperation op =
           conn.processSearch(entryDN, SearchScope.SINGLE_LEVEL,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              SearchFilter.createFilterFromString("(objectClass=*)"),
               attrs);
 
       if (op.getResultCode() == ResultCode.SUCCESS)
@@ -3501,7 +3474,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param dn       The original DN of the entry.
    *
    * @return The generated RDN for a conflicting entry.
-   * @throws DirectoryException
    */
   private RDN generateDeleteConflictDn(String entryUUID, DN dn)
   {
@@ -3584,19 +3556,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     state.clearInMemory();
     state.loadState();
 
-    // Check to see if a Ruv needs to be translated
-    Long compatGenId  = state.checkRUVCompat();
-
     generator.adjust(state.getMaxChangeNumber(serverId));
     // Retrieves the generation ID associated with the data imported
 
-    if (compatGenId != null)
-    {
-      generationId = compatGenId;
-      saveGenerationId(generationId);
-    }
-    else
-      generationId = loadGenerationId();
+    generationId = loadGenerationId();
   }
 
   /**
@@ -3780,14 +3743,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     if (search.getResultCode() != ResultCode.SUCCESS)
     {
-      if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
-      {
-        // nothing initialized yet
-        // don't log an error generationID will be computed.
-      }
-      else
-      {
-        //
+      if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
+      { // This is an error.
         Message message = ERR_SEARCHING_GENERATION_ID.get(
             search.getResultCode().getResultCodeName() + " " +
             search.getErrorMessage(),
@@ -4042,16 +3999,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (DirectoryException de)
     {
-      if ((ros != null) &&
-          (ros.getNumExportedEntries() >= entryCount))
-      {
-        // This is the normal end when computing the generationId
-        // We can interrupt the export only by an IOException
-      }
-      else
+      if (ros == null ||
+          ros.getNumExportedEntries() < entryCount)
       {
         Message message =
-          ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
+            ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
         logError(message);
         throw new DirectoryException(
             ResultCode.OTHER, message, null);
@@ -4077,10 +4029,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
 
       //  Release the shared lock on the backend.
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
       try
       {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
           Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
@@ -4291,9 +4243,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
 
       // From the domainDN retrieves the replication domain
-      LDAPReplicationDomain sdomain =
+      LDAPReplicationDomain domain =
         MultimasterReplication.findDomain(baseDn, null);
-      if (sdomain == null)
+      if (domain == null)
       {
         break;
       }
@@ -4304,7 +4256,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         throw new DirectoryException(ResultCode.OTHER,
             message);
       }
-      replicationDomain = sdomain;
+      replicationDomain = domain;
     }
 
     if (replicationDomain == null)
@@ -4430,14 +4382,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * This has no negative impact because the changes on schema should
      * not produce conflicts.
      */
-    if (baseDn.compareTo(DirectoryServer.getSchemaDN()) == 0)
-    {
-      solveConflictFlag = false;
-    }
-    else
-    {
-      solveConflictFlag = configuration.isSolveConflicts();
-    }
+    solveConflictFlag = baseDn.compareTo(DirectoryServer.getSchemaDN()) != 0 &&
+        configuration.isSolveConflicts();
 
     try
     {
@@ -4517,7 +4463,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void start()
   {
     // Create the ServerStateFlush thread
-    flushThread = new ServerStateFlush();
     flushThread.start();
 
     startListenService();
@@ -4553,7 +4498,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * Store the provided ECL configuration for the domain.
    * @param  domCfg       The provided configuration.
-   * @throws ConfigException When an error occured.
+   * @throws ConfigException When an error occurred.
    */
   public void storeECLConfiguration(ReplicationDomainCfg domCfg)
   throws ConfigException
@@ -4568,7 +4513,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         try
         { eclDomCfg = domCfg.getExternalChangelogDomain();
-        } catch(Exception e) {}
+        } catch(Exception e) { /* do nothing */ }
         // domain with no config entry only when running unit tests
         if (eclDomCfg == null)
         {
@@ -4697,7 +4642,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // normally the RS should have been updated by other RSes except for
       // very last changes lost if the local connection was broken
       // ... hence the RS we are connected to should not be empty
-      // ... or if it is empty, it is due to a volontary reset
+      // ... or if it is empty, it is due to a voluntary reset
       // and we don't want to update it with our changes that could be huge.
       if ((replServerMaxChangeNumber != null) &&
           (replServerMaxChangeNumber.getSeqnum()!=0))
@@ -5041,10 +4986,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Called by synchronize post op plugin in order to add the entry historized
+   * Called by synchronize post op plugin in order to add the entry historical
    * attributes to the UpdateMsg.
-   * @param msg
-   * @param op
+   * @param msg an replication update message
+   * @param op  the operation in progress
    * @throws DirectoryException
    */
   private void addEntryAttributesForCL(UpdateMsg msg,
@@ -5103,14 +5048,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       // Potential fast-path for delete operations.
       LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-      for (List<Attribute> alist : entry.getUserAttributes().values())
+      for (List<Attribute> attributeList : entry.getUserAttributes().values())
       {
-        attributes.addAll(alist);
+        attributes.addAll(attributeList);
       }
-      Attribute ocattr = entry.getObjectClassAttribute();
-      if (ocattr != null)
+      Attribute objectClassAttribute = entry.getObjectClassAttribute();
+      if (objectClassAttribute != null)
       {
-        attributes.add(ocattr);
+        attributes.add(objectClassAttribute);
       }
       return attributes;
     }
@@ -5422,11 +5367,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Map<String, List<String>> fractionalSpecificClassesAttributes,
       List<String> fractionalAllClassesAttributes) throws ConfigException
     {
-      int fractional_mode = NOT_FRACTIONAL;
+      int fractionalMode;
 
       // Determine if fractional-exclude or fractional-include property is used
       // : only one of them is allowed
-      Iterator<String> fracConfIt = null;
+      Iterator<String> iterator;
 
       // Deduce the wished fractional mode
       if ((exclIt != null) && exclIt.hasNext())
@@ -5438,16 +5383,16 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         }
         else
         {
-          fractional_mode = EXCLUSIVE_FRACTIONAL;
-          fracConfIt = exclIt;
+          fractionalMode = EXCLUSIVE_FRACTIONAL;
+          iterator = exclIt;
         }
       }
       else
       {
         if ((inclIt != null) && inclIt.hasNext())
         {
-          fractional_mode = INCLUSIVE_FRACTIONAL;
-          fracConfIt = inclIt;
+          fractionalMode = INCLUSIVE_FRACTIONAL;
+          iterator = inclIt;
         }
         else
         {
@@ -5455,11 +5400,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         }
       }
 
-      while (fracConfIt.hasNext())
+      while (iterator.hasNext())
       {
         // Parse a value with the form class:attr1,attr2...
         // or *:attr1,attr2...
-        String fractCfgStr = fracConfIt.next();
+        String fractCfgStr = iterator.next();
         StringTokenizer st = new StringTokenizer(fractCfgStr, ":");
         int nTokens = st.countTokens();
         if (nTokens < 2)
@@ -5505,7 +5450,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           }
         }
       }
-      return fractional_mode;
+      return fractionalMode;
     }
 
     // Return type of the parseFractionalConfig method
@@ -5546,7 +5491,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       FractionalConfig fractionalConfig1, FractionalConfig fractionalConfig2)
       throws ConfigException
     {
-      // Comapre base DNs just to be consistent
+      // Compare base DNs just to be consistent
       if (!fractionalConfig1.getBaseDn().equals(fractionalConfig2.getBaseDn()))
         return false;
 
@@ -5574,9 +5519,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (specificClassesAttributes1.size() !=
         specificClassesAttributes2.size())
         return false;
-
-      // Check consistency of specific classes attributes
       /*
+       * Check consistency of specific classes attributes
+       *
        * For each class in specificClassesAttributes1, check that the attribute
        * list is equivalent to specificClassesAttributes2 attribute list
        */
@@ -5702,7 +5647,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      for (SearchResultEntry entry : entries)
      {
        long maxTimeToRun = endDate - TimeThread.getTime();
-       if (maxTimeToRun<0)
+       if (maxTimeToRun < 0)
        {
          Message errMsg = Message.raw(Category.SYNC, Severity.NOTICE,
              " end date reached");

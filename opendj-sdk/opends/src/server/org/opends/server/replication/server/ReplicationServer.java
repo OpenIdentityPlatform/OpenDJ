@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -75,7 +75,7 @@ import org.opends.server.types.SearchScope;
 
 /**
  * ReplicationServer Listener. This singleton is the main object of the
- * replication server It waits for the incoming connections and create listener
+ * replication server. It waits for the incoming connections and create listener
  * and publisher objects for connection with LDAP servers and with replication
  * servers It is responsible for creating the replication server
  * replicationServerDomain and managing it
@@ -251,7 +251,7 @@ public final class ReplicationServer
     {
       backendConfigEntryDN = DN.decode(
       "ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
-    } catch (Exception e) {}
+    } catch (Exception e) { /* do nothing */ }
 
     // Creates the backend associated to this ReplicationServer
     // if it does not exist.
@@ -293,7 +293,7 @@ public final class ReplicationServer
         listenSocket.getLocalPort());
     logError(listenMsg);
 
-    while ((shutdown == false) && (stopListen  == false))
+    while (!shutdown && !stopListen)
     {
       // Wait on the replicationServer port.
       // Read incoming messages and create LDAP or ReplicationServer listener
@@ -365,7 +365,7 @@ public final class ReplicationServer
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        if (shutdown == false) {
+        if (!shutdown) {
           Message message =
             ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
           logError(message);
@@ -1561,9 +1561,7 @@ public final class ReplicationServer
   public ExternalChangeLogSession createECLSession(StartECLSessionMsg msg)
   throws DirectoryException
   {
-    ExternalChangeLogSessionImpl session =
-      new ExternalChangeLogSessionImpl(this, msg);
-    return session;
+    return new ExternalChangeLogSessionImpl(this, msg);
   }
 
   /**
@@ -1623,16 +1621,9 @@ public final class ReplicationServer
     {
       InetAddress localAddr = InetAddress.getLocalHost();
 
-      if (localPorts.contains(port)
+      return localPorts.contains(port)
           && (InetAddress.getByName(hostname).isLoopbackAddress() ||
-              InetAddress.getByName(hostname).equals(localAddr)))
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+          InetAddress.getByName(hostname).equals(localAddr));
 
     } catch (UnknownHostException e)
     {

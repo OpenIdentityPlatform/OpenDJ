@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -57,7 +57,6 @@ public class ReplayThread extends DirectoryThread
 
   private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
   private volatile boolean shutdown = false;
-  private volatile boolean done = false;
   private static int count = 0;
 
   /**
@@ -91,12 +90,11 @@ public class ReplayThread extends DirectoryThread
       TRACER.debugInfo("Replication Replay thread starting.");
     }
 
-    UpdateToReplay updateToreplay = null;
-
     while (!shutdown)
     {
       try
       {
+        UpdateToReplay updateToreplay;
         // Loop getting an updateToReplayQueue from the update message queue and
         // replaying matching changes
         while ( (!shutdown) &&
@@ -119,27 +117,9 @@ public class ReplayThread extends DirectoryThread
         logError(message);
       }
     }
-    done = true;
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Replay thread stopping.");
-    }
-  }
-
-  /**
-   * Wait for the completion of this thread.
-   */
-  public void waitForShutdown()
-  {
-    try
-    {
-      while ((done == false) && (this.isAlive()))
-      {
-        Thread.sleep(50);
-      }
-    } catch (InterruptedException e)
-    {
-      // exit the loop if this thread is interrupted.
     }
   }
 }

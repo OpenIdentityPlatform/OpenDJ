@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -389,13 +389,7 @@ public class StartSessionMsg extends ReplicationMsg
       status = ServerStatus.valueOf(in[1]);
 
       /* Read the assured flag */
-      if (in[2] == 1)
-      {
-        assuredFlag = true;
-      } else
-      {
-        assuredFlag = false;
-      }
+      assuredFlag = in[2] == 1;
 
       /* Read the assured mode */
       assuredMode = AssuredMode.valueOf(in[3]);
@@ -403,7 +397,7 @@ public class StartSessionMsg extends ReplicationMsg
       /* Read the safe data level */
       safeDataLevel = in[4];
 
-      /* Read the refferals URLs */
+      /* Read the referrals URLs */
       int pos = 5;
       referralsURLs = new ArrayList<String>();
       while (pos < in.length)

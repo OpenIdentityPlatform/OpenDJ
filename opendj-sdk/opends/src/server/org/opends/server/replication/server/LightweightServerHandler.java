@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -87,15 +87,16 @@ public class LightweightServerHandler
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) -1;
-  // The prococol version
+  // The protocol version
   private short protocolVersion = -1;
 
   private Set<String> eclInclude = new HashSet<String>();
   private Set<String> eclIncludeForDeletes = new HashSet<String>();
 
   /**
-   * Creates a new LighweightServerHandler with the provided serverid, connected
-   * to the remote Replication Server represented by replServerHandler.
+   * Creates a new LightweightServerHandler with the provided serverid,
+   * connected to the remote Replication Server represented by
+   * replServerHandler.
    *
    * @param replServerHandler The server handler of the RS this remote DS is
    * connected to
@@ -150,11 +151,9 @@ public class LightweightServerHandler
    */
   public DSInfo toDSInfo()
   {
-    DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
+    return new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
       eclInclude, eclIncludeForDeletes, protocolVersion);
-
-    return dsInfo;
   }
 
   /**

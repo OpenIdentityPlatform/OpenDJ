@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -145,7 +145,7 @@ public class ECLServerWriter extends ServerWriter
     {
       while (true)
       {
-        // wait to be resumed or shutdowned
+        // wait to be resumed or shutdown
         if ((suspended) && (!shutdown))
         {
           synchronized(this)
@@ -224,12 +224,7 @@ public class ECLServerWriter extends ServerWriter
     ECLUpdateMsg update = null;
     while (true)
     {
-      if (shutdown)
-      {
-        return;
-      }
-
-      if (suspended)
+      if (shutdown || suspended)
       {
         return;
       }
@@ -267,14 +262,13 @@ public class ECLServerWriter extends ServerWriter
         {
           // except if we are in persistent search
           Thread.sleep(200);
-          continue;
         }
       }
       else
       {
         // Publish the update to the remote server using a protocol version he
         // it supports
-        publish(update, protocolVersion);
+        publish(update);
         update = null;
       }
     }
@@ -292,7 +286,7 @@ public class ECLServerWriter extends ServerWriter
   /**
    * Publish a change either on the protocol session or to a persistent search.
    */
-  private void publish(ECLUpdateMsg msg, short reqProtocolVersion)
+  private void publish(ECLUpdateMsg msg)
   throws IOException
   {
     if (debugEnabled())
