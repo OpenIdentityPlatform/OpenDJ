@@ -23,19 +23,20 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers;
 
 
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.DN;
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.config.ConfigException;
-import org.opends.server.api.ErrorLogPublisher;
-import org.opends.server.util.TimeThread;
+import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
-import org.opends.messages.Category;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
+import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
+import org.opends.server.util.TimeThread;
 
 /**
  * This class provides an implementation of an error logger where only messages
@@ -64,7 +65,8 @@ public class ThreadFilterTextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
-  public void initializeErrorLogPublisher(ErrorLogPublisherCfg config)
+  @Override
+  public void initializeLogPublisher(ErrorLogPublisherCfg config)
       throws ConfigException, InitializationException
   {
     // This class should only be used internally in the server and not be
@@ -74,6 +76,7 @@ public class ThreadFilterTextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     writer.shutdown();
@@ -82,6 +85,7 @@ public class ThreadFilterTextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logError(Message message)
   {
     if (message != null) {
@@ -108,6 +112,7 @@ public class ThreadFilterTextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     // This class should only be used internally in the server and not be

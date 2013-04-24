@@ -23,18 +23,16 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.types.ResultCode.SUCCESS;
-import static org.opends.server.util.ServerConstants.EOL;
-import static org.opends.server.util.StaticUtils.getBytes;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +69,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedAuditLogPublisherCfg config)
   {
@@ -184,7 +183,7 @@ public final class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   @Override()
-  public void initializeAccessLogPublisher(FileBasedAuditLogPublisherCfg cfg)
+  public void initializeLogPublisher(FileBasedAuditLogPublisherCfg cfg)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(cfg.getLogFile());
@@ -267,6 +266,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedAuditLogPublisherCfg config, List<Message> unacceptableReasons)
   {

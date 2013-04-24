@@ -23,34 +23,37 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.List;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.backends.task.Task;
-import org.opends.server.loggers.debug.DebugTracer;
-
-import org.opends.server.types.*;
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 /**
  * This class defines the wrapper that will invoke all registered error loggers
  * for each type of request received or response sent. If no error log
@@ -158,6 +161,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(ErrorLogPublisherCfg config,
                                               List<Message> unacceptableReasons)
   {
@@ -168,6 +172,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
           ErrorLogPublisherCfg config,
           List<Message> unacceptableReasons)
@@ -179,6 +184,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(ErrorLogPublisherCfg config)
   {
     // Default result code.
@@ -223,6 +229,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       ErrorLogPublisherCfg config)
   {
@@ -279,6 +286,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
           ErrorLogPublisherCfg config,
           List<Message> unacceptableReasons)
@@ -301,6 +309,7 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       ErrorLogPublisherCfg config)
   {
@@ -337,12 +346,12 @@ public class ErrorLogger implements
     ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a DebugLogPublisher.
-    ErrorLogPublisher publisher = null;
-    Class<? extends ErrorLogPublisher> theClass;
     try {
-      theClass = pd.loadClass(className, ErrorLogPublisher.class);
-      publisher = theClass.newInstance();
+      // Load the class and cast it to a ErrorLogPublisher.
+      ErrorLogPublisher<ErrorLogPublisherCfg> publisher =
+          pd.loadClass(className, ErrorLogPublisher.class).newInstance();
+      // The class is valid as far as we can tell.
+      return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
       Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
               className,
@@ -351,31 +360,6 @@ public class ErrorLogger implements
       unacceptableReasons.add(message);
       return false;
     }
-    // Check that the implementation class implements the correct interface.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-                                         ErrorLogPublisherCfg.class,
-                                         List.class);
-      Boolean acceptable = (Boolean) method.invoke(publisher, config,
-                                                   unacceptableReasons);
-
-      if (! acceptable)
-      {
-        return false;
-      }
-    } catch (Exception e) {
-      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
-              className,
-              config.dn().toString(),
-              String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   private ErrorLogPublisher getErrorPublisher(ErrorLogPublisherCfg config)
@@ -384,27 +368,13 @@ public class ErrorLogger implements
     ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a ErrorLogPublisher.
-    Class<? extends ErrorLogPublisher> theClass;
-    ErrorLogPublisher errorLogPublisher;
     try {
-      theClass = pd.loadClass(className, ErrorLogPublisher.class);
-      errorLogPublisher = theClass.newInstance();
-
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeErrorLogPublisher", config
-          .configurationClass());
-      method.invoke(errorLogPublisher, config);
-    }
-    catch (InvocationTargetException ite)
-    {
-      // Rethrow the exceptions thrown be the invoked method.
-      Throwable e = ite.getTargetException();
-      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
-          className, config.dn().toString(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
+      // Load the class and cast it to a ErrorLogPublisher.
+      ErrorLogPublisher<ErrorLogPublisherCfg> errorLogPublisher =
+          pd.loadClass(className, ErrorLogPublisher.class).newInstance();
+      errorLogPublisher.initializeLogPublisher(config);
+      // The error publisher has been successfully initialized.
+      return errorLogPublisher;
     }
     catch (Exception e)
     {
@@ -412,9 +382,6 @@ public class ErrorLogger implements
           className, config.dn().toString(), String.valueOf(e));
       throw new ConfigException(message, e);
     }
-
-    // The error publisher has been successfully initialized.
-    return errorLogPublisher;
   }
 
 

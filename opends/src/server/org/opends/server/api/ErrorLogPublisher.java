@@ -23,25 +23,20 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
-
-
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.config.ConfigException;
-
-
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.DN;
-import org.opends.messages.Severity;
 import org.opends.messages.Category;
-
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -55,16 +50,15 @@ import org.opends.messages.Category;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class ErrorLogPublisher
-       <T extends ErrorLogPublisherCfg>
+public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
+    implements LogPublisher<T>
 {
   /**
    * The hash map that will be used to define specific log severities
    * for the various categories.
    */
-  protected HashMap<Category,HashSet<Severity>>
-      definedSeverities =
-           new HashMap<Category, HashSet<Severity>>();
+  protected Map<Category, Set<Severity>> definedSeverities =
+      new HashMap<Category, Set<Severity>>();
 
 
 
@@ -72,71 +66,20 @@ public abstract class ErrorLogPublisher
    * The set of default log severities that will be used if no custom
    * severities have been defined for the associated category.
    */
-  protected HashSet<Severity>
-       defaultSeverities = new HashSet<Severity>();
+  protected Set<Severity> defaultSeverities = new HashSet<Severity>();
 
 
 
-  /**
-   * Initializes this access publisher provider based on the
-   * information in the provided debug publisher configuration.
-   *
-   * @param  config  The error publisher configuration that contains
-   *                 the information to use to initialize this error
-   *                 publisher.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization as a result of the
-   *                           server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
-   */
-  public abstract void initializeErrorLogPublisher(T config)
-         throws ConfigException, InitializationException;
-
-
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this error log publisher.  It should be possible to call this
-   * method on an uninitialized error log publisher instance in
-   * order to determine whether the error log publisher would be able
-   * to use the provided configuration.
-   * <BR><BR>
-   * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration
-   * to the appropriate subclass type.
-   *
-   * @param  configuration        The error log publisher
-   *                              configuration for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   *
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this error log publisher, or {@code false} if not.
-   */
-  public boolean isConfigurationAcceptable(
-                      ErrorLogPublisherCfg configuration,
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConfigurationAcceptable(T configuration,
                       List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
-    // validation.  It should be overridden by error log publisher
+    // validation. It should be overridden by error log publisher
     // implementations that wish to perform more detailed validation.
     return true;
   }
-
-
-
-  /**
-   * Close this publisher.
-   */
-  public abstract void close();
 
 
 
@@ -149,13 +92,4 @@ public abstract class ErrorLogPublisher
    */
   public abstract void logError(Message message);
 
-  /**
-   * Gets the DN of the configuration entry for this error log
-   * publisher.
-   *
-   * @return The configuration entry DN.
-   */
-  public abstract DN getDN();
-
 }
-

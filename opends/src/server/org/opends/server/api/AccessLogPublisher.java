@@ -23,21 +23,16 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.api;
 
-
-
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.opends.messages.Message;
-
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -52,50 +47,12 @@ import org.opends.messages.Message;
     mayInstantiate = false,
     mayExtend = true,
     mayInvoke = false)
-public abstract class AccessLogPublisher
-  <T extends AccessLogPublisherCfg>
+public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
+    implements LogPublisher<T>
 {
 
-  /**
-   * Initializes this access publisher provider based on the
-   * information in the provided debug publisher configuration.
-   *
-   * @param config
-   *          The access publisher configuration that contains the
-   *          information to use to initialize this access publisher.
-   * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
-   * @throws InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
-   */
-  public abstract void initializeAccessLogPublisher(T config)
-      throws ConfigException, InitializationException;
-
-
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this access log publisher. It should be possible to call this
-   * method on an uninitialized access log publisher instance in order
-   * to determine whether the access log publisher would be able to
-   * use the provided configuration. <BR>
-   * <BR>
-   * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration to
-   * the appropriate subclass type.
-   *
-   * @param configuration
-   *          The access log publisher configuration for which to make
-   *          the determination.
-   * @param unacceptableReasons
-   *          A list that may be used to hold the reasons that the
-   *          provided configuration is not acceptable.
-   * @return {@code true} if the provided configuration is acceptable
-   *         for this access log publisher, or {@code false} if not.
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAcceptable(T configuration,
       List<Message> unacceptableReasons)
   {
@@ -104,13 +61,6 @@ public abstract class AccessLogPublisher
     // implementations that wish to perform more detailed validation.
     return true;
   }
-
-
-
-  /**
-   * Close this publisher.
-   */
-  public abstract void close();
 
 
 
@@ -520,15 +470,5 @@ public abstract class AccessLogPublisher
   {
     // Do nothing
   }
-
-
-
-  /**
-   * Gets the DN of the configuration entry for this access log
-   * publisher.
-   *
-   * @return The configuration entry DN.
-   */
-  public abstract DN getDN();
 
 }

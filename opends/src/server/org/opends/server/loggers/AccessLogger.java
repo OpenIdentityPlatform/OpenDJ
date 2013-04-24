@@ -23,38 +23,30 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
-
-
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.List;
 import java.util.ArrayList;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.AccessLogPublisher;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn;
+import org.opends.messages.Message;
+import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.server.api.AccessLogPublisher;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import org.opends.server.types.*;
 
 
 /**
@@ -165,6 +157,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       AccessLogPublisherCfg config,
       List<Message> unacceptableReasons)
@@ -176,6 +169,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       AccessLogPublisherCfg config,
       List<Message> unacceptableReasons)
@@ -187,6 +181,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(AccessLogPublisherCfg config)
   {
     // Default result code.
@@ -232,6 +227,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       AccessLogPublisherCfg config)
   {
@@ -288,6 +284,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       AccessLogPublisherCfg config,
       List<Message> unacceptableReasons)
@@ -311,6 +308,7 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       AccessLogPublisherCfg config)
   {
@@ -348,13 +346,12 @@ public class AccessLogger implements
     AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a DebugLogPublisher.
-    AccessLogPublisher<?> publisher = null;
-    Class<? extends AccessLogPublisher<?>> theClass;
     try {
-      theClass = (Class<? extends AccessLogPublisher<?>>)
-        pd.loadClass(className, AccessLogPublisher.class);
-      publisher = theClass.newInstance();
+      // Load the class and cast it to a AccessLogPublisher.
+      AccessLogPublisher<AccessLogPublisherCfg> publisher =
+          pd.loadClass(className, AccessLogPublisher.class).newInstance();
+      // The class is valid as far as we can tell.
+      return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
           className,
@@ -363,31 +360,6 @@ public class AccessLogger implements
       unacceptableReasons.add(message);
       return false;
     }
-    // Check that the implementation class implements the correct interface.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-          AccessLogPublisherCfg.class,
-          List.class);
-      Boolean acceptable = (Boolean) method.invoke(publisher, config,
-          unacceptableReasons);
-
-      if (! acceptable)
-      {
-        return false;
-      }
-    } catch (Exception e) {
-      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-          className,
-          config.dn().toString(),
-          String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   private AccessLogPublisher<?> getAccessPublisher(AccessLogPublisherCfg config)
@@ -396,29 +368,13 @@ public class AccessLogger implements
     AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a AccessLogPublisher.
-    AccessLogPublisher<?> accessLogPublisher;
     try {
-      @SuppressWarnings("unchecked")
-      Class<? extends AccessLogPublisher<?>> theClass =
-        (Class<? extends AccessLogPublisher<?>>) pd
-          .loadClass(className, AccessLogPublisher.class);
-      accessLogPublisher = theClass.newInstance();
-
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeAccessLogPublisher", config
-          .configurationClass());
-      method.invoke(accessLogPublisher, config);
-    }
-    catch (InvocationTargetException ite)
-    {
-      // Rethrow the exceptions thrown be the invoked method.
-      Throwable e = ite.getTargetException();
-      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-          className, config.dn().toString(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
+      // Load the class and cast it to a AccessLogPublisher.
+      AccessLogPublisher<AccessLogPublisherCfg> accessLogPublisher =
+          pd.loadClass(className, AccessLogPublisher.class).newInstance();
+      accessLogPublisher.initializeLogPublisher(config);
+      // The access publisher has been successfully initialized.
+      return accessLogPublisher;
     }
     catch (Exception e)
     {
@@ -426,9 +382,6 @@ public class AccessLogger implements
           className, config.dn().toString(), String.valueOf(e));
       throw new ConfigException(message, e);
     }
-
-    // The access publisher has been successfully initialized.
-    return accessLogPublisher;
   }
 
 

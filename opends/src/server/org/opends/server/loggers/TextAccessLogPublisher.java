@@ -262,9 +262,8 @@ public final class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeAccessLogPublisher(
-      final FileBasedAccessLogPublisherCfg cfg) throws ConfigException,
-      InitializationException
+  public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg)
+      throws ConfigException, InitializationException
   {
     final File logFile = getFileForPath(cfg.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);

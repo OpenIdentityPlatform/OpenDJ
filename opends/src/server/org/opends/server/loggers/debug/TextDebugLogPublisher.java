@@ -23,41 +23,38 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers.debug;
-import org.opends.messages.Message;
 
-import org.opends.server.api.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.messages.Message;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
+import org.opends.server.admin.std.server.DebugTargetCfg;
+import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
+import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.*;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.ServerConstants.PROPERTY_DEBUG_TARGET;
-import org.opends.server.admin.std.server.DebugTargetCfg;
-import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-import static org.opends.messages.ConfigMessages.
-   ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_LOGGING_INSANE_MODE;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_LOGGING_MODE_INVALID;
-
-
-import java.util.*;
-import java.io.File;
-import java.io.IOException;
 
 import com.sleepycat.je.*;
 
@@ -125,18 +122,18 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationAcceptable(DebugLogPublisherCfg configuration,
-                                           List<Message> unacceptableReasons)
+  @Override
+  public boolean isConfigurationAcceptable(
+      FileBasedDebugLogPublisherCfg config, List<Message> unacceptableReasons)
   {
-    FileBasedDebugLogPublisherCfg config =
-        (FileBasedDebugLogPublisherCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   /**
    * {@inheritDoc}
    */
-  public void initializeDebugLogPublisher(FileBasedDebugLogPublisherCfg config)
+  @Override
+  public void initializeLogPublisher(FileBasedDebugLogPublisherCfg config)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(config.getLogFile());
@@ -247,6 +244,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedDebugLogPublisherCfg config, List<Message> unacceptableReasons)
   {
@@ -277,6 +275,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedDebugLogPublisherCfg config)
   {
@@ -403,6 +402,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(DebugTargetCfg config,
                                               List<Message> unacceptableReasons)
   {
@@ -412,6 +412,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(DebugTargetCfg config,
                                               List<Message> unacceptableReasons)
   {
@@ -422,6 +423,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(DebugTargetCfg config)
   {
     // Default result code.
@@ -439,6 +441,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(DebugTargetCfg config)
   {
     // Default result code.
@@ -456,6 +459,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceConstructor(LogLevel level,
                                TraceSettings settings,
                                String signature,
@@ -483,6 +487,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceMethodEntry(LogLevel level,
                                TraceSettings settings,
                                String signature,
@@ -510,6 +515,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceStaticMethodEntry(LogLevel level,
                                      TraceSettings settings,
                                      String signature,
@@ -536,6 +542,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceReturn(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -563,6 +570,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceThrown(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -588,6 +596,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceMessage(LogLevel level,
                            TraceSettings settings,
                            String signature,
@@ -609,6 +618,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceCaught(LogLevel level,
                           TraceSettings settings,
                           String signature,
@@ -633,6 +643,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceJEAccess(LogLevel level,
                             TraceSettings settings,
                             String signature,
@@ -709,6 +720,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceData(LogLevel level,
                         TraceSettings settings,
                         String signature,
@@ -741,6 +753,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void traceProtocolElement(LogLevel level,
                                    TraceSettings settings,
                                    String signature,
@@ -767,6 +780,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     writer.shutdown();
@@ -862,6 +876,7 @@ public class TextDebugLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     if(currentConfig != null)
