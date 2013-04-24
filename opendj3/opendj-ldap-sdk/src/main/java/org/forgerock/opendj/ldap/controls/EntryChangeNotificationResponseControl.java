@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -49,7 +49,7 @@ import com.forgerock.opendj.util.Validator;
 /**
  * The entry change notification response control as defined in
  * draft-ietf-ldapext-psearch. This control provides additional information
- * about the change the caused a particular entry to be returned as the result
+ * about the change that caused a particular entry to be returned as the result
  * of a persistent search.
  *
  * <pre>
