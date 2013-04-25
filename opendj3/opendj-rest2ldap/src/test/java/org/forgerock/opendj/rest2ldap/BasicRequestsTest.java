@@ -18,6 +18,8 @@ package org.forgerock.opendj.rest2ldap;
 import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
+import static org.forgerock.json.fluent.JsonValue.field;
+import static org.forgerock.json.fluent.JsonValue.object;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
 import static org.forgerock.json.resource.Requests.newReadRequest;
 import static org.forgerock.json.resource.Requests.newUpdateRequest;
@@ -30,8 +32,6 @@ import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
 import static org.forgerock.opendj.rest2ldap.TestUtils.asResource;
 import static org.forgerock.opendj.rest2ldap.TestUtils.content;
 import static org.forgerock.opendj.rest2ldap.TestUtils.ctx;
-import static org.forgerock.opendj.rest2ldap.TestUtils.field;
-import static org.forgerock.opendj.rest2ldap.TestUtils.object;
 
 import java.io.IOException;
 

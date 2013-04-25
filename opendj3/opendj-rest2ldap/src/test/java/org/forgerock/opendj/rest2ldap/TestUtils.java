@@ -15,12 +15,10 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import java.util.AbstractMap;
+import static org.forgerock.json.fluent.JsonValue.json;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
@@ -32,17 +30,6 @@ import org.forgerock.json.resource.RootContext;
  * objects.
  */
 public final class TestUtils {
-
-    /**
-     * Creates a JSON array object.
-     *
-     * @param objects
-     *            The array elements.
-     * @return A JSON array.
-     */
-    public static Object array(final Object... objects) {
-        return Arrays.asList(objects);
-    }
 
     /**
      * Returns a {@code Resource} containing the provided JSON content. The ID
@@ -64,7 +51,7 @@ public final class TestUtils {
      * @return The JSON value.
      */
     public static JsonValue content(final Object object) {
-        return new JsonValue(object);
+        return json(object);
     }
 
     /**
@@ -86,21 +73,7 @@ public final class TestUtils {
      * @return The JSON value.
      */
     public static JsonValue expected(final Object object) {
-        return content(object);
-    }
-
-    /**
-     * Creates a JSON field for inclusion in a JSON object using
-     * {@link #object(java.util.Map.Entry...)}.
-     *
-     * @param key
-     *            The JSON field name.
-     * @param value
-     *            The JSON field value.
-     * @return The JSON field for inclusion in a JSON object.
-     */
-    public static Map.Entry<String, Object> field(final String key, final Object value) {
-        return new AbstractMap.SimpleImmutableEntry<String, Object>(key, value);
+        return json(object);
     }
 
     /**
@@ -116,24 +89,6 @@ public final class TestUtils {
             result.add(new JsonPointer(field));
         }
         return result;
-    }
-
-    /**
-     * Creates a JSON object comprised of the provided JSON
-     * {@link #field(String, Object) fields}.
-     *
-     * @param fields
-     *            The list of {@link #field(String, Object) fields} to include
-     *            in the JSON object.
-     * @return The JSON object.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static Object object(final Map.Entry... fields) {
-        final Map<String, Object> object = new LinkedHashMap<String, Object>(fields.length);
-        for (final Map.Entry<String, Object> field : fields) {
-            object.put(field.getKey(), field.getValue());
-        }
-        return object;
     }
 
     private TestUtils() {
