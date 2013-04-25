@@ -707,15 +707,18 @@
 
 
 
-  <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
        depends="cleaninit,compilequicksetup"
        description="Recompile the Directory Server source files.">
   </target>
 
-  <!-- Compile the Directory Server source files. -->
+  <target name="generatesources"
+       depends="dynamicconstants,generatemessages,generateadmin"
+       description="Generate all the sources.">
+  </target>
+
   <target name="compile"
-       depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin,resolve"
+       depends="init,checkjavaversion,generatesources,resolve"
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
     <mkdir dir="${build.lib.dir}" />
@@ -866,7 +869,7 @@
     <delete file="${package.dir}/lib/quicksetup.jar" />
 
     <!-- Regenerate configuration files if necessary -->
-    <antcall target="compileadmin" />
+    <antcall target="generateadmin" />
 
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
@@ -1434,7 +1437,7 @@
 
 
   <!-- Generate JavaDoc documentation from the source files -->
-  <target name="javadoc" depends="dsml,compileadmin"
+  <target name="javadoc" depends="dsml,generateadmin"
        description="Generate JavaDoc documentation.">
     <mkdir dir="${javadoc.dir}" />
 
@@ -2284,10 +2287,9 @@
 
 
   <!-- Code generation for core administration components. -->
-  <target name="compileadmin" depends="validateadmin" description="Code generation for configuration Object.">
+  <target name="generateadmin" depends="validateadmin" description="Code generation for configuration Object.">
     <!-- The XSLT task creates a lot of noise.
          I can't find any other way to shut it up. -->
-
     <condition property="antcmd" value="ant.bat">
       <os family="windows" />
     </condition>
@@ -2302,8 +2304,9 @@
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
       <arg value="-Dbuild.dir=${build.dir}" />
+      <arg value="-Dadmin.src.dir=${admin.src.dir}" />
       <arg value="-quiet" />
-      <arg value="compileadminsubtask" />
+      <arg value="generateadminsubtask" />
       <env key="ANT_OPTS" value="-Xmx${MEM}" />
       <!-- Set classpath to workaround Apple JDK Xalan conflict -->
       <env key="CLASSPATH" value="${ext.dir}/xalan-j/xalan.jar" />
@@ -2312,7 +2315,7 @@
 
 
 
-  <target name="compileadminsubtask">
+  <target name="generateadminsubtask">
     <!-- Xalan-J Class Path : refer to it explicitly from each XSLT task. -->
     <path id="xalan.class.path">
       <fileset dir="${ext.dir}/xalan-j">
@@ -2427,7 +2430,7 @@
   </target>
 
   <!-- Generate a src.zip file containing all the server source. -->
-  <target name="srczip" depends="compileadmin"
+  <target name="srczip" depends="generateadmin"
        description="Generate a src.zip file with all the server source.">
     <zip destfile="${build.dir}/src.zip">
       <zipfileset dir="${src.dir}" excludes="**/.svn" filemode="644"
