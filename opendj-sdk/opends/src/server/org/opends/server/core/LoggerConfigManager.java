@@ -23,27 +23,29 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 
-
-
-import java.util.*;
-
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.*;
-
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.AccessLogger;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 
-import org.opends.server.admin.std.server.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.*;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.AbstractLogger;
+import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 
 
 /**
@@ -123,67 +125,77 @@ public class LoggerConfigManager implements
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
     }
 
-    DebugLogger.getInstance().initializeDebugLogger(debugPublisherCfgs);
-    AccessLogger.getInstance().initializeAccessLogger(accessPublisherCfgs);
-    ErrorLogger.getInstance().initializeErrorLogger(errorPublisherCfgs);
+    DebugLogger.getInstance().initializeLogger(debugPublisherCfgs);
+    AccessLogger.getInstance().initializeLogger(accessPublisherCfgs);
+    ErrorLogger.getInstance().initializeLogger(errorPublisherCfgs);
+  }
+
+  /**
+   * Returns the logger instance corresponding to the provided config. If no
+   * logger corresponds to it, null will be returned and a message will be added
+   * to the provided messages list.
+   *
+   * @param config
+   *          the config for which to return the logger instance
+   * @param messages
+   *          where the error message will be output if no logger correspond to
+   *          the provided config.
+   * @return the logger corresponding to the provided config, null if no logger
+   *         corresponds.
+   */
+  private AbstractLogger getLoggerInstance(LogPublisherCfg config,
+      List<Message> messages)
+  {
+    if (config instanceof DebugLogPublisherCfg)
+    {
+      return DebugLogger.getInstance();
+    }
+    else if (config instanceof AccessLogPublisherCfg)
+    {
+      return AccessLogger.getInstance();
+    }
+    else if (config instanceof ErrorLogPublisherCfg)
+    {
+      return ErrorLogger.getInstance();
+    }
+    else
+    {
+      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(String
+          .valueOf(config.dn())));
+      return null;
+    }
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(LogPublisherCfg config,
                                               List<Message> unacceptableReasons)
   {
-    if(config instanceof DebugLogPublisherCfg)
+    AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
+    if (instance != null)
     {
-      return DebugLogger.getInstance().isConfigurationAddAcceptable(
-          (DebugLogPublisherCfg)config, unacceptableReasons);
+      return instance.isConfigurationAddAcceptable(config, unacceptableReasons);
     }
-   else if(config instanceof AccessLogPublisherCfg)
-   {
-     return AccessLogger.getInstance().isConfigurationAddAcceptable(
-         (AccessLogPublisherCfg)config, unacceptableReasons);
-   }
-   else if(config instanceof ErrorLogPublisherCfg)
-   {
-     return ErrorLogger.getInstance().isConfigurationAddAcceptable(
-         (ErrorLogPublisherCfg)config, unacceptableReasons);
-   }
-    else
-    {
-
-      unacceptableReasons.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
-              String.valueOf(config.dn())));
-      return false;
-    }
+    return false;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(LogPublisherCfg config)
   {
-    if(config instanceof DebugLogPublisherCfg)
+    List<Message> messages = new ArrayList<Message>(1);
+    AbstractLogger instance = getLoggerInstance(config, messages);
+    if (instance != null)
     {
-      return DebugLogger.getInstance().applyConfigurationAdd(
-          (DebugLogPublisherCfg)config);
+      return instance.applyConfigurationAdd(config);
     }
-   else if(config instanceof AccessLogPublisherCfg)
-   {
-     return AccessLogger.getInstance().applyConfigurationAdd(
-         (AccessLogPublisherCfg)config);
-   }
-   else if(config instanceof ErrorLogPublisherCfg)
-   {
-     return ErrorLogger.getInstance().applyConfigurationAdd(
-         (ErrorLogPublisherCfg)config);
-   }
     else
     {
-      ArrayList<Message> messages            = new ArrayList<Message>();
-      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.
-              get(String.valueOf(config.dn())));
-      boolean           adminActionRequired = false;
+      boolean adminActionRequired = false;
       ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
@@ -192,61 +204,36 @@ public class LoggerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config,
                                               List<Message> unacceptableReasons)
   {
-    if(config instanceof DebugLogPublisherCfg)
+    AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
+    if (instance != null)
     {
-      return DebugLogger.getInstance().isConfigurationDeleteAcceptable(
-          (DebugLogPublisherCfg)config, unacceptableReasons);
+      return instance.isConfigurationDeleteAcceptable(config,
+          unacceptableReasons);
     }
-   else if(config instanceof AccessLogPublisherCfg)
-   {
-     return AccessLogger.getInstance().isConfigurationDeleteAcceptable(
-         (AccessLogPublisherCfg)config, unacceptableReasons);
-   }
-   else if(config instanceof ErrorLogPublisherCfg)
-   {
-     return ErrorLogger.getInstance().isConfigurationDeleteAcceptable(
-         (ErrorLogPublisherCfg)config, unacceptableReasons);
-   }
-    else
-    {
-      unacceptableReasons.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
-              String.valueOf(config.dn())));
-      return false;
-    }
+    return false;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(LogPublisherCfg config)
   {
-    if(config instanceof DebugLogPublisherCfg)
+    List<Message> messages = new ArrayList<Message>(1);
+    AbstractLogger instance = getLoggerInstance(config, messages);
+    if (instance != null)
     {
-      return DebugLogger.getInstance().applyConfigurationDelete(
-          (DebugLogPublisherCfg)config);
+      return instance.applyConfigurationDelete(config);
     }
-   else if(config instanceof AccessLogPublisherCfg)
-   {
-     return AccessLogger.getInstance().applyConfigurationDelete(
-         (AccessLogPublisherCfg)config);
-   }
-   else if(config instanceof ErrorLogPublisherCfg)
-   {
-     return ErrorLogger.getInstance().applyConfigurationDelete(
-         (ErrorLogPublisherCfg)config);
-   }
     else
     {
-      ArrayList<Message> messages            = new ArrayList<Message>();
-      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
-              String.valueOf(config.dn())));
       boolean           adminActionRequired = false;
       ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
   }
 }
-

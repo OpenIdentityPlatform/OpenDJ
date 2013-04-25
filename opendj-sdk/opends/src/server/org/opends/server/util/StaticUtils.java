@@ -51,6 +51,7 @@ import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -4622,6 +4623,25 @@ public final class StaticUtils
    */
   public static void close(Closeable... closeables)
   {
+    if (closeables == null)
+    {
+      return;
+    }
+    close(Arrays.asList(closeables));
+  }
+
+  /**
+   * Closes the provided {@link Closeable}'s ignoring any errors which occurred.
+   *
+   * @param closeables
+   *          The closeables to be closed, which may be <code>null</code>.
+   */
+  public static void close(Collection<Closeable> closeables)
+  {
+    if (closeables == null)
+    {
+      return;
+    }
     for (Closeable closeable : closeables)
     {
       if (closeable != null)

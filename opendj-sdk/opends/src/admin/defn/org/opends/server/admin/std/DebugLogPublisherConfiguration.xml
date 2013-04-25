@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions copyright 2013 ForgeRock AS
   ! -->
 <adm:managed-object name="debug-log-publisher"
   plural-name="debug-log-publishers"
@@ -62,25 +63,13 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:property name="java-class" mandatory="true">
-    <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
-      <adm:user-friendly-name />
-      implementation.
-    </adm:synopsis>
-    <adm:syntax>
-      <adm:java-class>
-        <adm:instance-of>
-          org.opends.server.api.DebugLogPublisher
-        </adm:instance-of>
-      </adm:java-class>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-java-class</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
+  <adm:property-override name="java-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>org.opends.server.api.DebugLogPublisher</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="default-debug-level" mandatory="true">
     <adm:synopsis>
       The lowest severity level of debug messages to log when none of
