@@ -28,14 +28,20 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.forgerock.opendj.ldap.AbstractSynchronousConnection;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -58,8 +64,6 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   private final String driverName = "com.mysql.jdbc.Driver";
   private java.sql.Connection connection;
   private String connectionUrl;
-  private String userName;
-  private String userPass;
   private JDBCMapper jdbcm;
   private MappingConfigurationManager mcm;
 
@@ -74,66 +78,6 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     jdbcm.loadMappingConfig(mcm.loadMapping());
   }
 
-  private Map<String, Object> getValuesMap(AddRequest request, String tableName, String OUName){
-    final String baseDN = request.getName().toString();
-    Iterable<Attribute> attributesCollection = request.getAllAttributes();
-    Iterator<Attribute> attributeIter = attributesCollection.iterator();
-    Map<String, Object> map = new HashMap<String, Object>();
-
-    while(attributeIter.hasNext()){
-      Attribute att = attributeIter.next();
-      Iterator<ByteString> valueIter = att.iterator();
-      String attributeName = att.getAttributeDescriptionAsString();
-      String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, attributeName);
-      String columnValue = "";
-
-      if (columnName == null) continue;
-
-      while(valueIter.hasNext()){
-        columnValue = columnValue.concat(valueIter.next().toString());
-      }
-      map.put(columnName, columnValue);
-    }
-    return map;
-  }
-
-  private ArrayList<String> getSQLVariablesStrings(String tableName, Map<String, Object> columnValuesMap){
-    ArrayList<String>columnList = null;
-    try {
-      columnList = jdbcm.getTableColumns(tableName);
-    } catch (SQLException e1) {
-      e1.printStackTrace();
-    }
-    String columnNamesString = " (";
-    String columnValuesString = " (";
-
-    for(int i = 0; i < columnList.size(); i++){
-      if (i > 0){
-        columnNamesString = columnNamesString.concat(", ");
-        columnValuesString = columnValuesString.concat(", ");
-      }
-      String columnName = columnList.get(i);
-      Object columnValue = columnValuesMap.get(columnName);
-      Object dataType = jdbcm.getTableColumnDataType(tableName, columnName);
-      if(columnValue == null){
-        if(dataType.equals(Integer.class)) columnValue = "0";
-        else columnValue = "Default Value";
-      }
-      if(dataType.equals(Integer.class)) columnValue = Integer.parseInt(columnValue.toString());
-
-      columnNamesString = columnNamesString.concat(columnName);
-      columnValuesString = columnValuesString.concat("'" + columnValue + "'");
-    }
-    columnNamesString = columnNamesString.concat(")");
-    columnValuesString = columnValuesString.concat(")");
-
-    ArrayList<String> newlist = new ArrayList<String>();
-    newlist.add(columnNamesString);
-    newlist.add(columnValuesString);
-
-    return newlist;
-  }
-
   public java.sql.Connection getSqlConnection(){
     return connection;
   }
@@ -143,19 +87,62 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   {
     Result r;
     try {
-      final String baseDN = request.getName().toString();
-      String[] stringSplitter = baseDN.split("ou=");
-      stringSplitter = stringSplitter[1].split(",");
-      final String organizationalUnitName = stringSplitter[0];
+      final DN DN = request.getName();
+      final RDN OU = DN.rdn();
+      final String organizationalUnitName = OU.getFirstAVA().getAttributeValue().toString();
+      final String baseDN = DN.parent(1).toString();
       final String tableName = jdbcm.getTableNameFromMapping(baseDN, organizationalUnitName);
-      final Map<String, Object> columnValuesMap = getValuesMap(request, tableName, organizationalUnitName);
-      final ArrayList<String> SQLStringList = getSQLVariablesStrings(tableName, columnValuesMap);
-      String columnNamesString = SQLStringList.get(0), columnValuesString = SQLStringList.get(1);
+      final Map<String, Object> columnValuesMap = new HashMap<String, Object>();
+      final Iterable<Attribute> attributesCollection = request.getAllAttributes();
+      final Iterator<Attribute> attributeIter = attributesCollection.iterator();
 
-      Statement st = connection.createStatement();
-      String sql = "INSERT INTO " + tableName + columnNamesString + " VALUES" + columnValuesString;
+      while(attributeIter.hasNext()){
+        final Attribute att = attributeIter.next();
+        final Iterator<ByteString> valueIter = att.iterator();
+        final String attributeName = att.getAttributeDescriptionAsString();
+        final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, organizationalUnitName, attributeName);
+        String columnValue = "";
+
+        if (columnName == null) continue;
+
+        while(valueIter.hasNext()){
+          columnValue = columnValue.concat(valueIter.next().toString());
+        }
+        columnValuesMap.put(columnName, columnValue);
+      }
+      final ArrayList<String>columnList = jdbcm.getTableColumns(tableName);
+      String columnNamesString = " (";
+      String columnValuesString = " (";
+
+      for(int i = 0; i < columnList.size(); i++){
+
+        if (i > 0){
+          columnNamesString = columnNamesString.concat(", ");
+          columnValuesString = columnValuesString.concat(", ");
+        }
+        final String columnName = columnList.get(i);
+        final Object columnDataType = jdbcm.getTableColumnDataType(tableName, columnName);
+        Object columnValue = columnValuesMap.get(columnName);
+
+        if(columnValue == null){
+
+          if(columnDataType.equals(Integer.class)) columnValue = "0";
+          else columnValue = "Default Value";
+        }
+
+        if(columnDataType.equals(Integer.class)) columnValue = Integer.parseInt(columnValue.toString());
+
+        columnNamesString = columnNamesString.concat(columnName);
+        columnValuesString = columnValuesString.concat("'" + columnValue + "'");
+      }
+      columnNamesString = columnNamesString.concat(")");
+      columnValuesString = columnValuesString.concat(")");
+
+      final Statement st = connection.createStatement();
+      final String sql = "INSERT INTO " + tableName + columnNamesString + " VALUES" + columnValuesString;
       st.executeUpdate(sql);
       r = Responses.newResult(ResultCode.SUCCESS);
+
     } catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
@@ -173,20 +160,22 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   public BindResult bind(BindRequest request) throws ErrorResultException
   {
     BindResult r;
-    this.userName = request.getName();
+    final String userName = request.getName();
+    final String userPass;
     byte[] password = null;
+
     if (request instanceof SimpleBindRequest) {
       password = ((SimpleBindRequest) request).getPassword();
     } else {
       r = Responses.newBindResult(ResultCode.PROTOCOL_ERROR);
       return r;
     }
-    this.userPass = new String(password);
+    userPass = new String(password);
 
     try {
       Class.forName(driverName);
       this.connection = DriverManager
-          .getConnection(this.connectionUrl,this.userName,this.userPass);
+          .getConnection(this.connectionUrl,userName , userPass);
     } catch (ClassNotFoundException e) {
       System.out.println(e.toString());
       r = Responses.newBindResult(ResultCode.OTHER);
@@ -203,12 +192,10 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   @Override
   public void close(UnbindRequest request, String reason)
   {
-    try
-    {
+    try {
       this.connection.close();
     }
-    catch (SQLException e)
-    {
+    catch (SQLException e){
       e.printStackTrace();
     }
   }
@@ -224,20 +211,20 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   @Override
   public Result delete(DeleteRequest request) throws ErrorResultException
   {
-    Result r = null;
+    Result r;
     try{
-      final String baseDN = request.getName().toString();
-      String[] stringSplitter = baseDN.split("ou=");
-      stringSplitter = stringSplitter[1].split(",");
-      final String organizationalUnitName = stringSplitter[0];
-      stringSplitter = baseDN.split("cn=");
-      stringSplitter = stringSplitter[1].split(",");
-      final String commonName = stringSplitter[0];
-      final String tableName = jdbcm.getTableNameFromMapping(baseDN, organizationalUnitName);
-      String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, organizationalUnitName, "cn");
+      final DN DN = request.getName();
+      final RDN rDN = DN.rdn();
+      final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+      final String filterAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
+      final RDN OU = DN.parent(1).rdn();
+      final String OUName = OU.getFirstAVA().getAttributeValue().toString();
+      final String baseDN = DN.parent(2).toString();
+      final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+      final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
 
-      Statement st = connection.createStatement();
-      String sql = "DELETE FROM " + tableName + " WHERE " + columnName + "='" + commonName + "'";
+      final Statement st = connection.createStatement();
+      final String sql = "DELETE FROM " + tableName + " WHERE " + columnName + "='" + filterAttributeValue + "'";
       st.executeUpdate(sql);
       r = Responses.newResult(ResultCode.SUCCESS);
     } catch (SQLException e) {
@@ -271,10 +258,60 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   }
 
   @Override
-  public Result modify(ModifyRequest request) throws ErrorResultException
-  {
-    // TODO Auto-generated method stub
-    return null;
+  public Result modify(ModifyRequest request)
+  {  
+    final DN DN = request.getName();
+    final RDN rDN = DN.rdn();
+    final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+    final String filterAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
+    final RDN OU = DN.parent(1).rdn();
+    final String OUName = OU.getFirstAVA().getAttributeValue().toString();
+    final String baseDN = DN.parent(2).toString();
+    final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+    final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
+    Result r;
+
+    try{
+      final List<Modification> modificationList = request.getModifications();
+      final ListIterator<Modification> listIter = modificationList.listIterator();
+      String modificationString = "";
+
+      while(listIter.hasNext()){
+        final Modification modification = listIter.next();
+        final ModificationType modificationType = modification.getModificationType();
+        final Attribute modificationAttribute = modification.getAttribute();
+        final String modificationAttributeName = modificationAttribute.getAttributeDescription().toString();
+        final String modificationColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, modificationAttributeName);
+        String modificationAttributeValue = "";
+
+        if(modificationType == ModificationType.ADD || modificationType == ModificationType.REPLACE){
+          final Iterator<ByteString> iter = modificationAttribute.iterator();
+
+          while (iter.hasNext()){
+            modificationAttributeValue = iter.next().toString();
+          }
+        }
+        else{
+          final boolean nullable = jdbcm.getTableColumnNullable(tableName, modificationColumnName);
+
+          if(nullable == false) throw new SQLException("Cannot delete data from not-nullable column.");
+          final Object classType = jdbcm.getTableColumnDataType(tableName, modificationColumnName);
+
+          if(classType == Integer.class) modificationAttributeValue = Integer.toString(0);
+          else modificationAttributeValue = "Default Value";
+        }
+        modificationString = modificationString.concat(modificationColumnName + "='" + modificationAttributeValue + "', ");
+      }
+      modificationString = modificationString.substring(0, modificationString.length() - 2);
+      final String sql = "UPDATE " + tableName + " SET " + modificationString + " WHERE " + columnName + "='" + filterAttributeValue + "'";
+      final Statement st = connection.createStatement();
+      st.executeUpdate(sql);
+      r = Responses.newResult(ResultCode.SUCCESS);
+    }catch (SQLException e){
+      System.out.println(e.toString());
+      r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+    }
+    return r;
   }
 
   @Override
@@ -288,7 +325,6 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   public void removeConnectionEventListener(ConnectionEventListener listener)
   {
     // TODO Auto-generated method stub
-
   }
 
   @Override
