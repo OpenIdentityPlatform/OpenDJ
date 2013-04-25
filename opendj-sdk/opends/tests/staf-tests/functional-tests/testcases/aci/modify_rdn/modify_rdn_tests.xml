@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
                                   
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Preamble
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Add additional entries
       #@TestPreamble              none
       #@TestStep                  Directory Manager adds additional entries.
@@ -88,7 +88,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Leaf - targetattr=* and userdn=all
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a leaf with targetattr=* and userdn=all
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -249,7 +249,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Branch - targetattr=* and userdn=all
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a branch with targetattr=* and userdn=all
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -423,7 +423,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Modify Entry Tests
     #@TestName                  Leaf - targetattr equals three attributes with uid
-    #@TestIssue                 445                
+    #@TestIssue                 none                
     #@TestPurpose               Modify an rdn where targetattr equals three attributes with uid
     #@TestPreamble              Admin adds an aci to the dn of one existing branch.
     #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -584,7 +584,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Modify Entry Tests
     #@TestName                  Leaf - targetattr equals three attributes without uid
-    #@TestIssue                 445                
+    #@TestIssue                 none                
     #@TestPurpose               Modify an rdn where targetattr equals three attributes without uid
     #@TestPreamble              Admin adds an aci to the dn of one existing branch.
     #@TestStep                  Client modifies an rdn of an entry in the targeted branch.
@@ -702,7 +702,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Branch - targetattr with three attributes equals ou
-      #@TestIssue                 445                
+      #@TestIssue                 none                
       #@TestPurpose               Modify an attribute where targetattr equals equals ou
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -876,7 +876,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Branch - targetattr with three attributes not equals ou
-      #@TestIssue                 445                
+      #@TestIssue                 none                
       #@TestPurpose               Modify an attribute where targetattr with three attributes not equals ou
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -993,7 +993,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Leaf - Multi ACIs, allow and deny
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a leaf with some entries allowed and some entries denied
       #@TestPreamble              Admin adds multiple acis.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -1169,7 +1169,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Branch - Multi ACIs, deny write on new branch
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a branch where new branch has a deny write
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -1371,7 +1371,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Leaf - targetattr with three attributes not equals uid, delete old rdn
-      #@TestIssue                 445                
+      #@TestIssue                 none                
       #@TestPurpose               Modify an rdn where targetattr with three attributes not equals uid, delete old rdn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an rdn of an entry in the targeted branch.
@@ -1489,7 +1489,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Leaf - targetattr with three attributes not equals uid, don't delete old rdn
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of an entry with targetattr with three attributes not equals uid, don't delete old rdn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -1650,7 +1650,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of an entry with  leaf with targetattr with three attributes not equals sn and cn, dont delete old rdn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -1769,7 +1769,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Branch - Multi ACIs, targattrfilters add:ou, del:ou
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a branch where targattrfilters add:ou, del:ou
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -1943,7 +1943,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify RDN Tests
       #@TestName                  Branch - Multi ACIs, targattrfilters add:ou, del:ou 2
-      #@TestIssue                 445
+      #@TestIssue                 none
       #@TestPurpose               Modifies an rdn of a branch where targattrfilters add:ou, del:ou
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies the rdn of an entry in the targeted branch.
@@ -2145,7 +2145,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Modify RDN Tests
     #@TestName                  Postamble
-    #@TestIssue                 445
+    #@TestIssue                 none
     #@TestPurpose               Remove entries
     #@TestPreamble              none
     #@TestStep                  Directory Manager removes entries that were used for testing.

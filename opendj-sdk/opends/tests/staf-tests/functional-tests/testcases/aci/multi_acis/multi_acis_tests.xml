@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Preamble
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Prepare for multiple ACI test cases
       #@TestPreamble              none
       #@TestStep                  Directory Manager adds extra entries
@@ -149,7 +149,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-one entry
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-one entry
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -339,7 +339,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-two entries 1
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, same attribute
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -547,7 +547,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                Multiple ACI Tests 
         #@TestName                  Different targetfilters, one aci-two entries 2
-        #@TestIssue                 446
+        #@TestIssue                 none
         #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, two attributes with not equal
         #@TestPreamble              Admin adds three ACIs.
         #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -755,7 +755,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-two entries 3
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, with two attributes with equal
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -963,7 +963,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-one entry, deny
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-one entry, deny
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should not be allowed in targeted branch.
@@ -1134,7 +1134,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-two entries 1, deny 
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, same attribute, deny
       #@TestPreamble              Admin adds three ACIs, different targetfilters, two statements true with same attrs.
       #@TestStep                  Client searches entry which should not be allowed in targeted branch.
@@ -1305,7 +1305,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-two entries 2, deny 
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, two attributes with not equal, deny
       #@TestPreamble              Admin adds three ACIs, different targetfilters, two statements true with, two attributes with not equal, deny
       #@TestStep                  Client searches entry which should not be allowed in targeted branch.
@@ -1476,7 +1476,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters, one aci-two entries 3, deny
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, with two attributes with equal, deny
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -1666,7 +1666,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targetattr
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, same attribute
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -1874,7 +1874,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targeattr, deny one attr
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters, one aci-two entries, two attributes with not equal
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -2082,7 +2082,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targetattr with not equals
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters and targetattr with not equals
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -2294,7 +2294,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targetattr, separate search-read with missing read
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters and targetattr, separate search-read with missing read
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should not be allowed in targeted branch.
@@ -2490,7 +2490,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targetattr, separate search-read 
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters and targetattr, separate search-read 
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should be allowed in targeted branch.
@@ -2698,7 +2698,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests 
       #@TestName                  Different targetfilters and targetattr, separate search-read with deny search
-      #@TestIssue                 446
+      #@TestIssue                 none
       #@TestPurpose               Test three ACIs, different targetfilters and targetattr, separate search-read with deny search
       #@TestPreamble              Admin adds three ACIs.
       #@TestStep                  Client searches entry which should not be allowed in targeted branch.
@@ -2888,7 +2888,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targattrfilters with add:l and del:l
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targattrfilters
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3019,7 +3019,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targattrfilters with deny add:l and allow del:l
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targattrfilters
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3151,7 +3151,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targattrfilters with allow add:l and deny del:l
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targattrfilters
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3283,7 +3283,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Multiple ACI Tests
     #@TestName                  Separate targetattrs
-    #@TestIssue                 444
+    #@TestIssue                 none
     #@TestPurpose               Test with separate targetattrs
     #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
     #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3413,7 +3413,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targetattrs with not equals 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targetattrs
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3540,7 +3540,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targetattrs and targattrfilters with equals and not equals 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targetattrs
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3686,7 +3686,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targetattrs and targattrfilters with not equals 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targetattrs
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3832,7 +3832,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targetattrs and targattrfilters with deny 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targetattrs
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -3977,7 +3977,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                Multiple ACI Tests
       #@TestName                  Separate targetattrs with deny and targattrfilters 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Test with separate targetattrs
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -4124,7 +4124,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                Multiple ACI Tests
     #@TestName                  Postamble
-    #@TestIssue                 446
+    #@TestIssue                 none
     #@TestPurpose               Reset global ACI to default settings
     #@TestPreamble              none
     #@TestStep                  Client searches entry in one branch.

@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 1 - targetattr equals wildcard, targattrfilters equal add and del
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -250,7 +250,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 2 - targetattr equals wildcard, targattrfilters equal add and del both with not equal [filter]
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -475,7 +475,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 3 - targetattr equals wildcard, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -688,7 +688,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 4 - targetattr equals wildcard, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -915,7 +915,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 5 - targetattr equals wildcard, targattrfilters equal add and del, add with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -1132,7 +1132,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 6 - targetattr equals wildcard, targattrfilters equal add and del, del with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -1357,7 +1357,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 11 - targetattr equals l, targattrfilters equal add and del
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -1580,7 +1580,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 12 - targetattr equals l, targattrfilters equal add and del both with not equal [filter]
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -1811,7 +1811,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 13 - targetattr equals l, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -2030,7 +2030,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 14 - targetattr equals l, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -2263,7 +2263,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 15 - targetattr equals l, targattrfilters equal add and del, add with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -2486,7 +2486,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 16 - targetattr equals l, targattrfilters equal add and del, del with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -2717,7 +2717,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 21 - targetattr equals carlicense, targattrfilters equal add and del
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -2934,7 +2934,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 22 - targetattr equals carlicense, targattrfilters equal add and del both with not equal [filter]
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -3159,7 +3159,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 23 - targetattr equals carlicense, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -3372,7 +3372,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 24 - targetattr equals carlicense, targattrfilters equal add and del, both with not equal [filter] and no match
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -3599,7 +3599,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 25 - targetattr equals carlicense, targattrfilters equal add and del, add with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry
@@ -3816,7 +3816,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Filter Tests
         #@TestName                  ACI 26 - targetattr equals carlicense, targattrfilters equal add and del, del with not equal [filter] 
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
         #@TestPreamble              Directory Manager adds ACI and adds entries to test
         #@TestStep                  For entry 0, delete entire entry

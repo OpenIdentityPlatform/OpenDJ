@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Delete Entry Tests
         #@TestName                  Preamble
-        #@TestIssue                 442
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Add extra entries that will be deleted in the tests.
@@ -119,7 +119,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - userdn equals all
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Delete an entry
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -251,7 +251,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry  - userdn equals a dn
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Delete an entry
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -398,7 +398,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry  - userdn not equals a dn
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Delete an entry
       #@TestPreamble              Admin adds an aci with the target not equal to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -545,7 +545,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - delete not allowed
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Delete an entry when delete is not allowed
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -648,7 +648,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetfilter with one statement
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetfilter with one statement 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry with the targeted branch.
@@ -780,7 +780,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetfilter with three statements (or) all false
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetfilter with three statements (or) all false 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry with the targeted branch.
@@ -897,7 +897,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetfilter not equals three statements (or) all false
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetfilter not equal three statements (or) all false 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1013,7 +1013,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetfilter with three statements (and) all true
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetfilter with three statements (and) all true 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1129,7 +1129,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetfilter contains attribute not present
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetfilter containing attribute not present
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1249,7 +1249,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetattr equals three attributes
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetattr equal to three attributes
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1365,7 +1365,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targetattr equals attribute not present
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targetattr equal to attribute not present
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1482,7 +1482,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - targattrfilter equals attr value
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with ACI that has targattrfilter equals attribute value
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client deletes an entry in the targeted branch.
@@ -1598,7 +1598,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - delete branch
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Delete a branch
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes a branch in the targeted branch.
@@ -1744,7 +1744,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - Multi ACIs 1, overall deny
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with 2 ACIs, overall deny  
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client deletes an entry with the targeted branch.
@@ -1861,7 +1861,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - Multi ACIs 2, overall allow
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with 2 ACIs, overall allow  
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client deletes an entry with the targeted branch.
@@ -1977,7 +1977,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - Multi ACIs 3, mixed allow and deny
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with 2 ACIs, mixed allow and deny  
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client deletes an entry with the targeted branch by a prohibited userdn.
@@ -2108,7 +2108,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - Multi ACIs 4, overall allow with many ACIs
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with many ACIs, overall allow with many ACIs  
       #@TestPreamble              Admin adds two acis.
       #@TestStep                  Client deletes an entry with the targeted branch.
@@ -2224,7 +2224,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Delete Entry Tests
       #@TestName                  Delete Entry - Multi ACIs 5, mixed allow and deny with many ACIs
-      #@TestIssue                 442
+      #@TestIssue                 none
       #@TestPurpose               Test delete with many ACIs, mixed allow and deny with many ACIs  
       #@TestPreamble              Admin adds many acis, mixed allow and deny with many ACIs.
       #@TestStep                  Client deletes an entry with the targeted branch by a prohibited userdn.
@@ -2355,7 +2355,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Delete Entry Tests
         #@TestName                  Postamble
-        #@TestIssue                 442
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Directory Manager searches entry in a branch.

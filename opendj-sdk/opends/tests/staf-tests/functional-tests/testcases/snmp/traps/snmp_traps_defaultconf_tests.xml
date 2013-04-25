@@ -24,14 +24,14 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS
+ !      Portions Copyright 2012-2013 ForgeRock AS
  ! -->
 <stax>
 
   <!--- Test Case information
     #@TestMarker          SNMP traps with default configuration
     #@TestName            traps_defaultconf: traps on stop-ds
-    #@TestIssue           3435
+    #@TestIssue           OPENDJ-870
     #@TestPurpose         Check that a trap is sent on default trap
                           community after stop-ds command.
     #@TestPreamble        none
@@ -70,7 +70,7 @@
                       'snmpTrapCommunity' : trapsCommunity ,
                       'snmpTrapNumber'    : '1,0,0,0,0,0' ,
                       'outputFile'        : outputFile ,
-                      'knownIssue'        : '3435'
+                      'knownIssue'        : 'OPENDJ-870'
                       }
                     </call>
                   </sequence>
@@ -274,7 +274,7 @@
   <!--- Test Case information
     #@TestMarker          SNMP traps with default configuration
     #@TestName            traps_defaultconf: trap on stop-ds -R
-    #@TestIssue           3435
+    #@TestIssue           OPENDJ-870
     #@TestPurpose         Check that 2 traps are sent on default trap
                           community after stop-ds -R command.
     #@TestPreamble        none
@@ -311,7 +311,7 @@
                       'snmpTrapCommunity' : trapsCommunity ,
                       'snmpTrapNumber'    : '2,0,0,0,0,0' ,
                       'outputFile'        : outputFile ,
-                      'knownIssue'        : '3435'
+                      'knownIssue'        : 'OPENDJ-870'
                       }
                     </call>
                   </sequence>

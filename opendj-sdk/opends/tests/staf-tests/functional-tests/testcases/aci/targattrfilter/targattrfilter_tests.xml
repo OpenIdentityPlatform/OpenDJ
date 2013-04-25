@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
                       
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targattrfilter Tests
         #@TestName                  Preamble
-        #@TestIssue                 437
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Client searches entry with a branch dn.
@@ -136,7 +136,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter equals add:title 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter set equal to add:title
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client adds title to an entry with the targeted branch dn.
@@ -280,7 +280,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter equals del:title 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter set equal to del:title
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client adds telephonenumber to an entry with the targeted branch dn.
@@ -424,7 +424,7 @@
           The tag, TestMarker, must be the same as the tag, TestSuiteName.
           #@TestMarker                ACI Targattrfilter Tests
           #@TestName                  Targattrfilter equals add:l,del:l
-          #@TestIssue                 437
+          #@TestIssue                 none
           #@TestPurpose               Test with the targattrfilter set equal to add:l,del:l
           #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
           #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -555,7 +555,7 @@
           The tag, TestMarker, must be the same as the tag, TestSuiteName.
           #@TestMarker                ACI Targattrfilter Tests
           #@TestName                  Targattrfilter equals add:st,del:st - st not present
-          #@TestIssue                 437
+          #@TestIssue                 none
           #@TestPurpose               Test with the targattrfilter set equal to add:st,del:st - st not present
           #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
           #@TestStep                  Client replaces st in an entry with the targeted branch dn.
@@ -686,7 +686,7 @@
           The tag, TestMarker, must be the same as the tag, TestSuiteName.
           #@TestMarker                ACI Targattrfilter Tests
           #@TestName                  Targattrfilter equals add:l,del:l
-          #@TestIssue                 437
+          #@TestIssue                 none
           #@TestPurpose               Test with the targattrfilter set equal to add:l,del:l
           #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
           #@TestStep                  Client replaces l in an entry with the targeted branch dn.
@@ -815,7 +815,7 @@
           The tag, TestMarker, must be the same as the tag, TestSuiteName.
           #@TestMarker                ACI Targattrfilter Tests
           #@TestName                  Targattrfilter equals add:street,del:street, street not present  
-          #@TestIssue                 437
+          #@TestIssue                 none
           #@TestPurpose               Test with the targattrfilter set equal to add:street,del:street
           #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
           #@TestStep                  Client replaces st in an entry with the targeted branch dn.
@@ -946,7 +946,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter equals add:title,del:title - wildcards
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter set equal to add:title,del:title with wildcards
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client replaces st in an entry with the targeted branch dn.
@@ -1064,7 +1064,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with misppelled add 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with mispelled add
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1124,7 +1124,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with misppelled del 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with mispelled del
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1184,7 +1184,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with misppelled del with add
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with mispelled del
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1244,7 +1244,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with missing comma 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with missing comma
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1304,7 +1304,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with extra quotes 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with extra quotes
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1364,7 +1364,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with extra commas 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with extra commas
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1424,7 +1424,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with missing argument for add 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with missing argument for add 
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1484,7 +1484,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with missing argument for del 
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with missing argument for del 
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1544,7 +1544,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Targattrfilter Tests
       #@TestName                  Targattrfilter with missing argument for del with add
-      #@TestIssue                 437
+      #@TestIssue                 none
       #@TestPurpose               Test with the targattrfilter with missing argument for del with add
       #@TestPreamble              none
       #@TestStep                  Admin adds the aci.
@@ -1604,7 +1604,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targattrfilter Tests
         #@TestName                  Targattrfilter equals del:l,add:l
-        #@TestIssue                 437
+        #@TestIssue                 none
         #@TestPurpose               Test with the targattrfilter set equal to del:l,add:l
         #@TestPreamble              none
         #@TestStep                  Admin adds the aci.
@@ -1664,7 +1664,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Targattrfilter Tests
         #@TestName                  Targattrfilter with very long comment portion 
-        #@TestIssue                 437
+        #@TestIssue                 none
         #@TestPurpose               Test with the targattrfilter with very long comment portion 
         #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
         #@TestStep                  Client adds title to an entry with the targeted branch dn.
@@ -1768,7 +1768,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Targattrfilter Tests
     #@TestName                  Postamble
-    #@TestIssue                 437
+    #@TestIssue                 none
     #@TestPurpose               Test default aci settings
     #@TestPreamble              none
     #@TestStep                  Client searches entry with a branch dn.

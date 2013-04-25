@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Preamble
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Prepare for effective rights tests
       #@TestPreamble              none
       #@TestStep                  Admin removes global search ACI
@@ -120,7 +120,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - wildcard 
-      #@TestIssue                 1745
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with wildcard
       #@TestPreamble              none
       #@TestStep                  Admin searches for effective rights in an entry using the wildcard notation.
@@ -206,7 +206,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - read 
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with read permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Admin searches for effective rights in an entry in the targeted branch dn.
@@ -368,7 +368,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - search 
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with search permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -530,7 +530,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - search-read 
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with search-read permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -751,7 +751,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - search-read in separate ACIs
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with search-read permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -914,7 +914,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - compare
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with compare permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1077,7 +1077,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - add
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with add permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1246,7 +1246,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - delete
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with delete permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1415,7 +1415,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - write
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with write permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1584,7 +1584,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - proxy
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with proxy permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1753,7 +1753,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - selfwrite
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with selfwrite permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -1922,7 +1922,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - all
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with all permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -2091,7 +2091,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - export
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with export permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -2254,7 +2254,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - import
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with import permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -2417,7 +2417,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - targetattr with search,read
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with targetattr with search,read permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -2581,7 +2581,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Effective Rights Tests
       #@TestName                  Effective Rights - targetattr with search,read
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Test effective rights with targetattr with search,read permission
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
@@ -2745,7 +2745,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Postamble
-      #@TestIssue                 87
+      #@TestIssue                 none
       #@TestPurpose               Reset effective rights tests
       #@TestPreamble              none
       #@TestStep                  Admin deletes ACI to access effective rights

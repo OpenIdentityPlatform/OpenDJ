@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
   
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI RDN Wildcard Tests
         #@TestName                  Preamble
-        #@TestIssue                 445
+        #@TestIssue                 none
         #@TestPurpose               Add additional entries
         #@TestPreamble              none
         #@TestStep                  Directory Manager adds additional entries.
@@ -165,7 +165,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-type wildcard for single entry
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -288,7 +288,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-type wildcard for several entries
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, several entries, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -425,7 +425,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-type wildcard for several entries, shorthand
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name with shorthand, several entries, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -562,7 +562,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-rdn wildcard for single entry
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -686,7 +686,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-rdn wildcard for single entry, two level allow
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -810,7 +810,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test multiple-whole-rdn wildcard for single entry, two level deny
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -934,7 +934,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-rdn wildcard for single entry, two level deny
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1058,7 +1058,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test multiple-whole-rdn wildcard for single entry, three level deny
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1182,7 +1182,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-rdn wildcard for single entry, three level deny
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1306,7 +1306,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test whole-type and multiple-whole-rdn wildcard for several entries, shorthand
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name with shorthand, several entries, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1442,7 +1442,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test several multiple-whole-rdn wildcards for single entry, three level deny
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1566,7 +1566,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test several multiple-whole-rdn wildcards with bad branch
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1690,7 +1690,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test multiple-whole-rdn wildcard syntax, multiple spaces
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1814,7 +1814,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI RDN Wildcard Tests
       #@TestName                  Test multiple-whole-rdn wildcard syntax, extra internal space
-      #@TestIssue                 1379
+      #@TestIssue                 none
       #@TestPurpose               Target set equal to a dn with multiple-whole-rdn wildcard syntax, extra internal space
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to the dn of one existing branch.
@@ -1874,7 +1874,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI RDN Wildcard Tests
     #@TestName                  Test multiple-whole-rdn wildcard syntax, extra wildcard
-    #@TestIssue                 1379
+    #@TestIssue                 none
     #@TestPurpose               Target set equal to a dn with wmultiple-whole-rdn wildcard syntax, extra wildcard
     #@TestPreamble              none
     #@TestStep                  Admin adds an aci to the dn of one existing branch.
@@ -1934,7 +1934,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI RDN Wildcard Tests
     #@TestName                  Test usrdn syntax, single wildcard for branch
-    #@TestIssue                 1379
+    #@TestIssue                 none
     #@TestPurpose               Target set equal to a dn with single wildcard in branch name, deny
     #@TestPreamble              none
     #@TestStep                  Admin adds an aci to the dn of one existing branch.
@@ -1994,7 +1994,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI RDN Wildcard Tests
     #@TestName                  Test usrdn syntax, double wildcard notation for branch
-    #@TestIssue                 1379
+    #@TestIssue                 none
     #@TestPurpose               Target set equal to a dn with double wildcard notation, deny
     #@TestPreamble              none
     #@TestStep                  Admin adds an aci to the dn of one existing branch.
@@ -2054,7 +2054,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI RDN Wildcard Tests
     #@TestName                  Test usrdn syntax, wildcard notation for uid
-    #@TestIssue                 1379
+    #@TestIssue                 none
     #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
     #@TestPreamble              Admin adds an aci to the dn of one existing branch.
     #@TestStep                  Client searches entry with the targeted branch dn.
@@ -2204,7 +2204,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Modify RDN Tests
     #@TestName                  Postamble
-    #@TestIssue                 1379
+    #@TestIssue                 none
     #@TestPurpose               Remove entries
     #@TestPreamble              none
     #@TestStep                  Directory Manager removes entries that were used for testing.

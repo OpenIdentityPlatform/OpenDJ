@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -871,9 +871,7 @@
             </paralleliterate>
                               
             <!-- Verify the synchronization of the trees among the servers in
-              the topology -->
-            <!-- If the trees don't match, we may have come across Issue 4052
-             (Ghost adds in Replication Server) -->              
+              the topology -->           
             <call function="'verifyTrees'">
               [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix ]
             </call>

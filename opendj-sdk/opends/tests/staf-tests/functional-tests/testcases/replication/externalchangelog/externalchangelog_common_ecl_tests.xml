@@ -3542,12 +3542,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
+                myKnownIssue = None
                 
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
@@ -3832,12 +3827,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
+                myKnownIssue = None
                 
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
@@ -4117,12 +4107,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
+                myKnownIssue = None
                 
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
@@ -4355,12 +4340,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
+                myKnownIssue = None
                 
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
@@ -4831,7 +4811,7 @@
                      !   Result Code:  53 (Unwilling to Perform)
                      !   Additional Information:  Full resync required. Reason: 
                      !   The provided cookie is missing the replicated domain(s)
-                     !   my_domain:;. Possible cookie: <new_cookie>
+                     !   my_domain:;. Current starting cookie: <new_cookie>
                     -->
                     <sequence>
                       <message>
@@ -5889,7 +5869,7 @@
                    !   Result Code:  53 (Unwilling to Perform)
                    !   Additional Information:  Full resync required. Reason: 
                    !   The provided cookie contains unknown replicated domain 
-                   !   {old_cookie}. Possible cookie: <new_cookie>
+                   !   {old_cookie}. Current starting cookie: <new_cookie>
                   -->
                   <sequence>
                     <message>
@@ -5909,7 +5889,7 @@
                       
                       if searchStringRC == 0:
                         # Retrieve the suggested cookie value
-                        totem      = 'Possible cookie:'
+                        totem      = 'Current starting cookie'
                         lenTotem   = len(totem) + 2
                         indexTotem = searchResult.index(totem)
                         newCookie  = searchResult[indexTotem + lenTotem:]
@@ -6410,7 +6390,7 @@
                  !   Result Code:  53 (Unwilling to Perform)
                  !   Additional Information:  Full resync required. Reason: 
                  !   The provided cookie is missing the replicated domain(s)
-                 !   my_domain:;. Possible cookie: <new_cookie>
+                 !   my_domain:;. Current starting cookie: <new_cookie>
                 -->
                 <sequence>
                   <message>
@@ -6904,12 +6884,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
+                myKnownIssue = None
                 
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)

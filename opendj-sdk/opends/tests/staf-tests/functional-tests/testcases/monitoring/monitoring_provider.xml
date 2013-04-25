@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="monitoring_provider"/>
@@ -292,7 +293,7 @@
   #@TestMarker            Monitoring Provider Tests
   #@TestName              System Info monitoring Provider
   #@TestPurpose           Test the System Info monitoring Provider
-  #@TestIssue             2873
+  #@TestIssue             OPENDJ-876
   #@TestPreamble          none
   #@TestStep              Check the entry on cn=System Info,cn=monitor is available
   #@TestStep              Disable the System Info monitoring Provider
@@ -316,7 +317,7 @@
                 'dsBaseDN'          : 'cn=System Info,cn=monitor',
                 'dsFilter'          : 'objectclass=*',
                 'expectedRC'        :  0 ,
-                'knownIssue'        : '2873' }
+                'knownIssue'        : 'OPENDJ-876' }
               </call>  	    
               
               <message>'-- Disable the System Info monitor provider --'</message>   

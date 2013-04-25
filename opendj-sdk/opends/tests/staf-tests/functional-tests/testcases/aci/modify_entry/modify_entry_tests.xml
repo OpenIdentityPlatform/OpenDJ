@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
        
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Entry Tests
         #@TestName                  Preamble
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               Add additional entries
         #@TestPreamble              none
         #@TestStep                  Directory Manager adds additional entries.
@@ -89,7 +89,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - userdn equals all
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modifies an attribute with targetattr=* and userdn =all
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -205,7 +205,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - targetattr equals three attributes
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute where targetattr equals three attributes
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -336,7 +336,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - targetattr not equals three attributes
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute with targetattr not equals three attributes
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -467,7 +467,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - write not allowed
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute where write is not allowed
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -599,7 +599,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - targetattr and targattrfilters 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute with a combination of targetattr and targattrfilters
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -760,7 +760,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - targetfilter with three statements with or, one statement true
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute with targetfilter with three statements with or, one statement true
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -891,7 +891,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - targetfilter not equals three statements with and, all statements true 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify an attribute with targetfilter not equals three statements with and, all statements true
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -1021,7 +1021,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - multiple ACIs 1, overall deny
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify attribute value with 2 ACIs, overall deny  
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -1139,7 +1139,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - multiple ACIs 2, overall allow 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify attribute value with 2 ACIs, overall allow 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -1255,7 +1255,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - multiple ACIs 3, mixed allow and deny 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify attribute value with 2 ACIs, mixed allow and deny by userdn 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry by a prohibited user in the targeted branch.
@@ -1386,7 +1386,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - multiple ACIs 4, overall allow with many ACIs 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify attribute value with many ACIs, overall allow with many ACIs 
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
@@ -1502,7 +1502,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Modify Attribute Value - multiple ACIs 5, mixed allow and deny with many ACIs 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Modify attribute value with many ACIs, mixed allow and deny with many ACIs
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client modifies an attribute value in an entry by a prohibited user in the targeted branch.
@@ -1634,7 +1634,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - userdn equals dn
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Deletes an attribute from an entry where targetattr=* and userdn=[a dn]
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value with a prohibited user in an entry in the targeted branch.
@@ -1765,7 +1765,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - targetattr equals one attribute
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Delete an attribute with targetattr equals one attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -1896,7 +1896,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - targetattr not equals one attribute
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Delete an attribute with targetattr not equals one attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -2027,7 +2027,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - write not allowed
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Deletes an attribute where write is not allowed
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -2159,7 +2159,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - targetattr and targattrfilter 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Delete an attribute with a combination of targetattr and targattrfilter
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -2316,7 +2316,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Entry Tests
         #@TestName                  Delete Attribute Value - targetfilter with three statements with or, none true
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               Delete an attribute with targetfilter with three statements with or, none true
         #@TestPreamble              Admin adds an aci to the dn of one existing branch.
         #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -2433,7 +2433,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Delete Attribute Value - targetfilter equals three statements with and, all statements false 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Delete an attribute with targetfilter equals three statements with and, all statements false
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
@@ -2551,7 +2551,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - userdn not equals dn
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Adds an attribute to an entry with targetattr=* and userdn not equals to a dn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute with a prohibited user in an entry in the targeted branch.
@@ -2682,7 +2682,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - targetattr equals one attribute not present
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Add an attribute value to an entry with targetattr equals one attribute not present
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute in an entry in the targeted branch.
@@ -2813,7 +2813,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - targetattr not equals attribute, add multi-values
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Add multi-valued attribute to an entry with targetattr not equals attribute, add multi-values
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
@@ -2957,7 +2957,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - write not allowed
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Adds an attribute value where write is not allowed
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
@@ -3089,7 +3089,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - targetattr and targattrfilter 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Add an attribute value with a combination of targetattr and targattrfilter
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
@@ -3248,7 +3248,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Modify Entry Tests
         #@TestName                  Add Attribute Value - targetfilter not equals three statements with or, none true
-        #@TestIssue                 444
+        #@TestIssue                 none
         #@TestPurpose               Add an attribute value with targetfilter not equals three statements with or, none true
         #@TestPreamble              Admin adds an aci to the dn of one existing branch.
         #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
@@ -3363,7 +3363,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Modify Entry Tests
       #@TestName                  Add Attribute Value - targetfilter equals three statements with and, all statements false 
-      #@TestIssue                 444
+      #@TestIssue                 none
       #@TestPurpose               Add an attribute with targetfilter equals three statements with and, all statements false
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
@@ -3480,7 +3480,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Modify Entry Tests
     #@TestName                  Postamble
-    #@TestIssue                 444
+    #@TestIssue                 none
     #@TestPurpose               Remove entries
     #@TestPreamble              none
     #@TestStep                  Directory Manager removes entries that were used for testing.
