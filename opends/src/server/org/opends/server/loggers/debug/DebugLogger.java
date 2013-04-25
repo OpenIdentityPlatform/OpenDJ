@@ -26,30 +26,19 @@
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers.debug;
+
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.LogLevel;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -63,46 +52,71 @@ import org.opends.server.types.ResultCode;
  *
  * DebugLogger is self-initializing.
  */
-public class DebugLogger implements
-    ConfigurationAddListener<DebugLogPublisherCfg>,
-    ConfigurationDeleteListener<DebugLogPublisherCfg>,
-    ConfigurationChangeListener<DebugLogPublisherCfg>
+public class DebugLogger extends AbstractLogger
+    <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>
 {
-  //The default level to log constructor exectuions.
+  /** The default level to log constructor executions. */
   static final LogLevel DEFAULT_CONSTRUCTOR_LEVEL =
       DebugLogLevel.VERBOSE;
-  //The default level to log method entry and exit pointcuts.
+  /** The default level to log method entry and exit pointcuts. */
   static final LogLevel DEFAULT_ENTRY_EXIT_LEVEL =
       DebugLogLevel.VERBOSE;
-  //The default level to log method entry and exit pointcuts.
+  /** The default level to log method entry and exit pointcuts. */
   static final LogLevel DEFAULT_THROWN_LEVEL =
       DebugLogLevel.ERROR;
 
-  // The set of all DebugTracer instances.
-  private static ConcurrentHashMap<String, DebugTracer> classTracers =
+  /** The set of all DebugTracer instances. */
+  private static Map<String, DebugTracer> classTracers =
       new ConcurrentHashMap<String, DebugTracer>();
 
-  // The set of debug loggers that have been registered with the server.  It
-  // will initially be empty.
-  private static CopyOnWriteArrayList<DebugLogPublisher> debugPublishers =
-      new CopyOnWriteArrayList<DebugLogPublisher>();
-
-  // Trace methods will use this static boolean to determine if debug is
-  // enabled so to not incur the cost of calling debugPublishers.isEmtpty().
+  /**
+   * Trace methods will use this static boolean to determine if debug is enabled
+   * so to not incur the cost of calling debugPublishers.isEmpty().
+   */
   static boolean enabled = false;
 
-  // The singleton instance of this class for configuration purposes.
+  private static final LoggerStorage
+      <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>
+      loggerStorage = new LoggerStorage
+      <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>();
+
+  /** The singleton instance of this class for configuration purposes. */
   static final DebugLogger instance = new DebugLogger();
+
+  /**
+   * The constructor for this class.
+   */
+  public DebugLogger()
+  {
+    super((Class) DebugLogPublisher.class,
+        ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected ClassPropertyDefinition getJavaClassPropertyDefinition()
+  {
+    return DebugLogPublisherCfgDefn.getInstance()
+        .getJavaClassPropertyDefinition();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected LoggerStorage<DebugLogPublisher<DebugLogPublisherCfg>,
+      DebugLogPublisherCfg> getStorage()
+  {
+    return loggerStorage;
+  }
 
   /**
    * Add an debug log publisher to the debug logger.
    *
-   * @param publisher The error log publisher to add.
+   * @param publisher The debug log publisher to add.
    */
   public synchronized static void addDebugLogPublisher(
       DebugLogPublisher publisher)
   {
-    debugPublishers.add(publisher);
+    loggerStorage.addLogPublisher(publisher);
 
     updateTracerSettings();
 
@@ -118,19 +132,11 @@ public class DebugLogger implements
   public synchronized static boolean removeDebugLogPublisher(
       DebugLogPublisher publisher)
   {
-    boolean removed = debugPublishers.remove(publisher);
-
-    if(removed)
-    {
-      publisher.close();
-    }
+    boolean removed = loggerStorage.removeLogPublisher(publisher);
 
     updateTracerSettings();
 
-    if(debugPublishers.isEmpty())
-    {
-      enabled = false;
-    }
+    enabled = !loggerStorage.getLogPublishers().isEmpty();
 
     return removed;
   }
@@ -140,259 +146,11 @@ public class DebugLogger implements
    */
   public synchronized static void removeAllDebugLogPublishers()
   {
-    for(DebugLogPublisher publisher : debugPublishers)
-    {
-      publisher.close();
-    }
-
-    debugPublishers.clear();
+    loggerStorage.removeAllLogPublishers();
 
     updateTracerSettings();
 
     enabled = false;
-  }
-
-  /**
-   * Initializes all the debug log publishers.
-   *
-   * @param  configs The debug log publisher configurations.
-   * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
-   * @throws InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
-   */
-  public void initializeDebugLogger(List<DebugLogPublisherCfg> configs)
-      throws ConfigException, InitializationException
-  {
-    for(DebugLogPublisherCfg config : configs)
-    {
-      config.addDebugChangeListener(this);
-
-      if(config.isEnabled())
-      {
-        DebugLogPublisher debugLogPublisher = getDebugPublisher(config);
-
-        addDebugLogPublisher(debugLogPublisher);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationAddAcceptable(DebugLogPublisherCfg config,
-                                              List<Message> unacceptableReasons)
-  {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationChangeAcceptable(DebugLogPublisherCfg config,
-                                              List<Message> unacceptableReasons)
-  {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult applyConfigurationAdd(DebugLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
-
-    config.addDebugChangeListener(this);
-
-    if(config.isEnabled())
-    {
-      try
-      {
-        DebugLogPublisher debugLogPublisher =
-            getDebugPublisher(config);
-
-        addDebugLogPublisher(debugLogPublisher);
-      }
-      catch(ConfigException e)
-      {
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-      catch (Exception e)
-      {
-
-        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
-                String.valueOf(config.dn().toString()),
-                stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-      DebugLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
-
-    DN dn = config.dn();
-
-    DebugLogPublisher debugLogPublisher = null;
-    for(DebugLogPublisher publisher : debugPublishers)
-    {
-      if(publisher.getDN().equals(dn))
-      {
-        debugLogPublisher = publisher;
-      }
-    }
-
-    if(debugLogPublisher == null)
-    {
-      if(config.isEnabled())
-      {
-        // Needs to be added and enabled.
-        return applyConfigurationAdd(config);
-      }
-    }
-    else
-    {
-      if(config.isEnabled())
-      {
-        // The publisher is currently active, so we don't need to do anything.
-        // Changes to the class name cannot be
-        // applied dynamically, so if the class name did change then
-        // indicate that administrative action is required for that
-        // change to take effect.
-        String className = config.getJavaClass();
-        if(!className.equals(debugLogPublisher.getClass().getName()))
-        {
-          adminActionRequired = true;
-        }
-      }
-      else
-      {
-        // The publisher is being disabled so shut down and remove.
-        removeDebugLogPublisher(debugLogPublisher);
-      }
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationDeleteAcceptable(DebugLogPublisherCfg config,
-                                             List<Message> unacceptableReasons)
-  {
-    DN dn = config.dn();
-
-    DebugLogPublisher debugLogPublisher = null;
-    for(DebugLogPublisher publisher : debugPublishers)
-    {
-      if(publisher.getDN().equals(dn))
-      {
-        debugLogPublisher = publisher;
-      }
-    }
-
-    return debugLogPublisher != null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult
-         applyConfigurationDelete(DebugLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-
-    DebugLogPublisher debugLogPublisher = null;
-    for(DebugLogPublisher publisher : debugPublishers)
-    {
-      if(publisher.getDN().equals(config.dn()))
-      {
-        debugLogPublisher = publisher;
-      }
-    }
-
-    if(debugLogPublisher != null)
-    {
-      removeDebugLogPublisher(debugLogPublisher);
-    }
-    else
-    {
-      resultCode = ResultCode.NO_SUCH_OBJECT;
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired);
-  }
-
-  private boolean isJavaClassAcceptable(DebugLogPublisherCfg config,
-                                        List<Message> unacceptableReasons)
-  {
-    String className = config.getJavaClass();
-    DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    try {
-      // Load the class and cast it to a DebugLogPublisher.
-      DebugLogPublisher<DebugLogPublisherCfg> publisher =
-          pd.loadClass(className, DebugLogPublisher.class).newInstance();
-      // The class is valid as far as we can tell.
-      return publisher.isConfigurationAcceptable(config, unacceptableReasons);
-    } catch (Exception e) {
-      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
-              className,
-              config.dn().toString(),
-              String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-  }
-
-  private DebugLogPublisher getDebugPublisher(DebugLogPublisherCfg config)
-      throws ConfigException {
-    String className = config.getJavaClass();
-    DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    try {
-      // Load the class and cast it to a DebugLogPublisher.
-      DebugLogPublisher<DebugLogPublisherCfg> debugLogPublisher =
-          pd.loadClass(className, DebugLogPublisher.class).newInstance();
-      debugLogPublisher.initializeLogPublisher(config);
-      // The debug publisher has been successfully initialized.
-      return debugLogPublisher;
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
-          className, config.dn().toString(), String.valueOf(e));
-      throw new ConfigException(message, e);
-    }
   }
 
   /**
@@ -401,8 +159,8 @@ public class DebugLogger implements
    */
   static void updateTracerSettings()
   {
-    DebugLogPublisher[] publishers =
-        debugPublishers.toArray(new DebugLogPublisher[0]);
+    DebugLogPublisher<DebugLogPublisherCfg>[] publishers =
+        loggerStorage.getLogPublishers().toArray(new DebugLogPublisher[0]);
 
     for(DebugTracer tracer : classTracers.values())
     {
@@ -439,7 +197,8 @@ public class DebugLogger implements
   public static DebugTracer getTracer()
   {
     DebugTracer tracer =
-        new DebugTracer(debugPublishers.toArray(new DebugLogPublisher[0]));
+        new DebugTracer(loggerStorage.getLogPublishers().toArray(
+            new DebugLogPublisher[0]));
     classTracers.put(tracer.getTracedClassName(), tracer);
 
     return tracer;

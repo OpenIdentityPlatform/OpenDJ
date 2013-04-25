@@ -28,53 +28,30 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.backends.task.Task;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
 
 /**
  * This class defines the wrapper that will invoke all registered error loggers
  * for each type of request received or response sent. If no error log
  * publishers are registered, messages will be directed to standard out.
  */
-public class ErrorLogger implements
-    ConfigurationAddListener<ErrorLogPublisherCfg>,
-    ConfigurationDeleteListener<ErrorLogPublisherCfg>,
-    ConfigurationChangeListener<ErrorLogPublisherCfg>
+public class ErrorLogger extends AbstractLogger
+    <ErrorLogPublisher<ErrorLogPublisherCfg>, ErrorLogPublisherCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
-  // The set of error loggers that have been registered with the server. It
-  // will initially be empty.
-  private static CopyOnWriteArrayList<ErrorLogPublisher> errorPublishers =
-      new CopyOnWriteArrayList<ErrorLogPublisher>();
+  private static LoggerStorage
+      <ErrorLogPublisher<ErrorLogPublisherCfg>, ErrorLogPublisherCfg>
+      loggerStorage = new LoggerStorage
+      <ErrorLogPublisher<ErrorLogPublisherCfg>, ErrorLogPublisherCfg>();
 
-  // The singleton instance of this class for configuration purposes.
+  /** The singleton instance of this class for configuration purposes. */
   private static final ErrorLogger instance = new ErrorLogger();
 
   /**
@@ -88,6 +65,31 @@ public class ErrorLogger implements
   }
 
   /**
+   * The constructor for this class.
+   */
+  public ErrorLogger()
+  {
+    super((Class) ErrorLogPublisher.class,
+        ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected ClassPropertyDefinition getJavaClassPropertyDefinition()
+  {
+    return ErrorLogPublisherCfgDefn.getInstance()
+        .getJavaClassPropertyDefinition();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected LoggerStorage<ErrorLogPublisher<ErrorLogPublisherCfg>,
+      ErrorLogPublisherCfg> getStorage()
+  {
+    return loggerStorage;
+  }
+
+  /**
    * Add an error log publisher to the error logger.
    *
    * @param publisher The error log publisher to add.
@@ -95,7 +97,7 @@ public class ErrorLogger implements
   public synchronized static void addErrorLogPublisher(
       ErrorLogPublisher publisher)
   {
-    errorPublishers.add(publisher);
+    loggerStorage.addLogPublisher(publisher);
   }
 
   /**
@@ -107,14 +109,7 @@ public class ErrorLogger implements
   public synchronized static boolean removeErrorLogPublisher(
       ErrorLogPublisher publisher)
   {
-    boolean removed = errorPublishers.remove(publisher);
-
-    if(removed)
-    {
-      publisher.close();
-    }
-
-    return removed;
+    return loggerStorage.removeLogPublisher(publisher);
   }
 
   /**
@@ -122,269 +117,8 @@ public class ErrorLogger implements
    */
   public synchronized static void removeAllErrorLogPublishers()
   {
-    for(ErrorLogPublisher publisher : errorPublishers)
-    {
-      publisher.close();
-    }
-
-    errorPublishers.clear();
+    loggerStorage.removeAllLogPublishers();
   }
-
-  /**
-   * Initializes all the error log publishers.
-   *
-   * @param configs The error log publisher configurations.
-   * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
-   * @throws InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
-   */
-  public void initializeErrorLogger(List<ErrorLogPublisherCfg> configs)
-      throws ConfigException, InitializationException
-  {
-    for(ErrorLogPublisherCfg config : configs)
-    {
-      config.addErrorChangeListener(this);
-
-      if(config.isEnabled())
-      {
-        ErrorLogPublisher errorLogPublisher = getErrorPublisher(config);
-
-        addErrorLogPublisher(errorLogPublisher);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationAddAcceptable(ErrorLogPublisherCfg config,
-                                              List<Message> unacceptableReasons)
-  {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationChangeAcceptable(
-          ErrorLogPublisherCfg config,
-          List<Message> unacceptableReasons)
-  {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult applyConfigurationAdd(ErrorLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
-
-    config.addErrorChangeListener(this);
-
-    if(config.isEnabled())
-    {
-      try
-      {
-        ErrorLogPublisher errorLogPublisher = getErrorPublisher(config);
-
-        addErrorLogPublisher(errorLogPublisher);
-      }
-      catch(ConfigException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
-                String.valueOf(config.dn().toString()),
-                stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-      ErrorLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
-
-    DN dn = config.dn();
-
-    ErrorLogPublisher errorLogPublisher = null;
-    for(ErrorLogPublisher publisher : errorPublishers)
-    {
-      if(publisher.getDN().equals(dn))
-      {
-        errorLogPublisher = publisher;
-        break;
-      }
-    }
-
-    if(errorLogPublisher == null)
-    {
-      if(config.isEnabled())
-      {
-        // Needs to be added and enabled.
-        return applyConfigurationAdd(config);
-      }
-    }
-    else
-    {
-      if(config.isEnabled())
-      {
-        // The publisher is currently active, so we don't need to do anything.
-        // Changes to the class name cannot be
-        // applied dynamically, so if the class name did change then
-        // indicate that administrative action is required for that
-        // change to take effect.
-        String className = config.getJavaClass();
-        if(!className.equals(errorLogPublisher.getClass().getName()))
-        {
-          adminActionRequired = true;
-        }
-      }
-      else
-      {
-        // The publisher is being disabled so shut down and remove.
-        removeErrorLogPublisher(errorLogPublisher);
-      }
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isConfigurationDeleteAcceptable(
-          ErrorLogPublisherCfg config,
-          List<Message> unacceptableReasons)
-  {
-    DN dn = config.dn();
-
-    ErrorLogPublisher errorLogPublisher = null;
-    for(ErrorLogPublisher publisher : errorPublishers)
-    {
-      if(publisher.getDN().equals(dn))
-      {
-        errorLogPublisher = publisher;
-        break;
-      }
-    }
-
-    return errorLogPublisher != null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConfigChangeResult applyConfigurationDelete(
-      ErrorLogPublisherCfg config)
-  {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-
-    ErrorLogPublisher errorLogPublisher = null;
-    for(ErrorLogPublisher publisher : errorPublishers)
-    {
-      if(publisher.getDN().equals(config.dn()))
-      {
-        errorLogPublisher = publisher;
-        break;
-      }
-    }
-
-    if(errorLogPublisher != null)
-    {
-      removeErrorLogPublisher(errorLogPublisher);
-    }
-    else
-    {
-      resultCode = ResultCode.NO_SUCH_OBJECT;
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired);
-  }
-
-  private boolean isJavaClassAcceptable(ErrorLogPublisherCfg config,
-                                        List<Message> unacceptableReasons)
-  {
-    String className = config.getJavaClass();
-    ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    try {
-      // Load the class and cast it to a ErrorLogPublisher.
-      ErrorLogPublisher<ErrorLogPublisherCfg> publisher =
-          pd.loadClass(className, ErrorLogPublisher.class).newInstance();
-      // The class is valid as far as we can tell.
-      return publisher.isConfigurationAcceptable(config, unacceptableReasons);
-    } catch (Exception e) {
-      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
-              className,
-              config.dn().toString(),
-              String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-  }
-
-  private ErrorLogPublisher getErrorPublisher(ErrorLogPublisherCfg config)
-      throws ConfigException {
-    String className = config.getJavaClass();
-    ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    try {
-      // Load the class and cast it to a ErrorLogPublisher.
-      ErrorLogPublisher<ErrorLogPublisherCfg> errorLogPublisher =
-          pd.loadClass(className, ErrorLogPublisher.class).newInstance();
-      errorLogPublisher.initializeLogPublisher(config);
-      // The error publisher has been successfully initialized.
-      return errorLogPublisher;
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
-          className, config.dn().toString(), String.valueOf(e));
-      throw new ConfigException(message, e);
-    }
-  }
-
-
 
   /**
    * Writes a message to the error log using the provided information.
@@ -393,7 +127,7 @@ public class ErrorLogger implements
    */
   public static void logError(Message message)
   {
-    for (ErrorLogPublisher publisher : errorPublishers)
+    for (ErrorLogPublisher publisher : loggerStorage.getLogPublishers())
     {
       publisher.logError(message);
     }
@@ -409,4 +143,3 @@ public class ErrorLogger implements
     }
   }
 }
-
