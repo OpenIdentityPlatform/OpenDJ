@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -2931,11 +2931,8 @@
 
             <!-- Verify the synchronization of the trees among the servers in 
               the topology -->
-            <!-- If the trees don't match, we may have come across Issue 3891
-             (Replication conflict: add child , delete parent) -->
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, server1, [server2], synchroSuffix,
-                '3891' ]
+              [ clientHost, clientPath, server1, [server2], synchroSuffix ]
             </call> 
 
             <!-- Delete added entries -->
@@ -3213,11 +3210,8 @@
 
             <!-- Verify the synchronization of the trees among the servers in 
               the topology -->
-            <!-- If the trees don't match, we may have come across Issue 4071
-             (Replication conflict: delete parent, add child) -->
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, server1, [server2], synchroSuffix,
-                '4071' ]
+              [ clientHost, clientPath, server1, [server2], synchroSuffix ]
             </call> 
 
             <!-- Delete added entries -->

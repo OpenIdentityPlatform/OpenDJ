@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 <project name="opends-staf-tests" basedir="../.." default="usage">
 
@@ -60,9 +60,6 @@
 
     <!-- Define antfile.dir variable -->
     <property name="antfile.dir" value="${basedir}/shared/ant"/>
-
-    <!-- Define tmp.dir variable -->
-    <property name="tmp.dir" value="${java.io.tmpdir}/temp_files"/>
 
     <!-- Load ant-contrib -->
     <taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -161,7 +158,10 @@
         </if>
       </default>
     </switch>
-
+  	
+    <!-- Define tmp.dir variable -->
+    <property name="tmp.dir" value="${java.io.tmpdir}/temp_files/${host.name}"/>
+  	
     <!-- Default value for staf.type -->
     <if>
       <not>

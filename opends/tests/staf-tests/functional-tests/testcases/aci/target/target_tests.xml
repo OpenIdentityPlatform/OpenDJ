@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Target Tests
         #@TestName                  Preamble
-        #@TestIssue                 434
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Client searches entry with a branch dn.
@@ -137,7 +137,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn 
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -283,7 +283,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Target Tests
         #@TestName                  Target equals dn - new branch
-        #@TestIssue                 434
+        #@TestIssue                 none
         #@TestPurpose               Test with the target set equal to a dn - new branch
         #@TestPreamble              Admin adds entries under two branches, one with an aci with the target equal to the dn of one branch.
         #@TestStep                  Client searches entry with the targeted branch dn.
@@ -440,7 +440,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Target Tests
     #@TestName                  Target equals dn with trailing wildcard
-    #@TestIssue                 434
+    #@TestIssue                 none
     #@TestPurpose               Test with the target set equal to a dn with a trailing wildcard
     #@TestPreamble              Admin adds an aci with the target equal to the dn with a trailing wildcard.
     #@TestStep                  Client searches entry with the targeted branch dn.
@@ -586,7 +586,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Target Tests
     #@TestName                  Target equals dn with leading wildcard
-    #@TestIssue                 434
+    #@TestIssue                 none
     #@TestPurpose               Test with the target set equal to a dn with leading wildcard
     #@TestPreamble              Admin adds an aci with the target equal to the dn with a leading wildcard.
     #@TestStep                  Client searches entry with the targeted branch dn.
@@ -732,7 +732,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Target Tests
     #@TestName                  Target equals dn with internal wildcard
-    #@TestIssue                 434
+    #@TestIssue                 none
     #@TestPurpose               Test with the target set equal to a dn with an internal wildcard
     #@TestPreamble              Admin adds an aci with the target equal to the dn with an internal wildcard.
     #@TestStep                  Client searches entry with the targeted branch dn.
@@ -878,7 +878,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with multiple wildcards
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with multiple wildcards
       #@TestPreamble              Admin adds an aci with the target equal to the dn with multiple wildcards.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -1024,7 +1024,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target contains keyword self
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if target can contain the keyword self
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci that contains the keyword
@@ -1111,7 +1111,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target set to a dn above the entry
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if the target can contain a DN above the
                                   level of the entry
       #@TestPreamble              none
@@ -1199,7 +1199,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target set to a dn below the entry
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if the target can contain a DN below the
                                   level of the entry
       #@TestPreamble              none
@@ -1345,7 +1345,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Multiple targets
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed to contain multiple targets
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1434,7 +1434,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target with mispelled keyword target
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that contains the keyword target misspelled
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1523,7 +1523,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target with missing leading ldap:
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that contains the keyword target misspelled
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1612,7 +1612,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target with ldap:all
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that contains the keyword target with all
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1701,7 +1701,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target ACI with mispelled version
-      #@TestIssue                 1750
+      #@TestIssue                 none
       #@TestPurpose               Test if an aci is allowed that contains version mispelled
       #@TestPreamble              none
       #@TestStep                  Admin adds an aci to an existing entry
@@ -1789,7 +1789,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Enable and disable ACIs
-      #@TestIssue                 432
+      #@TestIssue                 none
       #@TestPurpose               Enable and disable access control functionality
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -2069,7 +2069,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Enable and disable global ACIs
-      #@TestIssue                 432
+      #@TestIssue                 none
       #@TestPurpose               Enable and disable access control functionality
       #@TestPreamble              none
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -2224,7 +2224,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Target Tests
         #@TestName                  Target equals dn with userdn equal all
-        #@TestIssue                 453
+        none
         #@TestPurpose               Test with the target set equal to a dn with userdn equal all
         #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
         #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -2368,7 +2368,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal anyone
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal anyone
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -2512,7 +2512,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn not equal all
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn not equal all
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -2656,7 +2656,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal self
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal self
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -2802,7 +2802,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal self with wildcard
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal self with wildcard
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -2948,7 +2948,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal self with wildcard and filter
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal self with wildcard and filter
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -3094,7 +3094,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal self with wildcard and filter, deny
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal self with wildcard and filter, deny
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -3231,7 +3231,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with userdn equal self with wildcard and filter, allow and deny
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with userdn equal self with wildcard and filter, allow and deny
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn with authenticated user.
@@ -3377,7 +3377,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  userdn equals self - modify operational attributes
-      #@TestIssue                 1479
+      #@TestIssue                 none
       #@TestPurpose               Test userdn equals self - modify operational attributes
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Client modifies attribute in an entry.
@@ -3504,7 +3504,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Search for operational attributes 
-      #@TestIssue                 1479
+      #@TestIssue                 none
       #@TestPurpose               Test search for operational attributes
       #@TestPreamble              Admin adds an aci.
       #@TestStep                  Admin modifies entry to generate a modifiersName and modifyTimestamp
@@ -3766,7 +3766,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn with comma
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn with comma
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -3924,7 +3924,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Target Tests
       #@TestName                  Target equals dn, default targetattr 
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn, default targetattr
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry with the targeted branch dn.
@@ -4071,7 +4071,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Target Tests
         #@TestName                  Postamble
-        #@TestIssue                 434
+        #@TestIssue                 none
         #@TestPurpose               Test default aci settings
         #@TestPreamble              none
         #@TestStep                  Client searches entry with a branch dn.

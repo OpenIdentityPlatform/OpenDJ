@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -33,7 +33,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  Preamble
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test default aci settings
       #@TestPreamble              none
       #@TestStep                  Admin removes global search ACI
@@ -214,7 +214,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals one static group
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals one static group
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -416,7 +416,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals two static groups
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals two static groups
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -624,7 +624,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn not equals one static group
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn not equals one static group
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a different group member.
@@ -832,7 +832,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn not equals two static groups
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn not equals two static groups
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -1034,7 +1034,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals one dynamic group
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals one dynamic group
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -1236,7 +1236,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals two dynamic groups
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals two dynamic groups
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -1444,7 +1444,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn not equals one dynamic group
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn not equals one dynamic group
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a different group member.
@@ -1652,7 +1652,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn not equals two dynamic groups
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn not equals two dynamic groups
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -1854,7 +1854,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals one static group with wildcard
-      #@TestIssue                 434
+      #@TestIssue                 none
       #@TestPurpose               Test with the target set equal to a dn of a static group with a wildcard
       #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -2050,7 +2050,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn equals one static and one dynamic group
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals one static and one dynamic group
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -2258,7 +2258,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn - selfwrite add member
-      #@TestIssue                 450
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn - selfwrite add member
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Admin adds selfwrite aci to the dn of the group
@@ -2454,7 +2454,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn - selfwrite delete member
-      #@TestIssue                 450
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn - selfwrite delete member
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Admin adds selfwrite aci to the dn of the group
@@ -2625,7 +2625,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn - selfwrite replace member
-      #@TestIssue                 450
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn - selfwrite replace member
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Admin adds selfwrite aci to the dn of the group
@@ -2798,7 +2798,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  groupdn - selfwrite add description
-      #@TestIssue                 450
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn - selfwrite add description
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Admin adds selfwrite aci to the dn of the group
@@ -2972,7 +2972,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr equals one attribute
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals one attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for all attributes.
@@ -3223,7 +3223,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr not equals one attribute
-      #@TestIssue                 1587
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr not equals one attribute
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for all attributes.
@@ -3498,7 +3498,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr equals one attribute with bindtype
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals one attr with bindtype
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with matching manager.
@@ -3681,7 +3681,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr equals one attr with groupdn
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals one attr with groupdn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with group member and matching manager.
@@ -3889,7 +3889,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr equals one attr with groupdn, url expression
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals groupdn with url expression
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with group member and matching manager.
@@ -4052,7 +4052,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  inheritance with bindtype, deny children
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior of inheritance with bindtype, deny children
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with children, parent.
@@ -4258,7 +4258,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  inheritance with bindtype, allow one child level
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior of inheritance with bindtype, allow one child level
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with children, parent.
@@ -4463,7 +4463,7 @@
     The tag, TestMarker, must be the same as the tag, TestSuiteName.
     #@TestMarker                ACI Bind Type Tests
     #@TestName                  inheritance with bindtype, allow two child levels
-    #@TestIssue                 455
+    #@TestIssue                 none
     #@TestPurpose               Test behavior of inheritance with bindtype, allow two child levels
     #@TestPreamble              Admin adds an aci to the dn of one existing branch.
     #@TestStep                  Client searches entry in the targeted branch dn for entry with children, parent.
@@ -4668,7 +4668,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userattr equals one operational attribute with bindtype
-      #@TestIssue                 1760
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals one operational attr with bindtype
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn for entry with matching userdn.
@@ -4833,7 +4833,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - groupdn with missing slash
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn with missing slash in the url
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -4893,7 +4893,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - groupdn with single quotes
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn with single quotes
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -4953,7 +4953,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - groupdn is null
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with groupdn equals null
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -5013,7 +5013,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - userdn is null
-      #@TestIssue                 453
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userdn equals null
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -5073,7 +5073,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - userattr is null
-      #@TestIssue                 455
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userattr equals null
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -5133,7 +5133,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  syntax - roledn
-      #@TestIssue                 1577
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with roledn
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -5194,7 +5194,7 @@
       The tag, TestMarker, must be the same as the tag, TestSuiteName.
       #@TestMarker                ACI Bind Type Tests
       #@TestName                  userdn with filter
-      #@TestIssue                 454
+      #@TestIssue                 none
       #@TestPurpose               Test behavior with userdn and filter
       #@TestPreamble              Admin adds an aci to the dn of one existing branch.
       #@TestStep                  Client searches entry in the targeted branch dn as a group member.
@@ -5353,7 +5353,7 @@
   The tag, TestMarker, must be the same as the tag, TestSuiteName.
   #@TestMarker                ACI Bind Type Tests
   #@TestName                  authmethod equals none
-  #@TestIssue                 460
+  #@TestIssue                 none
   #@TestPurpose               Test bind where an ACI authmethod equals none applies.
   #@TestPreamble              none
   #@TestStep                  Anonymous search.
@@ -5499,7 +5499,7 @@
         The tag, TestMarker, must be the same as the tag, TestSuiteName.
         #@TestMarker                ACI Bind Type Tests
         #@TestName                  Postamble
-        #@TestIssue                 454
+        #@TestIssue                 none
         #@TestPurpose               Reset environment.
         #@TestPreamble              none
         #@TestStep                  Admin removes entries.
