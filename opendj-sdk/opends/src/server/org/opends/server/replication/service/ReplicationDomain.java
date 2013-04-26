@@ -1509,7 +1509,8 @@ public abstract class ReplicationDomain
             int att=0;
             while ((!broker.shuttingDown()) &&
                 (!broker.isConnected())&& (++att<100))
-              try { Thread.sleep(100); } catch(Exception e){}
+              try { Thread.sleep(100); }
+              catch(Exception e){ /* do nothing */ }
           }
 
           if ((initTask != null) && broker.isConnected() &&
@@ -1525,7 +1526,8 @@ public abstract class ReplicationDomain
             - sleep to let time to the other peer to reconnect if needed
             - and launch another attempt
             */
-            try { Thread.sleep(1000); } catch(Exception e){}
+            try { Thread.sleep(1000); }
+            catch(Exception e){ /* do nothing */ }
             logError(NOTE_RESENDING_INIT_TARGET.get(
                 exportRootException.getLocalizedMessage()));
 
@@ -1679,8 +1681,10 @@ public abstract class ReplicationDomain
       done = true;
       short reconnectMaxDelayInSec = 10;
       short reconnectWait = 0;
-      for (int serverId : replicasWeAreWaitingFor)
+      Iterator<Integer> it = replicasWeAreWaitingFor.iterator();
+      while (it.hasNext())
       {
+        int serverId = it.next();
         if (ieContext.failureList.contains(serverId))
         {
           /*
@@ -1703,11 +1707,7 @@ public abstract class ReplicationDomain
             // let's still wait to give a chance to this server to reconnect
             done = false;
           }
-          else
-          {
-            // we left enough time to the servers to reconnect - now it's too
-            // late
-          }
+          // Else we left enough time to the servers to reconnect
         }
         else
         {
@@ -1720,11 +1720,10 @@ public abstract class ReplicationDomain
           }
           else
           {
-            // this one is done with the Full Update
             if (dsInfo.getGenerationId() == this.getGenerationID())
-            {
-              // and with the expected generationId
-              replicasWeAreWaitingFor.remove(serverId);
+            { // and with the expected generationId
+              // We're done with this server
+              it.remove();
             }
           }
         }
@@ -1732,7 +1731,10 @@ public abstract class ReplicationDomain
 
       // loop and wait
       if (!done)
-        try { Thread.sleep(1000); } catch (InterruptedException e) {} // 1sec
+        try { Thread.sleep(1000); }
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        } // 1sec
 
     }
     while ((!done) && (!broker.shuttingDown())); // infinite wait
@@ -1786,6 +1788,10 @@ public abstract class ReplicationDomain
   {
     if (ieContext != null)
     {
+      /*
+        Exporting must not be stopped on the first error, if we
+        run initialize-all.
+      */
       if (ieContext.exportTarget != RoutableMsg.ALL_SERVERS)
       {
         // The ErrorMsg is received while we have started an initialization
@@ -1808,13 +1814,6 @@ public abstract class ReplicationDomain
 
           releaseIEContext();
         }
-      }
-      else
-      {
-        /*
-        When we are the exporter in the case of initializeAll
-        exporting must not be stopped on the first error.
-        */
       }
     }
   }
@@ -2049,7 +2048,8 @@ public abstract class ReplicationDomain
           TRACER.debugInfo("[IE] Entering exportLDIFEntry waiting");
 
         // our export is too far beyond the slowest importer - let's wait
-        try { Thread.sleep(100); } catch(Exception e) {}
+        try { Thread.sleep(100); }
+        catch(Exception e) { /* do nothing */ }
 
         // process any connection error
         if ((broker.hasConnectionError())||
@@ -2285,16 +2285,7 @@ public abstract class ReplicationDomain
       setNewStatus(StatusMachineEvent.TO_FULL_UPDATE_STATUS_EVENT);
 
       // Acquire an import context if no already done (and initialize).
-      if (initTargetMsgReceived.getInitiatorID() == this.serverID)
-      {
-        /*
-        The initTargetMsgReceived received is the answer to a request that
-        we (this server) sent previously. In this case, so the IEContext
-        has been already acquired when the request was published in order
-        to store the task (to be updated with the status at the end).
-        */
-      }
-      else
+      if (initTargetMsgReceived.getInitiatorID() != this.serverID)
       {
         /*
         The initTargetMsgReceived is for an import initiated by the remote
@@ -2408,15 +2399,6 @@ public abstract class ReplicationDomain
               ieContext.getException().getMessageObject());
           broker.publish(errorMsg);
         }
-        else // !broker.isConnected()
-        {
-          /*
-          Don't try to reconnect here.
-          The current running thread is the listener thread and will loop on
-          receive() that is expected to manage reconnects attempt.
-          */
-        }
-
         /*
         Update the task that initiated the import must be the last thing.
         Particularly, broker.restart() after import success must be done
@@ -2537,6 +2519,7 @@ public abstract class ReplicationDomain
             Thread.sleep(i*100);
           } catch (InterruptedException e)
           {
+            Thread.currentThread().interrupt();
           }
           allSet = false;
           break;
@@ -2588,6 +2571,7 @@ public abstract class ReplicationDomain
         Thread.sleep(100);
       } catch (InterruptedException e)
       {
+        Thread.currentThread().interrupt();
       }
     }
 
@@ -2725,10 +2709,7 @@ public abstract class ReplicationDomain
    */
   boolean isSessionEncrypted()
   {
-    if (broker != null)
-      return broker.isSessionEncrypted();
-    else
-      return false;
+    return broker != null && broker.isSessionEncrypted();
   }
 
   /**
@@ -3300,13 +3281,8 @@ public abstract class ReplicationDomain
               Integer.toString(serverID), msgAssuredMode.toString(), serviceID,
             msg.toString());
           logError(errorMsg);
-        } else
-        {
-          /*
-          In safe data mode assured update that comes up to a DS requires no
-          ack from a recipient DS. Safe data mode is based on RS acks only
-          */
         }
+        // Nothing to do in Assured safe data mode, only RS ack updates.
       }
     }
 
