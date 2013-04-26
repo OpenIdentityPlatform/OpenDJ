@@ -34,6 +34,7 @@ import static org.testng.Assert.*;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class TestAddressMask extends TypesTestCase {
@@ -233,6 +234,12 @@ public class TestAddressMask extends TypesTestCase {
   {
     AddressMask m = AddressMask.decode(rule);
     assertEquals(rule, m.toString());
+  }
+
+  @Test
+  public void testNullMatch() throws Exception {
+    AddressMask m = AddressMask.decode("*.*.*.*");
+    assertFalse(AddressMask.maskListContains(null, Arrays.asList(m)));
   }
 
   private boolean match(String[] rules, String[] addrs, String[] hostNames)
