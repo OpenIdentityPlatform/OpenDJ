@@ -107,11 +107,13 @@ public final class AddressMask
   public static boolean maskListContains(final InetAddress address,
       final Collection<AddressMask> masks)
   {
-    for (final AddressMask mask : masks)
-    {
-      if (mask.match(address))
+    if (address != null) {
+      for (final AddressMask mask : masks)
       {
-        return true;
+        if (mask.match(address))
+        {
+          return true;
+        }
       }
     }
     return false;
