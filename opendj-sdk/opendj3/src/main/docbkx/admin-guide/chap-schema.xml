@@ -347,7 +347,7 @@ myCustomAttribute: Testing 1, 2, 3...
      possible attribute values for example.</para>
      <programlisting language="ldif"
      >ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
- X-ENUM ( 'top-secret', 'secret', 'confidential', 'unclassified' ) )</programlisting>
+ X-ENUM ( 'top-secret' 'secret' 'confidential' 'unclassified' ) )</programlisting>
     </listitem>
    </varlistentry>
 
