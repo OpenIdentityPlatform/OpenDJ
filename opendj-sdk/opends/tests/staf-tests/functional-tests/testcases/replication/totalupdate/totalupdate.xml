@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2012 ForgeRock AS.
+ !      Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_totalupdate"/>
@@ -33,7 +33,8 @@
         <try>
           <sequence>
             <script>
-              CurrentTestPath['group'] = 'replication'        
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='replication'
               CurrentTestPath['suite'] = 'totalupdate'
               
               _group=CurrentTestPath['group']
