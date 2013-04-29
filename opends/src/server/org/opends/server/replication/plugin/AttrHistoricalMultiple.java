@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.opends.server.replication.common.ChangeNumber;
@@ -53,7 +53,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
 {
    private ChangeNumber deleteTime, // last time when the attribute was deleted
                         lastUpdateTime; // last time the attribute was modified
-   private ArrayList<AttrValueHistorical> valuesHist;
+   private HashMap<AttrValueHistorical,AttrValueHistorical> valuesHist;
 
    /**
     * Create a new object from the provided informations.
@@ -63,12 +63,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
     */
    public AttrHistoricalMultiple(ChangeNumber deleteTime,
        ChangeNumber updateTime,
-       ArrayList<AttrValueHistorical> valuesHist)
+       HashMap<AttrValueHistorical,AttrValueHistorical> valuesHist)
    {
      this.deleteTime = deleteTime;
      this.lastUpdateTime = updateTime;
      if (valuesHist == null)
-       this.valuesHist = new ArrayList<AttrValueHistorical>();
+       this.valuesHist = new HashMap<AttrValueHistorical,AttrValueHistorical>();
      else
        this.valuesHist = valuesHist;
    }
@@ -80,7 +80,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    {
      this.deleteTime = null;
      this.lastUpdateTime = null;
-     this.valuesHist = new ArrayList<AttrValueHistorical>();
+     this.valuesHist = new HashMap<AttrValueHistorical,AttrValueHistorical>();
    }
 
    /**
@@ -125,7 +125,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      // iterate through the values in the valuesInfo
      // and suppress all the values that have not been added
      // after the date of this delete.
-     Iterator<AttrValueHistorical> it = this.valuesHist.iterator();
+     Iterator<AttrValueHistorical> it = this.valuesHist.keySet().iterator();
      while (it.hasNext())
      {
        AttrValueHistorical info = it.next();
@@ -154,8 +154,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    protected void delete(AttributeValue val, ChangeNumber CN)
    {
      AttrValueHistorical info = new AttrValueHistorical(val, null, CN);
-     this.valuesHist.remove(info);
-     this.valuesHist.add(info);
+     this.valuesHist.put(info, info);
      if (CN.newer(lastUpdateTime))
      {
        lastUpdateTime = CN;
@@ -176,8 +175,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     for (AttributeValue val : attr)
     {
       AttrValueHistorical info = new AttrValueHistorical(val, null, CN);
-      this.valuesHist.remove(info);
-      this.valuesHist.add(info);
+      this.valuesHist.put(info, info);
       if (CN.newer(lastUpdateTime))
       {
         lastUpdateTime = CN;
@@ -196,8 +194,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    protected void add(AttributeValue addedValue, ChangeNumber CN)
    {
      AttrValueHistorical info = new AttrValueHistorical(addedValue, CN, null);
-     this.valuesHist.remove(info);
-     valuesHist.add(info);
+     this.valuesHist.put(info, info);
      if (CN.newer(lastUpdateTime))
      {
        lastUpdateTime = CN;
@@ -217,8 +214,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     for (AttributeValue val : attr)
     {
       AttrValueHistorical info = new AttrValueHistorical(val, CN, null);
-      this.valuesHist.remove(info);
-      valuesHist.add(info);
+      this.valuesHist.put(info, info);
       if (CN.newer(lastUpdateTime))
       {
         lastUpdateTime = CN;
@@ -231,7 +227,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    *
    * @return the list of historical informations for the values.
    */
-  public ArrayList<AttrValueHistorical> getValuesHistorical()
+  public HashMap<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
   {
     return valuesHist;
   }
@@ -417,10 +413,10 @@ public class AttrHistoricalMultiple extends AttrHistorical
       m.setModificationType(ModificationType.REPLACE);
       AttributeBuilder builder = new AttributeBuilder(modAttr, true);
 
-      for (Iterator<AttrValueHistorical> it = getValuesHistorical().iterator();
-        it.hasNext();)
+      Iterator<AttrValueHistorical> it = this.valuesHist.keySet().iterator();
+      while (it.hasNext())
       {
-        AttrValueHistorical valInfo; valInfo = it.next();
+        AttrValueHistorical valInfo = it.next();
 
         if (changeNumber.older(valInfo.getValueUpdateTime()))
         {
@@ -460,7 +456,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
       /*
        * we are processing DELETE of some attribute values
        */
-      ArrayList<AttrValueHistorical> valuesInfo = getValuesHistorical();
+      HashMap<AttrValueHistorical,AttrValueHistorical> valuesInfo =
+          getValuesHistorical();
       AttributeBuilder builder = new AttributeBuilder(modAttr);
 
       for (AttributeValue val : modAttr)
@@ -471,11 +468,10 @@ public class AttrHistoricalMultiple extends AttrHistorical
         /* update historical information */
         AttrValueHistorical valInfo =
           new AttrValueHistorical(val, null, changeNumber);
-        int index = valuesInfo.indexOf(valInfo);
-        if (index != -1)
+        AttrValueHistorical oldValInfo = valuesInfo.get(valInfo);
+        if (oldValInfo != null)
         {
           /* this value already exist in the historical information */
-          AttrValueHistorical oldValInfo  = valuesInfo.get(index);
           if (changeNumber.equals(oldValInfo.getValueUpdateTime()))
           {
             // This value was added earlier in the same operation
@@ -485,8 +481,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
           if (changeNumber.newerOrEquals(oldValInfo.getValueDeleteTime()) &&
               changeNumber.newerOrEquals(oldValInfo.getValueUpdateTime()))
           {
-            valuesInfo.remove(index);
-            valuesInfo.add(valInfo);
+            valuesInfo.put(valInfo, valInfo);
           }
           else if (oldValInfo.isUpdate())
           {
@@ -495,7 +490,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
         }
         else
         {
-          valuesInfo.add(valInfo);
+          valuesInfo.put(valInfo, valInfo);
         }
 
         /* if the attribute value is not to be deleted
@@ -563,21 +558,21 @@ public class AttrHistoricalMultiple extends AttrHistorical
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
     for (AttributeValue addVal : m.getAttribute())
     {
-      ArrayList<AttrValueHistorical> valuesInfo = getValuesHistorical();
+      HashMap<AttrValueHistorical,AttrValueHistorical> valuesInfo =
+          getValuesHistorical();
       AttrValueHistorical valInfo =
         new AttrValueHistorical(addVal, changeNumber, null);
-      int index = valuesInfo.indexOf(valInfo);
-      if (index == -1)
+      if (valuesInfo.containsKey(valInfo) == false)
       {
         /* this values does not exist yet
          * add it in the historical information
          * let the operation process normally
          */
-        valuesInfo.add(valInfo);
+        valuesInfo.put(valInfo, valInfo);
       }
       else
       {
-        AttrValueHistorical oldValueInfo = valuesInfo.get(index);
+        AttrValueHistorical oldValueInfo = valuesInfo.get(valInfo);
         if  (oldValueInfo.isUpdate())
         {
           /* if the value is already present
@@ -587,8 +582,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
            */
           if (changeNumber.newer(oldValueInfo.getValueUpdateTime()))
           {
-            valuesInfo.remove(index);
-            valuesInfo.add(valInfo);
+            valuesInfo.put(valInfo, valInfo);
           }
           builder.remove(addVal);
         }
@@ -604,8 +598,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
              * and add our more recent one
              * let the operation process
              */
-            valuesInfo.remove(index);
-            valuesInfo.add(valInfo);
+            valuesInfo.put(valInfo, valInfo);
           }
           else
           {
