@@ -58,7 +58,7 @@ public abstract class RequestTestCase extends RequestsTestCase {
         }
     }
 
-    // Connection used for sedning requests.
+    // Connection used for sending requests.
     protected Connection con;
 
     /**
