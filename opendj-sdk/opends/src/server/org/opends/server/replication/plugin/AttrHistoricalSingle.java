@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.opends.server.replication.common.ChangeNumber;
@@ -70,17 +70,18 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public ArrayList<AttrValueHistorical> getValuesHistorical()
+  public HashMap<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
   {
     if (addTime == null)
     {
-      return new ArrayList<AttrValueHistorical>();
+      return new HashMap<AttrValueHistorical,AttrValueHistorical>(0);
     }
     else
     {
-      ArrayList<AttrValueHistorical> values =
-        new ArrayList<AttrValueHistorical>();
-      values.add(new AttrValueHistorical(value, addTime, null));
+      HashMap<AttrValueHistorical,AttrValueHistorical> values =
+        new HashMap<AttrValueHistorical,AttrValueHistorical>(1);
+      AttrValueHistorical val = new AttrValueHistorical(value, addTime, null);
+      values.put(val, val);
       return values;
     }
   }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1395,14 +1395,13 @@ public class ModifyConflictTest
     }
 
     /*
-     * Check that the encoding decoding of historical information
-     * works  by encoding decoding and checking that the result is the same
-     * as the initial value.
+     * Check that the historical information attributes produced are
+     * equivalent. (The attribute values may be in a different order.)
      */
     entry.removeAttribute(historicalAttrType);
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
-    assertEquals(hist2.encodeAndPurge().toString(), hist.encodeAndPurge().toString());
+    assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
 
     return mods;
   }
