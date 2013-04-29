@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2012 ForgeRock AS.
+ !      Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_encryption"/>
@@ -32,8 +32,9 @@
       <block name="'replication_encryption'">
         <try>
           <sequence>
-            <script>
-              CurrentTestPath['group'] = 'replication'        
+            <script>  
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='replication'
               CurrentTestPath['suite'] = 'encryption'
               
               _group=CurrentTestPath['group']
