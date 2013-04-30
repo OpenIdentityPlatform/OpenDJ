@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -73,12 +74,11 @@ public final class JDBCMapper {
     fillBaseDNList();
     fillTablesList();
     fillTableColumnsMap();
-    fillOrganizationalUnitsMap();
-    fillOrganizationalUnitAttributesMap();
+    fillOrganizationalUnitsAndAttributesMap();
   }
 
   private void fillBaseDNList() throws IOException{
-    EntryReader reader = this.ldapConnection.search(" ", SearchScope.SINGLE_LEVEL, "objectClass=*");
+    final EntryReader reader = this.ldapConnection.search(" ", SearchScope.SINGLE_LEVEL, "objectClass=*");
     while(reader.hasNext()){
       baseDNList.add(reader.readEntry().getName().toString());
     }
@@ -124,60 +124,52 @@ public final class JDBCMapper {
     return baseDNList;
   }
 
-  public ArrayList<String> getTableColumns(String tableName) throws SQLException{
+  public ArrayList<String> getTableColumns(final String tableName) throws SQLException{
     final ArrayList<String> tableColumnsList = tableColumnsMap.get(tableName);
     return tableColumnsList;
   }   
 
-  public boolean getTableColumnNullable(String tableName, String columnName){
-    String mappingKey = tableName + ":" + columnName;
-    String nullable = tableColumnNullableMap.get(mappingKey);
-    if(nullable.equals("NO")) return false;
+  public boolean getTableColumnNullable(final String tableName, final String columnName){
+    final String mappingKey = tableName + ":" + columnName;
+    final String nullable = tableColumnNullableMap.get(mappingKey);
+    final String nullableString = "NO";
+    if(nullable.equals(nullableString)) return false;
     else return true;
   }
 
-  public Object getTableColumnDataType(String tableName, String columnName){
-    String mappingKey = tableName + ":" + columnName;
-    String mappingValue = tableColumnDataTypeMap.get(mappingKey);
-    if(mappingValue.equals("int")) return Integer.class;
+  public Object getTableColumnDataType(final String tableName, final String columnName){
+    final String mappingKey = tableName + ":" + columnName;
+    final String mappingValue = tableColumnDataTypeMap.get(mappingKey);
+    final String objectTypeString = "int";
+    if(mappingValue.equals(objectTypeString)) return Integer.class;
     return String.class;
   }
 
-  public ArrayList<String> getOrganizationalUnits(String baseDN){
+  public ArrayList<String> getOrganizationalUnits(final String baseDN){
     return organizationalUnitsMap.get(baseDN);
   }
 
-  public ArrayList<String> getOrganizationalUnitAttributes(String baseDN, String organizationalUnitName){
+  public ArrayList<String> getOrganizationalUnitAttributes(final String baseDN, final String organizationalUnitName){
     return organizationalUnitAttributesMap.get(baseDN + ":" + organizationalUnitName);
   }
 
-  private void fillOrganizationalUnitsMap() throws ErrorResultException, ErrorResultIOException, SearchResultReferenceIOException{
+  private void fillOrganizationalUnitsAndAttributesMap() throws ErrorResultException, ErrorResultIOException, SearchResultReferenceIOException{
     for(int i = 0; i < baseDNList.size(); i++){
-      String baseDN = baseDNList.get(i);
-      ConnectionEntryReader reader = ldapConnection.search(baseDN, SearchScope.WHOLE_SUBTREE, "ou=*");
+      final String baseDN = baseDNList.get(i);
+      final ConnectionEntryReader baseDNReader = ldapConnection.search(baseDN, SearchScope.SINGLE_LEVEL, "objectClass=*");
 
       ArrayList<String> organizationalUnitsList = new ArrayList<String>();
-      while (reader.hasNext()) {
-        final SearchResultEntry entry = reader.readEntry();
-        final Iterator<Attribute> it = entry.getAllAttributes().iterator();
-        organizationalUnitsList.add(it.next().firstValueAsString());
-      }
-      organizationalUnitsMap.put(baseDN, organizationalUnitsList);
-    }
-  }
+      while (baseDNReader.hasNext()) {
+        final SearchResultEntry entry = baseDNReader.readEntry();
+        final String organizationalUnitDNName = entry.getName().toString();
+        final String organizationalUnitName = DN.valueOf(organizationalUnitDNName).rdn().getFirstAVA().getAttributeValue().toString();
+        organizationalUnitsList.add(organizationalUnitName);
 
-  private void fillOrganizationalUnitAttributesMap() throws ErrorResultIOException, SearchResultReferenceIOException{
-    for(int i = 0; i < baseDNList.size(); i++){
-      String baseDN = baseDNList.get(i);
-      ArrayList<String> organizationalUnitsList = organizationalUnitsMap.get(baseDN);
-
-      for(int j = 0; j < organizationalUnitsList.size(); j++){
-        final String organizationalUnitName = organizationalUnitsList.get(j);
-        final ConnectionEntryReader reader = ldapConnection.search("ou=" + organizationalUnitName + "," + baseDN, SearchScope.WHOLE_SUBTREE, "objectClass=*");
+        final ConnectionEntryReader DNReader = ldapConnection.search(organizationalUnitDNName, SearchScope.SINGLE_LEVEL, "objectClass=*");
         final ArrayList<String> attributesList;
 
-        if(reader.hasNext()){
-          final Iterator<Attribute> it = reader.readEntry().getAllAttributes().iterator();
+        if(DNReader.hasNext()){
+          final Iterator<Attribute> it = DNReader.readEntry().getAllAttributes().iterator();
           attributesList = new ArrayList<String>();
 
           while(it.hasNext()){
@@ -190,11 +182,12 @@ public final class JDBCMapper {
           attributesList.add("");
         }
         organizationalUnitAttributesMap.put(baseDN + ":" + organizationalUnitName, attributesList);
-      }    
+      }
+      organizationalUnitsMap.put(baseDN, organizationalUnitsList);
     }
   }
 
-  public void addCurrentMapToMapping(String tableName, String[] columnNames, String baseDN, String OUName, String[] attributeNames){
+  public void addCurrentMapToMapping(final String tableName, final String[] columnNames, final String baseDN, final String OUName, final String[] attributeNames){
     String mappingKey, mappingValue;
 
     for(int i = 0; i < columnNames.length; i++){
@@ -208,16 +201,17 @@ public final class JDBCMapper {
     return SQLToLDAPMap;
   }
 
-  public Map<String, String> loadCurrentMapFromMapping(String tableName) {
+  public Map<String, String> loadCurrentMapFromMapping(final String tableName, String baseDN, String DN) {
+    baseDN = baseDN.replace(" ", "");
     String mappingKey, mappingValue;
     final ArrayList<String> tableColumnsList = tableColumnsMap.get(tableName);
-    Map<String, String> currentMap = new HashMap<String, String>();
+    final Map<String, String> currentMap = new HashMap<String, String>();
 
     for(int i = 0; i < tableColumnsList.size(); i++){
       mappingKey = tableName + ":" + tableColumnsList.get(i);
       if(!SQLToLDAPMap.containsKey(mappingKey)) continue;
       mappingValue = SQLToLDAPMap.get(mappingKey);
-      currentMap.put(mappingKey, mappingValue);
+      if(mappingValue.contains(baseDN + ":" + DN)) currentMap.put(mappingKey, mappingValue);
     }
     return currentMap;
   }
@@ -226,27 +220,29 @@ public final class JDBCMapper {
     this.SQLToLDAPMap = m;
   }
 
-  public String getTableNameFromMapping(String DN, String organizationalUnit) {
+  public String getTableNameFromMapping(String DN, final String organizationalUnit) {
+    DN = DN.replace(" ", "");
     for (Entry<String, String> entry : SQLToLDAPMap.entrySet()) {
-      String mappingValue = entry.getValue();
+      final String mappingValue = entry.getValue();
       if (mappingValue.contains(DN + ":" + organizationalUnit)) {
-        String mappingKey = entry.getKey();
-        String stringSplitter[] = mappingKey.split(":");
-        String tableName = stringSplitter[0];
+        final String mappingKey = entry.getKey();
+        final String stringSplitter[] = mappingKey.split(":");
+        final String tableName = stringSplitter[0];
         return tableName;
       }
     }
     return null;
   }
 
-  public String getColumnNameFromMapping(String tableName, String baseDN, String organizationalUnitName, String attributeName) {
+  public String getColumnNameFromMapping(final String tableName, String baseDN, final String organizationalUnitName, final String attributeName) {
+    baseDN = baseDN.replace(" ", "");
     for (Entry<String, String> entry : SQLToLDAPMap.entrySet()) {
-      String mappingValue = entry.getValue();
+      final String mappingValue = entry.getValue();
       if (mappingValue.equals(baseDN + ":" + organizationalUnitName + ":" + attributeName)) {
-        String mappingKey = entry.getKey();
+        final String mappingKey = entry.getKey();
         if(mappingKey.contains(tableName)){
-          String stringSplitter[] = mappingKey.split(":");
-          String columnName = stringSplitter[1];
+          final String stringSplitter[] = mappingKey.split(":");
+          final String columnName = stringSplitter[1];
           return columnName;
         }
       }
