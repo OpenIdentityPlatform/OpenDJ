@@ -49,9 +49,8 @@
                 CurrentTestPath['group']='replication'
               CurrentTestPath['suite']='externalchangelog_consistency'
               
-              _group = 'replication'
-              _suite = 'externalchangelog'
-              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _suite = 'externalchangelog_consistency'
+              _groupdir='%s/testcases/replication' % TESTS_DIR
             </script>
                 
             <call function="'testSuite_Preamble'"/>
