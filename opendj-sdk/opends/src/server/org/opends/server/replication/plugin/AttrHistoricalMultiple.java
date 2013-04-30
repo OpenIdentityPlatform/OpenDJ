@@ -40,7 +40,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 
-
 /**
  * This classes is used to store historical information for multiple valued
  * attributes.
@@ -52,9 +51,9 @@ import org.opends.server.types.ModificationType;
  */
 public class AttrHistoricalMultiple extends AttrHistorical
 {
-  /** Last time when the attribute was deleted */
+  /** Last time when the attribute was deleted. */
   private ChangeNumber deleteTime;
-  /** Last time the attribute was modified */
+  /** Last time the attribute was modified. */
   private ChangeNumber lastUpdateTime;
   private final Map<AttrValueHistorical, AttrValueHistorical> valuesHist;
 

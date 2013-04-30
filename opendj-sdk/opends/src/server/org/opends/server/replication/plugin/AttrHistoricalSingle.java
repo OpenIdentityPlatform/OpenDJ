@@ -49,11 +49,11 @@ import org.opends.server.types.ModificationType;
  */
 public class AttrHistoricalSingle extends AttrHistorical
 {
-  /** Last time when the attribute was deleted */
+  /** Last time when the attribute was deleted. */
   private ChangeNumber deleteTime = null;
-  /** Last time when a value was added */
+  /** Last time when a value was added. */
   private ChangeNumber addTime = null;
-  /** Last added value */
+  /** Last added value. */
   private AttributeValue value = null;
 
   /**
