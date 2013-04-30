@@ -37,8 +37,7 @@
                 CurrentTestPath['group']='replication'
               CurrentTestPath['suite'] = 'resynchronization'
               
-              _group=CurrentTestPath['group']
-              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _groupdir='%s/testcases/replication' % TESTS_DIR
               _label = 'Replication Resync'
             </script>
 

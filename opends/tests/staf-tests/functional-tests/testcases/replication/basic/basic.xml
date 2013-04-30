@@ -37,8 +37,7 @@
                 CurrentTestPath['group']='replication'
               CurrentTestPath['suite'] = 'basic'
               
-              _group=CurrentTestPath['group']
-              _groupdir='%s/testcases/%s' % (TESTS_DIR,_group)
+              _groupdir='%s/testcases/replication' % TESTS_DIR
               _label = 'Replication Basic'
             </script>
 
