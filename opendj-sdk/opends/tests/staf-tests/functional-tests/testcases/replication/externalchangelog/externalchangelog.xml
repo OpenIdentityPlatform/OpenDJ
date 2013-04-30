@@ -50,6 +50,7 @@
                 CurrentTestPath['group']='replication'
               CurrentTestPath['suite']='externalchangelog'
               
+              _group = 'replication'
               _suite = 'externalchangelog'
               _groupdir='%s/testcases/replication' % TESTS_DIR
             </script>
