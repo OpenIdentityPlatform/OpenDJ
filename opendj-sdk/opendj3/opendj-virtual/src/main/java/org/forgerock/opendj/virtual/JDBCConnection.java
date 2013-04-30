@@ -23,6 +23,7 @@ package org.forgerock.opendj.virtual;
 
 import java.io.IOException;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -201,12 +203,37 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   }
 
   @Override
-  public CompareResult compare(CompareRequest request)
-      throws ErrorResultException
-      {
-    // TODO Auto-generated method stub
-    return null;
-      }
+  public CompareResult compare(CompareRequest request) throws ErrorResultException
+  {
+    CompareResult cr;
+    try
+    {
+      final DN DN = request.getName();
+      final RDN rDN = DN.rdn();
+      final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+      final String filterAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
+      final RDN OU = DN.parent(1).rdn();
+      final String OUName = OU.getFirstAVA().getAttributeValue().toString();
+      final String baseDN = DN.parent(2).toString();
+      final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+      final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);  
+      final String compareAttributeName = request.getAttributeDescription().toString();
+      final String compareAttributeValue = request.getAssertionValueAsString();
+      final String compareColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, compareAttributeName);
+     
+      final Statement st = connection.createStatement();
+      final String sql = "SELECT * FROM " + tableName + " WHERE " + columnName + "='" + filterAttributeValue + "' AND " + compareColumnName + "='" +  compareAttributeValue + "'";
+      final ResultSet rs = st.executeQuery(sql);
+      if(rs.first()) cr = Responses.newCompareResult(ResultCode.COMPARE_TRUE);
+      else cr = Responses.newCompareResult(ResultCode.COMPARE_FALSE);
+    }
+    catch (SQLException e)
+    {
+      cr = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
+      e.printStackTrace();
+    }
+    return cr;
+  }
 
   @Override
   public Result delete(DeleteRequest request) throws ErrorResultException
@@ -246,32 +273,45 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   @Override
   public boolean isClosed()
   {
-    // TODO Auto-generated method stub
-    return false;
+    try
+    {
+      return this.connection.isClosed();
+    }
+    catch (SQLException e)
+    {
+      e.printStackTrace();
+      return true;
+    }
   }
 
   @Override
   public boolean isValid()
   {
-    // TODO Auto-generated method stub
-    return false;
+    try
+    {
+      return this.connection.isValid(0);
+    }
+    catch (SQLException e)
+    {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   @Override
   public Result modify(ModifyRequest request)
-  {  
-    final DN DN = request.getName();
-    final RDN rDN = DN.rdn();
-    final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
-    final String filterAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
-    final RDN OU = DN.parent(1).rdn();
-    final String OUName = OU.getFirstAVA().getAttributeValue().toString();
-    final String baseDN = DN.parent(2).toString();
-    final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
-    final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
+  { 
     Result r;
-
     try{
+      final DN DN = request.getName();
+      final RDN rDN = DN.rdn();
+      final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+      final String filterAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
+      final RDN OU = DN.parent(1).rdn();
+      final String OUName = OU.getFirstAVA().getAttributeValue().toString();
+      final String baseDN = DN.parent(2).toString();
+      final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+      final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
       final List<Modification> modificationList = request.getModifications();
       final ListIterator<Modification> listIter = modificationList.listIterator();
       String modificationString = "";
@@ -326,20 +366,18 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   {
     // TODO Auto-generated method stub
   }
+  
 
   @Override
-  public Result search(SearchRequest request, SearchResultHandler handler)
-      throws ErrorResultException
-      {
-    // TODO Auto-generated method stub
-    return null;
-      }
-
-  @Override
-  public String toString()
+  public Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException
   {
     // TODO Auto-generated method stub
     return null;
   }
 
+  @Override
+  public String toString()
+  {
+    return this.connection.toString();
+  }
 }
