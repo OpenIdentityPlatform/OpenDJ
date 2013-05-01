@@ -27,8 +27,9 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Attribute;
@@ -39,7 +40,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 
 /**
- * This classes is used to store historical information for single valued
+ * This class is used to store historical information for single valued
  * attributes.
  * One object of this type is created for each attribute that was changed in
  * the entry.
@@ -48,13 +49,17 @@ import org.opends.server.types.ModificationType;
  */
 public class AttrHistoricalSingle extends AttrHistorical
 {
-  private ChangeNumber deleteTime = null; // last time when the attribute was
-                                          // deleted
-  private ChangeNumber addTime = null;    // last time when a value was added
-  private AttributeValue value = null;    // last added value
+  /** Last time when the attribute was deleted. */
+  private ChangeNumber deleteTime = null;
+  /** Last time when a value was added. */
+  private ChangeNumber addTime = null;
+  /** Last added value. */
+  private AttributeValue value = null;
 
-  // last operation applied. This is only used for multiple mods on the same
-  // single valued attribute in the same modification.
+/**
+ * last operation applied. This is only used for multiple mods on the same
+ * single valued attribute in the same modification.
+ */
   private HistAttrModificationKey lastMod = null;
 
   /**
@@ -70,17 +75,18 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public ArrayList<AttrValueHistorical> getValuesHistorical()
+  public Map<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
   {
     if (addTime == null)
     {
-      return new ArrayList<AttrValueHistorical>();
+      return Collections.<AttrValueHistorical,AttrValueHistorical>emptyMap();
     }
     else
     {
-      ArrayList<AttrValueHistorical> values =
-        new ArrayList<AttrValueHistorical>();
-      values.add(new AttrValueHistorical(value, addTime, null));
+      AttrValueHistorical val = new AttrValueHistorical(value, addTime, null);
+      Map<AttrValueHistorical,AttrValueHistorical> values =
+          Collections.<AttrValueHistorical,AttrValueHistorical>
+          singletonMap(val, val);
       return values;
     }
   }
