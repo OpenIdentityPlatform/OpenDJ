@@ -23,11 +23,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock, AS.
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AttributeType;
@@ -46,7 +47,7 @@ public abstract class AttrHistorical
    * It should use whatever historical information is stored in this class
    * to solve the conflict and modify the mod and the mods iterator accordingly
    *
-   * @param modsIterator  The iterator on the mods from which the mod is\
+   * @param modsIterator  The iterator on the mods from which the mod is
    *                      extracted.
    * @param changeNumber  The changeNumber associated to the operation.
    * @param modifiedEntry The entry modified by this operation.
@@ -93,7 +94,8 @@ public abstract class AttrHistorical
    *
    * @return the List of ValueInfo
    */
-  public abstract ArrayList<AttrValueHistorical> getValuesHistorical();
+  public abstract Map<AttrValueHistorical,AttrValueHistorical>
+      getValuesHistorical();
 
 
   /**
