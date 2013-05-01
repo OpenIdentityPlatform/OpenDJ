@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -493,8 +493,7 @@ public class EntryHistorical
           delAttr = true;
         }
 
-        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical()
-            .keySet())
+        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
         {
           // Encode an attribute value
           String strValue;

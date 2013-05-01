@@ -27,9 +27,8 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Attribute;
@@ -49,17 +48,13 @@ import org.opends.server.types.ModificationType;
  */
 public class AttrHistoricalSingle extends AttrHistorical
 {
-  /** Last time when the attribute was deleted. */
-  private ChangeNumber deleteTime = null;
-  /** Last time when a value was added. */
-  private ChangeNumber addTime = null;
-  /** Last added value. */
-  private AttributeValue value = null;
+  private ChangeNumber deleteTime = null; // last time when the attribute was
+                                          // deleted
+  private ChangeNumber addTime = null;    // last time when a value was added
+  private AttributeValue value = null;    // last added value
 
-  /**
-   * last operation applied. This is only used for multiple mods on the same
-   * single valued attribute in the same modification.
-   */
+  // last operation applied. This is only used for multiple mods on the same
+  // single valued attribute in the same modification.
   private HistAttrModificationKey lastMod = null;
 
   /**
@@ -75,18 +70,17 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public Map<AttrValueHistorical, AttrValueHistorical> getValuesHistorical()
+  public ArrayList<AttrValueHistorical> getValuesHistorical()
   {
     if (addTime == null)
     {
-      return new HashMap<AttrValueHistorical,AttrValueHistorical>(0);
+      return new ArrayList<AttrValueHistorical>();
     }
     else
     {
-      HashMap<AttrValueHistorical,AttrValueHistorical> values =
-        new HashMap<AttrValueHistorical,AttrValueHistorical>(1);
-      AttrValueHistorical val = new AttrValueHistorical(value, addTime, null);
-      values.put(val, val);
+      ArrayList<AttrValueHistorical> values =
+        new ArrayList<AttrValueHistorical>();
+      values.add(new AttrValueHistorical(value, addTime, null));
       return values;
     }
   }
