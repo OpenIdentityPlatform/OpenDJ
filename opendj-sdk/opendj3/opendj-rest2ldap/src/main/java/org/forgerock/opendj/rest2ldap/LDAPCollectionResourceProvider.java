@@ -44,8 +44,8 @@ import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
-import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.NotSupportedException;
+import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.json.resource.PreconditionFailedException;
 import org.forgerock.json.resource.QueryFilter;
@@ -69,7 +69,6 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
@@ -136,31 +135,22 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             @Override
             public void run() {
                 // Calculate entry content.
-                attributeMapper.toLDAP(c, new JsonPointer(), null, request.getContent(),
-                        new ResultHandler<List<Modification>>() {
+                attributeMapper.create(c, new JsonPointer(), request.getContent(),
+                        new ResultHandler<List<Attribute>>() {
                             @Override
                             public void handleError(final ResourceException error) {
                                 h.handleError(error);
                             }
 
                             @Override
-                            public void handleResult(final List<Modification> result) {
+                            public void handleResult(final List<Attribute> result) {
                                 // Perform add operation.
                                 final AddRequest addRequest = newAddRequest(DN.rootDN());
                                 for (final Attribute attribute : additionalLDAPAttributes) {
                                     addRequest.addAttribute(attribute);
                                 }
-                                for (final Modification modification : result) {
-                                    if (modification.getModificationType() == ModificationType.ADD
-                                            || modification.getModificationType() == ModificationType.REPLACE) {
-                                        addRequest.addAttribute(modification.getAttribute());
-                                    } else {
-                                        // Attribute mappers must return add/replace updates.
-                                        h.handleError(new InternalServerErrorException(
-                                                i18n("Attribute mapper returned a modification which "
-                                                        + "does not add an attribute")));
-                                        return;
-                                    }
+                                for (final Attribute attribute : result) {
+                                    addRequest.addAttribute(attribute);
                                 }
                                 try {
                                     nameStrategy.setResourceId(c, getBaseDN(c), request
@@ -189,59 +179,104 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        // Get connection then perform the search.
-        c.run(h, new Runnable() {
+        // Get connection, search if needed, then delete.
+        c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
             @Override
-            public void run() {
-                // Find the entry and then delete it.
-                final String ldapAttribute =
-                        (etagAttribute != null && request.getRevision() != null) ? etagAttribute
-                                .toString() : "1.1";
-                final SearchRequest searchRequest =
-                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
-                                ldapAttribute);
-                c.getConnection().searchSingleEntryAsync(searchRequest,
-                        new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
-                            @Override
-                            public void handleErrorResult(final ErrorResultException error) {
-                                h.handleError(asResourceException(error));
-                            }
-
-                            @Override
-                            public void handleResult(final SearchResultEntry entry) {
-                                try {
-                                    // Fail-fast if there is a version mismatch.
-                                    ensureMVCCVersionMatches(entry, request.getRevision());
-
-                                    // Perform delete operation.
-                                    final ChangeRecord deleteRequest =
-                                            newDeleteRequest(entry.getName());
-                                    if (config.readOnUpdatePolicy() == CONTROLS) {
-                                        final String[] attributes =
-                                                getLDAPAttributes(c, request.getFields());
-                                        deleteRequest.addControl(PreReadRequestControl.newControl(
-                                                false, attributes));
-                                    }
-                                    if (config.useSubtreeDelete()) {
-                                        deleteRequest.addControl(SubtreeDeleteRequestControl
-                                                .newControl(true));
-                                    }
-                                    addAssertionControl(deleteRequest, request.getRevision());
-                                    c.getConnection().applyChangeAsync(deleteRequest, null,
-                                            postUpdateHandler(c, h));
-                                } catch (final Exception e) {
-                                    h.handleError(asResourceException(e));
-                                }
-                            }
-                        });
+            public void handleError(final ResourceException error) {
+                h.handleError(error);
             }
-        });
+
+            @Override
+            public void handleResult(final DN dn) {
+                try {
+                    final ChangeRecord deleteRequest = newDeleteRequest(dn);
+                    if (config.readOnUpdatePolicy() == CONTROLS) {
+                        final String[] attributes = getLDAPAttributes(c, request.getFields());
+                        deleteRequest.addControl(PreReadRequestControl
+                                .newControl(false, attributes));
+                    }
+                    if (config.useSubtreeDelete()) {
+                        deleteRequest.addControl(SubtreeDeleteRequestControl.newControl(true));
+                    }
+                    addAssertionControl(deleteRequest, request.getRevision());
+                    c.getConnection()
+                            .applyChangeAsync(deleteRequest, null, postUpdateHandler(c, h));
+                } catch (final Exception e) {
+                    h.handleError(asResourceException(e));
+                }
+            }
+        }));
     }
 
     @Override
     public void patchInstance(final ServerContext context, final String resourceId,
             final PatchRequest request, final ResultHandler<Resource> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+        final Context c = wrap(context);
+        final ResultHandler<Resource> h = wrap(c, handler);
+
+        /*
+         * Get the connection, search if needed, then determine modifications,
+         * then perform modify.
+         */
+        c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
+            @Override
+            public void handleError(final ResourceException error) {
+                h.handleError(error);
+            }
+
+            @Override
+            public void handleResult(final DN dn) {
+                //  Convert the patch operations to LDAP modifications.
+                final ResultHandler<List<Modification>> handler =
+                        accumulate(request.getPatchOperations().size(),
+                                new ResultHandler<List<List<Modification>>>() {
+                                    @Override
+                                    public void handleError(final ResourceException error) {
+                                        h.handleError(error);
+                                    }
+
+                                    @Override
+                                    public void handleResult(final List<List<Modification>> result) {
+                                        //  The patch operations have been converted successfully.
+                                        try {
+                                            final ModifyRequest modifyRequest =
+                                                    newModifyRequest(dn);
+                                            if (config.readOnUpdatePolicy() == CONTROLS) {
+                                                final String[] attributes =
+                                                        getLDAPAttributes(c, request.getFields());
+                                                modifyRequest.addControl(PostReadRequestControl
+                                                        .newControl(false, attributes));
+                                            }
+                                            if (config.usePermissiveModify()) {
+                                                modifyRequest
+                                                        .addControl(PermissiveModifyRequestControl
+                                                                .newControl(true));
+                                            }
+                                            addAssertionControl(modifyRequest, request
+                                                    .getRevision());
+
+                                            // Add the modifications.
+                                            for (final List<Modification> modifications : result) {
+                                                if (modifications != null) {
+                                                    modifyRequest.getModifications().addAll(
+                                                            modifications);
+                                                }
+                                            }
+
+                                            // Perform the modify request.
+                                            c.getConnection().applyChangeAsync(modifyRequest, null,
+                                                    postUpdateHandler(c, h));
+                                        } catch (final Exception e) {
+                                            h.handleError(asResourceException(e));
+                                        }
+                                    }
+                                });
+
+                for (final PatchOperation operation : request.getPatchOperations()) {
+                    attributeMapper.patch(c, new JsonPointer(), operation, handler);
+                }
+            }
+        }));
     }
 
     @Override
@@ -321,7 +356,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             };
 
                                     pendingResourceCount.incrementAndGet();
-                                    attributeMapper.toJSON(c, new JsonPointer(), entry, mapHandler);
+                                    attributeMapper.read(c, new JsonPointer(), entry, mapHandler);
                                     return true;
                                 }
 
@@ -404,7 +439,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public void updateInstance(final ServerContext context, final String resourceId,
             final UpdateRequest request, final ResultHandler<Resource> handler) {
         /*
-         * Update operations are a bit awkward because there is not direct
+         * Update operations are a bit awkward because there is no direct
          * mapping to LDAP. We need to convert the update request into an LDAP
          * modify operation which means reading the current LDAP entry,
          * generating the new entry content, then comparing the two in order to
@@ -415,11 +450,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        // Get connection then perform the search.
+        // Get connection then, search for the existing entry, then modify.
         c.run(h, new Runnable() {
             @Override
             public void run() {
-                // First of all read the existing entry.
                 final String[] attributes =
                         getLDAPAttributes(c, Collections.<JsonPointer> emptyList());
                 final SearchRequest searchRequest =
@@ -457,7 +491,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                      * Determine the set of changes that need to
                                      * be performed.
                                      */
-                                    attributeMapper.toLDAP(c, new JsonPointer(), entry, request
+                                    attributeMapper.update(c, new JsonPointer(), entry, request
                                             .getNewContent(),
                                             new ResultHandler<List<Modification>>() {
                                                 @Override
@@ -489,7 +523,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             final ResultHandler<Resource> handler) {
         final String actualResourceId = nameStrategy.getResourceId(c, entry);
         final String revision = getRevisionFromEntry(entry);
-        attributeMapper.toJSON(c, new JsonPointer(), entry, transform(
+        attributeMapper.read(c, new JsonPointer(), entry, transform(
                 new Function<JsonValue, Resource, Void>() {
                     @Override
                     public Resource apply(final JsonValue value, final Void p) {
@@ -505,6 +539,46 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             request.addControl(AssertionRequestControl.newControl(true, Filter.equality(
                     etagAttribute.toString(), expectedRevision)));
         }
+    }
+
+    private Runnable doUpdate(final Context c, final String resourceId, final String revision,
+            final ResultHandler<DN> updateHandler) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                final String ldapAttribute =
+                        (etagAttribute != null && revision != null) ? etagAttribute.toString()
+                                : "1.1";
+                final SearchRequest searchRequest =
+                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
+                                ldapAttribute);
+                if (searchRequest.getScope().equals(SearchScope.BASE_OBJECT)) {
+                    // There's no point in doing a search because we already know the DN.
+                    updateHandler.handleResult(searchRequest.getName());
+                } else {
+                    c.getConnection().searchSingleEntryAsync(searchRequest,
+                            new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+                                @Override
+                                public void handleErrorResult(final ErrorResultException error) {
+                                    updateHandler.handleError(asResourceException(error));
+                                }
+
+                                @Override
+                                public void handleResult(final SearchResultEntry entry) {
+                                    try {
+                                        // Fail-fast if there is a version mismatch.
+                                        ensureMVCCVersionMatches(entry, revision);
+
+                                        // Perform update operation.
+                                        updateHandler.handleResult(entry.getName());
+                                    } catch (final Exception e) {
+                                        updateHandler.handleError(asResourceException(e));
+                                    }
+                                }
+                            });
+                }
+            }
+        };
     }
 
     private void ensureMVCCSupported() throws NotSupportedException {

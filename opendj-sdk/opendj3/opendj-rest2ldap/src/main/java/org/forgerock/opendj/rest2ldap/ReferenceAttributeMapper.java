@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.LinkedAttribute;
-import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -193,105 +192,94 @@ public final class ReferenceAttributeMapper extends
                 new AtomicReference<ResourceException>();
 
         for (final Object value : newValues) {
-            mapper.toLDAP(c, path, null /* force create */, new JsonValue(value),
-                    new ResultHandler<List<Modification>>() {
+            mapper.create(c, path, new JsonValue(value), new ResultHandler<List<Attribute>>() {
 
-                        @Override
-                        public void handleError(final ResourceException error) {
-                            h.handleError(error);
+                @Override
+                public void handleError(final ResourceException error) {
+                    h.handleError(error);
+                }
+
+                @Override
+                public void handleResult(final List<Attribute> result) {
+                    Attribute primaryKeyAttribute = null;
+                    for (final Attribute attribute : result) {
+                        if (attribute.getAttributeDescription().equals(primaryKey)) {
+                            primaryKeyAttribute = attribute;
+                            break;
                         }
+                    }
 
-                        @Override
-                        public void handleResult(final List<Modification> result) {
-                            Attribute primaryKeyAttribute = null;
-                            for (final Modification modification : result) {
-                                if (modification.getAttribute().getAttributeDescription().equals(
-                                        primaryKey)) {
-                                    primaryKeyAttribute = modification.getAttribute();
-                                    break;
+                    if (primaryKeyAttribute == null || primaryKeyAttribute.isEmpty()) {
+                        h.handleError(new BadRequestException(i18n(
+                                "The request cannot be processed because the reference "
+                                        + "field '%s' contains a value which does not contain "
+                                        + "a primary key", path)));
+                        return;
+                    }
+
+                    if (primaryKeyAttribute.size() > 1) {
+                        h.handleError(new BadRequestException(i18n(
+                                "The request cannot be processed because the reference "
+                                        + "field '%s' contains a value which contains multiple "
+                                        + "primary keys", path)));
+                        return;
+                    }
+
+                    // Now search for the referenced entry in to get its DN.
+                    final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
+                    final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
+                    final SearchRequest search = createSearchRequest(filter);
+                    c.getConnection().searchSingleEntryAsync(search,
+                            new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+
+                                @Override
+                                public void handleErrorResult(final ErrorResultException error) {
+                                    ResourceException re;
+                                    try {
+                                        throw error;
+                                    } catch (final EntryNotFoundException e) {
+                                        re =
+                                                new BadRequestException(i18n(
+                                                        "The request cannot be processed "
+                                                                + "because the resource '%s' "
+                                                                + "referenced in field '%s' does "
+                                                                + "not exist", primaryKeyValue
+                                                                .toString(), path));
+                                    } catch (final MultipleEntriesFoundException e) {
+                                        re =
+                                                new BadRequestException(i18n(
+                                                        "The request cannot be processed "
+                                                                + "because the resource '%s' "
+                                                                + "referenced in field '%s' is "
+                                                                + "ambiguous", primaryKeyValue
+                                                                .toString(), path));
+                                    } catch (final ErrorResultException e) {
+                                        re = asResourceException(e);
+                                    }
+                                    exception.compareAndSet(null, re);
+                                    completeIfNecessary();
                                 }
-                            }
 
-                            if (primaryKeyAttribute == null || primaryKeyAttribute.isEmpty()) {
-                                h.handleError(new BadRequestException(
-                                        i18n("The request cannot be processed because the reference "
-                                                + "field '%s' contains a value which does not contain "
-                                                + "a primary key", path)));
-                                return;
-                            }
-
-                            if (primaryKeyAttribute.size() > 1) {
-                                h.handleError(new BadRequestException(
-                                        i18n("The request cannot be processed because the reference "
-                                                + "field '%s' contains a value which contains multiple "
-                                                + "primary keys", path)));
-                                return;
-                            }
-
-                            // Now search for the referenced entry in to get its DN.
-                            final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
-                            final Filter filter =
-                                    Filter.equality(primaryKey.toString(), primaryKeyValue);
-                            final SearchRequest search = createSearchRequest(filter);
-                            c.getConnection()
-                                    .searchSingleEntryAsync(
-                                            search,
-                                            new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
-
-                                                @Override
-                                                public void handleErrorResult(
-                                                        final ErrorResultException error) {
-                                                    ResourceException re;
-                                                    try {
-                                                        throw error;
-                                                    } catch (final EntryNotFoundException e) {
-                                                        re =
-                                                                new BadRequestException(
-                                                                        i18n("The request cannot be processed "
-                                                                                + "because the resource '%s' "
-                                                                                + "referenced in field '%s' does "
-                                                                                + "not exist",
-                                                                                primaryKeyValue
-                                                                                        .toString(),
-                                                                                path));
-                                                    } catch (final MultipleEntriesFoundException e) {
-                                                        re =
-                                                                new BadRequestException(
-                                                                        i18n("The request cannot be processed "
-                                                                                + "because the resource '%s' "
-                                                                                + "referenced in field '%s' is "
-                                                                                + "ambiguous",
-                                                                                primaryKeyValue
-                                                                                        .toString(),
-                                                                                path));
-                                                    } catch (final ErrorResultException e) {
-                                                        re = asResourceException(e);
-                                                    }
-                                                    exception.compareAndSet(null, re);
-                                                    completeIfNecessary();
-                                                }
-
-                                                @Override
-                                                public void handleResult(
-                                                        final SearchResultEntry result) {
-                                                    synchronized (newLDAPAttribute) {
-                                                        newLDAPAttribute.add(result.getName());
-                                                    }
-                                                    completeIfNecessary();
-                                                }
-                                            });
-                        }
-
-                        private void completeIfNecessary() {
-                            if (pendingSearches.decrementAndGet() == 0) {
-                                if (exception.get() == null) {
-                                    h.handleResult(newLDAPAttribute);
-                                } else {
-                                    h.handleError(exception.get());
+                                @Override
+                                public void handleResult(final SearchResultEntry result) {
+                                    synchronized (newLDAPAttribute) {
+                                        newLDAPAttribute.add(result.getName());
+                                    }
+                                    completeIfNecessary();
                                 }
-                            }
+                            });
+                }
+
+                private void completeIfNecessary() {
+                    if (pendingSearches.decrementAndGet() == 0) {
+                        if (exception.get() == null) {
+                            h.handleResult(newLDAPAttribute);
+                        } else {
+                            h.handleError(exception.get());
                         }
-                    });
+                    }
+                }
+            });
         }
     }
 
@@ -301,7 +289,7 @@ public final class ReferenceAttributeMapper extends
     }
 
     @Override
-    void toJSON(final Context c, final JsonPointer path, final Entry e,
+    void read(final Context c, final JsonPointer path, final Entry e,
             final ResultHandler<JsonValue> h) {
         final Attribute attribute = e.getAttribute(ldapAttributeName);
         if (attribute == null || attribute.isEmpty()) {
@@ -377,7 +365,7 @@ public final class ReferenceAttributeMapper extends
 
                     @Override
                     public void handleResult(final SearchResultEntry result) {
-                        mapper.toJSON(c, path, result, handler);
+                        mapper.read(c, path, result, handler);
                     }
                 });
     }
