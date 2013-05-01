@@ -73,6 +73,7 @@ public class ModifyConflictTest
   private static final String DISPLAYNAME = "displayname";
   private static final String EMPLOYEENUMBER = "employeenumber";
   private static final String DESCRIPTION = "description";
+  private static final String SYNCHIST = "ds-sync-hist";
 
   /**
    * Test that conflict between a modify-replace and modify-add for
@@ -682,6 +683,12 @@ public class ModifyConflictTest
       new Modification(ModificationType.REPLACE, builder.toAttribute());
     testModify(entry, hist, DESCRIPTION, mod, 1, true);
 
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value3");
+    assertEquals(hist.encodeAndPurge(),builder.toAttribute());
+
     // simulate a DELETE of the attribute values : value3 and value4
     // at time t2.
     builder = new AttributeBuilder(DESCRIPTION);
@@ -690,11 +697,17 @@ public class ModifyConflictTest
     mod = new Modification(ModificationType.DELETE, builder.toAttribute());
     List<Modification> mods = replayModify(entry, hist, mod, 2);
     mod = mods.get(0);
-    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value3");
+    assertEquals(mod.getAttribute(), builder.toAttribute());
     assertEquals(mod.getModificationType(), ModificationType.DELETE);
-    assertEquals(mod.getAttribute().size(), 1);
-    assertTrue(mod.getAttribute().contains(
-        AttributeValues.create(descriptionAttrType, "value3")));
+
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    assertEquals(hist.encodeAndPurge(),builder.toAttribute());
   }
 
   /**
@@ -712,11 +725,21 @@ public class ModifyConflictTest
     // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
 
+    // We will reuse these attributes a couple of times.
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value3");
+    builder.add("value4");
+    Attribute values3and4 = builder.toAttribute();
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    Attribute values1and2 = builder.toAttribute();
+
     //
     // Create description with values value1 and value2 and add
     // this attribute to the entry.
     //
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder = new AttributeBuilder(DESCRIPTION);
     builder.add("value1");
     builder.add("value2");
     builder.add("value3");
@@ -730,29 +753,23 @@ public class ModifyConflictTest
 
     // simulate a DELETE of the attribute values : value3 and value4
     // at time t2.
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value3");
-    builder.add("value4");
     Modification mod =
-      new Modification(ModificationType.DELETE, builder.toAttribute());
+      new Modification(ModificationType.DELETE, values3and4);
     List<Modification> mods = replayModify(entry, hist, mod, 2);
     entry.applyModifications(mods);
     // check that the MOD is not altered by the replay mechanism.
     mod = mods.get(0);
-    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
     assertEquals(mod.getModificationType(), ModificationType.DELETE);
-    assertEquals(mod.getAttribute().size(), 2);
-    assertTrue(mod.getAttribute().contains(
-        AttributeValues.create(descriptionAttrType, "value3")));
-    assertTrue(mod.getAttribute().contains(
-        AttributeValues.create(descriptionAttrType, "value4")));
-    Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
+    assertEquals(mod.getAttribute(), values3and4);
+
     // check that the entry now contains value1 and value2 and no other values.
-    assertEquals(resultEntryAttr.size(), 2);
-    assertTrue(resultEntryAttr.contains(
-        AttributeValues.create(descriptionAttrType, "value1")));
-    assertTrue(resultEntryAttr.contains(
-        AttributeValues.create(descriptionAttrType, "value2")));
+    Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
+    assertEquals(resultEntryAttr, values1and2);
+
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    assertEquals(hist.encodeAndPurge(),builder.toAttribute());
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
@@ -767,19 +784,17 @@ public class ModifyConflictTest
     mod = mods.get(0);
     // check that value3 has been removed from the MOD-REPLACE because
     // a later operation contains a MOD-DELETE of this value.
-    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
     assertEquals(mod.getModificationType(), ModificationType.REPLACE);
-    assertEquals(mod.getAttribute().size(), 2);
-    assertTrue(mod.getAttribute().contains(
-        AttributeValues.create(descriptionAttrType, "value1")));
-    assertTrue(mod.getAttribute().contains(
-        AttributeValues.create(descriptionAttrType, "value2")));
+    assertEquals(mod.getAttribute(), values1and2);
     // check that the entry now contains value1 and value2 and no other values.
-    assertEquals(resultEntryAttr.size(), 2);
-    assertTrue(resultEntryAttr.contains(
-        AttributeValues.create(descriptionAttrType, "value1")));
-    assertTrue(resultEntryAttr.contains(
-        AttributeValues.create(descriptionAttrType, "value2")));
+    assertEquals(resultEntryAttr, values1and2);
+
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    assertEquals(hist.encodeAndPurge(),builder.toAttribute());
   }
 
   /**
@@ -1402,7 +1417,7 @@ public class ModifyConflictTest
     entry.removeAttribute(historicalAttrType);
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
-    assertEquals(hist2.encodeAndPurge().toString(), hist.encodeAndPurge().toString());
+    assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
 
     return mods;
   }
