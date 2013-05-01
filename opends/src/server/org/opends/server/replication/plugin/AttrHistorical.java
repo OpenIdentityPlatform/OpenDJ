@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock, AS.
  */
 package org.opends.server.replication.plugin;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AttributeType;
@@ -94,8 +93,8 @@ public abstract class AttrHistorical
    *
    * @return the List of ValueInfo
    */
-  public abstract Map<AttrValueHistorical,AttrValueHistorical>
-      getValuesHistorical();
+  public abstract ArrayList<AttrValueHistorical> getValuesHistorical();
+
 
   /**
    * Returns the last time when this attribute was deleted.
