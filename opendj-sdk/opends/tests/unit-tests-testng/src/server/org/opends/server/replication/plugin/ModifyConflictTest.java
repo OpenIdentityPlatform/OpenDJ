@@ -176,11 +176,16 @@ public class ModifyConflictTest
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
+
     /*
      * simulate a replace with null done at time t3
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE, null, 3,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous replace. The
@@ -188,6 +193,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 1, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
@@ -196,6 +202,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 2, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
@@ -203,6 +210,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
         4, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000004000000000000:add:new value");
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -222,6 +233,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a replace at an earlier date that the previous replace
@@ -229,6 +243,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "older value", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:repl:older value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a replace at an earlier date that the previous replace
@@ -237,6 +255,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "older value", 2, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:repl:older value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a replace at a later date that the previous replace.
@@ -244,7 +266,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "new value", 11, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:repl:new value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -264,6 +288,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 2, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a replace at an earlier date that the previous replace
@@ -271,6 +298,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "older value", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:older value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
     Attribute attr = attrs.get(0);
@@ -283,6 +313,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "newer value", 3, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:repl:newer value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     attrs = entry.getAttribute(DISPLAYNAME);
     attr = attrs.get(0);
@@ -304,12 +337,17 @@ public class ModifyConflictTest
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
+
     /*
      * simulate a delete of the whole description attribute done at time
      * t10
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, null, 10,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
@@ -317,6 +355,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 1, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
@@ -325,6 +364,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 2, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
@@ -332,6 +372,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
         11, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:add:new value");
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -340,7 +384,7 @@ public class ModifyConflictTest
    * This test was created to reproduce issue 3392.
    */
   @Test()
-  public void delValueAndAddvalue() throws Exception
+  public void delValueAndAddValue() throws Exception
   {
     // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
@@ -366,26 +410,40 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
         1, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add of "value3" at time t2
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value3", 2, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value3");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a delete of value "value1" at time t3
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
         3, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add of "value4" at time t4
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value4", 4, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000004000000000000:add:value4");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -424,7 +482,10 @@ public class ModifyConflictTest
         buildModWith2Vals(DESCRIPTION, ModificationType.DELETE,
             "value1", "value2"),
             1, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value2");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the description attribute values
@@ -434,7 +495,11 @@ public class ModifyConflictTest
         buildModWith2Vals(DESCRIPTION, ModificationType.DELETE,
             "value2", "value3"),
             2, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value2");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value3");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     // Check that entry now only contains 1 attribute value  : "value1"
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
@@ -469,6 +534,9 @@ public class ModifyConflictTest
      */
     testModify(
         entry, hist, EMPLOYEENUMBER, ModificationType.DELETE, null, 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(EMPLOYEENUMBER + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * now simulate a delete of value "value1"
@@ -476,6 +544,9 @@ public class ModifyConflictTest
     testModify(
         entry, hist, EMPLOYEENUMBER, ModificationType.DELETE,
         "value1", 2, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(EMPLOYEENUMBER + ":0000000000000002000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -504,12 +575,18 @@ public class ModifyConflictTest
     testModify(
         entry, hist, EMPLOYEENUMBER, ModificationType.DELETE,
         "value1", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(EMPLOYEENUMBER + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of attribute employeenumber.
      */
     testModify(
         entry, hist, EMPLOYEENUMBER, ModificationType.DELETE, null, 2, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(EMPLOYEENUMBER + ":0000000000000002000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -519,7 +596,7 @@ public class ModifyConflictTest
    * This test was created to reproduce issue 3392.
    */
   @Test()
-  public void delValueAndAddvalueDisordered() throws Exception
+  public void delValueAndAddValueDisordered() throws Exception
   {
     // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
@@ -544,26 +621,40 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
         3, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add of "value3" at time t4
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value3", 4, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000004000000000000:add:value3");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate a delete of value "value1" at time t1
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
         1, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000004000000000000:add:value3");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add of "value4" at time t2
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value4", 2, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000003000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000004000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value4");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -580,6 +671,9 @@ public class ModifyConflictTest
     List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
     Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
     entry.addAttribute(attribute, duplicateValues);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
@@ -590,6 +684,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 3,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
@@ -597,6 +692,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 1, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
@@ -605,6 +701,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 2, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
@@ -612,6 +709,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
         4, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:attrDel");
+    builder.add(DISPLAYNAME + ":0000000000000004000000000000:add:new value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -626,6 +727,9 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000004000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -633,6 +737,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, null, 4,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
@@ -640,6 +745,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "new value", 3, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
   /**
@@ -650,9 +756,6 @@ public class ModifyConflictTest
   @Test()
   public void replaceAndDelete() throws Exception
   {
-    AttributeType descriptionAttrType =
-      DirectoryServer.getSchema().getAttributeType(DESCRIPTION);
-
     // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
 
@@ -684,9 +787,9 @@ public class ModifyConflictTest
     testModify(entry, hist, DESCRIPTION, mod, 1, true);
 
     builder = new AttributeBuilder(SYNCHIST);
-    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
-    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
-    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value3");
     assertEquals(hist.encodeAndPurge(),builder.toAttribute());
 
     // simulate a DELETE of the attribute values : value3 and value4
@@ -703,10 +806,10 @@ public class ModifyConflictTest
     assertEquals(mod.getModificationType(), ModificationType.DELETE);
 
     builder = new AttributeBuilder(SYNCHIST);
-    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
-    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value4");
     assertEquals(hist.encodeAndPurge(),builder.toAttribute());
   }
 
@@ -767,8 +870,8 @@ public class ModifyConflictTest
     assertEquals(resultEntryAttr, values1and2);
 
     builder = new AttributeBuilder(SYNCHIST);
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value4");
     assertEquals(hist.encodeAndPurge(),builder.toAttribute());
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
@@ -790,10 +893,10 @@ public class ModifyConflictTest
     assertEquals(resultEntryAttr, values1and2);
 
     builder = new AttributeBuilder(SYNCHIST);
-    builder.add(DESCRIPTION+":0000000000000001000000000000:repl:value1");
-    builder.add(DESCRIPTION+":0000000000000001000000000000:add:value2");
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value3");
-    builder.add(DESCRIPTION+":0000000000000002000000000000:del:value4");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:repl:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value4");
     assertEquals(hist.encodeAndPurge(),builder.toAttribute());
   }
 
@@ -814,6 +917,9 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000004000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -821,6 +927,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 4,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
@@ -828,6 +935,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "new value", 3, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
   /**
@@ -847,12 +955,20 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:older value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add with a value already existing.
@@ -860,6 +976,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 13, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:older value");
+    builder.add(DESCRIPTION + ":000000000000000d000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * Now simulate an add at a later date that the previous add. conflict
@@ -867,6 +987,11 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
         14, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:older value");
+    builder.add(DESCRIPTION + ":000000000000000d000000000000:add:init value");
+    builder.add(DESCRIPTION + ":000000000000000e000000000000:add:new value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -889,6 +1014,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * Now simulate a del and a add in the same operation
      */
@@ -910,6 +1039,9 @@ public class ModifyConflictTest
       "DEL and ADD of the same attribute same value was not correct");
     assertEquals(mods.get(1), mod2,
       "DEL and ADD of the same attribute same value was not correct");
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:add:Init Value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -921,23 +1053,35 @@ public class ModifyConflictTest
    * the conflict resolution code.
    */
   @Test()
-  public void DelAndReplaceSameOp() throws Exception
+  public void delAndReplaceSameOp() throws Exception
   {
     Entry entry = initializeEntry();
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000c000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * simulate a add of the description attribute done at time t10
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * simulate a add of the description attribute done at time t10
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "second value", 11, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:add:init value");
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:add:second value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * Now simulate a delete of one value and a replace with no value
      * in the same operation
@@ -955,6 +1099,7 @@ public class ModifyConflictTest
 
     List<Modification> mods2 = new LinkedList<Modification>(mods);
     replayModifies(entry, hist, mods, 12);
+    assertEquals(hist.encodeAndPurge(), attrDel);
     assertEquals(mods.size(), 2,
       "DEL one value, del by Replace of the same attribute was not correct");
     assertEquals(mods.get(0), mod1,
@@ -964,9 +1109,9 @@ public class ModifyConflictTest
 
     // Replay the same modifs again
     replayModifies(entry, hist, mods2, 12);
+    assertEquals(hist.encodeAndPurge(), attrDel);
     assertEquals(mods2.size(), 2,
       "DEL one value, del by Replace of the same attribute was not correct");
-
   }
 
   /**
@@ -977,7 +1122,7 @@ public class ModifyConflictTest
    *  the conflict resolution code.
    */
   @Test()
-  public void AddAndDelSameOp() throws Exception
+  public void addAndDelSameOp() throws Exception
   {
     Entry entry = initializeEntry();
 
@@ -999,6 +1144,9 @@ public class ModifyConflictTest
     mods.add(mod2);
 
     replayModifies(entry, hist, mods, 11);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:del:Init Value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
     assertEquals(mods.size(), 2,
       "DEL and ADD of the same attribute same value was not correct");
     assertEquals(mods.get(0), mod1,
@@ -1028,7 +1176,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value1", 1, true);
-
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate an add of the description attribute values
@@ -1038,6 +1188,10 @@ public class ModifyConflictTest
                buildModWith2Vals(DESCRIPTION, ModificationType.ADD, "value1",
                                  "value2"),
                2, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value1");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value2");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     // Check that entry now only contains the 2 attribute values
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
@@ -1061,12 +1215,20 @@ public class ModifyConflictTest
                buildModWith2Vals(DESCRIPTION, ModificationType.ADD, "value1",
                                  "value2"),
                1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value2");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a add of the description attribute done at time 1
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "value1", 2, false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value2");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     // Check that entry now only contains the 2 attribute values
     attrs = entry.getAttribute(DESCRIPTION);
@@ -1087,12 +1249,19 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:older value");
+    Attribute olderValue = builder.toAttribute();
 
     /*
      * simulate a add of the displayName attribute done at time t10
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 10, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":000000000000000a000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
@@ -1102,6 +1271,7 @@ public class ModifyConflictTest
     Modification mod = buildMod(DISPLAYNAME, ModificationType.ADD,
         "older value");
     List<Modification> mods = replayModify(entry, hist, mod, 1);
+    assertEquals(hist.encodeAndPurge(), olderValue);
 
     /*
      * After replay the mods should contain only one mod,
@@ -1116,6 +1286,7 @@ public class ModifyConflictTest
      */
     mod = buildMod(DISPLAYNAME, ModificationType.ADD, "new value");
     mods = replayModify(entry, hist, mod, 2);
+    assertEquals(hist.encodeAndPurge(), olderValue);
     assertTrue(mods.isEmpty());
   }
 
@@ -1130,12 +1301,18 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000003000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * simulate a add of the displayName attribute done at time t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:init value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a del of the displayName attribute done at time t3
@@ -1143,6 +1320,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE,
         "init value", 3, true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate another add, that would come from another master
@@ -1151,6 +1329,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "second value", 2, false);
+    assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
   /**
@@ -1169,12 +1348,16 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:first value");
+    Attribute firstValue = builder.toAttribute();
 
     /*
      * simulate a add of the displayName attribute done at time t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "first value", 1, true);
+    assertEquals(hist.encodeAndPurge(), firstValue);
 
     /*
      * simulate a add of the displayName attribute done at time t2
@@ -1183,6 +1366,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "second value", 2, false);
+    assertEquals(hist.encodeAndPurge(), firstValue);
 
     /*
      * Now simulate a delete of the second value.
@@ -1191,6 +1375,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE,
         "second value", 2, false);
+    assertEquals(hist.encodeAndPurge(), firstValue);
   }
 
   /**
@@ -1531,6 +1716,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "aValue", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1538,6 +1726,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1556,6 +1747,9 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * Add at time t1 that the previous delete. The
@@ -1563,6 +1757,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "aValue", 2, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:add:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1570,12 +1767,17 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Redo the same operations. This time, we expect them not to be applied.
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "aValue", 2, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:add:aValue");
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1583,6 +1785,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1601,6 +1804,9 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * Add at time t1 that the previous delete. The
@@ -1608,6 +1814,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "aValue", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1615,12 +1824,17 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Redo the same operations. This time, we expect them not to be applied.
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "aValue", 1, true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:aValue");
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1628,6 +1842,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1654,6 +1869,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of same value in the same operation done at time
@@ -1661,6 +1879,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1687,6 +1908,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1694,6 +1918,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1712,6 +1939,12 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:repl:aValue");
+    Attribute repl = builder.toAttribute();
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000002000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * Add at time t1 that the previous delete. The
@@ -1719,6 +1952,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 2, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1726,12 +1960,14 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Redo the same operations. This time, we expect them not to be applied.
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 2, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1739,6 +1975,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1757,6 +1994,12 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:aValue");
+    Attribute repl = builder.toAttribute();
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    Attribute attrDel = builder.toAttribute();
 
     /*
      * Add at time t1 that the previous delete. The
@@ -1764,6 +2007,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1771,12 +2015,14 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Redo the same operations. This time, we expect them not to be applied.
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * simulate a delete of the attribute in the same operation done at time
@@ -1784,6 +2030,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    assertEquals(hist.encodeAndPurge(), attrDel);
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1810,6 +2057,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of same value in the same operation done at time
@@ -1817,12 +2067,20 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * simulate an add of new value in the same operation done at time
      * t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "NewValue", 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:NewValue");
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /* The entry should have one value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1850,6 +2108,9 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "aValue", 1, true);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:repl:aValue");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /*
      * simulate a delete of same value in the same operation done at time
@@ -1857,12 +2118,20 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
     /*
      * simulate an add of new value in the same operation done at time
      * t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "NewValue", 1,
         true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:add:NewValue");
+    builder.add(DISPLAYNAME + ":0000000000000001000000000000:attrDel");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
 
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
