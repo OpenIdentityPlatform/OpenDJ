@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1806,6 +1806,159 @@ public class ModifyConflictTest
     /* The entry should have no value */
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
     assertNull(attrs);
+  }
+
+  /**
+   * Test we can del an existing value and add a new one, and then replay
+   * a del of the same existing value and add of a different new one.
+   */
+  @Test()
+  public void replayDelAddDifferent() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1", 1,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate an add of new value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "value3", 1,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1", 2,
+        false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate an add of new value in the same operation done at time
+     * t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "value4", 2,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value3");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value4");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value2");
+    builder.add("value3");
+    builder.add("value4");
+    assertEquals(attrs.get(0), builder.toAttribute());
+  }
+
+  /**
+   * Test we can del an existing value and add a new one, and then replay
+   * a del of another existing value and add of the same one.
+   */
+  @Test()
+  public void replayDelAddSame() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * simulate a delete of a value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1", 1,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate an add of new value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "value4", 1,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value4");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate a delete of another value in the same operation done at time
+     * t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value2", 2,
+        true);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:add:value4");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value2");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /*
+     * simulate an add of already added value in the same operation done at time
+     * t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "value4", 2,
+        false);
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":0000000000000001000000000000:del:value1");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:del:value2");
+    builder.add(DESCRIPTION + ":0000000000000002000000000000:add:value4");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value3");
+    builder.add("value4");
+    assertEquals(attrs.get(0), builder.toAttribute());
   }
 
   /**
