@@ -20,7 +20,10 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 import static org.forgerock.json.fluent.JsonValue.field;
 import static org.forgerock.json.fluent.JsonValue.object;
+import static org.forgerock.json.resource.PatchOperation.add;
+import static org.forgerock.json.resource.PatchOperation.remove;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
+import static org.forgerock.json.resource.Requests.newPatchRequest;
 import static org.forgerock.json.resource.Requests.newReadRequest;
 import static org.forgerock.json.resource.Requests.newUpdateRequest;
 import static org.forgerock.json.resource.Resources.newCollection;
@@ -100,6 +103,126 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
         connection.delete(ctx(), newDeleteRequest("/missing"));
+    }
+
+    @Test
+    public void testPatch() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed")));
+        checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
+    }
+
+    @Test
+    public void testPatchAddOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1(12345);
+        newContent.put("description", asList("one", "two"));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("one",
+                        "two"))));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchConstantAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/schemas", asList("junk"))));
+    }
+
+    @Test
+    public void testPatchDeleteOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(),
+                newPatchRequest("/test1", add("/description", asList("one", "two"))));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", remove("/description")));
+        checkResourcesAreEqual(resource1, getTestUser1(12345));
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, getTestUser1(12345));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchMissingRequiredAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", remove("/surname")));
+    }
+
+    @Test
+    public void testPatchModifyOptionalAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(),
+                newPatchRequest("/test1", add("/description", asList("one", "two"))));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/description",
+                        asList("three"))));
+        final JsonValue newContent = getTestUser1(12345);
+        newContent.put("description", asList("one", "two", "three"));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test
+    public void testPatchMVCCMatch() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed"))
+                        .setRevision("12345"));
+        checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
+    }
+
+    @Test(expectedExceptions = PreconditionFailedException.class)
+    public void testPatchMVCCNoMatch() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed"))
+                .setRevision("12346"));
+    }
+
+    @Test(expectedExceptions = NotFoundException.class)
+    public void testPatchNotFound() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/missing", add("displayName", "changed")));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchReadOnlyAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        // Etag is read-only.
+        connection.patch(ctx(), newPatchRequest("/test1", add("_rev", "99999")));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchSingleValuedAttributeWithMultipleValues() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(),
+                newPatchRequest("/test1", add("/surname", asList("black", "white"))));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchUnknownAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1Updated(12345);
+        newContent.add("dummy", "junk");
+        connection.patch(ctx(), newPatchRequest("/test1", add("/dummy", "junk")));
     }
 
     @Test

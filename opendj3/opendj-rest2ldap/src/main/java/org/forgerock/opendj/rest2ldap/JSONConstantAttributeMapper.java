@@ -29,7 +29,9 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
@@ -42,6 +44,18 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
 
     JSONConstantAttributeMapper(final Object value) {
         this.value = new JsonValue(value);
+    }
+
+    @Override
+    void create(final Context c, final JsonPointer path, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
+        if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
+            h.handleError(new BadRequestException(i18n(
+                    "The request cannot be processed because it attempts to create "
+                            + "the read-only field '%s'", path)));
+        } else {
+            h.handleResult(Collections.<Attribute> emptyList());
+        }
     }
 
     @Override
@@ -90,24 +104,29 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void toJSON(final Context c, final JsonPointer path, final Entry e,
+    void patch(final Context c, final JsonPointer path, final PatchOperation operation,
+            final ResultHandler<List<Modification>> h) {
+        h.handleError(new BadRequestException(i18n(
+                "The request cannot be processed because it attempts to patch "
+                        + "the read-only field '%s'", path)));
+    }
+
+    @Override
+    void read(final Context c, final JsonPointer path, final Entry e,
             final ResultHandler<JsonValue> h) {
         h.handleResult(value.copy());
     }
 
     @Override
-    void toLDAP(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
+    void update(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
             final ResultHandler<List<Modification>> h) {
-        if (!isNullOrEmpty(v)) {
-            // A value was provided so it must match.
-            if (!v.getObject().equals(value.getObject())) {
-                h.handleError(new BadRequestException(i18n(
-                        "The request cannot be processed because it attempts to modify "
-                                + "the read-only field '%s'", path)));
-                return;
-            }
+        if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
+            h.handleError(new BadRequestException(i18n(
+                    "The request cannot be processed because it attempts to modify "
+                            + "the read-only field '%s'", path)));
+        } else {
+            h.handleResult(Collections.<Modification> emptyList());
         }
-        h.handleResult(Collections.<Modification> emptyList());
     }
 
     private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,

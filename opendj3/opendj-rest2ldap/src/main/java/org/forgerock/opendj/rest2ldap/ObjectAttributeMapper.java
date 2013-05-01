@@ -15,7 +15,9 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
 import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
@@ -32,7 +34,10 @@ import java.util.Set;
 import org.forgerock.json.fluent.JsonPointer;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.PatchOperation;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
@@ -80,6 +85,37 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
+    void create(final Context c, final JsonPointer path, final JsonValue v,
+            final ResultHandler<List<Attribute>> h) {
+        try {
+            /*
+             * First check that the JSON value is an object and that the fields
+             * it contains are known by this mapper.
+             */
+            final Map<String, Mapping> missingMappings = checkMapping(path, v);
+
+            // Accumulate the results of the subordinate mappings.
+            final ResultHandler<List<Attribute>> handler = accumulator(h);
+
+            // Invoke mappings for which there are values provided.
+            if (v != null && !v.isNull()) {
+                for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
+                    final Mapping mapping = getMapping(me.getKey());
+                    final JsonValue subValue = new JsonValue(me.getValue());
+                    mapping.mapper.create(c, path.child(me.getKey()), subValue, handler);
+                }
+            }
+
+            // Invoke mappings for which there were no values provided.
+            for (final Mapping mapping : missingMappings.values()) {
+                mapping.mapper.create(c, path.child(mapping.name), null, handler);
+            }
+        } catch (final Exception e) {
+            h.handleError(asResourceException(e));
+        }
+    }
+
+    @Override
     void getLDAPAttributes(final Context c, final JsonPointer path, final JsonPointer subPath,
             final Set<String> ldapAttributes) {
         if (subPath.isEmpty()) {
@@ -117,7 +153,55 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void toJSON(final Context c, final JsonPointer path, final Entry e,
+    void patch(final Context c, final JsonPointer path, final PatchOperation operation,
+            final ResultHandler<List<Modification>> h) {
+        try {
+            final JsonPointer field = operation.getField();
+            final JsonValue v = operation.getValue();
+
+            if (field.isEmpty()) {
+                /*
+                 * The patch operation applies to this object. We'll handle this
+                 * by allowing the JSON value to be a partial object and
+                 * add/remove/replace only the provided values.
+                 */
+                checkMapping(path, operation.getValue());
+
+                // Accumulate the results of the subordinate mappings.
+                final ResultHandler<List<Modification>> handler = accumulator(h);
+
+                // Invoke the sub-mappers using a new patch operation targeted at each field.
+                for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
+                    final Mapping mapping = getMapping(me.getKey());
+                    final JsonValue subValue = new JsonValue(me.getValue());
+                    final PatchOperation subOperation =
+                            operation(operation.getOperation(), field /* empty */, subValue);
+                    mapping.mapper.patch(c, path.child(me.getKey()), subOperation, handler);
+                }
+            } else {
+                /*
+                 * The patch operation targets a subordinate field. Create a new
+                 * patch operation targeting the field and forward it to the
+                 * appropriate mapper.
+                 */
+                final String fieldName = field.get(0);
+                final Mapping mapping = getMapping(fieldName);
+                if (mapping == null) {
+                    throw new BadRequestException(i18n(
+                            "The request cannot be processed because it included "
+                                    + "an unrecognized field '%s'", path.child(fieldName)));
+                }
+                final PatchOperation subOperation =
+                        operation(operation.getOperation(), field.relativePointer(), v);
+                mapping.mapper.patch(c, path.child(fieldName), subOperation, h);
+            }
+        } catch (final Exception ex) {
+            h.handleError(asResourceException(ex));
+        }
+    }
+
+    @Override
+    void read(final Context c, final JsonPointer path, final Entry e,
             final ResultHandler<JsonValue> h) {
         /*
          * Use an accumulator which will aggregate the results from the
@@ -152,7 +236,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                         }, h));
 
         for (final Mapping mapping : mappings.values()) {
-            mapping.mapper.toJSON(c, path.child(mapping.name), e, transform(
+            mapping.mapper.read(c, path.child(mapping.name), e, transform(
                     new Function<JsonValue, Map.Entry<String, JsonValue>, Void>() {
                         @Override
                         public Map.Entry<String, JsonValue> apply(final JsonValue value,
@@ -165,69 +249,80 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void toLDAP(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
+    void update(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
             final ResultHandler<List<Modification>> h) {
-        /*
-         * Fail immediately if the JSON value has the wrong type or contains
-         * unknown attributes.
-         */
+        try {
+            /*
+             * First check that the JSON value is an object and that the fields
+             * it contains are known by this mapper.
+             */
+            final Map<String, Mapping> missingMappings = checkMapping(path, v);
+
+            // Accumulate the results of the subordinate mappings.
+            final ResultHandler<List<Modification>> handler = accumulator(h);
+
+            // Invoke mappings for which there are values provided.
+            if (v != null && !v.isNull()) {
+                for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
+                    final Mapping mapping = getMapping(me.getKey());
+                    final JsonValue subValue = new JsonValue(me.getValue());
+                    mapping.mapper.update(c, path.child(me.getKey()), e, subValue, handler);
+                }
+            }
+
+            // Invoke mappings for which there were no values provided.
+            for (final Mapping mapping : missingMappings.values()) {
+                mapping.mapper.update(c, path.child(mapping.name), e, null, handler);
+            }
+        } catch (final Exception ex) {
+            h.handleError(asResourceException(ex));
+        }
+    }
+
+    private <T> ResultHandler<List<T>> accumulator(final ResultHandler<List<T>> h) {
+        return accumulate(mappings.size(), transform(new Function<List<List<T>>, List<T>, Void>() {
+            @Override
+            public List<T> apply(final List<List<T>> value, final Void p) {
+                switch (value.size()) {
+                case 0:
+                    return Collections.emptyList();
+                case 1:
+                    return value.get(0);
+                default:
+                    final List<T> attributes = new ArrayList<T>(value.size());
+                    for (final List<T> a : value) {
+                        attributes.addAll(a);
+                    }
+                    return attributes;
+                }
+            }
+        }, h));
+    }
+
+    /*
+     * Fail immediately if the JSON value has the wrong type or contains unknown
+     * attributes.
+     */
+    private Map<String, Mapping> checkMapping(final JsonPointer path, final JsonValue v)
+            throws ResourceException {
         final Map<String, Mapping> missingMappings = new LinkedHashMap<String, Mapping>(mappings);
         if (v != null && !v.isNull()) {
             if (v.isMap()) {
                 for (final String attribute : v.asMap().keySet()) {
                     if (missingMappings.remove(toLowerCase(attribute)) == null) {
-                        h.handleError(new BadRequestException(i18n(
-                                "The request cannot be processed because the JSON resource "
-                                        + "contains an unrecognized field '%s'", path
-                                        .child(attribute))));
-                        return;
+                        throw new BadRequestException(i18n(
+                                "The request cannot be processed because it included "
+                                        + "an unrecognized field '%s'", path.child(attribute)));
                     }
                 }
             } else {
-                h.handleError(new BadRequestException(i18n(
-                        "The request cannot be processed because the JSON resource "
-                                + "contains the field '%s' whose value is the wrong type: "
-                                + "an object is expected", path)));
-                return;
+                throw new BadRequestException(i18n(
+                        "The request cannot be processed because it included "
+                                + "the field '%s' whose value is the wrong type: "
+                                + "an object is expected", path));
             }
         }
-
-        // Accumulate the results of the subordinate mappings.
-        final ResultHandler<List<Modification>> handler =
-                accumulate(mappings.size(), transform(
-                        new Function<List<List<Modification>>, List<Modification>, Void>() {
-                            @Override
-                            public List<Modification> apply(final List<List<Modification>> value,
-                                    final Void p) {
-                                switch (value.size()) {
-                                case 0:
-                                    return Collections.emptyList();
-                                case 1:
-                                    return value.get(0);
-                                default:
-                                    final List<Modification> attributes =
-                                            new ArrayList<Modification>(value.size());
-                                    for (final List<Modification> a : value) {
-                                        attributes.addAll(a);
-                                    }
-                                    return attributes;
-                                }
-                            }
-                        }, h));
-
-        // Invoke mappings for which there are values provided.
-        if (v != null && !v.isNull()) {
-            for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
-                final Mapping mapping = getMapping(me.getKey());
-                final JsonValue subValue = new JsonValue(me.getValue());
-                mapping.mapper.toLDAP(c, path.child(me.getKey()), e, subValue, handler);
-            }
-        }
-
-        // Invoke mappings for which there were no values provided.
-        for (final Mapping mapping : missingMappings.values()) {
-            mapping.mapper.toLDAP(c, path.child(mapping.name), e, null, handler);
-        }
+        return missingMappings;
     }
 
     private Mapping getMapping(final JsonPointer jsonAttribute) {

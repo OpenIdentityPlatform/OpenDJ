@@ -49,7 +49,6 @@ import org.forgerock.opendj.ldap.Function;
  */
 public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<SimpleAttributeMapper> {
     private Function<ByteString, ?, Void> decoder = null;
-
     private Function<Object, ByteString, Void> encoder = null;
 
     SimpleAttributeMapper(final AttributeDescription ldapAttributeName) {
@@ -152,7 +151,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    void toJSON(final Context c, final JsonPointer path, final Entry e,
+    void read(final Context c, final JsonPointer path, final Entry e,
             final ResultHandler<JsonValue> h) {
         try {
             final Object value;
