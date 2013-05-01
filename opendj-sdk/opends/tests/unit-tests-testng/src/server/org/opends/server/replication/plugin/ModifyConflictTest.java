@@ -86,12 +86,16 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:repl:init value");
+    Attribute repl = builder.toAttribute();
 
     /*
      * simulate a modify-replace done at time t10
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
                "init value", 10, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
@@ -99,6 +103,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
                "older value", 1, false);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
@@ -107,6 +112,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
                "older value", 2, false);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at a later date that the previous replace.
@@ -114,7 +120,10 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
                11, true);
-
+    builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DESCRIPTION + ":000000000000000a000000000000:repl:init value");
+    builder.add(DESCRIPTION + ":000000000000000b000000000000:add:new value");
+    assertEquals(hist.encodeAndPurge(), builder.toAttribute());
   }
 
   /**
@@ -128,12 +137,16 @@ public class ModifyConflictTest
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    AttributeBuilder builder = new AttributeBuilder(SYNCHIST);
+    builder.add(DISPLAYNAME + ":000000000000000a000000000000:repl:init value");
+    Attribute repl = builder.toAttribute();
 
     /*
      * simulate a modify-replace done at time t10
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
                "init value", 10, true);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
@@ -141,6 +154,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
                "older value", 1, false);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
@@ -149,6 +163,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
                "older value", 2, false);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at a later date that the previous replace.
@@ -156,6 +171,7 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
                11, false);
+    assertEquals(hist.encodeAndPurge(), repl);
 
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
     Attribute attr = attrs.get(0);
