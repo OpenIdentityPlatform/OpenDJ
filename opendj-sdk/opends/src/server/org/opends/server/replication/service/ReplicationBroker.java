@@ -88,7 +88,8 @@ public class ReplicationBroker
    */
   private volatile Collection<String> replicationServerUrls;
   private volatile boolean connected = false;
-  private volatile String replicationServer = "Not connected";
+  public final static String NO_CONNECTED_SERVER = "Not connected";
+  private volatile String replicationServer = NO_CONNECTED_SERVER;
   private volatile ProtocolSession session = null;
   private final ServerState state;
   private final String baseDn;
@@ -970,6 +971,9 @@ public class ReplicationBroker
          * This server could not find any replicationServer. It's going to start
          * in degraded mode. Log a message.
          */
+        connected = false;
+        replicationServer = NO_CONNECTED_SERVER;
+
         if (!connectionError)
         {
           connectionError = true;
