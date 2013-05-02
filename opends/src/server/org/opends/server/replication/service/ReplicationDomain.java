@@ -2765,7 +2765,7 @@ public abstract class ReplicationDomain
     if (broker != null)
       return broker.getReplicationServer();
     else
-      return "Not connected";
+      return ReplicationBroker.NO_CONNECTED_SERVER;
   }
 
   /**
