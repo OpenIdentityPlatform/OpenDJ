@@ -153,8 +153,32 @@ final class HTTPClientConnection extends ClientConnection
   /** The reference to the connection handler that accepted this connection. */
   private final HTTPConnectionHandler connectionHandler;
 
-  /** The servlet request representing this client connection. */
-  private final ServletRequest request;
+  /** The protocol in use for this client connection. */
+  private String protocol;
+
+  /** The client (remote) address. */
+  private String clientAddress;
+
+  /** The client (remote) port. */
+  private int clientPort;
+
+  /** The remote (client) address. */
+  private InetAddress remoteAddress;
+
+  /** The server (local) address. */
+  private String serverAddress;
+
+  /** The server (local) port. */
+  private int serverPort;
+
+  /** The local (server) address. */
+  private InetAddress localAddress;
+
+  /** Whether this connection is secure. */
+  private boolean isSecure;
+
+  /** Security-Strength Factor extracted from the request attribute. */
+  private int securityStrengthFactor;
 
   /**
    * Constructs an instance of this class.
@@ -168,7 +192,19 @@ final class HTTPClientConnection extends ClientConnection
       ServletRequest request)
   {
     this.connectionHandler = connectionHandler;
-    this.request = request;
+
+    // memoize all the fields we need from the request before Grizzly decides to
+    // recycle it
+    this.protocol = request.getProtocol();
+    this.clientAddress = request.getRemoteAddr();
+    this.clientPort = request.getRemotePort();
+    this.serverAddress = request.getLocalAddr();
+    this.serverPort = request.getLocalPort();
+    this.remoteAddress = toInetAddress(request.getRemoteAddr());
+    this.localAddress = toInetAddress(request.getLocalAddr());
+    this.isSecure = request.isSecure();
+    this.securityStrengthFactor =
+        calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
   }
@@ -191,70 +227,56 @@ final class HTTPClientConnection extends ClientConnection
   @Override
   public String getProtocol()
   {
-    return request.getProtocol();
+    return protocol;
   }
 
   /** {@inheritDoc} */
   @Override
   public String getClientAddress()
   {
-    return request.getRemoteAddr();
+    return clientAddress;
   }
 
   /** {@inheritDoc} */
   @Override
   public int getClientPort()
   {
-    return request.getRemotePort();
+    return clientPort;
   }
 
   /** {@inheritDoc} */
   @Override
   public String getServerAddress()
   {
-    return request.getLocalAddr();
+    return serverAddress;
   }
 
   /** {@inheritDoc} */
   @Override
   public int getServerPort()
   {
-    return request.getLocalPort();
+    return serverPort;
   }
 
   /** {@inheritDoc} */
   @Override
   public InetAddress getRemoteAddress()
   {
-    try
-    {
-      return InetAddress.getByName(request.getRemoteAddr());
-    }
-    catch (UnknownHostException e)
-    {
-      throw new RuntimeException("Should never happen", e);
-    }
+    return remoteAddress;
   }
 
   /** {@inheritDoc} */
   @Override
   public InetAddress getLocalAddress()
   {
-    try
-    {
-      return InetAddress.getByName(request.getLocalAddr());
-    }
-    catch (UnknownHostException e)
-    {
-      throw new RuntimeException("Should never happen", e);
-    }
+    return localAddress;
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {
-    return request.isSecure();
+    return isSecure;
   }
 
   /** {@inheritDoc} */
@@ -456,6 +478,30 @@ final class HTTPClientConnection extends ClientConnection
     return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
   }
 
+  private int calcSSF(Object ssf)
+  {
+    if (ssf instanceof Number)
+    {
+      return ((Number) ssf).intValue();
+    }
+    else if (ssf instanceof String)
+    {
+      try
+      {
+        return Integer.parseInt((String) ssf);
+      }
+      catch (IllegalArgumentException ignored)
+      {
+        // We cannot do much about it. Just log it.
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+        }
+      }
+    }
+    return 0;
+  }
+
   /** {@inheritDoc} */
   @Override
   public void cancelAllOperations(CancelRequest cancelRequest)
@@ -545,6 +591,18 @@ final class HTTPClientConnection extends ClientConnection
     return buffer.toString();
   }
 
+  private InetAddress toInetAddress(String address)
+  {
+    try
+    {
+      return InetAddress.getByName(address);
+    }
+    catch (UnknownHostException e)
+    {
+      throw new RuntimeException("Should never happen", e);
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
@@ -559,27 +617,7 @@ final class HTTPClientConnection extends ClientConnection
   @Override
   public int getSSF()
   {
-    Object attribute = request.getAttribute(SERVLET_SSF_CONSTANT);
-    if (attribute instanceof Number)
-    {
-      return ((Number) attribute).intValue();
-    }
-    else if (attribute instanceof String)
-    {
-      try
-      {
-        return Integer.parseInt((String) attribute);
-      }
-      catch (IllegalArgumentException ignored)
-      {
-        // We cannot do much about it. Just log it.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-        }
-      }
-    }
-    return 0;
+    return securityStrengthFactor;
   }
 
   /** {@inheritDoc} */
