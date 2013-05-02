@@ -88,6 +88,9 @@ public class ReplicationBroker
    */
   private volatile Collection<String> replicationServerUrls;
   private volatile boolean connected = false;
+  /**
+   * String reported under cn=monitor when there is no connected RS.
+   */
   public final static String NO_CONNECTED_SERVER = "Not connected";
   private volatile String replicationServer = NO_CONNECTED_SERVER;
   private volatile ProtocolSession session = null;
