@@ -125,7 +125,7 @@ public class HTTPAccessLogger extends AbstractLogger
    *
    * @return a Collection of {@link HTTPAccessLogPublisher} objects
    */
-  private static Collection<HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>>
+  public static Collection<HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>>
       getHTTPAccessLogPublishers()
   {
     return loggerStorage.getLogPublishers();

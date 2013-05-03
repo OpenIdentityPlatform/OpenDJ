@@ -135,10 +135,6 @@ public class LoggerConfigManager implements
     {
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
     }
-    if (httpAccessPublisherCfgs.isEmpty())
-    {
-      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
-    }
     if (errorPublisherCfgs.isEmpty())
     {
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());

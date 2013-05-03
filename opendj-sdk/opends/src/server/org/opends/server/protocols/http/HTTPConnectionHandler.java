@@ -26,6 +26,7 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -91,6 +92,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
+import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -699,6 +701,11 @@ public class HTTPConnectionHandler extends
   {
     // silence Grizzly's own logging
     Logger.getLogger("org.glassfish.grizzly").setLevel(Level.OFF);
+
+    if (HTTPAccessLogger.getHTTPAccessLogPublishers().isEmpty())
+    {
+      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
+    }
 
     this.httpServer =
         HttpServer.createSimpleServer("./", initConfig.getListenPort());
