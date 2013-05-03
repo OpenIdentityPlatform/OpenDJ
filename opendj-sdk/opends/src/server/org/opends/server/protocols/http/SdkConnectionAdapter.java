@@ -33,6 +33,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -68,6 +70,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperationBasis;
+import org.opends.server.loggers.HTTPRequestInfo;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
@@ -91,6 +94,9 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** The HTTP client connection being "adapted". */
   private final HTTPClientConnection clientConnection;
 
+  /** The HTTP request information to log. */
+  private final HTTPRequestInfo requestInfo;
+
   /**
    * The next message ID (and operation ID) that should be used for this
    * connection.
@@ -111,10 +117,14 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
    *
    * @param clientConnection
    *          the HTTP client connection being "adapted"
+   * @param requestInfo
+   *          the HTTP request information to log
    */
-  public SdkConnectionAdapter(HTTPClientConnection clientConnection)
+  public SdkConnectionAdapter(HTTPClientConnection clientConnection,
+      HTTPRequestInfo requestInfo)
   {
     this.clientConnection = clientConnection;
+    this.requestInfo = requestInfo;
     this.queueingStrategy =
         new BoundedWorkQueueStrategy(clientConnection.getConnectionHandler()
             .getCurrentConfig().getMaxConcurrentOpsPerConnection());
@@ -223,6 +233,11 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     {
       this.clientConnection.disconnect(DisconnectReason.UNBIND, false, null);
     }
+
+    // At this point, we try to log the request with OK status code.
+    // If it was already logged, it will be a no op.
+    this.requestInfo.log(HttpServletResponse.SC_OK);
+
     isClosed = true;
   }
 

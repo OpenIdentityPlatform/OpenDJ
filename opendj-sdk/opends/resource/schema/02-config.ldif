@@ -3937,6 +3937,11 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.22
         ds-cfg-suppress-internal-operations $
         ds-cfg-suppress-synchronization-operations )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.16
+  NAME 'ds-cfg-http-access-log-publisher'
+  SUP ds-cfg-log-publisher
+  STRUCTURAL
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.23
   NAME 'ds-cfg-error-log-publisher'
   SUP ds-cfg-log-publisher
@@ -3974,6 +3979,23 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.25
         ds-cfg-log-record-time-format $
         ds-cfg-log-control-oids )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.17
+  NAME 'ds-cfg-file-based-http-access-log-publisher'
+  SUP ds-cfg-http-access-log-publisher
+  STRUCTURAL
+  MUST ( ds-cfg-log-file $
+         ds-cfg-asynchronous $
+         ds-cfg-log-file-permissions )
+  MAY ( ds-cfg-rotation-policy $
+        ds-cfg-rotation-action $
+        ds-cfg-retention-policy $
+        ds-cfg-time-interval $
+        ds-cfg-buffer-size $
+        ds-cfg-auto-flush $
+        ds-cfg-append $
+        ds-cfg-queue-size $
+        ds-cfg-log-record-time-format )
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26
   NAME 'ds-cfg-file-based-debug-log-publisher'
   SUP ds-cfg-debug-log-publisher
