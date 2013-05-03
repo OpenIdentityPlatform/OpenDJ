@@ -727,6 +727,21 @@ ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation P
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
+dn: cn=File-Based HTTP Access Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-http-access-log-publisher
+objectClass: ds-cfg-file-based-http-access-log-publisher
+cn: File-Based HTTP Access Logger
+ds-cfg-java-class: org.opends.server.loggers.TextHTTPAccessLogPublisher
+ds-cfg-enabled: true
+ds-cfg-log-file: logs/http-access
+ds-cfg-log-file-permissions: 640
+ds-cfg-asynchronous: true
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
 dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-log-publisher

@@ -37,11 +37,17 @@ import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.*;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
+import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
+import org.opends.server.admin.std.server.LogPublisherCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
@@ -87,6 +93,9 @@ public class LoggerConfigManager implements
     List<AccessLogPublisherCfg> accessPublisherCfgs =
         new ArrayList<AccessLogPublisherCfg>();
 
+    List<HTTPAccessLogPublisherCfg> httpAccessPublisherCfgs =
+        new ArrayList<HTTPAccessLogPublisherCfg>();
+
     List<ErrorLogPublisherCfg> errorPublisherCfgs =
         new ArrayList<ErrorLogPublisherCfg>();
 
@@ -102,6 +111,10 @@ public class LoggerConfigManager implements
       {
         accessPublisherCfgs.add((AccessLogPublisherCfg)config);
       }
+      else if (config instanceof HTTPAccessLogPublisherCfg)
+      {
+        httpAccessPublisherCfgs.add((HTTPAccessLogPublisherCfg) config);
+      }
       else if(config instanceof ErrorLogPublisherCfg)
       {
         errorPublisherCfgs.add((ErrorLogPublisherCfg)config);
@@ -116,9 +129,15 @@ public class LoggerConfigManager implements
 
     // See if there are active loggers in all categories.  If not, then log a
     // message.
+    // Do not output warn message for debug loggers because it is valid to fully
+    // disable all debug loggers.
     if (accessPublisherCfgs.isEmpty())
     {
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
+    }
+    if (httpAccessPublisherCfgs.isEmpty())
+    {
+      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
     }
     if (errorPublisherCfgs.isEmpty())
     {
@@ -127,6 +146,7 @@ public class LoggerConfigManager implements
 
     DebugLogger.getInstance().initializeLogger(debugPublisherCfgs);
     AccessLogger.getInstance().initializeLogger(accessPublisherCfgs);
+    HTTPAccessLogger.getInstance().initializeLogger(httpAccessPublisherCfgs);
     ErrorLogger.getInstance().initializeLogger(errorPublisherCfgs);
   }
 
@@ -153,6 +173,10 @@ public class LoggerConfigManager implements
     else if (config instanceof AccessLogPublisherCfg)
     {
       return AccessLogger.getInstance();
+    }
+    else if (config instanceof HTTPAccessLogPublisherCfg)
+    {
+      return HTTPAccessLogger.getInstance();
     }
     else if (config instanceof ErrorLogPublisherCfg)
     {

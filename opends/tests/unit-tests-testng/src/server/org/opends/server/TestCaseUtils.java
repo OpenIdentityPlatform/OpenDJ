@@ -51,7 +51,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -78,8 +85,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextHTTPAccessLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -187,23 +196,17 @@ public final class TestCaseUtils {
   public static final String PROPERTY_OPENDMK_LOCATION =
           "org.opends.server.snmp.opendmk";
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter DEBUG_TEXT_WRITER =
-      new TestTextWriter();
+  /** The test text writer for the Debug Logger */
+  public static TestTextWriter DEBUG_TEXT_WRITER = new TestTextWriter();
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter ERROR_TEXT_WRITER =
-      new TestTextWriter();
+  /** The test text writer for the Error Logger */
+  public static TestTextWriter ERROR_TEXT_WRITER = new TestTextWriter();
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter ACCESS_TEXT_WRITER =
-      new TestTextWriter();
+  /** The test text writer for the Access Logger */
+  public static TestTextWriter ACCESS_TEXT_WRITER = new TestTextWriter();
+
+  /** The test text writer for the HTTP Access Logger */
+  public static TestTextWriter HTTP_ACCESS_TEXT_WRITER = new TestTextWriter();
 
   /**
    * Indicates whether the server has already been started.  The value of this
@@ -524,6 +527,9 @@ public final class TestCaseUtils {
       AccessLogger.addAccessLogPublisher(
           TextAccessLogPublisher.getStartupTextAccessPublisher(
               ACCESS_TEXT_WRITER, false));
+
+      HTTPAccessLogger.addHTTPAccessLogPublisher(TextHTTPAccessLogPublisher
+          .getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
 
       // Use more verbose tool logger.
       ErrorLogger.addErrorLogPublisher(
