@@ -23,28 +23,9 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
-
-import org.opends.server.util.StaticUtils;
-import java.io.File;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import java.io.ByteArrayOutputStream;
-import java.net.ServerSocket;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -53,20 +34,35 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.net.ServerSocket;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
+
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.testng.Assert.*;
 
 /**
  * Tests for the replicationServer code.
@@ -96,10 +92,7 @@ public class MonitorTest extends ReplicationTestCase
   private ReplicationServer replServer1 = null;
   private ReplicationServer replServer2 = null;
   private ReplicationServer replServer3 = null;
-  private boolean emptyOldChanges = true;
   LDAPReplicationDomain replDomain = null;
-  SocketSession ssSession = null;
-  boolean ssShutdownRequested = false;
   protected String[] updatedEntries;
 
   private static int[] replServerPort = new int[30];
@@ -138,43 +131,41 @@ public class MonitorTest extends ReplicationTestCase
    */
   private String[] newLDIFEntries()
   {
-    String[] entries =
-    {
-        "dn: " + baseDn + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organization\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
-        + "\n",
-        "dn: ou=People," + baseDn + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
-        + "\n",
-        "dn: cn=Fiona Jensen,ou=people," + baseDn + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: Fiona Jensen\n"
-        + "sn: Jensen\n"
-        + "uid: fiona\n"
-        + "telephonenumber: +1 408 555 1212\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
-        + "\n",
-        "dn: cn=Robert Langman,ou=people," + baseDn + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: Robert Langman\n"
-        + "sn: Langman\n"
-        + "uid: robert\n"
-        + "telephonenumber: +1 408 555 1213\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111114\n"
-        + "\n"
-    };
 
-    return entries;
+    return new String[]{
+        "dn: " + baseDn + "\n"
+            + "objectClass: top\n"
+            + "objectClass: organization\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
+            + "\n",
+        "dn: ou=People," + baseDn + "\n"
+            + "objectClass: top\n"
+            + "objectClass: organizationalUnit\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
+            + "\n",
+        "dn: cn=Fiona Jensen,ou=people," + baseDn + "\n"
+            + "objectclass: top\n"
+            + "objectclass: person\n"
+            + "objectclass: organizationalPerson\n"
+            + "objectclass: inetOrgPerson\n"
+            + "cn: Fiona Jensen\n"
+            + "sn: Jensen\n"
+            + "uid: fiona\n"
+            + "telephonenumber: +1 408 555 1212\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
+            + "\n",
+        "dn: cn=Robert Langman,ou=people," + baseDn + "\n"
+            + "objectclass: top\n"
+            + "objectclass: person\n"
+            + "objectclass: organizationalPerson\n"
+            + "objectclass: inetOrgPerson\n"
+            + "cn: Robert Langman\n"
+            + "sn: Langman\n"
+            + "uid: robert\n"
+            + "telephonenumber: +1 408 555 1213\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111114\n"
+            + "\n"
+    };
   }
 
   /**
@@ -187,8 +178,7 @@ public class MonitorTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int changelogId,
       boolean all, String suffix)
   {
-    SortedSet<String> servers = null;
-    servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<String>();
     try
     {
       if (all)
@@ -218,7 +208,7 @@ public class MonitorTest extends ReplicationTestCase
   /**
    * Create a synchronized suffix in the current server providing the
    * replication Server ID.
-   * @param changelogID
+   * @param changelogID the replication server ID.
    */
   private void connectServer1ToChangelog(int changelogID)
   {
@@ -306,8 +296,7 @@ public class MonitorTest extends ReplicationTestCase
   private String createEntry(UUID uid)
   {
     String user2dn = "uid=user"+uid+",ou=People," + baseDnStr;
-    return new String(
-        "dn: "+ user2dn + "\n"
+    return "dn: " + user2dn + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
         + "objectClass: organizationalPerson\n"
         + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
@@ -320,7 +309,7 @@ public class MonitorTest extends ReplicationTestCase
         + "street: 17984 Thirteenth Street\n"
         + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 2\n"
         + "sn: Amar2\n" + "givenName: Aaccf2\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n");
+        + "userPassword: password\n" + "initials: AA\n";
   }
 
   static protected ReplicationMsg createAddMsg(ChangeNumber cn,
@@ -359,14 +348,12 @@ public class MonitorTest extends ReplicationTestCase
     }
 
     // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(cn,
+    return new AddMsg(cn,
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-
-    return addMsg;
   }
 
   @Test(enabled=true)
@@ -388,6 +375,7 @@ public class MonitorTest extends ReplicationTestCase
       debugInfo("Connecting DS to replServer1");
       connectServer1ToChangelog(changelog1ID);
 
+      boolean emptyOldChanges = true;
       try
       {
         debugInfo("Connecting broker2 to replServer1");
@@ -465,7 +453,6 @@ public class MonitorTest extends ReplicationTestCase
 
   /**
    * Disconnect broker and remove entries from the local DB
-   * @throws Exception
    */
   protected void postTest()
   {
