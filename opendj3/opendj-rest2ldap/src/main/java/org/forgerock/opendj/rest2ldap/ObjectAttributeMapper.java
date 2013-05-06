@@ -85,6 +85,11 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
+    public String toString() {
+        return "object(" + mappings.values().toString() + ")";
+    }
+
+    @Override
     void create(final Context c, final JsonPointer path, final JsonValue v,
             final ResultHandler<List<Attribute>> h) {
         try {
@@ -165,18 +170,21 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                  * by allowing the JSON value to be a partial object and
                  * add/remove/replace only the provided values.
                  */
-                checkMapping(path, operation.getValue());
+                final Map<String, Mapping> missingMappings = checkMapping(path, v);
 
                 // Accumulate the results of the subordinate mappings.
-                final ResultHandler<List<Modification>> handler = accumulator(h);
+                final ResultHandler<List<Modification>> handler =
+                        accumulator(mappings.size() - missingMappings.size(), h);
 
-                // Invoke the sub-mappers using a new patch operation targeted at each field.
-                for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
-                    final Mapping mapping = getMapping(me.getKey());
-                    final JsonValue subValue = new JsonValue(me.getValue());
-                    final PatchOperation subOperation =
-                            operation(operation.getOperation(), field /* empty */, subValue);
-                    mapping.mapper.patch(c, path.child(me.getKey()), subOperation, handler);
+                // Invoke mappings for which there are values provided.
+                if (!v.isNull()) {
+                    for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
+                        final Mapping mapping = getMapping(me.getKey());
+                        final JsonValue subValue = new JsonValue(me.getValue());
+                        final PatchOperation subOperation =
+                                operation(operation.getOperation(), field /* empty */, subValue);
+                        mapping.mapper.patch(c, path.child(me.getKey()), subOperation, handler);
+                    }
                 }
             } else {
                 /*
@@ -280,7 +288,11 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     private <T> ResultHandler<List<T>> accumulator(final ResultHandler<List<T>> h) {
-        return accumulate(mappings.size(), transform(new Function<List<List<T>>, List<T>, Void>() {
+        return accumulator(mappings.size(), h);
+    }
+
+    private <T> ResultHandler<List<T>> accumulator(final int size, final ResultHandler<List<T>> h) {
+        return accumulate(size, transform(new Function<List<List<T>>, List<T>, Void>() {
             @Override
             public List<T> apply(final List<List<T>> value, final Void p) {
                 switch (value.size()) {

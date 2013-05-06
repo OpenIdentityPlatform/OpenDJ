@@ -112,6 +112,11 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
+    public String toString() {
+        return "simple(" + ldapAttributeName.toString() + ")";
+    }
+
+    @Override
     void getLDAPFilter(final Context c, final JsonPointer path, final JsonPointer subPath,
             final FilterType type, final String operator, final Object valueAssertion,
             final ResultHandler<Filter> h) {

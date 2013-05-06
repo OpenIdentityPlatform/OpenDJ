@@ -22,6 +22,8 @@ import static org.forgerock.json.fluent.JsonValue.field;
 import static org.forgerock.json.fluent.JsonValue.json;
 import static org.forgerock.json.fluent.JsonValue.object;
 import static org.forgerock.json.resource.PatchOperation.add;
+import static org.forgerock.json.resource.PatchOperation.increment;
+import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.json.resource.PatchOperation.remove;
 import static org.forgerock.json.resource.PatchOperation.replace;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
@@ -31,6 +33,7 @@ import static org.forgerock.json.resource.Requests.newUpdateRequest;
 import static org.forgerock.json.resource.Resources.newCollection;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
 import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory;
+import static org.forgerock.opendj.ldap.Functions.byteStringToInteger;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.constant;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.object;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
@@ -44,6 +47,7 @@ import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.NotFoundException;
+import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PreconditionFailedException;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Resource;
@@ -120,22 +124,6 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     @Test
-    public void testPatchReplaceWholeObject() throws Exception {
-        final RequestHandler handler = newCollection(builder().build());
-        final Connection connection = newInternalConnection(handler);
-        final JsonValue expected =
-                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
-                        "Humpty"), field("surname", "Dumpty")))));
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", replace("/name", JsonValue
-                        .object(field("displayName", "Humpty"), field("surname", "Dumpty")))));
-        checkResourcesAreEqual(resource1, expected);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
-        checkResourcesAreEqual(resource2, expected);
-    }
-
-    @Test
     public void testPatchAddOptionalAttribute() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
@@ -144,6 +132,20 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final Resource resource1 =
                 connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("one",
                         "two"))));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test
+    public void testPatchAddOptionalAttributeIndexAppend() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1(12345);
+        newContent.put("description", asList("one", "two"));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/description/-", "one"),
+                        add("/description/-", "two")));
         checkResourcesAreEqual(resource1, newContent);
         final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
@@ -169,6 +171,23 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         checkResourcesAreEqual(resource2, getTestUser1(12345));
     }
 
+    @Test
+    public void testPatchIncrement() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent = getTestUser1(12345);
+        newContent.put("singleNumber", 100);
+        newContent.put("multiNumber", asList(200, 300));
+
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/singleNumber", 0), add(
+                        "/multiNumber", asList(100, 200)), increment("/singleNumber", 100),
+                        increment("/multiNumber", 100)));
+        checkResourcesAreEqual(resource1, newContent);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, newContent);
+    }
+
     @Test(expectedExceptions = BadRequestException.class)
     public void testPatchMissingRequiredAttribute() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
@@ -190,6 +209,28 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         checkResourcesAreEqual(resource1, newContent);
         final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
+    }
+
+    @Test(expectedExceptions = NotSupportedException.class)
+    public void testPatchMultiValuedAttributeIndexAppend() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description/0", "junk")));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchMultiValuedAttributeIndexAppendWithList() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description/-",
+                asList("one", "two"))));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchMultiValuedAttributeWithSingleValue() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description", "one")));
     }
 
     @Test
@@ -227,6 +268,54 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         connection.patch(ctx(), newPatchRequest("/test1", add("_rev", "99999")));
     }
 
+    @Test
+    public void testPatchReplacePartialObject() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue expected =
+                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
+                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
+                        "Humpty"), field("surname", "Dumpty")))));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", replace("/name", object(field(
+                        "displayName", "Humpty"), field("surname", "Dumpty")))));
+        checkResourcesAreEqual(resource1, expected);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, expected);
+    }
+
+    @Test
+    public void testPatchReplaceWholeObject() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue newContent =
+                json(object(field("name", object(field("displayName", "Humpty"), field("surname",
+                        "Dumpty")))));
+        final JsonValue expected =
+                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
+                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
+                        "Humpty"), field("surname", "Dumpty")))));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", replace("/", newContent)));
+        checkResourcesAreEqual(resource1, expected);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, expected);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchSingleValuedAttributeIndexAppend() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/name/surname/-", "junk")));
+    }
+
+    @Test(expectedExceptions = NotSupportedException.class)
+    public void testPatchSingleValuedAttributeIndexNumber() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/name/surname/0", "junk")));
+    }
+
     @Test(expectedExceptions = BadRequestException.class)
     public void testPatchSingleValuedAttributeWithMultipleValues() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
@@ -239,9 +328,29 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchUnknownAttribute() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
-        final JsonValue newContent = getTestUser1Updated(12345);
-        newContent.add("dummy", "junk");
         connection.patch(ctx(), newPatchRequest("/test1", add("/dummy", "junk")));
+    }
+
+    @Test(expectedExceptions = NotSupportedException.class)
+    public void testPatchUnknownOperation() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", operation("dummy", "/description",
+                asList("one", "two"))));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchUnknownSubAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description/dummy", "junk")));
+    }
+
+    @Test(expectedExceptions = BadRequestException.class)
+    public void testPatchUnknownSubSubAttribute() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description/dummy/dummy", "junk")));
     }
 
     @Test
@@ -436,7 +545,11 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                                 "_rev",
                                 simple("etag").isSingleValued().isRequired().writability(
                                         WritabilityPolicy.READ_ONLY)).attribute("description",
-                                simple("description")));
+                                simple("description")).attribute(
+                                "singleNumber",
+                                simple("singleNumber").decoder(byteStringToInteger())
+                                        .isSingleValued()).attribute("multiNumber",
+                                simple("multiNumber").decoder(byteStringToInteger())));
     }
 
     private void checkResourcesAreEqual(final Resource actual, final JsonValue expected) {
