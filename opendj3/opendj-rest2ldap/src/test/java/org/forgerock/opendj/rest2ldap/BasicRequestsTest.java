@@ -19,9 +19,11 @@ import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 import static org.forgerock.json.fluent.JsonValue.field;
+import static org.forgerock.json.fluent.JsonValue.json;
 import static org.forgerock.json.fluent.JsonValue.object;
 import static org.forgerock.json.resource.PatchOperation.add;
 import static org.forgerock.json.resource.PatchOperation.remove;
+import static org.forgerock.json.resource.PatchOperation.replace;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
 import static org.forgerock.json.resource.Requests.newPatchRequest;
 import static org.forgerock.json.resource.Requests.newReadRequest;
@@ -110,10 +112,27 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
         final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed")));
+                connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName",
+                        "changed")));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
         final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
+    }
+
+    @Test
+    public void testPatchReplaceWholeObject() throws Exception {
+        final RequestHandler handler = newCollection(builder().build());
+        final Connection connection = newInternalConnection(handler);
+        final JsonValue expected =
+                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
+                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
+                        "Humpty"), field("surname", "Dumpty")))));
+        final Resource resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", replace("/name", JsonValue
+                        .object(field("displayName", "Humpty"), field("surname", "Dumpty")))));
+        checkResourcesAreEqual(resource1, expected);
+        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        checkResourcesAreEqual(resource2, expected);
     }
 
     @Test
@@ -154,7 +173,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchMissingRequiredAttribute() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
-        connection.patch(ctx(), newPatchRequest("/test1", remove("/surname")));
+        connection.patch(ctx(), newPatchRequest("/test1", remove("/name/surname")));
     }
 
     @Test
@@ -178,8 +197,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
         final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed"))
-                        .setRevision("12345"));
+                connection.patch(ctx(), newPatchRequest("/test1",
+                        add("/name/displayName", "changed")).setRevision("12345"));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
         final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
@@ -189,7 +208,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchMVCCNoMatch() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
-        connection.patch(ctx(), newPatchRequest("/test1", add("displayName", "changed"))
+        connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName", "changed"))
                 .setRevision("12346"));
     }
 
@@ -197,7 +216,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchNotFound() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
-        connection.patch(ctx(), newPatchRequest("/missing", add("displayName", "changed")));
+        connection.patch(ctx(), newPatchRequest("/missing", add("/name/displayName", "changed")));
     }
 
     @Test(expectedExceptions = BadRequestException.class)
@@ -212,8 +231,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchSingleValuedAttributeWithMultipleValues() throws Exception {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
-        connection.patch(ctx(),
-                newPatchRequest("/test1", add("/surname", asList("black", "white"))));
+        connection.patch(ctx(), newPatchRequest("/test1", add("/name/surname", asList("black",
+                "white"))));
     }
 
     @Test(expectedExceptions = BadRequestException.class)
@@ -252,11 +271,11 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Resource resource =
                 newInternalConnection(handler).read(ctx(),
-                        newReadRequest("/test1").addField("surname"));
+                        newReadRequest("/test1").addField("/name/surname"));
         assertThat(resource.getId()).isEqualTo("test1");
         assertThat(resource.getRevision()).isEqualTo("12345");
         assertThat(resource.getContent().get("_id").asString()).isNull();
-        assertThat(resource.getContent().get("displayName").asString()).isNull();
+        assertThat(resource.getContent().get("name").asMap()).isNull();
         assertThat(resource.getContent().get("surname").asString()).isEqualTo("user 1");
         assertThat(resource.getContent().get("_rev").asString()).isNull();
     }
@@ -267,12 +286,12 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Resource resource =
                 newInternalConnection(handler).read(ctx(),
-                        newReadRequest("/test1").addField("SURNAME"));
+                        newReadRequest("/test1").addField("/name/SURNAME"));
         assertThat(resource.getId()).isEqualTo("test1");
         assertThat(resource.getRevision()).isEqualTo("12345");
         assertThat(resource.getContent().get("_id").asString()).isNull();
-        assertThat(resource.getContent().get("displayName").asString()).isNull();
-        assertThat(resource.getContent().get("surname").asString()).isEqualTo("user 1");
+        assertThat(resource.getContent().get("/name/displayName").asString()).isNull();
+        assertThat(resource.getContent().get("/name/surname").asString()).isEqualTo("user 1");
         assertThat(resource.getContent().get("_rev").asString()).isNull();
     }
 
@@ -327,7 +346,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final RequestHandler handler = newCollection(builder().build());
         final Connection connection = newInternalConnection(handler);
         final JsonValue newContent = getTestUser1Updated(12345);
-        newContent.remove("surname");
+        newContent.get("name").remove("surname");
         connection.update(ctx(), newUpdateRequest("/test1", newContent));
     }
 
@@ -408,9 +427,12 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         .attribute(
                                 "_id",
                                 simple("uid").isSingleValued().isRequired().writability(
-                                        WritabilityPolicy.CREATE_ONLY)).attribute("displayName",
-                                simple("cn").isSingleValued().isRequired()).attribute("surname",
-                                simple("sn").isSingleValued().isRequired()).attribute(
+                                        WritabilityPolicy.CREATE_ONLY)).attribute(
+                                "name",
+                                object().attribute("displayName",
+                                        simple("cn").isSingleValued().isRequired()).attribute(
+                                        "surname", simple("sn").isSingleValued().isRequired()))
+                        .attribute(
                                 "_rev",
                                 simple("etag").isSingleValued().isRequired().writability(
                                         WritabilityPolicy.READ_ONLY)).attribute("description",
@@ -459,13 +481,13 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
     private JsonValue getTestUser1(final int rev) {
         return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                "test1"), field("_rev", String.valueOf(rev)), field("displayName", "test user 1"),
-                field("surname", "user 1")));
+                "test1"), field("_rev", String.valueOf(rev)), field("name", object(field(
+                "displayName", "test user 1"), field("surname", "user 1")))));
     }
 
     private JsonValue getTestUser1Updated(final int rev) {
         return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                "test1"), field("_rev", String.valueOf(rev)), field("displayName", "changed"),
-                field("surname", "user 1")));
+                "test1"), field("_rev", String.valueOf(rev)), field("name", object(field(
+                "displayName", "changed"), field("surname", "user 1")))));
     }
 }
