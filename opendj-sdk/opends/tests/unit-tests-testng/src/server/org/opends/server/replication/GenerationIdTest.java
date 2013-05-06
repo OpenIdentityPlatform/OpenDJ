@@ -23,30 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication;
-
-import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import java.io.File;
-import java.net.ServerSocket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -60,32 +39,30 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ChangeStatusMsg;
-import org.opends.server.replication.protocol.DoneMsg;
-import org.opends.server.replication.protocol.EntryMsg;
-import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.InitializeTargetMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.net.ServerSocket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.util.*;
+
+import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.testng.Assert.*;
 
 /**
  * Tests contained here:
@@ -122,16 +99,9 @@ public class GenerationIdTest extends ReplicationTestCase
   private ReplicationServer replServer3 = null;
   private boolean emptyOldChanges = true;
   private Entry taskInitRemoteS2;
-  SocketSession ssSession = null;
-  boolean ssShutdownRequested = false;
   private String[] updatedEntries;
 
   private static int[] replServerPort = new int[20];
-
-  /**
-   * A temporary LDIF file containing some test entries.
-   */
-  private File ldifFile;
 
   /**
    * A makeldif template used to create some test entries.
@@ -270,43 +240,41 @@ public class GenerationIdTest extends ReplicationTestCase
    */
   private String[] newLDIFEntries()
   {
-    String[] entries =
-    {
-        "dn: " + baseDn + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organization\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
-        + "\n",
-        "dn: ou=People," + baseDn + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
-        + "\n",
-        "dn: cn=Fiona Jensen,ou=people," + baseDn + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: Fiona Jensen\n"
-        + "sn: Jensen\n"
-        + "uid: fiona\n"
-        + "telephonenumber: +1 408 555 1212\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
-        + "\n",
-        "dn: cn=Robert Langman,ou=people," + baseDn + "\n"
-        + "objectclass: top\n"
-        + "objectclass: person\n"
-        + "objectclass: organizationalPerson\n"
-        + "objectclass: inetOrgPerson\n"
-        + "cn: Robert Langman\n"
-        + "sn: Langman\n"
-        + "uid: robert\n"
-        + "telephonenumber: +1 408 555 1213\n"
-        + "entryUUID: 21111111-1111-1111-1111-111111111114\n"
-        + "\n"
-    };
 
-    return entries;
+    return new String[]{
+        "dn: " + baseDn + "\n"
+            + "objectClass: top\n"
+            + "objectClass: organization\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
+            + "\n",
+        "dn: ou=People," + baseDn + "\n"
+            + "objectClass: top\n"
+            + "objectClass: organizationalUnit\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
+            + "\n",
+        "dn: cn=Fiona Jensen,ou=people," + baseDn + "\n"
+            + "objectclass: top\n"
+            + "objectclass: person\n"
+            + "objectclass: organizationalPerson\n"
+            + "objectclass: inetOrgPerson\n"
+            + "cn: Fiona Jensen\n"
+            + "sn: Jensen\n"
+            + "uid: fiona\n"
+            + "telephonenumber: +1 408 555 1212\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
+            + "\n",
+        "dn: cn=Robert Langman,ou=people," + baseDn + "\n"
+            + "objectclass: top\n"
+            + "objectclass: person\n"
+            + "objectclass: organizationalPerson\n"
+            + "objectclass: inetOrgPerson\n"
+            + "cn: Robert Langman\n"
+            + "sn: Langman\n"
+            + "uid: robert\n"
+            + "telephonenumber: +1 408 555 1213\n"
+            + "entryUUID: 21111111-1111-1111-1111-111111111114\n"
+            + "\n"
+    };
   }
 
   private int receiveImport(ReplicationBroker broker, int serverID,
@@ -379,8 +347,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int changelogId,
       boolean all, String testCase)
   {
-    SortedSet<String> servers = null;
-    servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<String>();
     try
     {
       if (all)
@@ -413,9 +380,9 @@ public class GenerationIdTest extends ReplicationTestCase
   /**
    * Create a synchronized suffix in the current server providing the
    * replication Server ID.
-   * @param changelogID
+   * @param changeLogID replication Server ID
    */
-  private void connectServer1ToChangelog(int changelogID)
+  private void connectServer1ToChangelog(int changeLogID)
   {
     // Connect DS to the replicationServer
     try
@@ -428,7 +395,7 @@ public class GenerationIdTest extends ReplicationTestCase
         + "cn: " + testName + "\n"
         + "ds-cfg-base-dn: " + baseDnStr + "\n"
         + "ds-cfg-replication-server: localhost:"
-        + getChangelogPort(changelogID)+"\n"
+        + getChangelogPort(changeLogID)+"\n"
         + "ds-cfg-server-id: " + server1ID + "\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
@@ -454,11 +421,9 @@ public class GenerationIdTest extends ReplicationTestCase
         Thread.sleep(waitCo * 200);
         waitCo++;
       }
+      assertNotNull(doToco);
       assertTrue(doToco.isConnected(), "not connected after #attempt="+waitCo);
-      if (doToco != null)
-      {
-        debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
-      }
+      debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
     }
     catch(Exception e)
     {
@@ -481,13 +446,13 @@ public class GenerationIdTest extends ReplicationTestCase
       assertTrue(synchroServerEntry != null);
 
       DN synchroServerDN = DN.decode(synchroServerStringDN);
-      
+
       Entry ecle;
       ecle = DirectoryServer.getConfigHandler().getEntry(
           DN.decode("cn=external changelog," + synchroServerStringDN));
       if (ecle!=null)
       {
-        DirectoryServer.getConfigHandler().deleteEntry(ecle.getDN(), null);        
+        DirectoryServer.getConfigHandler().deleteEntry(ecle.getDN(), null);
       }
       DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN, null);
       assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()) ==
@@ -587,7 +552,10 @@ public class GenerationIdTest extends ReplicationTestCase
     try
     {
       // Create a temporary test LDIF file.
-      ldifFile = File.createTempFile("import-test", ".ldif");
+      /*
+    A temporary LDIF file containing some test entries.
+   */
+      File ldifFile = File.createTempFile("import-test", ".ldif");
       String resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
       "config" + File.separator + "MakeLDIF";
       LdifFileWriter.makeLdif(ldifFile.getPath(), resourcePath, template);
@@ -615,8 +583,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private String createEntry(UUID uid)
   {
     String user2dn = "uid=user"+uid+",ou=People," + baseDnStr;
-    return new String(
-        "dn: "+ user2dn + "\n"
+    return "dn: " + user2dn + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
         + "objectClass: organizationalPerson\n"
         + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
@@ -629,7 +596,7 @@ public class GenerationIdTest extends ReplicationTestCase
         + "street: 17984 Thirteenth Street\n"
         + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 2\n"
         + "sn: Amar2\n" + "givenName: Aaccf2\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n");
+        + "userPassword: password\n" + "initials: AA\n";
   }
 
   static protected ReplicationMsg createAddMsg()
@@ -673,14 +640,12 @@ public class GenerationIdTest extends ReplicationTestCase
     }
 
     // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+    return new AddMsg(gen.newChangeNumber(),
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-
-    return addMsg;
   }
 
   /*
@@ -1021,7 +986,7 @@ public class GenerationIdTest extends ReplicationTestCase
       addTask(taskInitRemoteS2, ResultCode.SUCCESS, null);
 
       // S2 should be re-initialized and have a new valid genId
-      
+
       // Signal that we just entered the full update status
       broker2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
@@ -1327,7 +1292,7 @@ public class GenerationIdTest extends ReplicationTestCase
       waitRes=0;
       while(waitRes<100)
       {
-        genId = readGenIdFromSuffixRootEntry();
+        readGenIdFromSuffixRootEntry();
         if ((replServer1.getGenerationId(baseDn.toNormalizedString())==-1)
           && (replServer2.getGenerationId(baseDn.toNormalizedString())==-1)
           && (replServer3.getGenerationId(baseDn.toNormalizedString())==-1))
@@ -1352,7 +1317,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
   /**
    * Disconnect broker and remove entries from the local DB
-   * @throws Exception
    */
   protected void postTest()
   {
