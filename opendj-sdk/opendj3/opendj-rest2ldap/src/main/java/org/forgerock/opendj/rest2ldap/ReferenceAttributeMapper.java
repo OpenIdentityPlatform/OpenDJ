@@ -122,6 +122,11 @@ public final class ReferenceAttributeMapper extends
     }
 
     @Override
+    public String toString() {
+        return "reference(" + ldapAttributeName.toString() + ")";
+    }
+
+    @Override
     void getLDAPFilter(final Context c, final JsonPointer path, final JsonPointer subPath,
             final FilterType type, final String operator, final Object valueAssertion,
             final ResultHandler<Filter> h) {

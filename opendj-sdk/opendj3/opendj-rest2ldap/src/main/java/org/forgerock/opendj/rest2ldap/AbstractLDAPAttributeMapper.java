@@ -142,13 +142,13 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                  * single-valued then the patch value must not be a list.
                  */
                 if (attributeIsSingleValued()) {
-                    if (v != null && v.isList()) {
+                    if (v.isList()) {
                         // Single-valued field violation.
                         throw new BadRequestException(i18n(
                                 "The request cannot be processed because an array of values was "
                                         + "provided for the single valued field '%s'", path));
                     }
-                } else if (v != null && !v.isList() && !operation.isIncrement()
+                } else if (!v.isList() && !operation.isIncrement()
                         && !(v.isNull() && (operation.isReplace() || operation.isRemove()))) {
                     // Multi-valued field violation.
                     throw new BadRequestException(i18n(
@@ -223,17 +223,6 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 modType = ModificationType.REPLACE;
             } else if (operation.isIncrement()) {
                 modType = ModificationType.INCREMENT;
-                if (newValues.isEmpty()) {
-                    throw new BadRequestException(i18n(
-                            "The request cannot be processed because it included "
-                                    + "an increment patch operation but no value for field '%s'",
-                            path.child(field.get(0))));
-                } else if (newValues.size() > 1) {
-                    throw new BadRequestException(
-                            i18n("The request cannot be processed because it included "
-                                    + "an increment patch operation with multiple values for field '%s'",
-                                    path.child(field.get(0))));
-                }
             } else {
                 throw new NotSupportedException(i18n(
                         "The request cannot be processed because it included "

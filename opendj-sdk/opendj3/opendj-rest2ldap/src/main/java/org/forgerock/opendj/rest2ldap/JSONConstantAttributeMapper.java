@@ -47,6 +47,11 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
+    public String toString() {
+        return "constant(" + value.toString() + ")";
+    }
+
+    @Override
     void create(final Context c, final JsonPointer path, final JsonValue v,
             final ResultHandler<List<Attribute>> h) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
