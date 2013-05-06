@@ -288,15 +288,13 @@ public class ConfigFromDirContext extends ConfigReader
       {
         ex.add(oe);
       }
-      String[] connectionHandlers = root.listConnectionHandlers();
-      for (int i=0; i<connectionHandlers.length; i++)
+      for (String connHandler : root.listConnectionHandlers())
       {
         try
         {
           ConnectionHandlerCfgClient connectionHandler =
-            root.getConnectionHandler(connectionHandlers[i]);
-          ls.add(getConnectionHandler(connectionHandler,
-              connectionHandlers[i]));
+              root.getConnectionHandler(connHandler);
+          ls.add(getConnectionHandler(connectionHandler, connHandler));
         }
         catch (OpenDsException oe)
         {
@@ -305,12 +303,11 @@ public class ConfigFromDirContext extends ConfigReader
       }
       isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
 
-      String[] backendNames = root.listBackends();
-      for (int i=0; i<backendNames.length; i++)
+      for (String backendName : root.listBackends())
       {
         try
         {
-          BackendCfgClient backend = root.getBackend(backendNames[i]);
+          BackendCfgClient backend = root.getBackend(backendName);
           Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
           for (DN dn : backend.getBaseDN())
           {
@@ -327,12 +324,11 @@ public class ConfigFromDirContext extends ConfigReader
           {
             type = BackendDescriptor.Type.LOCAL_DB;
             LocalDBBackendCfgClient db = (LocalDBBackendCfgClient)backend;
-            String[] indexNames = db.listLocalDBIndexes();
             try
             {
-              for (int j=0; j<indexNames.length; j++)
+              for (String indexName : db.listLocalDBIndexes())
               {
-                LocalDBIndexCfgClient index = db.getLocalDBIndex(indexNames[j]);
+                LocalDBIndexCfgClient index = db.getLocalDBIndex(indexName);
                 indexes.add(new IndexDescriptor(
                     index.getAttribute().getNameOrOID(), index.getAttribute(),
                     null, index.getIndexType(), index.getIndexEntryLimit()));
@@ -342,23 +338,19 @@ public class ConfigFromDirContext extends ConfigReader
             {
               ex.add(oe);
             }
-            indexes.add(
-                new IndexDescriptor("dn2id", null, null,
-                    new TreeSet<IndexType>(), -1));
-            indexes.add(
-                new IndexDescriptor("id2children", null, null,
-                    new TreeSet<IndexType>(), -1));
-            indexes.add(
-                new IndexDescriptor("id2subtree", null, null,
-                    new TreeSet<IndexType>(), -1));
+            indexes.add(new IndexDescriptor("dn2id", null, null,
+                new TreeSet<IndexType>(), -1));
+            indexes.add(new IndexDescriptor("id2children", null, null,
+                new TreeSet<IndexType>(), -1));
+            indexes.add(new IndexDescriptor("id2subtree", null, null,
+                new TreeSet<IndexType>(), -1));
 
-            String[] vlvIndexNames = db.listLocalDBVLVIndexes();
             try
             {
-              for (int j=0; j<vlvIndexNames.length; j++)
+              for (String vlvIndexName : db.listLocalDBVLVIndexes())
               {
                 LocalDBVLVIndexCfgClient index =
-                  db.getLocalDBVLVIndex(vlvIndexNames[j]);
+                  db.getLocalDBVLVIndex(vlvIndexName);
                 String s = index.getSortOrder();
                 List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
                 vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null,
@@ -470,10 +462,10 @@ public class ConfigFromDirContext extends ConfigReader
           String[] domains = sync.listReplicationDomains();
           if (domains != null)
           {
-            for (int i=0; i<domains.length; i++)
+            for (String domain2 : domains)
             {
               ReplicationDomainCfgClient domain =
-                sync.getReplicationDomain(domains[i]);
+                sync.getReplicationDomain(domain2);
               DN dn = domain.getBaseDN();
               for (BackendDescriptor backend : bs)
               {
@@ -504,9 +496,9 @@ public class ConfigFromDirContext extends ConfigReader
         String[] rootUsers = rootDN.listRootDNUsers();
         if (rootUsers != null)
         {
-          for (int i=0; i < rootUsers.length; i++)
+          for (String rootUser2 : rootUsers)
           {
-            RootDNUserCfgClient rootUser = rootDN.getRootDNUser(rootUsers[i]);
+            RootDNUserCfgClient rootUser = rootDN.getRootDNUser(rootUser2);
             as.addAll(rootUser.getAlternateBindDN());
           }
         }
@@ -929,12 +921,23 @@ public class ConfigFromDirContext extends ConfigReader
       {
         protocol = ConnectionHandlerDescriptor.Protocol.LDAP;
       }
-      SortedSet<InetAddress> v = ldap.getListenAddress();
-      if (v != null)
-      {
-        addresses.addAll(v);
-      }
+      addAll(addresses, ldap.getListenAddress());
       port = ldap.getListenPort();
+    }
+    else if (connHandler instanceof HTTPConnectionHandlerCfgClient)
+    {
+      HTTPConnectionHandlerCfgClient http =
+          (HTTPConnectionHandlerCfgClient) connHandler;
+      if (http.isUseSSL())
+      {
+        protocol = ConnectionHandlerDescriptor.Protocol.HTTPS;
+      }
+      else
+      {
+        protocol = ConnectionHandlerDescriptor.Protocol.HTTP;
+      }
+      addAll(addresses, http.getListenAddress());
+      port = http.getListenPort();
     }
     else if (connHandler instanceof JMXConnectionHandlerCfgClient)
     {
@@ -948,11 +951,7 @@ public class ConfigFromDirContext extends ConfigReader
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMX;
       }
-      SortedSet<InetAddress> v = jmx.getListenAddress();
-      if (v != null)
-      {
-        addresses.addAll(v);
-      }
+      addAll(addresses, jmx.getListenAddress());
       port = jmx.getListenPort();
     }
     else if (connHandler instanceof LDIFConnectionHandlerCfgClient)
@@ -965,11 +964,7 @@ public class ConfigFromDirContext extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.SNMP;
       SNMPConnectionHandlerCfgClient snmp =
         (SNMPConnectionHandlerCfgClient)connHandler;
-      SortedSet<InetAddress> v = snmp.getListenAddress();
-      if (v != null)
-      {
-        addresses.addAll(v);
-      }
+      addAll(addresses, snmp.getListenAddress());
       port = snmp.getListenPort();
     }
     else
@@ -980,6 +975,14 @@ public class ConfigFromDirContext extends ConfigReader
     Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
         name, emptySet);
+  }
+
+  private <T> void addAll(Collection<T> target, Collection<T> source)
+  {
+    if (source != null)
+    {
+      target.addAll(source);
+    }
   }
 
   private ConnectionHandlerDescriptor getConnectionHandler(
@@ -994,12 +997,7 @@ public class ConfigFromDirContext extends ConfigReader
     ConnectionHandlerDescriptor.State state =
       ConnectionHandlerDescriptor.State.ENABLED;
 
-
-    SortedSet<InetAddress> v = adminConnector.getListenAddress();
-    if (v != null)
-    {
-      addresses.addAll(v);
-    }
+    addAll(addresses, adminConnector.getListenAddress());
     int port = adminConnector.getListenPort();
 
     Set<CustomSearchResult> emptySet = Collections.emptySet();

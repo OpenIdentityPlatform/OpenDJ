@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -84,6 +84,14 @@ public class ConnectionHandlerDescriptor
      * LDAP secure protocol.
      */
     LDAPS(INFO_CTRL_PANEL_CONN_HANDLER_LDAPS.get()),
+    /**
+     * HTTP protocol.
+     */
+    HTTP(INFO_CTRL_PANEL_CONN_HANDLER_HTTP.get()),
+    /**
+     * HTTP secure protocol.
+     */
+    HTTPS(INFO_CTRL_PANEL_CONN_HANDLER_HTTPS.get()),
     /**
      * JMX protocol.
      */
@@ -226,6 +234,7 @@ public class ConnectionHandlerDescriptor
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -234,6 +243,7 @@ public class ConnectionHandlerDescriptor
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     return toString;
@@ -242,6 +252,7 @@ public class ConnectionHandlerDescriptor
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean equals(Object o)
   {
     boolean equals = false;
