@@ -443,15 +443,41 @@ public class AssuredReplicationServerTest
   /**
    * Creates a new fake replication domain, using the passed scenario.
    *
-   * @param the scenario to follow
+   * @param serverId
+   *          The server ID for the replication domain.
+   * @param groupId
+   *          The group ID for the replication domain.
+   * @param rsId
+   *          The replication server ID.
+   * @param generationId
+   *          The generationID associated with data in the domain.
+   * @param assured
+   *          Is this domain using assured replication.
+   * @param assuredMode
+   *          The mode if assured replication is enabled.
+   * @param safeDataLevel
+   *          The
+   * @param assuredTimeout
+   *          The timeout for acks in assured mode.
+   * @param scenario
+   *          The scenario identifier
+   * @param serverState
+   *          The state of the server to start with
    * @param startListen
    *          If true, we start the listen service. In all cases, the publish
    *          service gets started.
+   * @param window
+   *          The window size for replication
+   * @return
+   *          The FakeReplicationDomain, a mock-up of a Replication Domain
+   *          for tests
+   * @throws Exception
+   *
    */
   private FakeReplicationDomain createFakeReplicationDomain(int serverId,
-    int groupId, int rsId, long generationId, boolean assured,
-    AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
-    int scenario, ServerState serverState, boolean startListen, int window)
+            int groupId, int rsId, long generationId, boolean assured,
+            AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
+            int scenario, ServerState serverState, boolean startListen, int window)
       throws Exception
   {
       // Set port to right real RS according to its id
@@ -523,8 +549,7 @@ public class AssuredReplicationServerTest
     // No monitoring publisher to not interfere with some SocketTimeoutException
     // expected at some points in these tests
     conf.setMonitoringPeriod(0L);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
-    return replicationServer;
+    return new ReplicationServer(conf);
   }
 
   /**
@@ -861,7 +886,6 @@ public class AssuredReplicationServerTest
         session.publish(delMsg);
 
         // Read and return matching ack
-        AckMsg ackMsg = null;
         ReplicationMsg replMsg = session.receive();
         if (replMsg instanceof ErrorMsg)
         {
@@ -869,9 +893,7 @@ public class AssuredReplicationServerTest
           // message that we must throw away before reading our ack.
           replMsg = session.receive();
         }
-        ackMsg = (AckMsg)replMsg;
-
-        return ackMsg;
+        return (AckMsg)replMsg;
     }
 
     /**
@@ -1603,19 +1625,19 @@ public class AssuredReplicationServerTest
 
       // Put a fake RS 1 connected to real RS
       fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRs1Gid, RS1_ID,
-        fakeRs1GenId, ((fakeRs1Gid == DEFAULT_GID) ? true : false), AssuredMode.SAFE_DATA_MODE, sdLevel,
+        fakeRs1GenId, fakeRs1Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
         new ServerState(), fakeRs1Scen);
       assertNotNull(fakeRs1);
 
       // Put a fake RS 2 connected to real RS
       fakeRs2 = createFakeReplicationServer(FRS2_ID, fakeRs2Gid, RS1_ID,
-        fakeRs2GenId, ((fakeRs2Gid == DEFAULT_GID) ? true : false), AssuredMode.SAFE_DATA_MODE, sdLevel,
+        fakeRs2GenId, fakeRs2Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
         new ServerState(), fakeRs2Scen);
       assertNotNull(fakeRs2);
 
       // Put a fake RS 3 connected to real RS
       fakeRs3 = createFakeReplicationServer(FRS3_ID, fakeRs3Gid, RS1_ID,
-        fakeRs3GenId, ((fakeRs3Gid == DEFAULT_GID) ? true : false), AssuredMode.SAFE_DATA_MODE, sdLevel,
+        fakeRs3GenId, fakeRs3Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
         new ServerState(), fakeRs3Scen);
       assertNotNull(fakeRs3);
 
@@ -1934,10 +1956,10 @@ public class AssuredReplicationServerTest
     {
       Integer measuredInt = measuredServerErrors.get(serverId);
       assertNotNull(measuredInt);
-      assertTrue(measuredInt.intValue() != 0);
+      assertTrue(measuredInt != 0);
       Integer prevInt = prevServerErrors.get(serverId);
       assertNotNull(prevInt);
-      assertTrue(prevInt.intValue() != 0);
+      assertTrue(prevInt != 0);
       assertEquals(measuredInt, prevInt);
     }
   }
@@ -1949,17 +1971,14 @@ public class AssuredReplicationServerTest
   private void waitForStableTopo(FakeReplicationDomain fakeRd, int expectedDs, int expectedRs)
   {
     int nSec = 30;
-    int nDs = 0;
-    int nRs = 0;
     List<DSInfo> dsInfo = null;
     List<RSInfo> rsInfo = null;
     while(nSec > 0)
     {
       dsInfo = fakeRd.getReplicasList();
       rsInfo = fakeRd.getRsList();
-      nDs = dsInfo.size();
-      nRs = rsInfo.size();
-      if ( (nDs == expectedDs) && (nRs == expectedRs) ) // Must include real RS so '+1'
+      if ((dsInfo.size() == expectedDs) &&
+          (rsInfo.size() == expectedRs)) // Must include real RS so '+1'
       {
         debugInfo("waitForStableTopo: expected topo obtained after " + (30-nSec) + " second(s).");
         return;
@@ -3146,7 +3165,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME, "Exceeded max send time: " + sendUpdateTime);
 
       // Check monitoring values (check that ack has been correctly received)
       sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
