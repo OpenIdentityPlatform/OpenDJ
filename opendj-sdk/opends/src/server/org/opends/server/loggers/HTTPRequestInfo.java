@@ -26,6 +26,8 @@
  */
 package org.opends.server.loggers;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -49,8 +51,11 @@ public class HTTPRequestInfo
 
   /** The username that was used to authenticate. */
   private String authUser;
-  /** The HTTP status code returned to the client. */
-  private volatile Integer statusCode;
+  /**
+   * The HTTP status code returned to the client. Using 0 to say no status code
+   * was set since it is not .
+   */
+  private AtomicInteger statusCode = new AtomicInteger(0);
 
   /**
    * Constructor for this class.
@@ -156,7 +161,8 @@ public class HTTPRequestInfo
    */
   public int getStatusCode()
   {
-    return statusCode != null ? statusCode : 200;
+    int sc = statusCode.get();
+    return sc != 0 ? sc : 200;
   }
 
   /**
@@ -167,9 +173,8 @@ public class HTTPRequestInfo
    */
   public void log(int statusCode)
   {
-    if (this.statusCode == null)
+    if (this.statusCode.compareAndSet(0, statusCode))
     { // this request was not logged before
-      this.statusCode = statusCode;
       HTTPAccessLogger.logRequestInfo(this);
     }
   }
