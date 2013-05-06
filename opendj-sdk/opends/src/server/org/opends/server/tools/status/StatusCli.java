@@ -28,6 +28,11 @@
 
 package org.opends.server.tools.status;
 
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,7 +40,6 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -56,21 +60,13 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
-
-import static org.opends.quicksetup.util.Utils.*;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.config.ConfigException;
-
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.server.admin.AdministrationConnector;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
@@ -504,9 +500,9 @@ class StatusCli extends ConsoleApplication
     Message title = INFO_SERVER_STATUS_TITLE.get();
     if (!isScriptFriendly())
     {
-      for (int i=0; i<labels.length; i++)
+      for (Message label : labels)
       {
-        labelWidth = Math.max(labelWidth, labels[i].length());
+        labelWidth = Math.max(labelWidth, label.length());
       }
       getOutputStream().println();
       getOutputStream().println(centerTitle(title));
@@ -829,15 +825,7 @@ class StatusCli extends ConsoleApplication
     }
 
     Set<ConnectionHandlerDescriptor> allHandlers = desc.getConnectionHandlers();
-
-    Set<ConnectionHandlerDescriptor> connectionHandlers =
-      new LinkedHashSet<ConnectionHandlerDescriptor>();
-    for (ConnectionHandlerDescriptor listener: allHandlers)
-    {
-      connectionHandlers.add(listener);
-    }
-
-    if (connectionHandlers.size() == 0)
+    if (allHandlers.size() == 0)
     {
       if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
       {
@@ -861,7 +849,7 @@ class StatusCli extends ConsoleApplication
     {
       ConnectionHandlerTableModel connHandlersTableModel =
         new ConnectionHandlerTableModel(false);
-      connHandlersTableModel.setData(connectionHandlers);
+      connHandlersTableModel.setData(allHandlers);
       writeConnectionHandlersTableModel(connHandlersTableModel, desc);
     }
   }
@@ -1273,6 +1261,7 @@ class StatusCli extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -1282,6 +1271,7 @@ class StatusCli extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive() {
     return argParser.isInteractive();
   }
@@ -1301,6 +1291,7 @@ class StatusCli extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet() {
     return false;
   }
@@ -1310,6 +1301,7 @@ class StatusCli extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
   }
@@ -1319,6 +1311,7 @@ class StatusCli extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return true;
   }
