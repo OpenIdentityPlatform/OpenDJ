@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -93,8 +93,6 @@ public class JavaArgumentsDialog extends JDialog
   private static final String CHECKING_PANEL = "checking";
 
   private boolean isCheckingVisible;
-
-  private final int MAX_VALUE_32_BIT = 2048;
 
   private static boolean userAgreedWithWebStart;
 
@@ -779,7 +777,8 @@ public class JavaArgumentsDialog extends JDialog
 
   private Message getMemoryErrorMessage(Message msg, int memValue)
   {
-    if (memValue < MAX_VALUE_32_BIT)
+    // 2048 MB is acceptable max heap size on 32Bit OS
+    if (memValue < 2048)
     {
       return msg;
     }
@@ -884,7 +883,8 @@ public class JavaArgumentsDialog extends JDialog
     }
     if (sb.length() > 0)
     {
-      checkOptions(sb.toString(), errorMsgs, ls.toArray(new JLabel[]{}),
+      checkOptions(sb.toString(), errorMsgs,
+          ls.toArray(new JLabel[ls.size()]),
           ERR_GENERIC_JAVA_ARGUMENT.get(sb.toString()));
     }
   }

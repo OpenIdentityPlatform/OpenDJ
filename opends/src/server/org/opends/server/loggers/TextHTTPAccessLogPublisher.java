@@ -110,9 +110,9 @@ public final class TextHTTPAccessLogPublisher extends
       TextWriter currentWriter;
       // Determine the writer we are using. If we were writing
       // asynchronously, we need to modify the underlying writer.
-      if (writer instanceof AsyncronousTextWriter)
+      if (writer instanceof AsynchronousTextWriter)
       {
-        currentWriter = ((AsyncronousTextWriter) writer).getWrappedWriter();
+        currentWriter = ((AsynchronousTextWriter) writer).getWrappedWriter();
       }
       else if (writer instanceof ParallelTextWriter)
       {
@@ -148,11 +148,12 @@ public final class TextHTTPAccessLogPublisher extends
           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
         }
 
-        if (writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
+        if (writer instanceof AsynchronousTextWriter
+            && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          final AsyncronousTextWriter asyncWriter =
-            ((AsyncronousTextWriter) writer);
+          final AsynchronousTextWriter asyncWriter =
+            ((AsynchronousTextWriter) writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -165,13 +166,14 @@ public final class TextHTTPAccessLogPublisher extends
           asyncWriter.shutdown(false);
         }
 
-        if (!(writer instanceof AsyncronousTextWriter)
+        if (!(writer instanceof AsynchronousTextWriter)
             && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          final AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
-              "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
-              config.getQueueSize(), config.isAutoFlush(), mfWriter);
+          final AsynchronousTextWriter asyncWriter =
+              new AsynchronousTextWriter("Asynchronous Text Writer for "
+                  + config.dn().toNormalizedString(), config.getQueueSize(),
+                  config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
 
@@ -252,8 +254,8 @@ public final class TextHTTPAccessLogPublisher extends
       {
         if (cfg.getQueueSize() > 0)
         {
-          this.writer = new AsyncronousTextWriter(
-              "Asyncronous Text Writer for " + cfg.dn().toNormalizedString(),
+          this.writer = new AsynchronousTextWriter(
+              "Asynchronous Text Writer for " + cfg.dn().toNormalizedString(),
               cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else

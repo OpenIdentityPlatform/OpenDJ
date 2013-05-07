@@ -23,23 +23,18 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
 
-import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.UIKeyStore;
-import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ButtonName;
-import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.UserDataException;
-import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.messages.Message;
@@ -47,7 +42,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Constructor;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -57,7 +51,7 @@ import java.util.logging.Logger;
 /**
  * This class represents an application with a wizard GUI that can be run in the
  * context of QuickSetup.  Examples of applications might be 'installer',
- * 'uninstaller' and 'upgrader'.
+ * and 'uninstaller'.
  */
 public abstract class GuiApplication extends Application {
 
@@ -229,15 +223,6 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Returns the QuickSetupDialog in control.
-   * @return the QuickSetupDialog in control.
-   */
-  protected QuickSetupDialog getQuickSetupDialog()
-  {
-    return qs;
-  }
-
-  /**
    * Indicates whether the provided <code>step</code> is a sub step or not.
    * @param step WizardStep for which the return value indicates whether
    * or not is a sub step.
@@ -331,17 +316,6 @@ public abstract class GuiApplication extends Application {
    * @return boolean where true indicates the user can finish the wizard
    */
   public abstract boolean canFinish(WizardStep step);
-
-  /**
-   * Indicates whether or not the user is allowed to quit the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can quit the wizard
-   * @return boolean where true indicates the user can quit the wizard
-   */
-  public boolean canQuit(WizardStep step) {
-    return false;
-  }
 
   /**
    * Called when the user has clicked the 'previous' button.
@@ -577,57 +551,6 @@ public abstract class GuiApplication extends Application {
    */
   public int getExtraDialogHeight() {
     return 0;
-  }
-
-  /**
-   * Starts the server to be able to update its configuration but not allowing
-   * it to listen to external connections.
-   * @throws ApplicationException if the server could not be started.
-   */
-  protected void startServerWithoutConnectionHandlers()
-  throws ApplicationException {
-    try {
-      ServerController control = new ServerController(getInstallation());
-      if (getInstallation().getStatus().isServerRunning()) {
-        control.stopServer(true);
-      }
-      InProcessServerController ipsc =
-              new InProcessServerController(getInstallation());
-      InProcessServerController.disableConnectionHandlers(true);
-      ipsc.startServer();
-    } catch (Throwable t) {
-      Message msg = INFO_ERROR_STARTING_SERVER_WITH_NO_CONNECTION_HANDLERS.get(
-              (t.getMessage() == null) ? t.toString() : t.getMessage());
-      LOG.log(Level.INFO, msg.toString(), t);
-      throw new ApplicationException(
-          ReturnCode.IMPORT_ERROR, msg, t);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public UserInteraction userInteraction()
-  {
-    if (Utils.isCli())
-    {
-      // Use reflection to avoid breaking the java web start in some
-      // platforms.
-      try
-      {
-        Class<?> cl = Class.forName("org.opends.quicksetup.CliUserInteraction");
-        Constructor<?> c = cl.getConstructor(UserData.class);
-        return (UserInteraction) c.newInstance(getUserData());
-      }
-      catch (Throwable t)
-      {
-        throw new IllegalStateException("Unexpected error: " + t, t);
-      }
-    }
-    else
-    {
-      return new GuiUserInteraction(qs.getFrame());
-    }
   }
 
   /**

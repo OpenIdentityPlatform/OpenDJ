@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -45,7 +45,6 @@ import javax.naming.ldap.InitialLdapContext;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.BufferedReader;
@@ -219,6 +218,7 @@ public class ServerController {
                 }
                 catch (Exception ex)
                 {
+                  // do nothing
                 }
                 stopped = !installation.getStatus().isServerRunning();
                 LOG.log(Level.INFO,
@@ -296,26 +296,22 @@ public class ServerController {
   /**
    * This methods starts the server.
    *
-   * @return OperationOutput object containing output from the start server
-   * command invocation.
-   * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
+   *@throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  public OperationOutput startServer() throws ApplicationException {
-    return startServer(true, false);
+  public void startServer() throws ApplicationException {
+    startServer(true, false);
   }
 
   /**
    * This methods starts the server.
    * @param suppressOutput boolean indicating that ouput to standard output
    * streams from the server should be suppressed.
-   * @return OperationOutput object containing output from the start server
-   * command invocation.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  public OperationOutput startServer(boolean suppressOutput)
+  public void startServer(boolean suppressOutput)
           throws ApplicationException
   {
-    return startServer(true, suppressOutput);
+    startServer(true, suppressOutput);
   }
 
   /**
@@ -324,15 +320,11 @@ public class ServerController {
    * connect to the server after starting to verify that it is listening.
    * @param suppressOutput indicating that ouput to standard output streams
    * from the server should be suppressed.
-   * @return OperationOutput object containing output from the start server
-   * command invocation.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private OperationOutput startServer(boolean verify, boolean suppressOutput)
+  private void startServer(boolean verify, boolean suppressOutput)
   throws ApplicationException
   {
-    OperationOutput output = new OperationOutput();
-
     if (suppressOutput && !StandardOutputSuppressor.isSuppressed()) {
       StandardOutputSuppressor.suppress();
     }
@@ -406,26 +398,6 @@ public class ServerController {
           LOG.log(Level.WARNING, "Started ID could not be found");
         }
 
-        // Collect any messages found in the output
-        List<Message> errors = errReader.getMessages();
-        if (errors != null) {
-          for(Message error : errors) {
-            output.addErrorMessage(error);
-          }
-        }
-        List<Message> messages = outputReader.getMessages();
-        if (messages != null) {
-          for (Message msg : messages) {
-
-            // NOTE:  this may not be the best place to drop these.
-            // However upon startup the server seems to log all messages,
-            // regardless of whether or not they signal an error condition,
-            // to its error log.
-
-            output.addErrorMessage(msg);
-          }
-        }
-
         // Check if something wrong occurred reading the starting of the server
         ApplicationException ex = errReader.getException();
         if (ex == null)
@@ -438,9 +410,7 @@ public class ServerController {
           // the exception below, but in case we change out
           // minds later or add the ability to return exceptions
           // in the output only instead of throwing...
-          output.setException(ex);
           throw ex;
-
         } else if (verify)
         {
           /*
@@ -531,6 +501,7 @@ public class ServerController {
                 }
                 catch (Throwable t)
                 {
+                  // do nothing
                 }
               }
             }
@@ -542,6 +513,7 @@ public class ServerController {
               }
               catch (Throwable t)
               {
+                 // do nothing
               }
             }
           }
@@ -585,7 +557,6 @@ public class ServerController {
         application.setNotifyListeners(true);
       }
     }
-    return output;
   }
 
   /**
@@ -673,8 +644,6 @@ public class ServerController {
   {
     private ApplicationException ex;
 
-    private List<Message> messages = new ArrayList<Message>();
-
     private boolean isFinished;
 
     private boolean startedIdFound;
@@ -728,14 +697,11 @@ public class ServerController {
                 isFirstLine = false;
               }
               LOG.log(Level.INFO, "server: " + line);
-              if (line.toLowerCase().indexOf("=" + startedId) != -1)
+              if (line.toLowerCase().contains("=" + startedId))
               {
                 isFinished = true;
                 startedIdFound = true;
               }
-
-              messages.add(Message.raw(line));
-
               line = reader.readLine();
             }
           } catch (Throwable t)
@@ -761,10 +727,6 @@ public class ServerController {
     public ApplicationException getException()
     {
       return ex;
-    }
-
-    public List<Message> getMessages() {
-      return messages;
     }
 
     /**

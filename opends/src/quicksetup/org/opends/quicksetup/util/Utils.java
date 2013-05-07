@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -111,27 +111,6 @@ public class Utils
   public static String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
 
   /**
-   * Enumeration that specify if the operation applies to the install directory
-   * only, to the instance directory only, or both.
-   */
-  public static enum  Dir {
-    /**
-     * all directories.
-     */
-    ALL,
-
-    /**
-     * The install directory.
-     */
-    INSTALL,
-
-    /***
-     * The instance directory.
-     */
-    INSTANCE;
-  }
-
-  /**
    * Returns <CODE>true</CODE> if the provided port is free and we can use it,
    * <CODE>false</CODE> otherwise.
    * @param port the port we are analyzing.
@@ -209,7 +188,7 @@ public class Utils
       boolean errorDetected = false;
       while (null != (line = reader.readLine())) {
         LOG.log(Level.INFO, "The output: "+line);
-        if (line.indexOf("ERROR:  The detected Java version") != -1)
+        if (line.contains("ERROR:  The detected Java version"))
         {
           if (Utils.isWindows())
           {
@@ -309,8 +288,7 @@ public class Utils
          * Do a best effort to avoid having a relative representation (for
          * instance to avoid having ../../../).
          */
-        File canonical = f.getCanonicalFile();
-        f = canonical;
+        f = f.getCanonicalFile();
       }
       catch (IOException ioe)
       {
@@ -399,13 +377,10 @@ public class Utils
   {
     boolean parentExists = false;
     File f = new File(path);
-    if (f != null)
+    File parentFile = f.getParentFile();
+    if (parentFile != null)
     {
-      File parentFile = f.getParentFile();
-      if (parentFile != null)
-      {
-        parentExists = parentFile.isDirectory();
-      }
+      parentExists = parentFile.isDirectory();
     }
     return parentExists;
   }
@@ -419,13 +394,8 @@ public class Utils
    */
   public static boolean fileExists(String path)
   {
-    boolean isFile = false;
     File f = new File(path);
-    if (f != null)
-    {
-      isFile = f.isFile();
-    }
-    return isFile;
+    return f.isFile();
   }
 
   /**
@@ -438,14 +408,9 @@ public class Utils
   public static boolean directoryExistsAndIsNotEmpty(String path)
   {
     boolean directoryExistsAndIsNotEmpty = false;
-    boolean isDirectory = false;
 
     File f = new File(path);
-    if (f != null)
-    {
-      isDirectory = f.isDirectory();
-    }
-    if (isDirectory)
+    if (f.isDirectory())
     {
       String[] ch = f.list();
 
@@ -453,33 +418,6 @@ public class Utils
     }
 
     return directoryExistsAndIsNotEmpty;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if the the provided path is a directory, exists
-   * and is empty <CODE>false</CODE> otherwise.
-   * @param path the path that we are analyzing.
-   * @return <CODE>true</CODE> if the the provided path is a directory, exists
-   * and is empty <CODE>false</CODE> otherwise.
-   */
-  public static boolean directoryExistsAndIsEmpty(String path)
-  {
-    boolean directoryExistsAndIsEmpty = false;
-    boolean isDirectory = false;
-
-    File f = new File(path);
-    if (f != null)
-    {
-      isDirectory = f.isDirectory();
-    }
-    if (isDirectory)
-    {
-      String[] ch = f.list();
-
-      directoryExistsAndIsEmpty = (ch == null) || (ch.length == 0);
-    }
-
-    return directoryExistsAndIsEmpty;
   }
 
   /**
@@ -537,32 +475,11 @@ public class Utils
       LdapName name1 = new LdapName(dn1);
       LdapName name2 = new LdapName(dn2);
       areDnsEqual = name1.equals(name2);
-    } catch (Exception ex)
-    {
+    } catch (Exception ex) {
+      // do nothing
     }
 
     return areDnsEqual;
-  }
-
-  /**
-   * Creates the parent path for the provided path.
-   * @param path the path.
-   * @return <CODE>true</CODE> if the parent path was created or already existed
-   * and <CODE>false</CODE> otherwise.
-   */
-  public static boolean createParentPath(String path)
-  {
-    boolean parentPathExists = true;
-    if (!parentDirectoryExists(path))
-    {
-      File f = new File(path);
-      if (f != null)
-      {
-        File parentFile = f.getParentFile();
-        parentPathExists = parentFile.mkdirs();
-      }
-    }
-    return parentPathExists;
   }
 
   /**
@@ -597,13 +514,7 @@ public class Utils
     } else
     {
       File parentFile = file.getParentFile();
-      if (parentFile != null)
-      {
-        canWrite = parentFile.canWrite();
-      } else
-      {
-        canWrite = false;
-      }
+      canWrite = parentFile != null && parentFile.canWrite();
     }
     return canWrite;
   }
@@ -637,19 +548,6 @@ public class Utils
       directoryCreated = f.isDirectory();
     }
     return directoryCreated;
-  }
-
-  /**
-   * Creates a file on the specified path with the contents of the provided
-   * stream.
-   * @param path the path where the file will be created.
-   * @param is the InputStream with the contents of the file.
-   * @throws IOException if something goes wrong.
-   */
-  public static void createFile(String path, InputStream is)
-          throws IOException
-  {
-    createFile(new File(path), is);
   }
 
   /**
@@ -813,7 +711,7 @@ public class Utils
       raf.setLength(bytes);
       hasEnoughSpace = true;
     } catch (IOException ex)
-    {
+    { /* do nothing */
     } finally
     {
       if (raf != null)
@@ -822,7 +720,7 @@ public class Utils
         {
           raf.close();
         } catch (IOException ex2)
-        {
+        { /* do nothing */
         }
       }
       if (file != null)
@@ -964,46 +862,6 @@ public class Utils
     return ConnectionUtils.getHostNameForLdapUrl(host);
   }
 
-  // Very limited for the moment: apply only permissions to the current user and
-  // does not work in non-English environments... to work in non English we
-  // should use xcalcs but it does not come in the windows default install...
-  // :-(
-  // This method is not called for the moment, but the code works, so that is
-  // why is kept.
-  private static int changePermissionsWindows(String path, String unixPerm)
-      throws IOException, InterruptedException
-  {
-    String windowsPerm;
-    int i = Integer.parseInt(unixPerm.substring(0, 1));
-    if (Integer.lowestOneBit(i) == 1)
-    {
-      // Executable: give full permissions
-      windowsPerm = "F";
-    } else if (Integer.highestOneBit(i) == 4)
-    {
-      // Writable
-      windowsPerm = "W";
-    } else if (Integer.highestOneBit(i) == 2)
-    {
-      // Readable
-      windowsPerm = "R";
-    } else
-    {
-      // No permissions
-      windowsPerm = "N";
-    }
-
-    String user = System.getProperty("user.name");
-    String[] args =
-      { "cacls", path, "/P", user + ":" + windowsPerm };
-    Process p = Runtime.getRuntime().exec(args);
-
-    // TODO: This only works in ENGLISH systems!!!!!!
-    p.getOutputStream().write("Y\n".getBytes());
-    p.getOutputStream().flush();
-    return p.waitFor();
-  }
-
   /**
    * Indicates whether we are in a web start installation or not.
    *
@@ -1128,24 +986,6 @@ public class Utils
         env, trustManager, null, verifier);
   }
 
-
-  /**
-   * Method used to know if we can connect as administrator in a server with a
-   * given password and dn.
-   * @param ldapUrl the ldap URL of the server.
-   * @param dn the dn to be used.
-   * @param pwd the password to be used.
-   * @param timeout the timeout to establish the connection in milliseconds.
-   * Use {@code 0} to express no timeout.
-   * @return <CODE>true</CODE> if we can connect and read the configuration and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean canConnectAsAdministrativeUser(String ldapUrl,
-      String dn, String pwd, int timeout)
-  {
-    return ConnectionUtils.canConnectAsAdministrativeUser(ldapUrl, dn, pwd,
-        timeout);
-  }
 
 /**
  * Tells whether the provided Throwable was caused because of a problem with
@@ -1361,7 +1201,7 @@ public class Utils
       try
       {
         reader.close();
-      } catch (Exception e) {}
+      } catch (Exception e) { /* do nothing */}
     }
   }
 
@@ -1412,7 +1252,7 @@ public class Utils
         String msg = t.toString();
         if (msg != null)
         {
-          isOutOfMemory = msg.indexOf("Not enough space") != -1;
+          isOutOfMemory = msg.contains("Not enough space");
         }
       }
       t = t.getCause();
@@ -1432,24 +1272,6 @@ public class Utils
   }
 
   /**
-   * Determines whether one file is the parent of another.
-   * @param ancestor possible parent of <code>descendant</code>
-   * @param descendant possible child 0f <code>ancestor</code>
-   * @return return true if ancestor is a parent of descendant
-   */
-  static public boolean isParentOf(File ancestor, File descendant) {
-    if (ancestor != null) {
-      if (ancestor.equals(descendant)) {
-        return false;
-      }
-      while ((descendant != null) && !ancestor.equals(descendant)) {
-        descendant = descendant.getParentFile();
-      }
-    }
-    return (ancestor != null) && (descendant != null);
-  }
-
-  /**
    * Creates a string consisting of the string representation of the
    * elements in the <code>list</code> separated by <code>separator</code>.
    * @param list the list to print
@@ -1458,35 +1280,6 @@ public class Utils
    */
   static public String listToString(List<?> list, String separator) {
     return listToString(list, separator, null, null);
-  }
-
-  /**
-   * Creates a message consisting of the string representation of the
-   * elements in the <code>list</code> separated by <code>separator</code>.
-   * @param list the list to print
-   * @param separator to use in separating elements
-   * @param prefix prepended to each individual element in the list before
-   *        adding to the returned string.
-   * @param suffix appended to each individual element in the list before
-   *        adding to the returned string.
-   * @return String representing the list
-   */
-  static public Message listToMessage(List<Message> list, String separator,
-                                      String prefix, String suffix) {
-    MessageBuilder sb = new MessageBuilder();
-    for (int i = 0; i < list.size(); i++) {
-      if (prefix != null) {
-        sb.append(prefix);
-      }
-      sb.append(list.get(i));
-      if (suffix != null) {
-        sb.append(suffix);
-      }
-      if (i < list.size() - 1) {
-        sb.append(separator);
-      }
-    }
-    return sb.toMessage();
   }
 
   /**
@@ -1516,34 +1309,6 @@ public class Utils
       }
     }
     return sb.toString();
-  }
-
-  /**
-   * Creates a string consisting of the string representation of the
-   * elements in the <code>list</code> separated by <code>separator</code>.
-   * @param array the list to print
-   * @param separator to use in separating elements
-   * @return String representing the list
-   */
-  static public String stringArrayToString(String[] array, String separator) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < array.length; i++) {
-      sb.append(array[i]);
-      if (i < array.length - 1) {
-        sb.append(separator);
-      }
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Returns the file system permissions for a file.
-   * @param path the file for which we want the file permissions.
-   * @return the file system permissions for the file.
-   */
-  static public String getFileSystemPermissions(String path)
-  {
-    return getFileSystemPermissions(new File(path));
   }
 
   /**
@@ -1577,29 +1342,6 @@ public class Utils
       perm = "644";
     }
     return perm;
-  }
-
-  /**
-   * Returns a string representing the installation's current build information
-   * useful for presenting to the user.  If the build string could not be
-   * determined for any reason a localized String 'unknown' is returned.
-   * @param installation whose build information is sought
-   * @return String representing the application's build.
-   */
-  static public String getBuildString(Installation installation) {
-    String b = null;
-    try {
-      BuildInformation bi = installation.getBuildInformation();
-      if (bi != null) {
-        b = bi.toString();
-      }
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error trying to determine current build string", e);
-    }
-    if (b == null) {
-      b = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
-    }
-    return b;
   }
 
   /**
@@ -1656,7 +1398,7 @@ public class Utils
         // First see if there are any spaces counting backward
         // from the max line length.  If there aren't any, then
         // use the first space encountered after the max line
-        // lenght.
+        // length.
         int p = d.lastIndexOf(' ', maxll);
         if (p <= 0) {
           p = d.indexOf(' ', maxll);
@@ -1682,7 +1424,7 @@ public class Utils
    * @return converted string
    */
   static public String convertHtmlBreakToLineSeparator(String s) {
-    return s.replaceAll("\\<br\\>", Constants.LINE_SEPARATOR);
+    return s.replaceAll("<br>", Constants.LINE_SEPARATOR);
   }
 
   /**
@@ -1701,7 +1443,7 @@ public class Utils
       // '<your name here>' or for funky tags like
       // '<tag attr="1 > 0">'. See test class for cases that
       // might cause problems.
-      o = s.replaceAll("\\<.*?\\>","");
+      o = s.replaceAll("<.*?>","");
 
     }
     return o;
@@ -1741,7 +1483,6 @@ public class Utils
   public static long getServerClock(InitialLdapContext ctx)
   {
     long time = -1;
-    String v = null;
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
@@ -1761,7 +1502,7 @@ public class Utils
         {
           SearchResult sr = (SearchResult)listeners.next();
 
-          v = getFirstValue(sr, "currentTime");
+          String v = getFirstValue(sr, "currentTime");
 
           TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
 
@@ -1964,6 +1705,7 @@ public class Utils
       }
       catch (Exception ex)
       {
+        // do nothing
       }
     }
     return value;
@@ -2019,15 +1761,13 @@ public class Utils
   {
     Message msg;
 
-    boolean createSuffix = false;
-
     DataReplicationOptions repl =
       userInstallData.getReplicationOptions();
 
     SuffixesToReplicateOptions suf =
       userInstallData.getSuffixesToReplicateOptions();
 
-    createSuffix =
+    boolean createSuffix =
       repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
       repl.getType() == DataReplicationOptions.Type.STANDALONE ||
       suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
@@ -2706,6 +2446,7 @@ public class Utils
         if (ldapURL.equalsIgnoreCase(
             replica.getServer().getAdminConnectorURL()))
         {
+          // This is the server we're configuring
           found = true;
           Set<String> baseDNs = hm.get(replica.getServer());
           if (baseDNs == null)
@@ -2731,12 +2472,13 @@ public class Utils
       }
       if (!found)
       {
-        for (ReplicaDescriptor replica : suffix.getReplicas())
+        // We haven't found the server yet, just take the first one
+        ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
+        if (replica != null)
         {
           Set<String> baseDNs = new LinkedHashSet<String>();
           hm.put(replica.getServer(), baseDNs);
           baseDNs.add(suffix.getDN());
-          break;
         }
       }
     }

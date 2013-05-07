@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2008-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2011 ForgeRock AS
+#      Portions Copyright 2010-2013 ForgeRock AS
 
 #
 # Display an error message
@@ -377,50 +377,3 @@ then
   test_java
 fi
 
-current_user()
-{
-USER=`id`
-CURRENT_IFS=${IFS}
-IFS="()"
-set -- ${USER}
-echo $2
-IFS=${CURRENT_IFS}
-}
-
-if [ "${SCRIPT_NAME}" != "configure" ] &&  [ "${SCRIPT_NAME}" != "unconfigure" ]
-then
-  # Perform check unless it is specified not to do it
-  if [ -z "$NO_CHECK" ]
-  then
-     NO_CHECK=0
-  fi
-  if [ ${NO_CHECK} -eq 0 ]
-  then
-      # No check for --version or --help option
-      isVersionOrHelp $*
-      if [ $? -eq 0 ]
-      then
-        NO_CHECK=1
-      fi
-  fi
-  if [ ${NO_CHECK} -eq 0 ]
-  then
-    set_classpath
-  # Check instance
-      CURRENT_USER="`current_user`"
-      if [ "${CHECK_VERSION}" = "yes" ]
-      then
-	  OPT_CHECK_VERSION="--checkVersion"
-      else
-	  OPT_CHECK_VERSION=""
-      fi
-  # Launch the CheckInstance process.
-      "${OPENDJ_JAVA_BIN}" ${SCRIPT_NAME_ARG} "-DINSTALL_ROOT=${INSTALL_ROOT}" "-DINSTANCE_ROOT=${INSTANCE_ROOT}" org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
-  # return part
-      RETURN_CODE=$?
-      if [ ${RETURN_CODE} -ne 0 ]
-      then
-	  exit 1
-      fi
-  fi
-fi

@@ -23,7 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2012 ForgeRock AS
+rem      Portions Copyright 2011-2013 ForgeRock AS
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -38,7 +38,7 @@ if "%SCRIPT_UTIL_CMD%" == "set-java-home-and-args" goto setJavaHomeAndArgs
 if "%SCRIPT_UTIL_CMD%" == "set_environment_vars" goto setEnvironmentVars
 if "%SCRIPT_UTIL_CMD%" == "test-java" goto testJava
 if "%SCRIPT_UTIL_CMD%" == "set-classpath" goto setClassPath
-goto prepareCheck
+goto end
 
 :setInstanceRoot
 setlocal
@@ -57,7 +57,7 @@ goto scriptBegin
 
 
 :setClassPath
-if "%SET_CLASSPATH_DONE%" == "true" goto prepareCheck
+if "%SET_CLASSPATH_DONE%" == "true" goto end
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
@@ -71,7 +71,7 @@ goto scriptBegin
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
 if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
 if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
-goto prepareCheck
+goto end
 
 :setFullEnvironmentAndTestJava
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
@@ -81,7 +81,7 @@ goto testJava
 
 
 :setJavaHomeAndArgs
-if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
+if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaHome
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaHome
@@ -148,7 +148,7 @@ pause
 exit /B 1
 
 :setEnvironmentVars
-if %SET_ENVIRONMENT_VARS_DONE% == "true" goto prepareCheck
+if %SET_ENVIRONMENT_VARS_DONE% == "true" goto end
 set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
@@ -161,7 +161,7 @@ if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
-goto prepareCheck
+goto end
 
 :checkLegacyArgs
 if "%OPENDS_JAVA_ARGS%" == "" goto continueTestJava
@@ -211,30 +211,6 @@ echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
-exit /B 1
-
-:isVersionOrHelp
-if [%1] == [] goto check
-if [%1] == [--help] goto end
-if [%1] == [-H] goto end
-if [%1] == [--version] goto end
-if [%1] == [-V] goto end
-if [%1] == [--fullversion] goto end
-if [%1] == [-F] goto end
-shift
-goto isVersionOrHelp
-
-:prepareCheck
-rem Perform check unless it is specified not to do it
-if "%NO_CHECK%" == ""  set NO_CHECK=false
-goto isVersionOrHelp
-
-:check
-if "%NO_CHECK%" == "true" goto end
-if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
-"%OPENDJ_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
-set RESULT_CODE=%errorlevel%
-if "%RESULT_CODE%" == "0" goto end
 exit /B 1
 
 :end

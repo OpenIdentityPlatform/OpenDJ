@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -781,5 +781,25 @@ public class ToolConstants
    * The value for the short option advanced.
    */
   public static final Character OPTION_DSCFG_SHORT_ADVANCED = null;
+
+  /**
+   * The value for the long option ignore errors.
+   */
+  public static final String OPTION_LONG_IGNORE_ERRORS = "ignoreErrors";
+
+  /**
+   * The value for the long option force upgrade.
+   */
+  public static final String OPTION_LONG_FORCE_UPGRADE = "force";
+
+  /**
+   * The value for the long option restore backup.
+   */
+  public static final String OPTION_LONG_RESTORE_UPGRADE = "restore";
+
+  /**
+   * The value for the long option for backup all.
+   */
+  public static final String OPTION_LONG_BACKUP_ALL = "backupAll";
 }
 

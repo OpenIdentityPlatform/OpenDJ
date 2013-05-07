@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -76,7 +77,6 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     return null;
   }
 
-  private JTextArea detailsTextArea;
   private JCheckBox acceptCheck;
 
   /**
@@ -105,7 +105,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     gbc.insets.bottom = 3;
     panel.add(l, gbc);
 
-    detailsTextArea = new JTextArea(10, 50);
+    JTextArea detailsTextArea = new JTextArea(10, 50);
     detailsTextArea.setBackground(
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
 

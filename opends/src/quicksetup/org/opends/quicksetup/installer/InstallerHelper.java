@@ -834,9 +834,8 @@ public class InstallerHelper {
    */
   public boolean isPeersNotFoundError(String logMsg)
   {
-    return logMsg.indexOf(
-        "="+ReplicationMessages.
-                ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.getId()) != -1;
+    return logMsg.contains("=" + ReplicationMessages.
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.getId());
   }
 
   /**
@@ -1092,7 +1091,7 @@ public class InstallerHelper {
       fileProperties.load(fs);
     }
     catch (Throwable t)
-    {
+    { /* do nothing */
     }
     finally
     {
@@ -1103,7 +1102,7 @@ public class InstallerHelper {
           fs.close();
         }
         catch (Throwable t)
-        {
+        { /* do nothing */
         }
       }
     }
@@ -1115,9 +1114,8 @@ public class InstallerHelper {
     String configDir = Utils.getPath(Utils
         .getInstancePathFromInstallPath(installPath),
         Installation.CONFIG_PATH_RELATIVE);
-    String propertiesFile = Utils.getPath(
+    return Utils.getPath(
         configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
-    return propertiesFile;
   }
 
   /**
@@ -1224,10 +1222,10 @@ public class InstallerHelper {
     String parsedMsg = null;
     if (msg != null)
     {
-      if ((msg.indexOf(
-          "msgID="+JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.getId()) != -1) ||
-          (msg.indexOf(
-          "msgID="+JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.getId()) != -1))
+      if ((msg.contains("msgID=" + JebMessages
+              .NOTE_JEB_IMPORT_FINAL_STATUS.getId())) ||
+          (msg.contains("msgID=" + JebMessages
+              .NOTE_JEB_IMPORT_PROGRESS_REPORT.getId())))
       {
         int index = msg.indexOf("msg=");
         if (index != -1)
@@ -1240,61 +1238,3 @@ public class InstallerHelper {
   }
 }
 
-/**
- * A class describing a replication domain.
- *
- */
-class DomainEntry
-{
-  private String name;
-  private int replicationId;
-  private String baseDn;
-  private Set<String> replicationServers;
-  /**
-   * The constructor of the domain entry.
-   * @param name the name of the domain.
-   * @param replicationId the replicationId of the domain.
-   * @param baseDn the base dn of the domain.
-   * @param replicationServers the list of replication servers for the domain.
-   */
-  public DomainEntry(String name, int replicationId, String baseDn,
-      Set<String> replicationServers)
-  {
-    this.name = name;
-    this.replicationId = replicationId;
-    this.baseDn = baseDn;
-    this.replicationServers = replicationServers;
-  }
-  /**
-   * Returns the base dn of the domain.
-   * @return the base dn of the domain.
-   */
-  public String getBaseDn()
-  {
-    return baseDn;
-  }
-  /**
-   * Returns the name of the domain.
-   * @return the name of the domain.
-   */
-  public String getName()
-  {
-    return name;
-  }
-  /**
-   * Returns the replication Id of the domain.
-   * @return the replication Id of the domain.
-   */
-  public int getReplicationId()
-  {
-    return replicationId;
-  }
-  /**
-   * Returns the list of replication servers of the domain.
-   * @return the list of replication servers of the domain.
-   */
-  public Set<String> getReplicationServers()
-  {
-    return replicationServers;
-  }
-}

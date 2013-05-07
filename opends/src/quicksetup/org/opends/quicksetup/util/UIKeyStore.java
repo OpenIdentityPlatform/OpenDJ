@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -64,7 +63,6 @@ public class UIKeyStore extends KeyStore
   /**
    * Returns the KeyStore to be used by graphical applications.
    * @return the KeyStore to be used by graphical applications.
-   * @throws FileNotFoundException if the key store could not be found.
    * @throws IOException if there was a file system access error.
    * @throws KeyStoreException if there was a problem while reading the key
    * store.
@@ -72,8 +70,8 @@ public class UIKeyStore extends KeyStore
    * @throws NoSuchAlgorithmException if the used algorithm is not supported
    * by the system.
    */
-  public static KeyStore getInstance() throws FileNotFoundException,
-  IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException
+  public static KeyStore getInstance() throws IOException, KeyStoreException,
+      CertificateException, NoSuchAlgorithmException
   {
     if (keyStore == null)
     {
@@ -129,7 +127,6 @@ public class UIKeyStore extends KeyStore
   /**
    * Updates the Key Store with the provided certificate chain.
    * @param chain the certificate chain to be accepted.
-   * @throws FileNotFoundException if the key store could not be found.
    * @throws IOException if there was a file system access error.
    * @throws KeyStoreException if there was a problem while reading or writing
    * to the key store.
@@ -138,23 +135,20 @@ public class UIKeyStore extends KeyStore
    * by the system.
    */
   public static void acceptCertificate(X509Certificate[] chain)
-  throws FileNotFoundException,
-  IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException
+      throws IOException,KeyStoreException, CertificateException,
+      NoSuchAlgorithmException
   {
     LOG.log(Level.INFO, "Accepting certificate chain.");
     KeyStore k = getInstance();
-    for (int i = 0; i < chain.length; i++)
-    {
-      if (!containsCertificate(chain[i], k))
-      {
-        String alias = chain[i].getSubjectDN().getName();
+    for (X509Certificate aChain : chain) {
+      if (!containsCertificate(aChain, k)) {
+        String alias = aChain.getSubjectDN().getName();
         int j = 1;
-        while (k.containsAlias(alias))
-        {
-          alias = chain[i].getSubjectDN().getName()+ "-" + j;
+        while (k.containsAlias(alias)) {
+          alias = aChain.getSubjectDN().getName() + "-" + j;
           j++;
         }
-        k.setCertificateEntry(alias, chain[i]);
+        k.setCertificateEntry(alias, aChain);
       }
     }
     String keyStorePath = getKeyStorePath();
@@ -165,10 +159,7 @@ public class UIKeyStore extends KeyStore
     }
     FileOutputStream fos = new FileOutputStream(getKeyStorePath(), false);
     k.store(fos, new char[]{});
-    if (fos != null)
-    {
-      fos.close();
-    }
+    fos.close();
   }
 
   /**

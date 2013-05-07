@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -56,7 +56,9 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
+
 import org.opends.server.types.*;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -148,7 +150,6 @@ public class BackUpDB extends TaskTool
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream)
   {
-
     PrintStream out;
     if (outStream == null)
     {
@@ -326,7 +327,6 @@ public class BackUpDB extends TaskTool
       return 0;
     }
 
-
     // Make sure that either the backUpAll argument was provided or at least one
     // backend ID was given.  They are mutually exclusive.
     if (backUpAll.isPresent())
@@ -428,7 +428,20 @@ public class BackUpDB extends TaskTool
       return 1;
     }
 
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
+    }
+
     return process(argParser, initializeServer, out, err);
+
   }
 
   /**

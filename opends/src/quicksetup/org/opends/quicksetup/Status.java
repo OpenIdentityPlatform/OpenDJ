@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -49,28 +49,6 @@ public class Status {
    */
   public Status(Installation installation) {
     this.installation = installation;
-  }
-
-  /**
-   * Indicates whether there is something installed or not.
-   *
-   * @return <CODE>true</CODE> if there is something installed under the
-   *         binaries that we are running, or <CODE>false</CODE> if not.
-   */
-  public boolean isInstalled() {
-    File rootDirectory = installation.getRootDirectory();
-    return rootDirectory == null || !rootDirectory.exists() ||
-            !rootDirectory.isDirectory();
-  }
-
-  /**
-   * Determines whether or not the schema has been modified for this
-   * installation.
-   * @return boolean where true means the schema has been modified
-   */
-  public boolean schemaHasBeenModified() {
-    File f = installation.getSchemaConcatFile();
-    return f.exists();
   }
 
   /**
@@ -117,21 +95,4 @@ public class Status {
     }
     return isServerRunning;
   }
-
-  /**
-   * Indicates whether there are database files under this installation.
-   *
-   * @return <CODE>true</CODE> if there are database files, or
-   *         <CODE>false</CODE> if not.
-   */
-  public boolean dbFilesExist() {
-    boolean dbFilesExist = false;
-    File dbDir = installation.getDatabasesDirectory();
-    File[] children = dbDir.listFiles();
-    if ((children != null) && (children.length > 0)) {
-      dbFilesExist = true;
-    }
-    return dbFilesExist;
-  }
-
 }

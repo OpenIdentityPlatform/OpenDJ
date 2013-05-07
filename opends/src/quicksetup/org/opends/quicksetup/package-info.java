@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
 
 /**
  * Defines the main classes that are you used by both the QuickSetup utilities:
- * the installer and the upgrader.  This includes some shared classes used to
+ * the installer.  This includes some shared classes used to
  * represent user provided (like UserData), or the class that represents an
  * application (Application class).
  *

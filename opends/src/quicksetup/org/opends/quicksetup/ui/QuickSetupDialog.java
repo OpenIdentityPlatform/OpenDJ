@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -44,7 +45,6 @@ import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ProgressDescriptor;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.messages.Message;
 /**
  * This class represents the dialog used by quicksetup applications.
@@ -226,17 +226,6 @@ public class QuickSetupDialog
   }
 
   /**
-   * Return the progress message formatter that will be used in the dialog
-   * to display the messages.
-   * @return the progress message formatter that will be used in the dialog
-   * to display the messages.
-   */
-  public ProgressMessageFormatter getFormatter()
-  {
-    return getCurrentStepPanel().getProgressPanel().getFormatter();
-  }
-
-  /**
    * Marks as invalid (or valid depending on the value of the invalid parameter)
    * a field corresponding to FieldName.  This basically implies udpating the
    * style of the JLabel associated with fieldName (the association is done
@@ -310,15 +299,6 @@ public class QuickSetupDialog
       }
     };
     runOnEventThread(r);
-  }
-
-  /**
-   * Notification from the worker with a message.
-   * @param msg the message sent by the worker.
-   */
-  public void workerMessage(String msg)
-  {
-    // TODO For the moment not used.
   }
 
   /**

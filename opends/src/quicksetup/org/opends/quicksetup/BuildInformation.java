@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -39,8 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -330,73 +328,12 @@ public class BuildInformation implements Comparable<BuildInformation> {
   }
 
   /**
-   * Gets the version qualifier.
-   *
-   * @return String reprenting the version qualifier
-   */
-  public String getVersionQualifier() {
-    return values.get(VERSION_QUALIFIER);
-  }
-
-  /**
    * Gets the SVN revision number.
    *
    * @return Integer representing the SVN revision number
    */
   public Integer getRevisionNumber() {
     return new Integer(values.get(REVISION_NUMBER));
-  }
-
-  /**
-   * Gets the SVN URL repository.
-   *
-   * @return String representing the SVN URL repository
-   */
-  public String getURLRepository() {
-    return values.get(URL_REPOSITORY);
-  }
-
-  /**
-   * Gets the set of IDs representing <code>IncompatibleVersionEvents</code>.
-   * @return set of integers representing events
-   * @see org.opends.server.util.VersionCompatibilityIssue
-   */
-  public Set<Integer> getIncompatibilityEventIds() {
-    HashSet<Integer> ids = null;
-    String idString = values.get(INCOMPATIBILITY_EVENTS);
-    if (idString != null) {
-      ids = new HashSet<Integer>();
-      String[] sa = idString.split(",");
-      for (String s : sa) {
-        try {
-          ids.add(Integer.parseInt(s));
-        } catch (NumberFormatException nfe) {
-          LOG.log(Level.INFO, "invalid upgrade incompatibility ID " + s);
-        }
-      }
-    }
-    return ids;
-  }
-
-  /**
-   * Returns a build string representation of this object.  A build
-   * number is a string formatted MAJOR.MINOR.POINT.REVISION where
-   * MAJOR, MINOR, POINT and REVISION are integers.
-   * @return String representation of a build number
-   */
-  public String getBuildString() {
-    // -------------------------------------------------------
-    // NOTE:  if you change this be sure to change fromBuildString()
-    // -------------------------------------------------------
-    StringBuilder sb = new StringBuilder();
-    sb.append(getMajorVersion());
-    sb.append(".");
-    sb.append(getMinorVersion());
-    sb.append(".");
-    sb.append(getPointVersion());
-    sb.append(".");
-    sb.append(getRevisionNumber());
-    return sb.toString();
   }
 
   /**

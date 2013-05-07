@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -31,14 +31,19 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.*;
+
 import org.opends.server.util.args.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 import org.opends.server.types.*;
+
 import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.Message;
+
 import static org.opends.server.tools.ToolConstants.OPTION_SHORT_CONFIG_CLASS;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_CONFIG_CLASS;
 import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
@@ -355,6 +360,7 @@ public class DBTest
    *         problem during the configuration processing.
    */
   private int run(String[] args, boolean initializeServer) {
+
     // Register global arguments and sub-commands.
     try {
       initializeGlobalArguments();
@@ -378,6 +384,20 @@ public class DBTest
     // to do anything else.
     if (parser.usageOrVersionDisplayed()) {
       return 0;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      printMessage(e.getMessageObject());
+      return 1;
     }
 
     // Only initialize the server when run as a standalone

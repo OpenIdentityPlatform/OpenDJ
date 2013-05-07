@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -116,11 +117,6 @@ public class ReturnCode {
   public static final ReturnCode PRINT_VERSION = new ReturnCode(50);
 
   /**
-   * Return code: Print Usage.
-   */
-  public static final ReturnCode PRINT_USAGE = new ReturnCode(51);
-
-  /**
    * Return code for errors that are non-specified.
    */
   public static final ReturnCode UNKNOWN = new ReturnCode(100);
@@ -129,7 +125,7 @@ public class ReturnCode {
   private int code;
 
   /**
-   * Creates a new parameterized instance.
+   * Creates a new parametrized instance.
    *
    * @param code to return
    */

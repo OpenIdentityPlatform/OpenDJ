@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -40,7 +40,6 @@ import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.ui.GuiApplication;
@@ -52,7 +51,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.logging.Level;
@@ -63,8 +61,7 @@ import javax.naming.ldap.InitialLdapContext;
 
 /**
  * This class represents an application that can be run in the context of
- * QuickSetup.  Examples of applications might be 'installer', 'uninstaller'
- * and 'upgrader'.
+ * QuickSetup.  Examples of applications might be 'installer' and 'uninstaller'.
  */
 public abstract class Application implements ProgressNotifier, Runnable {
 
@@ -77,8 +74,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   private UserData userData;
 
   private Installation installation;
-
-  private ServerController serverController;
 
   private ApplicationTrustManager trustManager;
 
@@ -174,7 +169,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Gets the OpenDS installation associated with the execution of this
+   * Gets the OpenDJ installation associated with the execution of this
    * command.
    * @return Installation object representing the current OpenDS installation
    */
@@ -204,16 +199,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
     this.installation = installation;
   }
 
-  /**
-   * Gets a server controller for use by this application.
-   * @return ServerController that can be used to start and stop the server.
-   */
-  public ServerController getServerController() {
-    if (serverController == null) {
-      serverController = new ServerController(this);
-    }
-    return serverController;
-  }
 
   /**
    * Returns the UserData object representing the parameters provided by
@@ -321,15 +306,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Returns the formatted text string 'Error' with a line break at the end.
-   * @return formatted 'Error'
-   */
-  protected Message getFormattedErrorWithLineBreak() {
-    return new MessageBuilder(formatter.getFormattedError())
-            .append(formatter.getLineBreak()).toMessage();
-  }
-
-  /**
    * Returns the formatted representation of an error for a given text.
    * @param text the source text from which we want to get the formatted
    * representation
@@ -339,39 +315,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   {
     return formatter.getFormattedError(text, false);
   }
-
-  /**
-   * Returns the formatted representation of an error message for a given
-   * exception.
-   * This method applies a margin if the applyMargin parameter is
-   * <CODE>true</CODE>.
-   * @param m the exception.
-   * @param b specifies whether we apply a margin or not to the
-   * resulting formatted text.
-   * @return the formatted representation of an error message for the given
-   * exception.
-   */
-  protected Message getFormattedErrorWithLineBreak(Message m, boolean b) {
-    return new MessageBuilder(formatter.getFormattedError(m,b))
-            .append(formatter.getLineBreak()).toMessage();
-  }
-
-  /**
-   * Returns the formatted representation of an error message for a given
-   * exception.
-   * This method applies a margin if the applyMargin parameter is
-   * <CODE>true</CODE>.
-   * @param t the exception.
-   * @param b specifies whether we apply a margin or not to the
-   * resulting formatted text.
-   * @return the formatted representation of an error message for the given
-   * exception.
-   */
-  protected Message getFormattedErrorWithLineBreak(Throwable t, boolean b) {
-    return new MessageBuilder(formatter.getFormattedError(t,b))
-            .append(formatter.getLineBreak()).toMessage();
-  }
-
 
   /**
    * Returns the formatted representation of an warning for a given text.
@@ -492,22 +435,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected Message getFormattedError(Throwable t, boolean applyMargin)
   {
     return formatter.getFormattedError(t, applyMargin);
-  }
-
-  /**
-   * Returns the formatted representation of an error message for a given
-   * exception.
-   * This method applies a margin if the applyMargin parameter is
-   * <CODE>true</CODE>.
-   * @param m the message.
-   * @param applyMargin specifies whether we apply a margin or not to the
-   * resulting formatted text.
-   * @return the formatted representation of an error message for the given
-   * exception.
-   */
-  protected Message getFormattedError(Message m, boolean applyMargin)
-  {
-    return formatter.getFormattedError(m, applyMargin);
   }
 
   /**
@@ -660,17 +587,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Makes available a <code>UserInteraction</code> class that can be used
-   * by the application to interact with the user.  If the user has requested
-   * a quiet session this method returns null.
-   * @return UserInteraction object
-   */
-  public UserInteraction userInteraction() {
-    // Note:  overridden in GuiApplication
-    return new CliUserInteraction(getUserData());
-  }
-
-  /**
    * Conditionally notifies listeners of the log file if it
    * has been initialized.
    */
@@ -693,59 +609,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
       notifyListeners(getFormattedProgress(
           INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(logFile.getPath())));
       notifyListeners(getLineBreak());
-    }
-  }
-
-  /**
-   * Writes an initial record in the installation's historical
-   * log describing moving from one version to another.
-   * @param fromVersion from with install will be migrated
-   * @param toVersion to which install will be migrated
-   * @return Long ID for this session
-   * @throws ApplicationException if something goes wrong
-   */
-  protected Long writeInitialHistoricalRecord(
-          BuildInformation fromVersion,
-          BuildInformation toVersion)
-          throws ApplicationException {
-    Long id;
-    try {
-      HistoricalLog log =
-              new HistoricalLog(getInstallation().getHistoryLogFile());
-      id = log.append(fromVersion, toVersion,
-              HistoricalRecord.Status.STARTED,
-              "log file '" + QuickSetupLog.getLogFile().getPath() + "'");
-    } catch (IOException e) {
-      Message msg = INFO_ERROR_LOGGING_OPERATION.get();
-      throw ApplicationException.createFileSystemException(
-              msg, e);
-    }
-    return id;
-  }
-
-  /**
-   * Writes a record into this installation's historical log.
-   * @param id obtained from calling <code>writeInitialHistoricalRecord</code>
-   * @param from version from with install will be migrated
-   * @param to version to which install will be migrated
-   * @param status of the operation
-   * @param note string with additional information
-   * @throws ApplicationException if something goes wrong
-   */
-  protected void writeHistoricalRecord(
-          Long id,
-          BuildInformation from,
-          BuildInformation to,
-          HistoricalRecord.Status status,
-          String note)
-          throws ApplicationException {
-    try {
-      HistoricalLog log =
-              new HistoricalLog(getInstallation().getHistoryLogFile());
-      log.append(id, from, to, status, note);
-    } catch (IOException e) {
-      Message msg = INFO_ERROR_LOGGING_OPERATION.get();
-      throw ApplicationException.createFileSystemException(msg, e);
     }
   }
 
@@ -789,7 +652,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
         trustManager, timeout, cnx, filter);
 
-    InitialLdapContext ctx = null;
+    InitialLdapContext ctx;
     try
     {
       ctx = loader.createContext();
@@ -846,18 +709,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
     return out;
   }
 
-
-
-  /**
-   * Notifies the progress update listeners of the application of the message
-   * we received.
-   * @return <CODE>true</CODE> if we must notify the application listeners
-   * of the message and <CODE>false</CODE> otherwise.
-   */
-  public boolean isNotifyListeners()
-  {
-    return notifyListeners;
-  }
 
   /**
    * Tells whether we must notify the listeners or not of the message
@@ -1067,6 +918,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
         }
         catch (Throwable t)
         {
+          // do nothing
         }
       }
     }
@@ -1088,6 +940,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
         }
         catch (Throwable t)
         {
+          // do nothing
         }
       }
       pointAdderStopped = true;

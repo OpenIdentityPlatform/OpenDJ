@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -49,6 +49,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.*;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
@@ -356,6 +357,17 @@ public class ExportLDIF extends TaskTool {
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
     }
 
     return process(argParser, initializeServer, out, err);

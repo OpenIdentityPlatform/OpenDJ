@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -46,6 +46,7 @@ import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.types.*;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -58,6 +59,7 @@ import java.util.List;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ToolMessages.*;
+
 import org.opends.messages.Message;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -230,9 +232,6 @@ public class VerifyIndex
       return 0;
     }
 
-
-
-
     // If no arguments were provided, then display usage information and exit.
     int numArgs = args.length;
     if (numArgs == 0)
@@ -241,7 +240,6 @@ public class VerifyIndex
       return 1;
     }
 
-
     if (cleanMode.isPresent() && indexList.getValues().size() != 1)
     {
       Message message =
@@ -249,6 +247,17 @@ public class VerifyIndex
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
+      return 1;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
 

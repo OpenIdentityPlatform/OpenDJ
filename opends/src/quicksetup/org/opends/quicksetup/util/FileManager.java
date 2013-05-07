@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
@@ -110,32 +110,6 @@ public class FileManager {
         for (String sourceFileName : sourceFileNames) {
           File sourceFile = new File(source, sourceFileName);
           copyRecursively(sourceFile, target, null, false);
-        }
-      }
-    }
-  }
-
-  /**
-   * Recursively copies any files or directories appearing in
-   * <code>source</code> or a subdirectory of <code>source</code>
-   * to the corresponding directory under <code>target</code>.  Files
-   * in under <code>source</code> are not copied to <code>target</code>
-   * if a file by the same name already exists in <code>target</code>.
-   *
-   * @param source source directory
-   * @param target target directory
-   * @param filter for specifying particular files to synchronize
-   * @throws ApplicationException if there is a problem copying files
-   */
-  public void synchronize(File source, File target, FileFilter filter)
-          throws ApplicationException
-  {
-    if (source != null && target != null) {
-      String[] sourceFileNames = source.list();
-      if (sourceFileNames != null) {
-        for (String sourceFileName : sourceFileNames) {
-          File sourceFile = new File(source, sourceFileName);
-          copyRecursively(sourceFile, target, filter, false);
         }
       }
     }
@@ -243,7 +217,7 @@ public class FileManager {
       File[] children = parentDir.listFiles();
       if (children != null) {
         for (File child : children) {
-          delete(child);
+          deleteRecursively(child);
         }
       }
     }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -47,24 +47,6 @@ public class Constants {
 
   /** HTML bold close tag. */
   public static final String HTML_BOLD_CLOSE = "</b>";
-
-  /** HTML italics open tag. */
-  public static final String HTML_ITALICS_OPEN = "<i>";
-
-  /** HTML italics close tag. */
-  public static final String HTML_ITALICS_CLOSE = "</i>";
-
-  /** HTML unordered list open tag. */
-  public static final Object HTML_UNORDERED_LIST_OPEN = "<ul>";
-
-  /** HTML unordered list close tag. */
-  public static final Object HTML_UNORDERED_LIST_CLOSE = "</ul>";
-
-  /** HTML unordered list open tag. */
-  public static final Object HTML_ORDERED_LIST_OPEN = "<ol>";
-
-  /** HTML unordered list close tag. */
-  public static final Object HTML_ORDERED_LIST_CLOSE = "</ol>";
 
   /** HTML list item open tag. */
   public static final String HTML_LIST_ITEM_OPEN = "<li>";

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -73,6 +73,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -717,6 +718,7 @@ public final class DSConfig extends ConsoleApplication {
    *         problem during the configuration processing.
    */
   private int run(String[] args) {
+
     // Register global arguments and sub-commands.
     try {
       initializeGlobalArguments(args);
@@ -781,6 +783,18 @@ public final class DSConfig extends ConsoleApplication {
           noPropertiesFileArgument.getLongIdentifier(),
           propertiesFileArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
+      return 1;
+    }
+
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      println(e.getMessageObject());
       return 1;
     }
 

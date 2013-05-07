@@ -24,6 +24,7 @@
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
  !      Portions Copyright 2011-2013 ForgeRock AS
+ !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
 <project name="Directory Server" basedir="." default="package"
@@ -433,6 +434,9 @@
 
     <delete dir="${build.dir}" />
     <delete file="${dynconstants.file}"  />
+    <fileset dir="${lib.dir}">
+      <include name="*.jar" />
+    </fileset>
   </target>
 
 
@@ -782,11 +786,11 @@
       <fileset dir="${quicksetup.src.dir}"
                includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
-      <mkdir dir="${quicksetup.classes.dir}/messages" />
-      <copy todir="${quicksetup.classes.dir}/messages">
-         <fileset dir="${msg.prop.dir}"
-                includes="**/quicksetup.properties" />
-      </copy>
+  	<mkdir dir="${quicksetup.classes.dir}/messages" />
+  	<copy todir="${quicksetup.classes.dir}/messages">
+  	   <fileset dir="${msg.prop.dir}"
+  	          includes="**/quicksetup.properties" />
+  	</copy>
 
   </target>
 
@@ -1011,11 +1015,6 @@
     <mkdir dir="${pdir}/bin"                                         />
     <mkdir dir="${pdir}/classes"                                     />
     <mkdir dir="${pdir}/config"                                      />
-    <mkdir dir="${pdir}/config/upgrade"                              />
-    <mkdir dir="${pdir}/config/schema"                               />
-    <mkdir dir="${pdir}/config/messages"                             />
-    <mkdir dir="${pdir}/config/MakeLDIF"                             />
-    <mkdir dir="${pdir}/config/snmp/security"                        />
     <mkdir dir="${pdir}/db"                                          />
     <mkdir dir="${pdir}/import-tmp"                                  />
     <mkdir dir="${pdir}/changelogDb"                                 />
@@ -1025,11 +1024,17 @@
     <mkdir dir="${pdir}/lib/extensions"                              />
     <mkdir dir="${pdir}/locks"                                       />
     <mkdir dir="${pdir}/logs"                                        />
-    <mkdir dir="${pdir}/bin/ControlPanel.app"                         />
-    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents"                />
-    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/MacOS"          />
-    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources"      />
-    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources/Java" />
+    <mkdir dir="${pdir}/template"                                    />
+    <mkdir dir="${pdir}/template/config"                             />
+    <mkdir dir="${pdir}/template/config/schema"                      />
+    <mkdir dir="${pdir}/template/config/messages"                    />
+    <mkdir dir="${pdir}/template/config/MakeLDIF"                    />
+    <mkdir dir="${pdir}/template/config/upgrade"                     />
+    <mkdir dir="${pdir}/bin/ControlPanel.app"                        />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents"               />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/MacOS"         />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources"     />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources/Java"/>
     <mkdir dir="${pdir}/QuickSetup.app"                              />
     <mkdir dir="${pdir}/QuickSetup.app/Contents"                     />
     <mkdir dir="${pdir}/QuickSetup.app/Contents/MacOS"               />
@@ -1126,18 +1131,15 @@
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" excludes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" includes="*.bat" eol="crlf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" eol="crlf" />
 
-    <copy todir="${pdir}/config">
+    <copy todir="${pdir}/template/config">
       <fileset file="${config.dir}/*" />
     </copy>
 
     <antcall target="package-snmp" />
-
-    <copy file="${pdir}/config/config.ldif"
-         tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
-
+      
     <!-- Create buildinfo files -->
     <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
-        file="${pdir}/config/buildinfo" />
+          file="${pdir}/template/config/buildinfo" />
 
     <taskdef name="concatschema"
              classname="org.opends.build.tools.ConcatSchema">
@@ -1149,17 +1151,17 @@
     </taskdef>
 
     <concatschema schemaDirectory="${resource.dir}/schema"
-         toFile="${pdir}/config/upgrade/schema.ldif.${REVISION_NUMBER}" />
+                  toFile="${pdir}/template/config/upgrade/schema.ldif.${REVISION_NUMBER}" />
 
-    <copy todir="${pdir}/config/schema">
+    <copy todir="${pdir}/template/config/schema">
       <fileset dir="${resource.dir}/schema" />
     </copy>
 
-    <copy todir="${pdir}/config/messages">
+    <copy todir="${pdir}/template/config/messages">
       <fileset dir="${resource.dir}/messages" />
     </copy>
 
-    <copy todir="${pdir}/config/MakeLDIF">
+    <copy todir="${pdir}/template/config/MakeLDIF">
       <fileset dir="${resource.dir}/MakeLDIF" />
     </copy>
 
@@ -1234,6 +1236,9 @@
         </fileset>
       </path>
     </foreach>
+    <chmod perm="444">
+      <fileset dir="${pdir}/template" />
+    </chmod>
   </target>
 
 
@@ -1259,21 +1264,21 @@
   <target name="package" depends="prepackage"
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}"
-           filemode="644" dirmode="700" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
-           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
-           filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}"
-           includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh"
-           filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*"
-           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
-           filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
-           filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
-           filemode="755" dirmode="755" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="**/*"
+           excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+           filemode="644" dirmode="755" prefix="opendj" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+           includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
+           filemode="755" dirmode="755" prefix="opendj" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/*"
+           excludes="bin/README_WINDOWS.txt"
+           filemode="755" dirmode="755" prefix="opendj" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/README_WINDOWS.txt"
+           filemode="644" dirmode="755" prefix="opendj" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+           filemode="755" dirmode="755" prefix="opendj" />
+      <zipfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
+           filemode="444" dirmode="744" prefix="opendj" />
     </zip>
     <property name="package.built" value="true"/>
 
@@ -1298,10 +1303,10 @@
 
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
-    <property name="prefix"    value="/opt/opends"/>
-    <property name="release"   value="0"/>
+    <property name="prefix"    value="/opt/opendj"/>
+    <property name="release"   value="2"/>
     <taskdef name="genrpm"
-                     classname="org.opends.build.tools.GenerateRpm">
+             classname="org.opends.build.tools.GenerateRpm">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="*.jar" />
@@ -1309,32 +1314,29 @@
       </classpath>
     </taskdef>
 
-    <mkdir dir="${build.dir}/rpm/noarch" />
-    <mkdir dir="${build.dir}/rpm/i486" />
-    <mkdir dir="${build.dir}/rpm/i586" />
-    <mkdir dir="${build.dir}/rpm/i686" />
     <mkdir dir="${build.dir}/rpm/BUILD" />
     <mkdir dir="${build.dir}/rpm/RPMS" />
-    <mkdir dir="${build.dir}/rpm/SOURCES/${prefix}" />
-    <mkdir dir="${build.dir}/rpm/i386" />
+    <mkdir dir="${build.dir}/rpm/SOURCES" />
     <mkdir dir="${build.dir}/rpm/SPECS" />
     <mkdir dir="${build.dir}/rpm/SRPMS" />
 
     <genrpm
         topDir="${build.dir}/rpm"
         prefix="${prefix}"
+        productName="${PRODUCT_NAME}"
+        shortName="${SHORT_NAME}"
+        referenceURL="${DOC_REFERENCE_HOME}"
         sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
         specFileName="${build.dir}/rpm/SPECS/specFile"
         version="${VERSION_NUMBER_STRING}"
         release="${release}"
-          overwrite="true">
+        overwrite="true">
     </genrpm>
 
-    <rpm
-            specfile="specFile"
-            topdir="${build.dir}/rpm"
-      quiet="true"
-    />
+    <rpm specfile="specFile"
+         topdir="${build.dir}/rpm"
+         quiet="true">
+    </rpm>
 
     <copy todir="${package.dir}">
       <fileset dir="${build.dir}/rpm/RPMS/noarch">
@@ -1342,10 +1344,69 @@
       </fileset>
     </copy>
 
-    <delete dir="${build.dir}/rpm"/>
   </target>
 
+  <!-- Package the Directory Server for the DEB distribution. -->
+  <target name="package-DEB"
+          description="Package the Directory Server for DEB distribution.">
+    <taskdef name="getversionnumber"
+             classname="org.opends.build.tools.CreateVersionString">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
 
+    <getversionnumber property="VERSION_NUMBER_STRING" />
+
+    <property name="prefix"    value="/opt/opendj"/>
+    <property name="release"   value="0"/>
+
+    <mkdir dir="${build.dir}/deb/control" />
+
+    <taskdef name="deb" classname="org.vafer.jdeb.ant.DebAntTask"/>
+    
+    <copy todir="${build.dir}/deb/control">
+      <fileset dir="resource/debian/control"/>
+      <filterset begintoken="[[" endtoken="]]">
+        <filter token="version" value="${VERSION_NUMBER_STRING}"/>
+        <filter token="name" value="${SHORT_NAME}"/>
+        <filter token="homepage" value="${DOC_REFERENCE_HOME}"/>
+        <filter token="maintainer" value="opendj@forgerock.org"/>
+        <filter token="description" value="${PRODUCT_NAME}"/>
+      </filterset>
+    </copy>
+
+    <!--        Debian files for preinst/postinstall/preuninstall/postuninstall -->
+
+    <copy file="resource/debian/control/preinst" tofile="${build.dir}/deb/control" />
+    <copy file="resource/debian/control/postinst" tofile="${build.dir}/deb/control" />
+    <copy file="resource/debian/control/prerm" tofile="${build.dir}/deb/control" />           
+    <copy file="resource/debian/control/postrm" tofile="${build.dir}/deb/control" />
+
+    <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
+  	
+    <deb destfile="${package.dir}/${SHORT_NAME}_${VERSION_NUMBER_STRING}-${release}_all.deb"
+         control="${build.dir}/deb/control">
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+                  includes="**/*"
+	          excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                  prefix="${prefix}" filemode="644" dirmode="755" />
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+                  includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
+                  prefix="${prefix}" filemode="755" dirmode="755" />
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/*"
+                  excludes="bin/README_WINDOWS.txt"
+                  prefix="${prefix}" filemode="755" dirmode="755" />
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/README_WINDOWS.txt"
+                  prefix="${prefix}" filemode="644" dirmode="755" />
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                  prefix="${prefix}" filemode="755" dirmode="755" />
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
+                  prefix="${prefix}" filemode="444" dirmode="744" />
+    </deb>
+  </target>
 
   <!-- Prepare the Directory Server DSML library. -->
   <target name="predsml" depends="prepackage"
@@ -2553,16 +2614,16 @@
     <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <mkdir dir="${pdir}/lib/extensions" />
     <mkdir dir="${pdir}/snmp/mib"/>
-    <mkdir dir="${pdir}/config/snmp/security" />
+    <mkdir dir="${pdir}/template/config/snmp/security" />
     <!-- Copy security template files -->
-    <copy todir="${pdir}/config/snmp/security">
+    <copy todir="${pdir}/template/config/snmp/security">
       <fileset dir="${snmp.security.dir}"/>
     </copy>
     <!-- Copy the mib -->
     <copy todir="${pdir}/snmp/mib" file="${snmp.mib.dir}/rfc2605.txt"/>
 
     <!-- Update the config.ldif file with snmp config -->
-    <concat destfile="${pdir}/config/config.ldif" append="true">
+    <concat destfile="${pdir}/template/config/config.ldif" append="true">
         <filelist dir="${snmp.config.dir}" files="config.snmp.ldif"/>
     </concat>
 
@@ -2654,8 +2715,7 @@
 
   <target name="clean-ivy-cache" depends="install-ivy" description="--> clean the ivy cache">
     <ivy:cleancache/>
-  </target>
-
+  </target>  
 
   <import file="build-svr4.xml"/>
   <import file="build-pkg.xml"/>

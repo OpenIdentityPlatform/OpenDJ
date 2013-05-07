@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -69,7 +69,7 @@
       </notifier>
     </notifiers>
   </ciManagement>
-
+  
   <repositories>
     <repository>
       <id>forgerock-staging-repository</id>

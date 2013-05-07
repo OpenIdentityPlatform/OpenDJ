@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -313,37 +314,10 @@ public class ProgressPanel extends QuickSetupStepPanel
         btnCancel,
         detailsTextArea
     };
-    for (int i = 0; i < comps.length; i++)
-    {
-      comps[i].addFocusListener(l);
+    for (JComponent comp : comps) {
+      comp.addFocusListener(l);
     }
 
     lastFocusComponent = detailsTextArea;
   }
-
-//  public static void main(String[] args) {
-//    final UserData ud = new UpgradeUserData();
-//    ud.setServerLocation("XXX/XXXXX/XX/XXXXXXXXXXXX/XXXX");
-//    Upgrader app = new Upgrader();
-//    app.setUserData(ud);
-//    final ProgressPanel p = new ProgressPanel(app);
-//    p.initialize();
-//    JFrame frame = new JFrame();
-//    frame.getContentPane().add(p);
-//    frame.addComponentListener(new ComponentAdapter() {
-//      public void componentHidden(ComponentEvent componentEvent) {
-//        System.exit(0);
-//      }
-//    });
-//    frame.pack();
-//    frame.setVisible(true);
-//    new Thread(new Runnable() {
-//      public void run() {
-//        p.beginDisplay(ud);
-//      }
-//    }).start();
-//
-//  }
-
-
 }

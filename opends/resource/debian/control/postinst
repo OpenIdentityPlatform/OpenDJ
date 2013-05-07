@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+# Post install script
+# Insert your post installation code here.
+# End post install script
+echo 

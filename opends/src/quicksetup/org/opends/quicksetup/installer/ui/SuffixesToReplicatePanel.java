@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -71,7 +72,6 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel
 implements Comparator<SuffixDescriptor>
 {
   private static final long serialVersionUID = -8051367953737385327L;
-  private Component lastFocusComponent;
   private TreeSet<SuffixDescriptor> orderedSuffixes =
     new TreeSet<SuffixDescriptor>(this);
   private HashMap<String, JCheckBox> hmCheckBoxes =
@@ -126,17 +126,9 @@ implements Comparator<SuffixDescriptor>
   /**
    * {@inheritDoc}
    */
-  public void displayFieldInvalid(FieldName fieldName, boolean invalid)
-  {
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public int compare(SuffixDescriptor desc1, SuffixDescriptor desc2)
   {
-    int result = 0;
-    result = compareSuffixDN(desc1, desc2);
+    int result = compareSuffixDN(desc1, desc2);
     if (result == 0)
     {
       result = compareSuffixStrings(desc1, desc2);
@@ -274,17 +266,6 @@ implements Comparator<SuffixDescriptor>
     noSuffixLabel.setVisible(!display);
     labelGlue.setVisible(!display);
     scroll.setVisible(display);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void endDisplay()
-  {
-    if (lastFocusComponent != null)
-    {
-      lastFocusComponent.requestFocusInWindow();
-    }
   }
 
   /**

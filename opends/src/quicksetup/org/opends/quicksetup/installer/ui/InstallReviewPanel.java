@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -32,6 +33,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.UserData;
@@ -532,9 +534,9 @@ public class InstallReviewPanel extends ReviewPanel {
     cardLayoutPanel.setOpaque(false);
 
     JComponent p = createReadOnlyPanel();
-    p.setBorder(new EmptyBorder(UIFactory.LEFT_INSET_SECONDARY_FIELD,
+    p.setBorder(new EmptyBorder(UIFactory.TOP_INSET_SECONDARY_FIELD,
         UIFactory.LEFT_INSET_SECONDARY_FIELD,
-        UIFactory.LEFT_INSET_SECONDARY_FIELD,
+        UIFactory.BOTTOM_INSET_SECONDARY_FIELD,
         UIFactory.LEFT_INSET_SECONDARY_FIELD));
 
     JScrollPane scroll = new JScrollPane(p);
@@ -765,9 +767,10 @@ public class InstallReviewPanel extends ReviewPanel {
     sb.append(formatter.getFormattedProgress(
         INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()));
     sb.append(formatter.getLineBreak());
-    sb.append("<b>"+Utils.getFormattedEquivalentCommandLine(
-        Utils.getSetupEquivalentCommandLine(userData), formatter)+
-        "</b>");
+    sb.append(Constants.HTML_BOLD_OPEN)
+        .append(Utils.getFormattedEquivalentCommandLine(
+            Utils.getSetupEquivalentCommandLine(userData), formatter))
+        .append(Constants.HTML_BOLD_CLOSE);
     if (userData.getReplicationOptions().getType() ==
       DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
     {
@@ -787,9 +790,10 @@ public class InstallReviewPanel extends ReviewPanel {
       for (ArrayList<String> cmdLine : cmdLines)
       {
         sb.append(formatter.getLineBreak());
-        sb.append("<b>"+
-                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
-            "</b>");
+        sb.append(Constants.HTML_BOLD_OPEN)
+            .append(Utils.getFormattedEquivalentCommandLine(cmdLine,
+                formatter))
+            .append(Constants.HTML_BOLD_CLOSE);
       }
 
       sb.append(formatter.getLineBreak());
@@ -810,9 +814,10 @@ public class InstallReviewPanel extends ReviewPanel {
       for (ArrayList<String> cmdLine : cmdLines)
       {
         sb.append(formatter.getLineBreak());
-        sb.append("<b>"+
-                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
-            "</b>");
+        sb.append(Constants.HTML_BOLD_OPEN)
+            .append(Utils.getFormattedEquivalentCommandLine(cmdLine,
+                formatter))
+            .append(Constants.HTML_BOLD_CLOSE);
       }
     }
     else if (userData.getReplicationOptions().getType() ==
@@ -826,9 +831,10 @@ public class InstallReviewPanel extends ReviewPanel {
       for (ArrayList<String> cmdLine : cmdLines)
       {
         sb.append(formatter.getLineBreak());
-        sb.append("<b>"+
-                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
-            "</b>");
+        sb.append(Constants.HTML_BOLD_OPEN)
+            .append(Utils.getFormattedEquivalentCommandLine(cmdLine,
+                formatter))
+            .append(Constants.HTML_BOLD_CLOSE);
       }
     }
 
@@ -842,7 +848,9 @@ public class InstallReviewPanel extends ReviewPanel {
       sb.append(formatter.getFormattedProgress(
           INFO_INSTALL_STOP_SERVER_EQUIVALENT_COMMAND_LINE.get()));
       sb.append(formatter.getLineBreak());
-      sb.append("<b>"+formatter.getFormattedProgress(Message.raw(cmd))+"</b>");
+      sb.append(Constants.HTML_BOLD_OPEN)
+          .append(formatter.getFormattedProgress(Message.raw(cmd)))
+          .append(Constants.HTML_BOLD_CLOSE);
     }
     equivalentCommandPane.setText(sb.toString());
   }
@@ -918,9 +926,8 @@ public class InstallReviewPanel extends ReviewPanel {
       path = Utils.getInstallPathFromClasspath();
       path = Utils.getInstancePathFromInstallPath(path);
     }
-    String configDir = Utils.getPath(path, Installation.CONFIG_PATH_RELATIVE);
-    String propertiesFile = Utils.getPath(
-        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
-    return propertiesFile;
+    return Utils.getPath(
+        Utils.getPath(path, Installation.CONFIG_PATH_RELATIVE),
+        Installation.DEFAULT_JAVA_PROPERTIES_FILE);
   }
 }

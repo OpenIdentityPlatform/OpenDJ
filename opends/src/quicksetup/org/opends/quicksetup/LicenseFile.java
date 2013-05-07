@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -140,14 +141,8 @@ public class LicenseFile {
    */
   static public boolean exists()
   {
-    if (Utils.isWebStart())
-    {
-      return false;
-    }
-    else
-    {
-      return getFile().exists();
-    }
+    // TODO: Try to support License with webstart
+    return !Utils.isWebStart() && getFile().exists();
   }
 
 
@@ -213,6 +208,7 @@ public class LicenseFile {
       }
       catch (IOException e)
       {
+        // do nothing
       }
     }
   }

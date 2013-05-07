@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -83,11 +84,10 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
   // The size of the LDIF file to be imported used as threshold to display
   // a warning message, telling the user to update the import runtime
   // settings.
-  private long WARNING_THRESOLD_FOR_IMPORT = 200 * 1024 * 1024;
-
-  private int WARNING_THRESOLD_AUTOMATICALLY_GENERATED_IMPORT = 100000;
-
-  private int WARNING_THRESOLD_REPLICATED_ENTRIES = 100000;
+  private static final long WARNING_THRESOLD_FOR_IMPORT = 200 * 1024 * 1024;
+  private static final int WARNING_THRESOLD_AUTOMATICALLY_GENERATED_IMPORT
+      = 100000;
+  private static final int WARNING_THRESOLD_REPLICATED_ENTRIES = 100000;
 
   /**
    * Constructor of the panel.
@@ -128,11 +128,10 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     JLabel l = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         INFO_SERVER_RUNTIME_ARGS_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
-    int serverInsetsTop = Math.abs(
+
+    gbc.insets.top = Math.abs(
         bServer.getPreferredSize().height -
         l.getPreferredSize().height) / 2;
-
-    gbc.insets.top = serverInsetsTop;
     panel.add(l, gbc);
     gbc.gridx ++;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
@@ -381,13 +380,9 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
   {
     Message msg = null;
 
-    boolean createSuffix = false;
-
     DataReplicationOptions repl = uData.getReplicationOptions();
-
     SuffixesToReplicateOptions suf = uData.getSuffixesToReplicateOptions();
-
-    createSuffix =
+    boolean createSuffix =
       repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
       repl.getType() == DataReplicationOptions.Type.STANDALONE ||
       suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
@@ -408,7 +403,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
 
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         if (options.getNumberEntries() >
-        WARNING_THRESOLD_AUTOMATICALLY_GENERATED_IMPORT)
+            WARNING_THRESOLD_AUTOMATICALLY_GENERATED_IMPORT)
         {
           msg =
             INFO_AUTOMATICALLY_GENERATED_DATA_WARNING_UPDATE_RUNTIME_ARGS.
@@ -450,9 +445,11 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
           UIFactory.TITLE_FONT);
       String details = UIFactory.applyFontToHtml(msg.toString(),
           UIFactory.SECONDARY_FIELD_VALID_FONT);
-      buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) +
-          space + space + title + lBreak + lBreak)
-      .append(details);
+      buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE))
+          .append(space).append(space)
+          .append(title)
+          .append(lBreak).append(lBreak)
+          .append(details);
       String s = "<form>"+UIFactory.applyErrorBackgroundToHtml(buf.toString())+
       "</form>";
 

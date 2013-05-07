@@ -29,6 +29,8 @@ package org.opends.server.tools;
 import org.opends.messages.Message;
 
 import static org.opends.server.util.StaticUtils.wrapText;
+
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -246,16 +248,12 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
-
     // If we should just display usage or version information,
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }
-
-
-
 
     // If no arguments were provided, then display usage information and exit.
     int numArgs = args.length;
@@ -264,7 +262,6 @@ public class RebuildIndex extends TaskTool
       out.println(argParser.getUsage());
       return 1;
     }
-
 
     if (indexList.getValues().size() <= 0 && !rebuildAll.isPresent()
         && !rebuildDegraded.isPresent())
@@ -317,6 +314,17 @@ public class RebuildIndex extends TaskTool
           "clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
+      return 1;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
 

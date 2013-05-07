@@ -91,11 +91,11 @@ public final class TextAuditLogPublisher extends
 
       TextWriter currentWriter;
       // Determine the writer we are using. If we were writing
-      // asyncronously,
-      // we need to modify the underlaying writer.
-      if (writer instanceof AsyncronousTextWriter)
+      // asynchronously,
+      // we need to modify the underlying writer.
+      if (writer instanceof AsynchronousTextWriter)
       {
-        currentWriter = ((AsyncronousTextWriter) writer).getWrappedWriter();
+        currentWriter = ((AsynchronousTextWriter) writer).getWrappedWriter();
       }
       else
       {
@@ -126,22 +126,24 @@ public final class TextAuditLogPublisher extends
           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
         }
 
-        if (writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
+        if (writer instanceof AsynchronousTextWriter
+            && !config.isAsynchronous())
         {
           // The asynronous setting is being turned off.
-          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter) writer);
+          AsynchronousTextWriter asyncWriter =
+              ((AsynchronousTextWriter) writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
 
-        if (!(writer instanceof AsyncronousTextWriter)
+        if (!(writer instanceof AsynchronousTextWriter)
             && config.isAsynchronous())
         {
-          // The asynronous setting is being turned on.
-          AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
-              "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
+          // The asynchronous setting is being turned on.
+          writer = new AsynchronousTextWriter(
+              "Asynchronous Text Writer for " +
+                  config.dn().toNormalizedString(),
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
-          writer = asyncWriter;
         }
 
         if ((cfg.isAsynchronous() && config.isAsynchronous())
@@ -218,7 +220,7 @@ public final class TextAuditLogPublisher extends
 
       if (cfg.isAsynchronous())
       {
-        this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for "
+        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for "
             + cfg.dn().toNormalizedString(), cfg.getQueueSize(), cfg
             .isAutoFlush(), writer);
       }

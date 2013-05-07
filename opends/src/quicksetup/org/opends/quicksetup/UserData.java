@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -45,9 +45,6 @@ import org.opends.quicksetup.util.Utils;
 /**
  * This class is used to provide a data model for the different parameters
  * that the user can provide in the installation wizard.
- *
- * @see org.opends.quicksetup.DataOptions
- *
  */
 public class UserData
 {
@@ -94,10 +91,6 @@ public class UserData
   private boolean interactive;
 
   private boolean forceOnError;
-
-  private String configurationFile;
-
-  private String configurationClass;
 
   private Map<String, JavaArguments> hmJavaArguments;
   private Map<String, JavaArguments> hmDefaultJavaArguments;
@@ -563,16 +556,6 @@ public class UserData
   }
 
   /**
-   * Sets whether or not this session should solicite feedback from the user
-   * for missing information.
-   * @param interactive boolean where true indicates this application
-   *        should NOT solicite feedback from the user
-   */
-  public void setInteractive(boolean interactive) {
-    this.interactive = interactive;
-  }
-
-  /**
    * Indicates whether or not the user has requested interactive mode.
    * <p>
    * Interactive mode in the CLI means that the CLI will prompt the user
@@ -848,42 +831,6 @@ public class UserData
   {
     this.remoteWithNoReplicationPort.clear();
     this.remoteWithNoReplicationPort.putAll(remoteWithNoReplicationPort);
-  }
-
-  /**
-   * Returns the configuration file to be used.
-   * @return the configuration file to be used.
-   */
-  public String getConfigurationFile()
-  {
-    return configurationFile;
-  }
-
-  /**
-   * Sets the configuration file to be used.
-   * @param configurationFile the configuration file to be used.
-   */
-  public void setConfigurationFile(String configurationFile)
-  {
-    this.configurationFile = configurationFile;
-  }
-
-  /**
-   * Returns the configuration class to be used.
-   * @return the configuration class to be used.
-   */
-  public String getConfigurationClassName()
-  {
-    return configurationClass;
-  }
-
-  /**
-   * Sets the configuration class to be used.
-   * @param configurationClass the configuration class to be used.
-   */
-  public void setConfigurationClassName(String configurationClass)
-  {
-    this.configurationClass = configurationClass;
   }
 
   /**

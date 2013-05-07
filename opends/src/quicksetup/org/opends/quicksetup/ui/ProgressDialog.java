@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -65,8 +66,6 @@ public class ProgressDialog extends JDialog
   private JProgressBar progressBar;
 
   private JEditorPane detailsTextArea;
-
-  private JScrollPane scroll;
 
   private Message lastText;
 
@@ -114,15 +113,6 @@ public class ProgressDialog extends JDialog
   public JFrame getFrame()
   {
     return parent;
-  }
-
-  /**
-   * Sets the title of the panel.
-   * @param title the title of the panel.
-   */
-  public void setPanelTitle(Message title)
-  {
-    this.panelTitle = title;
   }
 
   /**
@@ -242,7 +232,7 @@ public class ProgressDialog extends JDialog
     gbc.insets = UIFactory.getEmptyInsets();
     mainPanel.add(l, gbc);
 
-    scroll = new JScrollPane();
+    JScrollPane scroll = new JScrollPane();
     detailsTextArea = UIFactory.makeProgressPane(scroll);
     detailsTextArea.setBackground(
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
@@ -253,9 +243,8 @@ public class ProgressDialog extends JDialog
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
           String url = e.getURL().toString();
-          Message newText = getFormatter().getFormattedAfterUrlClick(url,
+          lastText = getFormatter().getFormattedAfterUrlClick(url,
               lastText);
-          lastText = newText;
           setDetails(lastText);
         }
       }

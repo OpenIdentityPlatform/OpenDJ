@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -163,58 +164,45 @@ public class Configuration {
     return getConfigurationValues("ds-cfg-log-file");
   }
 
-  private int getLDAPPort(String portAttr) throws IOException {
+  private int extractPort(String portAttr, int index)
+  {
     int port = -1;
-    String contents = getLowerCaseContents();
-    int index = contents.indexOf("cn=ldap connection handler");
-
-    if (index != -1) {
-      String attrWithPoints = portAttr + ":";
-      int index1 = contents.indexOf(attrWithPoints, index);
-      if (index1 != -1) {
-        int index2 =
-                contents.indexOf(Constants.LINE_SEPARATOR, index1);
-        if (index2 != -1) {
-          String sPort =
-                  contents.substring(attrWithPoints.length() +
-                          index1,
-                          index2).trim();
-          try {
-            port = Integer.parseInt(sPort);
-          } catch (NumberFormatException nfe) {
-            // do nothing;
-          }
+    String attrWithPoints = portAttr + ":";
+    int index1 = contents.indexOf(attrWithPoints, index);
+    if (index1 != -1) {
+      int index2 =
+        contents.indexOf(Constants.LINE_SEPARATOR, index1);
+      if (index2 != -1) {
+        String sPort =
+          contents.substring(attrWithPoints.length() +
+              index1, index2).trim();
+        try {
+          port = Integer.parseInt(sPort);
+        } catch (NumberFormatException nfe) {
+          // do nothing;
         }
       }
     }
     return port;
   }
 
+
+  private int getLDAPPort(String portAttr) throws IOException {
+    String contents = getLowerCaseContents();
+    int index = contents.indexOf("cn=ldap connection handler");
+    if (index != -1) {
+      return extractPort (portAttr, index);
+    }
+    return -1;
+  }
+
   private int getAdminConnectorPort(String portAttr) throws IOException {
-    int port = -1;
     String contents = getLowerCaseContents();
     int index = contents.indexOf("cn=administration connector");
-
     if (index != -1) {
-      String attrWithPoints = portAttr + ":";
-      int index1 = contents.indexOf(attrWithPoints, index);
-      if (index1 != -1) {
-        int index2 =
-                contents.indexOf(Constants.LINE_SEPARATOR, index1);
-        if (index2 != -1) {
-          String sPort =
-                  contents.substring(attrWithPoints.length() +
-                          index1,
-                          index2).trim();
-          try {
-            port = Integer.parseInt(sPort);
-          } catch (NumberFormatException nfe) {
-            // do nothing;
-          }
-        }
-      }
+      return extractPort(portAttr, index);
     }
-    return port;
+    return -1;
   }
 
   /**
@@ -235,7 +223,7 @@ public class Configuration {
       // Note: a better way might be to diff this file with
       // /config/ldif/upgrade/config.ldif.<svn rev>
       isConfigFileModified =
-              getLowerCaseContents().indexOf("# cddl header start") == -1;
+          !getLowerCaseContents().contains("# cddl header start");
     }
 
     return isConfigFileModified;

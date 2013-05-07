@@ -152,10 +152,10 @@ public class TextErrorLogPublisher
 
       if(config.isAsynchronous())
       {
-        this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for " +
-            config.dn().toNormalizedString(), config.getQueueSize(),
-                                              config.isAutoFlush(),
-                                              writer);
+        this.writer = new AsynchronousTextWriter(
+            "Asynchronous Text Writer for " +
+              config.dn().toNormalizedString(),
+            config.getQueueSize(), config.isAutoFlush(), writer);
       }
       else
       {
@@ -508,9 +508,9 @@ public class TextErrorLogPublisher
       TextWriter currentWriter;
       // Determine the writer we are using. If we were writing asyncronously,
       // we need to modify the underlaying writer.
-      if(writer instanceof AsyncronousTextWriter)
+      if(writer instanceof AsynchronousTextWriter)
       {
-        currentWriter = ((AsyncronousTextWriter)writer).getWrappedWriter();
+        currentWriter = ((AsynchronousTextWriter)writer).getWrappedWriter();
       }
       else
       {
@@ -541,24 +541,22 @@ public class TextErrorLogPublisher
           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
         }
 
-        if(writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
+        if(writer instanceof AsynchronousTextWriter && !config.isAsynchronous())
         {
-          // The asynronous setting is being turned off.
-          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter)writer);
+          // The asynchronous setting is being turned off.
+          AsynchronousTextWriter asyncWriter = ((AsynchronousTextWriter)writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
 
-        if(!(writer instanceof AsyncronousTextWriter) &&
+        if(!(writer instanceof AsynchronousTextWriter) &&
             config.isAsynchronous())
         {
-          // The asynronous setting is being turned on.
-          AsyncronousTextWriter asyncWriter =
-              new AsyncronousTextWriter("Asyncronous Text Writer for " +
-                  config.dn().toNormalizedString(), config.getQueueSize(),
-                                                    config.isAutoFlush(),
-                                                    mfWriter);
-          writer = asyncWriter;
+          // The asynchronous setting is being turned on.
+          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " +
+              config.dn().toNormalizedString(), config.getQueueSize(),
+                                                config.isAutoFlush(),
+                                                mfWriter);
         }
 
         if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&

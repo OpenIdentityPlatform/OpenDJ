@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.admin.ads.ADSContext;
+
+
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -43,18 +44,21 @@ import java.util.concurrent.ExecutionException;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
+
+
 /**
- * This class represents the physical state of an OpenDJ installation.
- * All the operations are dependent upon the root directory that is
- * specified in the constructor.
+ * This class represents the physical state of an OpenDJ installation. All the
+ * operations are dependent upon the root directory that is specified in the
+ * constructor.
  */
-public final class Installation {
+public final class Installation
+{
 
   /**
    * Relative path to OpenDJ jar files.
    */
-  public static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
-          {"lib/quicksetup.jar", "lib/OpenDJ.jar", "lib/je.jar"};
+  public static final String[] OPEN_DS_JAR_RELATIVE_PATHS = {
+      "lib/quicksetup.jar", "lib/OpenDJ.jar", "lib/je.jar" };
 
   /**
    * The relative path where all the Windows binaries (batch files) are.
@@ -75,7 +79,7 @@ public final class Installation {
    * The relative path where all the libraries (jar files) are.
    */
   public static final String LIBRARIES_PATH_RELATIVE =
-    SetupUtils.LIBRARIES_PATH_RELATIVE;
+      SetupUtils.LIBRARIES_PATH_RELATIVE;
 
   /**
    * The relative path where the resources directory (to customize the product)
@@ -114,12 +118,6 @@ public final class Installation {
   public static final String CONFIG_PATH_RELATIVE = "config";
 
   /**
-   * The relative path where the archived config files are.
-   */
-  public static final String ARCHIVED_CONFIG_PATH_RELATIVE =
-      CONFIG_PATH_RELATIVE + File.separator + "archived-configs";
-
-  /**
    * The relative path where the config files are.
    */
   public static final String HISTORY_PATH_RELATIVE = "history";
@@ -128,11 +126,6 @@ public final class Installation {
    * Path to the config/upgrade directory where upgrade base files are stored.
    */
   public static final String UPGRADE_PATH = "upgrade";
-
-  /**
-   * Relative path to the change log database directory.
-   */
-  public static final String CHANGELOG_PATH_RELATIVE = "changelogDb";
 
   /**
    * Relative path to the locks directory.
@@ -152,35 +145,28 @@ public final class Installation {
   /**
    * The relative path to the current Configuration LDIF file.
    */
-  public static final String BASE_CONFIG_FILE_PREFIX ="config.ldif.";
-
-  /**
-   * The relative path to the tools.properties file.
-   */
-  public static final String TOOLS_PROPERTIES =
-    CONFIG_PATH_RELATIVE+File.separator+"tools.properties";
+  public static final String BASE_CONFIG_FILE_PREFIX = "config.ldif.";
 
   /**
    * The path to the default instance.
-   */
   public static final String DEFAULT_INSTANCE_PATH = "/var/opendj";
+   */
 
   /**
    * The relative path to the instance.loc file.
    */
-  public static final String INSTANCE_LOCATION_PATH_RELATIVE =
-    "instance.loc";
+  public static final String INSTANCE_LOCATION_PATH_RELATIVE = "instance.loc";
 
   /**
    * The path to the instance.loc file.
    */
-  public static final String INSTANCE_LOCATION_PATH = "/etc/opendj/" +
-    INSTANCE_LOCATION_PATH_RELATIVE;
+  public static final String INSTANCE_LOCATION_PATH = "/etc/opendj/"
+      + INSTANCE_LOCATION_PATH_RELATIVE;
 
   /**
    * The relative path to tmpl_instance.
    */
-  public static final String TMPL_INSTANCE_RELATIVE_PATH = "tmpl_instance";
+  public static final String TEMPLATE_RELATIVE_PATH = "template";
 
   /**
    * The relative path to buildinfo file.
@@ -213,24 +199,9 @@ public final class Installation {
   public static final String UNIX_UPGRADE_FILE_NAME = "upgrade";
 
   /**
-   * The Windows upgrade batch file name.
-   */
-  public static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
-
-  /**
    * The UNIX configure script file name.
    */
   public static final String UNIX_CONFIGURE_FILE_NAME = "configure";
-
-  /**
-   * Newly upgraded Windows upgrade batch file name.  When the upgrade
-   * batch file requires upgrade it is not done during execution of the
-   * upgrade utility itself since replacing a running script on Windows
-   * with a different version leads to unpredictable results.  Instead
-   * this new name is used for the upgraded version and the user is
-   * expected to manually rename the file following the upgrade.
-   */
-  public static final String WINDOWS_UPGRADE_FILE_NAME_NEW = "upgrade.bat.NEW";
 
   /**
    * The UNIX start script file name.
@@ -261,19 +232,7 @@ public final class Installation {
    * The Windows control panel batch file name.
    */
   public static final String WINDOWS_CONTROLPANEL_FILE_NAME =
-    "control-panel.bat";
-
-  /**
-   * The UNIX dsjavaproperties script file name.
-   */
-  public static final String UNIX_DSJAVAPROPERTIES_FILE_NAME =
-    "dsjavaproperties";
-
-  /**
-   * The Windows dsjavaproperties batch file name.
-   */
-  public static final String WINDOWS_DSJAVAPROPERTIES_FILE_NAME =
-    "dsjavaproperties.bat";
+      "control-panel.bat";
 
   /**
    * The MacOS X Java application stub name.
@@ -306,41 +265,10 @@ public final class Installation {
   public static final String WINDOWS_IMPORT_LDIF = "import-ldif.bat";
 
   /**
-   * Name of the file kept in the history directory containing logs
-   * of upgrade and reversions.
+   * Name of the file kept in the history directory containing logs of upgrade
+   * and reversions.
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
-
-  /**
-   * The name of the directory in an upgrade backup directory (child
-   * of the 'history' directory) that contains the install files from a
-   * previous version.
-   */
-  public static final String HISTORY_BACKUP_FILES_DIR_INSTALL = "install";
-
-  /**
-   * The name of the directory in an upgrade backup directory (child
-   * of the 'history' directory) that contains the instance files from a
-   * previous version.
-   */
-
-  public static final String HISTORY_BACKUP_FILES_DIR_INSTANCE = "instance";
-  /**
-   * The name of the directory in an upgrade backup directory (child
-   * of the 'history' directory) that contains the files from a
-   * previous version.
-   */
-  public static final String HISTORY_BACKUP_FILES_DIR_NAME = "files";
-
-  /**
-   * Generic name for the backup tool.
-   */
-  public static final String BACKUP = "backup";
-
-  /**
-   * Generic name for the ldif-diff tool.
-   */
-  public static final String LDIF_DIFF = "ldif-diff";
 
   /**
    * The default java properties file.
@@ -351,13 +279,13 @@ public final class Installation {
    * The default java properties file relative path.
    */
   public static final String RELATIVE_JAVA_PROPERTIES_FILE =
-    CONFIG_PATH_RELATIVE+File.separator+"java.properties";
+      CONFIG_PATH_RELATIVE + File.separator + "java.properties";
 
   /**
    * The set java home and arguments properties file for Windows.
    */
   public static final String SET_JAVA_PROPERTIES_FILE_WINDOWS =
-    "set-java-home.bat";
+      "set-java-home.bat";
 
   /**
    * script utils file for UNIX systems.
@@ -372,70 +300,90 @@ public final class Installation {
   /**
    * The set java home and arguments properties file for UNIX systems.
    */
-  public static final String SET_JAVA_PROPERTIES_FILE_UNIX =
-    "set-java-home";
+  public static final String SET_JAVA_PROPERTIES_FILE_UNIX = "set-java-home";
 
   /**
-   * Directories required to be present for this installation
-   * to be considered valid.
+   * Directories required to be present for this installation to be considered
+   * valid.
    */
-  public static final String[] REQUIRED_DIRECTORIES =
-    new String[] {
-                CONFIG_PATH_RELATIVE,
-                DATABASES_PATH_RELATIVE,
-                LIBRARIES_PATH_RELATIVE
-    };
+  public static final String[] REQUIRED_DIRECTORIES = new String[] {
+      CONFIG_PATH_RELATIVE, DATABASES_PATH_RELATIVE, LIBRARIES_PATH_RELATIVE };
+
+
 
   /**
-   * Performs validation on the specified file to make sure that it is
-   * an actual OpenDJ installation.
-   * @param rootDirectory File directory candidate
-   * @throws IllegalArgumentException if root directory does not appear to
-   *         be an OpenDJ installation root.  The thrown exception contains
-   *         a localized message indicating the reason why
-   *         <code>rootDirectory</code> is not a valid OpenDJ install root.
+   * Performs validation on the specified file to make sure that it is an actual
+   * OpenDJ installation.
+   *
+   * @param rootDirectory
+   *          File directory candidate
+   * @throws IllegalArgumentException
+   *           if root directory does not appear to be an OpenDJ installation
+   *           root. The thrown exception contains a localized message
+   *           indicating the reason why <code>rootDirectory</code> is not a
+   *           valid OpenDJ install root.
    */
   static public void validateRootDirectory(File rootDirectory)
-          throws IllegalArgumentException {
+      throws IllegalArgumentException
+  {
     Message failureReason = null;
-    if (rootDirectory == null) {
+    if (rootDirectory == null)
+    {
       failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NULL.get();
-    } else if (!rootDirectory.exists()) {
-      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NO_EXIST.get(
-              Utils.getPath(rootDirectory));
-    } else if (!rootDirectory.isDirectory()) {
-      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NOT_DIR.get(
-              Utils.getPath(rootDirectory));
-    } else {
+    }
+    else if (!rootDirectory.exists())
+    {
+      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NO_EXIST.get(Utils
+          .getPath(rootDirectory));
+    }
+    else if (!rootDirectory.isDirectory())
+    {
+      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NOT_DIR.get(Utils
+          .getPath(rootDirectory));
+    }
+    else
+    {
       String[] children = rootDirectory.list();
-      if (children != null) {
+      if (children != null)
+      {
         Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
-        for (String dir : REQUIRED_DIRECTORIES) {
-          if (!childrenSet.contains(dir)) {
+        for (String dir : REQUIRED_DIRECTORIES)
+        {
+          if (!childrenSet.contains(dir))
+          {
             failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NO_DIR.get(
-                    Utils.getPath(rootDirectory), dir);
+                Utils.getPath(rootDirectory), dir);
           }
         }
-      } else {
-        failureReason = INFO_ERROR_INSTALL_ROOT_DIR_EMPTY.get(
-                Utils.getPath(rootDirectory));
+      }
+      else
+      {
+        failureReason = INFO_ERROR_INSTALL_ROOT_DIR_EMPTY.get(Utils
+            .getPath(rootDirectory));
       }
     }
-    if (failureReason != null) {
+    if (failureReason != null)
+    {
       throw new IllegalArgumentException(failureReason.toString());
     }
   }
 
+
+
   static private Installation local;
 
+
+
   /**
-   * Obtains the installation by reading the classpath of the running
-   * JVM to determine the location of the jars and determine the
-   * installation root.
+   * Obtains the installation by reading the classpath of the running JVM to
+   * determine the location of the jars and determine the installation root.
+   *
    * @return Installation obtained by reading the classpath
    */
-  static public Installation getLocal() {
-    if (local == null) {
+  static public Installation getLocal()
+  {
+    if (local == null)
+    {
 
       // This allows testing of configuration components when the OpenDJ.jar
       // in the classpath does not necessarily point to the server's
@@ -443,10 +391,12 @@ public final class Installation {
       String instanceRoot = System
           .getProperty("org.opends.quicksetup.instance");
 
-      if (installRoot == null) {
+      if (installRoot == null)
+      {
         installRoot = Utils.getInstallPathFromClasspath();
       }
-      if (instanceRoot == null) {
+      if (instanceRoot == null)
+      {
         instanceRoot = Utils.getInstancePathFromInstallPath(installRoot);
       }
       local = new Installation(installRoot, instanceRoot);
@@ -454,8 +404,10 @@ public final class Installation {
     return local;
   }
 
-  static private final Logger LOG =
-          Logger.getLogger(Installation.class.getName());
+
+
+  static private final Logger LOG = Logger.getLogger(Installation.class
+      .getName());
 
   private File rootDirectory;
 
@@ -471,107 +423,72 @@ public final class Installation {
 
   private BuildInformation instanceInformation;
 
-  /**
-   * Indicates if the install and instance are in the same directory.
-   */
-  private boolean instanceAndInstallInSameDir;
 
   /**
    * Creates a new instance from a root directory specified as a string.
    *
-   * @param rootDirectory of this installation
-   * @param instanceRootDirectory The instance root directory
+   * @param rootDirectory
+   *          of this installation
+   * @param instanceRootDirectory
+   *          The instance root directory
    */
-  public Installation(String rootDirectory, String instanceRootDirectory) {
-    this(new File(rootDirectory),new File(instanceRootDirectory));
+  public Installation(String rootDirectory, String instanceRootDirectory)
+  {
+    this(new File(rootDirectory), new File(instanceRootDirectory));
   }
+
+
 
   /**
    * Creates a new instance from a root directory specified as a File.
    *
-   * @param rootDirectory of this installation
-   *
-   * @param instanceDirectory of the instance
+   * @param rootDirectory
+   *          of this installation
+   * @param instanceDirectory
+   *          of the instance
    */
-  public Installation(File rootDirectory, File instanceDirectory) {
+  public Installation(File rootDirectory, File instanceDirectory)
+  {
     setRootDirectory(rootDirectory);
     setInstanceDirectory(instanceDirectory);
-    try
-    {
-      if (rootDirectory.getCanonicalFile().
-          equals(instanceDirectory.getCanonicalFile()))
-      {
-        instanceAndInstallInSameDir = true ;
-      }
-      else
-      {
-        instanceAndInstallInSameDir = false;
-      }
-    }
-    catch (Throwable t)
-    {
-      if (rootDirectory.getAbsolutePath().
-          equals(instanceDirectory.getAbsolutePath()))
-      {
-        instanceAndInstallInSameDir = true ;
-      }
-      else
-      {
-        instanceAndInstallInSameDir = false;
-      }
-    }
   }
 
-  /**
-   * Indicates if the install and instance are in the same directory.
-   * @return true if the install and instance are in the same directory.
-   */
-  public boolean instanceAndInstallInSameDir()
-  {
-    return instanceAndInstallInSameDir;
-  }
+
 
   /**
    * Gets the top level directory of an OpenDJ installation.
    *
-   * @return File object representing the top level directory of
-   *         and OpenDJ installation
+   * @return File object representing the top level directory of and OpenDJ
+   *         installation
    */
-  public File getRootDirectory() {
+  public File getRootDirectory()
+  {
     return this.rootDirectory;
   }
+
+
 
   /**
    * Gets the top level directory of an OpenDJ instance.
    *
-   * @return File object representing the top level directory of
-   *         and OpenDK installation
+   * @return File object representing the top level directory of and OpenDK
+   *         installation
    */
-  public File getInstanceDirectory() {
+  public File getInstanceDirectory()
+  {
     return this.instanceDirectory;
   }
 
-  /**
-   * Gets the directory of the OpenDJ template instance.
-   *
-   * @return File object representing the top level directory of
-   *         and OpenDJ installation
-   */
-  public File getTmplInstanceDirectory() {
-    File f = new File(getRootDirectory().getAbsolutePath() +
-             File.separator + TMPL_INSTANCE_RELATIVE_PATH );
-    if (f.exists())
-        return f;
-    else
-        return getInstanceDirectory();
-  }
+
 
   /**
    * Sets the root directory of this installation.
    *
-   * @param rootDirectory File of this installation
+   * @param rootDirectory
+   *          File of this installation
    */
-  public void setRootDirectory(File rootDirectory) {
+  public void setRootDirectory(File rootDirectory)
+  {
 
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
@@ -580,23 +497,31 @@ public final class Installation {
 
     // Obtaining build information is a fairly time consuming operation.
     // Try to get a head start if possible.
-    if (isValid(rootDirectory)) {
-      try {
+    if (isValid(rootDirectory))
+    {
+      try
+      {
         BuildInformation bi = getBuildInformation();
-        LOG.log(Level.INFO, "build info for " + rootDirectory.getName() +
-                ": " + bi);
-      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "build info for " + rootDirectory.getName() + ": "
+            + bi);
+      }
+      catch (ApplicationException e)
+      {
         LOG.log(Level.INFO, "error determining build information", e);
       }
     }
   }
 
+
+
   /**
    * Sets the root directory of this instance.
    *
-   * @param instanceDirectory File of this instance
+   * @param instanceDirectory
+   *          File of this instance
    */
-  public void setInstanceDirectory(File instanceDirectory) {
+  public void setInstanceDirectory(File instanceDirectory)
+  {
 
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
@@ -605,633 +530,708 @@ public final class Installation {
 
     // Obtaining build information is a fairly time consuming operation.
     // Try to get a head start if possible.
-    if (isValid(instanceDirectory)) {
-      try {
+    if (isValid(instanceDirectory))
+    {
+      try
+      {
         BuildInformation bi = getBuildInformation();
-        LOG.log(Level.INFO, "build info for " + instanceDirectory.getName() +
-                ": " + bi);
-      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "build info for " + instanceDirectory.getName()
+            + ": " + bi);
+      }
+      catch (ApplicationException e)
+      {
         LOG.log(Level.INFO, "error determining build information", e);
       }
     }
   }
 
+
+
   /**
-   * Indicates whether or not this installation appears to be an actual
-   * OpenDJ installation.
-   * @param file The root directory
-   * @return boolean where true indicates that this does indeed appear to be
-   * a valid OpenDJ installation; false otherwise
+   * Indicates whether or not this installation appears to be an actual OpenDJ
+   * installation.
+   *
+   * @param file
+   *          The root directory
+   * @return boolean where true indicates that this does indeed appear to be a
+   *         valid OpenDJ installation; false otherwise
    */
-  public boolean isValid(File file) {
+  public boolean isValid(File file)
+  {
     boolean valid = true;
-    try {
+    try
+    {
       validateRootDirectory(file);
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e)
+    {
       valid = false;
     }
     return valid;
   }
 
+
+
   /**
    * Creates a string explaining why this is not a legitimate OpenDJ
-   * installation.  Null if this is in fact a vaild installation.
-   * @return localized message indicating the reason this is not an
-   * OpenDJ installation
+   * installation. Null if this is in fact a vaild installation.
+   *
+   * @return localized message indicating the reason this is not an OpenDJ
+   *         installation
    */
-  public String getInvalidityReason() {
+  public String getInvalidityReason()
+  {
     String reason = null;
-    try {
+    try
+    {
       validateRootDirectory(rootDirectory);
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e)
+    {
       reason = e.getLocalizedMessage();
     }
     return reason;
   }
 
+
+
   /**
-   * Gets the Configuration object representing this file.  The
-   * current configuration is stored in config/config.ldif.
+   * Gets the Configuration object representing this file. The current
+   * configuration is stored in config/config.ldif.
    *
    * @return Configuration representing the current configuration.
    */
-  public Configuration getCurrentConfiguration() {
-    if (configuration == null) {
+  public Configuration getCurrentConfiguration()
+  {
+    if (configuration == null)
+    {
       configuration = new Configuration(this, getCurrentConfigurationFile());
     }
     return configuration;
   }
 
+
+
   /**
-   * Gets the Configuration object representing this file.  The base
+   * Gets the Configuration object representing this file. The base
    * configuration is stored in config/upgrade/config.ldif.[svn rev].
    *
    * @return Configuration object representing the base configuration.
-   * @throws ApplicationException if there was a problem determining the
-   * svn rev number.
+   * @throws ApplicationException
+   *           if there was a problem determining the svn rev number.
    */
-  public Configuration getBaseConfiguration() throws ApplicationException {
-    if (baseConfiguration == null) {
+  public Configuration getBaseConfiguration() throws ApplicationException
+  {
+    if (baseConfiguration == null)
+    {
       baseConfiguration = new Configuration(this, getBaseConfigurationFile());
     }
     return baseConfiguration;
   }
 
+
+
   /**
    * Gets the current status of this installation.
+   *
    * @return Status object representing the state of this installation.
    */
-  public Status getStatus() {
-    if (status == null) {
+  public Status getStatus()
+  {
+    if (status == null)
+    {
       status = new Status(this);
     }
     return status;
   }
+
+
 
   /**
    * Returns the path to the libraries.
    *
    * @return the path to the libraries.
    */
-  public File getLibrariesDirectory() {
+  public File getLibrariesDirectory()
+  {
     return new File(getRootDirectory(), LIBRARIES_PATH_RELATIVE);
   }
+
+
 
   /**
    * Returns the path to the resources directory.
    *
    * @return the path to the resources directory.
    */
-  public File getResourcesDirectory() {
+  public File getResourcesDirectory()
+  {
     return new File(getRootDirectory(), RESOURCES_PATH_RELATIVE);
   }
+
+
 
   /**
    * Returns the path to the classes directory.
    *
    * @return the path to the classes directory.
    */
-  public File getClassesDirectory() {
+  public File getClassesDirectory()
+  {
     return new File(getRootDirectory(), CLASSES_PATH_RELATIVE);
   }
 
-  /**
-   * Returns the path to the tools properties file.
-   *
-   * @return the path to the tools properties file.
-   */
-  public File getToolsPropertiesFile() {
-    return new File(getTmplInstanceDirectory(), TOOLS_PROPERTIES);
-  }
+
 
   /**
-   * Returns the path to the set-java-home file.
-   *
-   * @return the path to the set-java-home file.
-   */
-  public File getSetJavaHomeFile() {
-    return new File(getInstanceDirectory().getAbsolutePath() + File.separator +
-            LIBRARIES_PATH_RELATIVE,
-        Utils.isWindows()?SET_JAVA_PROPERTIES_FILE_WINDOWS :
-          SET_JAVA_PROPERTIES_FILE_UNIX);
-  }
-
-  /**
-   * Creates a File object representing config/upgrade/schema.ldif.current
-   * which the server creates the first time it starts if there are schema
+   * Creates a File object representing config/upgrade/schema.ldif.current which
+   * the server creates the first time it starts if there are schema
    * customizations.
    *
    * @return File object with no
    */
-  public File getSchemaConcatFile() {
-    return new File(getConfigurationUpgradeDirectory(),
-                    "schema.ldif.current");
+  public File getSchemaConcatFile()
+  {
+    return new File(getConfigurationUpgradeDirectory(), "schema.ldif.current");
   }
 
+
+
   /**
-   * Creates a File object representing config/upgrade/schema.ldif.current
-   * which the server creates the first time it starts if there are schema
+   * Creates a File object representing config/upgrade/schema.ldif.current which
+   * the server creates the first time it starts if there are schema
    * customizations.
    *
    * @return File object with no
-   * @throws ApplicationException if there was a problem determining the
-   *                             svn revision number
+   * @throws ApplicationException
+   *           if there was a problem determining the svn revision number
    */
-  public File getBaseSchemaFile() throws ApplicationException {
-    return new File(getConfigurationUpgradeDirectory(),
-                  "schema.ldif." + getInstanceSvnRev().toString());
+  public File getBaseSchemaFile() throws ApplicationException
+  {
+    return new File(getConfigurationUpgradeDirectory(), "schema.ldif."
+        + getInstanceSvnRev().toString());
   }
 
-  /**
-   * Creates a File object representing
-   * tmpl_instance/config/upgrade/schema.ldif.current.
-   *
-   * @return File object representing
-   *  tmpl_instance/config/upgrade/schema.ldif.current
-   * @throws ApplicationException if there was a problem determining the
-   *                             svn revision number
-   */
-  public File getTemplSchemaFile() throws ApplicationException {
-    return new File(getTmplInstanceDirectory().getAbsolutePath() +
-                  File.separator + CONFIG_PATH_RELATIVE +
-                  File.separator + UPGRADE_PATH,
-                  "schema.ldif." + getSvnRev().toString());
-  }
+
 
   /**
-   * Creates a File object representing
-   * tmpl_instance/config/upgrade/config.ldif.current.
-   *
-   * @return File object representing
-   *  tmpl_instance/config/upgrade/config.ldif.current
-   * @throws ApplicationException if there was a problem determining the
-   *                             svn revision number
-   */
-  public File getTemplConfigFile() throws ApplicationException {
-    return new File(getTmplInstanceDirectory().getAbsolutePath() +
-                  File.separator + CONFIG_PATH_RELATIVE +
-                  File.separator + UPGRADE_PATH,
-                  BASE_CONFIG_FILE_PREFIX + getSvnRev().toString());
-  }
-
-  /**
-   * Creates a File object representing config/upgrade/schema.ldif.current
-   * which the server creates the first time it starts if there are schema
+   * Creates a File object representing config/upgrade/schema.ldif.current which
+   * the server creates the first time it starts if there are schema
    * customizations.
    *
    * @return File object with no
-   * @throws ApplicationException if there was a problem determining the
-   *                             svn revision number
+   * @throws ApplicationException
+   *           if there was a problem determining the svn revision number
    */
-  public File getBaseConfigurationFile() throws ApplicationException {
-    return new File(getConfigurationUpgradeDirectory(),
-            BASE_CONFIG_FILE_PREFIX + getInstanceSvnRev().toString());
+  public File getBaseConfigurationFile() throws ApplicationException
+  {
+    return new File(getConfigurationUpgradeDirectory(), BASE_CONFIG_FILE_PREFIX
+        + getInstanceSvnRev().toString());
   }
+
+
 
   /**
    * Gets the SVN revision number of the build.
    *
    * @return Integer representing the svn number
-   * @throws ApplicationException if for some reason the number could not
-   *                             be determined
+   * @throws ApplicationException
+   *           if for some reason the number could not be determined
    */
-  public Integer getSvnRev() throws ApplicationException {
+  public Integer getSvnRev() throws ApplicationException
+  {
     BuildInformation bi = getBuildInformation();
     return bi.getRevisionNumber();
   }
+
+
 
   /**
    * Gets the SVN revision number of the instance.
    *
    * @return Integer representing the svn number
-   * @throws ApplicationException if for some reason the number could not
-   *                             be determined
+   * @throws ApplicationException
+   *           if for some reason the number could not be determined
    */
-  public Integer getInstanceSvnRev() throws ApplicationException {
+  public Integer getInstanceSvnRev() throws ApplicationException
+  {
     BuildInformation bi = getInstanceBuildInformation();
     return bi.getRevisionNumber();
   }
 
+
+
   /**
-   * Returns the path to the configuration file of the directory server.  Note
+   * Returns the path to the configuration file of the directory server. Note
    * that this method assumes that this code is being run locally.
    *
    * @return the path of the configuration file of the directory server.
    */
-  public File getCurrentConfigurationFile() {
+  public File getCurrentConfigurationFile()
+  {
     return new File(getConfigurationDirectory(), CURRENT_CONFIG_FILE_NAME);
   }
 
-  /**
-   * Returns the path to the ADS file of the directory server.  Note
-   * that this method assumes that this code is being run locally.
-   *
-   * @return the path of the ADS file of the directory server.
-   */
-  public File getADSBackendFile() {
-    return new File(getTmplInstanceDirectory(), ADSContext.getAdminLDIFFile());
-  }
+
 
   /**
    * Returns the relative path of the directory containing the binaries/scripts
-   * of the Open DS installation.  The path is relative to the installation
-   * path.
+   * of the Open DS installation. The path is relative to the installation path.
    *
    * @return the relative path of the directory containing the binaries/scripts
    *         of the Open DS installation.
    */
-  public File getBinariesDirectory() {
+  public File getBinariesDirectory()
+  {
     File binPath;
-    if (Utils.isWindows()) {
+    if (Utils.isWindows())
+    {
       binPath = new File(getRootDirectory(), WINDOWS_BINARIES_PATH_RELATIVE);
-    } else {
+    }
+    else
+    {
       binPath = new File(getRootDirectory(), UNIX_BINARIES_PATH_RELATIVE);
     }
     return binPath;
   }
+
+
 
   /**
    * Returns the path to the database files under the install path.
    *
    * @return the path to the database files under the install path.
    */
-  public File getDatabasesDirectory() {
+  public File getDatabasesDirectory()
+  {
     return new File(getInstanceDirectory(), DATABASES_PATH_RELATIVE);
   }
+
+
 
   /**
    * Returns the path to the backup files under the install path.
    *
    * @return the path to the backup files under the install path.
    */
-  public File getBackupDirectory() {
+  public File getBackupDirectory()
+  {
     return new File(getInstanceDirectory(), BACKUPS_PATH_RELATIVE);
   }
 
-  /**
-   * Returns the path to the archived config files under the install path.
-   *
-   * @return the path to the archived config files under the install path.
-   */
-  public File getArchivedConfigsDirectory() {
-    return new File(getInstanceDirectory(), ARCHIVED_CONFIG_PATH_RELATIVE);
-  }
+
 
   /**
    * Returns the path to the config files under the install path.
    *
    * @return the path to the config files under the install path.
    */
-  public File getConfigurationDirectory() {
+  public File getConfigurationDirectory()
+  {
     return new File(getInstanceDirectory(), CONFIG_PATH_RELATIVE);
   }
 
-  /**
-   * Returns the path to the config files under the instance path.
-   *
-   * @return the path to the config files under the instance path.
-   */
-  public File getInstallConfigurationDirectory() {
-    return new File(getRootDirectory(), CONFIG_PATH_RELATIVE);
-  }
+
 
   /**
    * Returns the path to the log files under the install path.
    *
    * @return the path to the log files under the install path.
    */
-  public File getLogsDirectory() {
+  public File getLogsDirectory()
+  {
     return new File(getInstanceDirectory(), LOGS_PATH_RELATIVE);
   }
 
+
+
   /**
    * Returns the directory where the lock files are stored.
    *
    * @return the path to the lock files.
    */
-  public File getLocksDirectory() {
+  public File getLocksDirectory()
+  {
     return new File(getInstanceDirectory(), LOCKS_PATH_RELATIVE);
   }
 
+
+
+  /**
+   * Gets the directory used to store the template configuration.
+   *
+   * @return The directory used to store the template configuration.
+   */
+  public File getTemplateDirectory()
+  {
+    return new File(getRootDirectory(), TEMPLATE_RELATIVE_PATH);
+  }
+
+
+
   /**
    * Gets the directory used to store files temporarily.
+   *
    * @return File temporary directory
    */
-  public File getTemporaryDirectory() {
+  public File getTemporaryDirectory()
+  {
     return new File(getInstanceDirectory(), TMP_PATH_RELATIVE);
   }
+
+
 
   /**
    * Returns the directory where the lock files are stored.
    *
    * @return the path to the lock files.
    */
-  public File getHistoryDirectory() {
+  public File getHistoryDirectory()
+  {
     return new File(getInstanceDirectory(), HISTORY_PATH_RELATIVE);
   }
 
+
+
   /**
-   * Creates a new directory in the history directory appropriate
-   * for backing up an installation during an upgrade.
-   * @return File representing a new backup directory.  The directory
-   * can be assumed to exist if this method returns cleanly.
-   * @throws IOException if an error occurred creating the directory.
+   * Creates a new directory in the history directory appropriate for backing up
+   * an installation during an upgrade.
+   *
+   * @return File representing a new backup directory. The directory can be
+   *         assumed to exist if this method returns cleanly.
+   * @throws IOException
+   *           if an error occurred creating the directory.
    */
-  public File createHistoryBackupDirectory() throws IOException {
-    File backupDirectory =
-            new File(getHistoryDirectory(),
-                     Long.toString(System.currentTimeMillis()));
-    if (backupDirectory.exists()) {
+  public File createHistoryBackupDirectory() throws IOException
+  {
+    File backupDirectory = new File(getHistoryDirectory(), Long.toString(System
+        .currentTimeMillis()));
+    if (backupDirectory.exists())
+    {
       backupDirectory.delete();
     }
-    if (!backupDirectory.mkdirs()) {
+    if (!backupDirectory.mkdirs())
+    {
       throw new IOException("failed to create history backup directory");
     }
     return backupDirectory;
   }
 
+
+
   /**
    * Gets the log file where the history of upgrades and reversions is kept.
+   *
    * @return File containing upgrade/reversion history.
    */
-  public File getHistoryLogFile() {
+  public File getHistoryLogFile()
+  {
     return new File(getHistoryDirectory(), HISTORY_LOG_FILE_NAME);
   }
 
+
+
   /**
    * Gets the directory config/upgrade.
+   *
    * @return File representing the config/upgrade directory
    */
-  public File getConfigurationUpgradeDirectory() {
+  public File getConfigurationUpgradeDirectory()
+  {
     return new File(getConfigurationDirectory(), UPGRADE_PATH);
   }
 
+
+
   /**
    * Gets the directory where the upgrader stores files temporarily.
+   *
    * @return File representing the upgrader's temporary directory
    */
-  public File getTemporaryUpgradeDirectory() {
+  public File getTemporaryUpgradeDirectory()
+  {
     return new File(getTemporaryDirectory(), UPGRADE_PATH);
   }
 
+
+
   /**
-   * Gets the file for invoking a particular command appropriate for
-   * the current operating system.
-   * @param command namd of the command
+   * Gets the file for invoking a particular command appropriate for the current
+   * operating system.
+   *
+   * @param command
+   *          namd of the command
    * @return File representing the command
    */
-  public File getCommandFile(String command) {
+  public File getCommandFile(String command)
+  {
     File commandFile;
-    if (Utils.isWindows()) {
-      commandFile = new File(getBinariesDirectory(),
-              command + ".bat");
-    } else {
-      commandFile = new File(getBinariesDirectory(),
-              command);
+    if (Utils.isWindows())
+    {
+      commandFile = new File(getBinariesDirectory(), command + ".bat");
+    }
+    else
+    {
+      commandFile = new File(getBinariesDirectory(), command);
     }
     return commandFile;
   }
 
+
+
   /**
-   * Gets the file responsible for stopping the server appropriate
-   * for the current operating system.
+   * Gets the file responsible for stopping the server appropriate for the
+   * current operating system.
+   *
    * @return File representing the stop command
    */
-  public File getServerStartCommandFile() {
+  public File getServerStartCommandFile()
+  {
     File startCommandFile;
-    if (Utils.isWindows()) {
+    if (Utils.isWindows())
+    {
       startCommandFile = new File(getBinariesDirectory(),
-              WINDOWS_START_FILE_NAME);
-    } else {
-      startCommandFile = new File(getBinariesDirectory(),
-              UNIX_START_FILE_NAME);
+          WINDOWS_START_FILE_NAME);
+    }
+    else
+    {
+      startCommandFile = new File(getBinariesDirectory(), UNIX_START_FILE_NAME);
     }
     return startCommandFile;
   }
 
+
+
   /**
-   * Gets the file responsible for stopping the server appropriate
-   * for the current operating system.
+   * Gets the file responsible for stopping the server appropriate for the
+   * current operating system.
+   *
    * @return File representing the stop command
    */
-  public File getServerStopCommandFile() {
+  public File getServerStopCommandFile()
+  {
     File stopCommandFile;
-    if (Utils.isWindows()) {
+    if (Utils.isWindows())
+    {
       stopCommandFile = new File(getBinariesDirectory(),
-              WINDOWS_STOP_FILE_NAME);
-    } else {
+          WINDOWS_STOP_FILE_NAME);
+    }
+    else
+    {
       stopCommandFile = new File(getBinariesDirectory(),
-              UNIX_STOP_FILE_NAME);
+          UNIX_STOP_FILE_NAME);
     }
     return stopCommandFile;
   }
+
+
 
   /**
    * Returns the 'ldif' directory.
    *
    * @return the 'ldif' directory.
    */
-  public File getLdifDirectory() {
+  public File getLdifDirectory()
+  {
     return new File(getRootDirectory(), LDIFS_PATH_RELATIVE);
   }
+
+
 
   /**
    * Returns the path to the quicksetup jar file.
    *
    * @return the path to the quicksetup jar file.
    */
-  public File getQuicksetupJarFile() {
+  public File getQuicksetupJarFile()
+  {
     return new File(getLibrariesDirectory(), "quicksetup.jar");
   }
+
+
 
   /**
    * Returns the path to the opends jar file.
    *
    * @return the path to the opends jar file.
    */
-  public File getOpenDSJarFile() {
+  public File getOpenDSJarFile()
+  {
     return new File(getLibrariesDirectory(), "OpenDJ.jar");
   }
+
+
 
   /**
    * Returns the path to the uninstall.bat file.
    *
    * @return the path to the uninstall.bat file.
    */
-  public File getUninstallBatFile() {
+  public File getUninstallBatFile()
+  {
     return new File(getRootDirectory(), "uninstall.bat");
   }
+
+
 
   /**
    * Gets the control panel command file appropriate for the current operating
    * system.
+   *
    * @return File object representing the control panel command
    */
-  public File getControlPanelCommandFile() {
+  public File getControlPanelCommandFile()
+  {
     File controlPanelCommandFile;
-    if (Utils.isWindows()) {
+    if (Utils.isWindows())
+    {
       controlPanelCommandFile = new File(getBinariesDirectory(),
-              WINDOWS_CONTROLPANEL_FILE_NAME);
-    } else if (Utils.isMacOS()) {
-      controlPanelCommandFile = new File(getRootDirectory() +
-        File.separator + MAC_APPLICATIONS_PATH_RELATIVE,
-        MAC_CONTROLPANEL_FILE_NAME);
-    } else {
+          WINDOWS_CONTROLPANEL_FILE_NAME);
+    }
+    else if (Utils.isMacOS())
+    {
+      controlPanelCommandFile = new File(getRootDirectory() + File.separator
+          + MAC_APPLICATIONS_PATH_RELATIVE, MAC_CONTROLPANEL_FILE_NAME);
+    }
+    else
+    {
       controlPanelCommandFile = new File(getBinariesDirectory(),
-              UNIX_CONTROLPANEL_FILE_NAME);
+          UNIX_CONTROLPANEL_FILE_NAME);
     }
     return controlPanelCommandFile;
   }
 
-  /**
-   * Gets the status command file appropriate for the current operating
-   * system.
-   * @return File object representing the status command
-   */
-  public File getStatusCommandFile() {
-    File statusPanelCommandFile;
-    if (Utils.isWindows()) {
-      statusPanelCommandFile = new File(getBinariesDirectory(),
-              WINDOWS_STATUSCLI_FILE_NAME);
-    } else {
-      statusPanelCommandFile = new File(getBinariesDirectory(),
-              UNIX_STATUSCLI_FILE_NAME);
-    }
-    return statusPanelCommandFile;
-  }
 
-  /**
-   * Gets the dsjavaproperties file appropriate for the current operating
-   * system.
-   * @return File object representing the dsjavaproperties command
-   */
-  public File getJavaPropertiesCommandFile() {
-    File javaPropertiesCommandFile;
-    if (Utils.isWindows()) {
-      javaPropertiesCommandFile = new File(getBinariesDirectory(),
-          WINDOWS_DSJAVAPROPERTIES_FILE_NAME);
-    } else {
-      javaPropertiesCommandFile = new File(getBinariesDirectory(),
-          UNIX_DSJAVAPROPERTIES_FILE_NAME);
-    }
-    return javaPropertiesCommandFile;
-  }
 
-  /**
-   * Gets information about the build that was used to produce the bits
-   * for this installation.
+   /**
+   * Gets information about the build that was used to produce the bits for this
+   * installation.
+   *
    * @return BuildInformation object describing this installation
-   * @throws ApplicationException if there is a problem obtaining the
-   * build information
+   * @throws ApplicationException
+   *           if there is a problem obtaining the build information
    */
-  public BuildInformation getBuildInformation() throws ApplicationException {
+  public BuildInformation getBuildInformation() throws ApplicationException
+  {
     return getBuildInformation(true);
   }
 
+
+
   /**
-   * Gets information about the build that was used to produce the bits
-   * for this installation.
-   * @param useCachedVersion where true indicates that a potentially cached
-   * version of the build information is acceptable for use; false indicates
-   * the the build information will be created from scratch which is potentially
-   * time consuming
+   * Gets information about the build that was used to produce the bits for this
+   * installation.
+   *
+   * @param useCachedVersion
+   *          where true indicates that a potentially cached version of the
+   *          build information is acceptable for use; false indicates the the
+   *          build information will be created from scratch which is
+   *          potentially time consuming
    * @return BuildInformation object describing this installation
-   * @throws ApplicationException if there is a problem obtaining the
-   * build information
+   * @throws ApplicationException
+   *           if there is a problem obtaining the build information
    */
   public BuildInformation getBuildInformation(boolean useCachedVersion)
-          throws ApplicationException
+      throws ApplicationException
   {
-    if (buildInformation == null || !useCachedVersion) {
+    if (buildInformation == null || !useCachedVersion)
+    {
       FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
-              new Callable<BuildInformation>() {
+          new Callable<BuildInformation>()
+          {
 
-                @Override
-                public BuildInformation call() throws ApplicationException {
-                  return BuildInformation.create(Installation.this);
-                }
-              });
+            @Override
+            public BuildInformation call() throws ApplicationException
+            {
+              return BuildInformation.create(Installation.this);
+            }
+          });
       new Thread(ft).start();
-      try {
+      try
+      {
         buildInformation = ft.get();
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e)
+      {
         LOG.log(Level.INFO, "interrupted trying to get build information", e);
-      } catch (ExecutionException e) {
-        throw (ApplicationException)e.getCause();
+      }
+      catch (ExecutionException e)
+      {
+        throw (ApplicationException) e.getCause();
       }
     }
     return buildInformation;
   }
 
+
+
   /**
-   * Gets information about the build that was used to produce the
-   * instance.
+   * Gets information about the build that was used to produce the instance.
+   *
    * @return BuildInformation object describing this instance
    */
-  public BuildInformation getInstanceBuildInformation() {
+  public BuildInformation getInstanceBuildInformation()
+  {
     return getInstanceBuildInformation(true);
   }
 
+
+
   /**
-   * Gets information about the build that was used to produce the
-   * instance.
-   * @param useCachedVersion where true indicates that a potentially cached
-   * version of the build information is acceptable for use; false indicates
-   * the build information will be created from scratch which is potentially
-   * time consuming
+   * Gets information about the build that was used to produce the instance.
+   *
+   * @param useCachedVersion
+   *          where true indicates that a potentially cached version of the
+   *          build information is acceptable for use; false indicates the build
+   *          information will be created from scratch which is potentially time
+   *          consuming
    * @return BuildInformation object describing this instance
    */
-  public BuildInformation
-          getInstanceBuildInformation(boolean useCachedVersion) {
-    if (instanceInformation == null || !useCachedVersion) {
-      try {
+  public BuildInformation getInstanceBuildInformation(boolean useCachedVersion)
+  {
+    if (instanceInformation == null || !useCachedVersion)
+    {
+      try
+      {
         File bif = new File(getConfigurationDirectory(),
-          BUILDINFO_RELATIVE_PATH);
+            BUILDINFO_RELATIVE_PATH);
 
-        if (bif.exists()) {
+        if (bif.exists())
+        {
           BufferedReader reader = new BufferedReader(new FileReader(bif));
 
           // Read the first line and close the file.
           String line;
-          try {
+          try
+          {
             line = reader.readLine();
             instanceInformation = BuildInformation.fromBuildString(line);
-          } finally {
-            try {
+          }
+          finally
+          {
+            try
+            {
               reader.close();
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
+              // do nothing
             }
           }
-        } else {
+        }
+        else
+        {
           return getBuildInformation();
         }
-      } catch (Exception e) {
-        LOG.log(Level.SEVERE, "error getting build information for " +
-                "current instance", e);
+      }
+      catch (Exception e)
+      {
+        LOG.log(Level.SEVERE, "error getting build information for "
+            + "current instance", e);
       }
     }
     return instanceInformation;
 
   }
 
-  }
+}

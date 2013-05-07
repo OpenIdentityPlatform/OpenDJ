@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
@@ -30,8 +31,7 @@
  * Defines the specific classes that are used by both the web start
  * applications.
  * This package only contains for the moment the class that is used to download
- * the jar files that contain the new installation files (or the files to be
- * used in the upgrade).
+ * the jar files that contain the new installation files.
  *
  */
 package org.opends.quicksetup.webstart;
