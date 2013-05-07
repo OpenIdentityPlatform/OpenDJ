@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="main_replication-safe-data"/>
@@ -63,6 +64,7 @@
               commonSuiteList.append('changelog')
               commonSuiteList.append('conflict')
               commonSuiteList.append('externalchangelog')
+              commonSuiteList.append('externalchangelog_consistency')
               commonSuiteList.append('aci')
   
               # Safe-data mode specific test suites

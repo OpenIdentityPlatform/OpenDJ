@@ -22,6 +22,7 @@
 #
 #
 #      Copyright 2007-2010 Sun Microsystems, Inc.
+#      Portions Copyright 2013 Forgerock AS
 
 TEST_OS_STRING                = '${tests.os.string}'
 TEST_JVM_STRING               = '${tests.jvm.string}'
@@ -30,7 +31,7 @@ STAF_REMOTE_HOSTNAME          = '${remote.hostname}'
 STAF_CLIENT_HOSTNAME          = '${client.hostname}'
 TMPDIR                        = '${temp.dir}'
 PRODUCTNAME                   = '${product.name}'
-OPENDSNAME                    = '${opends.name}'
+OPENDSNAME                    = 'opendj'
 ZIPNAME                       = '${opends.name}.zip'
 ZIPPATH                       = '${opends.dir}'
 TESTS_TIMESTAMP               = '${tests.timestamp}'
@@ -74,7 +75,7 @@ WC_SSL_PORT                   = '9001'
 WC_HOST                       = '${remote.hostname}'
 DSML_WARNAME                  = '${opends.name}-DSML.war'
 DSML_WARPATH                  = '${opends.dir}/${opends.name}-DSML.war'
-SNMP_OPENDS_JARFILE           = '${opends.name}/lib/extensions/snmp-mib2605.jar'
+SNMP_OPENDS_JARFILE           = 'opendj/lib/extensions/snmp-mib2605.jar'
 SNMP_OPENDMK_LIBDIR           = '${snmp.opendmk.lib.dir}'
 SNMP_OPENDMK_JARFILE          = '${snmp.opendmk.lib.dir}/jdmkrt.jar'
 SNMP_PORT                     = '8085'
