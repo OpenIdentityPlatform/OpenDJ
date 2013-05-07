@@ -1095,16 +1095,7 @@ public class InstallerHelper {
     }
     finally
     {
-      if (fs != null)
-      {
-        try
-        {
-          fs.close();
-        }
-        catch (Throwable t)
-        { /* do nothing */
-        }
-      }
+      StaticUtils.close(fs);
     }
     return fileProperties;
   }

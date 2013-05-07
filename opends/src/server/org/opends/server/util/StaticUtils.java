@@ -64,6 +64,9 @@ import java.util.RandomAccess;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
@@ -4669,6 +4672,10 @@ public final class StaticUtils
    */
   public static void close(Selector... selectors)
   {
+    if (selectors == null)
+    {
+      return;
+    }
     for (Selector selector : selectors)
     {
       if (selector != null)
@@ -4696,6 +4703,10 @@ public final class StaticUtils
    */
   public static void close(Socket... sockets)
   {
+    if (sockets == null)
+    {
+      return;
+    }
     for (Socket socket : sockets)
     {
       if (socket != null)
@@ -4707,6 +4718,34 @@ public final class StaticUtils
         catch (IOException ignored)
         {
           // Ignore.
+        }
+      }
+    }
+  }
+
+  /**
+   * Closes the provided {@link InitialLdapContext}s ignoring any errors which
+   * occurred.
+   *
+   * @param ctxs
+   *          The contexts to be closed, which may be <code>null</code>.
+   */
+  public static void close(InitialLdapContext... ctxs)
+  {
+    if (ctxs == null)
+    {
+      return;
+    }
+    for (InitialLdapContext ctx : ctxs)
+    {
+      if (ctx != null)
+      {
+        try
+        {
+          ctx.close();
+        }
+        catch (NamingException ignored)
+        {
         }
       }
     }
