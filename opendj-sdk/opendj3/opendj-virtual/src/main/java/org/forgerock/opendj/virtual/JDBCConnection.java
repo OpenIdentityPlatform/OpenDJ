@@ -24,6 +24,7 @@ package org.forgerock.opendj.virtual;
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -220,7 +221,7 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
       final String compareAttributeName = request.getAttributeDescription().toString();
       final String compareAttributeValue = request.getAssertionValueAsString();
       final String compareColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, compareAttributeName);
-     
+
       final Statement st = connection.createStatement();
       final String sql = "SELECT * FROM " + tableName + " WHERE " + columnName + "='" + filterAttributeValue + "' AND " + compareColumnName + "='" +  compareAttributeValue + "'";
       final ResultSet rs = st.executeQuery(sql);
@@ -366,13 +367,265 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   {
     // TODO Auto-generated method stub
   }
-  
+
+  private String convertSearchFilter(final Filter filter, final String baseDN){
+    String filterString = filter.toString();
+    int stringIndex = 0;
+    int subStringCount = 0;
+
+    while(filterString.charAt(stringIndex) == '('){
+      if(filterString.charAt(stringIndex + 2) == '('){
+        subStringCount++;
+      }
+      stringIndex += 2;
+    }
+    int subStringStartIndex = 2 * subStringCount;
+    int subStringEndIndex = 0;
+    final String[] subStrings = new String[subStringCount];
+    final char[] operationChars = new char[subStringCount];
+
+    while(subStringStartIndex > 0){
+      final char operationChar = filterString.charAt(subStringStartIndex - 1);
+      subStringEndIndex = filterString.indexOf("))") + 1;
+      String subString = filterString.substring(subStringStartIndex, subStringEndIndex);
+      subString = subString.replace("()","");
+
+      operationChars[subStringCount - subStringStartIndex / 2] = operationChar;
+      subStrings[subStringCount - subStringStartIndex / 2] = subString;
+
+      final String replaceString = filterString.substring(subStringStartIndex - 1, subStringEndIndex);
+      filterString = filterString.replace(replaceString, "");
+
+      subStringStartIndex-=2;
+    }
+    String convertedFilterString = "";
+
+    for(int i = 0; i < subStringCount; i++){
+      final char operationChar = operationChars[i];
+      if(operationChar == '!'){
+        String subString = subStrings[i];
+        if(subString.isEmpty()){
+          subString = subStrings[i-1];
+          subString = subString.replace(">=", ">");
+          subString = subString.replace("<=", "<");
+          subString = subString.replace("=", "!=");
+          subString = subString.replace(">", ">=");
+          subString = subString.replace("<", "<=");
+          subStrings[i-1] = subString;
+        }
+        else{
+          subString = subString.replace(">=", ">");
+          subString = subString.replace("<=", "<");
+          subString = subString.replace("=", "!=");
+          subString = subString.replace(">", ">=");
+          subString = subString.replace("<", "<=");
+          subStrings[i] = subString;
+        }
+      }
+    }
+    boolean multipleSubStrings = false;
+    if(subStringCount > 1) multipleSubStrings = true;
+
+    for(int i = 0; i < subStringCount; i++){
+      final char operationChar = operationChars[i];
+      String operationString = "";
+
+      if(operationChar == '&'){
+        operationString = " AND ";
+      }
+      else if (operationChar == '|'){
+        operationString = " OR ";
+      }
+
+      String subString = subStrings[i];
+      if (subString.isEmpty()) continue;
+
+      subString = subString.substring(1, subString.length() - 1);
+      String[] subStringSplitter = subString.split("\\)\\(");
+
+      for(int j = 0; j < subStringSplitter.length; j++){
+        String subStringFilter = subStringSplitter[j];
+        final String[] subStringFilterSplitter;
+
+        subStringFilter = subStringFilter.replace("\\02a", "*");
+        subStringFilter = subStringFilter.replace("\\028", "(");
+        subStringFilter = subStringFilter.replace("\\029", ")");
+
+        if(subStringFilter.contains("!=")) subStringFilterSplitter = subStringFilter.split("!=");
+        else if(subStringFilter.contains("<=")) subStringFilterSplitter = subStringFilter.split("<=");
+        else if(subStringFilter.contains(">=")) subStringFilterSplitter = subStringFilter.split(">=");
+        else subStringFilterSplitter = subStringFilter.split("=");
+
+        final String filterAttributeName = subStringFilterSplitter[0];
+        String filterColumnName = null;;
+        Object columnDataType = null;
+        final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+        for(Iterator<String> iter = OUList.iterator(); iter.hasNext();){
+          final String OUName = iter.next();
+          final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+          filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
+
+          if(filterColumnName == null) continue;
+          else columnDataType = jdbcm.getTableColumnDataType(tableName, filterColumnName);
+          break;
+        }
+
+        if(columnDataType != Integer.class){
+          String filterAttributeValue = subStringFilterSplitter[1];
+          String filterColumnValue = "'" + filterAttributeValue + "'";
+          filterAttributeValue = filterAttributeValue.replace("*", "\\*");
+          filterAttributeValue = filterAttributeValue.replace("(", "\\(");
+          filterAttributeValue = filterAttributeValue.replace(")", "\\)");
+
+          if(filterColumnValue.length() > 3 && filterColumnValue.contains("*")){
+            filterColumnValue = filterColumnValue.replace("*", "%");
+
+            if(subStringFilter.contains("!=")) subStringFilter = subStringFilter.replace("!=", " not like ");
+            else subStringFilter = subStringFilter.replace("=", " like ");
+          }
+          subStringFilter = subStringFilter.replaceFirst(filterAttributeValue, filterColumnValue);
+        }
+
+        if(filterColumnName == null) continue;
+        subStringFilter = subStringFilter.replaceFirst(filterAttributeName, filterColumnName);
+
+        if(j != 0 || i != 0) convertedFilterString = convertedFilterString.concat(operationString);
+        convertedFilterString = convertedFilterString.concat(subStringFilter);
+      }
+      if(multipleSubStrings && i < subStringCount -1) convertedFilterString = "(" + convertedFilterString + ")";
+    }
+    return convertedFilterString;
+  }
 
   @Override
   public Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException
   {
-    // TODO Auto-generated method stub
-    return null;
+    Result r;
+    try{
+      final DN DN = request.getName();
+      final int DNSize = DN.size();
+      final String baseDN = DN.parent(DNSize - 2).toString();
+      RDN OU = null;
+      RDN rDN = null;
+      String OUName = "";
+      String rDNAttributeName = "";
+      String rDNAttributeValue = "";
+
+      if(DNSize > 3){
+        OU = DN.parent(1).rdn();
+        OUName = OU.getFirstAVA().getAttributeValue().toString();
+        rDN = DN.parent(0).rdn();
+        rDNAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+        rDNAttributeValue = rDN.getFirstAVA().getAttributeValue().toString();
+      }
+      else if(DNSize > 2){
+        OU = DN.parent(0).rdn();
+        OUName = OU.getFirstAVA().getAttributeValue().toString();
+      }
+
+
+      final List<String> returnAttributeNames = request.getAttributes();
+      final List<String> returnColumnNames = new ArrayList<String>();
+
+      final Filter searchFilter = request.getFilter();
+      final String convertedFilterString = convertSearchFilter(searchFilter, baseDN);
+
+      if(returnAttributeNames != null){
+
+        for(Iterator<String> iter = returnAttributeNames.iterator();iter.hasNext();){
+
+          if(OU == null){
+            final String returnAttributeName = iter.next();
+            final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+            for(Iterator<String> iterOU = OUList.iterator(); iterOU.hasNext();){
+              OUName = iterOU.next();
+              final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+              final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
+
+              if(returnColumnName == null) continue;
+              else returnColumnNames.add(returnColumnName);
+              break;
+            }
+          }
+          else {
+            final String returnAttributeName = iter.next();
+            final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+            final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
+            returnColumnNames.add(returnColumnName);
+          }
+        }
+      }
+      String selectString = "";
+      String fromString = "";
+      String whereString = convertedFilterString;
+
+      if(returnColumnNames.isEmpty()) selectString = "*";
+
+      if(OU == null){
+        final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+        for(int i = 0; i < OUList.size(); i++){
+          final String currentOU = OUList.get(i);
+          final String currentTable = jdbcm.getTableNameFromMapping(baseDN, currentOU);
+
+          if(currentTable == null) continue;
+          final List<String> currentTableColumnNames = jdbcm.getTableColumns(currentTable);
+
+          if(i > 0) fromString = fromString.concat(",");
+          fromString = fromString.concat(currentTable);
+
+          for(int j = 0; j < returnColumnNames.size(); j++){
+            final String returnColumnName = returnColumnNames.get(j);
+
+            if(currentTableColumnNames.contains(returnColumnName)){
+              if(j > 0) selectString = selectString.concat(",");
+              selectString = selectString.concat(currentTable + "." + returnColumnName);
+            }
+          }
+        }
+      }
+      else{
+        final String selectTable = jdbcm.getTableNameFromMapping(baseDN, OUName);
+        fromString = fromString.concat(selectTable);
+
+        for(int j = 0; j < returnColumnNames.size(); j++){
+          final String returnColumnName = returnColumnNames.get(j);
+
+          if(j > 0) selectString = selectString.concat(",");
+          selectString = selectString.concat(returnColumnName);
+        }
+
+        if(rDN != null){
+          final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+          final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, rDNAttributeName);
+          whereString = columnName + "='" + rDNAttributeValue + "'";
+        }
+      }
+
+      String sql = "SELECT " + selectString + " FROM " + fromString;
+      if(!whereString.isEmpty()) sql = sql.concat(" WHERE " + whereString);
+            
+      final Statement st = connection.createStatement();
+      ResultSet rs = st.executeQuery(sql);
+      ResultSetMetaData rsmd = rs.getMetaData();
+
+      while (rs.next()) {
+        System.out.println("# Row: " +rs.getRow()); 
+                
+        for(int i = 1; i <= rsmd.getColumnCount(); i++){
+          System.out.println(rsmd.getTableName(i) + ":" + rsmd.getColumnName(i) + " = " + rs.getObject(i));
+        }
+        System.out.println();
+      }
+      
+      r = Responses.newResult(ResultCode.SUCCESS);
+    }catch (SQLException e){
+      System.out.println(e.toString());
+      r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+    }
+    return r;
   }
 
   @Override
