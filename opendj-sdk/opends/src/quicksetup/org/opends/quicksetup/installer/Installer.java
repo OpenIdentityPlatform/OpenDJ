@@ -98,6 +98,7 @@ import org.opends.quicksetup.installer.ui.RuntimeOptionsPanel;
 import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
 import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -315,6 +316,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSubStep(WizardStep step)
   {
     return SUBSTEPS.contains(step);
@@ -1675,16 +1677,7 @@ public abstract class Installer extends GuiApplication {
       }
       finally
       {
-        if (ctx != null)
-        {
-          try
-          {
-            ctx.close();
-          }
-          catch (Throwable t)
-          { /* do nothing */
-          }
-        }
+        StaticUtils.close(ctx);
       }
     }
     InstallerHelper helper = new InstallerHelper();
@@ -1705,16 +1698,7 @@ public abstract class Installer extends GuiApplication {
       {
         notifyListeners(getFormattedError(ae, true));
       }
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (Throwable t)
-        { /* do nothing */
-        }
-      }
+      StaticUtils.close(ctx);
       notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
@@ -1856,16 +1840,7 @@ public abstract class Installer extends GuiApplication {
     }
     finally
     {
-      try
-      {
-        if (ctx != null)
-        {
-          ctx.close();
-        }
-      }
-      catch (Throwable t)
-      { /* do nothing */
-      }
+      StaticUtils.close(ctx);
     }
 
     notifyListeners(getFormattedDoneWithLineBreak());
@@ -2005,16 +1980,7 @@ public abstract class Installer extends GuiApplication {
     }
     finally
     {
-      try
-      {
-        if (ctx != null)
-        {
-          ctx.close();
-        }
-      }
-      catch (Throwable t)
-      { /* do nothing */
-      }
+      StaticUtils.close(ctx);
     }
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
@@ -2131,13 +2097,7 @@ public abstract class Installer extends GuiApplication {
 
         hmConfiguredRemoteReplication.put(server, repl);
 
-        try
-        {
-          ctx.close();
-        }
-        catch (Throwable t)
-        { /* do nothing */
-        }
+        StaticUtils.close(ctx);
         notifyListeners(getFormattedDoneWithLineBreak());
         checkAbort();
       }
@@ -2314,16 +2274,7 @@ public abstract class Installer extends GuiApplication {
     }
     finally
     {
-      try
-      {
-        if (writer != null)
-        {
-          writer.close();
-        }
-      }
-      catch (Exception ex)
-      { /* do nothing */
-      }
+      StaticUtils.close(writer);
     }
   }
 
@@ -2484,16 +2435,7 @@ public abstract class Installer extends GuiApplication {
     {
       Message failedMsg =
               getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
-      try
-      {
-        if (ctx != null)
-        {
-          ctx.close();
-        }
-      }
-      catch (Throwable t1)
-      { /* do nothing */
-      }
+      StaticUtils.close(ctx);
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
     }
@@ -2546,8 +2488,7 @@ public abstract class Installer extends GuiApplication {
       }
       finally
       {
-        try{ rCtx.close(); }
-        catch (Throwable t){ /* do nothing */ }
+        StaticUtils.close(rCtx);
       }
     }
 
@@ -2627,13 +2568,7 @@ public abstract class Installer extends GuiApplication {
           }
           finally
           {
-            try
-            {
-              rCtx.close();
-            }
-            catch (Throwable t)
-            { /* do nothing */
-            }
+            StaticUtils.close(rCtx);
           }
         }
         if (replicationId == -1)
@@ -2642,11 +2577,7 @@ public abstract class Installer extends GuiApplication {
               ReturnCode.APPLICATION_ERROR,
               ERR_COULD_NOT_FIND_REPLICATIONID.get(dn), null);
         }
-        try
-        {
-          Thread.sleep(3000);
-        }
-        catch (Throwable t) { /* do nothing */ }
+        StaticUtils.sleep(3000);
         int nTries = 5;
         boolean initDone = false;
         while (!initDone)
@@ -2670,29 +2601,14 @@ public abstract class Installer extends GuiApplication {
                   ReturnCode.APPLICATION_ERROR,
                   pnfe.getMessageObject(), null);
             }
-            try
-            {
-              Thread.sleep((5 - nTries) * 3000);
-            }
-            catch (Throwable t)
-            { /* do nothing */
-            }
+            StaticUtils.sleep((5 - nTries) * 3000);
           }
           nTries--;
         }
       }
       catch (ApplicationException ae)
       {
-        try
-        {
-          if (ctx != null)
-          {
-            ctx.close();
-          }
-        }
-        catch (Throwable t1)
-        { /* do nothing */
-        }
+        StaticUtils.close(ctx);
         throw ae;
       }
       if ((isADS || isSchema) && isVerbose())
@@ -2885,12 +2801,7 @@ public abstract class Installer extends GuiApplication {
     }
     finally
     {
-      if (null != remoteCtx)
-        try { remoteCtx.close(); }
-        catch (NamingException x){ /* do nothing */ }
-      if (null != localCtx)
-        try { localCtx.close(); }
-        catch (NamingException x){ /* do nothing */ }
+      StaticUtils.close(remoteCtx, localCtx);
     }
   }
 
@@ -3904,16 +3815,7 @@ public abstract class Installer extends GuiApplication {
     }
     finally
     {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (Throwable t)
-        { /* do nothing */
-        }
-      }
+      StaticUtils.close(ctx);
     }
   }
 
@@ -4672,13 +4574,7 @@ public abstract class Installer extends GuiApplication {
         // server will receive a connect error.
         checkAbort();
       }
-      try
-      {
-        Thread.sleep(500);
-      }
-      catch (Throwable t)
-      { /* do nothing */
-      }
+      StaticUtils.sleep(500);
       if (canceled)
       {
         // TODO: we should try to cleanly abort the initialize.  As we have
@@ -4973,13 +4869,7 @@ public abstract class Installer extends GuiApplication {
     String lastLogMsg = null;
     while (!isOver)
     {
-      try
-      {
-        Thread.sleep(500);
-      }
-      catch (Throwable t)
-      { /* do nothing */
-      }
+      StaticUtils.sleep(500);
       try
       {
         NamingEnumeration<SearchResult> res =
@@ -5087,13 +4977,7 @@ public abstract class Installer extends GuiApplication {
         }
         else
         {
-          try
-          {
-            Thread.sleep(100);
-          }
-          catch (Throwable t)
-          { /* do nothing */
-          }
+          StaticUtils.sleep(100);
         }
       }
       if (thread.getException() != null)
