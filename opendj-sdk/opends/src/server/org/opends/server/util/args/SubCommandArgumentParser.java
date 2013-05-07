@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -741,11 +741,17 @@ public class SubCommandArgumentParser extends ArgumentParser
     int numArguments = rawArguments.length;
     for (int i=0; i < numArguments; i++)
     {
-      String arg = rawArguments[i];
+      final String arg = rawArguments[i];
 
       if (inTrailingArgs)
       {
         trailingArguments.add(arg);
+
+        if (subCommand == null)
+        {
+          throw new ArgumentException(ERR_ARG_SUBCOMMAND_INVALID.get());
+        }
+
         if ((subCommand.getMaxTrailingArguments() > 0) &&
             (trailingArguments.size() > subCommand.getMaxTrailingArguments()))
         {

@@ -23,39 +23,26 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
 
 import org.opends.messages.Message;
 
-import static org.opends.messages.QuickSetupMessages.*;
-
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.html.HTMLEditorKit;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.BevelBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
+import static org.opends.messages.QuickSetupMessages.*;
 
 
 /**
@@ -78,11 +65,6 @@ public class UIFactory
    * Specifies the horizontal insets between buttons.
    */
   public static final int HORIZONTAL_INSET_BETWEEN_BUTTONS = 5;
-
-  /**
-   * Specifies the horizontal inset for the control panel sub section.
-   */
-  public static final int HORIZONTAL_INSET_CONTROL_PANEL_SUBSECTION = 20;
 
   /**
    * Specifies the top inset for the steps.
@@ -154,11 +136,6 @@ public class UIFactory
   public static final int TOP_INSET_BROWSE = 5;
 
   /**
-   * Specifies the top inset for the control panel sub section.
-   */
-  public static final int TOP_INSET_CONTROL_PANEL_SUBSECTION = 30;
-
-  /**
    * Specifies the right inset for background image.
    */
   public static final int RIGHT_INSET_BACKGROUND = 20;
@@ -207,6 +184,11 @@ public class UIFactory
    * Specifies the bottom inset for the background image.
    */
   public static final int BOTTOM_INSET_BACKGROUND = 30;
+
+  /**
+   * Specifies the top inset for a secondary field.
+   */
+  public static final int BOTTOM_INSET_SECONDARY_FIELD = 5;
 
   /**
    * Specifies the number of columns of a text field for a path.
@@ -797,16 +779,6 @@ public class UIFactory
   }
 
   /**
-   * Creates a JComboBox.
-   * @return JComboBox a new combo box
-   */
-  static public JComboBox makeJComboBox() {
-    JComboBox cbo = new JComboBox();
-    cbo.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-    return cbo;
-  }
-
-  /**
    * Creates a JButton with the given label and tooltip.
    * @param label the text of the button.
    * @param tooltip the tooltip of the button.
@@ -1331,58 +1303,6 @@ public class UIFactory
     return buf.toString();
   }
 
-
-  /**
-   * Returns a table created with the provided model and renderers.
-   * @param tableModel the table model.
-   * @param renderer the cell renderer.
-   * @param headerRenderer the header renderer.
-   * @return a table created with the provided model and renderers.
-   */
-  public static JTable makeSortableTable(final SortableTableModel tableModel,
-      TableCellRenderer renderer,
-      TableCellRenderer headerRenderer)
-  {
-    final JTable table = new JTable(tableModel);
-    table.setShowGrid(true);
-    table.setGridColor(UIFactory.PANEL_BORDER_COLOR);
-    table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-    table.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
-    table.getTableHeader().setBackground(UIFactory.DEFAULT_BACKGROUND);
-    table.setRowMargin(0);
-
-    for (int i=0; i<tableModel.getColumnCount(); i++)
-    {
-      TableColumn col = table.getColumn(table.getColumnName(i));
-      col.setCellRenderer(renderer);
-      col.setHeaderRenderer(headerRenderer);
-    }
-    MouseAdapter listMouseListener = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        TableColumnModel columnModel = table.getColumnModel();
-        int viewColumn = columnModel.getColumnIndexAtX(e.getX());
-        int sortedBy = table.convertColumnIndexToModel(viewColumn);
-        if (e.getClickCount() == 1 && sortedBy != -1) {
-          tableModel.setSortAscending(!tableModel.isSortAscending());
-          tableModel.setSortColumn(sortedBy);
-          tableModel.forceResort();
-        }
-      }
-    };
-    table.getTableHeader().addMouseListener(listMouseListener);
-    return table;
-  }
-
-  /**
-   * Creates a header renderer for a JTable with our own look and feel.
-   * @return a header renderer for a JTable with our own look and feel.
-   */
-  public static TableCellRenderer makeHeaderRenderer()
-  {
-    return new HeaderRenderer();
-  }
-
   /**
    * Returns a String that contains the html passed as parameter with a div
    * applied.  The div style corresponds to the Font specified as parameter.
@@ -1412,8 +1332,11 @@ public class UIFactory
   {
     StringBuilder buf = new StringBuilder();
 
-    buf.append("font-family:" + font.getName()).append(
-        ";font-size:" + font.getSize() + "pt");
+    buf.append("font-family:")
+        .append(font.getName())
+        .append(";font-size:")
+        .append(font.getSize())
+        .append("pt");
 
     if (font.isItalic())
     {
@@ -1478,10 +1401,8 @@ public class UIFactory
   public static String applyMargin(String html, int top, int right, int bottom,
       int left)
   {
-    String result =
-        "<div style=\"margin:" + top + "px " + right + "px " + bottom + "px "
-            + left + "px;\">" + html + DIV_CLOSE;
-    return result;
+    return "<div style=\"margin:" + top + "px " + right + "px " + bottom + "px "
+        + left + "px;\">" + html + DIV_CLOSE;
   }
 
   /**
@@ -1545,7 +1466,7 @@ public class UIFactory
    */
   private static String getIconPath(IconType iconType)
   {
-    Message key = null;
+    Message key;
     switch (iconType)
     {
     case CURRENT_STEP:
@@ -1625,7 +1546,7 @@ public class UIFactory
    */
   private static Message getIconDescription(IconType iconType)
   {
-    Message description = null;
+    Message description;
     switch (iconType)
     {
     case CURRENT_STEP:
@@ -1793,7 +1714,7 @@ public class UIFactory
 
   private static ListCellRenderer makeCellRenderer(final TextStyle textStyle)
   {
-    ListCellRenderer renderer = new ListCellRenderer()
+    return new ListCellRenderer()
     {
       public Component getListCellRendererComponent(JList list,
           Object value,
@@ -1807,50 +1728,6 @@ public class UIFactory
         return l;
       }
     };
-    return renderer;
-  }
-}
-
-/**
- * Class used to render the table headers.
- */
-class HeaderRenderer extends DefaultTableCellRenderer
-{
-  private static final long serialVersionUID = -8604332267021523835L;
-
-  /**
-   * Default constructor.
-   */
-  public HeaderRenderer()
-  {
-    super();
-    UIFactory.setTextStyle(this, UIFactory.TextStyle.PRIMARY_FIELD_VALID);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object value,
-      boolean isSelected, boolean hasFocus, int row, int column) {
-    setText((String)value);
-    JComponent comp = (JComponent)super.getTableCellRendererComponent(table,
-        value, isSelected, hasFocus, row, column);
-    if (column == 0)
-    {
-      comp.setBorder(BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder(1, 1, 1, 1,
-              UIFactory.PANEL_BORDER_COLOR),
-              BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-    }
-    else
-    {
-      comp.setBorder(BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder(1, 0, 1, 1,
-              UIFactory.PANEL_BORDER_COLOR),
-              BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-    }
-    return comp;
   }
 }
 

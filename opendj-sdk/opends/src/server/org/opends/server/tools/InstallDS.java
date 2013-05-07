@@ -43,11 +43,15 @@ import java.io.PrintStream;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.ldap.LdapName;
+
 import org.opends.messages.Message;
+import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
@@ -65,8 +69,6 @@ import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.CertificateManager;
@@ -79,6 +81,9 @@ import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
+
+
+
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
@@ -100,10 +105,10 @@ public class InstallDS extends ConsoleApplication
   private final PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opendj-setup-";
+  static public final String TMP_FILE_PREFIX = "opendj-setup-";
 
   /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
+  public static final String LOG_FILE_SUFFIX = ".log";
 
   /**
    * The enumeration containing the different return codes that the command-line
@@ -262,7 +267,7 @@ public class InstallDS extends ConsoleApplication
 
   public static void main(String[] args)
   {
-    int retCode = mainCLI(args, true, System.out, System.err, System.in);
+    int retCode = mainCLI(args, System.out, System.err, System.in);
 
     System.exit(retCode);
   }
@@ -278,7 +283,7 @@ public class InstallDS extends ConsoleApplication
 
   public static int mainCLI(String[] args)
   {
-    return mainCLI(args, true, System.out, System.err, System.in);
+    return mainCLI(args, System.out, System.err, System.in);
   }
 
   /**
@@ -287,7 +292,6 @@ public class InstallDS extends ConsoleApplication
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
-   * @param initializeServer   Indicates whether to initialize the server.
    * @param  outStream         The output stream to use for standard output, or
    *                           <CODE>null</CODE> if standard output is not
    *                           needed.
@@ -298,7 +302,7 @@ public class InstallDS extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainCLI(String[] args, boolean initializeServer,
+  public static int mainCLI(String[] args,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
     PrintStream out;
@@ -326,7 +330,7 @@ public class InstallDS extends ConsoleApplication
     try {
       QuickSetupLog.initLogFileHandler(
               QuickSetupLog.isInitialized() ? null :
-                File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+                File.createTempFile(TMP_FILE_PREFIX, LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
@@ -334,7 +338,7 @@ public class InstallDS extends ConsoleApplication
 
     InstallDS install = new InstallDS(out, err, inStream);
 
-    return install.execute(args, initializeServer);
+    return install.execute(args);
   }
 
   /**
@@ -342,11 +346,9 @@ public class InstallDS extends ConsoleApplication
    * run the setup CLI.
    *
    * @param args the command-line arguments provided to this program.
-   * @param  initializeServer  Indicates whether to initialize the server.
-   *
    * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG).
    */
-  public int execute(String[] args, boolean initializeServer)
+  public int execute(String[] args)
   {
     argParser = new InstallDSArgumentParser(InstallDS.class.getName());
     try
@@ -435,7 +437,8 @@ public class InstallDS extends ConsoleApplication
         String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
         String yesShort = INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString();
         String noShort = INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString();
-        println(INFO_LICENSE_DETAILS_CLI_LABEL.get());
+        println(QuickSetupMessages.
+            INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
         BufferedReader in = getInputStream();
         while (true)
@@ -449,7 +452,8 @@ public class InstallDS extends ConsoleApplication
                 || (response.equalsIgnoreCase(noShort))
                 || (response.length() == 0))
             {
-              return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
+              return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED
+                  .getReturnCode();
             }
             else
             if (response.equalsIgnoreCase(yes)
@@ -460,28 +464,16 @@ public class InstallDS extends ConsoleApplication
             }
             else
             {
-              println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+              println(QuickSetupMessages
+                  .INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
             }
           }
           catch (IOException e)
           {
-            println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+            println(QuickSetupMessages.
+                INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
           }
         }
-      }
-    }
-
-    if (initializeServer)
-    {
-      try
-      {
-        initializeDirectoryServer(argParser.configFileArg.getValue(),
-            argParser.configClassArg.getValue());
-      }
-      catch (InitializationException ie)
-      {
-        println(ie.getMessageObject());
-        return ErrorReturnCode.ERROR_INITIALIZING_SERVER.getReturnCode();
       }
     }
 
@@ -525,7 +517,7 @@ public class InstallDS extends ConsoleApplication
       while (isInteractive() && promptAgain)
       {
         promptAgain = false;
-        ConfirmCode confirm = askForConfirmation(uData);
+        ConfirmCode confirm = askForConfirmation();
         switch (confirm)
         {
         case CONTINUE:
@@ -646,64 +638,6 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Initialize the directory server to be able to perform the operations
-   * required during the installation.
-   * @param configFile the configuration file to be used to initialize the
-   * server.
-   * @param configClass the configuration class to be used to initialize the
-   * server.
-   * @throws InitializationException if there was an error during
-   * initialization.
-   */
-  private void initializeDirectoryServer(String configFile, String configClass)
-  throws InitializationException
-  {
-    printlnProgress();
-    printProgress(Message.raw(DirectoryServer.getVersionString()));
-    printlnProgress();
-    printProgress(INFO_INSTALLDS_INITIALIZING.get());
-    printlnProgress();
-
-    // Perform a base-level initialization that will be required to get
-    // minimal functionality like DN parsing to work.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-    DirectoryServer.bootstrapClient();
-
-    try
-    {
-      DirectoryServer.initializeJMX();
-    }
-    catch (Throwable t)
-    {
-      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_JMX.get(
-              String.valueOf(configFile), t.getMessage());
-      throw new InitializationException(message, t);
-    }
-
-    try
-    {
-      directoryServer.initializeConfiguration(configClass, configFile);
-    }
-    catch (Throwable t)
-    {
-      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_CONFIG.get(
-              configFile, t.getMessage());
-      throw new InitializationException(message, t);
-    }
-
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (Throwable t)
-    {
-      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_SCHEMA.get(
-              configFile, t.getMessage());
-      throw new InitializationException(message, t);
-    }
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -765,8 +699,6 @@ public class InstallDS extends ConsoleApplication
   throws UserDataException
   {
     LinkedList<Message> errorMessages = new LinkedList<Message>();
-    uData.setConfigurationClassName(argParser.configClassArg.getValue());
-    uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
@@ -775,7 +707,7 @@ public class InstallDS extends ConsoleApplication
 
     try
     {
-      DN.decode(dmDN);
+      new LdapName(dmDN);
       if (dmDN.trim().length() == 0)
       {
         errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
@@ -801,7 +733,7 @@ public class InstallDS extends ConsoleApplication
     {
       try
       {
-        DN.decode(baseDN);
+        new LdapName(baseDN);
       }
       catch (Exception e)
       {
@@ -1056,8 +988,6 @@ public class InstallDS extends ConsoleApplication
    */
   private void promptIfRequired(UserData uData) throws UserDataException
   {
-    uData.setConfigurationClassName(argParser.configClassArg.getValue());
-    uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
@@ -1182,7 +1112,7 @@ public class InstallDS extends ConsoleApplication
       {
         try
         {
-          DN.decode(dn);
+          new LdapName(dn);
           if (dn.trim().length() == 0)
           {
             toRemove.add(dn);
@@ -1251,7 +1181,7 @@ public class InstallDS extends ConsoleApplication
    * This method returns a valid port value.  It checks that the provided
    * argument contains a valid port. If a valid port is not found it prompts
    * the user to provide a valid port.
-   * @param arg the Argument that the user provided to specify the port.
+   * @param portArg the Argument that the user provided to specify the port.
    * @param promptMsg the prompt message to be displayed.
    * @param usedPorts the list of ports the user provided before for other
    * connection handlers.
@@ -1714,8 +1644,6 @@ public class InstallDS extends ConsoleApplication
     }
 
     // Ask to enable SSL
-    ldapsPort = -1;
-
     if (!argParser.ldapsPortArg.isPresent())
     {
       println();
@@ -2092,10 +2020,7 @@ public class InstallDS extends ConsoleApplication
         }
         else if (certManager.hasRealAliases())
         {
-          for (int i=0; i<aliases.length; i++)
-          {
-            nicknameList.add(aliases[i]);
-          }
+          Collections.addAll(nicknameList, aliases);
           String aliasString = Utils.getStringFromCollection(nicknameList,
               ", ");
           if (certNickname != null)
@@ -2641,11 +2566,10 @@ public class InstallDS extends ConsoleApplication
    * This method asks the user to confirm to continue the setup.  It basically
    * displays the information provided by the user and at the end proposes a
    * menu with the different options to choose from.
-   * @param uData the UserData that the user provided.
    * @return the answer provided by the user: cancel setup, continue setup or
    * provide information again.
    */
-  private ConfirmCode askForConfirmation(UserData uData)
+  private ConfirmCode askForConfirmation()
   {
     ConfirmCode returnValue;
 
@@ -2797,4 +2721,5 @@ public class InstallDS extends ConsoleApplication
   {
     return argParser.getConnectTimeout();
   }
+
 }

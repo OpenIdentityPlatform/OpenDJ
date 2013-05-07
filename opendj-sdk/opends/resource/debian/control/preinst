@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+# Pre installation section
+# Insert your pre installation code here.
+echo 
+# End of the pre installation section

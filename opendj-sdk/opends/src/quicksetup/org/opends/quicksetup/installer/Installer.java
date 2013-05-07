@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
 
@@ -78,6 +78,7 @@ import org.opends.quicksetup.UserDataConfirmationException;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 
@@ -314,16 +315,6 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  @Override
-  public boolean canQuit(WizardStep step) {
-    return step != PROGRESS &&
-    step != FINISHED;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isSubStep(WizardStep step)
   {
     return SUBSTEPS.contains(step);
@@ -896,15 +887,17 @@ public abstract class Installer extends GuiApplication {
   protected void configureServer() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
 
-    writeOpenDSJavaHome();
-
-    writeHostName();
-
     if (Utils.isWebStart())
     {
       String installDir = getUserData().getServerLocation();
       setInstallation(new Installation(installDir, installDir));
     }
+
+    copyTemplateInstance();
+
+    writeOpenDSJavaHome();
+
+    writeHostName();
 
     checkAbort();
 
@@ -1069,11 +1062,9 @@ public abstract class Installer extends GuiApplication {
       @Override
       public void run()
       {
-        int result = -1;
         try
         {
-          result = helper.invokeConfigureServer(args);
-          if (result != 0)
+          if (helper.invokeConfigureServer(args) != 0)
           {
             ae = new ApplicationException(
                 ReturnCode.CONFIGURATION_ERROR,
@@ -1662,12 +1653,9 @@ public abstract class Installer extends GuiApplication {
               {
                 throw ace;
               }
-              else
-              {
-                // Nothing to do: this may occur if the new server has been
-                // unregistered on another server and the modification has
-                // been already propagated by replication.
-              }
+              // Else, nothing to do: this may occur if the new server has been
+              // unregistered on another server and the modification has been
+              // already propagated by replication.
             }
           }
           if (createdAdministrator)
@@ -1694,7 +1682,7 @@ public abstract class Installer extends GuiApplication {
             ctx.close();
           }
           catch (Throwable t)
-          {
+          { /* do nothing */
           }
         }
       }
@@ -1724,7 +1712,7 @@ public abstract class Installer extends GuiApplication {
           ctx.close();
         }
         catch (Throwable t)
-        {
+        { /* do nothing */
         }
       }
       notifyListeners(getFormattedDoneWithLineBreak());
@@ -1876,7 +1864,7 @@ public abstract class Installer extends GuiApplication {
         }
       }
       catch (Throwable t)
-      {
+      { /* do nothing */
       }
     }
 
@@ -2025,7 +2013,7 @@ public abstract class Installer extends GuiApplication {
         }
       }
       catch (Throwable t)
-      {
+      { /* do nothing */
       }
     }
     notifyListeners(getFormattedDoneWithLineBreak());
@@ -2148,7 +2136,7 @@ public abstract class Installer extends GuiApplication {
           ctx.close();
         }
         catch (Throwable t)
-        {
+        { /* do nothing */
         }
         notifyListeners(getFormattedDoneWithLineBreak());
         checkAbort();
@@ -2334,7 +2322,7 @@ public abstract class Installer extends GuiApplication {
         }
       }
       catch (Exception ex)
-      {
+      { /* do nothing */
       }
     }
   }
@@ -2345,10 +2333,9 @@ public abstract class Installer extends GuiApplication {
    */
   private String getHostNameFile()
   {
-    String file = Utils.getPath(
+    return Utils.getPath(
         getInstallation().getRootDirectory().getAbsolutePath(),
         SetupUtils.HOST_NAME_FILE);
-    return file;
   }
 
   /**
@@ -2505,7 +2492,7 @@ public abstract class Installer extends GuiApplication {
         }
       }
       catch (Throwable t1)
-      {
+      { /* do nothing */
       }
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
@@ -2560,7 +2547,7 @@ public abstract class Installer extends GuiApplication {
       finally
       {
         try{ rCtx.close(); }
-        catch (Throwable t){}
+        catch (Throwable t){ /* do nothing */ }
       }
     }
 
@@ -2645,7 +2632,7 @@ public abstract class Installer extends GuiApplication {
               rCtx.close();
             }
             catch (Throwable t)
-            {
+            { /* do nothing */
             }
           }
         }
@@ -2659,7 +2646,7 @@ public abstract class Installer extends GuiApplication {
         {
           Thread.sleep(3000);
         }
-        catch (Throwable t) {}
+        catch (Throwable t) { /* do nothing */ }
         int nTries = 5;
         boolean initDone = false;
         while (!initDone)
@@ -2688,7 +2675,7 @@ public abstract class Installer extends GuiApplication {
               Thread.sleep((5 - nTries) * 3000);
             }
             catch (Throwable t)
-            {
+            { /* do nothing */
             }
           }
           nTries--;
@@ -2704,7 +2691,7 @@ public abstract class Installer extends GuiApplication {
           }
         }
         catch (Throwable t1)
-        {
+        { /* do nothing */
         }
         throw ae;
       }
@@ -2739,7 +2726,7 @@ public abstract class Installer extends GuiApplication {
     InitialLdapContext localCtx = null; // Bound to local server.
     ADSContext adsContext = null; // Bound to ADS host (via one of above).
 
-    /* Outer try-catch-finally to convert occurences of NamingException and
+    /* Outer try-catch-finally to convert occurrences of NamingException and
        ADSContextException to ApplicationException and clean up JNDI contexts.*/
     try
     {
@@ -2899,9 +2886,11 @@ public abstract class Installer extends GuiApplication {
     finally
     {
       if (null != remoteCtx)
-        try { remoteCtx.close(); } catch (NamingException x){ }
+        try { remoteCtx.close(); }
+        catch (NamingException x){ /* do nothing */ }
       if (null != localCtx)
-        try { localCtx.close(); } catch (NamingException x){ }
+        try { localCtx.close(); }
+        catch (NamingException x){ /* do nothing */ }
     }
   }
 
@@ -3255,7 +3244,7 @@ public abstract class Installer extends GuiApplication {
                 serverLocation, String.valueOf(requiredInMb)));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
 
-      } else if (isWindows() && (serverLocation.indexOf("%") != -1))
+      } else if (isWindows() && (serverLocation.contains("%")))
       {
         errorMsgs.add(INFO_INVALID_CHAR_IN_PATH.get("%"));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
@@ -3768,14 +3757,7 @@ public abstract class Installer extends GuiApplication {
       {
         /* Check if there are already global administrators */
         Set<?> administrators = adsContext.readAdministratorRegistry();
-        if (administrators.size() > 0)
-        {
-          hasGlobalAdministrators[0] = true;
-        }
-        else
-        {
-          hasGlobalAdministrators[0] = false;
-        }
+        hasGlobalAdministrators[0] = administrators.size() > 0;
         Set<TopologyCacheException> exceptions =
         updateUserDataWithSuffixesInADS(adsContext, trustManager);
         Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
@@ -3929,7 +3911,7 @@ public abstract class Installer extends GuiApplication {
           ctx.close();
         }
         catch (Throwable t)
-        {
+        { /* do nothing */
         }
       }
     }
@@ -4239,7 +4221,7 @@ public abstract class Installer extends GuiApplication {
 
             nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
           } catch (NumberFormatException nfe)
-          {
+          { /* do nothing */
           }
 
           if (!nEntriesValid)
@@ -4558,7 +4540,7 @@ public abstract class Installer extends GuiApplication {
    * @param server the object describing the server.
    * @param trustManager the trust manager to be used to establish the
    * connection.
-   * @param preferredURLs the list of preferred LDAP URLs to be used to connect
+   * @param cnx the list of preferred LDAP URLs to be used to connect
    * to the server.
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
@@ -4695,7 +4677,7 @@ public abstract class Installer extends GuiApplication {
         Thread.sleep(500);
       }
       catch (Throwable t)
-      {
+      { /* do nothing */
       }
       if (canceled)
       {
@@ -4909,12 +4891,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getConfigurationFile()
   {
-    String file = getUserData().getConfigurationFile();
-    if (file == null)
-    {
-      file = getPath(getInstallation().getCurrentConfigurationFile());
-    }
-    return file;
+    return getPath(getInstallation().getCurrentConfigurationFile());
   }
 
   /**
@@ -4925,12 +4902,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getConfigurationClassName()
   {
-    String className = getUserData().getConfigurationClassName();
-    if (className == null)
-    {
-      className = DEFAULT_CONFIG_CLASS_NAME;
-    }
-    return className;
+    return DEFAULT_CONFIG_CLASS_NAME;
   }
 
   private String getLocalReplicationServer()
@@ -4975,7 +4947,7 @@ public abstract class Installer extends GuiApplication {
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
-      {
+      { /* do nothing */
       }
       catch (NamingException ne)
       {
@@ -5006,7 +4978,7 @@ public abstract class Installer extends GuiApplication {
         Thread.sleep(500);
       }
       catch (Throwable t)
-      {
+      { /* do nothing */
       }
       try
       {
@@ -5061,10 +5033,9 @@ public abstract class Installer extends GuiApplication {
               helper.isStoppedByError(state))
           {
             LOG.log(Level.WARNING, "Error: "+errorMsg);
-            ApplicationException ae = new ApplicationException(
+            throw new ApplicationException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
-            throw ae;
           }
         }
       }
@@ -5121,7 +5092,7 @@ public abstract class Installer extends GuiApplication {
             Thread.sleep(100);
           }
           catch (Throwable t)
-          {
+          { /* do nothing */
           }
         }
       }
@@ -5202,6 +5173,20 @@ public abstract class Installer extends GuiApplication {
   protected int getConnectTimeout()
   {
     return getUserData().getConnectTimeout();
+  }
+
+
+  /**
+   * Copies the template instance files into the instance directory.
+   *
+   * @throws ApplicationException
+   *           If an IO error occurred.
+   */
+  private void copyTemplateInstance() throws ApplicationException
+  {
+    FileManager fileManager = new FileManager();
+    fileManager.synchronize(getInstallation().getTemplateDirectory(),
+        getInstallation().getInstanceDirectory());
   }
 }
 

@@ -112,6 +112,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
 
@@ -385,7 +386,7 @@ public final class TestCaseUtils {
       {
         copyDirectory(libDir, testLibDir);
         copyDirectory(new File(resourceDir, "bin"), testBinDir);
-        copyDirectory(new File(resourceDir, "config"), testConfigDir);
+        copyDirectory(new File(resourceDir, "config"), testConfigDir );
         copyDirectory(new File(resourceDir, "schema"),
             new File(testSchemaDir, "schema"));
         copyDirectory(new File(resourceDir, "MakeLDIF"),
@@ -539,6 +540,11 @@ public final class TestCaseUtils {
       DebugLogger.addDebugLogPublisher(
          TextDebugLogPublisher.getStartupTextDebugPublisher(
               DEBUG_TEXT_WRITER));
+
+      // Writing the buildinfo with the current version.
+      final FileWriter buildInfoWriter = new FileWriter (new File(testConfigDir, "buildinfo"));
+      buildInfoWriter.write(BuildVersion.binaryVersion().toString());
+      buildInfoWriter.close();
 
       EmbeddedUtils.startServer(config);
 

@@ -23,131 +23,15 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Copyright 2013 ForgeRock AS
 
-# Capture the current working directory so that we can change to it later.
-# Then capture the location of this script and the Directory Server instance
-# root so that we can use them to create appropriate paths.
-WORKING_DIR=`pwd`
 
-cd "`dirname "${0}"`"
-SCRIPT_DIR=`pwd`
+# This script may be used to perform a backup of a Directory Server backend.
+OPENDJ_INVOKE_CLASS="org.opends.server.tools.upgrade.UpgradeCli"
+export OPENDJ_INVOKE_CLASS
 
-INSTALL_ROOT=${SCRIPT_DIR}
-export INSTALL_ROOT
-
-SCRIPT_NAME=upgrade
+SCRIPT_NAME="upgrade"
 export SCRIPT_NAME
 
-cd "${WORKING_DIR}"
-
-# Set java home
-SCRIPT_UTIL_CMD=set-java-home-and-args
-export SCRIPT_UTIL_CMD
-.  "${INSTALL_ROOT}/lib/_script-util.sh"
-RETURN_CODE=$?
-if test ${RETURN_CODE} -ne 0
-then
-  exit ${RETURN_CODE}
-fi
-
-# Set environment variables
-SCRIPT_UTIL_CMD=set-environment-vars
-export SCRIPT_UTIL_CMD
-.  "${INSTALL_ROOT}/lib/_script-util.sh"
-RETURN_CODE=$?
-if test ${RETURN_CODE} -ne 0
-then
-  exit ${RETURN_CODE}
-fi
-
-# Configure the appropriate CLASSPATH to test.
-for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
-do
-  CLASSPATH=${CLASSPATH}:${JAR}
-done
-CLASSPATH=${CLASSPATH}:${INSTANCE_ROOT}/classes
-for JAR in ${INSTALL_ROOT}/lib/*.jar
-do
-  CLASSPATH=${CLASSPATH}:${JAR}
-done
-export CLASSPATH
-
-# Test the java installation
-SCRIPT_UTIL_CMD=test-java
-export SCRIPT_UTIL_CMD
-.  "${INSTALL_ROOT}/lib/_script-util.sh"
-RETURN_CODE=$?
-if test ${RETURN_CODE} -ne 0
-then
-  exit ${RETURN_CODE}
-fi
-
-if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
-then
-  rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
-fi
-
-# Launch the build extractor.
-# Configure the appropriate CLASSPATH.
-# BuildExtractor uses the existing install's
-# jars
-CLASSPATH=${INSTANCE_ROOT}/classes
-for JAR in ${INSTALL_ROOT}/lib/*.jar
-do
-  CLASSPATH=${CLASSPATH}:${JAR}
-done
-export CLASSPATH
-
-# Run the build extractor first.  An exit code of 99 from the extractor
-# means that this is indeed an upgrade (as opposed to a reversion) and
-# that the upgrade should continue.  An exit code of 98 means that this
-# operation is a reversion.  An exit code of 50 means that the usage
-# statement was printed and there is nothing else to do
-
-"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.quicksetup.upgrader.BuildExtractor "${@}"
-RETURN_CODE=$?
-if test ${RETURN_CODE} -eq 99
-then
-  # Configure the appropriate CLASSPATH.
-  # Unlike BuildExtractor, the Upgrader uses
-  # the newly extracted build's jars.
-  CLASSPATH=${INSTANCE_ROOT}/tmp/upgrade/classes
-  for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
-  do
-    CLASSPATH=${JAR}:${CLASSPATH}
-  done
-  # Launch the upgrade process.
-  "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
-elif test ${RETURN_CODE} -eq 98
-then
-  # Copy jars to a temporary place from which to run the reverter
-  # in order to avoid potential file lock issues.
-  mkdir -p ${INSTANCE_ROOT}/tmp/revert
-  cp -R ${INSTALL_ROOT}/lib ${INSTANCE_ROOT}/tmp/revert
-  if test ${?} -ne 0
-  then
-    echo "ERROR:  Failed to initialize reversion."
-    exit 101
-  else
-    CLASSPATH=${INSTANCE_ROOT}/tmp/revert/classes
-    for JAR in ${INSTANCE_ROOT}/tmp/revert/lib/*.jar
-    do
-      CLASSPATH=${JAR}:${CLASSPATH}
-    done
-    # Launch the upgrade process.
-    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
-  fi
-elif test ${RETURN_CODE} -eq 50
-then
-  # Version info was on requested
-  exit 0
-elif test ${RETURN_CODE} -eq 0
-then
-  # Usage printed
-  exit 0
-else
-  # Some unknown return code returned
-  exit 101
-fi
+SCRIPT_DIR=`dirname "${0}"`
+"${SCRIPT_DIR}/lib/_server-script.sh" "${@}"

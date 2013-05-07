@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.webstart;
@@ -62,16 +63,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 public class WebStartDownloader implements DownloadServiceListener {
   static private final Logger LOG =
     Logger.getLogger(WebStartDownloader.class.getName());
-
-  /**
-   * Returns the name of the zip file name that contains all the installation.
-   * @return the name of the zip file name that contains all the installation.
-   */
-  static public String getZipFileName()
-  {
-    // Passed as a java option in the JNLP file
-    return System.getProperty(SetupUtils.ZIP_FILE_NAME);
-  }
 
   private ApplicationException ex;
 

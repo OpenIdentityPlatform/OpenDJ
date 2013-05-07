@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -538,43 +538,6 @@ public class WebStartInstaller extends Installer {
             getZipFileName(),
             this);
     extractor.extract(getUserData().getServerLocation());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getOpenDSClassPath()
-  {
-    StringBuilder buf = new StringBuilder();
-    String[] jars = getOpenDSJarPaths();
-    for (int i = 0; i < jars.length; i++)
-    {
-      if (i != 0)
-      {
-        buf.append(System.getProperty("path.separator"));
-      }
-      buf.append(jars[i]);
-    }
-    return buf.toString();
-  }
-
-  /**
-   * Returns the jar file paths in the installation.  This is used to launch
-   * command lines that require a classpath.
-   * @return the jar file paths in the installation.
-   */
-  private String[] getOpenDSJarPaths()
-  {
-    String[] jarPaths =
-            new String[Installation.OPEN_DS_JAR_RELATIVE_PATHS.length];
-    File parentDir = new File(getUserData().getServerLocation());
-    for (int i = 0; i < jarPaths.length; i++)
-    {
-      File f = new File(parentDir, Installation.OPEN_DS_JAR_RELATIVE_PATHS[i]);
-      jarPaths[i] = f.getAbsolutePath();
-    }
-    return jarPaths;
-
   }
 
   /**

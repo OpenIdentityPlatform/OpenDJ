@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 
@@ -54,7 +55,7 @@ public class DataReplicationOptions
      */
     FIRST_IN_TOPOLOGY,
     /**
-     * Replicate Contents of the new Suffix with existings server.
+     * Replicate Contents of the new Suffix with existing server.
      */
     IN_EXISTING_TOPOLOGY
   }
@@ -66,7 +67,7 @@ public class DataReplicationOptions
   {
     authenticationData.setDn(Constants.DIRECTORY_MANAGER_DN);
     authenticationData.setPort(4444);
-  };
+  }
 
   /**
    * Private constructor for the DataReplicationOptions object.

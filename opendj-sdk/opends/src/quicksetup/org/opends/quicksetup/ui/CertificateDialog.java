@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -94,13 +95,11 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
      * The user accepted the certificate permanently.
      */
     ACCEPTED_PERMANENTLY
-  };
+  }
   private static final long serialVersionUID = -8989965057591475064L;
   private ReturnType returnValue = ReturnType.NOT_ACCEPTED;
   private UserDataCertificateException ce;
   private JButton doNotAcceptButton;
-  private JButton acceptSessionButton;
-  private JButton acceptPermanentlyButton;
   private JComponent certificateDetails;
   private JEditorPane explanationPane;
   private boolean detailsAlreadyClicked;
@@ -113,7 +112,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   /**
    * Constructor of the certificate dialog.
    * @param parent the parent frame for this dialog.
-   * @param ce the UserDataCertificateException we use to get the informations
+   * @param ce the UserDataCertificateException we use to get the information
    * about the certificate that was presented and the reason why it was
    * rejected.
    */
@@ -360,30 +359,24 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
-    acceptSessionButton =
-      UIFactory.makeJButton(
-          INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_LABEL.get(),
-          INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_TOOLTIP.get());
+    JButton acceptSessionButton = UIFactory.makeJButton(
+        INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_LABEL.get(),
+        INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_TOOLTIP.get());
     buttonsPanel.add(acceptSessionButton, gbc);
-    acceptSessionButton.addActionListener(new ActionListener()
-    {
-      public void actionPerformed(ActionEvent ev)
-      {
+    acceptSessionButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
         acceptForSession();
       }
     });
 
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
-    acceptPermanentlyButton =
-      UIFactory.makeJButton(
-          INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_LABEL.get(),
-          INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_TOOLTIP.get());
+    JButton acceptPermanentlyButton = UIFactory.makeJButton(
+        INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_LABEL.get(),
+        INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_TOOLTIP.get());
     buttonsPanel.add(acceptPermanentlyButton, gbc);
-    acceptPermanentlyButton.addActionListener(new ActionListener()
-    {
-      public void actionPerformed(ActionEvent ev)
-      {
+    acceptPermanentlyButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
         acceptPermanently();
       }
     });
@@ -555,12 +548,11 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
     Date date = cert.getNotBefore();
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-    DateFormat.SHORT);
+        DateFormat.SHORT);
     Message value = Message.raw(df.format(date));
-    boolean isNotValidYet = false;
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
-    isNotValidYet = t1 < t2;
+    boolean isNotValidYet = t1 < t2;
 
     if (isNotValidYet)
     {
@@ -575,35 +567,6 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     return c;
   }
 
-  /**
-   * Returns the string representation for the date from which the certificate
-   * is valid.
-   * @param cert the certificate object.
-   * @return the string representation for the date from which the certificate
-   * is valid.
-   */
-  public static String getValidFrom(X509Certificate cert)
-  {
-    String s;
-    Date date = cert.getNotBefore();
-    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-    DateFormat.SHORT);
-    String value = df.format(date);
-    boolean isNotValidYet = false;
-    long t1 = System.currentTimeMillis();
-    long t2 = date.getTime();
-    isNotValidYet = t1 < t2;
-
-    if (isNotValidYet)
-    {
-     s = INFO_CERTIFICATE_NOT_VALID_YET.get(value).toString();
-    }
-    else
-    {
-      s = value;
-    }
-    return s;
-  }
 
   private JComponent createExpiresOnComponent(X509Certificate cert)
   {
@@ -613,10 +576,9 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
     DateFormat.SHORT);
     Message value = Message.raw(df.format(date));
-    boolean isExpired = false;
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
-    isExpired = t1 > t2;
+    boolean isExpired = t1 > t2;
 
     if (isExpired)
     {
@@ -631,35 +593,6 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     return c;
   }
 
-  /**
-   * Returns the string representation for the date from which the certificate
-   * is expired.
-   * @param cert the certificate object.
-   * @return the string representation for the date from which the certificate
-   * is expired.
-   */
-  public static String getExpiresOn(X509Certificate cert)
-  {
-    String s;
-    Date date = cert.getNotAfter();
-    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-    DateFormat.SHORT);
-    String value = df.format(date);
-    boolean isExpired = false;
-    long t1 = System.currentTimeMillis();
-    long t2 = date.getTime();
-    isExpired = t1 > t2;
-
-    if (isExpired)
-    {
-     s = INFO_CERTIFICATE_EXPIRED.get(value).toString();
-    }
-    else
-    {
-      s = value;
-    }
-    return s;
-  }
 
   private JComponent createTypeComponent(X509Certificate cert)
   {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
@@ -52,8 +53,7 @@ public class WebBrowserLauncher
         Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
         Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[]
           { String.class });
-        openURL.invoke(null, new Object[]
-          { url });
+        openURL.invoke(null, url);
 
       } else if (Utils.isWindows())
       {

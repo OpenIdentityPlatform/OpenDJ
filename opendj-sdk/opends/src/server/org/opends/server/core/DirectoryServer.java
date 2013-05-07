@@ -1224,6 +1224,20 @@ public final class DirectoryServer
   public void startServer()
          throws ConfigException, InitializationException
   {
+    // Checks the version - if upgrade required, cannot launch the server.
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw new InitializationException(e.getMessageObject());
+    }
+
     synchronized (directoryServer)
     {
       if (! isBootstrapped)

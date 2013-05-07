@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -41,9 +41,6 @@ import java.text.DateFormat;
  * Utilities for setting up QuickSetup application log.
  */
 public class QuickSetupLog {
-
-  /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
 
   static private File logFile = null;
   static private FileHandler fileHandler = null;
@@ -116,12 +113,9 @@ public class QuickSetupLog {
 
   static private String getInitialLogRecord() {
     // Note; currently the logs are not internationalized.
-    StringBuilder sb = new StringBuilder()
-            .append("QuickSetup application launched " +
-                    DateFormat.getDateTimeInstance(DateFormat.LONG,
-                                                   DateFormat.LONG).
-                            format(new Date()));
-    return sb.toString();
+    return "QuickSetup application launched " +
+        DateFormat.getDateTimeInstance(DateFormat.LONG,
+            DateFormat.LONG).format(new Date());
   }
 
   private static boolean disableLoggingToConsole()

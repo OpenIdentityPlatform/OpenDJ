@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2013 ForgeRock AS
 
 
 # This script may be used to perform some replication specific operations.
@@ -33,9 +33,6 @@ export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="dsjavaproperties"
 export SCRIPT_NAME
-
-NO_CHECK=0
-export NO_CHECK
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

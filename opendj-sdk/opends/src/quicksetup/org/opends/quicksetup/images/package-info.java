@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
 
 /**
  * Contains the different images (in gif and png format) that are used by the
- * installer and the upgrader.
+ * installer.
  */
 package org.opends.quicksetup.images;

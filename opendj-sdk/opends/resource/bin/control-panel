@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2013 ForgeRock AS
 
 
 # This script may be used to display the control panel.
@@ -33,16 +33,6 @@ export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="control-panel"
 export SCRIPT_NAME
-
-NO_CHECK=0
-for i in $*
-do
-  if [ "$i" == "-r" ] || [ "$i" == "--remote" ]
-  then
-    NO_CHECK=1
-  fi
-done
-export NO_CHECK
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

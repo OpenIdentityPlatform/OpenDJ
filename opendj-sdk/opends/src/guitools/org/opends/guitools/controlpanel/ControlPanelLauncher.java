@@ -30,6 +30,8 @@ package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import static org.opends.server.util.StaticUtils.wrapText;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -43,6 +45,8 @@ import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
@@ -98,6 +102,24 @@ public class ControlPanelLauncher
 
       System.exit(ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode());
     }
+
+    //  If we should just display usage or version information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed()) {
+      System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      System.exit(ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode());
+    }
+
     if (!argParser.usageOrVersionDisplayed())
     {
       int exitCode = launchControlPanel(args);

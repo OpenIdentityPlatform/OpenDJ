@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
 
 /**
  * Defines the different classes that are used to define the specific events
- * and listeners in both the upgrader and installer applications.
+ * and listeners in the installer application.
  */
 package org.opends.quicksetup.event;

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -34,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
 import java.util.TreeSet;
 
 import javax.swing.Box;
@@ -105,10 +107,7 @@ public class SelectAliasDialog extends JDialog
     }
     isCanceled = true;
     TreeSet<String> s = new TreeSet<String>();
-    for (int i=0; i<aliases.length; i++)
-    {
-      s.add(aliases[i]);
-    }
+    Collections.addAll(s, aliases);
     String[] orderedAliases = new String[s.size()];
     s.toArray(orderedAliases);
     comboAliases.setModel(new DefaultComboBoxModel(orderedAliases));

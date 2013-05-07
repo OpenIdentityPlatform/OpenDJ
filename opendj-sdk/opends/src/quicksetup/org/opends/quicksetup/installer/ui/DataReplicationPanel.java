@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -328,7 +329,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
    */
   private Object getDefaultValue(FieldName fieldName)
   {
-    Object value = null;
+    Object value;
     AuthenticationData auth =
       defaultUserData.getReplicationOptions().getAuthenticationData();
     switch (fieldName)
@@ -494,30 +495,23 @@ public class DataReplicationPanel extends QuickSetupStepPanel
         FieldName.REMOTE_SERVER_HOST,
         FieldName.REMOTE_SERVER_PORT
     };
-    for (int i=0; i<fields.length; i++)
-    {
-      JTextComponent tf = getField(fields[i]);
-      tf.getDocument().addDocumentListener(new DocumentListener()
-      {
-        public void changedUpdate(DocumentEvent ev)
-        {
-          if (!rbReplicated.isSelected())
-          {
+    for (FieldName field : fields) {
+      JTextComponent tf = getField(field);
+      tf.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent ev) {
+          if (!rbReplicated.isSelected()) {
             rbReplicated.setSelected(true);
           }
-          if (!cbTopologyExists.isSelected())
-          {
+          if (!cbTopologyExists.isSelected()) {
             cbTopologyExists.setSelected(true);
           }
         }
 
-        public void insertUpdate(DocumentEvent ev)
-        {
+        public void insertUpdate(DocumentEvent ev) {
           changedUpdate(ev);
         }
 
-        public void removeUpdate(DocumentEvent ev)
-        {
+        public void removeUpdate(DocumentEvent ev) {
           changedUpdate(ev);
         }
       });

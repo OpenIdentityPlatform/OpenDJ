@@ -23,22 +23,26 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.server.tools;
 
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
+
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.ErrorLogger.removeErrorLogPublisher;
+
 import org.opends.server.protocols.asn1.ASN1Exception;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.filterExitCode;
 import org.opends.server.util.args.ArgumentException;
@@ -293,6 +297,17 @@ public class ManageTasks extends ConsoleApplication {
     }
 
     if (!argParser.usageOrVersionDisplayed()) {
+      // Checks the version - if upgrade required, the tool is unusable
+      try
+      {
+        BuildVersion.checkVersionMismatch();
+      }
+      catch (InitializationException e)
+      {
+        println(e.getMessageObject());
+        return 1;
+      }
+
       try {
         LDAPConnectionConsoleInteraction ui =
                 new LDAPConnectionConsoleInteraction(

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -39,18 +40,6 @@ package org.opends.quicksetup.ui;
  */
 public enum FieldName
 {
-  /**
-   * The value associated with this is a Boolean.
-   * It is used by the merged installer and upgrader to know whether an upgrade
-   * or an install must be performed.
-   */
-  IS_UPGRADE,
-  /**
-   * The value associated with this is a String.
-   * The upgrader uses this field to indicate the
-   * location of the server to upgrade.
-   */
-  SERVER_TO_UPGRADE_LOCATION,
   /**
    * The value associated with this is a String.
    * The web start installer uses this field to indicate the
@@ -90,7 +79,7 @@ public enum FieldName
   */
   SECURITY_OPTIONS,
   /**
-   * The value associated with this is a DataOptions.Type.
+   * The value associated with this is a data options.Type.
    */
   DATA_OPTIONS,
   /**
@@ -174,10 +163,6 @@ public enum FieldName
   /**
    * The value associated with this is a Boolean.
    */
-  SERVER_START_UPGRADER,
-  /**
-   * The value associated with this is a Boolean.
-   */
   ENABLE_WINDOWS_SERVICE,
   /**
    * The value associated with this is a Boolean.
@@ -210,29 +195,5 @@ public enum FieldName
   /**
    * The value associated with this is a Set of String.
    */
-  EXTERNAL_LOG_FILES,
-
-  /**
-   * Indicates whether the upgrade will need to first download
-   * an OpenDS install package (.zip) to download or the
-   * upgrader will use a file that has already been
-   * downloaded.  The value of this field is boolean and if
-   * true must be accompanied by a value for UPGRADE_BUILD_TO_DOWNLOAD.
-   * If false UPGRADE_FILE must be specified.
-   */
-  UPGRADE_DOWNLOAD,
-
-  /**
-   * Display name of the build to which the upgrader
-   * will upgrade the build indicated by SERVER_LOCATION.
-   */
-  UPGRADE_BUILD_TO_DOWNLOAD,
-
-  /**
-   * Local OpenDS install package (.zip) file containing
-   * a build to which the build indicated by SERVER_LOCATION
-   * will be upgraded.
-   */
-  UPGRADE_FILE
-
+  EXTERNAL_LOG_FILES
 }

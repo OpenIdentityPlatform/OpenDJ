@@ -23,54 +23,167 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.util;
 
+import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_NOT_FOUND;
+import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MALFORMED;
+import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MISMATCH;
+import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.InitializationException;
+
 /**
- * Represents a particular version of OpenDS useful for making
- * comparisons between versions.
+ * Represents a particular version of OpenDJ useful for making comparisons
+ * between versions.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=true)
-public final class BuildVersion implements Comparable<BuildVersion> {
+    stability = org.opends.server.types.StabilityLevel.VOLATILE,
+    mayInstantiate = false, mayExtend = false, mayInvoke = true)
+public final class BuildVersion implements Comparable<BuildVersion>
+{
 
-  /** Major release number. */
-  int major;
-
-  /** Minor release number. */
-  int minor;
-
-  /** Point release number. */
-  int point;
-
-  /** Subversion revision number. */
-  long rev;
+  private final int major;
+  private final int minor;
+  private final int point;
+  private final long rev;
+  private static final BuildVersion BINARY_VERSION = new BuildVersion(
+      DynamicConstants.MAJOR_VERSION, DynamicConstants.MINOR_VERSION,
+      DynamicConstants.POINT_VERSION, DynamicConstants.REVISION_NUMBER);
 
   /**
-   * Creates a new instance using current build data.
+   * Returns the build version as specified by the dynamic constants.
    *
-   * @return BuildVersion representing current data
+   * @return The build version as specified by the dynamic constants.
    */
-  static public BuildVersion getCurrent() {
-    return new BuildVersion(
-            DynamicConstants.MAJOR_VERSION,
-            DynamicConstants.MINOR_VERSION,
-            DynamicConstants.POINT_VERSION,
-            DynamicConstants.REVISION_NUMBER);
+  public static BuildVersion binaryVersion()
+  {
+    return BINARY_VERSION;
   }
 
   /**
-   * Constructs an instance from build data.
-   * @param major release number
-   * @param minor release number
-   * @param point release number
-   * @param rev Subversion revision number
+   * Reads the instance version from config/buildinfo.
+   *
+   * @return The instance version from config/buildinfo.
+   * @throws InitializationException
+   *           If an error occurred while reading or parsing the version.
    */
-  public BuildVersion(int major, int minor, int point, long rev) {
+  public static BuildVersion instanceVersion() throws InitializationException
+  {
+    final String buildInfo =
+        DirectoryServer.getInstanceRoot() + File.separator + CONFIG_DIR_NAME
+            + File.separator + "buildinfo";
+    BufferedReader reader = null;
+    try
+    {
+      reader = new BufferedReader(new FileReader(buildInfo));
+      final String s = reader.readLine();
+      if (s != null)
+      {
+        return valueOf(s);
+      }
+      else
+      {
+        throw new InitializationException(ERR_BUILDVERSION_MALFORMED
+            .get(buildInfo));
+      }
+    }
+    catch (IOException e)
+    {
+      throw new InitializationException(ERR_BUILDVERSION_NOT_FOUND
+          .get(buildInfo));
+    }
+    catch (final IllegalArgumentException e)
+    {
+      throw new InitializationException(ERR_BUILDVERSION_MALFORMED
+          .get(buildInfo));
+    }
+    finally
+    {
+      if (reader != null)
+      {
+        try
+        {
+          reader.close();
+        }
+        catch (final Exception e)
+        {
+          // Ignore.
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the binary version is the same than the instance version.
+   *
+   * @throws InitializationException
+   *           Sends an exception if the version mismatch.
+   */
+  public static void checkVersionMismatch() throws InitializationException
+  {
+    if (!BuildVersion.binaryVersion().toString().equals(
+        BuildVersion.instanceVersion().toString()))
+    {
+      throw new InitializationException(ERR_BUILDVERSION_MISMATCH.get(
+          BuildVersion.binaryVersion().toString(), BuildVersion
+              .instanceVersion().toString()));
+    }
+  }
+
+  /**
+   * Parses the string argument as a build version. The string must be of the
+   * form:
+   *
+   * <pre>
+   * major.minor.point.rev
+   * </pre>
+   *
+   * @param s
+   *          The string to be parsed as a build version.
+   * @return The parsed build version.
+   * @throws IllegalArgumentException
+   *           If the string does not contain a parsable build version.
+   */
+  public static BuildVersion valueOf(final String s)
+      throws IllegalArgumentException
+  {
+    final String[] fields = s.split("\\.");
+    if (fields.length != 4)
+    {
+      throw new IllegalArgumentException("Invalid version string " + s);
+    }
+    final int major = Integer.parseInt(fields[0]);
+    final int minor = Integer.parseInt(fields[1]);
+    final int point = Integer.parseInt(fields[2]);
+    final long rev = Long.parseLong(fields[3]);
+    return new BuildVersion(major, minor, point, rev);
+  }
+
+  /**
+   * Creates a new build version using the provided version information.
+   *
+   * @param major
+   *          Major release version number.
+   * @param minor
+   *          Minor release version number.
+   * @param point
+   *          Point release version number.
+   * @param rev
+   *          VCS revision number.
+   */
+  public BuildVersion(final int major, final int minor, final int point,
+      final long rev)
+  {
     this.major = major;
     this.minor = minor;
     this.point = point;
@@ -78,69 +191,126 @@ public final class BuildVersion implements Comparable<BuildVersion> {
   }
 
   /**
-   * Gets the major release number.
-   * @return int major release number
+   * {@inheritDoc}
    */
-  public int getMajorVersion() {
+  public int compareTo(final BuildVersion version)
+  {
+    if (major == version.major)
+    {
+      if (minor == version.minor)
+      {
+        if (point == version.point)
+        {
+          if (rev == version.rev)
+          {
+            return 0;
+          }
+          else if (rev < version.rev)
+          {
+            return -1;
+          }
+        }
+        else if (point < version.point)
+        {
+          return -1;
+        }
+      }
+      else if (minor < version.minor)
+      {
+        return -1;
+      }
+    }
+    else if (major < version.major)
+    {
+      return -1;
+    }
+    return 1;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(final Object obj)
+  {
+    if (this == obj)
+    {
+      return true;
+    }
+    else if (obj instanceof BuildVersion)
+    {
+      final BuildVersion other = (BuildVersion) obj;
+      return (major == other.major) && (minor == other.minor)
+          && (point == other.point) && (rev == other.rev);
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  /**
+   * Returns the major release version number.
+   *
+   * @return The major release version number.
+   */
+  public int getMajorVersion()
+  {
     return major;
   }
 
   /**
-   * Gets the minor release number.
-   * @return int minor release number
+   * Returns the minor release version number.
+   *
+   * @return The minor release version number.
    */
-  public int getMinorVersion() {
+  public int getMinorVersion()
+  {
     return minor;
   }
 
   /**
-   * Gets the point release number.
-   * @return int point release number
+   * Returns the point release version number.
+   *
+   * @return The point release version number.
    */
-  public int getPointVersion() {
+  public int getPointVersion()
+  {
     return point;
   }
 
   /**
-   * Gets the Subversion revision number.
-   * @return long Subversion revision number
+   * Returns the VCS revision number.
+   *
+   * @return The VCS revision number.
    */
-  public long getRevisionNumber() {
+  public long getRevisionNumber()
+  {
     return rev;
   }
 
   /**
-   * Retrieves an integer value that indicates the relative order between this
-   * build version and the provided build version object.
-   *
-   * @param  version  The build version object for which to make the
-   *                  determination.
-   *
-   * @return  A negative integer if this build version should be ordered before
-   *          the provided build version in a sorted list, a positive integer if
-   *          this build version should be ordered after the provided build
-   *          version in a sorted list, or zero if there is no difference in the
-   *          relative order between the build version objects.
+   * {@inheritDoc}
    */
-  public int compareTo(BuildVersion version) {
-    if (major == version.major) {
-      if (minor == version.minor) {
-        if (point == version.point) {
-          if (rev == version.rev) {
-            return 0;
-          } else if (rev < version.rev) {
-            return -1;
-          }
-        } else if (point < version.point) {
-          return -1;
-        }
-      } else if (minor < version.minor) {
-        return -1;
-      }
-    } else if (major < version.major) {
-      return -1;
-    }
-    return 1;
+  public int hashCode()
+  {
+    return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32),
+      (int) (rev & 0xFFFFL) });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append(major);
+    builder.append('.');
+    builder.append(minor);
+    builder.append('.');
+    builder.append(point);
+    builder.append('.');
+    builder.append(rev);
+    return builder.toString();
   }
 
 }

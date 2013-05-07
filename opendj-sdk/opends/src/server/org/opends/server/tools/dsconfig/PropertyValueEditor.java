@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -2005,10 +2006,10 @@ final class PropertyValueEditor {
     app.println();
     app.println(INFO_EDITOR_HEADING_CONFIGURE_PROPERTY.get(pd.getName()));
     app.println();
-    app.println(pd.getSynopsis(), 4);
+    app.printErrln(pd.getSynopsis(), 4);
     if (pd.getDescription() != null) {
       app.println();
-      app.println(pd.getDescription(), 4);
+      app.printErrln(pd.getDescription(), 4);
     }
   }
 

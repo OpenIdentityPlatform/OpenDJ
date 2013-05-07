@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -168,11 +169,12 @@ public class JavaArguments
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("Initial Memory: "+initialMemory+"  Max Memory: "+maxMemory);
+    sb.append("Initial Memory: ").append(initialMemory)
+        .append("  Max Memory: ").append(maxMemory);
     int i=1;
     for (String arg : additionalArguments)
     {
-      sb.append(" arg "+i+": "+arg);
+      sb.append(" arg ").append(i).append(": ").append(arg);
       i++;
     }
     return sb.toString();
@@ -191,7 +193,7 @@ public class JavaArguments
   {
     Message msg = getMessage(javaArguments, defaultJavaArguments);
     String s = msg.toString();
-    if (s.indexOf("<br>") != -1)
+    if (s.contains("<br>"))
     {
       msg = Message.raw("<html>"+UIFactory.applyFontToHtml(s, font));
     }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -215,7 +216,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
    */
   private String getDefaultValue(FieldName fieldName)
   {
-    String value = null;
+    String value;
     switch (fieldName)
     {
     case GLOBAL_ADMINISTRATOR_UID:

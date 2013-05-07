@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -73,6 +73,7 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
@@ -505,6 +506,17 @@ public class ImportLDIF extends TaskTool {
     // Don't write non-error messages to console if quite
     if (quietMode.isPresent()) {
       out = new PrintStream(NullOutputStream.instance());
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
     }
 
     return process(argParser, initializeServer, out, err);

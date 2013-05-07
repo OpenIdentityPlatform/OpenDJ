@@ -23,49 +23,42 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.build.tools;
-
-
 
 import java.text.DecimalFormat;
 
 import org.apache.tools.ant.Task;
 
-
-
 /**
- * This class provides an implemenation of an Ant task that may be used to
+ * This class provides an implementation of an Ant task that may be used to
  * construct the full version number string that the Directory Server should
- * use.  The value of the version number string will be stored in an Ant
+ * use. The value of the version number string will be stored in an Ant
  * property.
  */
-public class CreateVersionString
-       extends Task
+public class CreateVersionString extends Task
 {
   // The name of the property in which the revision number should be set.
   private String propertyName = null;
-
-
 
   /**
    * Specifies the name of the Ant property into which the Subversion revision
    * number will be stored.
    *
-   * @param  propertyName  The name of the Ant property into which the
-   *                       Subversion revision number will be stored.
+   * @param propertyName
+   *          The name of the Ant property into which the Subversion revision
+   *          number will be stored.
    */
   public void setProperty(String propertyName)
   {
     this.propertyName = propertyName;
   }
 
-
-
   /**
-   * Performs the appropriate processing needed for this task.  In this case,
-   * it uses SVNKit to identify the current revision number for the local
-   * workspace and store it in a specified property.
+   * Performs the appropriate processing needed for this task. In this case, it
+   * uses SVNKit to identify the current revision number for the local workspace
+   * and store it in a specified property.
    */
   @Override()
   public void execute()
@@ -84,15 +77,17 @@ public class CreateVersionString
     try
     {
       int buildNumber =
-           Integer.parseInt(getProject().getProperty("BUILD_NUMBER"));
+          Integer.parseInt(getProject().getProperty("BUILD_NUMBER"));
       if (buildNumber > 0)
       {
         versionString.append("-build");
         versionString.append(new DecimalFormat("000").format(buildNumber));
       }
-    } catch (NumberFormatException nfe) {}
+    }
+    catch (NumberFormatException nfe)
+    {
+    }
 
     getProject().setNewProperty(propertyName, versionString.toString());
   }
 }
-

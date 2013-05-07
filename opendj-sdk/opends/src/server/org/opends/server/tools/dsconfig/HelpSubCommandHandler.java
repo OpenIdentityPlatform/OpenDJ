@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -509,11 +509,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Display the property synopsis and description.
     app.println();
-    app.println(pd.getSynopsis(), 4);
+    app.printErrln(pd.getSynopsis(), 4);
 
     if (pd.getDescription() != null) {
       app.println();
-      app.println(pd.getDescription(), 4);
+      app.printErrln(pd.getDescription(), 4);
     }
 
     if (pd instanceof AggregationPropertyDefinition) {

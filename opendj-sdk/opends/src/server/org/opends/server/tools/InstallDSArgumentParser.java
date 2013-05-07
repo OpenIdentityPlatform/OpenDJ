@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -44,7 +44,6 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -88,8 +87,6 @@ public class InstallDSArgumentParser extends ArgumentParser
   IntegerArgument   jmxPortArg;
   IntegerArgument   sampleDataArg;
   StringArgument    baseDNArg;
-  StringArgument    configClassArg;
-  StringArgument    configFileArg;
   StringArgument    importLDIFArg;
   StringArgument    rejectedImportFileArg;
   StringArgument    skippedImportFileArg;
@@ -137,23 +134,6 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_CLI.get());
     cliArg.setPropertyName(OPTION_LONG_CLI);
     addArgument(cliArg);
-
-    configFileArg = new StringArgument(
-        "configFile".toLowerCase(), 'c', "configFile", false,
-        false, true, INFO_CONFIGFILE_PLACEHOLDER.get(), getDefaultConfigFile(),
-        "configFile",
-        INFO_DESCRIPTION_CONFIG_FILE.get());
-    configFileArg.setHidden(true);
-    addArgument(configFileArg);
-
-    configClassArg = new StringArgument(
-        OPTION_LONG_CONFIG_CLASS.toLowerCase(), OPTION_SHORT_CONFIG_CLASS,
-        OPTION_LONG_CONFIG_CLASS, false,
-        false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-        ConfigFileHandler.class.getName(), OPTION_LONG_CONFIG_CLASS,
-        INFO_DESCRIPTION_CONFIG_CLASS.get());
-    configClassArg.setHidden(true);
-    addArgument(configClassArg);
 
     String defaultProgName;
     if (SetupUtils.isWindows())
@@ -461,7 +441,6 @@ public class InstallDSArgumentParser extends ArgumentParser
 
     if (!isUsageArgumentPresent() && !isVersionArgumentPresent())
     {
-      checkConfigFileArg(errorMessages);
       checkServerPassword(errorMessages);
       checkProvidedPorts(errorMessages);
       checkImportDataArguments(errorMessages);
@@ -513,23 +492,6 @@ public class InstallDSArgumentParser extends ArgumentParser
       pwd = keyStorePasswordFileArg.getValue();
     }
     return pwd;
-  }
-
-  /**
-   * Checks that we have a config file value (at least the default value).
-   * @param errorMessages the list of messages to which we add the error
-   * messages describing the problems encountered during the execution of the
-   * checking.
-   */
-  private void checkConfigFileArg(Collection<Message> errorMessages)
-  {
-    //  Make sure the path to the configuration file was given.
-    if (configFileArg.getValue() == null)
-    {
-      Message message = ERR_INSTALLDS_NO_CONFIG_FILE.get(
-              configFileArg.getLongIdentifier());
-      errorMessages.add(message);
-    }
   }
 
   /**
@@ -782,20 +744,6 @@ public class InstallDSArgumentParser extends ArgumentParser
         errorMessages.add(message);
       }
     }
-  }
-
-  /**
-   * Returns the default config file retrieved by inspecting the class loader.
-   * @return the default config file retrieved by inspecting the class loader.
-   */
-  private String getDefaultConfigFile()
-  {
-    // Use this instead of Installation.getLocal() because making that call
-    // starts a new JVM and the command-line becomes less responsive.
-    String a = Utils.getInstallPathFromClasspath();
-    String root = Utils.getInstancePathFromInstallPath(a);
-    String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
-    return Utils.getPath(configDir, Installation.CURRENT_CONFIG_FILE_NAME);
   }
 
   /**

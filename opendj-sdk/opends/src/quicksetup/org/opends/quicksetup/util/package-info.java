@@ -23,11 +23,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 
 /**
  * Defines the different auxiliary classes that can be used by the different
- * applications (upgrader and installer).
+ * applications (installer).
  */
 package org.opends.quicksetup.util;

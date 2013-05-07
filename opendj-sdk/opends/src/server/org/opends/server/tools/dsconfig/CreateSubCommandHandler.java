@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -913,11 +914,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       app.println(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING.get(ufn, pd.getName()));
 
       app.println();
-      app.println(pd.getSynopsis(), 4);
+      app.printErrln(pd.getSynopsis(), 4);
 
       if (pd.getDescription() != null) {
         app.println();
-        app.println(pd.getDescription(), 4);
+        app.printErrln(pd.getDescription(), 4);
       }
 
       PropertyDefinitionUsageBuilder b =

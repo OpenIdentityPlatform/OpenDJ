@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -112,26 +113,6 @@ public abstract class Launcher {
         if (arg.equals("-?") ||
           arg.equalsIgnoreCase("-Q") ||
           arg.equalsIgnoreCase("--quiet")) {
-          printUsage = true;
-        }
-      }
-    }
-    return printUsage;
-  }
-
-  /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
-   * @return boolean where true indicates usage should be printed
-   */
-  protected boolean isNoPrompt() {
-    boolean printUsage = false;
-    if ((args != null) && (args.length > 0)) {
-      for (String arg : args) {
-        if (arg.equals("-?") ||
-          arg.equalsIgnoreCase("-n") ||
-          arg.equalsIgnoreCase("--no-prompt")) {
           printUsage = true;
         }
       }

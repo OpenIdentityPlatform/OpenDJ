@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -170,15 +171,6 @@ implements HyperlinkListener
   }
 
   /**
-   * Sets the specified value in the field associated with the field name.
-   * @param fieldName the field name associated with the field.
-   * @param value the value that must be set.
-   */
-  public void setFieldValue(FieldName fieldName, Object value)
-  {
-  }
-
-  /**
    * Marks as invalid (or valid depending on the value of the invalid parameter)
    * a field corresponding to FieldName.  This basically implies udpating the
    * style of the JLabel associated with fieldName (the association is done
@@ -258,16 +250,6 @@ implements HyperlinkListener
       }
       isCheckingVisible = visible;
     }
-  }
-
-  /**
-   * Tells whether a working progress icon is being displayed in the panel.
-   * @return <CODE>true</CODE> if a working progress icon is being displayed in
-   * the panel and <CODE>false</CODE> otherwise.
-   */
-  public boolean isCheckingVisible()
-  {
-      return isCheckingVisible;
   }
 
   /**
@@ -387,7 +369,6 @@ implements HyperlinkListener
       gbc.anchor = GridBagConstraints.NORTHWEST;
       gbc.insets.left = 0;
       add(inputContainer, gbc);
-      somethingAdded = true;
     }
     else
     {

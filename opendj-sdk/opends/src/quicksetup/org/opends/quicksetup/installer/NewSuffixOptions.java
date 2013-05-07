@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 
@@ -161,8 +162,7 @@ public class NewSuffixOptions
    */
   public LinkedList<String> getLDIFPaths()
   {
-    LinkedList<String> copy = new LinkedList<String>(ldifPaths);
-    return copy;
+    return new LinkedList<String>(ldifPaths);
   }
 
   /**
@@ -206,7 +206,6 @@ public class NewSuffixOptions
    */
   public LinkedList<String> getBaseDns()
   {
-    LinkedList<String> copy = new LinkedList<String>(baseDns);
-    return copy;
+    return new LinkedList<String>(baseDns);
   }
 }

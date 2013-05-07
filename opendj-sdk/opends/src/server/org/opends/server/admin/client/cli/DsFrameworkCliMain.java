@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 import org.opends.messages.Message;
@@ -35,12 +36,14 @@ import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
+
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -199,6 +202,17 @@ public class DsFrameworkCliMain
     if (argParser.usageOrVersionDisplayed())
     {
       return SUCCESSFUL.getReturnCode();
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
     }
 
     if (argParser.getSubCommand() == null)

@@ -138,6 +138,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
@@ -410,6 +411,23 @@ public class ReplicationCliMain extends ConsoleApplication
         LOG.log(Level.SEVERE, "Complete error stack:", ae);
         returnValue = ERROR_USER_DATA;
       }
+    }
+
+    //  If we should just display usage or version information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed()) {
+      return 0;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      println(e.getMessageObject());
+      return 1;
     }
 
     if (!argParser.usageOrVersionDisplayed())

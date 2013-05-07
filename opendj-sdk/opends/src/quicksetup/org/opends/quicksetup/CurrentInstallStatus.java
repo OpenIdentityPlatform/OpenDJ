@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -73,7 +73,6 @@ public class CurrentInstallStatus
     } else
     {
       Installation installation = Installation.getLocal();
-      boolean dbFileExists = false;
       ArrayList<Message> msgs = new ArrayList<Message>();
 
       if (installation.getStatus().isServerRunning())
@@ -84,17 +83,17 @@ public class CurrentInstallStatus
 
       if (dbFilesExist())
       {
-        dbFileExists = true;
+        canOverwriteCurrentInstall = true;
         msgs.add(INFO_INSTALLSTATUS_DBFILEEXIST.get());
       }
 
-      if (archivedConfigsExist())
+      if (configExists())
       {
+        canOverwriteCurrentInstall = false;
+        isInstalled = true;
         msgs.add(INFO_INSTALLSTATUS_CONFIGFILEMODIFIED.get());
       }
 
-      canOverwriteCurrentInstall = (msgs.size() == 1) && dbFileExists;
-      isInstalled = msgs.size() > 0;
       if (canOverwriteCurrentInstall)
       {
         installationMsg = !Utils.isCli()?
@@ -110,7 +109,7 @@ public class CurrentInstallStatus
           for (Message msg : msgs)
           {
             buf.append(Constants.LINE_SEPARATOR);
-            buf.append("- "+msg);
+            buf.append("- ").append(msg);
           }
           String cmd = Utils.isWindows() ?
               Installation.WINDOWS_SETUP_FILE_NAME :
@@ -202,15 +201,15 @@ public class CurrentInstallStatus
 
 
   /**
-   * Indicates whether there are archived config files under this installation.
+   * Indicates whether there are config files under this installation.
    *
-   * @return <CODE>true</CODE> if there are archived config files, or
+   * @return <CODE>true</CODE> if there are configuration files, or
    *         <CODE>false</CODE> if not.
    */
-  private boolean archivedConfigsExist()
+  private boolean configExists()
   {
-    File archDir = Installation.getLocal().getArchivedConfigsDirectory();
-    File[] children = archDir.listFiles();
+    File configDir = Installation.getLocal().getConfigurationDirectory();
+    File[] children = configDir.listFiles();
     return ((children != null) && (children.length > 0));
   }
 

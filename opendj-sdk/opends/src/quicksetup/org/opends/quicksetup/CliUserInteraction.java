@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -57,21 +57,14 @@ public class CliUserInteraction extends ConsoleApplication
   private final boolean isForceOnError;
 
   /**
-   * Creates an instance that will use standard streams for interaction.
-   */
-  public CliUserInteraction() {
-    this(null);
-  }
-
-  /**
    * Creates an instance that will use standard streams for interaction and with
    * the provided CLI arguments.
    * @param ud The CLI arguments.
    */
   public CliUserInteraction(UserData ud) {
     super(System.in, System.out, System.err);
-    isInteractive = ud != null ? ud.isInteractive() : true;
-    isForceOnError = ud != null ? ud.isForceOnError() : false;
+    isInteractive = ud == null || ud.isInteractive();
+    isForceOnError = ud != null && ud.isForceOnError();
   }
 
   /**
@@ -125,7 +118,7 @@ public class CliUserInteraction extends ConsoleApplication
     Object returnValue = null;
     boolean menuDisplayed = false;
     while (returnValue == null) {
-      int respInt = -1;
+      int respInt;
       try
       {
         if (menuDisplayed)
