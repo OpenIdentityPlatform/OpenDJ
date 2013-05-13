@@ -31,6 +31,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -43,6 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 
 /**
@@ -72,6 +74,12 @@ class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
      * @throws Exception If an unexpected error occurred.
      */
     public static void startServer() throws Exception {
+
+        // Creates buildinfo file.
+        final FileWriter fw = new FileWriter(new File(TEST_CLASSES_PATH_CONFIG, "buildinfo"));
+        fw.write(BuildVersion.binaryVersion().toString());
+        fw.close();
+
         // Embedded server files.
         DirectoryEnvironmentConfig envConfig = new DirectoryEnvironmentConfig();
         envConfig.setServerRoot(new File(TEST_CLASSES_PATH));
