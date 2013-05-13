@@ -70,9 +70,12 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
+import org.glassfish.grizzly.http.HttpProbe;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.HttpServerMonitoringConfig;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
+import org.glassfish.grizzly.monitoring.MonitoringConfig;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
@@ -94,6 +97,7 @@ import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
@@ -144,6 +148,9 @@ public class HTTPConnectionHandler extends
   /** The HTTP server embedded in OpenDJ. */
   private HttpServer httpServer;
 
+  /** The HTTP probe that collects stats. */
+  private HTTPStatsProbe httpProbe;
+
   /**
    * Holds the current client connections. Using {@link ConcurrentHashMap} to
    * ensure no concurrent reads/writes can happen and adds/removes are fast. We
@@ -151,6 +158,15 @@ public class HTTPConnectionHandler extends
    */
   private Map<ClientConnection, ClientConnection> clientConnections =
       new ConcurrentHashMap<ClientConnection, ClientConnection>();
+
+  /** The set of statistics collected for this connection handler. */
+  private HTTPStatistics statTracker;
+
+  /**
+   * The client connection monitor provider associated with this connection
+   * handler.
+   */
+  private ClientConnectionMonitorProvider connMonitor;
 
   /** The unique name assigned to this connection handler. */
   private String handlerName;
@@ -245,6 +261,22 @@ public class HTTPConnectionHandler extends
           messages);
     }
 
+    if (config.isEnabled() && this.currentConfig.isEnabled() && isListening())
+    { // server was running and will still be running
+      // if the "enabled" was flipped, leave it to the stop / start server to
+      // handle it
+      if (!this.currentConfig.isKeepStats() && config.isKeepStats())
+      { // it must now keep stats while it was not previously
+        setHttpStatsProbe();
+      }
+      else if (this.currentConfig.isKeepStats() && !config.isKeepStats()
+          && this.httpProbe != null)
+      { // it must NOT keep stats anymore
+        getHttpConfig().removeProbes(this.httpProbe);
+        this.httpProbe = null;
+      }
+    }
+
     this.initConfig = config;
     this.currentConfig = config;
 
@@ -324,19 +356,17 @@ public class HTTPConnectionHandler extends
     // Unregister this as a change listener.
     currentConfig.removeHTTPChangeListener(this);
 
-    // TODO JNR
-    // if (connMonitor != null)
-    // {
-    // String lowerName = toLowerCase(connMonitor.getMonitorInstanceName());
-    // DirectoryServer.deregisterMonitorProvider(lowerName);
-    // }
-    //
-    // if (statTracker != null)
-    // {
-    // String lowerName = toLowerCase(statTracker.getMonitorInstanceName());
-    // DirectoryServer.deregisterMonitorProvider(lowerName);
-    // }
+    if (connMonitor != null)
+    {
+      String lowerName = toLowerCase(connMonitor.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(lowerName);
+    }
 
+    if (statTracker != null)
+    {
+      String lowerName = toLowerCase(statTracker.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(lowerName);
+    }
   }
 
   /** {@inheritDoc} */
@@ -451,6 +481,16 @@ public class HTTPConnectionHandler extends
     return handlerName;
   }
 
+  /**
+   * Retrieves the set of statistics maintained by this connection handler.
+   *
+   * @return The set of statistics maintained by this connection handler.
+   */
+  public HTTPStatistics getStatTracker()
+  {
+    return statTracker;
+  }
+
   /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(HTTPConnectionHandlerCfg config)
@@ -484,14 +524,14 @@ public class HTTPConnectionHandler extends
     }
 
     // TODO JNR
-    // handle ds-cfg-keep-stats
     // handle ds-cfg-num-request-handlers??
-    // // Create and register monitors.
-    // statTracker = new LDAPStatistics(handlerName + " Statistics");
-    // DirectoryServer.registerMonitorProvider(statTracker);
-    //
-    // connMonitor = new ClientConnectionMonitorProvider(this);
-    // DirectoryServer.registerMonitorProvider(connMonitor);
+
+    // Create and register monitors.
+    statTracker = new HTTPStatistics(handlerName + " Statistics");
+    DirectoryServer.registerMonitorProvider(statTracker);
+
+    connMonitor = new ClientConnectionMonitorProvider(this);
+    DirectoryServer.registerMonitorProvider(connMonitor);
 
     // Register this as a change listener.
     config.addHTTPChangeListener(this);
@@ -612,6 +652,17 @@ public class HTTPConnectionHandler extends
     return isConfigurationAcceptable(configuration, unacceptableReasons);
   }
 
+  /**
+   * Indicates whether this connection handler should maintain usage statistics.
+   *
+   * @return <CODE>true</CODE> if this connection handler should maintain usage
+   *         statistics, or <CODE>false</CODE> if not.
+   */
+  public boolean keepStats()
+  {
+    return currentConfig.isKeepStats();
+  }
+
   /** {@inheritDoc} */
   @Override
   public void processServerShutdown(Message reason)
@@ -715,6 +766,10 @@ public class HTTPConnectionHandler extends
         this.httpServer.getServerConfiguration();
     serverConfig.setMaxBufferedPostSize(requestSize);
     serverConfig.setMaxFormPostSize(requestSize);
+    if (keepStats())
+    {
+      setHttpStatsProbe();
+    }
 
     try
     {
@@ -799,6 +854,19 @@ public class HTTPConnectionHandler extends
     }
   }
 
+  private void setHttpStatsProbe()
+  {
+    httpProbe = new HTTPStatsProbe(this.statTracker);
+    getHttpConfig().addProbes(httpProbe);
+  }
+
+  private MonitoringConfig<HttpProbe> getHttpConfig()
+  {
+    final HttpServerMonitoringConfig monitoringCfg =
+        this.httpServer.getServerConfiguration().getMonitoringConfig();
+    return monitoringCfg.getHttpConfig();
+  }
+
   private HTTPAuthenticationConfig getAuthenticationConfig(
       final JsonValue configuration)
   {
@@ -867,6 +935,7 @@ public class HTTPConnectionHandler extends
     TRACER.debugInfo("Stopping HTTP server...");
     this.httpServer.stop();
     this.httpServer = null;
+    this.httpProbe = null;
     TRACER.debugInfo("HTTP server stopped");
     logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
   }

@@ -48,9 +48,28 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.ldap.AddResponseProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
+import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
+import org.opends.server.protocols.ldap.ProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DN;
@@ -59,6 +78,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -76,7 +96,6 @@ final class HTTPClientConnection extends ClientConnection
   // TODO JNR Confirm with Matt that persistent searches are inapplicable to
   // Rest2LDAP.
   // TODO JNR Should I override getIdleTime()?
-  // TODO JNR Implement stats
 
   /**
    * Class grouping together an {@link Operation} and its associated
@@ -128,6 +147,12 @@ final class HTTPClientConnection extends ClientConnection
   private boolean disconnectRequested;
 
   /**
+   * Indicates whether the connection should keep statistics regarding the
+   * operations that it is performing.
+   */
+  private final boolean keepStats;
+
+  /**
    * The Map (messageID => {@link OperationWithFutureResult}) of all operations
    * currently in progress on this connection.
    */
@@ -152,6 +177,10 @@ final class HTTPClientConnection extends ClientConnection
 
   /** The reference to the connection handler that accepted this connection. */
   private final HTTPConnectionHandler connectionHandler;
+
+  /** The statistics tracker associated with this client connection. */
+  private final HTTPStatistics statTracker;
+  private boolean useNanoTime = false;
 
   /** The protocol in use for this client connection. */
   private String protocol;
@@ -205,6 +234,15 @@ final class HTTPClientConnection extends ClientConnection
     this.isSecure = request.isSecure();
     this.securityStrengthFactor =
         calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
+
+    this.statTracker = this.connectionHandler.getStatTracker();
+
+    this.keepStats = connectionHandler.keepStats();
+    if (this.keepStats)
+    {
+      this.statTracker.updateConnect();
+      this.useNanoTime = DirectoryServer.getUseNanoTime();
+    }
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
   }
@@ -283,6 +321,21 @@ final class HTTPClientConnection extends ClientConnection
   @Override
   public void sendResponse(Operation operation)
   {
+    if (keepStats)
+    {
+      long time;
+      if (useNanoTime)
+      {
+        time = operation.getProcessingNanoTime();
+      }
+      else
+      {
+        time = operation.getProcessingTime();
+      }
+      this.statTracker.updateOperationMonitoringData(operation
+          .getOperationType(), time);
+    }
+
     OperationWithFutureResult op =
         this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
@@ -290,12 +343,56 @@ final class HTTPClientConnection extends ClientConnection
       try
       {
         op.futureResult.handleResult(getResponseResult(operation));
+
+        if (keepStats)
+        {
+          this.statTracker.updateMessageWritten(new LDAPMessage(operation
+              .getMessageID(), toResponseProtocolOp(operation)));
+        }
       }
       catch (ErrorResultException e)
       {
         op.futureResult.handleErrorResult(e);
       }
     }
+  }
+
+  private ProtocolOp toResponseProtocolOp(Operation operation)
+  {
+    final int resultCode = operation.getResultCode().getIntValue();
+    if (operation instanceof AddOperation)
+    {
+      return new AddResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof BindOperation)
+    {
+      return new BindResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof CompareOperation)
+    {
+      return new CompareResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof DeleteOperation)
+    {
+      return new DeleteResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof ExtendedOperation)
+    {
+      return new ExtendedResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof ModifyDNOperation)
+    {
+      return new ModifyDNResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof ModifyOperation)
+    {
+      return new ModifyResponseProtocolOp(resultCode);
+    }
+    else if (operation instanceof SearchOperation)
+    {
+      return new SearchResultDoneProtocolOp(resultCode);
+    }
+    throw new RuntimeException("Not implemented for operation " + operation);
   }
 
   /** {@inheritDoc} */
@@ -309,6 +406,12 @@ final class HTTPClientConnection extends ClientConnection
     {
       ((SearchResultHandler) op.futureResult.getResultHandler())
           .handleEntry(from(searchEntry));
+
+      if (keepStats)
+      {
+        this.statTracker.updateMessageWritten(new LDAPMessage(operation
+            .getMessageID(), new SearchResultEntryProtocolOp(searchEntry)));
+      }
     }
   }
 
@@ -323,6 +426,13 @@ final class HTTPClientConnection extends ClientConnection
     {
       ((SearchResultHandler) op.futureResult.getResultHandler())
           .handleReference(from(searchReference));
+
+      if (keepStats)
+      {
+        this.statTracker.updateMessageWritten(new LDAPMessage(operation
+            .getMessageID(), new SearchResultReferenceProtocolOp(
+            searchReference)));
+      }
     }
     return connectionValid;
   }
@@ -332,6 +442,12 @@ final class HTTPClientConnection extends ClientConnection
   protected boolean sendIntermediateResponseMessage(
       IntermediateResponse intermediateResponse)
   {
+    // if (keepStats)
+    // {
+    // this.statTracker.updateMessageWritten(new LDAPMessage(
+    // intermediateResponse.getOperation().getMessageID(),
+    // new IntermediateResponseProtocolOp(intermediateResponse.getOID())));
+    // }
     throw new RuntimeException("Not implemented");
   }
 
@@ -360,11 +476,10 @@ final class HTTPClientConnection extends ClientConnection
       disconnectRequested = true;
     }
 
-    // TODO JNR
-    // if (keepStats)
-    // {
-    // statTracker.updateDisconnect();
-    // }
+    if (keepStats)
+    {
+      statTracker.updateDisconnect();
+    }
 
     if (connectionID >= 0)
     {
@@ -459,6 +574,15 @@ final class HTTPClientConnection extends ClientConnection
     if (previousValue != null)
     {
       operationsPerformed.incrementAndGet();
+
+      final Operation operation = previousValue.operation;
+      if (operation.getOperationType() == OperationType.ABANDON)
+      {
+        if (keepStats && operation.getResultCode() == ResultCode.CANCELED)
+        {
+          statTracker.updateAbandonedOperation();
+        }
+      }
     }
     return previousValue != null;
   }
@@ -517,6 +641,11 @@ final class HTTPClientConnection extends ClientConnection
             op.futureResult.handleErrorResult(ErrorResultException
                .newErrorResult(org.forgerock.opendj.ldap.ResultCode.CANCELLED));
             op.operation.abort(cancelRequest);
+
+            if (keepStats)
+            {
+              statTracker.updateAbandonedOperation();
+            }
           }
           catch (Exception e)
           { // make sure all operations are cancelled, no matter what
@@ -611,6 +740,16 @@ final class HTTPClientConnection extends ClientConnection
     buffer.append(getClientAddress()).append(":").append(getClientPort());
     buffer.append(" to ");
     buffer.append(getServerAddress()).append(":").append(getServerPort());
+  }
+
+  /**
+   * Returns the statTracker for this connection handler.
+   *
+   * @return the statTracker for this connection handler
+   */
+  public HTTPStatistics getStatTracker()
+  {
+    return statTracker;
   }
 
   /** {@inheritDoc} */

@@ -487,7 +487,7 @@ ds-cfg-enabled: false
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 8080
 ds-cfg-accept-backlog: 128
-#ds-cfg-keep-stats: true
+ds-cfg-keep-stats: true
 ds-cfg-use-tcp-keep-alive: true
 ds-cfg-use-tcp-no-delay: true
 ds-cfg-allow-tcp-reuse-address: true

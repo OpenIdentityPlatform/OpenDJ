@@ -3677,6 +3677,42 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.119
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.120
+  NAME 'ds-mon-http-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.121
+  NAME 'ds-mon-http-delete-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.122
+  NAME 'ds-mon-http-get-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.123
+  NAME 'ds-mon-http-patch-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.124
+  NAME 'ds-mon-http-post-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.125
+  NAME 'ds-mon-http-put-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3838,7 +3874,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
   STRUCTURAL
   MUST ds-cfg-listen-port
   MAY ( ds-cfg-listen-address $
-#        ds-cfg-keep-stats $
+        ds-cfg-keep-stats $
         ds-cfg-use-tcp-keep-alive $
         ds-cfg-use-tcp-no-delay $
         ds-cfg-allow-tcp-reuse-address $
@@ -5591,7 +5627,13 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.13
   ds-mon-abandon-operations-total-count $
   ds-mon-resident-time-abandon-operations-total-time $
   ds-mon-extended-operations-total-count $
-  ds-mon-resident-time-extended-operations-total-time )
+  ds-mon-resident-time-extended-operations-total-time $
+  ds-mon-http-requests-total-count $
+  ds-mon-http-delete-requests-total-count $
+  ds-mon-http-get-requests-total-count $
+  ds-mon-http-patch-requests-total-count $
+  ds-mon-http-post-requests-total-count $
+  ds-mon-http-put-requests-total-count )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.14
   NAME 'ds-cfg-pbkdf2-password-storage-scheme'

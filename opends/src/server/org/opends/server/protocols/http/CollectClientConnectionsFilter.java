@@ -279,6 +279,11 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     ctx.requestInfo =
         new HTTPRequestInfo(ctx.request, clientConnection.getConnectionID());
 
+    if (this.connectionHandler.keepStats()) {
+      this.connectionHandler.getStatTracker().addRequest(
+          ctx.request.getMethod());
+    }
+
     try
     {
       if (!canProcessRequest(request, clientConnection))
