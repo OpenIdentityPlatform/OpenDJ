@@ -31,10 +31,11 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -82,9 +83,8 @@ public final class TextHTTPAccessLogPublisher extends
 
   private TextWriter writer = null;
   private FileBasedHTTPAccessLogPublisherCfg cfg = null;
+  private String[] logFormatFields;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
-  private DateFormat dateFormatter = new SimpleDateFormat(timeStampFormat);
-
 
 
   /** {@inheritDoc} */
@@ -195,10 +195,11 @@ public final class TextHTTPAccessLogPublisher extends
         if (!config.getLogRecordTimeFormat().equals(timeStampFormat))
         {
           TimeThread.removeUserDefinedFormatter(timeStampFormat);
-          setTimeStampFormat(config.getLogRecordTimeFormat());
+          timeStampFormat = config.getLogRecordTimeFormat();
         }
 
         cfg = config;
+        logFormatFields = extractFieldsOrder(cfg.getLogFormat());
       }
     }
     catch (final Exception e)
@@ -213,6 +214,14 @@ public final class TextHTTPAccessLogPublisher extends
   }
 
 
+  private String[] extractFieldsOrder(String logFormat)
+  {
+    if (logFormat != null)
+    {
+      return logFormat.split("\\s");
+    }
+    return null;
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -284,7 +293,8 @@ public final class TextHTTPAccessLogPublisher extends
     }
 
     this.cfg = cfg;
-    setTimeStampFormat(cfg.getLogRecordTimeFormat());
+    logFormatFields = extractFieldsOrder(cfg.getLogFormat());
+    timeStampFormat = cfg.getLogRecordTimeFormat();
 
     cfg.addFileBasedHTTPAccessChangeListener(this);
   }
@@ -357,12 +367,6 @@ public final class TextHTTPAccessLogPublisher extends
     }
   }
 
-  private void setTimeStampFormat(String timeStampFormat)
-  {
-    this.timeStampFormat = timeStampFormat;
-    this.dateFormatter = new SimpleDateFormat(timeStampFormat);
-  }
-
   /** {@inheritDoc} */
   @Override
   public final DN getDN()
@@ -374,38 +378,69 @@ public final class TextHTTPAccessLogPublisher extends
   @Override
   public void logRequestInfo(HTTPRequestInfo ri)
   {
-    final StringBuilder sb = new StringBuilder(100);
+    final Map<String, Object> fields = new HashMap<String, Object>();
+    fields.put("cs-host", ri.getRemoteHost());
+    fields.put("c-ip", ri.getRemoteAddress());
+    fields.put("cs-username", ri.getAuthUser());
+    fields.put("datetime", TimeThread.getUserDefinedTime(timeStampFormat));
+    fields.put("cs-method", ri.getMethod());
+    fields.put("cs-uri-query", ri.getQuery());
+    fields.put("cs-version", ri.getProtocol());
+    fields.put("sc-status", ri.getStatusCode());
+    fields.put("cs(User-Agent)", ri.getUserAgent());
+    fields.put("x-connection-id", ri.getConnectionID());
 
-    // remotehost
-    if (ri.getRemoteHost() != null)
+    writeLogRecord(fields, logFormatFields);
+  }
+
+  private void writeLogRecord(Map<String, Object> fields, String... fieldnames)
+  {
+    if (fieldnames == null)
     {
-      sb.append(ri.getRemoteHost());
+      return;
+    }
+    final StringBuilder sb = new StringBuilder(100);
+    for (String fieldname : fieldnames)
+    {
+      append(sb, fields.get(fieldname));
+    }
+    writer.writeRecord(sb.toString());
+  }
+
+  /**
+   * Appends the value to the string builder using the default separator if
+   * needed.
+   *
+   * @param sb
+   *          the StringBuilder where to append.
+   * @param value
+   *          the value to append.
+   */
+  private void append(final StringBuilder sb, Object value)
+  {
+    final char separator = '\t'; // as encouraged by the W3C working draft
+    if (sb.length() > 0)
+    {
+      sb.append(separator);
+    }
+
+    if (value != null)
+    {
+      String val = String.valueOf(value);
+      boolean useQuotes = val.contains(Character.toString(separator));
+      if (useQuotes)
+      {
+        sb.append('"').append(val.replaceAll("\"", "\"\"")).append('"');
+      }
+      else
+      {
+        sb.append(val);
+      }
     }
     else
     {
-      sb.append(ri.getRemoteAddress());
+      sb.append('-');
     }
-    // rfc931 - not supported
-    // authuser
-    sb.append(" ");
-    if (ri.getAuthUser() != null)
-    {
-      sb.append(ri.getAuthUser());
-    }
-    // [dateAndTime]
-    sb.append(" [").append(TimeThread.getUserDefinedTime(timeStampFormat))
-        .append("]");
-    // "request"
-    sb.append(" \"").append(ri.getMethod());
-    sb.append(" ").append(ri.getQuery());
-    sb.append(" ").append(ri.getProtocol()).append("\"");
-    // HTTP response status code
-    sb.append(" ").append(ri.getStatusCode());
-    // bytes - not supported
-    // "user agent"
-    sb.append(" \"").append(ri.getUserAgent()).append("\"");
-
-    writer.writeRecord(sb.toString());
   }
 
 }

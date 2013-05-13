@@ -56,14 +56,22 @@ public class HTTPRequestInfo
    * was set since it is not .
    */
   private AtomicInteger statusCode = new AtomicInteger(0);
+  /**
+   * The unique identifier that has been assigned to the client connection for
+   * this HTTP request.
+   */
+  private long connectionID;
 
   /**
    * Constructor for this class.
    *
    * @param request
    *          The {@link HttpServletRequest} for which to log the information
+   * @param connectionID
+   *          The unique identifier that has been assigned to the client
+   *          connection for this HTTP request
    */
-  public HTTPRequestInfo(HttpServletRequest request)
+  public HTTPRequestInfo(HttpServletRequest request, long connectionID)
   {
     this.remoteHost = request.getRemoteHost();
     this.remoteAddress = request.getRemoteAddr();
@@ -71,6 +79,7 @@ public class HTTPRequestInfo
     this.query = request.getRequestURI() + "/" + request.getQueryString();
     this.protocol = request.getProtocol();
     this.userAgent = request.getHeader("User-Agent");
+    this.connectionID = connectionID;
   }
 
   /**
@@ -163,6 +172,18 @@ public class HTTPRequestInfo
   {
     int sc = statusCode.get();
     return sc != 0 ? sc : 200;
+  }
+
+  /**
+   * Returns the unique identifier that has been assigned to the client
+   * connection for this HTTP request.
+   *
+   * @return The unique identifier that has been assigned to the client
+   *         connection for this HTTP request
+   */
+  public long getConnectionID()
+  {
+    return this.connectionID;
   }
 
   /**

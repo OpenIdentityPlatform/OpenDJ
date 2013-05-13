@@ -3994,6 +3994,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.17
         ds-cfg-auto-flush $
         ds-cfg-append $
         ds-cfg-queue-size $
+        ds-cfg-log-format $
         ds-cfg-log-record-time-format )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26

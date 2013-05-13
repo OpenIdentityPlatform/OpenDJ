@@ -61,37 +61,16 @@ public abstract class HTTPAccessLogPublisher
   }
 
   /**
-   * Logs the request info according to the common logfile format. The common
-   * logfile format is as follows:
-   *
-   * <pre>
-   * remotehost rfc931 authuser [date] "request" status bytes "useragent"
-   * </pre>
-   * <dl>
-   * <dt>remotehost</dt>
-   * <dd>Remote hostname (or IP number if DNS hostname is not available, or if
-   * DNSLookup is Off.</dd>
-   * <dt>rfc931</dt>
-   * <dd>The remote logname of the user.</dd>
-   * <dt>authuser</dt>
-   * <dd>The username as which the user has authenticated himself.</dd>
-   * <dt>[date]</dt>
-   * <dd>Date and time of the request.</dd>
-   * <dt>"request"</dt>
-   * <dd>The request line exactly as it came from the client.</dd>
-   * <dt>status</dt>
-   * <dd>The HTTP status code returned to the client.</dd>
-   * <dt>bytes</dt>
-   * <dd>The content-length of the document transferred.</dd>
-   * <dt>"useragent"</dt>
-   * <dd>The user agent that issued the request.</dd>
-   * </dl>
-   * <p>
-   * <b>NOTE:</b> The bytes field is not currently supported.
-   * </p>
+   * Logs the request info according to the configured extended log format.
    *
    * @param requestInfo
    *          The request info to log
+   * @see <a href="http://www.w3.org/TR/WD-logfile.html">W3C's Extended Log File
+   *      Format</a>
+   * @see <a href=
+   *      "http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/
+   *      Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true">
+   *      Microsoft's W3C Extended Log File Format (IIS 6.0)</a>
    */
   public void logRequestInfo(HTTPRequestInfo requestInfo)
   {

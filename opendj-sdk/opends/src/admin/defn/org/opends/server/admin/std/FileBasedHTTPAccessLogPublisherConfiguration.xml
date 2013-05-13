@@ -285,6 +285,42 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="log-format">
+    <adm:synopsis>
+      Specifies how log records should be formatted and written to the HTTP
+      access log.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>cs-host c-ip cs-username datetime cs-method cs-uri-query 
+        cs-version sc-status sc-bytes cs(User-Agent) x-connection-id</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+        <adm:regex>[a-zA-Z0-9-()]+( [a-zA-Z0-9-()]+)*</adm:regex>
+        <adm:usage>FORMAT</adm:usage>
+          <adm:synopsis>
+            A string describing the extended log format to be used for logging
+            HTTP accesses. Available values are listed on the W3C working draft
+            http://www.w3.org/TR/WD-logfile.html and Microsoft website
+            http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true
+            . Please note that "date" and "time" have been merged into
+            "datetime" and that its ouput is controlled by 
+            "ds-cfg-log-record-time-format" property. OpenDJ adds the 
+            application specific field "x-connection-id" which displays the
+            internal connection ID assigned to the HTTP client connection.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-format</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="log-record-time-format">
     <adm:synopsis>
       Specifies the format string that is used to generate log record
