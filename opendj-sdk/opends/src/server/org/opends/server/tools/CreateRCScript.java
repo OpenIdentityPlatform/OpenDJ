@@ -37,10 +37,8 @@ import java.io.PrintWriter;
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OperatingSystem;
-import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentParser;
@@ -191,17 +189,6 @@ public class CreateRCScript
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
-    }
-
-    // Checks the version - if upgrade required, the tool is unusable
-    try
-    {
-      BuildVersion.checkVersionMismatch();
-    }
-    catch (InitializationException e)
-    {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      return 1;
     }
 
     // Determine the path to the Java installation that should be used.
