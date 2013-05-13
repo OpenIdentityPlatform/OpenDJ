@@ -79,15 +79,12 @@ public class AttrHistoricalSingle extends AttrHistorical
   {
     if (addTime == null)
     {
-      return Collections.<AttrValueHistorical,AttrValueHistorical>emptyMap();
+      return Collections.emptyMap();
     }
     else
     {
       AttrValueHistorical val = new AttrValueHistorical(value, addTime, null);
-      Map<AttrValueHistorical,AttrValueHistorical> values =
-          Collections.<AttrValueHistorical,AttrValueHistorical>
-          singletonMap(val, val);
-      return values;
+      return Collections.singletonMap(val, val);
     }
   }
 
