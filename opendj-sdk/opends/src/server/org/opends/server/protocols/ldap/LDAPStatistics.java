@@ -35,8 +35,9 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
-
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -198,10 +199,9 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *         is requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-
-      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+      List<Attribute> attrs = new ArrayList<Attribute>();
 
       long tmpAbandonRequests = abandonRequests.get();
       long tmpAddRequests = addRequests.get();
@@ -662,7 +662,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *          The value to use for the attribute.
    * @return the constructed attribute.
    */
-  private Attribute createAttribute(String name, String value)
+  protected Attribute createAttribute(String name, String value)
   {
     AttributeType attrType =
       DirectoryServer.getAttributeType(name.toLowerCase());

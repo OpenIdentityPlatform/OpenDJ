@@ -214,6 +214,32 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="keep-stats">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should keep statistics.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the
+      <adm:user-friendly-name />
+      maintains statistics about the number and types of operations
+      requested over HTTP and the amount of data sent and received.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-keep-stats</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="max-request-size" advanced="true">
     <adm:synopsis>
       Specifies the size in bytes of the largest HTTP request message that will
