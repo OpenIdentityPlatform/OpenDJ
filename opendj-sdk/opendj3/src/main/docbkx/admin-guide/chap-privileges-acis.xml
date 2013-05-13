@@ -215,10 +215,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literallayout class="monospaced"><replaceable
       >op</replaceable>=<replaceable>attr1</replaceable>:<replaceable
       >filter1</replaceable>[&amp;&amp; <replaceable
-      >attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable
+      >attr2</replaceable>:<replaceable>filter2</replaceable> &#8230;][;<replaceable
       >op</replaceable>=<replaceable>attr3</replaceable>:<replaceable
       >filter3</replaceable>[&amp;&amp; <replaceable
-      >attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
+      >attr4</replaceable>:<replaceable>filter4</replaceable> &#8230;] &#8230;]</literallayout>
       <para>Here <replaceable>op</replaceable> can be either
       <literal>add</literal> for operations creating attributes, or
       <literal>delete</literal> for operations removing them.
@@ -271,9 +271,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    <para>ACI permission definitions take one of the following forms.</para>
    
    <literallayout class="monospaced">allow(<replaceable
-   >action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   >action</replaceable>[, <replaceable>action</replaceable> &#8230;])</literallayout>
    <literallayout class="monospaced">deny(<replaceable
-   >action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   >action</replaceable>[, <replaceable>action</replaceable> &#8230;])</literallayout>
    
    <tip>
     <para>Although <literal>deny</literal> is supported, avoid restricting
@@ -390,9 +390,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </varlistentry>
     <varlistentry>
      <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable
-     >day</replaceable> ...]"</literal></term>
+     >day</replaceable> &#8230;]"</literal></term>
      <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable
-     >day</replaceable> ...]"</literal></term>
+     >day</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>Replace <replaceable>day</replaceable> with one of
       <literal>sun</literal>, <literal>mon</literal>, <literal>tue</literal>,
@@ -410,9 +410,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </varlistentry>
     <varlistentry>
      <term><literal>groupdn = "ldap:///<replaceable
-     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
      <term><literal>groupdn != "ldap:///<replaceable
-     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>Replace <replaceable>DN</replaceable> with the distinguished name
       of a group to permit or restrict access for members.</para>
@@ -468,10 +468,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>userattr != <replaceable
      >ldap-url</replaceable>#LDAPURL"</literal></term>
      <term><literal>userattr = "[parent[<replaceable
-     >child-level</replaceable>].]<replaceable>attr</replaceable
+     >child-level</replaceable>]. ]<replaceable>attr</replaceable
      >#GROUPDN|USERDN"</literal></term>
      <term><literal>userattr != "[parent[<replaceable
-     >child-level</replaceable>].]<replaceable>attr</replaceable
+     >child-level</replaceable>]. ]<replaceable>attr</replaceable
      >#GROUPDN|USERDN"</literal></term>
      <listitem>
       <para>The <literal>userattr</literal> subject specifies an attribute
@@ -499,9 +499,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </varlistentry>
     <varlistentry>
      <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable
-     >ldap-url++</replaceable> ...]"</literal></term>
+     >ldap-url++</replaceable> &#8230;]"</literal></term>
      <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable
-     >ldap-url++</replaceable> ...]"</literal></term>
+     >ldap-url++</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>To match the bind DN, replace <replaceable>ldap-url++</replaceable>
       with either a valid LDAP URL such as
@@ -802,7 +802,7 @@ dn: cn=config
 ds-cfg-return-bind-error-messages: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
  cn=config
-...
+&#8230;
 $ ldappasswordmodify
  --port 1389
  --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
@@ -1026,7 +1026,7 @@ The LDAP password modify operation was successful</screen>
    <para>Next, add a global ACI value that allows authenticated users to
    perform read operations. You can use <command>dsconfig</command>
    interactively to add the ACI value as shown below
-   <literal>(targetattr!=...userdn="ldap:///all";)</literal>.</para>
+   <literal>(targetattr!= &#8230; userdn="ldap:///all";)</literal>.</para>
 
    <programlisting language="ldif">global-aci: (targetattr!="userPassword||
  authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||

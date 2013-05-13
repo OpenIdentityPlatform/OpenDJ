@@ -111,7 +111,7 @@
    the examples in this chapter make use of the following parameters that
    apply to the JSON resource returned for all operations.</para>
    <varlistentry>
-    <term><literal>_fields=<replaceable>field</replaceable>[,...]</literal></term>
+    <term><literal>_fields=<replaceable>field</replaceable>[,&#8230;]</literal></term>
     <listitem>
      <para>Retain only the specified fields in the JSON resource returned.</para>
     </listitem>
@@ -823,7 +823,7 @@ $ dsconfig
     },
     "userName" : "abarnes@example.com",
     "displayName" : "Anne-Louise Barnes"
-  },... many entries omitted ...
+  },&#8230; many entries omitted &#8230;
     "_id" : "newuser",
     "name" : {
       "familyName" : "New",
@@ -904,7 +904,7 @@ $ dsconfig
   </variablelist>
 
   <para>You can have the server sort JSON resources before it returns them by
-  using the <literal>_sortKeys[+-]=<replaceable>field</replaceable>[,...]</literal>
+  using the <literal>_sortKeys[+-]=<replaceable>field</replaceable>[,&#8230;]</literal>
   query string. TODO, pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-702</para>
 
   <variablelist>
