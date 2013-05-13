@@ -259,6 +259,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       }
 
       /** {@inheritDoc} */
+      @SuppressWarnings("deprecation")
       @Override
       public void setStatus(int sc, String sm)
       {
@@ -269,13 +270,14 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     ctx.chain = chain;
     ctx.prettyPrint =
         Boolean.parseBoolean(request.getParameter("_prettyPrint"));
-    ctx.requestInfo = new HTTPRequestInfo(ctx.request);
 
     final HTTPClientConnection clientConnection =
         new HTTPClientConnection(this.connectionHandler, request);
     this.connectionHandler.addClientConnection(clientConnection);
 
     ctx.clientConnection = clientConnection;
+    ctx.requestInfo =
+        new HTTPRequestInfo(ctx.request, clientConnection.getConnectionID());
 
     try
     {
