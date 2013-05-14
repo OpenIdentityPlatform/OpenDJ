@@ -127,7 +127,14 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
           " X-SCHEMA-FILE '33-test.ldif' X-NAME )",
           false}, // X-NAME is invalid extension (no value)
-
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
+          " X-SCHEMA-FILE '../config.ldif' )",
+          false}, // X-SCHEMA-FILE is unsafe
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
+          " X-SCHEMA-FILE '..\\config.ldif' )",
+          false}, // X-SCHEMA-FILE is unsafe
     };
   }
 
