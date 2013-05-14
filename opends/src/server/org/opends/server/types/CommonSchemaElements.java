@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
+import org.opends.messages.Message;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.Validator.*;
@@ -182,6 +185,34 @@ public abstract class CommonSchemaElements {
           extraProperties);
     } else {
       this.extraProperties = Collections.emptyMap();
+    }
+  }
+
+
+
+  /**
+   * Check if the extra schema properties contain safe filenames.
+   *
+   * @param extraProperties
+   *          The schema properties to check.
+   *
+   * @throws DirectoryException
+   *          If a provided value was unsafe.
+   */
+  public static void checkSafeProperties(Map <String,List<String>>
+      extraProperties)
+      throws DirectoryException
+  {
+    // Check that X-SCHEMA-FILE doesn't contain unsafe characters
+    List<String> filenames = extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if (filenames != null && !filenames.isEmpty()) {
+      String filename = filenames.get(0);
+      if (filename.indexOf('/') != -1 || filename.indexOf('\\') != -1)
+      {
+        Message message = ERR_ATTR_SYNTAX_ILLEGAL_X_SCHEMA_FILE.get(filename);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            message);
+      }
     }
   }
 
