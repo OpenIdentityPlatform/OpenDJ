@@ -66,7 +66,6 @@ import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.loggers.HTTPRequestInfo;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AddressMask;
@@ -99,8 +98,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     private String userName;
     /** Used for the bind request when credentials are specified. */
     private String password;
-    /** Request information for logging. */
-    private HTTPRequestInfo requestInfo;
   }
 
   /**
@@ -181,7 +178,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     @Override
     public void handleResult(BindResult result)
     {
-      ctx.requestInfo.setAuthUser(ctx.userName);
+      ctx.clientConnection.setAuthUser(ctx.userName);
 
       final AuthenticationInfo authInfo =
           new AuthenticationInfo(to(resultEntry), to(resultEntry.getName()),
@@ -254,7 +251,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       @Override
       public void setStatus(int sc)
       {
-        ctx.requestInfo.log(sc);
+        ctx.clientConnection.log(sc);
         super.setStatus(sc);
       }
 
@@ -263,7 +260,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       @Override
       public void setStatus(int sc, String sm)
       {
-        ctx.requestInfo.log(sc);
+        ctx.clientConnection.log(sc);
         super.setStatus(sc, sm);
       }
     };
@@ -276,12 +273,10 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     this.connectionHandler.addClientConnection(clientConnection);
 
     ctx.clientConnection = clientConnection;
-    ctx.requestInfo =
-        new HTTPRequestInfo(ctx.request, clientConnection.getConnectionID());
 
     if (this.connectionHandler.keepStats()) {
       this.connectionHandler.getStatTracker().addRequest(
-          ctx.request.getMethod());
+          ctx.clientConnection.getMethod());
     }
 
     try
@@ -294,8 +289,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       // checked.
       logConnect(clientConnection);
 
-      ctx.connection =
-          new SdkConnectionAdapter(clientConnection, ctx.requestInfo);
+      ctx.connection = new SdkConnectionAdapter(clientConnection);
 
       final String[] userPassword = extractUsernamePassword(request);
       if (userPassword != null && userPassword.length == 2)
@@ -358,7 +352,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
     finally
     {
-      ctx.requestInfo.log(statusCode);
+      ctx.clientConnection.log(statusCode);
 
       if (ctx.asyncContext != null)
       {
@@ -390,7 +384,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
     finally
     {
-      ctx.requestInfo.log(ex.getCode());
+      ctx.clientConnection.log(ex.getCode());
 
       if (ctx.asyncContext != null)
       {

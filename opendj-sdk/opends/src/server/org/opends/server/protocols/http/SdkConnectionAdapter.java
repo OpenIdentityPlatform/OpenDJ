@@ -80,7 +80,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.core.UnbindOperationBasis;
-import org.opends.server.loggers.HTTPRequestInfo;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
@@ -116,9 +115,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** The HTTP client connection being "adapted". */
   private final HTTPClientConnection clientConnection;
 
-  /** The HTTP request information to log. */
-  private final HTTPRequestInfo requestInfo;
-
   /**
    * The next message ID (and operation ID) that should be used for this
    * connection.
@@ -139,14 +135,10 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
    *
    * @param clientConnection
    *          the HTTP client connection being "adapted"
-   * @param requestInfo
-   *          the HTTP request information to log
    */
-  public SdkConnectionAdapter(HTTPClientConnection clientConnection,
-      HTTPRequestInfo requestInfo)
+  public SdkConnectionAdapter(HTTPClientConnection clientConnection)
   {
     this.clientConnection = clientConnection;
-    this.requestInfo = requestInfo;
     this.queueingStrategy =
         new BoundedWorkQueueStrategy(clientConnection.getConnectionHandler()
             .getCurrentConfig().getMaxConcurrentOpsPerConnection());
@@ -330,7 +322,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
     // At this point, we try to log the request with OK status code.
     // If it was already logged, it will be a no op.
-    this.requestInfo.log(HttpServletResponse.SC_OK);
+    this.clientConnection.log(HttpServletResponse.SC_OK);
 
     isClosed = true;
   }

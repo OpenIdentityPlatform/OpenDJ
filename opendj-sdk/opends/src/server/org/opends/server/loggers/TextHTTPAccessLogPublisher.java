@@ -379,8 +379,12 @@ public final class TextHTTPAccessLogPublisher extends
   public void logRequestInfo(HTTPRequestInfo ri)
   {
     final Map<String, Object> fields = new HashMap<String, Object>();
-    fields.put("cs-host", ri.getRemoteHost());
-    fields.put("c-ip", ri.getRemoteAddress());
+    fields.put("c-ip", ri.getClientAddress());
+    fields.put("cs-host", ri.getClientHost());
+    fields.put("c-port", ri.getClientPort());
+    fields.put("s-ip", ri.getServerAddress());
+    fields.put("s-computername", ri.getServerHost());
+    fields.put("s-port", ri.getServerPort());
     fields.put("cs-username", ri.getAuthUser());
     fields.put("datetime", TimeThread.getUserDefinedTime(timeStampFormat));
     fields.put("cs-method", ri.getMethod());

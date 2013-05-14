@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Attribute;
@@ -45,22 +46,34 @@ public class HTTPStatistics extends LDAPStatistics
 {
 
   /**
-   * Map containing the total number of requests.
+   * Map containing the total number of requests per HTTP methods.
    * <p>
-   * key: HTTP verb => value: number of requests for that verb.
+   * key: HTTP method => value: number of requests for that method.
    * </p>
-   * Not using a ConcurrentMap implementation because the keys are static. The
-   * keys are static because they need to be listed in the schema which is
+   * Not using a ConcurrentMap implementation here because the keys are static.
+   * The keys are static because they need to be listed in the schema which is
    * static.
    */
-  private Map<String, AtomicInteger> nbRequests =
+  private Map<String, AtomicInteger> requestMethodsTotalCount =
       new HashMap<String, AtomicInteger>();
+  /**
+   * Map containing the total execution time for the requests per HTTP methods.
+   * <p>
+   * key: HTTP method => value: total execution time for requests using that
+   * method.
+   * </p>
+   * Not using a ConcurrentMap implementation here because the keys are static.
+   * The keys are static because they need to be listed in the schema which is
+   * static.
+   */
+  private Map<String, AtomicLong> requestMethodsTotalTime =
+      new HashMap<String, AtomicLong>();
   /**
    * Total number of requests. The total number may be different than the sum of
    * the supported HTTP methods above because clients could use unsupported HTTP
-   * verbs.
+   * methods.
    */
-  private AtomicInteger nbRequestsTotalCount = new AtomicInteger(0);
+  private AtomicInteger requestsTotalCount = new AtomicInteger(0);
 
   /**
    * Constructor for this class.
@@ -77,7 +90,8 @@ public class HTTPStatistics extends LDAPStatistics
         Arrays.asList("delete", "get", "patch", "post", "put");
     for (String method : supportedHttpMethods)
     {
-      nbRequests.put(method, new AtomicInteger(0));
+      requestMethodsTotalCount.put(method, new AtomicInteger(0));
+      requestMethodsTotalTime.put(method, new AtomicLong(0));
     }
   }
 
@@ -85,7 +99,9 @@ public class HTTPStatistics extends LDAPStatistics
   @Override
   public void clearStatistics()
   {
-    this.nbRequests.clear();
+    this.requestMethodsTotalCount.clear();
+    this.requestMethodsTotalTime.clear();
+    this.requestsTotalCount.set(0);
 
     super.clearStatistics();
   }
@@ -95,32 +111,43 @@ public class HTTPStatistics extends LDAPStatistics
   public List<Attribute> getMonitorData()
   {
     // first take a snapshot of all the data as fast as possible
-    final Map<String, Integer> snapshot = new HashMap<String, Integer>();
-    for (Entry<String, AtomicInteger> entry : this.nbRequests.entrySet())
+    final int totalCount = this.requestsTotalCount.get();
+    final Map<String, Integer> totalCountsSnapshot =
+        new HashMap<String, Integer>();
+    for (Entry<String, AtomicInteger> entry : this.requestMethodsTotalCount
+        .entrySet())
     {
-      snapshot.put(entry.getKey(), entry.getValue().get());
+      totalCountsSnapshot.put(entry.getKey(), entry.getValue().get());
+    }
+    final Map<String, Long> totalTimesSnapshot = new HashMap<String, Long>();
+    for (Entry<String, AtomicLong> entry1 : this.requestMethodsTotalTime
+        .entrySet())
+    {
+      totalTimesSnapshot.put(entry1.getKey(), entry1.getValue().get());
     }
 
     // do the same with the underlying data
     final List<Attribute> results = super.getMonitorData();
 
-    // then add the snapshot data to the monitoring data
-    int total = 0;
-    for (Entry<String, Integer> entry : snapshot.entrySet())
-    {
-      final String httpMethod = entry.getKey();
-      final Integer nb = entry.getValue();
-      final String number = nb.toString();
-      // nb should never be null since we only allow supported HTTP methods
-      total += nb;
-
-      results.add(createAttribute("ds-mon-http-" + httpMethod
-          + "-requests-total-count", number));
-    }
+    addAll(results, totalCountsSnapshot, "ds-mon-http-",
+        "-requests-total-count");
+    addAll(results, totalTimesSnapshot, "ds-mon-resident-time-http-",
+        "-requests-total-time");
     results.add(createAttribute("ds-mon-http-requests-total-count", Integer
-        .toString(total)));
+        .toString(totalCount)));
 
     return results;
+  }
+
+  private void addAll(final List<Attribute> results,
+      final Map<String, ?> toOutput, String prefix, String suffix)
+  {
+    for (Entry<String, ?> entry : toOutput.entrySet())
+    {
+      final String httpMethod = entry.getKey();
+      final String nb = entry.getValue().toString();
+      results.add(createAttribute(prefix + httpMethod + suffix, nb));
+    }
   }
 
   /**
@@ -133,12 +160,33 @@ public class HTTPStatistics extends LDAPStatistics
    */
   public void addRequest(String httpMethod) throws NullPointerException
   {
-    AtomicInteger nb = this.nbRequests.get(httpMethod.toLowerCase());
+    AtomicInteger nb =
+        this.requestMethodsTotalCount.get(httpMethod.toLowerCase());
     if (nb != null)
     {
       nb.incrementAndGet();
     } // else this is an unsupported HTTP method
     // always count any requests regardless of whether the method is supported
-    this.nbRequestsTotalCount.incrementAndGet();
+    this.requestsTotalCount.incrementAndGet();
+  }
+
+  /**
+   * Adds to the total time of an HTTP request method.
+   *
+   * @param httpMethod
+   *          the method of the HTTP request to add to the stats
+   * @param time
+   *          the time to add to the total
+   * @throws NullPointerException
+   *           if the httpMethod is null
+   */
+  public void updateRequestMonitoringData(String httpMethod, long time)
+      throws NullPointerException
+  {
+    AtomicLong nb = this.requestMethodsTotalTime.get(httpMethod.toLowerCase());
+    if (nb != null)
+    {
+      nb.addAndGet(time);
+    } // else this is an unsupported HTTP method
   }
 }

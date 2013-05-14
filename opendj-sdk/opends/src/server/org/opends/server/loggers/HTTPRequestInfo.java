@@ -26,131 +26,88 @@
  */
 package org.opends.server.loggers;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * Contains the information required for logging the HTTP request.
  */
-public class HTTPRequestInfo
+public interface HTTPRequestInfo
 {
 
-  /** The client's host. */
-  private final String remoteHost;
-  /** The client's address. */
-  private final String remoteAddress;
-  /** The protocol used for this request. */
-  private final String protocol;
-  /** The HTTP method/verb used for this request. */
-  private final String method;
-  /** The query issued by the client. */
-  private final String query;
-  /** The user agent used by the client. */
-  private final String userAgent;
-
-  /** The username that was used to authenticate. */
-  private String authUser;
   /**
-   * The HTTP status code returned to the client. Using 0 to say no status code
-   * was set since it is not .
-   */
-  private AtomicInteger statusCode = new AtomicInteger(0);
-  /**
-   * The unique identifier that has been assigned to the client connection for
-   * this HTTP request.
-   */
-  private long connectionID;
-
-  /**
-   * Constructor for this class.
+   * Returns the server's host.
    *
-   * @param request
-   *          The {@link HttpServletRequest} for which to log the information
-   * @param connectionID
-   *          The unique identifier that has been assigned to the client
-   *          connection for this HTTP request
+   * @return the serverAddress
    */
-  public HTTPRequestInfo(HttpServletRequest request, long connectionID)
-  {
-    this.remoteHost = request.getRemoteHost();
-    this.remoteAddress = request.getRemoteAddr();
-    this.method = request.getMethod();
-    this.query = request.getRequestURI() + "/" + request.getQueryString();
-    this.protocol = request.getProtocol();
-    this.userAgent = request.getHeader("User-Agent");
-    this.connectionID = connectionID;
-  }
+  String getServerAddress();
 
   /**
-   * Returns the client's host.
+   * Returns the server's host.
    *
-   * @return the remoteHost
+   * @return the serverHost
    */
-  public String getRemoteHost()
-  {
-    return remoteHost;
-  }
+  String getServerHost();
+
+  /**
+   * Returns the server's port.
+   *
+   * @return the serverPort
+   */
+  int getServerPort();
 
   /**
    * Returns the client's address.
    *
-   * @return the remoteAddress
+   * @return the clientAddress
    */
-  public String getRemoteAddress()
-  {
-    return remoteAddress;
-  }
+  String getClientAddress();
+
+  /**
+   * Returns the client's host.
+   *
+   * @return the clientHost
+   */
+  String getClientHost();
+
+  /**
+   * Returns the client's port.
+   *
+   * @return the clientPort
+   */
+  int getClientPort();
 
   /**
    * Returns the protocol used for this request.
    *
    * @return the protocol
    */
-  public String getProtocol()
-  {
-    return protocol;
-  }
+  String getProtocol();
 
   /**
    * Returns the HTTP method/verb used for this request.
    *
    * @return the method
    */
-  public String getMethod()
-  {
-    return method;
-  }
+  String getMethod();
 
   /**
    * Returns the query issued by the client.
    *
    * @return the query
    */
-  public String getQuery()
-  {
-    return query;
-  }
+  String getQuery();
 
   /**
    * Returns the user agent used by the client.
    *
    * @return the userAgent
    */
-  public String getUserAgent()
-  {
-    return userAgent;
-  }
+  String getUserAgent();
 
   /**
    * Returns the username that was used to authenticate.
    *
    * @return the authUser
    */
-  public String getAuthUser()
-  {
-    return authUser;
-  }
+  String getAuthUser();
 
   /**
    * Sets the username that was used to authenticate.
@@ -158,21 +115,14 @@ public class HTTPRequestInfo
    * @param authUser
    *          the authUser to set
    */
-  public void setAuthUser(String authUser)
-  {
-    this.authUser = authUser;
-  }
+  void setAuthUser(String authUser);
 
   /**
    * Returns the HTTP status code returned to the client.
    *
    * @return the statusCode
    */
-  public int getStatusCode()
-  {
-    int sc = statusCode.get();
-    return sc != 0 ? sc : 200;
-  }
+  int getStatusCode();
 
   /**
    * Returns the unique identifier that has been assigned to the client
@@ -181,10 +131,7 @@ public class HTTPRequestInfo
    * @return The unique identifier that has been assigned to the client
    *         connection for this HTTP request
    */
-  public long getConnectionID()
-  {
-    return this.connectionID;
-  }
+  long getConnectionID();
 
   /**
    * Logs the current request info in the HTTP access log.
@@ -192,12 +139,6 @@ public class HTTPRequestInfo
    * @param statusCode
    *          the HTTP status code that was returned to the client.
    */
-  public void log(int statusCode)
-  {
-    if (this.statusCode.compareAndSet(0, statusCode))
-    { // this request was not logged before
-      HTTPAccessLogger.logRequestInfo(this);
-    }
-  }
+  void log(int statusCode);
 
 }

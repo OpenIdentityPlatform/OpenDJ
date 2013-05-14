@@ -3684,31 +3684,67 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.120
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.121
-  NAME 'ds-mon-http-delete-requests-total-count'
+  NAME 'ds-mon-resident-time-http-requests-total-time'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.122
-  NAME 'ds-mon-http-get-requests-total-count'
+  NAME 'ds-mon-http-delete-requests-total-count'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.123
-  NAME 'ds-mon-http-patch-requests-total-count'
+  NAME 'ds-mon-resident-time-http-delete-requests-total-time'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.124
-  NAME 'ds-mon-http-post-requests-total-count'
+  NAME 'ds-mon-http-get-requests-total-count'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.125
+  NAME 'ds-mon-resident-time-http-get-requests-total-time'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.126
+  NAME 'ds-mon-http-patch-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.127
+  NAME 'ds-mon-resident-time-http-patch-requests-total-time'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.128
+  NAME 'ds-mon-http-post-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.129
+  NAME 'ds-mon-resident-time-http-post-requests-total-time'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.130
   NAME 'ds-mon-http-put-requests-total-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.131
+  NAME 'ds-mon-resident-time-http-put-requests-total-time'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
@@ -5629,11 +5665,17 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.13
   ds-mon-extended-operations-total-count $
   ds-mon-resident-time-extended-operations-total-time $
   ds-mon-http-requests-total-count $
+  ds-mon-resident-time-http-requests-total-time $
   ds-mon-http-delete-requests-total-count $
+  ds-mon-resident-time-http-delete-requests-total-time $
   ds-mon-http-get-requests-total-count $
+  ds-mon-resident-time-http-get-requests-total-time $
   ds-mon-http-patch-requests-total-count $
+  ds-mon-resident-time-http-patch-requests-total-time $
   ds-mon-http-post-requests-total-count $
-  ds-mon-http-put-requests-total-count )
+  ds-mon-resident-time-http-post-requests-total-time $
+  ds-mon-http-put-requests-total-count $
+  ds-mon-resident-time-http-put-requests-total-time )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.14
   NAME 'ds-cfg-pbkdf2-password-storage-scheme'
