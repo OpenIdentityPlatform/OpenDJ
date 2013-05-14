@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -1307,6 +1308,15 @@ public class PasswordModifyExtendedOperationTestCase
                          userEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
+    /* Make sure preEncoded passwords are rejected */
+    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
+    String attr  = "ds-cfg-allow-pre-encoded-passwords";
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create(attr, "false")));
+    ModifyOperation modifyOperation =
+        conn.processModify(DN.decode(dnStr), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -1360,6 +1370,15 @@ public class PasswordModifyExtendedOperationTestCase
                          userEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
+    /* Make sure preEncoded passwords are rejected */
+    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
+    String attr  = "ds-cfg-allow-pre-encoded-passwords";
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create(attr, "false")));
+    ModifyOperation modifyOperation =
+        conn.processModify(DN.decode(dnStr), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
