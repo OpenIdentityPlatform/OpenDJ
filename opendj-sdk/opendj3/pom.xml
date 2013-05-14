@@ -32,7 +32,7 @@
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>2.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -99,13 +99,14 @@
   <properties>
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
-    <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
+    <currentServerVersion>${project.version}</currentServerVersion>
     <stableServerVersion>2.4.6</stableServerVersion>
-    <docTargetVersion>2.5.0</docTargetVersion>
-    <sdkDocTargetVersion>3.0.0</sdkDocTargetVersion>
+    <docTargetVersion>2.6.0</docTargetVersion>
+    <sdkDocTargetVersion>2.6.0</sdkDocTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3</grizzlyFrameworkVersion>
+    <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
     <gaId>UA-23412190-8</gaId>
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional/>
@@ -148,7 +149,7 @@
             <artifactItem>
               <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-log-ref</artifactId>
-              <version>2.5.0-SNAPSHOT</version>
+              <version>${project.version}</version>
               <type>jar</type>
               <overWrite>true</overWrite>
               <outputDirectory>${project.build.directory}/logref</outputDirectory>
