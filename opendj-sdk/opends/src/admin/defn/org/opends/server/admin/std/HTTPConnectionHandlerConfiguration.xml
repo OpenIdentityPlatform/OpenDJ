@@ -287,6 +287,40 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="num-request-handlers" advanced="true">
+    <adm:synopsis>
+      Specifies the number of request handlers that are used to read
+      requests from clients.
+    </adm:synopsis>
+    <adm:description>
+      The
+      <adm:user-friendly-name />
+      uses one thread to accept new connections from clients, but uses
+      one or more additional threads to read requests from existing
+      client connections. This ensures that new requests are
+      read efficiently and that the connection handler itself does not
+      become a bottleneck when the server is under heavy load from many
+      clients at the same time.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-num-request-handlers</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="ssl-client-auth-policy">
     <adm:synopsis>
       Specifies the policy that the

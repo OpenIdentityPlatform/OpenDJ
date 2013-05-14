@@ -27,8 +27,6 @@
  */
 package org.opends.server.protocols.ldap;
 
-
-
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -68,8 +66,6 @@ import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
-
-
 
 /**
  * This class defines a connection handler that will be used for communicating
@@ -734,7 +730,8 @@ public final class LDAPConnectionHandler extends
     backlog = config.getAcceptBacklog();
     listenAddresses = config.getListenAddress();
     listenPort = config.getListenPort();
-    numRequestHandlers = getNumRequestHandlers(config);
+    numRequestHandlers =
+        getNumRequestHandlers(config.getNumRequestHandlers(), friendlyName);
 
     // Construct a unique name for this connection handler, and put
     // together the set of listeners.
@@ -1540,29 +1537,6 @@ public final class LDAPConnectionHandler extends
         // Already finalized - invoked immediately.
         r.run();
       }
-    }
-  }
-
-
-
-  // Determine the number of request handlers.
-  private int getNumRequestHandlers(LDAPConnectionHandlerCfg configuration)
-  {
-    if (configuration.getNumRequestHandlers() == null)
-    {
-      // Automatically choose based on the number of processors.
-      int cpus = Runtime.getRuntime().availableProcessors();
-      int value = Math.max(2, cpus / 2);
-
-      Message message = INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS.get(
-          friendlyName, value);
-      logError(message);
-
-      return value;
-    }
-    else
-    {
-      return configuration.getNumRequestHandlers();
     }
   }
 

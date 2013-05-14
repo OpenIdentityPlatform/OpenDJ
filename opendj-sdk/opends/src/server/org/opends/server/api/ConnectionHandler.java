@@ -23,25 +23,24 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
-
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.server.admin.std.server.*;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
-
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -60,10 +59,10 @@ public abstract class ConnectionHandler
        <T extends ConnectionHandlerCfg>
        extends DirectoryThread
 {
-  // The monitor associated with this connection handler.
+  /** The monitor associated with this connection handler. */
   private ConnectionHandlerMonitor monitor;
 
-  // Is this handler the admin connection handler
+  /** Is this handler the admin connection handler. */
   private boolean isAdminConnectionHandler = false;
 
 
@@ -294,6 +293,39 @@ public abstract class ConnectionHandler
     return isAdminConnectionHandler;
   }
 
+
+  /**
+   * Determine the number of request handlers.
+   *
+   * @param numRequestHandlers
+   *          the number of request handlers from the configuration.
+   * @param friendlyName
+   *          the friendly name of this connection handler
+   * @return the number of request handlers from the configuration determined
+   *         from the configuration or from the number of available processors
+   *         on the current machine
+   */
+  public int getNumRequestHandlers(Integer numRequestHandlers,
+      String friendlyName)
+  {
+    if (numRequestHandlers == null)
+    {
+      // Automatically choose based on the number of processors.
+      int cpus = Runtime.getRuntime().availableProcessors();
+      int value = Math.max(2, cpus / 2);
+
+      Message message =
+          INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS.get(friendlyName,
+              value);
+      logError(message);
+
+      return value;
+    }
+    else
+    {
+      return numRequestHandlers;
+    }
+  }
 
   /**
    * Retrieves a string representation of this connection handler.

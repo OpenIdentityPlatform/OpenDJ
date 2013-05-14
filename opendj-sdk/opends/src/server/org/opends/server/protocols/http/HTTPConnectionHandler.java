@@ -523,9 +523,6 @@ public class HTTPConnectionHandler extends
       throw new InitializationException(e.getMessageObject());
     }
 
-    // TODO JNR
-    // handle ds-cfg-num-request-handlers??
-
     // Create and register monitors.
     statTracker = new HTTPStatistics(handlerName + " Statistics");
     DirectoryServer.registerMonitorProvider(statTracker);
@@ -785,13 +782,10 @@ public class HTTPConnectionHandler extends
         int bufferSize = (int) currentConfig.getBufferSize();
         transport.setReadBufferSize(bufferSize);
         transport.setWriteBufferSize(bufferSize);
-        // TODO JNR
         transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-        // ThreadPoolConfig workerPoolConfig =
-        // ThreadPoolConfig.defaultConfig().copy();
-        // workerPoolConfig.setCorePoolSize(currentConfig
-        // .getNumRequestHandlers());
-        // transport.setWorkerThreadPoolConfig(workerPoolConfig);
+        final int numRequestHandlers = getNumRequestHandlers(
+                currentConfig.getNumRequestHandlers(), friendlyName);
+        transport.setSelectorRunnersCount(numRequestHandlers);
         transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
 
         if (sslContext != null)
