@@ -512,7 +512,259 @@ $ dsconfig
  <section xml:id="patch-rest">
   <title>Patching Resources</title>
 
-  <para>TODO, https://bugster.forgerock.org/jira/browse/CREST-3</para>
+  <para>OpenDJ lets you patch JSON resources, updating part of the resource
+  rather than replacing it. For example, you could change Babs Jensen's
+  email address by issuing an HTTP PATCH request, as in the example that
+  follows.</para>
+
+  <para>Notice that the data sent specifies the type of patch operation, the
+  field to change, and a value that depends on the field you change and on the
+  operation. A single-valued field takes an object, boolean, string, or number
+  depending on its type, whereas a multi-valued field takes an array of values.
+  Getting the type wrong results in an error. Also notice that the patch data is
+  itself an array, since you could patch more than one part of the resource by
+  using a set of patch operations in the same request.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]'
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "00000000f3fdd370",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T14:35:31Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+
+  <variablelist>
+   <para>OpenDJ supports four types of patch operation.</para>
+
+   <varlistentry>
+    <term>"add"</term>
+    <listitem>
+     <para>The add operation ensures that the target field contains the value
+     provided, creating parent fields as necessary.</para>
+
+     <para>If the target field is single-valued and a value already exists, then
+     that value is replaced with the value you provide. <emphasis
+     role="strong">Note that you do not get an error when adding a value to a
+     single-valued field that already has a value.</emphasis> A single-valued
+     field is one whose value is not an array (an object, string, boolean, or
+     number).</para>
+
+     <para>If the target field is multi-valued, then the array of values you
+     provide is merged with the set of values already in the resource. New
+     values are added, and duplicate values are ignored. A multi-valued field
+     takes an array value.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"remove"</term>
+    <listitem>
+     <para>The remove operation ensures that the target field does not contain
+     the value provided. If you do not provide a value, the entire field is
+     removed if it already exists.</para>
+
+     <para>If the target field is single-valued and a value is provided, then
+     the provided value must match the existing value to remove, otherwise the
+     field is left unchanged.</para>
+
+     <para>If the target field is multi-valued, then values in the array you
+     provide are removed from the existing set of values.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"replace"</term>
+    <listitem>
+     <para>The replace operation removes existing values on the target field,
+     and replaces them with the values you provide. It is equivalent to
+     performing a remove on the field, then an add with the values you
+     provide.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"increment"</term>
+    <listitem>
+     <para>The increment operation increments or decrements the value or values
+     in the target field by the amount you specify, which is positive to
+     increment, negative to decrement. The target field must be a number or
+     a set of numbers. The value you provide must be a single number.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>One key nuance in how patch works with OpenDJ has to do with
+  multi-valued fields. Although JSON resources represent multi-valued fields as
+  <emphasis>arrays</emphasis>, OpenDJ treats those values as
+  <emphasis>sets</emphasis>. In other words, values in the field are unique,
+  and the ordering of an array of values is not meaningful in the context of
+  patch operations. If you reference array values by index, OpenDJ returns
+  an error.<footnote><para>OpenDJ does let you use a hyphen as the last element
+  of the "field" JSON pointer value to add an element to the set, as in
+  <command>curl --user kvaughan:bribery --request PATCH --header "Content-Type:
+  application/json" --data '[{ "operation" : "add", "field" : "/members/-",
+  "value" : { "_id" : "bjensen" } }]'
+  http://opendj.example.com:8080/groups/Directory%20Administrators</command>.</para>
+  </footnote></para>
+
+  <para>Instead use the patch operations as if arrays values were sets. For
+  example, you can include Barbara Jensen in a group by adding her to the set
+  of members.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "add",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]'
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+ ?_prettyPrint=true
+{
+  "_rev" : "00000000b70c881a",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:23Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "bjensen",
+    "displayName" : "Barbara Jensen"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}</screen>
+
+  <para>Removing her from the group is similar.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "remove",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]'
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+ ?_prettyPrint=true
+{
+  "_rev" : "00000000e241797e",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:55Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}</screen>
+
+  <para>You can use resource revision numbers in <literal>If-Match:
+  <replaceable>revision</replaceable></literal> headers to patch the resource
+  only if the resource matches a particular version.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ "http://opendj.example.com:8080/users/bjensen?_prettyPrint=true&amp;_fields=_rev"
+{
+  "_rev" : "00000000c1b6d4c7"
+}
+$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "If-Match: 00000000c1b6d4c7"
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]'
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "00000000f946d377",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:56:33Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+
+  <para>The resource revision changes after you successfully perform the patch
+  operation.</para>
  </section>
 
  <section xml:id="action-rest">
