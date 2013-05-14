@@ -37,9 +37,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultHandler;
@@ -57,6 +58,8 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.HTTPAccessLogger;
+import org.opends.server.loggers.HTTPRequestInfo;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
@@ -90,7 +93,8 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
  * connection that will be accepted by an instance of the HTTP connection
  * handler.
  */
-final class HTTPClientConnection extends ClientConnection
+final class HTTPClientConnection extends ClientConnection implements
+    HTTPRequestInfo
 {
 
   // TODO JNR Confirm with Matt that persistent searches are inapplicable to
@@ -185,8 +189,26 @@ final class HTTPClientConnection extends ClientConnection
   /** The protocol in use for this client connection. */
   private String protocol;
 
+  /** The HTTP method/verb used for this request. */
+  private final String method;
+  /** The query issued by the client. */
+  private final String query;
+  /** The user agent used by the client. */
+  private final String userAgent;
+
+  /** The username that was used to authenticate. */
+  private String authUser;
+  /**
+   * The HTTP status code returned to the client. Using 0 to say no status code
+   * was set since it is not .
+   */
+  private AtomicInteger statusCode = new AtomicInteger(0);
+
   /** The client (remote) address. */
   private String clientAddress;
+
+  /** The client (remote) host name. */
+  private String clientHost;
 
   /** The client (remote) port. */
   private int clientPort;
@@ -196,6 +218,9 @@ final class HTTPClientConnection extends ClientConnection
 
   /** The server (local) address. */
   private String serverAddress;
+
+  /** The server (local) host name. */
+  private String serverHost;
 
   /** The server (local) port. */
   private int serverPort;
@@ -218,13 +243,12 @@ final class HTTPClientConnection extends ClientConnection
    *          represents this client connection.
    */
   public HTTPClientConnection(HTTPConnectionHandler connectionHandler,
-      ServletRequest request)
+      HttpServletRequest request)
   {
     this.connectionHandler = connectionHandler;
 
     // memoize all the fields we need from the request before Grizzly decides to
     // recycle it
-    this.protocol = request.getProtocol();
     this.clientAddress = request.getRemoteAddr();
     this.clientPort = request.getRemotePort();
     this.serverAddress = request.getLocalAddr();
@@ -234,6 +258,10 @@ final class HTTPClientConnection extends ClientConnection
     this.isSecure = request.isSecure();
     this.securityStrengthFactor =
         calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
+    this.method = request.getMethod();
+    this.query = request.getRequestURI() + "/" + request.getQueryString();
+    this.protocol = request.getProtocol();
+    this.userAgent = request.getHeader("User-Agent");
 
     this.statTracker = this.connectionHandler.getStatTracker();
 
@@ -245,6 +273,13 @@ final class HTTPClientConnection extends ClientConnection
     }
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getAuthUser()
+  {
+    return this.authUser;
   }
 
   /** {@inheritDoc} */
@@ -277,6 +312,13 @@ final class HTTPClientConnection extends ClientConnection
 
   /** {@inheritDoc} */
   @Override
+  public String getClientHost()
+  {
+    return clientHost;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public int getClientPort()
   {
     return clientPort;
@@ -287,6 +329,13 @@ final class HTTPClientConnection extends ClientConnection
   public String getServerAddress()
   {
     return serverAddress;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getServerHost()
+  {
+    return serverHost;
   }
 
   /** {@inheritDoc} */
@@ -332,6 +381,7 @@ final class HTTPClientConnection extends ClientConnection
       {
         time = operation.getProcessingTime();
       }
+      this.statTracker.updateRequestMonitoringData(getMethod(), time);
       this.statTracker.updateOperationMonitoringData(operation
           .getOperationType(), time);
     }
@@ -451,6 +501,13 @@ final class HTTPClientConnection extends ClientConnection
     throw new RuntimeException("Not implemented");
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void setAuthUser(String authUser)
+  {
+    this.authUser = authUser;
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -507,6 +564,34 @@ final class HTTPClientConnection extends ClientConnection
 
     this.connectionHandler.removeClientConnection(this);
     logDisconnect(this, disconnectReason, message);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getMethod()
+  {
+    return this.method;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getQuery()
+  {
+    return this.query;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public int getStatusCode()
+  {
+    return this.statusCode.get();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getUserAgent()
+  {
+    return this.userAgent;
   }
 
   /** {@inheritDoc} */
@@ -771,5 +856,15 @@ final class HTTPClientConnection extends ClientConnection
   public boolean isInnerConnection()
   {
     return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void log(int statusCode)
+  {
+    if (this.statusCode.compareAndSet(0, statusCode))
+    { // this request was not logged before
+      HTTPAccessLogger.logRequestInfo(this);
+    }
   }
 }
