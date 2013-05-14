@@ -3915,7 +3915,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
         ds-cfg-use-tcp-no-delay $
         ds-cfg-allow-tcp-reuse-address $
         ds-cfg-max-request-size $
-#        ds-cfg-num-request-handlers $ # TODO JNR TCPNIOTransport.setWorkerThreadPoolConfig()
+        ds-cfg-num-request-handlers $
         ds-cfg-use-ssl $
         ds-cfg-ssl-client-auth-policy $
         ds-cfg-ssl-cert-nickname $
