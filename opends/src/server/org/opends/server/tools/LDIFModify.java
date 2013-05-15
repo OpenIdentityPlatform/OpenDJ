@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -51,6 +51,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -59,6 +60,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.LDIFException;
@@ -71,6 +73,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
@@ -532,6 +535,16 @@ public class LDIFModify
       return 0;
     }
 
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
+    }
 
     if (! serverInitialized)
     {

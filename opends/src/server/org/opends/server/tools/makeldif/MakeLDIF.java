@@ -40,8 +40,10 @@ import java.util.Random;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -242,6 +244,17 @@ public class MakeLDIF
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
     }
 
     if (initializeServer)

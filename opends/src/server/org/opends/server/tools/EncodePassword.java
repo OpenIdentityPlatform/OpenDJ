@@ -65,6 +65,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -313,6 +314,16 @@ public class EncodePassword
       return SUCCESS;
     }
 
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
+    }
 
     // Check for conflicting arguments.
     if (clearPassword.isPresent() && clearPasswordFile.isPresent())
