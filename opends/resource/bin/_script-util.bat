@@ -55,14 +55,17 @@ set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
 goto scriptBegin
 
-
 :setClassPath
 if "%SET_CLASSPATH_DONE%" == "true" goto end
+rem get the absolute paths before building the classpath
+rem it also helps comparing the two paths
+FOR /F %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
+FOR /F %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
-if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
-FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
+if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathDone
+FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 :setClassPathDone
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
