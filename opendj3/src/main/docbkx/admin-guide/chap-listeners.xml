@@ -871,7 +871,8 @@ supportedTLSProtocols: TLSv1.2
  --bindPassword password
  --handler-name "HTTP Connection Handler"
  --set enabled:true
- --no-prompt</screen>
+ --no-prompt
+ --trustAll</screen>
 
     <para>The HTTP connection handler paths start by default at the root
     context, as shown in the following example.</para>
