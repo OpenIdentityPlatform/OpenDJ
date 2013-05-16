@@ -1304,7 +1304,7 @@
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
     <property name="prefix"    value="/opt/opendj"/>
-    <property name="release"   value="2"/>
+    <property name="release"   value="0"/>
     <taskdef name="genrpm"
              classname="org.opends.build.tools.GenerateRpm">
       <classpath>

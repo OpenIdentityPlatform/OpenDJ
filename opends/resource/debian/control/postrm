@@ -1,20 +1,11 @@
 #!/bin/bash
 set -e
-# POSTRM - Upgrade or remove script
-if [ $1 == "remove" ] ; then
-# Removing the remaining files 
+# Post rm script
+# Files are removed automatically by pm. 
+if [ "$1" = "remove" ]
+then
+  echo
   echo *OpenDJ successfully removed
 fi
-if [ "$1" = "upgrade" ] ; then
-  echo *Starting upgrade...
-  @prefix@/./upgrade -n
-# Upgrade ok, restarts the server.
-  if [ "$?" -eq 0 ] ; then
-    @prefix@/./bin/start-ds
-  fi
-# Upgrade fails - Needs user interaction
-  if [ "$?" -eq 2 ] ; then
-    exit 0 
-  fi
-fi
 echo 
+# End of the post rm script

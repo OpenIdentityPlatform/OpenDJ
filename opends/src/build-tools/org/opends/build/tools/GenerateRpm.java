@@ -273,9 +273,14 @@ public class GenerateRpm extends Task
       sb.append("	echo \"Pre Install - initial install\"" + EOL);
       sb.append("else if [ \"$1\" == \"2\" ] ; then" + EOL);
       sb.append("	echo \"Pre Install - upgrade install\"" + EOL);
-      sb.append("	%{_prefix}/bin/stop-ds" + EOL);
-      sb.append("       echo \"\"" + EOL);
-      sb.append("	fi" + EOL);
+      sb.append("# If the server is running before upgrade, creates a file flag" + EOL);
+      sb.append("           if [ -f %{_prefix}/logs/server.pid ] " + EOL);
+      sb.append("           then" + EOL);
+      sb.append("                   touch %{_prefix}/logs/status" + EOL);
+      sb.append("           fi" + EOL);
+      sb.append("       stopds=$(%{_prefix}/bin/stop-ds)" + EOL);
+      sb.append("       echo $stopds" + EOL);
+      sb.append("     fi" + EOL);
       sb.append("fi" + EOL);
       sb.append(EOL);
       sb.append("# Post Install" + EOL);
@@ -291,9 +296,17 @@ public class GenerateRpm extends Task
       // by rpm manager, which compares files between last & actual version.
       // Copies / deletes files depending of new package.
       sb.append("       %{_prefix}/./upgrade -n" + EOL);
-      sb.append("# Upgrade ok, restarts the server" + EOL);
+      sb.append("# Upgrade ok " + EOL);
       sb.append("         if [ \"$?\" == \"0\" ] ; then " + EOL);
-      sb.append("           %{_prefix}/./bin/start-ds " + EOL);
+      sb.append("# Checks the server status flag for restart. " + EOL);
+      sb.append("             if [ -f %{_prefix}/logs/status ] " + EOL);
+      sb.append("             then" + EOL);
+      sb.append("                 echo \"\"" + EOL);
+      sb.append("                 echo \"Restarting server...\" " + EOL);
+      sb.append("                 %{_prefix}/./bin/start-ds " + EOL);
+      sb.append("                 echo \"\"" + EOL);
+      sb.append("                 rm -f %{_prefix}/logs/status " + EOL);
+      sb.append("             fi" + EOL);
       sb.append("         fi" + EOL);
       sb.append("# Upgrade fails, needs user interaction (eg. manual mode)" + EOL);
       sb.append("         if [ \"$?\" == \"2\" ] ; then " + EOL);
@@ -397,7 +410,7 @@ public class GenerateRpm extends Task
   }
 
   /**
-   * A file filter for the rpm. Excludes all '.bat' and '.app' files.
+   * A file filter for the rpm. Excludes all '.bat', '.exe' and '.app' files.
    */
   static final class PkgFileFilter implements FileFilter
   {
@@ -413,7 +426,8 @@ public class GenerateRpm extends Task
       }
       else if (file.isFile())
       {
-        if (fileName.endsWith(".app") || fileName.endsWith(".bat"))
+        if (fileName.endsWith(".app") || fileName.endsWith(".bat")
+            || fileName.endsWith(".exe"))
         {
           return false;
         }
