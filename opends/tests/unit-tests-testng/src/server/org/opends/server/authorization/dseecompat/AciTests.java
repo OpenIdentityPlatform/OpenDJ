@@ -24,6 +24,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2013 Manuel Gaupp
  *
  */
 package org.opends.server.authorization.dseecompat;
@@ -37,6 +38,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.assertEquals;
 import org.testng.Assert;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import static org.opends.server.config.ConfigConstants.*;
@@ -1929,6 +1931,18 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
        throw e;
    }
   }
+
+  /**
+   * Test anonymous modify DN with the same RDN.
+   */
+  @Test()
+  public void testAnonymousModDNSameRDN() throws Throwable {
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    String modRDNLdif = makeModDN(OU_LEAF_DN, "ou=leaf", "1", null);
+    LDIFModify(modRDNLdif, "", "", null,
+               LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+
   /**
    * Test selfwrite right. Attempt to bind as level3 user and remove level1
    * user from a group, should fail.
