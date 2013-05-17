@@ -27,7 +27,6 @@
  */
 package org.opends.quicksetup.util;
 
-import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.BufferedOutputStream;
@@ -68,16 +67,16 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.UIFactory;
-
 import org.opends.server.util.SetupUtils;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
 
 
 /**
@@ -197,6 +196,7 @@ public class Utils
             // in the logger and then kill the process.
             Thread t = new Thread(new Runnable()
             {
+              @Override
               public void run()
               {
                 try
@@ -1107,19 +1107,7 @@ public class Utils
     /* Get the install path from the Class Path */
     String sep = System.getProperty("path.separator");
     String[] classPaths = System.getProperty("java.class.path").split(sep);
-    String path = null;
-    for (int i = 0; i < classPaths.length && (path == null); i++)
-    {
-      for (int j = 0; j < Installation.OPEN_DS_JAR_RELATIVE_PATHS.length &&
-      (path == null); j++)
-      {
-        String normPath = classPaths[i].replace(File.separatorChar, '/');
-        if (normPath.endsWith(Installation.OPEN_DS_JAR_RELATIVE_PATHS[j]))
-        {
-          path = classPaths[i];
-        }
-      }
-    }
+    String path = getInstallPath(classPaths);
     if (path != null) {
       File f = new File(path).getAbsoluteFile();
       File librariesDir = f.getParentFile();
@@ -1139,6 +1127,19 @@ public class Utils
       }
     }
     return installPath;
+  }
+
+  private static String getInstallPath(final String[] classPaths)
+  {
+    for (String classPath : classPaths)
+    {
+      final String normPath = classPath.replace(File.separatorChar, '/');
+      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      {
+        return classPath;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1455,9 +1456,7 @@ public class Utils
    * @return true if the string contains HTML
    */
   static public boolean containsHtml(String text) {
-    return (text != null &&
-            text.indexOf('<') != -1 &&
-            text.indexOf('>') != -1);
+    return text != null && text.indexOf('<') != -1 && text.indexOf('>') != -1;
   }
 
   private static EmptyPrintStream emptyStream = new EmptyPrintStream();
@@ -1941,13 +1940,9 @@ public class Utils
     builder.append(formatter.getFormattedProgress(Message.raw(cmd.get(0))));
     int initialIndex = 1;
     StringBuilder sbSeparator = new StringBuilder();
-    if (Utils.isWindows())
+    sbSeparator.append(formatter.getSpace());
+    if (!Utils.isWindows())
     {
-      sbSeparator.append(formatter.getSpace());
-    }
-    else
-    {
-      sbSeparator.append(formatter.getSpace());
       sbSeparator.append("\\");
       sbSeparator.append(formatter.getLineBreak());
       for (int i=0 ; i < 10 ; i++)
@@ -2576,6 +2571,7 @@ class EmptyPrintStream extends PrintStream {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void println(String msg)
   {
     LOG.log(Level.INFO, "EmptyStream msg: "+msg);

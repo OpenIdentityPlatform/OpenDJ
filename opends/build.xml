@@ -1136,7 +1136,23 @@
     </copy>
 
     <antcall target="package-snmp" />
-      
+
+    <!-- Build the bootstrap jar that avoids getting the error message "The input line is too long" on Windows -->
+    <manifestclasspath property="manifest.classpath"
+                       jarfile="${pdir}/lib/bootstrap.jar">
+      <classpath>
+        <fileset dir="${pdir}/lib">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </manifestclasspath>
+    <jar jarfile="${pdir}/lib/bootstrap.jar">
+      <manifest> 
+        <attribute name="Built-By" value="${user.name}" />
+        <attribute name="Class-Path" value="${manifest.classpath}" />
+      </manifest> 
+    </jar>
+
     <!-- Create buildinfo files -->
     <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
           file="${pdir}/template/config/buildinfo" />
