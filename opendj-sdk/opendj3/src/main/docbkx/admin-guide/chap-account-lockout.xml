@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-account-lockout'
@@ -194,7 +194,7 @@ Account Is Disabled:  false</screen>
   <para>OpenDJ can send mail about account status changes. OpenDJ needs an
   SMTP server to send messages, and needs templates for the mail it sends.
   By default, message templates are in English, under
-  <filename>/path/to/OpenDJ/config/messages/</filename>.</para>
+  <filename>/path/to/opendj/config/messages/</filename>.</para>
   
   <para>OpenDJ generates notifications only when OpenDJ writes to an entry or
   evaluates a user entry for authentication. OpenDJ generates account enabled

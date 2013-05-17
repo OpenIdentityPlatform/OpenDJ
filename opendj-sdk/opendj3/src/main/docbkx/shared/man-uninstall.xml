@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='uninstall-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>uninstall</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -288,7 +288,7 @@
   <title>Examples</title>
   <para>The following command removes OpenDJ directory server without
   interaction.</para>
-  <screen>$ ./OpenDJ/uninstall -a --cli -I admin -w password -n
+  <screen>$ ./opendj/uninstall -a --cli -I admin -w password -n
 
 Stopping Directory Server ..... Done.
 Deleting Files under the Installation Path ..... Done.
@@ -296,8 +296,8 @@ Deleting Files under the Installation Path ..... Done.
 The Uninstall Completed Successfully.
 To complete the uninstallation, you must delete manually the following files
 and directories:
-/path/to/OpenDJ/lib
+/path/to/opendj/lib
 See /var/.../opends-uninstall-3...0.log for a detailed log of this operation.
-$ rm -rf OpenDJ</screen>
+$ rm -rf opendj</screen>
  </refsect1>
 </refentry>

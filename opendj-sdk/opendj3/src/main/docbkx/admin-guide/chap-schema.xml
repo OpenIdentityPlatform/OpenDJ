@@ -326,7 +326,7 @@ myCustomAttribute: Testing 1, 2, 3...
      <para>Used to specify the relative path to the schema file containing the
      schema element such as <literal>X-SCHEMA-FILE '00-core.ldif'</literal>.
      Schema definitions are located by default in
-     <filename>/path/to/OpenDJ/config/schema/*.ldif</filename> files.</para>
+     <filename>/path/to/opendj/config/schema/*.ldif</filename> files.</para>
     </listitem>
    </varlistentry>
   </variablelist>

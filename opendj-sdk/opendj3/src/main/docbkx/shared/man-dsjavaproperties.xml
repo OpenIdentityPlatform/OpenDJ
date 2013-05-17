@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='dsjavaproperties-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>dsjavaproperties</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -51,7 +51,7 @@
   <para>This utility can be used to change the Java arguments and Java home
   that are used by other server commands.</para>
   <para>Before launching the command, edit the properties file located in
-  <filename>/path/to/OpenDJ/config/java.properties</filename> to specify the
+  <filename>/path/to/opendj/config/java.properties</filename> to specify the
   Java arguments and Java home. When you have edited the properties file, run
   this command for the changes to be taken into account.</para>
   <para>Changes apply to the current server installation. No modifications
@@ -109,6 +109,6 @@
   <screen>$ dsjavaproperties 
 The operation was successful.  The server commands will use the java arguments
  and java home specified in the properties file located in
- /path/to/OpenDJ/config/java.properties</screen>
+ /path/to/opendj/config/java.properties</screen>
  </refsect1>
 </refentry>

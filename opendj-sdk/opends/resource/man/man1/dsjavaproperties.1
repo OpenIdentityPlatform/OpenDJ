@@ -2,12 +2,12 @@
 .\"     Title: dsjavaproperties
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "DSJAVAPROPERTIES" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "DSJAVAPROPERTIES" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -37,7 +37,7 @@ dsjavaproperties \- apply OpenDJ Java home and JVM settings
 This utility can be used to change the Java arguments and Java home that are used by other server commands\&.
 .PP
 Before launching the command, edit the properties file located in
-/path/to/OpenDJ/config/java\&.properties
+/path/to/opendj/config/java\&.properties
 to specify the Java arguments and Java home\&. When you have edited the properties file, run this command for the changes to be taken into account\&.
 .PP
 Changes apply to the current server installation\&. No modifications are made to your environment variables\&.
@@ -84,12 +84,12 @@ An error occurred\&.
 $ dsjavaproperties 
 The operation was successful\&.  The server commands will use the java arguments
  and java home specified in the properties file located in
- /path/to/OpenDJ/config/java\&.properties
+ /path/to/opendj/config/java\&.properties
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

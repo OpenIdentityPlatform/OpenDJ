@@ -43,8 +43,8 @@
  and so forth are marked (UNIX). Sections pertaining to Microsoft Windows
  might be marked (Windows). To avoid repetition, however, file system
  directory names are often given only in UNIX format as in
- <filename>/path/to/OpenDJ</filename>, even if the text applies to
- <filename>C:\path\to\OpenDJ</filename> as well.</para>
+ <filename>/path/to/opendj</filename>, even if the text applies to
+ <filename>C:\path\to\opendj</filename> as well.</para>
 
  <para>Absolute path names usually begin with the placeholder
  <filename>/path/to/</filename>, which might translate to

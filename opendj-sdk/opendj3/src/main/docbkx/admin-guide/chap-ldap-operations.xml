@@ -1519,8 +1519,8 @@ sn: App</screen>
  -import
  -alias myapp-cert
  -file /path/to/myapp-cert.crt
- -keystore /path/to/OpenDJ/config/truststore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/truststore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
 Owner: CN=My App, OU=Apps, DC=example, DC=com
 Issuer: CN=My App, OU=Apps, DC=example, DC=com
 Serial number: 5ae2277
@@ -1564,8 +1564,8 @@ Certificate was added to keystore</screen>
  -import
  -alias ca-cert
  -file ca.crt
- -keystore /path/to/OpenDJ/config/truststore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/truststore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
 Owner: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
 Issuer: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
 Serial number: d4586ea05c878b0c
@@ -1768,8 +1768,8 @@ $ chmod 400 keystore.pin</screen>
  -export
  -alias server-cert
  -file server-cert.crt
- -keystore /path/to/OpenDJ/config/keystore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
 $ keytool
  -import
  -trustcacerts

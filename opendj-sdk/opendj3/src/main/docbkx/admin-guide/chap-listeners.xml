@@ -168,8 +168,8 @@ $ dsconfig
  -import
  -alias myapp-cert
  -file myapp-cert.crt
- -keystore /path/to/OpenDJ/config/truststore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/truststore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
 Owner: CN=My App, OU=Apps, DC=example, DC=com
 Issuer: CN=My App, OU=Apps, DC=example, DC=com
 Serial number: 5ae2277
@@ -213,8 +213,8 @@ Certificate was added to keystore</screen>
  -export
  -alias server-cert
  -file server-cert.crt
- -keystore /path/to/OpenDJ/config/keystore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
 Certificate stored in file &lt;server-cert.crt&gt;</screen>
 
   <para>Importing the server certificate is similar to importing the client
@@ -244,7 +244,7 @@ Certificate stored in file &lt;server-cert.crt&gt;</screen>
  -alias server-cert
  -keyalg rsa
  -dname "CN=opendj.example.com,O=Example Corp,C=FR"
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -storepass changeit
  -keypass changeit</screen>
 
@@ -261,7 +261,7 @@ Certificate stored in file &lt;server-cert.crt&gt;</screen>
     <screen>$ keytool
  -certreq
  -alias server-cert
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -storepass changeit
  -file server-cert.csr</screen>
    </step>
@@ -336,7 +336,7 @@ Enter pass phrase for ca.key:
 
     <screen>$ keytool
  -import
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -file ca.crt
  -alias ca-cert
  -storepass changeit
@@ -393,7 +393,7 @@ Certificate was added to keystore</screen>
  -trustcacerts
  -alias server-cert
  -file ~/Downloads/server-cert.crt
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -storepass changeit
  -keypass changeit
 Certificate reply was installed in keystore</screen>
@@ -463,7 +463,7 @@ Certificate reply was installed in keystore</screen>
  -alias server-cert
  -keyalg rsa
  -dname "CN=opendj.example.com,O=Example Corp,C=FR"
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -storepass changeit
  -keypass changeit</screen>
     <para>In this example, OpenDJ is running on a system with fully qualified
@@ -483,7 +483,7 @@ Certificate reply was installed in keystore</screen>
     <screen>$ keytool
  -selfcert
  -alias server-cert
- -keystore /path/to/OpenDJ/config/keystore
+ -keystore /path/to/opendj/config/keystore
  -storepass changeit</screen>
    </step>
    <step>
@@ -854,7 +854,7 @@ supportedTLSProtocols: TLSv1.2
 
    <para>You configure the mapping between JSON resources and LDAP entries
    by editing the configuration file for the HTTP connection handler, by
-   default <filename>/path/to/OpenDJ/config/http-config.json</filename>. The
+   default <filename>/path/to/opendj/config/http-config.json</filename>. The
    configuration is described in the appendix, <link xlink:show="new"
    xlink:href="admin-guide#appendix-rest2ldap"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
@@ -926,8 +926,8 @@ $ keytool
  -export
  -rfc
  -alias server-cert
- -keystore /path/to/OpenDJ/config/keystore
- -storepass `cat /path/to/OpenDJ/config/keystore.pin`
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
  -file server-cert.pem
 Certificate stored in file &lt;server-cert.pem&gt;
 $ curl - -cacert server-cert.pem https://opendj.example.com:8443/users/bjensen?_prettyPrint
@@ -1195,7 +1195,7 @@ curl: (35) error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol</
    </step>
    <step>
     <para>Add the directory where you put LDIF to be processed.</para>
-    <screen>$ mkdir /path/to/OpenDJ/config/auto-process-ldif</screen>
+    <screen>$ mkdir /path/to/opendj/config/auto-process-ldif</screen>
     <para>This example uses the default value of the
     <literal>ldif-directory</literal> property for the LDIF connection
     handler.</para>

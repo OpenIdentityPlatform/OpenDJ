@@ -2,12 +2,12 @@
 .\"     Title: restore
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 09/28/2012
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "RESTORE" "1" "09/28/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "RESTORE" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -219,7 +219,7 @@ The following example schedules a restore as a task to begin immediately while O
 .\}
 .nf
 $ restore \-p 4444 \-D "cn=Directory Manager" \-w password
- \-d /path/to/OpenDJ/bak \-I 20110613080032 \-t 0
+ \-d /path/to/opendj/bak \-I 20110613080032 \-t 0
 Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST
 .fi
 .if n \{\
@@ -232,10 +232,10 @@ The following example restores data while OpenDJ is offline\&.
 .RS 4
 .\}
 .nf
-$ /path/to/OpenDJ/bin/stop\-ds
+$ /path/to/opendj/bin/stop\-ds
 Stopping Server\&.\&.\&.
 \&.\&.\&.
-$ /path/to/OpenDJ/bin/restore \-\-backupDirectory /path/to/OpenDJ/bak/userRoot
+$ /path/to/opendj/bin/restore \-\-backupDirectory /path/to/opendj/bak/userRoot
  \-\-listBackups
 Backup ID:          20120928102414Z
 Backup Date:        28/Sep/2012:12:24:17 +0200
@@ -246,10 +246,10 @@ Has Unsigned Hash:  false
 Has Signed Hash:    false
 Dependent Upon:     none
 
-$ /path/to/OpenDJ/bin/restore \-\-backupDirectory /path/to/OpenDJ/bak/userRoot
+$ /path/to/opendj/bin/restore \-\-backupDirectory /path/to/opendj/bak/userRoot
  \-\-backupID 20120928102414Z
 [28/Sep/2012:12:26:20 +0200] \&.\&.\&. msg=Restored: 00000000\&.jdb (size 355179)
-$ /path/to/OpenDJ/bin/start\-ds
+$ /path/to/opendj/bin/start\-ds
 [28/Sep/2012:12:27:29 +0200] \&.\&.\&. The Directory Server has started successfully
 .fi
 .if n \{\
@@ -257,5 +257,5 @@ $ /path/to/OpenDJ/bin/start\-ds
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

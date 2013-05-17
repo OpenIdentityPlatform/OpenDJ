@@ -450,7 +450,7 @@ dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</screen>
 
    <listitem>
     <para>In the configuration file for the HTTP Connection Handler, by default
-    <filename>/path/to/OpenDJ/config/http-config.json</filename>, set
+    <filename>/path/to/opendj/config/http-config.json</filename>, set
     <literal>"useSubtreeDelete" : true</literal>.</para>
 
     <note>

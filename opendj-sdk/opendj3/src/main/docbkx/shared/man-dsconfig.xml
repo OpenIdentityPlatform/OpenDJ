@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='dsconfig-1'
@@ -233,7 +233,7 @@
      <term><option>-P, --trustStorePath {trustStorePath}</option></term>
      <listitem>
       <para>Certificate trust store path</para>
-      <para>Default value: /path/to/OpenDJ/config/admin-truststore</para>
+      <para>Default value: /path/to/opendj/config/admin-truststore</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -405,8 +405,8 @@
 
   <!-- TODO: Automate generation of the following list of subcommands.
        Currently, there's a secret setting in dsconfig to produce the content.
-       $ export OPENDS_JAVA_ARGS="-Dorg.forgerock.opendj.gendoc=true"
-       $ /path/to/OpenDJ/bin/dsconfig -?
+       $ export OPENDJ_JAVA_ARGS="-Dorg.forgerock.opendj.gendoc=true"
+       $ /path/to/opendj/bin/dsconfig -?
   -->
   <refsect2 xml:id="dsconfig-create-access-log-filtering-criteria">
    <title>dsconfig create-access-log-filtering-criteria</title>
@@ -5513,7 +5513,7 @@ dsconfig set-log-publisher-prop \
           --set enabled:true \
           --hostname opendj.example.com \
           --port 4444 \
-          --trustStorePath /path/to/OpenDJ/config/admin-truststore \
+          --trustStorePath /path/to/opendj/config/admin-truststore \
           --bindDN cn=Directory\ Manager \
           --bindPassword ****** \
           --no-prompt
@@ -5526,7 +5526,7 @@ set-log-publisher-prop \
           --set enabled:false \
           --hostname opendj.example.com \
           --port 4444 \
-          --trustStorePath /path/to/OpenDJ/config/admin-truststore \
+          --trustStorePath /path/to/opendj/config/admin-truststore \
           --bindDN cn=Directory\ Manager \
           --bindPassword password \
           --no-prompt
@@ -5542,7 +5542,7 @@ opendj.example.com
 --port
 4444
 --trustStorePath
-/path/to/OpenDJ/config/admin-truststore
+/path/to/opendj/config/admin-truststore
 --bindDN
 cn=Directory Manager
 --bindPassword

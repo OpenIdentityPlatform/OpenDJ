@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-pta'
@@ -138,7 +138,7 @@ Certificate fingerprints:
    <step>
     <para>Import the authentication server certificate into OpenDJ's
     key store.</para>
-    <screen>$ cd /path/to/OpenDJ/config
+    <screen>$ cd /path/to/opendj/config
 $ keytool
  -importcert
  -alias pta-cert
@@ -292,7 +292,7 @@ cn: LDAP PTA User</screen>
    </step>
    <step>
     <para>Import the server certificate into OpenDJ's key store.</para>
-    <screen>$ cd /path/to/OpenDJ/config
+    <screen>$ cd /path/to/opendj/config
 $ keytool
  -importcert
  -alias ad-cert

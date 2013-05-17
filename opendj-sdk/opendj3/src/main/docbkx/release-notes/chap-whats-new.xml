@@ -65,7 +65,7 @@
   
   <itemizedlist>
     <listitem>
-     <para>TODO: Bring this list up to date post OpenDJ 2.5.0-Xpress1.</para>
+     <para>TODO: Bring this list up to date with issue tracker</para>
     </listitem>
     <listitem>
      <para>OpenDJ now provides RESTful access to directory data (<link
@@ -108,6 +108,20 @@
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-469"
      >OPENDJ-469</link>).</para>
     </listitem>
+
+    <listitem>
+     <para>The OpenDJ upgrade process and <command>upgrade</command> command
+     have changed to facilitate native packaging on more platforms and to
+     make upgrade easier to handle over time (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-455"
+     >OPENDJ-455</link>).</para>
+
+     <para>See <link xlink:show="new" xlink:href="install-guide#chap-upgrade"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading to
+     OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
+     instructions.</para>
+    </listitem>
+
     <listitem>
      <para>The mechanism to determine during setup whether the configuration
      has been modified runs a more effective check (<link xlink:show="new"

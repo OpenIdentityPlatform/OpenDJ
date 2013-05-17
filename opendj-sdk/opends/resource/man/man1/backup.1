@@ -2,12 +2,12 @@
 .\"     Title: backup
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 09/28/2012
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "BACKUP" "1" "09/28/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "BACKUP" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -249,7 +249,7 @@ The following example backs up all user data while the server is online\&.
 .\}
 .nf
 $ backup \-p 4444 \-D "cn=Directory Manager" \-w password
- \-a \-d /path/to/OpenDJ/bak \-t 0
+ \-a \-d /path/to/opendj/bak \-t 0
 Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST
 .fi
 .if n \{\
@@ -263,7 +263,7 @@ The following example schedules back up of all user data every night at 2 AM whe
 .\}
 .nf
 $ backup \-p 4444 \-D "cn=Directory Manager" \-w password \-a
- \-d /path/to/OpenDJ/bak \-\-recurringTask "00 02 * * *"
+ \-d /path/to/opendj/bak \-\-recurringTask "00 02 * * *"
  \-\-completionNotify diradmin@example\&.com \-\-errorNotify diradmin@example\&.com
 Recurring Backup task BackupTask\-988d6adf\-4d65\-44bf\-8546\-6ea74a2480b0
 scheduled successfully
@@ -278,13 +278,13 @@ The following example backs up all user data while the server is offline\&.
 .RS 4
 .\}
 .nf
-$ /path/to/OpenDJ/bin/stop\-ds
+$ /path/to/opendj/bin/stop\-ds
 Stopping Server\&.\&.\&.
 \&.\&.\&.
-$ /path/to/OpenDJ/bin/backup \-\-backupAll \-\-backupDirectory /path/to/OpenDJ/bak
+$ /path/to/opendj/bin/backup \-\-backupAll \-\-backupDirectory /path/to/opendj/bak
 \&.\&.\&.
 [28/Sep/2012:12:14:22 +0200] \&.\&.\&. msg=The backup process completed successfully
-$ /path/to/OpenDJ/bin/start\-ds
+$ /path/to/opendj/bin/start\-ds
 [28/Sep/2012:12:15:48 +0200] \&.\&.\&. The Directory Server has started successfully
 .fi
 .if n \{\
@@ -292,5 +292,5 @@ $ /path/to/OpenDJ/bin/start\-ds
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

@@ -2,12 +2,12 @@
 .\"     Title: setup
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "SETUP" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "SETUP" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -240,11 +240,11 @@ The following command installs OpenDJ directory server, enabling StartTLS and im
 .RS 4
 .\}
 .nf
-$ \&./OpenDJ/setup \-\-cli \-b dc=example,dc=com \-d 100 \-D "cn=Directory Manager"
+$ \&./opendj/setup \-\-cli \-b dc=example,dc=com \-d 100 \-D "cn=Directory Manager"
  \-w password \-h `hostname` \-p 1389
  \-\-generateSelfSignedCertificate \-\-enableStartTLS \-n 
 
-OpenDJ 2\&.5\&.0
+OpenDJ 2\&.6\&.0
 Please wait while the setup program initializes\&.\&.\&.
 
 See /var/\&.\&.\&./opends\-setup\-484\&.\&.\&.561\&.log for a detailed log of this operation\&.
@@ -255,12 +255,12 @@ Importing Automatically\-Generated Data (100 Entries) \&.\&.\&.\&.\&.\&.\&.\&.\&
 Starting Directory Server \&.\&.\&.\&.\&.\&.\&.\&.\&.\&. Done\&.
 
 To see basic server configuration status and configuration you can launch
- /path/to/OpenDJ/bin/status
+ /path/to/opendj/bin/status
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

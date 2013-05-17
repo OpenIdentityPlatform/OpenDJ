@@ -2,12 +2,12 @@
 .\"     Title: upgrade
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 05/17/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "UPGRADE" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "UPGRADE" "1" "05/17/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,61 +28,141 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-upgrade \- upgrade OpenDJ directory server
+upgrade \- upgrade OpenDJ configuration & application data
 .SH "SYNOPSIS"
 .HP \w'\fBupgrade\fR\ 'u
 \fBupgrade\fR {options}
 .SH "DESCRIPTION"
 .PP
-This utility can be used to upgrade the directory server to a newer version or revert to a previous version\&.
+This utility upgrades OpenDJ configuration (schema, directory server configuration, and other configuration files) and application data (primarily directory data) so that it is compatible with the binary files and scripts that are installed\&.
 .PP
-When using this tool to upgrade the server you should first downloaded an OpenDJ install package (\&.zip) file and specify its location using the \-f/\-\-file option\&. You can also upgrade your server using the Java Web Start version of this tool by visiting the OpenDJ web site at www\&.forgerock\&.org/opendj\&.html\&.
+The
+\fBupgrade\fR
+command thus performs only part of the upgrade process, which includes the following phases for a single server\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Get and unpack a newer version of OpenDJ directory server software\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+Stop the current OpenDJ directory server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+Overwrite existing binary and script files with those of the newer version, and then run this utility, the
+\fBupgrade\fR
+command, before restarting OpenDJ\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+Start the upgraded OpenDJ directory server\&.
+.RE
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBImportant\fR
+.ps -1
+.br
 .PP
-When using the tool to revert to a previous version you must either indicate that you want to revert to the version before the most recent upgrade using the \-r/\-\-revertMostRecent option or specify the location of a reversion archive using the \-a/\-\-reversionArchive option\&.
+The
+\fBupgrade\fR
+command
+\fIdoes not back up OpenDJ before you upgrade, nor does it restore OpenDJ if the \fR\fI\fBupgrade\fR\fR\fI command fails\fR\&. In order to revert a failed upgrade, make sure you back up OpenDJ directory server before you overwrite existing binary and script files\&.
+.sp .5v
+.RE
+.PP
+By default, the
+\fBupgrade\fR
+command requests confirmation before making important configuration changes\&. You can use the
+\fB\-\-no\-prompt\fR
+option to run the command non\-interactively\&.
+.PP
+When using the
+\fB\-\-no\-prompt\fR
+option, if the
+\fBupgrade\fR
+command cannot complete because it requires confirmation for a potentially very long or critical task, then it exits with an error and a message about how to finish making the changes\&. You can add the
+\fB\-\-force\fR
+option to force a non\-interactive upgrade to continue in this case, also performing long running and critical tasks\&.
+.PP
+After upgrading, see the resulting
+upgrade\&.log
+file for a full list of operations performed\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
 .PP
-\fB\-a, \-\-reversionArchive {directory}\fR
+\fB\-\-force\fR
 .RS 4
-Directory where reversion files are stored\&. This should be one of the child directories of the \*(Aqhistory\*(Aq directory that is created when the upgrade tool is run\&.
+Forces a non\-interactive upgrade to continue even if it requires user interaction\&. In particular, long running or critical upgrade tasks, such as re\-indexing, which require user confirmation will be skipped\&. This option may only be used with the
+\fB\-\-no\-prompt\fR
+option\&.
 .RE
 .PP
-\fB\-f, \-\-file {file}\fR
+\fB\-\-ignoreErrors\fR
 .RS 4
-Specifies an existing server package (\&.zip) file to which the current build will be upgraded using the command line version of this tool
-.RE
-.PP
-\fB\-r, \-\-revertMostRecent\fR
-.RS 4
-The installation will be reverted to the state before the most recent upgrade
+Ignores any errors which occur during the upgrade\&. This option should be used with caution and may be useful in automated deployments where potential errors are known in advance and resolved after the upgrade has completed\&.
 .RE
 .SS "Utility Input/Output Options"
 .PP
 \fB\-n, \-\-no\-prompt\fR
 .RS 4
-Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
+Use non\-interactive mode\&. Prompt for any required information rather than fail\&.
 .RE
 .PP
 \fB\-Q, \-\-quiet\fR
 .RS 4
-Run setup in quiet mode\&. Quiet mode will not output progress information to standard output
+Use quiet mode\&.
 .RE
 .PP
 \fB\-v, \-\-verbose\fR
 .RS 4
-Use verbose mode
+Use verbose mode\&.
 .RE
 .SS "General Options"
 .PP
 \fB\-V, \-\-version\fR
 .RS 4
-Display version information
+Display version information\&.
 .RE
 .PP
 \fB\-?, \-H, \-\-help\fR
 .RS 4
-Display usage information
+Display usage information\&.
 .RE
 .SH "EXIT CODES"
 .PP
@@ -91,45 +171,84 @@ Display usage information
 The command completed successfully\&.
 .RE
 .PP
-> 0
+2
+.RS 4
+The command was run in non\-interactive mode, but could not complete because confirmation was required to run a long or critical task\&.
+.sp
+See the error message or the log for details\&.
+.RE
+.PP
+Other
 .RS 4
 An error occurred\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example demonstrates upgrade without interaction\&.
+The following example shows the upgrade process for OpenDJ directory server installed from the cross\-platform (\&.zip) delivery\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ \&./OpenDJ/upgrade \-f ~/Downloads/OpenDJ\-2\&.5\&.0\&.zip \-n
-See
-/var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
- for a detailed log of this operation\&.
+$ cd /path/to
+$ ls
+OpenDJ\-2\&.4\&.6
+$ \&./OpenDJ\-2\&.4\&.6/bin/stop\-ds \-\-quiet
+\&.\&.\&. msg=The backend userRoot is now taken offline
+\&.\&.\&. msg=The Directory Server is now stopped
+$ zip \-rq OpenDJ\-backup\&.zip OpenDJ\-2\&.4\&.6
+$ unzip \-q ~/Downloads/OpenDJ\-2\&.6\&.0\&.zip
+$ cp \-r opendj/* OpenDJ\-2\&.4\&.6/
+$ rm \-rf opendj
+$ mv OpenDJ\-2\&.4\&.6 opendj
+$ \&./opendj/upgrade \-\-no\-prompt
 
-Initializing Upgrade \&.\&.\&.\&.\&. Done\&.
-Calculating Schema Customizations \&.\&.\&.\&.\&. Done\&.
-Calculating Configuration Customizations \&.\&.\&.\&.\&. Done\&.
-Backing Up Files \&.\&.\&.\&.\&. Done\&.
-Upgrading Components \&.\&.\&.\&.\&. Done\&.
-Preparing Customizations \&.\&.\&.\&.\&. Done\&.
-Applying Configuration Customizations \&.\&.\&.\&.\&. Done\&.
-Verifying Upgrade \&.\&.\&.\&.\&. Done\&.
-Cleaning Up \&.\&.\&.\&.\&. Done\&.
-Recording Upgrade History \&.\&.\&.\&.\&. Done\&.
-See /path/to/OpenDJ/history/log for a detailed installation history\&.
-QuickUpgrade Completed Successfully\&.  The OpenDJ installation at
-/path/to/OpenDJ has now been upgraded to version OpenDJ 2\&.5\&.0 (Build ID:
-YYYYMMDDhhmmssZ)\&.
+>>>> OpenDJ Upgrade Utility
 
-See /var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
- for a detailed log of this operation\&.
+ * OpenDJ will be upgraded from version 2\&.4\&.6\&.8102 to 2\&.6\&.0\&.\fIrevision\fR
+ * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
+
+>>>> Preparing to upgrade
+
+  OpenDJ 2\&.6\&.0 modified the default configuration of the \*(AqisMemberOf\*(Aq virtual
+  attribute so that it is included with group entries\&. This was done in order
+  to make it easier for users to determine which groups a \*(Aqnested\*(Aq group
+  belongs to\&.
+  Do you want to make this configuration change? (yes/no) yes
+
+  The upgrade is ready to proceed\&. Do you wish to continue? (yes/no) yes
+
+
+>>>> Performing upgrade
+
+  Fixing de\-DE collation matching rule OID\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Updating password policy configurations\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Updating audit log publisher configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Adding \*(Aqetag\*(Aq virtual attribute schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Configuring \*(Aqetag\*(Aq virtual attribute\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Configuring \*(Aqds\-pwp\-password\-expiration\-time\*(Aq virtual attribute\&.\&.\&.\&.\&.   100%
+  Updating certificate syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Updating JPEG syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Updating country string syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Modifying filter in \*(AqisMemberOf\*(Aq virtual attribute configuration\&.\&.\&.\&.   100%
+  Updating dictionary password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Updating attribute value password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Adding PBKDF2 password storage scheme configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Replacing schema file \*(Aq02\-config\&.ldif\*(Aq\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Archiving concatenated schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+
+>>>> OpenDJ was successfully upgraded from version 2\&.4\&.6\&.8102 to 2\&.6\&.0\&.\fIrevision\fR
+
+ * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
+$ \&./opendj/bin/start\-ds \-\-quiet
+$ 
 .fi
 .if n \{\
 .RE
 .\}
+.PP
+Native packages (\&.deb, \&.rpm) perform more of the upgrade process, stopping OpenDJ if it is running, overwriting older files with newer files, running this utility, and starting OpenDJ if it was running when you upgraded the package(s)\&.
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

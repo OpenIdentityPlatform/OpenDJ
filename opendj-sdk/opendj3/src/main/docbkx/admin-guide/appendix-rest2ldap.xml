@@ -44,7 +44,7 @@
    the RESTful API over HTTP (or HTTPS). You configure the mapping between
    JSON resources and LDAP entries by editing the configuration file for the
    HTTP connection handler, by default
-   <filename>/path/to/OpenDJ/config/http-config.json</filename>.</para>
+   <filename>/path/to/opendj/config/http-config.json</filename>.</para>
   </listitem>
 
   <listitem>

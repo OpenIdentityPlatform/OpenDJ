@@ -46,7 +46,7 @@
 
  <itemizedlist>
   <para>By default the key stores are located in the
-  <filename>/path/to/OpenDJ/config</filename> directory.</para>
+  <filename>/path/to/opendj/config</filename> directory.</para>
 
   <listitem>
    <para>The <filename>keystore</filename> and <filename>truststore</filename>
@@ -154,7 +154,7 @@
   <step>
    <para>Check the alias of the key pair and certificate copy to replace.</para>
 
-   <screen>$ cd /path/to/OpenDJ/config
+   <screen>$ cd /path/to/opendj/config
 $ keytool -list -keystore admin-keystore -storepass `cat admin-keystore.pin`
 
 Keystore type: JKS
@@ -291,7 +291,7 @@ Certificate was added to keystore</screen>
   <step>
    <para>Restart OpenDJ to make sure it reloads the key stores.</para>
 
-   <screen>$ cd /path/to/OpenDJ/bin
+   <screen>$ cd /path/to/opendj/bin
 $ stop-ds --restart</screen>
   </step>
 
@@ -394,8 +394,8 @@ objectClass: ds-cfg-instance-key</screen>
  -list
  -v
  -alias ads-certificate
- -keystore /path/to/OpenDJ/config/ads-truststore
- -storepass `cat /path/to/OpenDJ/config/ads-truststore.pin`
+ -keystore /path/to/opendj/config/ads-truststore
+ -storepass `cat /path/to/opendj/config/ads-truststore.pin`
 Alias name: ads-certificate
 Creation date: Feb 7, 2013
 Entry type: PrivateKeyEntry
