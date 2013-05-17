@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='status-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>status</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -218,7 +218,7 @@ Open Connections:         1
           --- Server Details ---
 Host Name:                localhost.localdomain
 Administrative Users:     cn=Directory Manager
-Installation Path:        /path/to/OpenDJ
+Installation Path:        /path/to/opendj
 Version:                  OpenDJ <?eval ${docTargetVersion}?>
 Java Version:             1.6.0_29
 Administration Connector: Port 4444 (LDAPS)

@@ -68,12 +68,7 @@
      </listitem>
     </varlistentry>
 
-    <varlistentry>
-     <term>opendj.zip</term>
-     <listitem>
-      <para>SVR4 format native packages for Solaris</para>
-     </listitem>
-    </varlistentry>
+    <!-- TODO: .deb, .rpm not yet posted on a download page -->
 
     <varlistentry>
      <term>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</term>
@@ -126,7 +121,7 @@
   
   <step>
    <para>Run the <command>setup --cli</command> command found in the
-   <filename>OpenDJ-<?eval ${docTargetVersion}?></filename> directory.</para>
+   <filename>opendj</filename> directory.</para>
 
    <para>This command starts the setup program in interactive mode on the
    command line, prompting you for each option. Alternatively, use
@@ -145,7 +140,7 @@
    GUI installer with your local version of software, as does
    Java WebStart with a remote version of the software.</para>
 
-   <screen>$ /path/to/OpenDJ-<?eval ${docTargetVersion}?>/setup --cli
+   <screen>$ /path/to/opendj/setup --cli
 
 OpenDJ <?eval ${docTargetVersion}?>
 Please wait while the setup program initializes...
@@ -216,7 +211,7 @@ Importing LDIF file /path/to/Example.ldif ........... Done.
 Starting Directory Server ........... Done.
 
 To see basic server configuration status and configuration you can launch \
-/path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status</screen>
+/path/to/opendj/bin/status</screen>
 
    <variablelist>
     <para>Some notes on the options follow.</para>
@@ -340,7 +335,7 @@ To see basic server configuration status and configuration you can launch \
    <para>Run the <command>status</command> command to make sure your OpenDJ
    server is working as expected.</para>
 
-   <screen>$ /path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status
+   <screen>$ /path/to/opendj/bin/status
 
 >>>> Specify OpenDJ LDAP connection parameters
 
@@ -355,7 +350,7 @@ Open Connections:         1
           --- Server Details ---
 Host Name:                opendj.example.com
 Administrative Users:     cn=Directory Manager
-Installation Path:        /path/to/OpenDJ-<?eval ${docTargetVersion}?>
+Installation Path:        /path/to/opendj
 Version:                  OpenDJ <?eval ${docTargetVersion}?>
 Java Version:             1.6.0_29
 Administration Connector: Port 4444 (LDAPS)
@@ -435,7 +430,7 @@ ldifFile                        =/net/install/dj/Example.ldif
    <screen>$ cat /net/install/dj/1/setup.sh
 #!/bin/sh
 
-unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp; cd /path/to/OpenDJ-<?eval ${docTargetVersion}?>
+unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp; cd /path/to/opendj
 ./setup --cli --propertiesFilePath /net/install/dj/1/setup.props --no-prompt</screen>
   </step>
 
@@ -444,11 +439,11 @@ unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp;
 
    <screen>$ /net/install/dj/1/setup.sh
 Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
-   creating: /path/to/OpenDJ-2.5.0/
+   creating: /path/to/opendj
 ...
-  inflating: /path/to/OpenDJ-2.5.0/setup
-  inflating: /path/to/OpenDJ-2.5.0/uninstall
-  inflating: /path/to/OpenDJ-2.5.0/upgrade
+  inflating: /path/to/opendj/setup
+  inflating: /path/to/opendj/uninstall
+  inflating: /path/to/opendj/upgrade
 
 OpenDJ <?eval ${docTargetVersion}?>
 Please wait while the setup program initializes...
@@ -461,7 +456,7 @@ Importing LDIF file /net/install/dj/Example.ldif ....... Done.
 Starting Directory Server ....... Done.
 
 To see basic server configuration status and configuration you can launch
- /path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status</screen>
+ /path/to/opendj/bin/status</screen>
 
    <para>At this point you can use OpenDJ directory server, or you can perform
    additional configuration.</para>

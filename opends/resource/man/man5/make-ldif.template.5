@@ -2,12 +2,12 @@
 .\"     Title: make-ldif.template
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/26/2013
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "MAKE\-LDIF\&.TEMPLAT" "5" "03/26/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "MAKE\-LDIF\&.TEMPLAT" "5" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -187,7 +187,7 @@ random
 or
 sequential\&. For the file argument, either you specify an absolute path to the file such as
 <file:/path/to/myDescriptions>, or you specify a path relative to the
-/path/to/OpenDJ/config/MakeLDIF/
+/path/to/opendj/config/MakeLDIF/
 directory such as
 <file:streets>\&. For the second argument, if you specify
 sequential
@@ -197,7 +197,7 @@ then lines from the file are read in sequential order\&. Otherwise, lines from t
 <First>
 .RS 4
 The first name tag gets replaced by a random line from
-/path/to/OpenDJ/config/MakeLDIF/first\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
+/path/to/opendj/config/MakeLDIF/first\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
 .RE
 .PP
 <GUID>
@@ -223,7 +223,7 @@ to define another attribute that is sometimes present on generated entries\&.
 <Last>
 .RS 4
 The last name tag gets replaced by a random line from
-/path/to/OpenDJ/config/MakeLDIF/last\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
+/path/to/opendj/config/MakeLDIF/last\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
 .RE
 .PP
 <List>
@@ -531,7 +531,7 @@ description: This is the description for {cn}\&.
 .SH "SEE ALSO"
 .PP
 \m[blue]\fB\fBmake-ldif\fR(1)\fR\m[],
-/path/to/OpenDJ/config/MakeLDIF/example\&.template
+/path/to/opendj/config/MakeLDIF/example\&.template
 .SH "COPYRIGHT"
 .br
 Copyright \(co 2012-2013 ForgeRock AS

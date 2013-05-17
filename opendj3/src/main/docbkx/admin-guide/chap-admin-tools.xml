@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-admin-tools'
@@ -171,13 +171,13 @@
   
   <itemizedlist>
    <para>Setup, upgrade, and uninstall tools are located in the directory where
-   you unpacked OpenDJ, such as <filename>/path/to/OpenDJ</filename>. Find the
+   you unpacked OpenDJ, such as <filename>/path/to/opendj</filename>. Find the
    additional command-line tools for your platform.</para>
    <listitem>
-    <para>(UNIX) In OpenDJ/bin.</para>
+    <para>(UNIX) In opendj/bin.</para>
    </listitem>
    <listitem>
-    <para>(Windows) In OpenDJ\bat.</para>
+    <para>(Windows) In opendj\bat.</para>
    </listitem>
   </itemizedlist>
   

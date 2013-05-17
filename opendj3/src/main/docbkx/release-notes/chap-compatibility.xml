@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -38,15 +38,16 @@
   <title>Major Changes to Existing Functionality</title>
 
   <para>OpenDJ <?eval ${docTargetVersion}?> improves on earlier releases
-  introducing many new features and important fixes without major,
-  backwards-incompatible changes. Take the following into account,
-  however.</para>
+  introducing many new features. Also take the following into account.</para>
 
   <itemizedlist>
    <listitem>
-    <para>When upgrading from 2.4.4 or earlier, after you upgrade but before
-    you restart OpenDJ, you must rebuild the <literal>ds-sync-hist</literal>
-    index.</para>
+    <para>The upgrade process and <command>upgrade</command> command have
+    changed to facilitate native packaging on more platforms. See
+    <link xlink:show="new" xlink:href="install-guide#chap-upgrade"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading to
+    OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
+    instructions.</para>
    </listitem>
    <listitem>
     <para>The default DB cache size is now 50%, rather than 10%.</para>
@@ -72,7 +73,7 @@
    </listitem>
   </itemizedlist>
 
-<!-- Not yet for OpenDJ 2.5.
+<!-- Not yet for OpenDJ 2.6.0.
   <para>The <command>ldif-diff</command> command has been renamed
   <command>ldifdiff</command>, and the <option>-\-outputLDIF</option>,
   <option>-\-overwriteExisting</option>, <option>-\-sourceLDIF</option>,
@@ -93,9 +94,6 @@
  <section xml:id="removed-functionality">
   <title>Removed Functionality</title>
   
-  <para>No functionality has been removed in OpenDJ
-  <?eval ${docTargetVersion}?>.</para>
-  
-  <para>No functionality is planned to be removed at this time.</para>
+  <para>Native packages in SVR4 format for Solaris are no longer provided.</para>
  </section>
 </chapter>

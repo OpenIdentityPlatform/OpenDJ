@@ -94,7 +94,7 @@
   <partintro>
    <para>You can find the tools under the <filename>bin/</filename> or
    <filename>bat\</filename> folder where you installed OpenDJ directory
-   server. For example, <filename>/path/to/OpenDJ/bin</filename>.</para>
+   server. For example, <filename>/path/to/opendj/bin</filename>.</para>
   </partintro>
 
    <xinclude:include href='../shared/man-backup.xml' />

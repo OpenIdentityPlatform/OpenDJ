@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <refentry xml:id='setup-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>setup</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -325,7 +325,7 @@
   <title>Examples</title>
   <para>The following command installs OpenDJ directory server, enabling
   StartTLS and importing 100 example entries without interaction.</para>
-  <screen>$ ./OpenDJ/setup --cli -b dc=example,dc=com -d 100 -D "cn=Directory Manager"
+  <screen>$ ./opendj/setup --cli -b dc=example,dc=com -d 100 -D "cn=Directory Manager"
  -w password -h `hostname` -p 1389
  --generateSelfSignedCertificate --enableStartTLS -n 
 
@@ -340,6 +340,6 @@ Importing Automatically-Generated Data (100 Entries) ......... Done.
 Starting Directory Server .......... Done.
 
 To see basic server configuration status and configuration you can launch
- /path/to/OpenDJ/bin/status</screen>
+ /path/to/opendj/bin/status</screen>
  </refsect1>
 </refentry>

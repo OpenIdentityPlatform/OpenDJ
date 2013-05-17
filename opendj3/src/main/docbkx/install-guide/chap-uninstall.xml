@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-uninstall'
@@ -83,7 +83,7 @@
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
    
-   <screen>$ cd /path/to/OpenDJ-<?eval ${docTargetVersion}?>
+   <screen>$ cd /path/to/opendj
 $ ./uninstall --cli
 Do you want to remove all components of the server or select the components to
 remove?
@@ -105,7 +105,7 @@ Deleting Files under the Installation Path ..... Done.
 The Uninstall Completed Successfully.
 To complete the uninstallation, you must delete manually the following files
 and directories:
-/path/to/OpenDJ-<?eval ${docTargetVersion}?>/lib
+/path/to/opendj/lib
 See /var/....log for a detailed log of this operation.</screen>
   </step>
 
@@ -113,7 +113,7 @@ See /var/....log for a detailed log of this operation.</screen>
    <para>If the command output tells you to delete files manually, then remove
    those remaining files to complete the process.</para>
  
-   <screen>$ rm -rf /path/to/OpenDJ-<?eval ${docTargetVersion}?></screen>
+   <screen>$ rm -rf /path/to/opendj</screen>
   </step>
  </procedure>
 </chapter>

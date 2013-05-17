@@ -2,12 +2,12 @@
 .\"     Title: uninstall
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 05/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "UNINSTALL" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "UNINSTALL" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -216,7 +216,7 @@ The following command removes OpenDJ directory server without interaction\&.
 .RS 4
 .\}
 .nf
-$ \&./OpenDJ/uninstall \-a \-\-cli \-I admin \-w password \-n
+$ \&./opendj/uninstall \-a \-\-cli \-I admin \-w password \-n
 
 Stopping Directory Server \&.\&.\&.\&.\&. Done\&.
 Deleting Files under the Installation Path \&.\&.\&.\&.\&. Done\&.
@@ -224,14 +224,14 @@ Deleting Files under the Installation Path \&.\&.\&.\&.\&. Done\&.
 The Uninstall Completed Successfully\&.
 To complete the uninstallation, you must delete manually the following files
 and directories:
-/path/to/OpenDJ/lib
+/path/to/opendj/lib
 See /var/\&.\&.\&./opends\-uninstall\-3\&.\&.\&.0\&.log for a detailed log of this operation\&.
-$ rm \-rf OpenDJ
+$ rm \-rf opendj
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

@@ -178,7 +178,7 @@ xml: \&lt;id&gt;{uid}\&lt;/id&gt;</programlisting>
      an absolute path to the file such as
      <literal>&lt;file:/path/to/myDescriptions&gt;</literal>, or you specify
      a path relative to the
-     <filename>/path/to/OpenDJ/config/MakeLDIF/</filename> directory such as
+     <filename>/path/to/opendj/config/MakeLDIF/</filename> directory such as
      <literal>&lt;file:streets&gt;</literal>. For the second argument,
      if you specify <literal>sequential</literal> then lines from the file are
      read in sequential order. Otherwise, lines from the file are read in
@@ -190,7 +190,7 @@ xml: \&lt;id&gt;{uid}\&lt;/id&gt;</programlisting>
     <term>&lt;First&gt;</term>
     <listitem>
      <para>The first name tag gets replaced by a random line from
-     <filename>/path/to/OpenDJ/config/MakeLDIF/first.names</filename>.
+     <filename>/path/to/opendj/config/MakeLDIF/first.names</filename>.
      Combinations of generated first and last names are unique, with integers
      appended to the name strings if not enough combinations are
      available.</para>
@@ -234,7 +234,7 @@ xml: \&lt;id&gt;{uid}\&lt;/id&gt;</programlisting>
     <term>&lt;Last&gt;</term>
     <listitem>
      <para>The last name tag gets replaced by a random line from
-     <filename>/path/to/OpenDJ/config/MakeLDIF/last.names</filename>.
+     <filename>/path/to/opendj/config/MakeLDIF/last.names</filename>.
      Combinations of generated first and last names are unique, with integers
      appended to the name strings if not enough combinations are
      available.</para>
@@ -447,6 +447,6 @@ description: This is the description for {cn}.</programlisting>
   <para><link xlink:href="admin-guide#make-ldif-1"
   xlink:role="http://docbook.org/xlink/role/olink"><citerefentry><refentrytitle
   >make-ldif</refentrytitle><manvolnum>1</manvolnum></citerefentry></link
-  >, <filename>/path/to/OpenDJ/config/MakeLDIF/example.template</filename></para>
+  >, <filename>/path/to/opendj/config/MakeLDIF/example.template</filename></para>
  </refsect1>
 </refentry>

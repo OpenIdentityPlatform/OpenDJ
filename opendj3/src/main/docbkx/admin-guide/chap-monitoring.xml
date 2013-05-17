@@ -55,7 +55,7 @@ disk-state: normal
 objectClass: top
 objectClass: ds-monitor-entry
 objectClass: extensibleObject
-disk-dir: /path/to/OpenDJ/db/userRoot
+disk-dir: /path/to/opendj/db/userRoot
 disk-free: 343039315968
 cn: userRoot backend
 
@@ -168,7 +168,7 @@ $ dsconfig
 
   <screen>$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
 SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ <?eval ${docTargetVersion}?>..."
-SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"
+SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 ...</screen>
 
  </section>
@@ -244,7 +244,7 @@ Open Connections:         1
           --- Server Details ---
 Host Name:                localhost
 Administrative Users:     cn=Directory Manager
-Installation Path:        /path/to/OpenDJ
+Installation Path:        /path/to/opendj
 Version:                  OpenDJ <?eval ${docTargetVersion}?>
 Java Version:             1.6.0_24
 Administration Connector: Port 4444 (LDAPS)
@@ -502,7 +502,7 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
     
     <para>A common development troubleshooting technique consists of sending
     client requests while tailing the access log:</para>
-    <screen>$ tail -f /path/to/OpenDJ/logs/access</screen>
+    <screen>$ tail -f /path/to/opendj/logs/access</screen>
     <para>Trouble is, when OpenDJ Control Panel is running, or when you are
     also adapting your configuration using the <command>dsconfig</command>
     command, OpenDJ writes access log messages related to administration.
@@ -545,7 +545,7 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
     you perform a simple <command>ldapsearch --port 1389 --baseDN
     dc=example,dc=com uid=bjensen cn</command>, then all you see in the access
     log is the effect of the <command>ldapsearch</command> command.</para>
-    <screen>$ tail -f /path/to/OpenDJ/logs/access
+    <screen>$ tail -f /path/to/opendj/logs/access
 [19/Oct/2011:16:37:16 +0200] CONNECT conn=8 from=127.0.0.1:54165
  to=127.0.0.1:1389 protocol=LDAP
 [19/Oct/2011:16:37:16 +0200] SEARCH REQ conn=8 op=0 msgID=1
