@@ -25,22 +25,19 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.quicksetup;
 
-
-
-import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
@@ -54,11 +51,9 @@ import org.opends.server.util.SetupUtils;
 public final class Installation
 {
 
-  /**
-   * Relative path to OpenDJ jar files.
-   */
-  public static final String[] OPEN_DS_JAR_RELATIVE_PATHS = {
-      "lib/quicksetup.jar", "lib/OpenDJ.jar", "lib/je.jar" };
+  /** Relative path to bootstrap OpenDJ jar file. */
+  public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH =
+      "lib/bootstrap.jar";
 
   /**
    * The relative path where all the Windows binaries (batch files) are.

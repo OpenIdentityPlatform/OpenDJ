@@ -258,10 +258,7 @@ set_classpath() {
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
-  for JAR in "${INSTALL_ROOT}/lib/"*.jar
-  do
-    CLASSPATH=${CLASSPATH}:${JAR}
-  done
+  CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap.jar"
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
     for JAR in "${INSTANCE_ROOT}/lib/"*.jar

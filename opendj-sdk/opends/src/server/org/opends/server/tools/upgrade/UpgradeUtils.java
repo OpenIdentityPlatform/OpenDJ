@@ -24,15 +24,13 @@
  *
  *      Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.tools.upgrade;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
-import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
-import static org.opends.server.tools.upgrade.FileManager.rename;
+import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
-import static org.opends.server.util.ServerConstants.EOL;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -82,21 +80,21 @@ final class UpgradeUtils
   private final static Logger LOG = Logger
       .getLogger(UpgradeCli.class.getName());
 
-  // The config folder of the current installation.
+  /** The config folder of the current installation. */
   static final File configDirectory = new File(getInstallationPath(),
       Installation.CONFIG_PATH_RELATIVE);
 
-  // The config/schema folder of the current installation.
+  /** The config/schema folder of the current installation. */
   static final File configSchemaDirectory = new File(getInstallationPath(),
       Installation.CONFIG_PATH_RELATIVE + File.separator
           + Installation.SCHEMA_PATH_RELATIVE);
 
-  // The template folder of the current installation.
+  /** The template folder of the current installation. */
   static final File templateDirectory = new File(getInstallationPath(),
       Installation.CONFIG_PATH_RELATIVE + File.separator
           + Installation.TEMPLATE_RELATIVE_PATH);
 
-  // The template/config/schema folder of the current installation.
+  /** The template/config/schema folder of the current installation. */
   static final File templateConfigSchemaDirectory = new File(
       getInstallationPath(), Installation.TEMPLATE_RELATIVE_PATH
           + File.separator + Installation.CONFIG_PATH_RELATIVE + File.separator
@@ -120,19 +118,7 @@ final class UpgradeUtils
     final String sep = System.getProperty("path.separator");
     final String[] classPaths =
         System.getProperty("java.class.path").split(sep);
-    String path = null;
-    for (int i = 0; i < classPaths.length && (path == null); i++)
-    {
-      for (int j = 0; j < Installation.OPEN_DS_JAR_RELATIVE_PATHS.length
-          && (path == null); j++)
-      {
-        final String normPath = classPaths[i].replace(File.separatorChar, '/');
-        if (normPath.endsWith(Installation.OPEN_DS_JAR_RELATIVE_PATHS[j]))
-        {
-          path = classPaths[i];
-        }
-      }
-    }
+    String path = getInstallPath(classPaths);
     if (path != null)
     {
       final File f = new File(path).getAbsoluteFile();
@@ -153,6 +139,19 @@ final class UpgradeUtils
       }
     }
     return installPath;
+  }
+
+  private static String getInstallPath(final String[] classPaths)
+  {
+    for (String classPath : classPaths)
+    {
+      final String normPath = classPath.replace(File.separatorChar, '/');
+      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      {
+        return classPath;
+      }
+    }
+    return null;
   }
 
   /**
@@ -505,15 +504,12 @@ final class UpgradeUtils
             LOG.log(Level.SEVERE, ex.getMessage());
           }
         }
-        if (filter == null && changeType == PersistentSearchChangeType.ADD)
+        if (filter == null && changeType == PersistentSearchChangeType.ADD
+            && (entry.getName() + "dn: ").equals(lines[0]))
         {
-          if (new StringBuilder("dn: ").append(entry.getName().toString())
-              .toString().equals(lines[0]))
-          {
-            LOG.log(Level.INFO, String.format("Entry %s found", entry.getName()
-                .toString()));
-            alreadyExist = true;
-          }
+          LOG.log(Level.INFO, String.format("Entry %s found", entry.getName()
+              .toString()));
+          alreadyExist = true;
         }
         writer.writeEntry(entry);
       }
@@ -589,7 +585,7 @@ final class UpgradeUtils
     {
       reader = new LDIFEntryReader(new FileInputStream(templateFile));
 
-      LinkedList<String> definitionsList = new LinkedList<String>();
+      final LinkedList<String> definitionsList = new LinkedList<String>();
 
       final Entry schemaEntry = reader.readEntry();
       Schema schema = null;
@@ -604,8 +600,7 @@ final class UpgradeUtils
           try
           {
             final String definition =
-                new StringBuilder("attributeTypes: ").append(
-                    schema.getAttributeType(att).toString()).toString();
+                schema.getAttributeType(att) + "attributeTypes: ";
             definitionsList.add(definition);
             LOG.log(Level.INFO, String.format("Added : %s", definition));
           }
@@ -623,8 +618,8 @@ final class UpgradeUtils
         {
           try
           {
-            final String definition = new StringBuilder("objectClasses: ")
-            .append(schema.getObjectClass(oc).toString()).toString();
+            final String definition =
+                schema.getObjectClass(oc) + "objectClasses: ";
             definitionsList.add(definition);
             LOG.log(Level.INFO, String.format("Added : %s", definition));
           }
@@ -640,23 +635,19 @@ final class UpgradeUtils
 
       br = new BufferedReader(new FileReader(destination));
       fw = new FileWriter(copy);
-      String line = null;
-      if (definitionsList != null)
+      String line = br.readLine();
+      while (line != null && !"".equals(line))
       {
+        fw.write(line + EOL);
         line = br.readLine();
-        while (line != null && !line.equals(""))
-        {
-          fw.write(line + EOL);
-          line = br.readLine();
-        }
-        for (final String definition : definitionsList)
-        {
-          writeLine(fw, definition, 80);
-          changeCount++;
-        }
-        // Must be ended with a blank line
-        fw.write(EOL);
       }
+      for (final String definition : definitionsList)
+      {
+        writeLine(fw, definition, 80);
+        changeCount++;
+      }
+      // Must be ended with a blank line
+      fw.write(EOL);
     }
     finally
     {
@@ -759,8 +750,7 @@ final class UpgradeUtils
     int index = 0;
     if (changeType == PersistentSearchChangeType.MODIFY)
     {
-      modifiedLines[0] =
-          new StringBuilder("dn: ").append(dn.toString()).toString();
+      modifiedLines[0] = dn + "dn: ";
       modifiedLines[1] = "changetype: modify";
       index = 2;
     }

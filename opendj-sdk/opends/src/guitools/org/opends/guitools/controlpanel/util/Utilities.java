@@ -113,6 +113,7 @@ import org.opends.guitools.controlpanel.ui.components.
 import org.opends.guitools.controlpanel.ui.renderer.
  AccessibleTableHeaderRenderer;
 import org.opends.messages.Message;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.AttributeSyntax;
@@ -1115,18 +1116,14 @@ public class Utilities
           inTag = false;
           String tag = s.substring(lastOpenTag, i+1);
           lastOpenTag = -1;
+          lastLine.append(c);
           if (isLineBreakTag(tag))
           {
-            lastLine.append(c);
             sb.append(lastLine);
             lastLine.delete(0, lastLine.length());
             lastLineLength = 0;
             lastSpace = -1;
             lastLineLengthInLastSpace = 0;
-          }
-          else
-          {
-            lastLine.append(c);
           }
         }
         else
@@ -1142,8 +1139,8 @@ public class Utilities
       {
         if (s.length() >= i + HTML_SPACE.length())
         {
-          if (s.substring(i, i + HTML_SPACE.length()).equalsIgnoreCase(
-              HTML_SPACE))
+          if (HTML_SPACE.equalsIgnoreCase(s.substring(i, i
+              + HTML_SPACE.length())))
           {
             if (lastLineLength < nCols)
             {
@@ -1243,11 +1240,11 @@ public class Utilities
 
   private static boolean isLineBreakTag(String tag)
   {
-    return tag.equalsIgnoreCase("<br>") ||
-    tag.equalsIgnoreCase("</br>") ||
-    tag.equalsIgnoreCase("</div>") ||
-    tag.equalsIgnoreCase("<p>") ||
-    tag.equalsIgnoreCase("</p>");
+    return "<br>".equalsIgnoreCase(tag) ||
+    "</br>".equalsIgnoreCase(tag) ||
+    "</div>".equalsIgnoreCase(tag) ||
+    "<p>".equalsIgnoreCase(tag) ||
+    "</p>".equalsIgnoreCase(tag);
   }
 
   /**
@@ -1340,7 +1337,7 @@ public class Utilities
     Component parent = comp;
     while (parent != null)
     {
-      if ((parent instanceof JDialog) || (parent instanceof JFrame))
+      if (parent instanceof JDialog || parent instanceof JFrame)
       {
         return (Window)parent;
       }
@@ -1750,7 +1747,7 @@ public class Utilities
       buf.append("<br><br>")
       .append(applyFont(details.toString(), detailsFont));
     }
-    return "<form>"+buf.toString()+"</form>";
+    return "<form>" + buf + "</form>";
   }
 
 
@@ -1954,21 +1951,7 @@ public class Utilities
     /* Get the install path from the Class Path */
     String sep = System.getProperty("path.separator");
     String[] classPaths = System.getProperty("java.class.path").split(sep);
-    String path = null;
-    for (int i = 0; i < classPaths.length && (path == null); i++)
-    {
-      for (int j = 0; j < org.opends.quicksetup.Installation.
-      OPEN_DS_JAR_RELATIVE_PATHS.length &&
-      (path == null); j++)
-      {
-        String normPath = classPaths[i].replace(File.separatorChar, '/');
-        if (normPath.endsWith(
-            org.opends.quicksetup.Installation.OPEN_DS_JAR_RELATIVE_PATHS[j]))
-        {
-          path = classPaths[i];
-        }
-      }
-    }
+    String path = getInstallPath(classPaths);
     if (path != null) {
       File f = new File(path).getAbsoluteFile();
       File librariesDir = f.getParentFile();
@@ -1990,6 +1973,19 @@ public class Utilities
     return installPath;
   }
 
+  private static String getInstallPath(String[] classPaths)
+  {
+    for (String classPath : classPaths)
+    {
+      String normPath = classPath.replace(File.separatorChar, '/');
+      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      {
+        return classPath;
+      }
+    }
+    return null;
+  }
+
   /**
    * Returns <CODE>true</CODE> if the server located in the provided path
    * is running and <CODE>false</CODE> otherwise.
@@ -2002,8 +1998,7 @@ public class Utilities
     boolean isServerRunning;
     String lockFileName = ServerConstants.SERVER_LOCK_FILE_NAME +
     ServerConstants.LOCK_FILE_SUFFIX;
-    String lockPathRelative =
-      org.opends.quicksetup.Installation.LOCKS_PATH_RELATIVE;
+    String lockPathRelative = Installation.LOCKS_PATH_RELATIVE;
     File locksPath = new File(serverRootDirectory, lockPathRelative);
     String lockFile = new File(locksPath, lockFileName).getAbsolutePath();
     StringBuilder failureReason = new StringBuilder();
@@ -2266,7 +2261,7 @@ public class Utilities
   {
     boolean hasImageSyntax = false;
     attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-    if (attrName.equals("photo"))
+    if ("photo".equals(attrName))
     {
       hasImageSyntax = true;
     }

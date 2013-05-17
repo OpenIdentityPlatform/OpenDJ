@@ -25,7 +25,6 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.tools.upgrade;
 
 /**
@@ -36,11 +35,9 @@ package org.opends.server.tools.upgrade;
 public final class Installation
 {
 
-  /**
-   * Relative path to OpenDJ jar files.
-   */
-  public static final String[] OPEN_DS_JAR_RELATIVE_PATHS = {
-      "lib/quicksetup.jar", "lib/OpenDJ.jar", "lib/je.jar" };
+  /** Relative path to bootstrap OpenDJ jar file. */
+  public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH =
+      "lib/bootstrap.jar";
 
   /**
    * The relative path where all the Windows binaries (batch files) are.
