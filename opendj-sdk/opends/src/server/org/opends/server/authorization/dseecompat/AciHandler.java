@@ -24,6 +24,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -479,9 +480,8 @@ public final class AciHandler extends
           ret = false;
         }
       }
-      boolean rdnEquals = oldRDN.equals(newRDN);
-      // Perform the RDN access checks only if the RDNs are not equal.
-      if (ret && !rdnEquals)
+      // Perform the RDN access checks.
+      if (ret)
       {
         ret = aciCheckRDNs(operation, oldRDN, newRDN);
       }
@@ -495,6 +495,7 @@ public final class AciHandler extends
                 operation.getOriginalEntry());
         // The RDNs are not equal, skip the proxy check since it was
         // already performed in the aciCheckRDNs call above.
+        boolean rdnEquals = oldRDN.equals(newRDN);
         if (!rdnEquals)
         {
           operationContainer.setSeenEntry(true);
