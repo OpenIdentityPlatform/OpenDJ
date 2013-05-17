@@ -505,7 +505,7 @@ final class UpgradeUtils
           }
         }
         if (filter == null && changeType == PersistentSearchChangeType.ADD
-            && (entry.getName() + "dn: ").equals(lines[0]))
+            && ("dn: " + entry.getName()).equals(lines[0]))
         {
           LOG.log(Level.INFO, String.format("Entry %s found", entry.getName()
               .toString()));
@@ -600,7 +600,7 @@ final class UpgradeUtils
           try
           {
             final String definition =
-                schema.getAttributeType(att) + "attributeTypes: ";
+                "attributeTypes: " + schema.getAttributeType(att);
             definitionsList.add(definition);
             LOG.log(Level.INFO, String.format("Added : %s", definition));
           }
@@ -619,7 +619,7 @@ final class UpgradeUtils
           try
           {
             final String definition =
-                schema.getObjectClass(oc) + "objectClasses: ";
+                "objectClasses: " + schema.getObjectClass(oc);
             definitionsList.add(definition);
             LOG.log(Level.INFO, String.format("Added : %s", definition));
           }
@@ -750,7 +750,7 @@ final class UpgradeUtils
     int index = 0;
     if (changeType == PersistentSearchChangeType.MODIFY)
     {
-      modifiedLines[0] = dn + "dn: ";
+      modifiedLines[0] = "dn: " + dn;
       modifiedLines[1] = "changetype: modify";
       index = 2;
     }
