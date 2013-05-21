@@ -1069,9 +1069,15 @@ public abstract class AbstractTextAccessLogPublisher
      */
     boolean isLoggable(final Operation operation)
     {
-      return !((suppressInternalOperations && operation.isInnerOperation())
-          || (suppressSynchronizationOperations
-              && operation.isSynchronizationOperation()));
+      if (operation.isSynchronizationOperation())
+      {
+        return !suppressSynchronizationOperations;
+      }
+      else if (operation.isInnerOperation())
+      {
+        return !suppressInternalOperations;
+      }
+      return true;
     }
   }
 
