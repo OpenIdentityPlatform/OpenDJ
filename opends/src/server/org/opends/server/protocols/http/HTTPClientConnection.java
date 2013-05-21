@@ -186,6 +186,9 @@ final class HTTPClientConnection extends ClientConnection implements
   private final HTTPStatistics statTracker;
   private boolean useNanoTime = false;
 
+  /** Total execution time for this request. */
+  private AtomicLong totalProcessingTime = new AtomicLong();
+
   /** The protocol in use for this client connection. */
   private String protocol;
 
@@ -298,6 +301,13 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /** {@inheritDoc} */
   @Override
+  public long getTotalProcessingTime()
+  {
+    return totalProcessingTime.get();
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getProtocol()
   {
     return protocol;
@@ -370,17 +380,11 @@ final class HTTPClientConnection extends ClientConnection implements
   @Override
   public void sendResponse(Operation operation)
   {
+    final long time = getProcessingTime(operation);
+    this.totalProcessingTime.addAndGet(time);
+
     if (keepStats)
     {
-      long time;
-      if (useNanoTime)
-      {
-        time = operation.getProcessingNanoTime();
-      }
-      else
-      {
-        time = operation.getProcessingTime();
-      }
       this.statTracker.updateRequestMonitoringData(getMethod(), time);
       this.statTracker.updateOperationMonitoringData(operation
           .getOperationType(), time);
@@ -405,6 +409,15 @@ final class HTTPClientConnection extends ClientConnection implements
         op.futureResult.handleErrorResult(e);
       }
     }
+  }
+
+  private long getProcessingTime(Operation operation)
+  {
+    if (useNanoTime)
+    {
+      return operation.getProcessingNanoTime();
+    }
+    return operation.getProcessingTime();
   }
 
   private ProtocolOp toResponseProtocolOp(Operation operation)

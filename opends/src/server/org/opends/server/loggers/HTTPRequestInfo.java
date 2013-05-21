@@ -134,6 +134,13 @@ public interface HTTPRequestInfo
   long getConnectionID();
 
   /**
+   * Returns the total processing time for this HTTP request.
+   *
+   * @return the total processing time for this HTTP request
+   */
+  long getTotalProcessingTime();
+
+  /**
    * Logs the current request info in the HTTP access log.
    *
    * @param statusCode
