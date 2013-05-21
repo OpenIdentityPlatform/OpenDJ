@@ -42,10 +42,14 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   @DataProvider(name = "isLoggableData")
   public Object[][] getIsLoggableData()
   {
-    // when suppress is set to true and the corresponding operation is set to
+    // When suppress is set to true and the corresponding operation is set to
     // true too, then the operation is not loggable.
     // You can read the array like this: read two by two from line start, if
-    // both are true in a pair, then the expected result is false (not loggable)
+    // both are true in a pair, then the expected result is false (not
+    // loggable).
+    // There is just one exception: when the operation is a synchronization
+    // operation and we do not suppress synchronization operation, then we
+    // return true regardless of whether this is an internal operation
     return new Object[][] {
       { true, true, true, true, false },
       { true, true, true, false, false },
@@ -55,7 +59,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
       { true, false, true, false, true },
       { true, false, false, true, true },
       { true, false, false, false, true },
-      { false, true, true, true, false },
+      { false, true, true, true, true },
       { false, true, true, false, true },
       { false, true, false, true, true },
       { false, true, false, false, true },
