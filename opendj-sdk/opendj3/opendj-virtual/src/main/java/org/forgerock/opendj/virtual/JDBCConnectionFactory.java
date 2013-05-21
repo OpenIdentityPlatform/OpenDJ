@@ -130,6 +130,3 @@ public final class JDBCConnectionFactory implements ConnectionFactory
     return null;
   }
 }
-
-
-
