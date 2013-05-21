@@ -308,9 +308,10 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     if (authInfo != null && authInfo.isAuthenticated())
     {
       final int messageID = nextMessageID.getAndIncrement();
-      UnbindOperationBasis operation =
+      final UnbindOperationBasis operation =
           new UnbindOperationBasis(clientConnection, messageID, messageID,
               to(request.getControls()));
+      operation.setInnerOperation(this.clientConnection.isInnerConnection());
 
       // run synchronous
       operation.run();
