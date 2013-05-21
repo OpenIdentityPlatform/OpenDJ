@@ -27,39 +27,106 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultHandler;
 
-public final class JDBCConnectionFactory implements ConnectionFactory {
+/**
+ * A factory class which can be used to obtain connections to an SQL Database
+ * Server.
+ */
+public final class JDBCConnectionFactory implements ConnectionFactory 
+{
   private String ConnectionUrl = "";
   private final String Host;
   private final int Port;
   private final String DbName;
   private JDBCConnection jdbc;
 
-  public JDBCConnectionFactory(final String host, final int port, final String dbName) {
+  /**
+   * Creates a new JDBC connection factory which can be used to create JDBC
+   * connections to the Database Server at the provided host and port
+   * address.
+   *
+   *  @param host
+   *            The host name.
+   *  @param port
+   *            The port number.
+   *  @param dbName
+   *            The name of the SQL database.              
+   * @throws NullPointerException
+   *             If {@code dbName} was {@code null}.
+   */
+  public JDBCConnectionFactory(final String host, final int port, final String dbName) 
+  {
     this.Host = host;
     this.Port = port;
     this.DbName = dbName;
 
+    //For connection to h2 database, use this.ConnectionUrl="jdbc:h2"
     this.ConnectionUrl="jdbc:mysql://"
-        .concat(this.Host+":")
-        .concat(this.Port+"/")
-        .concat(this.DbName);
+        .concat(Host+":")
+        .concat(Port+"/")
+        .concat(DbName);
   }
 
-  public String getDbName(){
-    return this.DbName;
-  }
-
+  /**
+   * Returns a connection to the Directory Server associated with this
+   * connection factory. The connection returned by this method can be used
+   * immediately.
+   * <p>
+   * If the calling thread is interrupted while waiting for the connection
+   * attempt to complete then the calling thread unblock and throw a
+   * {@link CancelledResultException} whose cause is the underlying
+   * {@link InterruptedException}.
+   *
+   * @return A connection to the Database Server associated with this
+   *         connection factory.
+   * @throws ErrorResultException
+   *             If the connection request failed for some reason.
+   */
   @Override
-  public Connection getConnection() throws ErrorResultException {
-    if (this.jdbc == null){
-      this.jdbc = new JDBCConnection(this.ConnectionUrl);
+  public Connection getConnection() throws ErrorResultException 
+  {
+    if (jdbc == null){
+      this.jdbc = new JDBCConnection(ConnectionUrl);
     }
-    return this.jdbc;
+    return jdbc;
+  }
+
+  /**
+   * Returns the SQL database host name that was provided to this 
+   * connection factory.
+   *
+   * @return The SQL database host name that this connection factory uses.
+   */
+  public String getHostName() 
+  {
+    return Host;
+  }
+
+  /**
+   * Returns the SQL database port number that was provided to this 
+   * connection factory. 
+   *
+   * @return The SQL database name that this connection factory uses.
+   */
+  public int getPort() 
+  {
+    return Port;
+  }
+
+  /**
+   * Returns the SQL database name that was provided to this
+   * connection factory. 
+   *
+   * @return The SQL database name that this connection factory uses.
+   */
+  public String getDatabaseName()
+  {
+    return DbName;
   }
 
   @Override
   public FutureResult<Connection> getConnectionAsync(
-      ResultHandler<? super Connection> handler) {
+      ResultHandler<? super Connection> handler) 
+  {
     return null;
   }
 }
