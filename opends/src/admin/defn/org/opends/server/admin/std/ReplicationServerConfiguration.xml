@@ -24,7 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS
+  !      Portions copyright 2011-2013 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -94,16 +94,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="window-size">
+  <adm:property name="window-size" advanced="true">
     <adm:synopsis>
       Specifies the window size that the
       <adm:user-friendly-name />
       uses when communicating with other
       <adm:user-friendly-plural-name />.
     </adm:synopsis>
+    <adm:description>
+      This option may be deprecated and removed in future releases.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>100</adm:value>
+        <adm:value>100000</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
