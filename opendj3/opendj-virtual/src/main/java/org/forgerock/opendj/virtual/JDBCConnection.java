@@ -65,8 +65,11 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 
+/**
+ * JDBC connection implementation.
+ */
 public final class JDBCConnection extends AbstractSynchronousConnection {
-  // For connection to h2 database, use driverName = "org.h2.driver";
+  //For connection to h2 database, use driverName = "org.h2.driver";
   private final String driverName = "com.mysql.jdbc.Driver";
   private java.sql.Connection connection;
   private String connectionUrl;
@@ -74,88 +77,139 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
   private MappingConfigurationManager mcm;
   private List<Entry> searchEntries = new ArrayList<Entry>();
 
+  /**
+   * Creates a new JDBC connection.
+   *
+   * @param connectionURL
+   *            The URL to connect to the SQL Database Server consisting of the 
+   *            host name, port number and name of the database.
+   */
   JDBCConnection(final String connectionURL) 
   {
     this.connectionUrl = connectionURL;
   }   
 
-  public void initializeMapper(JDBCMapper jdbcmapper) throws SQLException, ErrorResultException, IOException
+  /**
+   * Initializes the mapping component for this connection.
+   *
+   * @param jdbcMapper
+   *            The JDBCMapper object used to map the directory and database 
+   *            structure.
+   */
+  public void initializeMapper(final JDBCMapper jdbcMapper) throws SQLException, ErrorResultException, IOException
   {
-    jdbcm = jdbcmapper;
+    //Load the jdbc mapper with the mapping from the properties file using the Mapping Configuration Manager.
+    jdbcm = jdbcMapper;
     jdbcm.fillMaps();
     mcm = new MappingConfigurationManager(jdbcm);
     jdbcm.loadMappingConfig(mcm.loadMapping());
   }
 
+  /**
+   * Returns the SQL connection used by the SQL driver to connect with the database.
+   *
+   * @return A connection to the database used by the SQL driver.
+   */
   public java.sql.Connection getSqlConnection()
   {
     return connection;
   }
 
+  /**
+   * Adds a record to the Database Server using the provided add request.
+   *       
+   * @param request
+   *            The add request.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code request} was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   @Override
-  public Result add(AddRequest request) throws ErrorResultException
+  public Result add(final AddRequest request) throws ErrorResultException
   {
     Result r;
     try {
+      //Split up the DN the of the request.
       final DN DN = request.getName();
+      final RDN rDN = DN.rdn();
+      final String rDNName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
+      final String rDNValue = rDN.getFirstAVA().getAttributeValue().toString();
       final RDN OU = DN.parent().rdn();
       final String organizationalUnitName = OU.getFirstAVA().getAttributeValue().toString();
       final String baseDN = DN.parent(2).toString();
+
+      //Search mapping for the corresponding table and column names. 
       final String tableName = jdbcm.getTableNameFromMapping(baseDN, organizationalUnitName);
+
+      if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + organizationalUnitName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
+      final String rDNColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, organizationalUnitName, rDNName); 
+
+      if(rDNColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + rDNName + "'. Please check if mapping was succesful.");
       final Map<String, Object> columnValuesMap = new HashMap<String, Object>();
       final Iterable<Attribute> attributesCollection = request.getAllAttributes();
       final Iterator<Attribute> attributeIter = attributesCollection.iterator();
 
+      //Search mapping for the corresponding column name for each attribute.
       while(attributeIter.hasNext()){
         final Attribute att = attributeIter.next();
         final Iterator<ByteString> valueIter = att.iterator();
         final String attributeName = att.getAttributeDescriptionAsString();
-        final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, organizationalUnitName, attributeName);
-        String columnValue = "";
 
-        if (columnName == null) continue;
+        if(attributeName == "objectClass") continue;      
+        final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, organizationalUnitName, attributeName);
+
+        if(columnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + attributeName + "'. Please check if mapping was succesful.");
+        String columnValue = "";
 
         while(valueIter.hasNext()){
           columnValue = columnValue.concat(valueIter.next().toString());
         }
         columnValuesMap.put(columnName, columnValue);
       }
+
+      //Build the SQL values String.
       final ArrayList<String>columnList = jdbcm.getTableColumns(tableName);
-      String columnNamesString = " (";
-      String columnValuesString = " (";
+      String columnNamesString = " (" + rDNColumnName;
+      String columnValuesString = " ('" + rDNValue + "'";
 
       for(int i = 0; i < columnList.size(); i++){
-
-        if (i > 0){
-          columnNamesString = columnNamesString.concat(", ");
-          columnValuesString = columnValuesString.concat(", ");
-        }
         final String columnName = columnList.get(i);
+
+        if(columnNamesString.contains(columnName)) continue;
         final Object columnDataType = jdbcm.getTableColumnDataType(tableName, columnName);
         Object columnValue = columnValuesMap.get(columnName);
 
         if(columnValue == null){
-
           if(columnDataType.equals(Integer.class)) columnValue = "0";
           else columnValue = "Default Value";
         }
 
         if(columnDataType.equals(Integer.class)) columnValue = Integer.parseInt(columnValue.toString());
-
-        columnNamesString = columnNamesString.concat(columnName);
-        columnValuesString = columnValuesString.concat("'" + columnValue + "'");
+        columnNamesString = columnNamesString.concat(", " + columnName);
+        columnValuesString = columnValuesString.concat(", '" + columnValue + "'");
       }
       columnNamesString = columnNamesString.concat(")");
       columnValuesString = columnValuesString.concat(")");
 
+      //Build the SQL query.
       final Statement st = connection.createStatement();
       final String sql = "INSERT INTO " + tableName + columnNamesString + " VALUES" + columnValuesString;
       st.executeUpdate(sql);
       r = Responses.newResult(ResultCode.SUCCESS);
-
-    } catch (SQLException e) {
+    }catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
+    }catch (NullPointerException e){
+      System.out.println(e.toString());
+      r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
     }
     return r;
   }
@@ -166,10 +220,27 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     // TODO Auto-generated method stub
   }
 
+  /**
+   * Authenticates to the Database Server using the provided bind request.
+   *       
+   * @param request
+   *            The bind request.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws ClassNotFoundException
+   *            If no definition for the class with the specified driver name could be found. 
+   * @throws SQLException
+   *            If the driver could not establish a connection with the 
+   *            Database Server.
+   */
   @Override
-  public BindResult bind(BindRequest request) throws ErrorResultException
+  public BindResult bind(final BindRequest request) throws ErrorResultException
   {
     BindResult r;
+
+    //Extract user name and password from the bind request.
     final String userName = request.getName();
     final String userPass;
     byte[] password = null;
@@ -182,15 +253,16 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     }
     userPass = new String(password);
 
+    //Establish SQL connection to the Database Server.
     try {
       Class.forName(driverName);
       this.connection = DriverManager
           .getConnection(this.connectionUrl,userName , userPass);
-    } catch (ClassNotFoundException e) {
+    }catch (ClassNotFoundException e) {
       System.out.println(e.toString());
       r = Responses.newBindResult(ResultCode.OTHER);
       return r;
-    } catch (SQLException e) {
+    }catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newBindResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
       return r;
@@ -199,8 +271,11 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     return r;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void close(UnbindRequest request, String reason)
+  public void close(final UnbindRequest request, final String reason)
   {
     if(connection != null){
       try
@@ -214,12 +289,28 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     }
   }
 
+  /**
+   * Compares a record in the Database Server using the provided compare request.
+   *       
+   * @param request
+   *            The compare request.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code request} was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   @Override
-  public CompareResult compare(CompareRequest request) throws ErrorResultException
+  public CompareResult compare(final CompareRequest request) throws ErrorResultException
   {
     CompareResult cr;
     try
     {
+      //Split up the DN the of the request.
       final DN DN = request.getName();
       final RDN rDN = DN.rdn();
       final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
@@ -227,31 +318,61 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
       final RDN OU = DN.parent(1).rdn();
       final String OUName = OU.getFirstAVA().getAttributeValue().toString();
       final String baseDN = DN.parent(2).toString();
+
+      //Search mapping for the corresponding table and column names. 
       final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+      if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
       final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);  
+
+      if(columnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");
+
+      //Search mapping for the corresponding column name for the comparing attribute.
       final String compareAttributeName = request.getAttributeDescription().toString();
       final String compareAttributeValue = request.getAssertionValueAsString();
       final String compareColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, compareAttributeName);
 
+      if(compareColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + compareAttributeName + "'. Please check if mapping was succesful.");    
+
+      //Build the SQL query.
       final Statement st = connection.createStatement();
       final String sql = "SELECT * FROM " + tableName + " WHERE " + columnName + "='" + filterAttributeValue + "' AND " + compareColumnName + "='" +  compareAttributeValue + "'";
       final ResultSet rs = st.executeQuery(sql);
       if(rs.first()) cr = Responses.newCompareResult(ResultCode.COMPARE_TRUE);
       else cr = Responses.newCompareResult(ResultCode.COMPARE_FALSE);
-    }
-    catch (SQLException e)
-    {
+    }catch (SQLException e) {
+      System.out.println(e.toString());
       cr = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
-      e.printStackTrace();
+      cr.setCause(e);
+    }catch (NullPointerException e){
+      System.out.println(e.toString());
+      cr = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
+      cr.setCause(e);
     }
     return cr;
   }
 
+  /**
+   * Deletes a record from the Database Server using the provided delete request.
+   *       
+   * @param request
+   *            The delete request.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code request} was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   @Override
   public Result delete(DeleteRequest request) throws ErrorResultException
   {
     Result r;
     try{
+      //Split up the DN the of the request.
       final DN DN = request.getName();
       final RDN rDN = DN.rdn();
       final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
@@ -259,16 +380,28 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
       final RDN OU = DN.parent(1).rdn();
       final String OUName = OU.getFirstAVA().getAttributeValue().toString();
       final String baseDN = DN.parent(2).toString();
+
+      //Search mapping for the corresponding table and column names.
       final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+      if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
       final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
 
+      if(columnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");
+
+      //Build the SQL query.
       final Statement st = connection.createStatement();
       final String sql = "DELETE FROM " + tableName + " WHERE " + columnName + "='" + filterAttributeValue + "'";
       st.executeUpdate(sql);
       r = Responses.newResult(ResultCode.SUCCESS);
-    } catch (SQLException e) {
+    }catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
+    }catch (NullPointerException e){
+      System.out.println(e.toString());
+      r = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
     }
     return r;
   }
@@ -282,6 +415,9 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     return null;
           }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isClosed()
   {
@@ -296,6 +432,9 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isValid()
   {
@@ -310,11 +449,27 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     }
   }
 
+  /**
+   * Modifies a record in the Database Server using the provided modify request.
+   *       
+   * @param request
+   *            The modify request.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code request} was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   @Override
-  public Result modify(ModifyRequest request)
+  public Result modify(final ModifyRequest request)
   { 
     Result r;
     try{
+      //Split up the DN the of the request.
       final DN DN = request.getName();
       final RDN rDN = DN.rdn();
       final String filterAttributeName = rDN.getFirstAVA().getAttributeType().getNameOrOID();
@@ -322,8 +477,17 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
       final RDN OU = DN.parent(1).rdn();
       final String OUName = OU.getFirstAVA().getAttributeValue().toString();
       final String baseDN = DN.parent(2).toString();
+
+      //Search mapping for the corresponding table and column names. 
       final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+      if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
       final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
+
+      if(columnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");
+
+      //Get attribute and modificationtype for each modification.
+      //Search mapping for the corresponding column name for the modification attribute.
       final List<Modification> modificationList = request.getModifications();
       final ListIterator<Modification> listIter = modificationList.listIterator();
       String modificationString = "";
@@ -334,6 +498,8 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         final Attribute modificationAttribute = modification.getAttribute();
         final String modificationAttributeName = modificationAttribute.getAttributeDescription().toString();
         final String modificationColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, modificationAttributeName);
+
+        if(modificationColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + modificationAttributeName + "'. Please check if mapping was succesful.");     
         String modificationAttributeValue = "";
 
         if(modificationType == ModificationType.ADD){
@@ -346,10 +512,11 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
             counter++;
           }
           final Object classType = jdbcm.getTableColumnDataType(tableName, modificationColumnName);
-          if(classType == Integer.class) modificationAttributeValue = "(case when (" + modificationAttributeName + " = 0) THEN ' "
-              + modificationAttributeValue + "' ELSE concat(" + modificationAttributeName + ", ', " + modificationAttributeValue + "') END)";
-          else modificationAttributeValue = "(case when (" + modificationAttributeName + " = 'Default Value') THEN ' "
-              + modificationAttributeValue + "' ELSE concat(" + modificationAttributeName + ", ', " + modificationAttributeValue + "') END)";
+
+          if(classType == Integer.class) modificationAttributeValue = "(CASE WHEN (" + modificationColumnName + " = 0) THEN ' "
+              + modificationAttributeValue + "' ELSE concat(" + modificationColumnName + ", ', " + modificationAttributeValue + "') END)";
+          else modificationAttributeValue = "(CASE WHEN (" + modificationColumnName + " = 'Default Value') THEN ' "
+              + modificationAttributeValue + "' ELSE concat(" + modificationColumnName + ", ', " + modificationAttributeValue + "') END)";
         }        
         else if(modificationType == ModificationType.REPLACE){
           final Iterator<ByteString> iter = modificationAttribute.iterator();
@@ -370,14 +537,20 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         modificationString = modificationString.concat(modificationColumnName + "=" + modificationAttributeValue + ", ");
       }
       modificationString = modificationString.substring(0, modificationString.length() - 2);
-      final String sql = "UPDATE " + tableName + " SET " + modificationString + " WHERE " + columnName + "='" + filterAttributeValue + "'";
 
+      //Build the SQL query.
       final Statement st = connection.createStatement();
+      final String sql = "UPDATE " + tableName + " SET " + modificationString + " WHERE " + columnName + "='" + filterAttributeValue + "'";
       st.executeUpdate(sql);
       r = Responses.newResult(ResultCode.SUCCESS);
-    }catch (SQLException e){
+    }catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
+    }catch (NullPointerException e){
+      System.out.println(e.toString());
+      r = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
     }
     return r;
   }
@@ -395,123 +568,92 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
     // TODO Auto-generated method stub
   }
 
+  /**
+   * Converts the LDAP filter to an SQL filter.
+   *       
+   * @param filter
+   *            The filter of the search request.
+   * @param baseDN
+   *            The top domain name.
+   * @param OUName
+   *            The name of the organizational unit.            
+   * @return The converted SQL filter.
+   * @throws NullPointerException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code filter}, {@code baseDN} or {@code OUName}  was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   private String convertSearchFilter(final Filter filter, final String baseDN, String OUName)
   {
-    String filterString = filter.toString();
-    int stringIndex = 0;
-    int subStringCount = 0;
+    try{
+      String filterString = filter.toString();
+      String convertedFilterString = "";
 
-    while(filterString.charAt(stringIndex) == '('){
-      if(filterString.charAt(stringIndex + 2) == '('){
-        subStringCount++;
-      }
-      stringIndex += 2;
-    }
-    int subStringStartIndex = 2 * subStringCount;
-    int subStringEndIndex = 0;
-    final String[] subStrings = new String[subStringCount];
-    final char[] operationChars = new char[subStringCount];
+      if(filterString.isEmpty() || filterString.contains("objectClass=*")) return "";
+      int stringIndex = 0;
+      int subStringCount = 0;
 
-    while(subStringStartIndex > 0){
-      final char operationChar = filterString.charAt(subStringStartIndex - 1);
-      subStringEndIndex = filterString.indexOf("))") + 1;
-      String subString = filterString.substring(subStringStartIndex, subStringEndIndex);
-      subString = subString.replace("()","");
 
-      operationChars[subStringCount - subStringStartIndex / 2] = operationChar;
-      subStrings[subStringCount - subStringStartIndex / 2] = subString;
-
-      final String replaceString = filterString.substring(subStringStartIndex - 1, subStringEndIndex);
-      filterString = filterString.replace(replaceString, "");
-
-      subStringStartIndex-=2;
-    }
-    String convertedFilterString = "";
-
-    for(int i = 0; i < subStringCount; i++){
-      final char operationChar = operationChars[i];
-
-      if(operationChar == '!'){
-        String subString = subStrings[i];
-
-        if(subString.isEmpty()){
-          subString = subStrings[i-1];
-          subString = subString.replace(">=", ">");
-          subString = subString.replace("<=", "<");
-          subString = subString.replace("=", "!=");
-          subString = subString.replace(">", ">=");
-          subString = subString.replace("<", "<=");
-          subStrings[i-1] = subString;
+      //Set the amount of subfilters if operators are present.
+      while(filterString.charAt(stringIndex) == '('){
+        if(filterString.charAt(stringIndex + 2) == '('){
+          subStringCount++;
         }
-        else{
-          subString = subString.replace(">=", ">");
-          subString = subString.replace("<=", "<");
-          subString = subString.replace("=", "!=");
-          subString = subString.replace(">", ">=");
-          subString = subString.replace("<", "<=");
-          subStrings[i] = subString;
-        }
-      }
-    }
-    boolean multipleSubStrings = false;
-
-    if(subStringCount > 1) multipleSubStrings = true;
-
-    for(int i = 0; i < subStringCount; i++){
-      final char operationChar = operationChars[i];
-      String operationString = "";
-
-      if(operationChar == '&'){
-        operationString = " AND ";
-      }
-      else if (operationChar == '|'){
-        operationString = " OR ";
+        stringIndex += 2;
       }
 
-      String subString = subStrings[i];
-      if (subString.isEmpty()) continue;
+      if(subStringCount == 0){
+        //Replace escape characters.
+        String subString = filterString.substring(1, filterString.length()-1);
+        subString = subString.replace("\\02a", "*");
+        subString = subString.replace("\\028", "(");
+        subString = subString.replace("\\029", ")");
 
-      subString = subString.substring(1, subString.length() - 1);
-      String[] subStringSplitter = subString.split("\\)\\(");
+        String[] subStringSplitter;
 
-      for(int j = 0; j < subStringSplitter.length; j++){
-        String subStringFilter = subStringSplitter[j];
-        final String[] subStringFilterSplitter;
+        if(subString.contains("<=")) subStringSplitter = subString.split("<=");
+        else if(subString.contains(">=")) subStringSplitter = subString.split(">=");
+        else subStringSplitter = subString.split("=");
 
-        subStringFilter = subStringFilter.replace("\\02a", "*");
-        subStringFilter = subStringFilter.replace("\\028", "(");
-        subStringFilter = subStringFilter.replace("\\029", ")");
-
-        if(subStringFilter.contains("!=")) subStringFilterSplitter = subStringFilter.split("!=");
-        else if(subStringFilter.contains("<=")) subStringFilterSplitter = subStringFilter.split("<=");
-        else if(subStringFilter.contains(">=")) subStringFilterSplitter = subStringFilter.split(">=");
-        else subStringFilterSplitter = subStringFilter.split("=");
-
-        final String filterAttributeName = subStringFilterSplitter[0];
+        final String filterAttributeName = subStringSplitter[0];
         String filterColumnName = null;;
         Object columnDataType = null;
 
-        if(OUName == null){
+        //Search mapping for the corresponding table and column names. 
+        if(OUName.isEmpty()){
           final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
 
           for(Iterator<String> iter = OUList.iterator(); iter.hasNext();){
             OUName = iter.next();
             final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+            if(tableName == null) continue;            
             filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
 
             if(filterColumnName == null) continue;
             else columnDataType = jdbcm.getTableColumnDataType(tableName, filterColumnName);
             break;
           }
+
+          if(filterColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");  
         }
         else{
           final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
-          filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);     
+
+          if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
+          filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);  
+
+          if(filterColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");  
           columnDataType = jdbcm.getTableColumnDataType(tableName, filterColumnName);
         }
 
+        //Set values to right format.
         if(columnDataType != Integer.class){
-          String filterAttributeValue = subStringFilterSplitter[1];
+          String filterAttributeValue = subStringSplitter[1];
           String filterColumnValue = "'" + filterAttributeValue + "'";
           filterAttributeValue = filterAttributeValue.replace("*", "\\*");
           filterAttributeValue = filterAttributeValue.replace("(", "\\(");
@@ -520,34 +662,194 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
           if(filterColumnValue.length() > 3 && filterColumnValue.contains("*")){
             filterColumnValue = filterColumnValue.replace("*", "%");
 
-            if(subStringFilter.contains("!=")) subStringFilter = subStringFilter.replace("!=", " not like ");
-            else subStringFilter = subStringFilter.replace("=", " like ");
+            subString = subString.replace("=", " like ");
           }
-          subStringFilter = subStringFilter.replaceFirst(filterAttributeValue, filterColumnValue);
+          subString = subString.replaceFirst(filterAttributeValue, filterColumnValue);
+        }
+        subString = subString.replaceFirst(filterAttributeName, filterColumnName);
+        convertedFilterString = convertedFilterString.concat(subString);
+      }
+      else
+      {
+        int subStringStartIndex = 2 * subStringCount;
+        int subStringEndIndex = 0;
+        final String[] subStrings = new String[subStringCount];
+        final char[] operationChars = new char[subStringCount];
+
+        //Separate operation characters and subfilters.
+        while(subStringStartIndex > 0){
+          final char operationChar = filterString.charAt(subStringStartIndex - 1);
+          subStringEndIndex = filterString.indexOf("))") + 1;
+          String subString = filterString.substring(subStringStartIndex, subStringEndIndex);
+          subString = subString.replace("()","");
+
+          operationChars[subStringCount - subStringStartIndex / 2] = operationChar;
+          subStrings[subStringCount - subStringStartIndex / 2] = subString;
+
+          final String replaceString = filterString.substring(subStringStartIndex - 1, subStringEndIndex);
+          filterString = filterString.replace(replaceString, "");
+
+          subStringStartIndex-=2;
         }
 
-        if(filterColumnName == null) continue;
-        subStringFilter = subStringFilter.replaceFirst(filterAttributeName, filterColumnName);
+        //Handle the not operator.
+        for(int i = 0; i < subStringCount; i++){
+          final char operationChar = operationChars[i];
 
-        if(j != 0 || i != 0) convertedFilterString = convertedFilterString.concat(operationString);
-        convertedFilterString = convertedFilterString.concat(subStringFilter);
+          if(operationChar == '!'){
+            String subString = subStrings[i];
+
+            if(subString.isEmpty()){
+              subString = subStrings[i-1];
+              subString = subString.replace(">=", ">");
+              subString = subString.replace("<=", "<");
+              subString = subString.replace("=", "!=");
+              subString = subString.replace(">", ">=");
+              subString = subString.replace("<", "<=");
+              subStrings[i-1] = subString;
+            }
+            else{
+              subString = subString.replace(">=", ">");
+              subString = subString.replace("<=", "<");
+              subString = subString.replace("=", "!=");
+              subString = subString.replace(">", ">=");
+              subString = subString.replace("<", "<=");
+              subStrings[i] = subString;
+            }
+          }
+        }
+        boolean multipleSubStrings = false;
+
+        if(subStringCount > 1) multipleSubStrings = true;
+
+        //Convert each subfilter with corresponding operator.
+        for(int i = 0; i < subStringCount; i++){
+          final char operationChar = operationChars[i];
+          String operationString = "";
+
+          if(operationChar == '&'){
+            operationString = " AND ";
+          }
+          else if (operationChar == '|'){
+            operationString = " OR ";
+          }
+
+          String subString = subStrings[i];
+          if (subString.isEmpty()) continue;
+
+          subString = subString.substring(1, subString.length() - 1);
+          String[] subStringSplitter = subString.split("\\)\\(");
+
+          for(int j = 0; j < subStringSplitter.length; j++){
+            String subStringFilter = subStringSplitter[j];
+            final String[] subStringFilterSplitter;
+
+            subStringFilter = subStringFilter.replace("\\02a", "*");
+            subStringFilter = subStringFilter.replace("\\028", "(");
+            subStringFilter = subStringFilter.replace("\\029", ")");
+
+            if(subStringFilter.contains("!=")) subStringFilterSplitter = subStringFilter.split("!=");
+            else if(subStringFilter.contains("<=")) subStringFilterSplitter = subStringFilter.split("<=");
+            else if(subStringFilter.contains(">=")) subStringFilterSplitter = subStringFilter.split(">=");
+            else subStringFilterSplitter = subStringFilter.split("=");
+
+            final String filterAttributeName = subStringFilterSplitter[0];
+            String filterColumnName = null;;
+            Object columnDataType = null;
+
+            //Search mapping for the corresponding column name for each filter attribute.
+            if(OUName.isEmpty()){
+              final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+              for(Iterator<String> iter = OUList.iterator(); iter.hasNext();){
+                OUName = iter.next();
+                final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+                if(tableName == null) continue;
+                filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);
+
+                if(filterColumnName == null) continue;
+                else columnDataType = jdbcm.getTableColumnDataType(tableName, filterColumnName);
+                break;
+              }
+              if(filterColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");  
+            }
+            else{
+              final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+              if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
+              filterColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, filterAttributeName);   
+
+              if(filterColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + filterAttributeName + "'. Please check if mapping was succesful.");  
+              columnDataType = jdbcm.getTableColumnDataType(tableName, filterColumnName);
+            }
+
+            //Handle the like operator.
+            if(columnDataType != Integer.class){
+              String filterAttributeValue = subStringFilterSplitter[1];
+              String filterColumnValue = "'" + filterAttributeValue + "'";
+              filterAttributeValue = filterAttributeValue.replace("*", "\\*");
+              filterAttributeValue = filterAttributeValue.replace("(", "\\(");
+              filterAttributeValue = filterAttributeValue.replace(")", "\\)");
+
+              if(filterColumnValue.length() > 3 && filterColumnValue.contains("*")){
+                filterColumnValue = filterColumnValue.replace("*", "%");
+
+                if(subStringFilter.contains("!=")) subStringFilter = subStringFilter.replace("!=", " not like ");
+                else subStringFilter = subStringFilter.replace("=", " like ");
+              }
+              subStringFilter = subStringFilter.replaceFirst(filterAttributeValue, filterColumnValue);
+            }
+            subStringFilter = subStringFilter.replaceFirst(filterAttributeName, filterColumnName);
+
+            if(j != 0 || i != 0) convertedFilterString = convertedFilterString.concat(operationString);
+            convertedFilterString = convertedFilterString.concat(subStringFilter);
+          }
+
+          if(multipleSubStrings && i < subStringCount -1) convertedFilterString = "(" + convertedFilterString + ")";
+        }
       }
-
-      if(multipleSubStrings && i < subStringCount -1) convertedFilterString = "(" + convertedFilterString + ")";
+      return convertedFilterString;
     }
-    return convertedFilterString;
+    catch(NullPointerException e){
+      return "Err:" + e.getMessage();
+    }
   }
 
+  /**
+   * Returns the search entries of the last search request.
+   *       
+   * @return A list of entries of the last search request.
+   */
   public List<Entry> getSearchEntries()
   {
     return searchEntries;
   }
 
+  /**
+   * Search the Database Server using the provided search request.
+   *       
+   * @param request
+   *            The search request.
+   * @param handler
+   *            A search result handler which can be used to asynchronously process the 
+   *            search result entries and references as they are received, may be null.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws NullPointerException
+   *            If {@code request} was {@code null}, or if 
+   *            a corresponding mapping value could not be found in the mapping component.
+   */
   @Override
   public Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException
   {
     Result r;
     try{
+      //Split up the DN the of the request.
       final DN DN = request.getName();
       final int DNSize = DN.size();
       final String baseDN = DN.parent(DNSize - 2).toString();
@@ -568,48 +870,97 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         OU = DN.parent(0).rdn();
         OUName = OU.getFirstAVA().getAttributeValue().toString();
       }
+      List<String> returnAttributeNames = request.getAttributes();
+      final List<String> removeAttributesList = new ArrayList<String>();
 
+      //Get all column names to be returned to return full records.
+      if(returnAttributeNames == null){
+        if(OU != null){
+          returnAttributeNames = jdbcm.getOrganizationalUnitAttributes(baseDN, OUName);
 
-      final List<String> returnAttributeNames = request.getAttributes();
-      final List<String> returnColumnNames = new ArrayList<String>();
+          if(returnAttributeNames == null) throw new NullPointerException("JDBC Error: Could not find any matching attributes in OU: '" + OUName + "'.");   
+          final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
 
-      final Filter searchFilter = request.getFilter();
-      final String convertedFilterString = convertSearchFilter(searchFilter, baseDN, OUName);
+          for(Iterator<String> iterAttributes = returnAttributeNames.iterator(); iterAttributes.hasNext();){
+            String returnAttributeName = iterAttributes.next();
+            final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
 
-      if(returnAttributeNames != null){
+            if(returnColumnName == null) removeAttributesList.add(returnAttributeName);
+          }
+          returnAttributeNames.removeAll(removeAttributesList);
+        }
+        else{
+          final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
 
-        for(Iterator<String> iter = returnAttributeNames.iterator();iter.hasNext();){
+          if(OUList == null) throw new NullPointerException("JDBC Error: Could not find any matching organizational units in DN: '" + baseDN + "'.");
 
-          if(OU == null){
-            final String returnAttributeName = iter.next();
-            final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+          for(Iterator<String> iterOU = OUList.iterator(); iterOU.hasNext();){
+            OUName = iterOU.next();
+            final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+            returnAttributeNames = jdbcm.getOrganizationalUnitAttributes(baseDN, OUName);
 
-            for(Iterator<String> iterOU = OUList.iterator(); iterOU.hasNext();){
-              OUName = iterOU.next();
-              final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+            for(Iterator<String> iterAttributes = returnAttributeNames.iterator(); iterAttributes.hasNext();){
+              String returnAttributeName = iterAttributes.next();
               final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
 
-              if(returnColumnName == null) continue;
-              else returnColumnNames.add(returnColumnName);
-              break;
+              if(returnColumnName == null) removeAttributesList.add(returnAttributeName);
             }
-          }
-          else {
-            final String returnAttributeName = iter.next();
-            final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
-            final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
-            returnColumnNames.add(returnColumnName);
+            returnAttributeNames.removeAll(removeAttributesList);
           }
         }
       }
+      //Convert the search filter.
+      final Filter searchFilter = request.getFilter();
+      final String convertedFilterString = convertSearchFilter(searchFilter, baseDN, OUName);
+
+      if(convertedFilterString.startsWith("Err:")){
+        String[] errorStringSplitter = convertedFilterString.split("Err:");
+        throw new NullPointerException(errorStringSplitter[1]);
+      }
+      final List<String> returnColumnNames = new ArrayList<String>();
+
+      //Search mapping for the corresponding column name for each return attribute.
+      for(Iterator<String> iter = returnAttributeNames.iterator();iter.hasNext();){
+
+        if(OU == null){
+          final String returnAttributeName = iter.next();
+          final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+          if(OUList == null) throw new NullPointerException("JDBC Error: Could not find any matching organizational units in DN: '" + baseDN + "'.");
+
+          for(Iterator<String> iterOU = OUList.iterator(); iterOU.hasNext();){
+            OUName = iterOU.next();
+            final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+            final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
+
+            if(returnColumnName == null) continue;
+            else returnColumnNames.add(returnColumnName);
+            break;
+          }
+        }
+        else {
+          final String returnAttributeName = iter.next();
+          final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
+
+          if(tableName == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
+          final String returnColumnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, returnAttributeName);
+
+          if(returnColumnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + returnAttributeName + "'. Please check if mapping was succesful.");
+          returnColumnNames.add(returnColumnName);
+        }
+      }
+
       String selectString = "";
       String fromString = "";
       String whereString = convertedFilterString;
 
-      if(returnColumnNames.isEmpty()) selectString = "*";
+      if(returnAttributeNames.isEmpty()) selectString = "*";
 
+      //Build the SQL SELECT string.
       if(OU == null){
         final List<String> OUList = jdbcm.getOrganizationalUnits(baseDN);
+
+        if(OUList == null) throw new NullPointerException("JDBC Error: Could not find any matching organizational units in DN: '" + baseDN + "'.");
 
         for(int i = 0; i < OUList.size(); i++){
           final String currentOU = OUList.get(i);
@@ -634,6 +985,8 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
       }
       else{
         final String selectTable = jdbcm.getTableNameFromMapping(baseDN, OUName);
+        if(selectTable == null) throw new NullPointerException("JDBC Error: Could not find matching table name for OU: '" + OUName + "' in DN: '" + baseDN + "'. Please check if mapping was succesful.");            
+
         fromString = fromString.concat(selectTable);
 
         for(int j = 0; j < returnColumnNames.size(); j++){
@@ -646,20 +999,22 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         }
 
         if(rDN != null){
-          final String tableName = jdbcm.getTableNameFromMapping(baseDN, OUName);
-          final String columnName = jdbcm.getColumnNameFromMapping(tableName, baseDN, OUName, rDNAttributeName);
+          final String columnName = jdbcm.getColumnNameFromMapping(selectTable, baseDN, OUName, rDNAttributeName);
+
+          if(columnName == null) throw new NullPointerException("JDBC Error: Could not find matching column name for attribute: '" + rDNAttributeName + "'. Please check if mapping was succesful.");          
           whereString = columnName + "='" + rDNAttributeValue + "'";
         }
       }
 
+      //Build the SQL query.
+      final Statement st = connection.createStatement();
       String sql = "SELECT " + selectString + " FROM " + fromString;
 
       if(!whereString.isEmpty()) sql = sql.concat(" WHERE " + whereString);
-
-      final Statement st = connection.createStatement();
       ResultSet rs = st.executeQuery(sql);
       ResultSetMetaData rsmd = rs.getMetaData();
 
+      //Fill the entries result for this query.
       searchEntries.clear();
       while (rs.next()) {
         Entry e = new LinkedHashMapEntry();
@@ -670,13 +1025,21 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         searchEntries.add(e);
       }
       r = Responses.newResult(ResultCode.SUCCESS);
-    }catch (SQLException e){
+    }catch (SQLException e) {
       System.out.println(e.toString());
       r = Responses.newResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
+    }catch (NullPointerException e){
+      System.out.println(e.toString());
+      r = Responses.newCompareResult(ResultCode.OPERATIONS_ERROR);
+      r.setCause(e);
     }
     return r;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString()
   {
