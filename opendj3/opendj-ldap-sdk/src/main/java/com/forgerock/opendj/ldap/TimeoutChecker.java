@@ -62,7 +62,7 @@ final class TimeoutChecker {
     private final Object available = new Object();
 
     /**
-     * The connection set must safe from CMEs because expiring requests can
+     * The connection set must be safe from CMEs because expiring requests can
      * cause the connection to be closed.
      */
     private final Set<LDAPConnection> connections =
