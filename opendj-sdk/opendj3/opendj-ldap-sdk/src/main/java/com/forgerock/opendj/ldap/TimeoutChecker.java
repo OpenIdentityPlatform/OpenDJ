@@ -28,12 +28,10 @@
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static java.util.Collections.newSetFromMap;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
@@ -42,6 +40,9 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * Checks connection for pending requests that have timed out.
  */
 final class TimeoutChecker {
+    /**
+     * Global reference counted instance.
+     */
     static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
             new ReferenceCountedObject<TimeoutChecker>() {
                 @Override
@@ -55,58 +56,60 @@ final class TimeoutChecker {
                 }
             };
 
-    private final Condition available;
-    private final List<LDAPConnection> connections;
-    private final ReentrantLock lock;
-    private boolean shutdownRequested = false;
+    /**
+     * Condition variable used for coordinating the timeout thread.
+     */
+    private final Object available = new Object();
+
+    /**
+     * The connection set must safe from CMEs because expiring requests can
+     * cause the connection to be closed.
+     */
+    private final Set<LDAPConnection> connections =
+            newSetFromMap(new ConcurrentHashMap<LDAPConnection, Boolean>());
+
+    /**
+     * Used to signal thread shutdown.
+     */
+    private volatile boolean shutdownRequested = false;
 
     private TimeoutChecker() {
-        this.connections = new LinkedList<LDAPConnection>();
-        this.lock = new ReentrantLock();
-        this.available = lock.newCondition();
-
         final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
             @Override
             public void run() {
                 DEBUG_LOG.fine("Timeout Checker Starting");
-                lock.lock();
-                try {
-                    while (!shutdownRequested) {
-                        final long currentTime = System.currentTimeMillis();
-                        long delay = 0;
+                while (!shutdownRequested) {
+                    final long currentTime = System.currentTimeMillis();
+                    long delay = 0;
 
-                        for (final LDAPConnection connection : connections) {
-                            if (DEBUG_LOG.isLoggable(Level.FINER)) {
-                                DEBUG_LOG.finer("Checking connection " + connection + " delay = "
-                                        + delay);
-                            }
-                            final long newDelay = connection.cancelExpiredRequests(currentTime);
-                            if (newDelay > 0) {
-                                if (delay > 0) {
-                                    delay = Math.min(newDelay, delay);
-                                } else {
-                                    delay = newDelay;
-                                }
-                            }
+                    for (final LDAPConnection connection : connections) {
+                        if (DEBUG_LOG.isLoggable(Level.FINER)) {
+                            DEBUG_LOG.finer("Checking connection " + connection + " delay = "
+                                    + delay);
                         }
 
-                        try {
-                            if (delay <= 0) {
-                                DEBUG_LOG.finer("There are no connections with "
-                                        + "timeout specified. Sleeping");
-                                available.await();
+                        // May update the connections set.
+                        final long newDelay = connection.cancelExpiredRequests(currentTime);
+                        if (newDelay > 0) {
+                            if (delay > 0) {
+                                delay = Math.min(newDelay, delay);
                             } else {
-                                if (DEBUG_LOG.isLoggable(Level.FINER)) {
-                                    DEBUG_LOG.log(Level.FINER, "Sleeping for " + delay + " ms");
-                                }
-                                available.await(delay, TimeUnit.MILLISECONDS);
+                                delay = newDelay;
                             }
-                        } catch (final InterruptedException e) {
-                            shutdownRequested = true;
                         }
                     }
-                } finally {
-                    lock.unlock();
+
+                    try {
+                        synchronized (available) {
+                            if (delay <= 0) {
+                                available.wait();
+                            } else {
+                                available.wait(delay);
+                            }
+                        }
+                    } catch (final InterruptedException e) {
+                        shutdownRequested = true;
+                    }
                 }
             }
         };
@@ -116,31 +119,24 @@ final class TimeoutChecker {
     }
 
     void addConnection(final LDAPConnection connection) {
-        lock.lock();
-        try {
-            connections.add(connection);
-            available.signalAll();
-        } finally {
-            lock.unlock();
-        }
+        connections.add(connection);
+        signal();
     }
 
     void removeConnection(final LDAPConnection connection) {
-        lock.lock();
-        try {
-            connections.remove(connection);
-        } finally {
-            lock.unlock();
-        }
+        connections.remove(connection);
+        // No need to signal.
     }
 
     private void shutdown() {
-        lock.lock();
-        try {
-            shutdownRequested = true;
-            available.signalAll();
-        } finally {
-            lock.unlock();
+        shutdownRequested = true;
+        signal();
+    }
+
+    // Wakes the timeout checker if it is sleeping.
+    private void signal() {
+        synchronized (available) {
+            available.notifyAll();
         }
     }
 }
