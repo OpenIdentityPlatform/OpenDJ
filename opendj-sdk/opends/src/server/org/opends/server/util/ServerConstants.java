@@ -1726,6 +1726,25 @@ public final class ServerConstants
        ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES =
             "org.opends.server.LDAPHandlerDisabledByConsecutiveFailures";
 
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if consecutive failures in the HTTP connection
+   * handler have caused it to become disabled.
+   */
+  public static final String
+      ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES =
+          "This alert type will be used to notify administrators of " +
+          "consecutive failures that have occurred in the HTTP connection " +
+          "handler that have caused it to become disabled.";
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if consecutive failures in the HTTP connection handler have
+   * caused it to become disabled.
+   */
+  public static final String
+      ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES =
+          "org.opends.server.HTTPHandlerDisabledByConsecutiveFailures";
 
 
   /**
