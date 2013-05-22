@@ -1059,7 +1059,7 @@ public final class LDAPConnectionHandler extends
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            logError(ERR_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(
+            logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
                 String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
 
             if (lastIterationFailed)
@@ -1068,8 +1068,8 @@ public final class LDAPConnectionHandler extends
               // encountered a failure. Rather than enter a potential
               // infinite loop of failures, disable this acceptor and
               // log an error.
-              Message message = ERR_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
-                  .get(String.valueOf(currentConfig.dn()),
+              Message message = ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
+                  .get(friendlyName, String.valueOf(currentConfig.dn()),
                       stackTraceToSingleLineString(e));
               logError(message);
 

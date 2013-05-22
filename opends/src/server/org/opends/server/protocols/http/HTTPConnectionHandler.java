@@ -30,6 +30,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -142,6 +143,9 @@ public class HTTPConnectionHandler extends
    */
   private volatile boolean shutdownRequested;
 
+  /** Indicates whether this connection handler is enabled. */
+  private boolean enabled;
+
   /** The set of listeners for this connection handler. */
   private List<HostPort> listeners = new LinkedList<HostPort>();
 
@@ -181,9 +185,7 @@ public class HTTPConnectionHandler extends
    */
   private final Object waitListen = new Object();
 
-  /**
-   * The friendly name of this connection handler.
-   */
+  /** The friendly name of this connection handler. */
   private String friendlyName;
 
   /**
@@ -279,6 +281,7 @@ public class HTTPConnectionHandler extends
 
     this.initConfig = config;
     this.currentConfig = config;
+    this.enabled = this.currentConfig.isEnabled();
 
     return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
         messages);
@@ -373,8 +376,12 @@ public class HTTPConnectionHandler extends
   @Override
   public LinkedHashMap<String, String> getAlerts()
   {
-    // TODO Auto-generated method stub
-    return null;
+    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+
+    alerts.put(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
+        ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
+
+    return alerts;
   }
 
   /** {@inheritDoc} */
@@ -535,6 +542,7 @@ public class HTTPConnectionHandler extends
 
     this.initConfig = config;
     this.currentConfig = config;
+    this.enabled = this.currentConfig.isEnabled();
   }
 
   private String getHandlerName(HTTPConnectionHandlerCfg config)
@@ -558,8 +566,7 @@ public class HTTPConnectionHandler extends
   {
     HTTPConnectionHandlerCfg config = (HTTPConnectionHandlerCfg) configuration;
 
-    if ((currentConfig == null)
-        || (!currentConfig.isEnabled() && config.isEnabled()))
+    if ((currentConfig == null) || (!this.enabled && config.isEnabled()))
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.
@@ -713,11 +720,12 @@ public class HTTPConnectionHandler extends
   {
     setName(handlerName);
 
+    boolean lastIterationFailed = false;
     while (!shutdownRequested)
     {
       // If this connection handler is not enabled, then just sleep
       // for a bit and check again.
-      if (!currentConfig.isEnabled())
+      if (!this.enabled)
       {
         if (isListening())
         {
@@ -735,17 +743,65 @@ public class HTTPConnectionHandler extends
         continue;
       }
 
-      // If we have gotten here, then we are about to start listening
-      // for the first time since startup or since we were previously
-      // disabled. Start the embedded HTTP server
-      startHttpServer();
+      try
+      {
+        // At this point, the connection Handler either started
+        // correctly or failed to start but the start process
+        // should be notified and resume its work in any cases.
+        synchronized (waitListen)
+        {
+          waitListen.notify();
+        }
+
+        // If we have gotten here, then we are about to start listening
+        // for the first time since startup or since we were previously
+        // disabled. Start the embedded HTTP server
+        startHttpServer();
+        lastIterationFailed = false;
+      }
+      catch (Exception e)
+      {
+        // clean up the messed up HTTP server
+        cleanUpHttpServer();
+
+        // error + alert about the horked config
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
+            String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
+
+        if (lastIterationFailed)
+        {
+          // The last time through the accept loop we also
+          // encountered a failure. Rather than enter a potential
+          // infinite loop of failures, disable this acceptor and
+          // log an error.
+          Message message =
+              ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
+                  String.valueOf(currentConfig.dn()),
+                  stackTraceToSingleLineString(e));
+          logError(message);
+
+          DirectoryServer.sendAlertNotification(this,
+              ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES, message);
+
+          this.enabled = false;
+        }
+        else
+        {
+          lastIterationFailed = true;
+        }
+      }
     }
 
     // Initiate shutdown
     stopHttpServer();
   }
 
-  private void startHttpServer()
+  private void startHttpServer() throws Exception
   {
     // silence Grizzly's own logging
     Logger.getLogger("org.glassfish.grizzly").setLevel(Level.OFF);
@@ -768,84 +824,67 @@ public class HTTPConnectionHandler extends
       setHttpStatsProbe();
     }
 
-    try
+    for (NetworkListener listener : this.httpServer.getListeners())
     {
-      for (NetworkListener listener : this.httpServer.getListeners())
+      TCPNIOTransport transport = listener.getTransport();
+      transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
+      transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
+      transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
+      transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
+          TimeUnit.MILLISECONDS);
+
+      int bufferSize = (int) currentConfig.getBufferSize();
+      transport.setReadBufferSize(bufferSize);
+      transport.setWriteBufferSize(bufferSize);
+      transport.setIOStrategy(SameThreadIOStrategy.getInstance());
+      final int numRequestHandlers =
+          getNumRequestHandlers(currentConfig.getNumRequestHandlers(),
+              friendlyName);
+      transport.setSelectorRunnersCount(numRequestHandlers);
+      transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
+
+      if (sslContext != null)
       {
-        TCPNIOTransport transport = listener.getTransport();
-        transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
-        transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
-        transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
-        transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
-            TimeUnit.MILLISECONDS);
-
-        int bufferSize = (int) currentConfig.getBufferSize();
-        transport.setReadBufferSize(bufferSize);
-        transport.setWriteBufferSize(bufferSize);
-        transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-        final int numRequestHandlers = getNumRequestHandlers(
-                currentConfig.getNumRequestHandlers(), friendlyName);
-        transport.setSelectorRunnersCount(numRequestHandlers);
-        transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
-
-        if (sslContext != null)
-        {
-          listener.setSecure(true);
-          listener.setSSLEngineConfig(new SSLEngineConfigurator(sslContext));
-        }
-      }
-
-      final String servletName = "OpenDJ Rest2LDAP servlet";
-      final String urlPattern = "/*";
-      final WebappContext ctx = new WebappContext(servletName);
-
-      final JsonValue configuration =
-          parseJsonConfiguration(getFileForPath(this.currentConfig
-              .getConfigFile()));
-
-      final HTTPAuthenticationConfig authenticationConfig =
-          getAuthenticationConfig(configuration);
-
-      javax.servlet.Filter filter =
-          new CollectClientConnectionsFilter(this, authenticationConfig);
-      FilterRegistration filterReg =
-          ctx.addFilter("collectClientConnections", filter);
-      // TODO JNR this is not working
-      // filterReg.addMappingForServletNames(EnumSet.allOf(
-      // DispatcherType.class), servletName);
-      filterReg.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST),
-          true, urlPattern);
-
-      ConnectionFactory connFactory = getConnectionFactory(configuration);
-
-      final ServletRegistration reg =
-          ctx.addServlet(servletName, new HttpServlet(connFactory,
-          // Used for hooking our HTTPClientConnection in Rest2LDAP
-              Rest2LDAPContextFactory.getHttpServletContextFactory()));
-      reg.addMapping(urlPattern);
-
-      ctx.deploy(this.httpServer);
-
-      TRACER.debugInfo("Starting HTTP server...");
-      this.httpServer.start();
-      TRACER.debugInfo("HTTP server started");
-      logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
-
-      // At this point, the connection Handler either started
-      // correctly or failed to start but the start process
-      // should be notified and resume its work in any cases.
-      synchronized (waitListen)
-      {
-        waitListen.notify();
+        listener.setSecure(true);
+        listener.setSSLEngineConfig(new SSLEngineConfigurator(sslContext));
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
+
+    final String servletName = "OpenDJ Rest2LDAP servlet";
+    final String urlPattern = "/*";
+    final WebappContext ctx = new WebappContext(servletName);
+
+    final JsonValue configuration =
+        parseJsonConfiguration(getFileForPath(this.currentConfig
+            .getConfigFile()));
+
+    final HTTPAuthenticationConfig authenticationConfig =
+        getAuthenticationConfig(configuration);
+
+    javax.servlet.Filter filter =
+        new CollectClientConnectionsFilter(this, authenticationConfig);
+    FilterRegistration filterReg =
+        ctx.addFilter("collectClientConnections", filter);
+    // TODO JNR this is not working
+    // filterReg.addMappingForServletNames(EnumSet.allOf(
+    // DispatcherType.class), servletName);
+    filterReg.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST),
+        true, urlPattern);
+
+    ConnectionFactory connFactory = getConnectionFactory(configuration);
+
+    final ServletRegistration reg =
+        ctx.addServlet(servletName, new HttpServlet(connFactory,
+        // Used for hooking our HTTPClientConnection in Rest2LDAP
+            Rest2LDAPContextFactory.getHttpServletContextFactory()));
+    reg.addMapping(urlPattern);
+
+    ctx.deploy(this.httpServer);
+
+    TRACER.debugInfo("Starting HTTP server...");
+    this.httpServer.start();
+    TRACER.debugInfo("HTTP server started");
+    logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
   }
 
   private void setHttpStatsProbe()
@@ -926,12 +965,20 @@ public class HTTPConnectionHandler extends
 
   private void stopHttpServer()
   {
-    TRACER.debugInfo("Stopping HTTP server...");
-    this.httpServer.stop();
+    if (this.httpServer != null)
+    {
+      TRACER.debugInfo("Stopping HTTP server...");
+      this.httpServer.stop();
+      cleanUpHttpServer();
+      TRACER.debugInfo("HTTP server stopped");
+      logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+    }
+  }
+
+  private void cleanUpHttpServer()
+  {
     this.httpServer = null;
     this.httpProbe = null;
-    TRACER.debugInfo("HTTP server stopped");
-    logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
   }
 
   /** {@inheritDoc} */
