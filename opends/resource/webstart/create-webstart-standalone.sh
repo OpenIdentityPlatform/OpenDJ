@@ -215,7 +215,7 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <jar href="lib/je.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>
     <property name="org.opends.quicksetup.iswebstart" value="true" />
-    <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.installandupgrader.InstallAndUpgrader"/>
+    <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.installer.webstart.WebStartInstaller"/>
     <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/${PRODUCT_NAME}.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
