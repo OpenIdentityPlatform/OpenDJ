@@ -1702,7 +1702,7 @@
               opendmkJarFile = '%s/%s/wrong_file' \
                                % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
               if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                opendmkJarFile = opendmkJarFile.replace('/', '\\')
+                opendmkJarFile = opendmkJarFile.replace('/', '\')
 
               msg1 = 'The specified OpenDMK jar file'
               msg2 = '\'%s\' could not be found.' % opendmkJarFile
