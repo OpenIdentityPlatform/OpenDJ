@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-monitoring'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Monitoring, Logging, &amp; Alerts</title>
  
  <para>This chapter describes the monitoring capabilities that OpenDJ
@@ -332,6 +332,152 @@ example-20110623030000000  Backup  Waiting on start time</screen>
 [22/Jun/2011:12:32:24 +0200] category=BACKEND severity=NOTICE msgID=9896350
  msg=Backup task 20110622123224088 finished execution</screen>
    </listitem>
+
+   <listitem>
+    <para>If you use the HTTP Connection Handler, OpenDJ maintains a separate
+    access log in <filename>logs/http-access</filename>. This access log, by
+    default configured as the File Based HTTP Access Log Publisher, uses
+    a different format than the LDAP access log. This HTTP access log uses
+    <link xlink:href="http://www.w3.org/TR/WD-logfile.html" xlink:show="new"
+    >Extended Log File Format</link> with fields described in <link
+    xlink:show="new"
+    xlink:href="http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true"
+    >Microsoft's implementation</link> as well. The following default
+    fields are shown here in the order they occur in the log file.</para>
+
+    <variablelist>
+     <varlistentry>
+      <term><literal>cs-host</literal></term>
+      <listitem>
+       <para>Client host name</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>c-ip</literal></term>
+      <listitem>
+       <para>Client IP address</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-username</literal></term>
+      <listitem>
+       <para>Username used to authenticate</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-datetime</literal></term>
+      <listitem>
+       <para>Completion timestamp for the HTTP request, which you can configure
+        using the <literal>log-record-time-format</literal> property</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-method</literal></term>
+      <listitem>
+       <para>HTTP method requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-uri-query</literal></term>
+      <listitem>
+       <para>Path and query string requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-version</literal></term>
+      <listitem>
+       <para>HTTP version requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>sc-status</literal></term>
+      <listitem>
+       <para>HTTP status code for the operation</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs(User-Agent)</literal></term>
+      <listitem>
+       <para>User-Agent identifier</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-connection-id</literal></term>
+      <listitem>
+       <para>Connection ID used for OpenDJ internal operations</para>
+       <para>When using this field to match HTTP requests with internal
+       operations in the LDAP access log, first set the access log advanced
+       property, <literal>suppress-internal-operations</literal>, to
+       <literal>false</literal>. By default, internal operations do not appear
+       in the LDAP access log.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-etime</literal></term>
+      <listitem>
+       <para>Execution time in milliseconds needed by OpenDJ to service the
+       HTTP request</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+
+    <para>Missing values are replaced with <literal>-</literal>. Tabs separate
+    the fields, and if a field contains a tab character, then the field is
+    surrounded with double quotes. OpenDJ then doubles double quotes in the
+    field to escape them.</para>
+
+    <para>The following example shows an excerpt of an HTTP access log with
+    the default configuration. Lines are folded and space reformatted for the
+    printed page.</para>
+
+    <screen>-  192.168.0.15  bjensen   22/May/2013:10:06:18 +0200
+  GET  /users/bjensen?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  3    40
+-  192.168.0.15  bjensen   22/May/2013:10:06:52 +0200
+  GET  /groups/Directory%20Administrators?_prettyPrint=true  HTTP/1.1    200
+  curl/7.21.4  4    41
+-  192.168.0.12  bjensen   22/May/2013:10:07:07 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  5     9
+-  192.168.0.12  -         22/May/2013:10:07:46 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    401
+  curl/7.21.4  6     0
+-  192.168.0.15  kvaughan  22/May/2013:10:09:10 +0200
+  POST /users?_action=create&amp;_prettyPrint=true               HTTP/1.1    200
+  curl/7.21.4  7   120</screen>
+
+    <para>You can configure the <literal>log-format</literal> for the access log
+    using the <command>dsconfig</command> command. In addition to the default
+    fields, the following standard fields are supported.</para>
+
+    <variablelist>
+     <varlistentry>
+      <term><literal>c-port</literal></term>
+      <listitem>
+       <para>Client port number</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-computername</literal></term>
+      <listitem>
+       <para>Server name where the access log was written</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-ip</literal></term>
+      <listitem>
+       <para>Server IP address</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-port</literal></term>
+      <listitem>
+       <para>Server port number</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </listitem>
+
    <listitem>
     <para>The <firstterm>replication log</firstterm> traces replication
     events, with entries similar to the errors log. The following excerpt has
