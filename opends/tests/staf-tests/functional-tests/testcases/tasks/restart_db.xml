@@ -169,7 +169,8 @@
                 'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
                 'dsRestart'   : ' ',
                 'dsStopTime'  : '20061212000000',
-                'expectedRC'  : 89
+                'expectedRC'  : 89,
+                'knownIssue'  : 'OPENDJ-923'
                 }
               </call>
 
