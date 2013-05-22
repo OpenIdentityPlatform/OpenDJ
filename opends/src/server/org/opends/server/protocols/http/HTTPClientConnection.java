@@ -262,7 +262,7 @@ final class HTTPClientConnection extends ClientConnection implements
     this.securityStrengthFactor =
         calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
     this.method = request.getMethod();
-    this.query = request.getRequestURI() + "/" + request.getQueryString();
+    this.query = request.getRequestURI() + "?" + request.getQueryString();
     this.protocol = request.getProtocol();
     this.userAgent = request.getHeader("User-Agent");
 
