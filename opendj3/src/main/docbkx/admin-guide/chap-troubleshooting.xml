@@ -24,12 +24,12 @@
   !    
 -->
 <chapter xml:id='chap-troubleshooting'
- xmlns='http://docbook.org/ns/docbook'
- version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook'
+         version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Troubleshooting Server Problems</title>
  <indexterm><primary>Troubleshooting</primary></indexterm>
  
@@ -667,10 +667,11 @@ dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
  <section xml:id="troubleshoot-connections">
   <title>Troubleshooting Client Operations</title>
  
-  <para>By default OpenDJ logs information about all client operations in
-  <filename>logs/access</filename>. The following lines are wrapped for
+  <para>By default OpenDJ logs information about all LDAP client operations in
+  <filename>logs/access</filename>, and all HTTP client operations in
+  <filename>logs/http-access</filename>. The following lines are wrapped for
   readability, showing a search for the entry with
-  <literal>uid=bjensen</literal> as traced in the access log. In the access
+  <literal>uid=bjensen</literal> as traced in the LDAP access log. In the access
   log itself, each line starts with a time stamp.</para>
   
   <screen>[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
@@ -687,8 +688,51 @@ dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
   performed, then including information about the connection, the operation
   number for the sequence of operations performed by the client, a message
   identification number, and additional information about the operation.</para>
-  
-  <para>Do help diagnose errors due to access permissions, OpenDJ supports the
+
+  <para>To match HTTP client operations with related internal server operations,
+  first prevent OpenDJ from suppressing internal operations from the LDAP access
+  log by using the <command>dsconfig</command> command to set the LDAP access
+  log publisher <literal>suppress-internal-operations</literal> advanced
+  property to <literal>false</literal>. Then match the values of the
+  <literal>x-connection-id</literal> field in the HTTP access log with
+  <literal>conn=<replaceable>id</replaceable></literal> values in the LDAP
+  access log.</para>
+
+  <para>For example, consider an HTTP GET request for the <literal>_id</literal>
+  field of the user <literal>newuser</literal>, which is handled by connection 4
+  as shown in <filename>logs/http-access</filename>.</para>
+
+  <screen>-  192.168.0.12  bjensen  22/May/2013:16:27:52 +0200
+  GET  /users/newuser?_fields=_id  HTTP/1.1  200
+  curl/7.21.4  4  12</screen>
+
+  <para>With internal operations logged in <filename>logs/access</filename>,
+  log lines for the related operations have <literal>conn=4</literal>.</para>
+
+  <screen>[22/May/2013:16:27:52 +0200] CONNECT conn=4
+  from=192.168.0.12:63593 to=192.168.0.12:8080 protocol=HTTP/1.1
+[22/May/2013:16:27:52 +0200] SEARCH REQ conn=4
+  op=0 msgID=0 base="ou=people,dc=example,dc=com" scope=wholeSubtree
+   filter="(&amp;(objectClass=inetOrgPerson)(uid=bjensen))" attrs="1.1"
+[22/May/2013:16:27:52 +0200] SEARCH RES conn=4
+  op=0 msgID=0 result=0 nentries=1 etime=5
+[22/May/2013:16:27:52 +0200] BIND REQ conn=4
+  op=1 msgID=1 version=3 type=SIMPLE
+   dn="uid=bjensen,ou=People,dc=example,dc=com"
+[22/May/2013:16:27:52 +0200] BIND RES conn=4
+  op=1 msgID=1 result=0 authDN="uid=bjensen,ou=People,dc=example,dc=com"
+   etime=3
+[22/May/2013:16:27:52 +0200] SEARCH REQ conn=4
+  op=2 msgID=2 base="uid=newuser,ou=people,dc=example,dc=com" scope=baseObject
+   filter="(objectClass=*)" attrs="uid,etag"
+[22/May/2013:16:27:52 +0200] SEARCH RES conn=4
+   op=2 msgID=2 result=0 nentries=1 etime=4
+[22/May/2013:16:27:52 +0200] UNBIND REQ conn=4
+   op=3 msgID=3
+[22/May/2013:16:27:52 +0200] DISCONNECT conn=4
+   reason="Client Unbind"</screen>
+
+  <para>To help diagnose errors due to access permissions, OpenDJ supports the
   get effective rights control. The control OID,
   <literal>1.3.6.1.4.1.42.2.27.9.5.2</literal>, is not allowed by the default
   global ACIs. You must therefore add access to use the get effective rights
