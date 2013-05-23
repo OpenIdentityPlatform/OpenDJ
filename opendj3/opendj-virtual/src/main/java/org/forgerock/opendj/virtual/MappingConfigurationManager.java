@@ -73,8 +73,8 @@ public class MappingConfigurationManager
         prop.setProperty(mappingKey, mappingValue);
       }
       prop.store(new FileOutputStream("MappingConfig.properties"), null);
-    }catch (IOException ex) {
-      ex.printStackTrace();
+    }catch (IOException e) {
+      System.out.println(e.toString());
     }
   }
 
@@ -106,8 +106,8 @@ public class MappingConfigurationManager
       }
       return mapper;                    
 
-    } catch (IOException ex) {
-      ex.printStackTrace();
+    } catch (IOException e) {
+      System.out.println(e.toString());
       return null;
     }
   }
