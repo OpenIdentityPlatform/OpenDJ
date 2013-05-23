@@ -186,6 +186,10 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
         Object columnValue = columnValuesMap.get(columnName);
 
         if(columnValue == null){
+          boolean columnNullable = jdbcm.getTableColumnNullable(tableName, columnName);
+          
+          if(columnNullable) continue;
+          
           if(columnDataType.equals(Integer.class)) columnValue = "0";
           else columnValue = "Default Value";
         }
