@@ -188,7 +188,9 @@ public class HTTPConnectionHandler extends
   /** The friendly name of this connection handler. */
   private String friendlyName;
 
-  /** The SSL engine configurator is used for obtaining default SSL parameters. */
+  /**
+   * The SSL engine configurator is used for obtaining default SSL parameters.
+   */
   private SSLEngineConfigurator sslEngineConfigurator;
 
   /**
