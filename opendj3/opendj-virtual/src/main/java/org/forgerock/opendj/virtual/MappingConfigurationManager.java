@@ -32,41 +32,70 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+/**
+ * The JDBC configuration manager for the JDBCMapper which can save mapping to and read mapping from the
+ * MappingConfig.properties file.
+ */
 public class MappingConfigurationManager 
 {
-  private JDBCMapper JDBCM;
+  private JDBCMapper jdbcMapper;
   private Properties prop;
 
-  public MappingConfigurationManager(JDBCMapper jdbcm){
-    prop = new Properties();
-    JDBCM = jdbcm;
+  /**
+   * Creates a new JDBC mapping configuration manager.
+   *
+   * @param jdbcmapper
+   *            The JDBCMapper object to configure mapping for.
+   */
+  public MappingConfigurationManager(JDBCMapper jdbcmapper)
+  {
+    this.prop = new Properties();
+    this.jdbcMapper = jdbcmapper;
   }
 
-  public void saveMapping(Map<String, String> mapper){
+  /**
+   * Saves the provided mapping to the MappingConfig.properties file.
+   *
+   * @param mapping
+   *            The mapping to save to the MappingConfig.properties file.
+   * @throws IOException
+   *            If an I/O exception error occurs. 
+   */
+  public void saveMapping(Map<String, String> mapping)
+  {
     String mappingKey, mappingValue;
-    Set<String> mapperKeySet = mapper.keySet();
-    try {       
+    final Set<String> mapperKeySet = mapping.keySet();
+    try 
+    {  
       for(Iterator<String> i = mapperKeySet.iterator(); i.hasNext(); ){
         mappingKey = i.next();
-        mappingValue = mapper.get(mappingKey);
+        mappingValue = mapping.get(mappingKey);
         prop.setProperty(mappingKey, mappingValue);
       }
       prop.store(new FileOutputStream("MappingConfig.properties"), null);
-
-    } catch (IOException ex) {
+    }catch (IOException ex) {
       ex.printStackTrace();
     }
   }
 
-  public Map<String, String> loadMapping() throws SQLException{
+  /**
+   * Load the mapping from the MappingConfig.properties file.
+   *
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws IOException
+   *            If an I/O exception error occurs. 
+   */
+  public Map<String, String> loadMapping() throws SQLException
+  {
     try {
       prop.load(new FileInputStream("MappingConfig.properties"));
-      ArrayList<String> tableNames = JDBCM.getTables();
-      Map<String, String> mapper = new HashMap<String, String>();
+      final ArrayList<String> tableNames = jdbcMapper.getTables();
+      final Map<String, String> mapper = new HashMap<String, String>();
 
       for(int i = 0; i < tableNames.size(); i++){
         String columnName, mappingKey, mappingValue, tableName = tableNames.get(i);
-        ArrayList<String> columnNames = JDBCM.getTableColumns(tableName);
+        final ArrayList<String> columnNames = jdbcMapper.getTableColumns(tableName);
 
         for(Iterator<String> j = columnNames.iterator(); j.hasNext(); ) {
           columnName = j.next();
