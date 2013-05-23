@@ -188,15 +188,8 @@ public class HTTPConnectionHandler extends
   /** The friendly name of this connection handler. */
   private String friendlyName;
 
-  /**
-   * SSL context.
-   *
-   * @see HTTPConnectionHandler#sslEngine
-   */
-  private SSLContext sslContext;
-
-  /** The SSL engine is used for obtaining default SSL parameters. */
-  private SSLEngine sslEngine;
+  /** The SSL engine configurator is used for obtaining default SSL parameters. */
+  private SSLEngineConfigurator sslEngineConfigurator;
 
   /**
    * Default constructor. It is invoked by reflection to create this
@@ -341,13 +334,11 @@ public class HTTPConnectionHandler extends
     protocol = config.isUseSSL() ? "HTTPS" : "HTTP";
     if (config.isUseSSL())
     {
-      sslContext = createSSLContext(config);
-      sslEngine = createSSLEngine(config, sslContext);
+      sslEngineConfigurator = createSSLEngineConfigurator(config);
     }
     else
     {
-      sslContext = null;
-      sslEngine = null;
+      sslEngineConfigurator = null;
     }
   }
 
@@ -426,10 +417,10 @@ public class HTTPConnectionHandler extends
   @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
-    final SSLEngine engine = sslEngine;
-    if (engine != null)
+    final SSLEngineConfigurator configurator = sslEngineConfigurator;
+    if (configurator != null)
     {
-      return Arrays.asList(engine.getEnabledCipherSuites());
+      return Arrays.asList(configurator.getEnabledCipherSuites());
     }
     return super.getEnabledSSLCipherSuites();
   }
@@ -438,10 +429,10 @@ public class HTTPConnectionHandler extends
   @Override
   public Collection<String> getEnabledSSLProtocols()
   {
-    final SSLEngine engine = sslEngine;
-    if (engine != null)
+    final SSLEngineConfigurator configurator = sslEngineConfigurator;
+    if (configurator != null)
     {
-      return Arrays.asList(engine.getEnabledProtocols());
+      return Arrays.asList(configurator.getEnabledProtocols());
     }
     return super.getEnabledSSLProtocols();
   }
@@ -478,7 +469,7 @@ public class HTTPConnectionHandler extends
    */
   SSLEngine getSSLEngine()
   {
-    return sslEngine;
+    return sslEngineConfigurator.createSSLEngine();
   }
 
   /** {@inheritDoc} */
@@ -587,8 +578,7 @@ public class HTTPConnectionHandler extends
       {
         try
         {
-          SSLContext sslContext = createSSLContext(config);
-          createSSLEngine(config, sslContext);
+          createSSLEngineConfigurator(config);
         }
         catch (DirectoryException e)
         {
@@ -843,10 +833,10 @@ public class HTTPConnectionHandler extends
       transport.setSelectorRunnersCount(numRequestHandlers);
       transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
 
-      if (sslContext != null)
+      if (sslEngineConfigurator != null)
       {
         listener.setSecure(true);
-        listener.setSSLEngineConfig(new SSLEngineConfigurator(sslContext));
+        listener.setSSLEngineConfig(sslEngineConfigurator);
       }
     }
 
@@ -988,51 +978,58 @@ public class HTTPConnectionHandler extends
     buffer.append(handlerName);
   }
 
-  private SSLEngine createSSLEngine(HTTPConnectionHandlerCfg config,
-      SSLContext sslContext) throws DirectoryException
+  private SSLEngineConfigurator createSSLEngineConfigurator(
+      HTTPConnectionHandlerCfg config) throws DirectoryException
   {
-    if (sslContext == null)
+    if (!config.isUseSSL())
     {
       return null;
     }
 
     try
     {
-      SSLEngine sslEngine = sslContext.createSSLEngine();
-      sslEngine.setUseClientMode(false);
+      SSLContext sslContext = createSSLContext(config);
+      SSLEngineConfigurator configurator =
+          new SSLEngineConfigurator(sslContext);
+      configurator.setClientMode(false);
+
+      // configure with defaults from the JVM
+      final SSLEngine defaults = sslContext.createSSLEngine();
+      configurator.setEnabledProtocols(defaults.getEnabledProtocols());
+      configurator.setEnabledCipherSuites(defaults.getEnabledCipherSuites());
 
       final Set<String> protocols = config.getSSLProtocol();
       if (!protocols.isEmpty())
       {
         String[] array = protocols.toArray(new String[protocols.size()]);
-        sslEngine.setEnabledProtocols(array);
+        configurator.setEnabledProtocols(array);
       }
 
       final Set<String> ciphers = config.getSSLCipherSuite();
       if (!ciphers.isEmpty())
       {
         String[] array = ciphers.toArray(new String[ciphers.size()]);
-        sslEngine.setEnabledCipherSuites(array);
+        configurator.setEnabledCipherSuites(array);
       }
 
       switch (config.getSSLClientAuthPolicy())
       {
       case DISABLED:
-        sslEngine.setNeedClientAuth(false);
-        sslEngine.setWantClientAuth(false);
+        configurator.setNeedClientAuth(false);
+        configurator.setWantClientAuth(false);
         break;
       case REQUIRED:
-        sslEngine.setWantClientAuth(true);
-        sslEngine.setNeedClientAuth(true);
+        configurator.setNeedClientAuth(true);
+        configurator.setWantClientAuth(true);
         break;
       case OPTIONAL:
       default:
-        sslEngine.setNeedClientAuth(false);
-        sslEngine.setWantClientAuth(true);
+        configurator.setNeedClientAuth(false);
+        configurator.setWantClientAuth(true);
         break;
       }
 
-      return sslEngine;
+      return configurator;
     }
     catch (Exception e)
     {
@@ -1048,60 +1045,45 @@ public class HTTPConnectionHandler extends
   }
 
   private SSLContext createSSLContext(HTTPConnectionHandlerCfg config)
-      throws DirectoryException
+      throws Exception
   {
     if (!config.isUseSSL())
     {
       return null;
     }
 
-    try
+    DN keyMgrDN = config.getKeyManagerProviderDN();
+    KeyManagerProvider<?> keyManagerProvider =
+        DirectoryServer.getKeyManagerProvider(keyMgrDN);
+    if (keyManagerProvider == null)
     {
-      DN keyMgrDN = config.getKeyManagerProviderDN();
-      KeyManagerProvider<?> keyManagerProvider =
-          DirectoryServer.getKeyManagerProvider(keyMgrDN);
-      if (keyManagerProvider == null)
-      {
-        keyManagerProvider = new NullKeyManagerProvider();
-      }
-
-      String alias = config.getSSLCertNickname();
-      KeyManager[] keyManagers;
-      if (alias == null)
-      {
-        keyManagers = keyManagerProvider.getKeyManagers();
-      }
-      else
-      {
-        keyManagers =
-            SelectableCertificateKeyManager.wrap(keyManagerProvider
-                .getKeyManagers(), alias);
-      }
-
-      DN trustMgrDN = config.getTrustManagerProviderDN();
-      TrustManagerProvider<?> trustManagerProvider =
-          DirectoryServer.getTrustManagerProvider(trustMgrDN);
-      if (trustManagerProvider == null)
-      {
-        trustManagerProvider = new NullTrustManagerProvider();
-      }
-
-      SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-      sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(),
-          null);
-      return sslContext;
+      keyManagerProvider = new NullKeyManagerProvider();
     }
-    catch (Exception e)
+
+    String alias = config.getSSLCertNickname();
+    KeyManager[] keyManagers;
+    if (alias == null)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      Message message =
-          ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e));
-      throw new DirectoryException(resCode, message, e);
+      keyManagers = keyManagerProvider.getKeyManagers();
     }
+    else
+    {
+      keyManagers =
+          SelectableCertificateKeyManager.wrap(keyManagerProvider
+              .getKeyManagers(), alias);
+    }
+
+    DN trustMgrDN = config.getTrustManagerProviderDN();
+    TrustManagerProvider<?> trustManagerProvider =
+        DirectoryServer.getTrustManagerProvider(trustMgrDN);
+    if (trustManagerProvider == null)
+    {
+      trustManagerProvider = new NullTrustManagerProvider();
+    }
+
+    SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+    sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(), null);
+    return sslContext;
   }
 
 }
