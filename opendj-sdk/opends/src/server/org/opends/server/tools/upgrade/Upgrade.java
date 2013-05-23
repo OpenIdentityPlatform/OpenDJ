@@ -225,6 +225,55 @@ public final class Upgrade
             + "PBKDF2PasswordStorageScheme",
         "ds-cfg-enabled: true"));
 
+    register("2.5.0.8613",
+        addConfigFile("http-config.json"),
+        addConfigEntry(INFO_UPGRADE_TASK_8613_SUMMARY.get(),
+        "dn: cn=HTTP Connection Handler,cn=Connection Handlers,cn=config",
+        "changetype: add",
+        "objectClass: ds-cfg-http-connection-handler",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: top",
+        "ds-cfg-listen-port: 8080",
+        "cn: HTTP Connection Handler",
+        "ds-cfg-max-blocked-write-time-limit: 2 minutes",
+        "ds-cfg-ssl-client-auth-policy: optional",
+        "ds-cfg-use-tcp-keep-alive: true",
+        "ds-cfg-max-request-size: 5 megabytes",
+        "ds-cfg-use-tcp-no-delay: true",
+        "ds-cfg-allow-tcp-reuse-address: true",
+        "ds-cfg-accept-backlog: 128",
+        "ds-cfg-authentication-required: true",
+        "ds-cfg-buffer-size: 4096 bytes",
+        "ds-cfg-config-file: config/http-config.json",
+        "ds-cfg-listen-address: 0.0.0.0",
+        "ds-cfg-java-class: " +
+          "org.opends.server.protocols.http.HTTPConnectionHandler",
+        "ds-cfg-keep-stats: true",
+        "ds-cfg-ssl-cert-nickname: server-cert",
+        "ds-cfg-use-ssl: false",
+        "ds-cfg-enabled: false"));
+
+    register("2.5.0.8832", addConfigEntry(INFO_UPGRADE_TASK_8832_SUMMARY.get(),
+        "dn: cn=File-Based HTTP Access Logger,cn=Loggers,cn=config",
+        "changetype: add",
+        "objectClass: ds-cfg-file-based-http-access-log-publisher",
+        "objectClass: top",
+        "objectClass: ds-cfg-http-access-log-publisher",
+        "objectClass: ds-cfg-log-publisher",
+        "cn: File-Based HTTP Access Logger",
+        "ds-cfg-java-class: " +
+          "org.opends.server.loggers.TextHTTPAccessLogPublisher",
+        "ds-cfg-asynchronous: true",
+        "ds-cfg-log-file: logs/http-access",
+        "ds-cfg-rotation-policy: " +
+          "cn=24 Hours Time Limit Rotation Policy," +
+          "cn=Log Rotation Policies,cn=config",
+        "ds-cfg-rotation-policy: " +
+          "cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config",
+        "ds-cfg-retention-policy: " +
+          "cn=File Count Retention Policy,cn=Log Retention Policies,cn=config",
+        "ds-cfg-log-file-permissions: 640",
+        "ds-cfg-enabled: false"));
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
@@ -236,8 +285,6 @@ public final class Upgrade
     // TODO for tests.
     /*register("2.5.0.8657",
        rebuildAllIndexes(Message.raw("This is fake Rebuild Task")));*/
-
-    // FIXME: HTTP connection handler and access logger when complete.
 
     // @formatter:on
   }
