@@ -189,7 +189,7 @@ public final class JDBCMapper
       tableColumnsMap.put(tableName, columnsList);
     }
   }
-  
+
   /**
    * Fills this mapping with the organizational units and attributes for for each organizational unit
    * of the currently connected directory.
@@ -385,11 +385,11 @@ public final class JDBCMapper
    *            The database table name in which to search.
    * @param baseDN
    *            The directory base distinguished name in which to search.
-   * @param DN
-   *            The relative distinguished name.           
+   * @param organizationalUnit
+   *            The directory organizational unit to search for.          
    * @return A a list of attributes.
    */
-  public Map<String, String> loadCurrentMapFromMapping(final String tableName, String baseDN, String DN) 
+  public Map<String, String> loadCurrentMapFromMapping(final String tableName, String baseDN, String organizationalUnit) 
   {
     baseDN = baseDN.replace(" ", "");
     String mappingKey, mappingValue;
@@ -400,7 +400,7 @@ public final class JDBCMapper
       mappingKey = tableName + ":" + tableColumnsList.get(i);
       if(!SQLToLDAPMap.containsKey(mappingKey)) continue;
       mappingValue = SQLToLDAPMap.get(mappingKey);
-      if(mappingValue.contains(baseDN + ":" + DN)) currentMap.put(mappingKey, mappingValue);
+      if(mappingValue.contains(baseDN + ":" + organizationalUnit)) currentMap.put(mappingKey, mappingValue);
     }
     return currentMap;
   }
