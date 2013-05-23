@@ -1243,36 +1243,9 @@
     <chmod file="${pdir}/lib/_mixed-script.sh"  perm="755" />
     <chmod file="${pdir}/lib/_script-util.sh"   perm="755" />
 
-    <!-- Append all the claspath entries to the plist files for MacOS -->
-    <taskdef name="foreach" classname="net.sf.antcontrib.logic.ForEach" classpath="${ant.lib.dir}/ant-contrib-1.0b3.jar" />
-    <foreach target="append-jar-to-plist-file" param="classpath.entry" inheritall="true">
-      <path>
-        <fileset dir="${pdir}/lib">
-          <include name="*.jar" />
-        </fileset>
-      </path>
-    </foreach>
     <chmod perm="444">
       <fileset dir="${pdir}/template" />
     </chmod>
-  </target>
-
-
-  <target name="append-jar-to-plist-file">
-    <basename property="jarfile" file="${classpath.entry}" />
-    <echo message="appending ${jarfile}" />
-    <replace file="${pdir}/bin/ControlPanel.app/Contents/Info.plist"
-             token="&lt;/array&gt;"
-             value="&lt;string&gt;$JAVAROOT/../../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
-    />
-    <replace file="${pdir}/QuickSetup.app/Contents/Info.plist"
-             token="&lt;/array&gt;"
-             value="&lt;string&gt;$JAVAROOT/../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
-    />
-    <replace file="${pdir}/Uninstall.app/Contents/Info.plist"
-             token="&lt;/array&gt;"
-             value="&lt;string&gt;$JAVAROOT/../../../../lib/${jarfile}&lt;/string&gt;${line.separator}&lt;/array&gt;"
-    />
   </target>
 
 

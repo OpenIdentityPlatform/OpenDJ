@@ -32,7 +32,8 @@
 		<string>1.6+</string>
 		<key>ClassPath</key>
 		<array>
-<string>$JAVAROOT/../../../../../classes</string>
+			<string>$JAVAROOT/../../../../../classes</string>
+			<string>$JAVAROOT/../../../../../lib/bootstrap.jar</string>
 		</array>
 	</dict>
 	<key>NSHighResolutionCapable</key>
