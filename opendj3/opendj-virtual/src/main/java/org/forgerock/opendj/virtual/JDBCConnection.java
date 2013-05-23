@@ -95,6 +95,13 @@ public final class JDBCConnection extends AbstractSynchronousConnection {
    * @param jdbcMapper
    *            The JDBCMapper object used to map the directory and database 
    *            structure.
+   * @throws SQLException
+   *            If the SQL query has an invalid format.
+   * @throws ErrorResultException
+   *            If the result code indicates that the request failed for some
+   *            reason.  
+   * @throws IOException
+   *            If an I/O exception error occurs. 
    */
   public void initializeMapper(final JDBCMapper jdbcMapper) throws SQLException, ErrorResultException, IOException
   {
