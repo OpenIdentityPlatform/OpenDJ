@@ -97,10 +97,10 @@ public class UpgradeTestCase extends ToolsTestCase
   }
 
   /**
-   * Tests the Upgrade tool with a running server throws an error.
+   * Tests the upgrade with an offline server and empty args fails.
    */
   @Test()
-  public void testUpgradeServerOffline() throws InitializationException,
+  public void testUpgradeServerOfflineEmptyArgs() throws InitializationException,
       ConfigException, DirectoryException, IOException
   {
     String[] args = { "" };

@@ -100,6 +100,11 @@ final class UpgradeUtils
           + File.separator + Installation.CONFIG_PATH_RELATIVE + File.separator
           + Installation.SCHEMA_PATH_RELATIVE);
 
+  /** The template/config folder of the current installation. */
+  static final File templateConfigDirectory = new File(
+      getInstallationPath(), Installation.TEMPLATE_RELATIVE_PATH
+          + File.separator + Installation.CONFIG_PATH_RELATIVE);
+
   /**
    * Returns the path of the installation of the directory server. Note that
    * this method assumes that this code is being run locally.

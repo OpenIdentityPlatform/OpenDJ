@@ -120,27 +120,8 @@ public final class UpgradeTasks
    */
   public static UpgradeTask copySchemaFile(final String fileName)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
-
-      @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
       @Override
       public void perform(final UpgradeContext context,
           final CallbackHandler handler) throws ClientException
@@ -170,27 +151,54 @@ public final class UpgradeTasks
                   e.getMessage()), pnc);
         }
       }
-
-
-
-      @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
     };
   }
 
+  /**
+   * This task copies the file placed in parameter within the config
+   * folder. If the file already exists, it's overwritten.
+   *
+   * @param fileName
+   *          The name of the file which need to be copied.
+   * @return A task which copy the the file placed in parameter within the
+   *         config folder. If the file already exists, it's
+   *         overwritten.
+   */
+  public static UpgradeTask addConfigFile(final String fileName)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(final UpgradeContext context,
+          final CallbackHandler handler) throws ClientException
+      {
+        final Message msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
+        LOG.log(Level.INFO, msg.toString());
+
+        final ProgressNotificationCallback pnc =
+            new ProgressNotificationCallback(0, msg, 0);
+
+        final File configFile = new File(templateConfigDirectory,
+            fileName);
+
+        try
+        {
+          context.notifyProgress(handler, pnc.changeProgress(20));
+
+          copy(configFile, configDirectory, true);
+          context.notifyProgress(handler, pnc.changeProgress(100));
+        }
+        catch (final IOException e)
+        {
+          manageTaskException(
+              context,
+              handler,
+              ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(configFile.getName(),
+                  e.getMessage()), pnc);
+        }
+      }
+    };
+  }
 
 
   /**
@@ -266,26 +274,8 @@ public final class UpgradeTasks
   public static UpgradeTask newAttributeTypes(final Message summary,
       final String fileName, final String... names)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
-      @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
       @Override
       public void perform(final UpgradeContext context,
           final CallbackHandler handler) throws ClientException
@@ -316,24 +306,6 @@ public final class UpgradeTasks
                   e.getMessage()), pnc);
         }
       }
-
-
-
-      @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
     };
   }
 
@@ -358,26 +330,8 @@ public final class UpgradeTasks
   public static UpgradeTask newObjectClasses(final Message summary,
       final String fileName, final String... names)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
-      @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
       @Override
       public void perform(final UpgradeContext context,
           final CallbackHandler handler) throws ClientException
@@ -410,24 +364,6 @@ public final class UpgradeTasks
               ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
                   schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
-      }
-
-
-
-      @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
       }
     };
   }
@@ -514,27 +450,8 @@ public final class UpgradeTasks
    */
   public static UpgradeTask updateConfigUpgradeFolder()
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
-
-      @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
       @Override
       public void perform(final UpgradeContext context,
           final CallbackHandler handler) throws ClientException
@@ -559,24 +476,6 @@ public final class UpgradeTasks
               ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()),
               pnc);
         }
-      }
-
-
-
-      @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-
-
-      @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
-      {
-        // Nothing to do.
       }
     };
   }
