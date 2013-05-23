@@ -67,14 +67,9 @@ public final class JDBCConnectionFactory implements ConnectionFactory
   }
 
   /**
-   * Returns a connection to the Directory Server associated with this
+   * Returns a connection to the Database Server associated with this
    * connection factory. The connection returned by this method can be used
    * immediately.
-   * <p>
-   * If the calling thread is interrupted while waiting for the connection
-   * attempt to complete then the calling thread unblock and throw a
-   * {@link CancelledResultException} whose cause is the underlying
-   * {@link InterruptedException}.
    *
    * @return A connection to the Database Server associated with this
    *         connection factory.
