@@ -60,7 +60,7 @@ public class JoinConnection extends AbstractSynchronousConnection
   private final JDBCConnectionFactory jdbcFactory;
   private final Connection ldapConnection;
   private final JDBCConnection jdbcConnection;
-  final JDBCMapper jdbcMapper;
+  private JDBCMapper jdbcMapper;
   private ConnectionEntryReader ldapEntries;
   private List<Entry> jdbcEntries;
 
@@ -86,9 +86,6 @@ public class JoinConnection extends AbstractSynchronousConnection
     this.jdbcFactory = jdbcfactory;
     this.ldapConnection = ldapFactory.getConnection();
     this.jdbcConnection = (JDBCConnection) jdbcFactory.getConnection(); 
-    this.jdbcMapper = new JDBCMapper(jdbcConnection, ldapConnection);
-    jdbcMapper.setDatabaseName(jdbcFactory.getDatabaseName());
-    jdbcConnection.initializeMapper(jdbcMapper);
   }
 
   /**
@@ -145,6 +142,10 @@ public class JoinConnection extends AbstractSynchronousConnection
   {
     BindResult r = ldapConnection.bind(ldapBindRequest);
     if(r.isSuccess()) r = jdbcConnection.bind(jdbcBindRequest);
+
+    jdbcMapper = new JDBCMapper(jdbcConnection, ldapConnection);
+    jdbcMapper.setDatabaseName(jdbcFactory.getDatabaseName());
+    jdbcConnection.initializeMapper(jdbcMapper);
     return r;
   }
 
