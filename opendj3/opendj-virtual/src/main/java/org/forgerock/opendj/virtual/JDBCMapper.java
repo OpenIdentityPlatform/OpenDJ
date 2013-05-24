@@ -98,8 +98,8 @@ public final class JDBCMapper
    */
   public void closeConnections() throws SQLException
   {
-    this.jdbcConnection.close();
-    this.ldapConnection.close();
+    jdbcConnection.close();
+    ldapConnection.close();
   }
 
   /**
@@ -129,7 +129,7 @@ public final class JDBCMapper
    */
   private void fillBaseDNList() throws IOException
   {
-    final EntryReader reader = this.ldapConnection.search(" ", SearchScope.SINGLE_LEVEL, "objectClass=*");
+    final EntryReader reader = ldapConnection.search(" ", SearchScope.SINGLE_LEVEL, "objectClass=*");
     while(reader.hasNext()){
       baseDNList.add(reader.readEntry().getName().toString());
     }
@@ -147,7 +147,7 @@ public final class JDBCMapper
     "TABLE_TYPE = 'TABLE' AND TABLE_SCHEMA = 'PUBLIC'";*/
     final String sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE " +
         "TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '" + this.dbName + "'";
-    final Statement st = this.jdbcConnection.createStatement();
+    final Statement st = jdbcConnection.createStatement();
     final ResultSet rs = st.executeQuery(sql);
 
     while(rs.next()){
