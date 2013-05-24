@@ -1,42 +1,4 @@
 {
-    // The array of connection factories which will be used by the Rest2LDAP
-    // Servlet and authentication filter.
-    "ldapConnectionFactories" : {
-        // Unauthenticated connections used for performing bind requests.
-        "default" : {
-            "connectionPoolSize"       : 10,
-            "heartBeatIntervalSeconds" : 30,
-            
-            // The preferred load-balancing pool.
-            "primaryLDAPServers"       : [
-                {
-                    "hostname" : "localhost",
-                    "port"     : 1389
-                }
-            ],
-            // The fail-over load-balancing pool (optional).
-            "secondaryLDAPServers"     : [
-                // Empty.
-            ]
-        },
-        
-        // Authenticated connections which will be used for searches during
-        // authentication and proxied operations (if enabled). This factory
-        // will re-use the server "default" configuration.
-        "root" : {
-            "inheritFrom"    : "default",
-            
-            // Defines how authentication should be performed. Only "simple"
-            // authentication is supported at the moment.
-            "authentication" : {
-                "simple" : {
-                    "bindDN"       : "cn=directory manager",
-                    "bindPassword" : "password"
-                }
-            }
-        }
-    },
-    
     // The Rest2LDAP authentication filter configuration. The filter will be
     // disabled if the configuration is not present. Upon successful
     // authentication the filter will create a security context containing the
@@ -55,41 +17,6 @@
         "altAuthenticationUsernameHeader" : "X-OpenIDM-Username",
         "altAuthenticationPasswordHeader" : "X-OpenIDM-Password",
         
-        // Indicates whether the authenticated LDAP connection should be cached
-        // for use within the Rest2LDAP Servlet for subsequent LDAP operations.
-        // If this is set to true then the Servlet will not need its own LDAP
-        // connection factory and will also not need to use proxied
-        // authorization.
-        "reuseAuthenticatedConnection" : true,
-        
-        // Specifies how LDAP authentications should be performed. The method
-        // must be one of:
-        //
-        // "simple"        - the username is an LDAP DN
-        // "sasl-plain"    - the username is an authzid which will be
-        //                   substituted into the "saslAuthzIdTemplate" using
-        //                   %s substitution
-        // "search-simple" - the user's DN will be resolved by performing an
-        //                   LDAP search using a filter constructed by
-        //                   substituting the username into the
-        //                   "searchFilterTemplate" using %s substitution.
-        "method" : "search-simple",
-        
-        // The connection factory which will be exclusively used for
-        // authenticating users using LDAP bind operations.
-        "bindLDAPConnectionFactory" : "default",
-        
-        // The SASL AuthzID template which will be used for "sasl-plain"
-        // authentication. The %s format parameters will be substituted with
-        // the client-provided username, using DN character escaping for DN
-        // AuthzIDs.
-        "saslAuthzIdTemplate" : "dn:uid=%s,ou=people,dc=example,dc=com",
-        
-        // The connection factory which will be used for performing LDAP
-        // searches to locate users when "search-simple" authentication is
-        // enabled.
-        "searchLDAPConnectionFactory" : "root",
-        
         // The search parameters to use for "search-simple" authentication. The
         // %s filter format parameters will be substituted with the
         // client-provided username, using LDAP filter string character escaping.
@@ -102,35 +29,6 @@
 
     // The Rest2LDAP Servlet configuration.
     "servlet" : {
-        // The connection factory which will be used for performing LDAP
-        // operations. Pre-authenticated connections passed through from the
-        // authentication filter (see "reuseAuthenticatedConnection") will be
-        // used in preference to this factory. Specifically, a connection
-        // factory does not need to be configured if a connection will always
-        // be passed on from the filter, which may not always be the case
-        // if the filter is configured to use HTTP sessions.
-        "ldapConnectionFactory" : "root",
-        
-        // Specifies how LDAP authorization should be performed. The method
-        // must be one of:
-        //
-        // "none"        - use connections acquired from the LDAP connection
-        //                 factory. Don't use proxied authorization, and don't
-        //                 use cached pre-authenticated connections,
-        // "reuse"       - use the connection obtained during LDAP
-        //                 authentication. If no connection was passed through
-        //                 the authorization will fail,
-        // "proxy"       - use proxied authorization with an authorization ID
-        //                 derived from the "proxyAuthzIdTemplate". Proxied
-        //                 authorization will only be used if there is no
-        //                 pre-authenticated connection available.
-        "authorizationPolicy" : "proxy",
-        
-        // The AuthzID template which will be used for proxied authorization.
-        // The template should contain fields which are expected to be found in
-        // the security context create during authentication, e.g. "dn" and "id".
-        "proxyAuthzIdTemplate" : "dn:{dn}",
-        
         // The REST APIs and their LDAP attribute mappings.
         "mappings" : {
             "/users" : {
