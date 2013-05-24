@@ -262,7 +262,7 @@ final class HTTPClientConnection extends ClientConnection implements
     this.securityStrengthFactor =
         calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
     this.method = request.getMethod();
-    this.query = request.getRequestURI() + "?" + request.getQueryString();
+    this.query = computeQuery(request);
     this.protocol = request.getProtocol();
     this.userAgent = request.getHeader("User-Agent");
 
@@ -276,6 +276,15 @@ final class HTTPClientConnection extends ClientConnection implements
     }
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
+  }
+
+  private String computeQuery(HttpServletRequest request)
+  {
+    if (request.getQueryString() != null)
+    {
+      return request.getRequestURI() + "?" + request.getQueryString();
+    }
+    return request.getRequestURI();
   }
 
   /** {@inheritDoc} */
