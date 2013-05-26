@@ -212,7 +212,7 @@
                 import java.text.SimpleDateFormat
   
                 cal = java.util.Calendar.getInstance()
-                cal.add(java.util.Calendar.SECOND,120)
+                cal.add(java.util.Calendar.SECOND,240)
   
                 dateFormat = java.text.SimpleDateFormat("yyyyMMddHHmmss")
   
