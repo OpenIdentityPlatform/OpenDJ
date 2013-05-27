@@ -57,6 +57,11 @@ public class VerificationCallback extends ConfirmationCallback
   public static final int CANNOT_BE_REVERTED = 2;
 
   /**
+   * An identifier of the accept license mode.
+   */
+  public static final int ACCEPT_LICENSE_MODE = 3;
+
+  /**
    * The identifier of ignore errors mode.
    */
   public static final int IGNORE_ERRORS_MODE = 5;
@@ -65,6 +70,7 @@ public class VerificationCallback extends ConfirmationCallback
    * The identifier of mandatory user interaction.
    */
   public static final int MANDATORY_USER_INTERACTION = 6;
+
 
   // The required options for the verification callback.
   private int[] requiredOptions;

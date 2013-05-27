@@ -68,6 +68,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SetupUtils;
 
+
 /**
  * This class provides an abstract base class which can be used as the basis of
  * a console-based application.
@@ -101,31 +102,34 @@ public abstract class ConsoleApplication
   }
 
   /**
-   * Defines a title in the console application.
+   * Defines the different line styles for output.
    */
-  public final static int TITLE = 0;
-  /**
-   * Defines a subtitle in the console application.
-   */
-  public final static int SUBTITLE = 1;
-  /**
-   * Defines a notice in the console application.
-   */
-  public final static int NOTICE = 2;
-  /**
-   * Defines a normal line in the console application.
-   */
-  public final static int NORMAL = 3;
-
-  /**
-   * Defines an error line in the console application.
-   */
-  public final static int ERROR = 4;
-
-  /**
-   * Defines a break line in the console application.
-   */
-  public final static int BREAKLINE = 5;
+  public enum Style {
+    /**
+     * Defines a title.
+     */
+    TITLE,
+    /**
+     * Defines a subtitle.
+     */
+    SUBTITLE,
+    /**
+     * Defines a notice.
+     */
+    NOTICE,
+    /**
+     * Defines a normal line.
+     */
+    NORMAL,
+    /**
+     * Defines an error.
+     */
+    ERROR,
+    /**
+     * Defines a breakline.
+     */
+    BREAKLINE,
+  }
 
   // The error stream which this application should use.
   private final PrintStream err;
@@ -435,51 +439,48 @@ public abstract class ConsoleApplication
    */
   public final void println(final Message msg, final int indent)
   {
-    println(0, msg, indent);
+    println(Style.NORMAL, msg, indent);
   }
 
   /**
    * Print a line with EOL in the output stream.
    *
-   * @param typeMessage
+   * @param msgStyle
    *          The type of formatted output desired.
    * @param msg
    *          The message to display in normal mode.
    * @param indent
    *          The indentation.
    */
-  public final void println(final int typeMessage, final Message msg,
+  public final void println(final Style msgStyle, final Message msg,
       final int indent)
   {
     if (!isQuiet())
     {
-      if (typeMessage == TITLE)
+      switch (msgStyle)
       {
+      case TITLE:
         out.println();
         out.println(">>>> " + wrapText(msg, MAX_LINE_WIDTH, indent));
         out.println();
-      }
-      else if (typeMessage == SUBTITLE)
-      {
+        break;
+      case SUBTITLE:
         out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
         out.println();
-      }
-      else if (typeMessage == NOTICE)
-      {
+        break;
+      case NOTICE:
         out.println(wrapText(" * " + msg, MAX_LINE_WIDTH, indent));
-      }
-      else if (typeMessage == ERROR)
-      {
+        break;
+      case ERROR:
         out.println();
         out.println(wrapText("** " + msg, MAX_LINE_WIDTH, indent));
-      }
-      else if (typeMessage == BREAKLINE)
-      {
+        break;
+      case BREAKLINE:
         out.println();
-      }
-      else
-      {
+        break;
+      default:
         out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+        break;
       }
     }
   }
@@ -663,19 +664,20 @@ public abstract class ConsoleApplication
    *          The message to display.
    * @param defaultValue
    *          The default answer by default.
-   * @param formattedOutput
+   * @param msgStyle
    *          The formatted style chosen.
    * @return The user's input as a string.
    * @throws CLIException
    *           If an Exception occurs during the process.
    */
   public final String readInput(final Message prompt,
-      final String defaultValue, final int formattedOutput) throws CLIException
+      final String defaultValue, final Style msgStyle)
+      throws CLIException
   {
     String answer = null;
     final Message messageToDisplay =
         INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
-    if (formattedOutput == TITLE)
+    if (msgStyle == Style.TITLE)
     {
       println();
     }
@@ -692,7 +694,8 @@ public abstract class ConsoleApplication
       throw CLIException.adaptInputException(e);
     }
 
-    if (formattedOutput == TITLE || formattedOutput == SUBTITLE)
+    if (msgStyle == Style.TITLE
+        || msgStyle == Style.SUBTITLE)
     {
       println();
     }

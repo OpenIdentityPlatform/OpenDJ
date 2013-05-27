@@ -95,6 +95,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   private BooleanArgument force;
   private BooleanArgument quietMode;
   private BooleanArgument verbose;
+  private BooleanArgument acceptLicense;
 
 
   // The argument which should be used to request usage information.
@@ -197,7 +198,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   }
 
   /**
-   * Force the upgrade. All answers will be forced to 'yes'.
+   * Force the upgrade. All critical questions will be forced to 'yes'.
    *
    * @return {@code true} if the upgrade process is forced.
    */
@@ -208,12 +209,23 @@ public final class UpgradeCli extends ConsoleApplication implements
 
   /**
    * Force to ignore the errors during the upgrade process.
+   * Continues rather than fails.
    *
    * @return {@code true} if the errors are forced to be ignored.
    */
   public boolean isIgnoreErrors()
   {
     return ignoreErrors.isPresent();
+  }
+
+  /**
+   * Automatically accepts the license if it's present.
+   *
+   * @return {@code true} if license is accepted by default.
+   */
+  public boolean isAcceptLicense()
+  {
+    return acceptLicense.isPresent();
   }
 
   // Displays the provided message followed by a help usage reference.
@@ -263,9 +275,13 @@ public final class UpgradeCli extends ConsoleApplication implements
           OPTION_LONG_FORCE_UPGRADE,
           INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT));
 
+      acceptLicense = new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null,
+          OPTION_LONG_ACCEPT_LICENSE, INFO_OPTION_ACCEPT_LICENSE.get());
+
       showUsageArgument =
           new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
               INFO_DESCRIPTION_USAGE.get());
+
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
@@ -277,6 +293,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       parser.addGlobalArgument(quietMode);
       parser.addGlobalArgument(force);
       parser.addGlobalArgument(ignoreErrors);
+      parser.addGlobalArgument(acceptLicense);
 
       globalArgumentsInitialized = true;
     }
@@ -352,14 +369,15 @@ public final class UpgradeCli extends ConsoleApplication implements
     catch (ClientException ex)
     {
       LOG.log(SEVERE, ex.getMessage());
-      println(ERROR, ex.getMessageObject(), 0);
+      println(Style.ERROR, ex.getMessageObject(), 0);
 
       return ex.getExitCode();
     }
     catch (Exception ex)
     {
       LOG.log(SEVERE, ex.getMessage());
-      println(ERROR, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex.getMessage()), 0);
+      println(Style.ERROR, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex
+          .getMessage()), 0);
 
       return EXIT_CODE_ERROR;
     }
@@ -391,13 +409,14 @@ public final class UpgradeCli extends ConsoleApplication implements
         switch (fnc.getMessageSubType())
         {
         case TITLE_CALLBACK:
-          println(TITLE, Message.raw(fnc.getMessage()), 0);
+          println(Style.TITLE, Message.raw(fnc.getMessage()), 0);
           break;
         case SUBTITLE_CALLBACK:
-          println(SUBTITLE, Message.raw(fnc.getMessage()), 4);
+          println(Style.SUBTITLE, Message.raw(fnc.getMessage()),
+              4);
           break;
         case NOTICE_CALLBACK:
-          println(NOTICE, Message.raw(fnc.getMessage()), 0);
+          println(Style.NOTICE, Message.raw(fnc.getMessage()), 0);
           break;
         default:
           LOG.log(SEVERE, "Unsupported message type: "
@@ -439,8 +458,8 @@ public final class UpgradeCli extends ConsoleApplication implements
             {
               if (!isInteractive() && !isForceUpgrade())
               {
-                println(ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED.get(
-                    OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
+                println(Style.ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED
+                    .get(OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
                 cc.setSelectedIndex(ConfirmationCallback.NO);
                 return;
               }
@@ -455,16 +474,25 @@ public final class UpgradeCli extends ConsoleApplication implements
             {
               if (!isInteractive() && !isForceUpgrade())
               {
-                println(ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED.get(
-                    OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
+                println(Style.ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED
+                    .get(OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
                 cc.setSelectedIndex(ConfirmationCallback.NO);
                 return;
               }
             }
 
             // Does the user specify the ignore errors mode ?
-            if(opt == IGNORE_ERRORS_MODE) {
+            if (opt == IGNORE_ERRORS_MODE) {
               if (!isIgnoreErrors())
+              {
+                cc.setSelectedIndex(ConfirmationCallback.NO);
+                return;
+              }
+              cc.setSelectedIndex(ConfirmationCallback.YES);
+            }
+
+            if (opt == ACCEPT_LICENSE_MODE) {
+              if (!isAcceptLicense())
               {
                 cc.setSelectedIndex(ConfirmationCallback.NO);
                 return;
@@ -531,7 +559,9 @@ public final class UpgradeCli extends ConsoleApplication implements
             String value = null;
             try
             {
-              value = readInput(Message.raw(prompt), defaultOption, SUBTITLE);
+              value =
+                  readInput(Message.raw(prompt), defaultOption,
+                      Style.SUBTITLE);
             }
             catch (CLIException e)
             {
@@ -581,7 +611,7 @@ public final class UpgradeCli extends ConsoleApplication implements
           // Displays the prompt
           prompt.append(" ").append(
               UpgradeContext.getDefaultOption(cc.getSelectedIndex()));
-          println(SUBTITLE, Message.raw(prompt), 0);
+          println(Style.SUBTITLE, Message.raw(prompt), 0);
           LOG.log(INFO, UpgradeContext.getDefaultOption(cc.getSelectedIndex()));
         }
       }
