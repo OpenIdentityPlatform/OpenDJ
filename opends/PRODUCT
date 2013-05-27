@@ -4,6 +4,9 @@ PRODUCT_NAME=OpenDJ
 # The short name that should be used if the full name is not appropriate.
 SHORT_NAME=OpenDJ
 
+# The short name that should be used in packages.
+PKG_NAME=opendj
+
 # The major version number for the Directory Server.  It must be an integer.
 MAJOR_VERSION=2
 
