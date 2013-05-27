@@ -14,12 +14,14 @@ then
     @prefix@/./upgrade -n
     echo
 # Upgrade fails - Requires mandatory user interaction.
+# Nevertheless, exits successfully of the pkg process.
     if [ "$?" -eq 2 ]
     then
       exit 0 
     fi
-# Restart the service if needed.
-# If server is stopped by upgrade process, the server will restart after upgrade.
+# Restarts the service if needed.
+# If server is stopped by upgrade process, 
+#  the server will restart after upgrade.
 # If server is stopped before the upgrade process 
 #  (eg. upgrade the new package), the server will not restart.
 # Uses the flag for determining server status at this point.
