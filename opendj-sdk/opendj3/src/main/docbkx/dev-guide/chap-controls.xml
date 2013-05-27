@@ -1343,4 +1343,97 @@ sn: Jensen
 # Entries are sorted.
 # Position in list: 92/150</programlisting>
  </section>
+
+ <section xml:id="use-generic-control">
+  <title>Using a Generic Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Generic</secondary>
+  </indexterm>
+
+  <para>OpenDJ LDAP SDK supports many controls, but you might still need to
+  work with additional controls. If so, then in some cases you can use the
+  <literal>GenericControl</literal> class when adding the control to your
+  request.</para>
+
+  <para>For example, the Microsoft <link xlink:show="new"
+  xlink:href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366983(v=vs.85).aspx"
+  >LDAP Server Notification Control</link> with OID
+  <literal>1.2.840.113556.1.4.528</literal> can be used to register a change
+  notification request for a search on Microsoft Active Directory. You can use
+  a <literal>GenericControl.newControl()</literal> static method to add the
+  request control to your search.</para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.GetADChangeNotifications:--- JCite ---]</programlisting>
+
+  <para>When you run the search against Active Directory and then create,
+  update, and delete a new user, in this example
+  <literal>CN=New User,CN=Users,DC=ad,DC=example,DC=com</literal>, Active
+  Directory notifies you of changes to directory data.</para>
+
+  <programlisting language="ldif"
+  ># Search result entry: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,
+ DC=ad,DC=example,DC=com
+dn: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: rIDSet
+objectGUID:: 178zQQic3EOoBOB1j2QVgQ==
+uSNChanged: 12446
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12753
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12755
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12757
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12758
+
+# Search result entry: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,
+# CN=Deleted Objects,DC=ad,DC=example,DC=com
+dn: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,CN=Deleted Objects,
+ DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+isDeleted: TRUE
+uSNChanged: 12759
+</programlisting>
+
+  <para>The <literal>GenericControl</literal> class is useful with controls that
+  do not require you to encode complex request values, or decode complex
+  response values. If the control you want to you requires complex encoding
+  or decoding, you might have to implement
+  <literal>org.forgerock.opendj.ldap.controls.Control</literal>.</para>
+ </section>
 </chapter>
