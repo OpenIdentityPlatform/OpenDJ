@@ -201,6 +201,7 @@
        compilation. -->
   <presetdef name="javac">
     <javac optimize="true" includeantruntime="false"
+           source="1.6" target="1.6"
         debug="on" debuglevel="${build.debuglevel}"
         deprecation="true" fork="true"
         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
@@ -1147,10 +1148,10 @@
       </classpath>
     </manifestclasspath>
     <jar jarfile="${pdir}/lib/bootstrap.jar">
-      <manifest> 
+      <manifest>
         <attribute name="Built-By" value="${user.name}" />
         <attribute name="Class-Path" value="${manifest.classpath}" />
-      </manifest> 
+      </manifest>
     </jar>
 
     <!-- Create buildinfo files -->
@@ -1213,6 +1214,12 @@
     <copy todir="${pdir}/QuickSetup.app">
       <fileset dir="${resource.dir}/mac/QuickSetup.app" />
     </copy>
+    <replace file="${pdir}/QuickSetup.app/Contents/Info.plist"
+             token="@version@"
+             value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
+    <replace file="${pdir}/QuickSetup.app/Contents/Info.plist"
+             token="@revision@"
+             value="${REVISION_NUMBER}"/>
     <chmod perm="755">
       <fileset dir="${pdir}">
         <include name="QuickSetup.app/Contents/MacOS/JavaApplicationStub" />
@@ -1221,6 +1228,12 @@
     <copy todir="${pdir}/Uninstall.app">
       <fileset dir="${resource.dir}/mac/Uninstall.app" />
     </copy>
+    <replace file="${pdir}/Uninstall.app/Contents/Info.plist"
+             token="@version@"
+             value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
+    <replace file="${pdir}/Uninstall.app/Contents/Info.plist"
+             token="@revision@"
+             value="${REVISION_NUMBER}"/>
     <chmod perm="755">
       <fileset dir="${pdir}">
         <include name="Uninstall.app/Contents/MacOS/JavaApplicationStub" />
@@ -1229,6 +1242,12 @@
     <copy todir="${pdir}/bin/ControlPanel.app">
       <fileset dir="${resource.dir}/mac/ControlPanel.app" />
     </copy>
+    <replace file="${pdir}/bin/ControlPanel.app/Contents/Info.plist"
+             token="@version@"
+             value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
+    <replace file="${pdir}/bin/ControlPanel.app/Contents/Info.plist"
+             token="@revision@"
+             value="${REVISION_NUMBER}"/>
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
         <include name="ControlPanel.app/Contents/MacOS/JavaApplicationStub" />
@@ -1355,7 +1374,7 @@
     <mkdir dir="${build.dir}/deb/control" />
 
     <taskdef name="deb" classname="org.vafer.jdeb.ant.DebAntTask"/>
-    
+
     <copy todir="${build.dir}/deb/control">
       <fileset dir="resource/debian/control"/>
       <filterset begintoken="[[" endtoken="]]">
@@ -1371,11 +1390,11 @@
 
     <copy file="resource/debian/control/preinst" tofile="${build.dir}/deb/control" />
     <copy file="resource/debian/control/postinst" tofile="${build.dir}/deb/control" />
-    <copy file="resource/debian/control/prerm" tofile="${build.dir}/deb/control" />           
+    <copy file="resource/debian/control/prerm" tofile="${build.dir}/deb/control" />
     <copy file="resource/debian/control/postrm" tofile="${build.dir}/deb/control" />
 
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
-  	
+
     <deb destfile="${package.dir}/${SHORT_NAME}_${VERSION_NUMBER_STRING}-${release}_all.deb"
          control="${build.dir}/deb/control">
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
@@ -2704,7 +2723,7 @@
 
   <target name="clean-ivy-cache" depends="install-ivy" description="--> clean the ivy cache">
     <ivy:cleancache/>
-  </target>  
+  </target>
 
   <import file="build-svr4.xml"/>
   <import file="build-pkg.xml"/>

@@ -6,8 +6,10 @@
 	<string>OpenDJ Control Panel</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.opends.guitools.controlpanel.ControlPanelLauncher</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@version@</string>
 	<key>CFBundleVersion</key>
-	<string>2.3.0</string>
+	<string>@revision@</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
 	<key>CFBundleExecutable</key>
@@ -25,7 +27,7 @@
 	<key>Java</key>
 	<dict>
 		<key>VMOptions</key>
-		<string>-client</string>
+		<string>-Dorg.opends.server.ServerRoot=$APP_PACKAGE/../..</string>
 		<key>MainClass</key>
 		<string>org.opends.guitools.controlpanel.ControlPanelLauncher</string>
 		<key>JVMVersion</key>
