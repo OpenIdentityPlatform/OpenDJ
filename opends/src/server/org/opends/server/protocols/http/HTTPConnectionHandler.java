@@ -54,7 +54,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
+import javax.servlet.Filter;
 import javax.servlet.ServletException;
 
 import org.codehaus.jackson.JsonParseException;
@@ -78,7 +78,6 @@ import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.servlet.ServletRegistration;
 import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -264,12 +263,12 @@ public class HTTPConnectionHandler extends
       // handle it
       if (!this.currentConfig.isKeepStats() && config.isKeepStats())
       { // it must now keep stats while it was not previously
-        setHttpStatsProbe();
+        setHttpStatsProbe(this.httpServer);
       }
       else if (this.currentConfig.isKeepStats() && !config.isKeepStats()
           && this.httpProbe != null)
       { // it must NOT keep stats anymore
-        getHttpConfig().removeProbes(this.httpProbe);
+        getHttpConfig(this.httpServer).removeProbes(this.httpProbe);
         this.httpProbe = null;
       }
     }
@@ -803,75 +802,10 @@ public class HTTPConnectionHandler extends
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
     }
 
-    this.httpServer =
-        HttpServer.createSimpleServer("./", initConfig.getListenPort());
+    this.httpServer = createHttpServer();
 
-    int requestSize = (int) currentConfig.getMaxRequestSize();
-    final ServerConfiguration serverConfig =
-        this.httpServer.getServerConfiguration();
-    serverConfig.setMaxBufferedPostSize(requestSize);
-    serverConfig.setMaxFormPostSize(requestSize);
-    if (keepStats())
-    {
-      setHttpStatsProbe();
-    }
-
-    for (NetworkListener listener : this.httpServer.getListeners())
-    {
-      TCPNIOTransport transport = listener.getTransport();
-      transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
-      transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
-      transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
-      transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
-          TimeUnit.MILLISECONDS);
-
-      int bufferSize = (int) currentConfig.getBufferSize();
-      transport.setReadBufferSize(bufferSize);
-      transport.setWriteBufferSize(bufferSize);
-      transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-      final int numRequestHandlers =
-          getNumRequestHandlers(currentConfig.getNumRequestHandlers(),
-              friendlyName);
-      transport.setSelectorRunnersCount(numRequestHandlers);
-      transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
-
-      if (sslEngineConfigurator != null)
-      {
-        listener.setSecure(true);
-        listener.setSSLEngineConfig(sslEngineConfigurator);
-      }
-    }
-
-    final String servletName = "OpenDJ Rest2LDAP servlet";
-    final String urlPattern = "/*";
-    final WebappContext ctx = new WebappContext(servletName);
-
-    final JsonValue configuration =
-        parseJsonConfiguration(getFileForPath(this.currentConfig
-            .getConfigFile()));
-
-    final HTTPAuthenticationConfig authenticationConfig =
-        getAuthenticationConfig(configuration);
-
-    javax.servlet.Filter filter =
-        new CollectClientConnectionsFilter(this, authenticationConfig);
-    FilterRegistration filterReg =
-        ctx.addFilter("collectClientConnections", filter);
-    // TODO JNR this is not working
-    // filterReg.addMappingForServletNames(EnumSet.allOf(
-    // DispatcherType.class), servletName);
-    filterReg.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST),
-        true, urlPattern);
-
-    ConnectionFactory connFactory = getConnectionFactory(configuration);
-
-    final ServletRegistration reg =
-        ctx.addServlet(servletName, new HttpServlet(connFactory,
-        // Used for hooking our HTTPClientConnection in Rest2LDAP
-            Rest2LDAPContextFactory.getHttpServletContextFactory()));
-    reg.addMapping(urlPattern);
-
-    ctx.deploy(this.httpServer);
+    // register servlet as default servlet and also able to serve REST requests
+    createAndRegisterServlet("OpenDJ Rest2LDAP servlet", "", "/*");
 
     TRACER.debugInfo("Starting HTTP server...");
     this.httpServer.start();
@@ -879,17 +813,89 @@ public class HTTPConnectionHandler extends
     logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
   }
 
-  private void setHttpStatsProbe()
+  private HttpServer createHttpServer()
   {
-    httpProbe = new HTTPStatsProbe(this.statTracker);
-    getHttpConfig().addProbes(httpProbe);
+    final HttpServer server = new HttpServer();
+
+    final int requestSize = (int) currentConfig.getMaxRequestSize();
+    final ServerConfiguration serverConfig = server.getServerConfiguration();
+    serverConfig.setMaxBufferedPostSize(requestSize);
+    serverConfig.setMaxFormPostSize(requestSize);
+    if (keepStats())
+    {
+      setHttpStatsProbe(server);
+    }
+
+    // configure the network listener
+    final NetworkListener listener =
+        new NetworkListener("Rest2LDAP", NetworkListener.DEFAULT_NETWORK_HOST,
+            initConfig.getListenPort());
+    server.addListener(listener);
+
+    // configure the network transport
+    final TCPNIOTransport transport = listener.getTransport();
+    transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
+    transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
+    transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
+    transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
+        TimeUnit.MILLISECONDS);
+
+    final int bufferSize = (int) currentConfig.getBufferSize();
+    transport.setReadBufferSize(bufferSize);
+    transport.setWriteBufferSize(bufferSize);
+    transport.setIOStrategy(SameThreadIOStrategy.getInstance());
+    final int numRequestHandlers =
+        getNumRequestHandlers(currentConfig.getNumRequestHandlers(),
+            friendlyName);
+    transport.setSelectorRunnersCount(numRequestHandlers);
+    transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
+
+    // configure SSL
+    if (sslEngineConfigurator != null)
+    {
+      listener.setSecure(true);
+      listener.setSSLEngineConfig(sslEngineConfigurator);
+    }
+
+    return server;
   }
 
-  private MonitoringConfig<HttpProbe> getHttpConfig()
+  private void setHttpStatsProbe(HttpServer server)
+  {
+    this.httpProbe = new HTTPStatsProbe(this.statTracker);
+    getHttpConfig(server).addProbes(this.httpProbe);
+  }
+
+  private MonitoringConfig<HttpProbe> getHttpConfig(HttpServer server)
   {
     final HttpServerMonitoringConfig monitoringCfg =
-        this.httpServer.getServerConfiguration().getMonitoringConfig();
+        server.getServerConfiguration().getMonitoringConfig();
     return monitoringCfg.getHttpConfig();
+  }
+
+  private void createAndRegisterServlet(final String servletName,
+      final String... urlPatterns) throws Exception
+  {
+    // parse and use JSON config
+    final JsonValue configuration =
+        parseJsonConfiguration(getFileForPath(this.currentConfig
+            .getConfigFile()));
+    final HTTPAuthenticationConfig authenticationConfig =
+        getAuthenticationConfig(configuration);
+    final ConnectionFactory connFactory = getConnectionFactory(configuration);
+
+    Filter filter =
+        new CollectClientConnectionsFilter(this, authenticationConfig);
+    final HttpServlet servlet = new HttpServlet(connFactory,
+    // Used for hooking our HTTPClientConnection in Rest2LDAP
+        Rest2LDAPContextFactory.getHttpServletContextFactory());
+
+    // Create and deploy the Web app context
+    final WebappContext ctx = new WebappContext(servletName);
+    ctx.addFilter("collectClientConnections", filter).addMappingForUrlPatterns(
+        EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
+    ctx.addServlet(servletName, servlet).addMapping(urlPatterns);
+    ctx.deploy(this.httpServer);
   }
 
   private HTTPAuthenticationConfig getAuthenticationConfig(
