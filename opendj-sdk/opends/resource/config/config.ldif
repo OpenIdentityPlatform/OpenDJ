@@ -734,6 +734,7 @@ objectClass: ds-cfg-http-access-log-publisher
 objectClass: ds-cfg-file-based-http-access-log-publisher
 cn: File-Based HTTP Access Logger
 ds-cfg-java-class: org.opends.server.loggers.TextHTTPAccessLogPublisher
+ds-cfg-enabled: false
 ds-cfg-log-file: logs/http-access
 ds-cfg-log-file-permissions: 640
 ds-cfg-asynchronous: true
