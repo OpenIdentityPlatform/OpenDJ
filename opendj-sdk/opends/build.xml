@@ -1312,7 +1312,7 @@
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
     <property name="prefix"    value="/opt/opendj"/>
-    <property name="release"   value="0"/>
+    <property name="release"   value="1"/>
     <taskdef name="genrpm"
              classname="org.opends.build.tools.GenerateRpm">
       <classpath>
@@ -1332,7 +1332,7 @@
         topDir="${build.dir}/rpm"
         prefix="${prefix}"
         productName="${PRODUCT_NAME}"
-        shortName="${SHORT_NAME}"
+        shortName="${PKG_NAME}"
         referenceURL="${DOC_REFERENCE_HOME}"
         sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
         specFileName="${build.dir}/rpm/SPECS/specFile"
@@ -1369,7 +1369,7 @@
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
     <property name="prefix"    value="/opt/opendj"/>
-    <property name="release"   value="0"/>
+    <property name="release"   value="1"/>
 
     <mkdir dir="${build.dir}/deb/control" />
 
@@ -1379,10 +1379,10 @@
       <fileset dir="resource/debian/control"/>
       <filterset begintoken="[[" endtoken="]]">
         <filter token="version" value="${VERSION_NUMBER_STRING}"/>
-        <filter token="name" value="${SHORT_NAME}"/>
+        <filter token="name" value="${PKG_NAME}"/>
         <filter token="homepage" value="${DOC_REFERENCE_HOME}"/>
         <filter token="maintainer" value="opendj@forgerock.org"/>
-        <filter token="description" value="${PRODUCT_NAME}"/>
+        <filter token="description" value="${PKG_NAME}"/>
       </filterset>
     </copy>
 
@@ -1395,7 +1395,7 @@
 
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
-    <deb destfile="${package.dir}/${SHORT_NAME}_${VERSION_NUMBER_STRING}-${release}_all.deb"
+    <deb destfile="${package.dir}/${PKG_NAME}_${VERSION_NUMBER_STRING}-${release}_all.deb"
          control="${build.dir}/deb/control">
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="**/*"
