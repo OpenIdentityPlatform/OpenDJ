@@ -82,7 +82,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 {
 
   /** This class holds all the necessary data to complete an HTTP request. */
-  private final class HTTPRequestContext
+  private static final class HTTPRequestContext
   {
     private AsyncContext asyncContext;
     private HttpServletRequest request;
