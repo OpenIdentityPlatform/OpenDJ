@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -101,6 +101,10 @@
         <li>
           <a href="xref/org/forgerock/opendj/examples/UpdateGroup.html">Update group</a>
           - illustrates how to add or remove a member from a static group
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/GetADChangeNotifications.html">Use <code>GenericControl</code></a>
+          - illustrates how to use <code>GenericControl</code> to get change notifications from Active Directory
         </li>
       </ul>
     </section>
