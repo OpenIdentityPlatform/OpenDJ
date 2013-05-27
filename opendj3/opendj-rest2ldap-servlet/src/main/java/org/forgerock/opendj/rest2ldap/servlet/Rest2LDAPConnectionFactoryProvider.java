@@ -123,7 +123,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
                 return new ConnectionFactory() {
                     @Override
                     public FutureResult<Connection> getConnectionAsync(
-                            ResultHandler<Connection> handler) {
+                            ResultHandler<? super Connection> handler) {
                         return factory.getConnectionAsync(handler);
                     }
 
