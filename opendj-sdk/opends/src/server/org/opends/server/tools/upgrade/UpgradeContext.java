@@ -66,7 +66,7 @@ public final class UpgradeContext
   /**
    * If ignore errors is enabled.
    */
-  private final boolean isIgnoreErrorsMode;
+  private boolean isIgnoreErrorsMode;
 
   /**
    * Constructor for the upgrade context.
@@ -81,24 +81,6 @@ public final class UpgradeContext
     this.fromVersion = fromVersion;
     this.toVersion = toVersion;
     this.isIgnoreErrorsMode = false;
-  }
-
-  /**
-   * Constructor for the upgrade context.
-   *
-   * @param fromVersion
-   *          The version number from we upgrade from.
-   * @param toVersion
-   *          The version number we want to upgrade to.
-   * @param isIgnoreErrorsMode
-   *          If ignore error mode is enabled.
-   */
-  UpgradeContext(final BuildVersion fromVersion, final BuildVersion toVersion,
-      final boolean isIgnoreErrorsMode)
-  {
-    this.fromVersion = fromVersion;
-    this.toVersion = toVersion;
-    this.isIgnoreErrorsMode = isIgnoreErrorsMode;
   }
 
   /**
@@ -129,6 +111,16 @@ public final class UpgradeContext
   public boolean isIgnoreErrorsMode()
   {
     return isIgnoreErrorsMode;
+  }
+
+  /**
+   * Sets the ignore errors mode.
+   *
+   * @param isIgnoreErrorsMode {@true} if ignore error mode is activated.
+   */
+  public void setIgnoreErrorsMode(boolean isIgnoreErrorsMode)
+  {
+    this.isIgnoreErrorsMode = isIgnoreErrorsMode;
   }
 
   /**

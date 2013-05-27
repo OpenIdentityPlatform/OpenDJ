@@ -798,8 +798,9 @@ public class ToolConstants
   public static final String OPTION_LONG_RESTORE_UPGRADE = "restore";
 
   /**
-   * The value for the long option for backup all.
+   * The value for the long option to automatically
+   * accept the license if present.
    */
-  public static final String OPTION_LONG_BACKUP_ALL = "backupAll";
+  public static final String OPTION_LONG_ACCEPT_LICENSE = "acceptLicense";
 }
 

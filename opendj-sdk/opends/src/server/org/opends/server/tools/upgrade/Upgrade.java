@@ -396,7 +396,7 @@ public final class Upgrade
       if (context.checkCLIUserOption(handler, IGNORE_ERRORS_MODE)
           == ConfirmationCallback.YES)
       {
-        context = new UpgradeContext(fromVersion, toVersion, true);
+        context.setIgnoreErrorsMode(true);
       }
 
       /*
@@ -580,7 +580,7 @@ public final class Upgrade
       throw new ClientException(EXIT_CODE_SUCCESS, message);
     }
 
-    // TODO The upgrade only supports version >= 2.4.5.
+    // The upgrade only supports version >= 2.4.5.
     if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
     {
       throw new ClientException(EXIT_CODE_ERROR,
@@ -647,29 +647,39 @@ public final class Upgrade
         // and force to accept it.
         context.notify(handler, INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
-        final int answer = context.confirmYN(handler,
-            INFO_LICENSE_ACCEPT.get(), ConfirmationCallback.NO);
+        if (context.checkCLIUserOption(handler, ACCEPT_LICENSE_MODE)
+            == ConfirmationCallback.NO)
+        {
 
-        if (answer == ConfirmationCallback.NO)
-        {
-          System.exit(EXIT_CODE_SUCCESS);
-        }
-        else if (answer == ConfirmationCallback.YES)
-        {
-          // Creates the file
-          LicenseFile.setApproval(true);
-          LicenseFile.createFileLicenseApproved();
+          final int answer =
+              context.confirmYN(handler, INFO_LICENSE_ACCEPT.get(),
+                  ConfirmationCallback.NO);
+
+          if (answer == ConfirmationCallback.NO)
+          {
+            System.exit(EXIT_CODE_SUCCESS);
+          }
+          else if (answer == ConfirmationCallback.YES)
+          {
+            createLicenseApproval();
+          }
         }
         else
         {
-          context.notify(handler,
-              INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+          context.notify(handler, INFO_LICENSE_ACCEPT.get());
+          context.notify(handler, INFO_PROMPT_YES_COMPLETE_ANSWER.get());
+          createLicenseApproval();
         }
       }
     }
   }
 
-
+  private static void createLicenseApproval()
+  {
+    // Creates the file
+    LicenseFile.setApproval(true);
+    LicenseFile.createFileLicenseApproved();
+  }
 
   // Prevent instantiation.
   private Upgrade()
