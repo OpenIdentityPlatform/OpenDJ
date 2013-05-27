@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 Forgerock AS
+ !      Portions Copyright 2011-2013 Forgerock AS
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -81,6 +81,7 @@
 
         # Create the initial report.cfg file
         # This file is used by the cgi script
+        import time
         starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
         reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
         reportCfg.write('[Main]\n')
