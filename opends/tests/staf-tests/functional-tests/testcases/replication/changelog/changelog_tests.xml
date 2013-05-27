@@ -103,11 +103,21 @@
               }
             </call>                                                                                 
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
-                              
+            
             <!-- Search changelog in the various replication servers -->                                                           
             <paralleliterate var="server" 
                              in="_topologyServerList" 
@@ -263,9 +273,19 @@
               }
             </call>                                          
                                             
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
                             
             <!-- Export changelog in the various replication servers, then
@@ -417,9 +437,19 @@
               }
             </call>                                          
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
                               
             <!-- Stop the servers in the topology -->
@@ -498,9 +528,19 @@
               }
             </call>                                          
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
                               
             <!-- Stop the servers in the topology -->
@@ -778,10 +818,20 @@
               }
             </call>                                          
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
-            </call>                
+              { 'sleepForMilliSeconds' :  sleepTime }
+            </call>             
               
             <!-- Backup changelog in the various replication servers -->
             <paralleliterate var="server" 
@@ -843,10 +893,20 @@
               }
             </call>                                          
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
-            </call>                                                              
+              { 'sleepForMilliSeconds' :  sleepTime }
+            </call>                                                       
 
             <!-- Restore changelog_backup_online in the various replication 
               servers, then restore master_backup in every server -->
@@ -1116,9 +1176,19 @@
               }
             </call>
                                         
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
             <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
               
             <!-- Search changelog in the various replication servers -->                                                           
@@ -1389,9 +1459,19 @@
               }
             </call>
                                                 
-            <!-- Let some time for the changes to propagate -->
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <script>
+                sleepTime = 2000
+              </script>
+              <else>
+                <script>
+                  sleepTime = 5000
+                </script>
+              </else>
+            </if>
+            <!-- Let some time for the change to propagate -->
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds' :  2000 }
+              { 'sleepForMilliSeconds' :  sleepTime }
             </call>
               
             <!-- Search changelog in the various replication servers -->
