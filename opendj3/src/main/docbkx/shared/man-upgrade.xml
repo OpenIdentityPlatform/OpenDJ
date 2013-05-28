@@ -210,7 +210,7 @@ $ ./OpenDJ-2.4.5/bin/stop-ds --quiet
 ... msg=The backend userRoot is now taken offline
 ... msg=The Directory Server is now stopped
 $ zip -rq OpenDJ-backup.zip OpenDJ-2.4.5
-$ unzip -q ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip
+$ unzip -q ~/Downloads/OpenDJ-<replaceable>version</replaceable>.zip
 $ cp -r opendj/* OpenDJ-2.4.5/
 $ rm -rf opendj
 $ mv OpenDJ-2.4.5 opendj
@@ -218,12 +218,12 @@ $ ./opendj/upgrade --no-prompt
 
 >>>> OpenDJ Upgrade Utility
 
- * OpenDJ will be upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+ * OpenDJ will be upgraded from version 2.4.5.7743 to <replaceable>version</replaceable>.<replaceable>revision</replaceable>
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
 
 >>>> Preparing to upgrade
 
-  OpenDJ <?eval ${docTargetVersion}?> modified the default configuration of the 'isMemberOf' virtual
+  OpenDJ <replaceable>version</replaceable> modified the default configuration of the 'isMemberOf' virtual
   attribute so that it is included with group entries. This was done in order
   to make it easier for users to determine which groups a 'nested' group
   belongs to.
@@ -253,7 +253,7 @@ $ ./opendj/upgrade --no-prompt
   Replacing schema file '02-config.ldif'..............................   100%
   Archiving concatenated schema.......................................   100%
 
->>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+>>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to <replaceable>version</replaceable>.<replaceable>revision</replaceable>
 
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
 $ ./opendj/bin/start-ds --quiet
