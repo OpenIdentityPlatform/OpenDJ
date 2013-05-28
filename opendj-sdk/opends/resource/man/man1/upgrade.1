@@ -202,7 +202,7 @@ $ \&./OpenDJ\-2\&.4\&.5/bin/stop\-ds \-\-quiet
 \&.\&.\&. msg=The backend userRoot is now taken offline
 \&.\&.\&. msg=The Directory Server is now stopped
 $ zip \-rq OpenDJ\-backup\&.zip OpenDJ\-2\&.4\&.5
-$ unzip \-q ~/Downloads/OpenDJ\-2\&.6\&.0\&.zip
+$ unzip \-q ~/Downloads/OpenDJ\-\fIversion\fR\&.zip
 $ cp \-r opendj/* OpenDJ\-2\&.4\&.5/
 $ rm \-rf opendj
 $ mv OpenDJ\-2\&.4\&.5 opendj
@@ -210,12 +210,12 @@ $ \&./opendj/upgrade \-\-no\-prompt
 
 >>>> OpenDJ Upgrade Utility
 
- * OpenDJ will be upgraded from version 2\&.4\&.5\&.7743 to 2\&.6\&.0\&.\fIrevision\fR
+ * OpenDJ will be upgraded from version 2\&.4\&.5\&.7743 to \fIversion\fR\&.\fIrevision\fR
  * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
 
 >>>> Preparing to upgrade
 
-  OpenDJ 2\&.6\&.0 modified the default configuration of the \*(AqisMemberOf\*(Aq virtual
+  OpenDJ \fIversion\fR modified the default configuration of the \*(AqisMemberOf\*(Aq virtual
   attribute so that it is included with group entries\&. This was done in order
   to make it easier for users to determine which groups a \*(Aqnested\*(Aq group
   belongs to\&.
@@ -245,7 +245,7 @@ $ \&./opendj/upgrade \-\-no\-prompt
   Replacing schema file \*(Aq02\-config\&.ldif\*(Aq\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
   Archiving concatenated schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
 
->>>> OpenDJ was successfully upgraded from version 2\&.4\&.5\&.7743 to 2\&.6\&.0\&.\fIrevision\fR
+>>>> OpenDJ was successfully upgraded from version 2\&.4\&.5\&.7743 to \fIversion\fR\&.\fIrevision\fR
 
  * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
 $ \&./opendj/bin/start\-ds \-\-quiet
