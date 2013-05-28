@@ -89,7 +89,7 @@
 
   <step performance="optional">
    <para>If OpenDJ is currently installed in a directory such as
-   <filename>OpenDJ-2.4.6</filename>, you can change the directory name to
+   <filename>OpenDJ-2.4.5</filename>, you can change the directory name to
    <filename>opendj</filename> to make it easier to unpack subsequent .zip
    deliveries for future upgrades.</para>
   </step>
@@ -132,66 +132,15 @@
  </procedure>
 
  <example xml:id="upgrade-zip-example"><?dbfo keep-together="auto"?>
-  <title>Upgrading From OpenDJ 2.4.6</title>
+  <title>Upgrading From OpenDJ 2.4.5</title>
 
-  <para>The following example upgrades an OpenDJ 2.4.6 directory server
-  installed in <filename>/path/to/OpenDJ-2.4.6</filename>, backing up the
+  <para>The following example upgrades an OpenDJ 2.4.5 directory server
+  installed in <filename>/path/to/OpenDJ-2.4.5</filename>, backing up the
   current server directory in case the upgrade process fails, and changing
   the directory name to <filename>/path/to/opendj</filename> to simplify
   future upgrades.</para>
 
-  <screen>$ cd /path/to
-$ ls
-OpenDJ-2.4.6
-$ ./OpenDJ-2.4.6/bin/stop-ds --quiet
-... msg=The backend userRoot is now taken offline
-... msg=The Directory Server is now stopped
-$ zip -rq OpenDJ-backup.zip OpenDJ-2.4.6
-$ unzip -q ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip
-$ cp -r opendj/* OpenDJ-2.4.6/
-$ rm -rf opendj
-$ mv OpenDJ-2.4.6 opendj
-$ ./opendj/upgrade --no-prompt
-
->>>> OpenDJ Upgrade Utility
-
- * OpenDJ will be upgraded from version 2.4.6.8102 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
- * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-
->>>> Preparing to upgrade
-
-  OpenDJ <?eval ${docTargetVersion}?> modified the default configuration of the 'isMemberOf' virtual
-  attribute so that it is included with group entries. This was done in order
-  to make it easier for users to determine which groups a 'nested' group
-  belongs to.
-  Do you want to make this configuration change? (yes/no) yes
-
-  The upgrade is ready to proceed. Do you wish to continue? (yes/no) yes
-
-
->>>> Performing upgrade
-
-  Fixing de-DE collation matching rule OID............................   100%
-  Updating password policy configurations.............................   100%
-  Updating audit log publisher configuration..........................   100%
-  Adding 'etag' virtual attribute schema..............................   100%
-  Configuring 'etag' virtual attribute................................   100%
-  Configuring 'ds-pwp-password-expiration-time' virtual attribute.....   100%
-  Updating certificate syntax configuration...........................   100%
-  Updating JPEG syntax configuration..................................   100%
-  Updating country string syntax configuration........................   100%
-  Modifying filter in 'isMemberOf' virtual attribute configuration....   100%
-  Updating dictionary password validator configuration................   100%
-  Updating attribute value password validator configuration...........   100%
-  Adding PBKDF2 password storage scheme configuration.................   100%
-  Replacing schema file '02-config.ldif'..............................   100%
-  Archiving concatenated schema.......................................   100%
-
->>>> OpenDJ was successfully upgraded from version 2.4.6.8102 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
-
- * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-$ ./opendj/bin/start-ds --quiet
-$ </screen>
+  <xinclude:include href="../shared/screen-upgrade.xml" />
  </example>
 
  <procedure xml:id="upgrade-repl">
