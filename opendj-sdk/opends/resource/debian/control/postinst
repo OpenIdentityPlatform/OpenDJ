@@ -11,7 +11,7 @@ then
   if [ -f @prefix@/config/buildinfo ]
   then
     echo *Starting upgrade...
-    @prefix@/./upgrade -n
+    @prefix@/./upgrade -n --acceptLicense
     echo
 # Upgrade fails - Requires mandatory user interaction.
 # Nevertheless, exits successfully of the pkg process.
