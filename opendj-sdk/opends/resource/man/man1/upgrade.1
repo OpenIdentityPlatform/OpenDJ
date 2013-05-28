@@ -187,73 +187,11 @@ Other
 .RS 4
 An error occurred\&.
 .RE
-.SH "EXAMPLES"
 .PP
-The following example shows the upgrade process for OpenDJ directory server installed from the cross\-platform (\&.zip) delivery\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-$ cd /path/to
-$ ls
-OpenDJ\-2\&.4\&.5
-$ \&./OpenDJ\-2\&.4\&.5/bin/stop\-ds \-\-quiet
-\&.\&.\&. msg=The backend userRoot is now taken offline
-\&.\&.\&. msg=The Directory Server is now stopped
-$ zip \-rq OpenDJ\-backup\&.zip OpenDJ\-2\&.4\&.5
-$ unzip \-q ~/Downloads/OpenDJ\-\fIversion\fR\&.zip
-$ cp \-r opendj/* OpenDJ\-2\&.4\&.5/
-$ rm \-rf opendj
-$ mv OpenDJ\-2\&.4\&.5 opendj
-$ \&./opendj/upgrade \-\-no\-prompt
-
->>>> OpenDJ Upgrade Utility
-
- * OpenDJ will be upgraded from version 2\&.4\&.5\&.7743 to \fIversion\fR\&.\fIrevision\fR
- * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
-
->>>> Preparing to upgrade
-
-  OpenDJ \fIversion\fR modified the default configuration of the \*(AqisMemberOf\*(Aq virtual
-  attribute so that it is included with group entries\&. This was done in order
-  to make it easier for users to determine which groups a \*(Aqnested\*(Aq group
-  belongs to\&.
-  Do you want to make this configuration change? (yes/no) yes
-
-  The upgrade is ready to proceed\&. Do you wish to continue? (yes/no) yes
-
-
->>>> Performing upgrade
-
-  Fixing de\-DE collation matching rule OID\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Updating password policy configurations\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Updating audit log publisher configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Adding \*(Aqetag\*(Aq virtual attribute schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Configuring \*(Aqetag\*(Aq virtual attribute\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Configuring \*(Aqds\-pwp\-password\-expiration\-time\*(Aq virtual attribute\&.\&.\&.\&.\&.   100%
-  Updating certificate syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Updating JPEG syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Updating country string syntax configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Modifying filter in \*(AqisMemberOf\*(Aq virtual attribute configuration\&.\&.\&.\&.   100%
-  Updating dictionary password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Updating attribute value password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Adding PBKDF2 password storage scheme configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Adding \*(Aqhttp\-config\&.json\*(Aq configuration file\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Adding HTTP connection handler configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Adding file\-based HTTP access logger\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Replacing schema file \*(Aq02\-config\&.ldif\*(Aq\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-  Archiving concatenated schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
-
->>>> OpenDJ was successfully upgraded from version 2\&.4\&.5\&.7743 to \fIversion\fR\&.\fIrevision\fR
-
- * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
-$ \&./opendj/bin/start\-ds \-\-quiet
-$ 
-.fi
-.if n \{\
-.RE
-.\}
+See the
+Installation Guide
+for an example upgrade process for OpenDJ directory server installed from the cross\-platform (\&.zip) delivery,
+\m[blue]\fBUpgrading From OpenDJ 2\&.4\&.5\fR\m[]\&.
 .PP
 Native packages (\&.deb, \&.rpm) perform more of the upgrade process, stopping OpenDJ if it is running, overwriting older files with newer files, running this utility, and starting OpenDJ if it was running when you upgraded the package(s)\&.
 .SH "COPYRIGHT"
