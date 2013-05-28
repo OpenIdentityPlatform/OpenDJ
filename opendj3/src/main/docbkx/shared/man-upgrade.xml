@@ -196,13 +196,13 @@
     </listitem>
    </varlistentry>
   </variablelist>
- </refsect1>
- <refsect1>
-  <title>Examples</title>
-  <para>The following example shows the upgrade process for OpenDJ directory
-  server installed from the cross-platform (.zip) delivery.</para>
 
-  <para>Test for java.lang.reflect.InvocationTargetException, Caused by: java.lang.StackOverflowError</para>
+  <para>See the <citetitle>Installation Guide</citetitle> for an example
+  upgrade process for OpenDJ directory server installed from the cross-platform
+  (.zip) delivery, <link xlink:show="new"
+  xlink:href="install-guide#upgrade-zip-example"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading From
+  OpenDJ 2.4.5</citetitle></link>.</para>
 
   <para>Native packages (.deb, .rpm) perform more of the upgrade process,
   stopping OpenDJ if it is running, overwriting older files with newer files,
