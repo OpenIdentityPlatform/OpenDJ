@@ -7,7 +7,7 @@ Connection: close
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
 <SOAP-ENV:Body>
 <batchResponse xmlns="urn:oasis:names:tc:DSML:2:0:core" requestID="[substrings] element has no subfilter [initial], [any], [final]">
-<errorResponse type="Unknown error">
+<errorResponse type="malformedRequest">
 <message>org.opends.server.types.LDAPException: Cannot decode the provided ASN.1 element as an LDAP search filter because the element was null</message>
 </errorResponse>
 </batchResponse>
