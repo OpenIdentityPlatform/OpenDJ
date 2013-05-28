@@ -1702,17 +1702,29 @@
               opendmkJarFile = '%s/%s/wrong_file' \
                                % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
               if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                opendmkJarFile = opendmkJarFile.replace('/', '\')
+                opendmkJarFile = opendmkJarFile.replace('/', '\\')
 
               msg1 = 'The specified OpenDMK jar file'
               msg2 = '\'%s\' could not be found.' % opendmkJarFile
-              msg3 = 'Verify that the value set in the opendmk-jarfile'
-              msg4 = 'configuration parameter of the SNMP connection handler'
-              msg5 = 'is the valid path to the jdmkrt.jar file and that the'
-              msg6 = 'file is accessible'
-              msg = '%s %s  %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
+              msg = '%s %s' % (msg1, msg2)
             </script>
 
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : serverLogFile ,
+              'testString': msg
+              }
+            </call>
+            
+            <script>
+              msg1 = 'Verify that the value set in the opendmk-jarfile'
+              msg2 = 'configuration parameter of the SNMP connection handler'
+              msg3 = 'is the valid path to the jdmkrt.jar file and that the'
+              msg4 = 'file is accessible'
+              msg = '%s %s %s %s' % (msg1, msg2, msg3, msg4)
+            </script>
+            
             <call function="'grep'">
               {
               'location'  : STAF_REMOTE_HOSTNAME ,

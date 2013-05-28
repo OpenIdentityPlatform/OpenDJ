@@ -2326,7 +2326,13 @@
         else:
           # expect testString not to be present in filecontent
           myExpectedResult = '0'                 
-      </script>        
+      </script>  
+      
+      <if expr="VERBOSE_MODE == 'true'">
+        <message>
+          'File content %s' % filecontent
+        </message>
+      </if>
 
       <call function="'searchStringForSubstring'">
         {
