@@ -302,7 +302,7 @@ public class GenerateRpm extends Task
       // Starts the upgrade. The new files are automatically imported
       // by rpm manager, which compares files between last & actual version.
       // Copies / deletes files depending of new package.
-      sb.append("        %{_prefix}/./upgrade -n" + EOL);
+      sb.append("        %{_prefix}/./upgrade -n --acceptLicense" + EOL);
       sb.append("# Upgrade ok " + EOL);
       sb.append("        if [ \"$?\" == \"0\" ] ; then " + EOL);
       sb.append("# Checks the server status flag for restart. " + EOL);
