@@ -105,6 +105,13 @@
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
+    <term><option>--acceptLicense</option></term>
+    <listitem>
+     <para>Automatically accepts the product license if there is one in the
+     delivery.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><option>--force</option></term>
     <listitem>
      <para>Forces a non-interactive upgrade to continue even if it requires
