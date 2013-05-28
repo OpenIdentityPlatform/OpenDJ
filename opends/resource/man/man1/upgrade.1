@@ -197,20 +197,20 @@ The following example shows the upgrade process for OpenDJ directory server inst
 .nf
 $ cd /path/to
 $ ls
-OpenDJ\-2\&.4\&.6
-$ \&./OpenDJ\-2\&.4\&.6/bin/stop\-ds \-\-quiet
+OpenDJ\-2\&.4\&.5
+$ \&./OpenDJ\-2\&.4\&.5/bin/stop\-ds \-\-quiet
 \&.\&.\&. msg=The backend userRoot is now taken offline
 \&.\&.\&. msg=The Directory Server is now stopped
-$ zip \-rq OpenDJ\-backup\&.zip OpenDJ\-2\&.4\&.6
+$ zip \-rq OpenDJ\-backup\&.zip OpenDJ\-2\&.4\&.5
 $ unzip \-q ~/Downloads/OpenDJ\-2\&.6\&.0\&.zip
-$ cp \-r opendj/* OpenDJ\-2\&.4\&.6/
+$ cp \-r opendj/* OpenDJ\-2\&.4\&.5/
 $ rm \-rf opendj
-$ mv OpenDJ\-2\&.4\&.6 opendj
+$ mv OpenDJ\-2\&.4\&.5 opendj
 $ \&./opendj/upgrade \-\-no\-prompt
 
 >>>> OpenDJ Upgrade Utility
 
- * OpenDJ will be upgraded from version 2\&.4\&.6\&.8102 to 2\&.6\&.0\&.\fIrevision\fR
+ * OpenDJ will be upgraded from version 2\&.4\&.5\&.7743 to 2\&.6\&.0\&.\fIrevision\fR
  * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
 
 >>>> Preparing to upgrade
@@ -239,10 +239,13 @@ $ \&./opendj/upgrade \-\-no\-prompt
   Updating dictionary password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
   Updating attribute value password validator configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
   Adding PBKDF2 password storage scheme configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Adding \*(Aqhttp\-config\&.json\*(Aq configuration file\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Adding HTTP connection handler configuration\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
+  Adding file\-based HTTP access logger\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
   Replacing schema file \*(Aq02\-config\&.ldif\*(Aq\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
   Archiving concatenated schema\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.\&.   100%
 
->>>> OpenDJ was successfully upgraded from version 2\&.4\&.6\&.8102 to 2\&.6\&.0\&.\fIrevision\fR
+>>>> OpenDJ was successfully upgraded from version 2\&.4\&.5\&.7743 to 2\&.6\&.0\&.\fIrevision\fR
 
  * See \*(Aq/path/to/opendj/upgrade\&.log\*(Aq for a detailed log of this operation
 $ \&./opendj/bin/start\-ds \-\-quiet
