@@ -198,6 +198,94 @@ The LDAP password modify operation was successful</screen>
   </procedure>
  </section>
 
+ <section xml:id="troubleshoot-enable-debug-logging">
+  <title>Enabling Debug Logging</title>
+  <indexterm><primary>Debug log</primary></indexterm>
+  <indexterm>
+   <primary>Logs</primary>
+   <secondary>Debug</secondary>
+  </indexterm>
+
+  <para>OpenDJ can write debug information and stack traces to the server
+  debug log. What is logged depends both on debug targets that you create,
+  and also on the debug level that you choose.</para>
+
+  <procedure xml:id="configure-debug-logging">
+   <title>To Configure Debug Logging</title>
+
+   <step>
+    <para>Enable the debug log, <filename>opendj/logs/debug</filename>, which
+    is not enabled by default.</para>
+
+    <screen>$ dsconfig
+ set-log-publisher-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Debug Logger"
+ --set enabled:true
+ --set default-debug-level:all
+ --no-prompt
+ --trustAll</screen>
+
+    <para>You can set <literal>default-debug-level</literal> to a less verbose
+    level if necessary.</para>
+   </step>
+
+   <step>
+    <para>Create a debug target or targets.</para>
+
+    <para>No debug targets are enabled by default.</para>
+
+    <screen>$ dsconfig
+ list-debug-targets
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Debug Logger"
+ --no-prompt
+ --trustAll
+
+Debug Target : debug-level : debug-category
+-------------:-------------:---------------
+
+$ </screen>
+
+    <para>A debug target specifies a fully-qualified OpenDJ Java package,
+    class, or method for which to log debug messages at the level you
+    specify.</para>
+
+    <screen>$ dsconfig
+ create-debug-target
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Debug Logger"
+ --type generic
+ --target-name org.opends.server.api
+ --set debug-level:all
+ --no-prompt
+ --trustAll</screen>
+   </step>
+
+   <step>
+    <para>Restart OpenDJ to see debug messages in the log.</para>
+
+    <screen>$ /path/to/opendj/bin/stop-ds --restart
+...
+$ tail -f /path/to/opendj/logs/debug
+...</screen>
+
+    <para>If you have set <literal>debug-level:all</literal>, OpenDJ generates
+    a great deal of output in the debug log file. Use debug logging very
+    sparingly on production systems.</para>
+   </step>
+  </procedure>
+ </section>
+
  <section xml:id="troubleshoot-use-lockdown-mode">
   <title>Preventing Access While You Fix Issues</title>
   <indexterm><primary>Lockdown mode</primary></indexterm>
