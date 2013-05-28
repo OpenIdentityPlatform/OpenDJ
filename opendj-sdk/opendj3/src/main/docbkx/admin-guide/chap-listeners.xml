@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-listeners'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
  <title>Configuring Servers For Client Application Access</title>
  <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
  <para>This chapter shows you how to configure OpenDJ directory server to
@@ -858,7 +858,9 @@ supportedTLSProtocols: TLSv1.2
    configuration is described in the appendix, <link xlink:show="new"
    xlink:href="admin-guide#appendix-rest2ldap"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
-   Configuration</citetitle></link>.</para>
+   Configuration</citetitle></link>. The default mapping works out of the box
+   with default Example.com data and with <link xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/Example.ldif">Example.ldif</link>.</para>
 
    <step>
     <para>Enable the connection handler.</para>
@@ -873,11 +875,38 @@ supportedTLSProtocols: TLSv1.2
  --set enabled:true
  --no-prompt
  --trustAll</screen>
+   </step>
+
+   <step>
+    <para>Enable the HTTP access log.</para>
+
+    <screen>$ dsconfig
+ set-log-publisher-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based HTTP Access Logger"
+ --set enabled:true
+ --no-prompt
+ --trustAll</screen>
+
+    <para>This enables the HTTP access log,
+    <filename>opendj/logs/http-access</filename>. For details on the
+    format of the HTTP access log, see the section on <link xlink:show="new"
+    xlink:href="admin-guide#logging"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Server
+    Logs</citetitle></link>.</para>
+   </step>
+
+   <step performance="optional">
+    <para>Try reading a resource.</para>
 
     <para>The HTTP connection handler paths start by default at the root
     context, as shown in the following example.</para>
 
-    <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+    <screen>$ curl http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen
+ ?_prettyPrint=true
 {
   "_rev" : "00000000315fb731",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
