@@ -75,7 +75,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     /**
      * Request context implementation.
      */
-    private static class RequestContextImpl<S extends Result, H extends ResultHandler<? super S>>
+    private static class RequestContextImpl<S extends Result, H extends ResultHandler<S>>
             implements RequestContext, ResultHandler<S> {
 
         /*
@@ -84,10 +84,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         private static final class ExtendedResultHandlerHolder<R extends ExtendedResult> {
             private final ExtendedRequest<R> request;
-            private final ResultHandler<? super R> resultHandler;
+            private final ResultHandler<R> resultHandler;
 
             private ExtendedResultHandlerHolder(final ExtendedRequest<R> request,
-                    final ResultHandler<? super R> resultHandler) {
+                    final ResultHandler<R> resultHandler) {
                 this.request = request;
                 this.resultHandler = resultHandler;
             }
@@ -285,8 +285,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         }
 
         private <R extends ExtendedResult> void cancel(final LocalizableMessage reason,
-                final ExtendedRequest<R> cancelRequest,
-                final ResultHandler<? super R> cancelResultHandler, final boolean sendResult) {
+                final ExtendedRequest<R> cancelRequest, final ResultHandler<R> cancelResultHandler,
+                final boolean sendResult) {
             Validator.ensureNotNull(reason);
 
             if (!isCancelSupported) {
@@ -501,10 +501,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleAdd(final Integer messageID, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-                    new RequestContextImpl<Result, ResultHandler<? super Result>>(this,
-                            resultHandler, messageID, true);
+                final ResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                    new RequestContextImpl<Result, ResultHandler<Result>>(this, resultHandler,
+                            messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleAdd(requestContext, request, intermediateResponseHandler,
                         requestContext);
@@ -518,9 +518,9 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         public void handleBind(final Integer messageID, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
-            final RequestContextImpl<BindResult, ResultHandler<? super BindResult>> requestContext =
-                    new RequestContextImpl<BindResult, ResultHandler<? super BindResult>>(this,
+                final ResultHandler<BindResult> resultHandler) {
+            final RequestContextImpl<BindResult, ResultHandler<BindResult>> requestContext =
+                    new RequestContextImpl<BindResult, ResultHandler<BindResult>>(this,
                             resultHandler, messageID, false);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleBind(requestContext, version, request,
@@ -534,10 +534,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleCompare(final Integer messageID, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler) {
-            final RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>> requestContext =
-                    new RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>>(
-                            this, resultHandler, messageID, true);
+                final ResultHandler<CompareResult> resultHandler) {
+            final RequestContextImpl<CompareResult, ResultHandler<CompareResult>> requestContext =
+                    new RequestContextImpl<CompareResult, ResultHandler<CompareResult>>(this,
+                            resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleCompare(requestContext, request, intermediateResponseHandler,
                         requestContext);
@@ -577,10 +577,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleDelete(final Integer messageID, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-                    new RequestContextImpl<Result, ResultHandler<? super Result>>(this,
-                            resultHandler, messageID, true);
+                final ResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                    new RequestContextImpl<Result, ResultHandler<Result>>(this, resultHandler,
+                            messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleDelete(requestContext, request, intermediateResponseHandler,
                         requestContext);
@@ -594,7 +594,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer messageID,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) {
+                final ResultHandler<R> resultHandler) {
             if (request.getOID().equals(CancelExtendedRequest.OID)) {
                 // Decode the request as a cancel request.
                 CancelExtendedRequest cancelRequest;
@@ -614,9 +614,9 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                  * though this request cannot be cancelled, it is important to
                  * do this in order to monitor the number of pending operations.
                  */
-                final RequestContextImpl<R, ResultHandler<? super R>> requestContext =
-                        new RequestContextImpl<R, ResultHandler<? super R>>(this, resultHandler,
-                                messageID, false);
+                final RequestContextImpl<R, ResultHandler<R>> requestContext =
+                        new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler, messageID,
+                                false);
                 if (addPendingRequest(requestContext)) {
                     // Find and cancel the request.
                     final RequestContextImpl<?, ?> cancelledRequest =
@@ -635,16 +635,16 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     }
                 }
             } else {
-                final RequestContextImpl<R, ResultHandler<? super R>> requestContext;
+                final RequestContextImpl<R, ResultHandler<R>> requestContext;
                 if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
                     // StartTLS requests cannot be cancelled.
                     requestContext =
-                            new RequestContextImpl<R, ResultHandler<? super R>>(this,
-                                    resultHandler, messageID, false);
+                            new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler,
+                                    messageID, false);
                 } else {
                     requestContext =
-                            new RequestContextImpl<R, ResultHandler<? super R>>(this,
-                                    resultHandler, messageID, true);
+                            new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler,
+                                    messageID, true);
                 }
 
                 if (addPendingRequest(requestContext)) {
@@ -660,10 +660,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleModify(final Integer messageID, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-                    new RequestContextImpl<Result, ResultHandler<? super Result>>(this,
-                            resultHandler, messageID, true);
+                final ResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                    new RequestContextImpl<Result, ResultHandler<Result>>(this, resultHandler,
+                            messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleModify(requestContext, request, intermediateResponseHandler,
                         requestContext);
@@ -676,10 +676,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleModifyDN(final Integer messageID, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-                    new RequestContextImpl<Result, ResultHandler<? super Result>>(this,
-                            resultHandler, messageID, true);
+                final ResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                    new RequestContextImpl<Result, ResultHandler<Result>>(this, resultHandler,
+                            messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleModifyDN(requestContext, request, intermediateResponseHandler,
                         requestContext);
