@@ -27,6 +27,7 @@
 
 package org.forgerock.opendj.ldif;
 
+import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_DN;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER;
 import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
@@ -79,7 +80,6 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      *             If {@code ldifLines} was {@code null}.
      */
     public static Entry valueOfLDIFEntry(final String... ldifLines) {
-        @SuppressWarnings("resource")
         final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
         try {
             if (!reader.hasNext()) {
@@ -107,6 +107,8 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
             final LocalizableMessage message =
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
+        } finally {
+            closeSilently(reader);
         }
     }
 
