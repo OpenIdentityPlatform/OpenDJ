@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -77,7 +77,7 @@ public interface RequestHandler<C> {
      */
     void handleAdd(C requestContext, AddRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+            ResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a bind request is received from a client.
@@ -99,7 +99,7 @@ public interface RequestHandler<C> {
      */
     void handleBind(C requestContext, int version, BindRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super BindResult> resultHandler);
+            ResultHandler<BindResult> resultHandler);
 
     /**
      * Invoked when a compare request is received from a client.
@@ -119,7 +119,7 @@ public interface RequestHandler<C> {
      */
     void handleCompare(C requestContext, CompareRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super CompareResult> resultHandler);
+            ResultHandler<CompareResult> resultHandler);
 
     /**
      * Invoked when a delete request is received from a client.
@@ -139,7 +139,7 @@ public interface RequestHandler<C> {
      */
     void handleDelete(C requestContext, DeleteRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+            ResultHandler<Result> resultHandler);
 
     /**
      * Invoked when an extended request is received from a client.
@@ -161,7 +161,7 @@ public interface RequestHandler<C> {
      */
     <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
             ExtendedRequest<R> request, IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super R> resultHandler);
+            ResultHandler<R> resultHandler);
 
     /**
      * Invoked when a modify request is received from a client.
@@ -181,7 +181,7 @@ public interface RequestHandler<C> {
      */
     void handleModify(C requestContext, ModifyRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+            ResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a modify DN request is received from a client.
@@ -201,7 +201,7 @@ public interface RequestHandler<C> {
      */
     void handleModifyDN(C requestContext, ModifyDNRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+            ResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a search request is received from a client.

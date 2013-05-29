@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -64,10 +64,11 @@ import com.forgerock.opendj.util.StaticUtils;
 public class LDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
-        final AsynchronousFutureResult<Throwable, ResultHandler<? super Throwable>> connectionError =
-                new AsynchronousFutureResult<Throwable, ResultHandler<? super Throwable>>(null);
-        final AsynchronousFutureResult<LDAPClientContext, ResultHandler<? super LDAPClientContext>> context =
-                new AsynchronousFutureResult<LDAPClientContext, ResultHandler<? super LDAPClientContext>>(null);
+        final AsynchronousFutureResult<Throwable, ResultHandler<Throwable>> connectionError =
+                new AsynchronousFutureResult<Throwable, ResultHandler<Throwable>>(null);
+        final AsynchronousFutureResult<LDAPClientContext, ResultHandler<LDAPClientContext>> context =
+                new AsynchronousFutureResult<LDAPClientContext, ResultHandler<LDAPClientContext>>(
+                        null);
         final CountDownLatch isClosed = new CountDownLatch(1);
 
         MockServerConnection() {
@@ -89,8 +90,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleAdd(final Integer requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -101,8 +101,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         public void handleBind(final Integer requestContext, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<BindResult> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
         }
 
@@ -112,7 +111,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleCompare(final Integer requestContext, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler)
+                final ResultHandler<CompareResult> resultHandler)
                 throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newCompareResult(ResultCode.SUCCESS));
         }
@@ -147,8 +146,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleDelete(final Integer requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -159,7 +157,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer requestContext,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) throws UnsupportedOperationException {
+                final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleErrorResult(ErrorResultException.newErrorResult(request
                     .getResultDecoder().newExtendedErrorResult(ResultCode.PROTOCOL_ERROR, "",
                             "Extended operation " + request.getOID() + " not supported")));
@@ -171,8 +169,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleModify(final Integer requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -182,8 +179,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleModifyDN(final Integer requestContext, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -381,7 +377,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,
                         final IntermediateResponseHandler intermediateResponseHandler,
-                        final ResultHandler<? super BindResult> resultHandler)
+                        final ResultHandler<BindResult> resultHandler)
                         throws UnsupportedOperationException {
                     // Get connection from load balancer, this should fail over
                     // twice before getting connection to online server.
@@ -533,7 +529,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,
                         final IntermediateResponseHandler intermediateResponseHandler,
-                        final ResultHandler<? super BindResult> resultHandler)
+                        final ResultHandler<BindResult> resultHandler)
                         throws UnsupportedOperationException {
                     // First attempt offline server.
                     LDAPConnectionFactory lcf = new LDAPConnectionFactory(findFreeSocketAddress());

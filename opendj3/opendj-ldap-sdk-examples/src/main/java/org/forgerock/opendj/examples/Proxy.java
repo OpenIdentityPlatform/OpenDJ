@@ -97,7 +97,7 @@ public final class Proxy {
         }
 
         private abstract class AbstractRequestCompletionHandler
-                <R extends Result, H extends ResultHandler<? super R>>
+                <R extends Result, H extends ResultHandler<R>>
                 implements ResultHandler<R> {
             final H resultHandler;
             final Connection connection;
@@ -123,9 +123,9 @@ public final class Proxy {
 
         private abstract class ConnectionCompletionHandler<R extends Result> implements
                 ResultHandler<Connection> {
-            private final ResultHandler<? super R> resultHandler;
+            private final ResultHandler<R> resultHandler;
 
-            ConnectionCompletionHandler(final ResultHandler<? super R> resultHandler) {
+            ConnectionCompletionHandler(final ResultHandler<R> resultHandler) {
                 this.resultHandler = resultHandler;
             }
 
@@ -140,9 +140,9 @@ public final class Proxy {
         }
 
         private final class RequestCompletionHandler<R extends Result> extends
-                AbstractRequestCompletionHandler<R, ResultHandler<? super R>> {
+                AbstractRequestCompletionHandler<R, ResultHandler<R>> {
             RequestCompletionHandler(final Connection connection,
-                    final ResultHandler<? super R> resultHandler) {
+                    final ResultHandler<R> resultHandler) {
                 super(connection, resultHandler);
             }
         }
@@ -182,7 +182,7 @@ public final class Proxy {
         @Override
         public void handleAdd(final RequestContext requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
+                final ResultHandler<Result> resultHandler) {
             addProxiedAuthControl(request);
             final ConnectionCompletionHandler<Result> outerHandler =
                     new ConnectionCompletionHandler<Result>(resultHandler) {
@@ -206,7 +206,7 @@ public final class Proxy {
         public void handleBind(final RequestContext requestContext, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
+                final ResultHandler<BindResult> resultHandler) {
 
             if (request.getAuthenticationType() != BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
                 // TODO: SASL authentication not implemented.
@@ -259,7 +259,7 @@ public final class Proxy {
         public void handleCompare(final RequestContext requestContext,
                 final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler) {
+                final ResultHandler<CompareResult> resultHandler) {
             addProxiedAuthControl(request);
             final ConnectionCompletionHandler<CompareResult> outerHandler =
                     new ConnectionCompletionHandler<CompareResult>(resultHandler) {
@@ -284,7 +284,7 @@ public final class Proxy {
         @Override
         public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
+                final ResultHandler<Result> resultHandler) {
             addProxiedAuthControl(request);
             final ConnectionCompletionHandler<Result> outerHandler =
                     new ConnectionCompletionHandler<Result>(resultHandler) {
@@ -309,7 +309,7 @@ public final class Proxy {
         public <R extends ExtendedResult> void handleExtendedRequest(
                 final RequestContext requestContext, final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) {
+                final ResultHandler<R> resultHandler) {
             if (request.getOID().equals(CancelExtendedRequest.OID)) {
                 // TODO: not implemented.
                 resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
@@ -345,7 +345,7 @@ public final class Proxy {
         @Override
         public void handleModify(final RequestContext requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
+                final ResultHandler<Result> resultHandler) {
             addProxiedAuthControl(request);
             final ConnectionCompletionHandler<Result> outerHandler =
                     new ConnectionCompletionHandler<Result>(resultHandler) {
@@ -370,7 +370,7 @@ public final class Proxy {
         public void handleModifyDN(final RequestContext requestContext,
                 final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
+                final ResultHandler<Result> resultHandler) {
             addProxiedAuthControl(request);
             final ConnectionCompletionHandler<Result> outerHandler =
                     new ConnectionCompletionHandler<Result>(resultHandler) {

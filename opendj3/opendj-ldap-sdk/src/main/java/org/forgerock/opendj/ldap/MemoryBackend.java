@@ -163,7 +163,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final ResultHandler<Result> resultHandler) {
         try {
             synchronized (writeLock) {
                 final DN dn = request.getName();
@@ -187,7 +187,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleBind(final RequestContext requestContext, final int version,
             final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super BindResult> resultHandler) {
+            final ResultHandler<BindResult> resultHandler) {
         try {
             final Entry entry;
             synchronized (writeLock) {
@@ -227,7 +227,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleCompare(final RequestContext requestContext, final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super CompareResult> resultHandler) {
+            final ResultHandler<CompareResult> resultHandler) {
         try {
             final Entry entry;
             final Attribute assertion;
@@ -248,7 +248,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final ResultHandler<Result> resultHandler) {
         try {
             final Entry entry;
             synchronized (writeLock) {
@@ -279,7 +279,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public <R extends ExtendedResult> void handleExtendedRequest(
             final RequestContext requestContext, final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super R> resultHandler) {
+            final ResultHandler<R> resultHandler) {
         resultHandler.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
                 "Extended request operation not supported"));
     }
@@ -287,7 +287,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleModify(final RequestContext requestContext, final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final ResultHandler<Result> resultHandler) {
         try {
             final Entry entry;
             final Entry newEntry;
@@ -306,7 +306,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final ResultHandler<Result> resultHandler) {
         resultHandler.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
                 "ModifyDN request operation not supported"));
     }

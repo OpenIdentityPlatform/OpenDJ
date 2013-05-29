@@ -146,13 +146,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             this.clientContext = clientContext;
         }
 
-        /**
-         * Abandons the request sent by the client.
-         *
-         * @param context
-         * @param request
-         * @throws UnsupportedOperationException
-         */
         public void handleAbandon(final Integer context, final AbandonRequest request)
                 throws UnsupportedOperationException {
             // Check if we have any concurrent operation with this message id.
@@ -166,18 +159,9 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             // No response is needed.
         }
 
-        /**
-         * Adds the request sent by the client.
-         *
-         * @param context
-         * @param request
-         * @param handler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleAdd(final Integer context, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> handler) throws UnsupportedOperationException {
+                final ResultHandler<Result> handler) throws UnsupportedOperationException {
             Result result = null;
             final AbandonableRequest abReq = new AbandonableRequest(request);
             requestsInProgress.put(context, abReq);
@@ -217,18 +201,9 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             handler.handleResult(result);
         }
 
-        /**
-         * @param context
-         * @param version
-         * @param request
-         * @param resultHandler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleBind(final Integer context, final int version, final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<BindResult> resultHandler) throws UnsupportedOperationException {
             // TODO: all bind types.
             final AbandonableRequest abReq = new AbandonableRequest(request);
             requestsInProgress.put(context, abReq);
@@ -338,9 +313,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             requestsInProgress.remove(context);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public void handleConnectionClosed(final Integer context, final UnbindRequest request) {
             close();
         }
@@ -355,30 +327,17 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public void handleConnectionDisconnected(ResultCode resultCode, String message) {
             close();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public void handleConnectionError(final Throwable error) {
             close();
         }
 
-        /**
-         * @param context
-         * @param request
-         * @param resultHandler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleCompare(final Integer context, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler)
+                final ResultHandler<CompareResult> resultHandler)
                 throws UnsupportedOperationException {
             CompareResult result = null;
             final AbandonableRequest abReq = new AbandonableRequest(request);
@@ -422,16 +381,9 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             requestsInProgress.remove(context);
         }
 
-        /**
-         * @param context
-         * @param request
-         * @param handler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleDelete(final Integer context, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> handler) throws UnsupportedOperationException {
+                final ResultHandler<Result> handler) throws UnsupportedOperationException {
             Result result = null;
             final AbandonableRequest abReq = new AbandonableRequest(request);
             requestsInProgress.put(context, abReq);
@@ -459,17 +411,10 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             requestsInProgress.remove(context);
         }
 
-        /**
-         * @param context
-         * @param request
-         * @param resultHandler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer context,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) throws UnsupportedOperationException {
+                final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
             if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
                 final R result =
                         request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "",
@@ -480,41 +425,18 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             }
         }
 
-        /**
-         * @param context
-         * @param request
-         * @param resultHandler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleModify(final Integer context, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             // TODO:
         }
 
-        /**
-         * @param context
-         * @param request
-         * @param resultHandler
-         * @param intermediateResponseHandler
-         * @throws UnsupportedOperationException
-         */
         public void handleModifyDN(final Integer context, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler)
-                throws UnsupportedOperationException {
+                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             // TODO
         }
 
-        /**
-         * @param request
-         * @param intermediateResponseHandler
-         * @param resultHandler
-         * @param context
-         * @throws UnsupportedOperationException
-         */
         public void handleSearch(final Integer context, final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final SearchResultHandler resultHandler) throws UnsupportedOperationException {
@@ -569,8 +491,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
     private volatile boolean isRunning;
 
     // The mapping between the message id and the requests the server is
-    // currently
-    // handling.
+    // currently handling.
     private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress =
             new ConcurrentHashMap<Integer, AbandonableRequest>();
 
@@ -597,10 +518,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
     }
 
-    /**
-     * @param context
-     * @return
-     */
     public ServerConnection<Integer> handleAccept(final LDAPClientContext context) {
         return new LDAPServerConnection(context);
     }
