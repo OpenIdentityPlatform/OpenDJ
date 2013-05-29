@@ -225,6 +225,11 @@ public class GenerateRpm extends Task
       sb.append("# Application Version" + EOL);
       sb.append("Version: " + version + EOL);
       sb.append("# Packaging Revision" + EOL);
+      // If VERSION_QUALIFIER is empty, need to remove '.' char.
+      if (release.endsWith("."))
+      {
+        release = release.substring(0, release.length() - 1);
+      }
       sb.append("Release: " + release + EOL);
       sb.append("# Software Licenced Under" + EOL);
       sb.append("License: CDDL" + EOL);

@@ -71,8 +71,16 @@ public class CreateVersionString extends Task
     versionString.append(".");
     versionString.append(getProject().getProperty("POINT_VERSION"));
 
+    // Sets the version string to the property used by packages.
+    getProject().setNewProperty("pkg_version_string", versionString.toString());
+
     String versionQualifier = getProject().getProperty("VERSION_QUALIFIER");
     versionString.append(versionQualifier);
+
+    // Removes all special chars contained in the version qualifier
+    // Sets the version qualifier to the property used by packages.
+    getProject().setNewProperty("pkg_version_qualifier",
+        versionQualifier.replaceAll("[^A-Za-z0-9]", ""));
 
     try
     {
