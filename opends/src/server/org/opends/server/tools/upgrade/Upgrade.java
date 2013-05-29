@@ -411,6 +411,9 @@ public final class Upgrade
         // At the end, and if only if succeed, we need to change the buildInfo
         // file with the version number updated.
         changeBuildInfoVersion(context, handler);
+
+        // Writes the license if needed.
+        LicenseFile.createFileLicenseApproved();
       }
       else
       {
@@ -661,24 +664,17 @@ public final class Upgrade
           }
           else if (answer == ConfirmationCallback.YES)
           {
-            createLicenseApproval();
+            LicenseFile.setApproval(true);
           }
         }
         else
         {
           context.notify(handler, INFO_LICENSE_ACCEPT.get());
           context.notify(handler, INFO_PROMPT_YES_COMPLETE_ANSWER.get());
-          createLicenseApproval();
+          LicenseFile.setApproval(true);
         }
       }
     }
-  }
-
-  private static void createLicenseApproval()
-  {
-    // Creates the file
-    LicenseFile.setApproval(true);
-    LicenseFile.createFileLicenseApproved();
   }
 
   // Prevent instantiation.
