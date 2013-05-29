@@ -27,6 +27,7 @@
 
 package org.forgerock.opendj.ldif;
 
+import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ATTRIBUTE_NAME_MISMATCH;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_BAD_CHANGE_TYPE;
@@ -133,7 +134,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public static ChangeRecord valueOfLDIFChangeRecord(final String... ldifLines) {
         // LDIF change record reader is tolerant to missing change types.
-        @SuppressWarnings("resource")
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldifLines);
         try {
             if (!reader.hasNext()) {
@@ -161,6 +161,8 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
             final LocalizableMessage message =
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
+        } finally {
+            closeSilently(reader);
         }
     }
 
