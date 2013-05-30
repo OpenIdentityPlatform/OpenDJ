@@ -165,6 +165,7 @@ public final class ReplicationServer
   private ECLWorkflowElement eclwe;
   private WorkflowImpl externalChangeLogWorkflowImpl = null;
 
+  // FIXME: why is this a set of ports? Do we claim to support multiple ports?
   private static HashSet<Integer> localPorts = new HashSet<Integer>();
 
   // Monitors for synchronizing domain creation with the connect thread.
@@ -245,7 +246,7 @@ public final class ReplicationServer
     monitoringPublisherPeriod = configuration.getMonitoringPeriod();
 
     replSessionSecurity = new ReplSessionSecurity();
-    initialize(replicationPort);
+    initialize();
     configuration.addChangeListener(this);
     try
     {
@@ -521,12 +522,8 @@ public final class ReplicationServer
 
   /**
    * initialization function for the replicationServer.
-   *
-   * @param  changelogPort     The port on which the replicationServer should
-   *                           listen.
-   *
    */
-  private void initialize(int changelogPort)
+  private void initialize()
   {
     shutdown = false;
 
@@ -542,9 +539,9 @@ public final class ReplicationServer
        * Open replicationServer socket
        */
       String localhostname = InetAddress.getLocalHost().getHostName();
-      serverURL = localhostname + ":" + String.valueOf(changelogPort);
+      serverURL = localhostname + ":" + String.valueOf(replicationPort);
       listenSocket = new ServerSocket();
-      listenSocket.bind(new InetSocketAddress(changelogPort));
+      listenSocket.bind(new InetSocketAddress(replicationPort));
 
       /*
        * creates working threads
@@ -593,7 +590,7 @@ public final class ReplicationServer
     } catch (IOException e)
     {
       Message message =
-          ERR_COULD_NOT_BIND_CHANGELOG.get(changelogPort, e.getMessage());
+          ERR_COULD_NOT_BIND_CHANGELOG.get(replicationPort, e.getMessage());
       logError(message);
     } catch (DirectoryException e)
     {
@@ -1339,7 +1336,7 @@ public final class ReplicationServer
                                 boolean successful)
   {
     if (backend.getBackendID().equals(backendId))
-      initialize(this.replicationPort);
+      initialize();
   }
 
   /**
@@ -1602,33 +1599,17 @@ public final class ReplicationServer
   }
 
   /**
-   * This method allows to check if the Replication Server given
-   * as the parameter is running in the local JVM.
+   * Returns {@code true} if the provided port is one of the ports that this
+   * replication server is listening on.
    *
-   * @param server   The Replication Server that should be checked.
-   *
-   * @return         a boolean indicating if the Replication Server given
-   *                 as the parameter is running in the local JVM.
+   * @param port
+   *          The port to be checked.
+   * @return {@code true} if the provided port is one of the ports that this
+   *         replication server is listening on.
    */
-  public static boolean isLocalReplicationServer(String server)
+  public static boolean isLocalReplicationServerPort(int port)
   {
-    int separator = server.lastIndexOf(':');
-    if (separator == -1)
-      return false;
-    int port = Integer.parseInt(server.substring(separator + 1));
-    String hostname = server.substring(0, separator);
-    try
-    {
-      InetAddress localAddr = InetAddress.getLocalHost();
-
-      return localPorts.contains(port)
-          && (InetAddress.getByName(hostname).isLoopbackAddress() ||
-          InetAddress.getByName(hostname).equals(localAddr));
-
-    } catch (UnknownHostException e)
-    {
-      return false;
-    }
+    return localPorts.contains(port);
   }
 
   /**

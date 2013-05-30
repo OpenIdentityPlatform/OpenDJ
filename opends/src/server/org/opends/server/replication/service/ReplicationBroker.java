@@ -31,6 +31,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.replication.server.ReplicationServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -67,7 +68,6 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.ServerConstants;
 
@@ -372,7 +372,7 @@ public class ReplicationBroker
    * replication server instance, false otherwise.
    */
   private static boolean isSameReplicationServerUrl(String rs1Url,
-    String rs2Url)
+      String rs2Url)
   {
     // Get and compare ports of RS1 and RS2
     int separator1 = rs1Url.lastIndexOf(':');
@@ -397,46 +397,54 @@ public class ReplicationBroker
     }
 
     // Get and compare addresses of RS1 and RS2
-    String rs1 = rs1Url.substring(0, separator1);
-    InetAddress[] rs1Addresses;
+    final String rs1 = rs1Url.substring(0, separator1);
+    final InetAddress[] rs1Addresses;
     try
     {
-      if (isLocalAddress(rs1))
-      {
-        // Replace localhost with the local official hostname
-        rs1 = InetAddress.getLocalHost().getHostName();
-      }
-      rs1Addresses = InetAddress.getAllByName(rs1);
-    } catch (UnknownHostException ex)
+      // Normalize local address to null.
+      rs1Addresses = isLocalAddress(rs1) ? null : InetAddress.getAllByName(rs1);
+    }
+    catch (UnknownHostException ex)
     {
       // Unknown RS: should not happen
       return false;
     }
 
-    String rs2 = rs2Url.substring(0, separator2);
-    InetAddress[] rs2Addresses;
+    final String rs2 = rs2Url.substring(0, separator2);
+    final InetAddress[] rs2Addresses;
     try
     {
-      if (isLocalAddress(rs1))
-      {
-        // Replace localhost with the local official hostname
-        rs2 = InetAddress.getLocalHost().getHostName();
-      }
-      rs2Addresses = InetAddress.getAllByName(rs2);
-    } catch (UnknownHostException ex)
+      // Normalize local address to null.
+      rs2Addresses = isLocalAddress(rs2) ? null : InetAddress.getAllByName(rs2);
+    }
+    catch (UnknownHostException ex)
     {
       // Unknown RS: should not happen
       return false;
     }
 
-    // Now compare addresses, if at least one match, this is the same server
-    for (InetAddress inetAddress1 : rs1Addresses)
+    // Now compare addresses, if at least one match, this is the same server.
+    if (rs1Addresses == null && rs2Addresses == null)
     {
-      for (InetAddress inetAddress2 : rs2Addresses)
+      // Both local addresses.
+      return true;
+    }
+    else if (rs1Addresses == null || rs2Addresses == null)
+    {
+      // One local address and one non-local.
+      return false;
+    }
+    else
+    {
+      // Both non-local addresses: check for overlap.
+      for (InetAddress inetAddress1 : rs1Addresses)
       {
-        if (inetAddress2.equals(inetAddress1))
+        for (InetAddress inetAddress2 : rs2Addresses)
         {
-          return true;
+          if (inetAddress2.equals(inetAddress1))
+          {
+            return true;
+          }
         }
       }
     }
@@ -1564,8 +1572,8 @@ public class ReplicationBroker
           keepBest(filterServersWithAllLocalDSChanges(sameGenerationId,
               myState, localServerId), sameGenerationId);
     }
-    // Some servers in the local VM ?
-    bestServers = keepBest(filterServersInSameVM(bestServers), bestServers);
+    // Some servers in the local VM or local host?
+    bestServers = keepBest(filterServersOnSameHost(bestServers), bestServers);
 
     /**
      * Now apply the choice base on the weight to the best servers list
@@ -1795,26 +1803,47 @@ public class ReplicationBroker
     }
   }
 
+
+
   /**
-   * Creates a new list that contains only replication servers that are in the
-   * same VM as the local DS, from a passed replication server list.
-   * @param bestServers The list of replication servers to filter
-   * @return The sub list of replication servers being in the same VM as the
-   * local DS (which may be empty)
+   * Creates a new list that contains only replication servers that are on the
+   * same host as the local DS, from a passed replication server list. This
+   * method will gives priority to any replication server which is in the same
+   * VM as this DS.
+   *
+   * @param bestServers
+   *          The list of replication servers to filter
+   * @return The sub list of replication servers being on the same host as the
+   *         local DS (which may be empty)
    */
-  private static Map<Integer, ReplicationServerInfo> filterServersInSameVM(
-    Map<Integer, ReplicationServerInfo> bestServers)
+  private static Map<Integer, ReplicationServerInfo> filterServersOnSameHost(
+      Map<Integer, ReplicationServerInfo> bestServers)
   {
     Map<Integer, ReplicationServerInfo> result =
-      new HashMap<Integer, ReplicationServerInfo>();
-
+        new HashMap<Integer, ReplicationServerInfo>();
     for (Integer rsId : bestServers.keySet())
     {
       ReplicationServerInfo replicationServerInfo = bestServers.get(rsId);
-      if (ReplicationServer.isLocalReplicationServer(
-        replicationServerInfo.getServerURL()))
+      String server = replicationServerInfo.getServerURL();
+      int separator = server.lastIndexOf(':');
+      if (separator > 0)
       {
-        result.put(rsId, replicationServerInfo);
+        String hostname = server.substring(0, separator);
+        if (isLocalAddress(hostname))
+        {
+          int port = Integer.parseInt(server.substring(separator + 1));
+          if (isLocalReplicationServerPort(port))
+          {
+            // An RS in the same VM will always have priority.
+            result.clear();
+            result.put(rsId, replicationServerInfo);
+            break;
+          }
+          else
+          {
+            result.put(rsId, replicationServerInfo);
+          }
+        }
       }
     }
     return result;
