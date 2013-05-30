@@ -1037,7 +1037,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error printing equivalente command-line: "+t,
+        LOG.log(Level.SEVERE, "Error printing equivalent command-line: "+t,
             t);
       }
     }
