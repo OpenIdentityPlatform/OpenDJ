@@ -428,11 +428,10 @@ public class InstallDS extends ConsoleApplication
       PrintStream printStreamOut = getOutputStream();
       String licenseString = LicenseFile.getText();
       printStreamOut.println(licenseString);
-      if (! argParser.noPromptArg.isPresent())
+      // If the user asks for acceptLicense, license is displayed
+      // and automatically accepted.
+      if (! argParser.acceptLicense.isPresent())
       {
-        // If the user asks for no-prompt. We just display the license text.
-        // User doesn't asks for no-prompt. We just display the license text
-        // and force to accept it.
         String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
         String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
         String yesShort = INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString();
@@ -441,39 +440,53 @@ public class InstallDS extends ConsoleApplication
             INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
         BufferedReader in = getInputStream();
-        while (true)
+        // No-prompt arg automatically rejects the license.
+        if (!argParser.noPromptArg.isPresent())
         {
-          print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes,no,no));
-          try
+          while (true)
           {
-            String response = in.readLine();
-            if ((response == null)
-                || (response.equalsIgnoreCase(no))
-                || (response.equalsIgnoreCase(noShort))
-                || (response.length() == 0))
+            print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes, no, no));
+            try
             {
-              return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED
-                  .getReturnCode();
+              String response = in.readLine();
+              if ((response == null) || (response.equalsIgnoreCase(no))
+                  || (response.equalsIgnoreCase(noShort))
+                  || (response.length() == 0))
+              {
+                return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED
+                    .getReturnCode();
+              }
+              else if (response.equalsIgnoreCase(yes)
+                  || response.equalsIgnoreCase(yesShort))
+              {
+                LicenseFile.setApproval(true);
+                break;
+              }
+              else
+              {
+                println(
+                    QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
+                    .get());
+              }
             }
-            else
-            if (response.equalsIgnoreCase(yes)
-                || response.equalsIgnoreCase(yesShort))
+            catch (IOException e)
             {
-              LicenseFile.setApproval(true);
-              break ;
+              println(
+                  QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
+                  .get());
             }
-            else
-            {
-              println(QuickSetupMessages
-                  .INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
-            }
-          }
-          catch (IOException e)
-          {
-            println(QuickSetupMessages.
-                INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
           }
         }
+        else
+        {
+          return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
+        }
+      }
+      else
+      {
+        print(INFO_LICENSE_ACCEPT.get());
+        print(INFO_PROMPT_YES_COMPLETE_ANSWER.get());
+        LicenseFile.setApproval(true);
       }
     }
 

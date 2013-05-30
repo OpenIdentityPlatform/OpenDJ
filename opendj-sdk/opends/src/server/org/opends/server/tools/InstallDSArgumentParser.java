@@ -99,6 +99,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    certNicknameArg;
   StringArgument    progNameArg;
   IntegerArgument   connectTimeoutArg = null;
+  BooleanArgument   acceptLicense;
 
   private static final Logger LOG = Logger.getLogger(
       InstallDSArgumentParser.class.getName());
@@ -403,6 +404,10 @@ public class InstallDSArgumentParser extends ArgumentParser
     connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
     connectTimeoutArg.setHidden(true);
     addArgument(connectTimeoutArg);
+
+    acceptLicense = new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null,
+        OPTION_LONG_ACCEPT_LICENSE, INFO_OPTION_ACCEPT_LICENSE.get());
+    addArgument(acceptLicense);
 
     showUsageArg = new BooleanArgument(
         OPTION_LONG_HELP.toLowerCase(), OPTION_SHORT_HELP,
