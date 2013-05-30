@@ -102,7 +102,7 @@
   </mediaobject>
   
  </section>
- 
+
  <section xml:id="about-repl">
   <title>About Replication</title>
   <indexterm>
@@ -113,86 +113,199 @@
   <para>Before you take replication further than setting up replication
   in the setup wizard, read this section to learn more about how OpenDJ
   replication works.</para>
-  
-  <para>Replication is the process of copying updates between OpenDJ
-  directory servers such that all servers converge on identical copies of
-  directory data. Replication is designed to let convergence happen over
-  time by default. <footnote><para>Assured replication can require, however,
-  that the convergence happen before the client application is notified that
-  the operation was successful.</para></footnote> Letting convergence
-  happen over time means that different replicas can be momentarily out of
-  sync, but it also means that if you lose an individual server or even an
-  entire data center, your directory service can keep on running, and then
-  get back in sync when the servers are restarted or the network is
-  repaired.</para>
-  
-  <para>Replication is specific to the OpenDJ directory service. Replication
-  uses a specific protocol that replays update operations quickly, storing
-  enough historical information about the updates to resolve most conflicts
-  automatically. For example, if two client applications separately update
-  a user entry to change the phone number, replication can work out which
-  was the latest change, and apply that change across servers. The historical
-  information needed to resolve these issues is periodically purged to avoid
-  growing larger and larger forever. As a directory administrator, you must
-  ensure that you do not purge the historical information more often than you
-  backup your directory data.</para>
-  
-  <para>The primary unit of replication is the suffix, specified by a
-  base DN such as <literal>dc=example,dc=com</literal>.<footnote><para>When
-  you configure partial and fractional replication, however, you can replicate
-  only part of a suffix, or only certain attributes on entries. Also,
-  if you split your suffix across multiple backends, then you need to set up
-  replication separately for each part of suffix in a different backend.</para>
-  </footnote> Replication also depends on the directory schema, defined on
-  <literal>cn=schema</literal>, and the <literal>cn=admin data</literal>
-  suffix with administrative identities and certificates for protecting
-  communications. Thus that content gets replicated as well.</para>
-  
-  <para>The set of OpenDJ servers replicating data for a given suffix is
-  called a replication topology. You can have more than one replication
-  topology. For example, one topology could be devoted to
-  <literal>dc=example,dc=com</literal>, and another to
-  <literal>dc=example,dc=org</literal>. OpenDJ servers are capable of
-  serving more than one suffix. They are also capable of participating in
-  more than one replication topology.</para>
 
-  <mediaobject xml:id="figure-replication-topologies-right">
-   <alt>Three replication topologies set up correctly</alt>
-   <imageobject>
-    <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>In this figure, all OpenDJ servers serve the replicated suffix
-    <literal>dc=example,dc=com</literal>. Only servers A and B serve
-    <literal>dc=example,dc=org</literal>. Only server C and D serve
-    <literal>dc=example,dc=net</literal>.</para>
-   </textobject>
-  </mediaobject>
+  <section xml:id="repl-what-it-is">
+   <title>What Replication Is</title>
 
-  <para>Within a replication topology, the suffixes being replicated are
-  identified to the replication servers by their DN. As all the replication
-  servers are fully connected in a topology, a consequence is that it is
-  impossible to have multiple "sub-topologies" within the overall set of
-  servers as illustrated in the following diagram.</para>
+   <para>Replication is the process of copying updates between OpenDJ
+   directory servers such that all servers converge on identical copies of
+   directory data. Replication is designed to let convergence happen over
+   time by default. <footnote><para>Assured replication can require, however,
+   that the convergence happen before the client application is notified that
+   the operation was successful.</para></footnote> Letting convergence
+   happen over time means that different replicas can be momentarily out of
+   sync, but it also means that if you lose an individual server or even an
+   entire data center, your directory service can keep on running, and then
+   get back in sync when the servers are restarted or the network is
+   repaired.</para>
 
-  <mediaobject xml:id="figure-replication-topologies-wrong">
-   <alt>Two replication topologies, one of which does not work</alt>
-   <imageobject>
-    <imagedata fileref="images/repl-topologies-wrong.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>You cannot have all servers replicating both
-    <literal>dc=example,dc=com</literal> and also
-    <literal>dc=example,dc=org</literal>, but with all servers connected for
-    <literal>dc=example,dc=com</literal> and only some of the servers
-    connected for <literal>dc=example,dc=org</literal>.</para>
-   </textobject>
-  </mediaobject>
+   <para>Replication is specific to the OpenDJ directory service. Replication
+   uses a specific protocol that replays update operations quickly, storing
+   enough historical information about the updates to resolve most conflicts
+   automatically. For example, if two client applications separately update
+   a user entry to change the phone number, replication can work out which
+   was the latest change, and apply that change across servers. The historical
+   information needed to resolve these issues is periodically purged to avoid
+   growing larger and larger forever. As a directory administrator, you must
+   ensure that you do not purge the historical information more often than you
+   backup your directory data.</para>
 
-  <para>Keep server clocks synchronized for your topology. You can use NTP for
-  example. Keeping server clocks synchronized helps prevent issues with SSL
-  connections and with replication itself. Keeping server clocks synchronized
-  also makes it easier to compare timestamps from multiple servers.</para>
+   <para>Keep server clocks synchronized for your topology. You can use NTP for
+   example. Keeping server clocks synchronized helps prevent issues with SSL
+   connections and with replication itself. Keeping server clocks synchronized
+   also makes it easier to compare timestamps from multiple servers.</para>
+  </section>
+
+  <section xml:id="repl-per-suffix">
+   <title>Replication Per Suffix</title>
+
+   <para>The primary unit of replication is the suffix, specified by a
+   base DN such as <literal>dc=example,dc=com</literal>.<footnote><para>When
+   you configure partial and fractional replication, however, you can replicate
+   only part of a suffix, or only certain attributes on entries. Also,
+   if you split your suffix across multiple backends, then you need to set up
+   replication separately for each part of suffix in a different backend.</para>
+   </footnote> Replication also depends on the directory schema, defined on
+   <literal>cn=schema</literal>, and the <literal>cn=admin data</literal>
+   suffix with administrative identities and certificates for protecting
+   communications. Thus that content gets replicated as well.</para>
+
+   <para>The set of OpenDJ servers replicating data for a given suffix is
+   called a replication topology. You can have more than one replication
+   topology. For example, one topology could be devoted to
+   <literal>dc=example,dc=com</literal>, and another to
+   <literal>dc=example,dc=org</literal>. OpenDJ servers are capable of
+   serving more than one suffix. They are also capable of participating in
+   more than one replication topology.</para>
+
+   <mediaobject xml:id="figure-replication-topologies-right">
+    <alt>Three replication topologies set up correctly</alt>
+    <imageobject>
+     <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
+    </imageobject>
+    <textobject>
+     <para>In this figure, all OpenDJ servers serve the replicated suffix
+     <literal>dc=example,dc=com</literal>. Only servers A and B serve
+     <literal>dc=example,dc=org</literal>. Only server C and D serve
+     <literal>dc=example,dc=net</literal>.</para>
+    </textobject>
+   </mediaobject>
+
+   <para>Within a replication topology, the suffixes being replicated are
+   identified to the replication servers by their DN. As all the replication
+   servers are fully connected in a topology, a consequence is that it is
+   impossible to have multiple "sub-topologies" within the overall set of
+   servers as illustrated in the following diagram.</para>
+
+   <mediaobject xml:id="figure-replication-topologies-wrong">
+    <alt>Two replication topologies, one of which does not work</alt>
+    <imageobject>
+     <imagedata fileref="images/repl-topologies-wrong.png" format="PNG" />
+    </imageobject>
+    <textobject>
+     <para>You cannot have all servers replicating both
+     <literal>dc=example,dc=com</literal> and also
+     <literal>dc=example,dc=org</literal>, but with all servers connected for
+     <literal>dc=example,dc=com</literal> and only some of the servers
+     connected for <literal>dc=example,dc=org</literal>.</para>
+    </textobject>
+   </mediaobject>
+  </section>
+
+  <section xml:id="repl-connection-selection">
+   <title>Replication Connection Selection</title>
+
+   <para>In order to understand what happens when individual servers stop
+   responding due to a network partition or a crash, know that OpenDJ can
+   offer both directory service and also replication service, and the two
+   services are not the same, even if they can run alongside each other in
+   the same OpenDJ server in the same Java Virtual Machine.</para>
+
+   <para>Replication relies on the replication service provided by OpenDJ
+   replication servers, where OpenDJ directory servers publish changes made
+   to their data, and subscribe to changes published by other OpenDJ directory
+   servers. A replication server manages replication data only, handling
+   replication traffic with directory servers and with other replication
+   servers, receiving, sending, and storing only changes to directory data
+   rather than directory data itself. Once a replication server is connected
+   to a replication topology, it maintains connections to all other
+   replication servers in that topology.</para>
+
+   <para>A directory server handles directory data. It responds to requests,
+   stores directory data and historical information. For each replicated
+   suffix, such as <literal>dc=example,dc=com</literal>,
+   <literal>cn=schema</literal> and <literal>cn=admin data</literal>, the
+   directory server publishes changes to a replication server, and subscribes
+   to changes from that replication server. (Directory servers do not publish
+   changes to other directory servers.) A directory server also resolves any
+   conflicts that arise when reconciling changes from other directory servers,
+   using the historical information about changes to resolve the conflicts.
+   (Conflict resolution is the responsibility of the directory server rather
+   than the replication server.)</para>
+
+   <para>Once a directory server is connected to a replication topology for a
+   particular suffix, it connects to one replication server at a time for that
+   suffix. The replication server provides the directory server with a list of
+   all replication servers for that suffix. Given the list of possible
+   replication servers to which it can connect, the directory server can
+   determine which replication server to connect to when starting up, or when
+   the current connection is lost or becomes unresponsive.</para>
+
+   <orderedlist>
+    <para>For each replicated suffix, a directory server prefers to connect to
+    a replication server:</para>
+
+    <listitem>
+     <para>In the same group as the directory server</para>
+    </listitem>
+
+    <listitem>
+     <para>Having the same initial data for the suffix as the directory
+     server</para>
+    </listitem>
+
+    <listitem>
+     <para>If initial data were the same, having all the latest changes from
+     the directory server</para>
+    </listitem>
+
+    <listitem>
+     <para>Running in the same Java Virtual Machine as the directory
+     server</para>
+    </listitem>
+
+    <listitem>
+     <para>Having the most available capacity relative to other eligible
+     replication servers</para>
+
+     <para>Available capacity depends on how many directory servers in the
+     topology are already connected to a replication server, and what
+     proportion of all directory servers in the topology ought to be connected
+     to the replication server.</para>
+
+     <para>To determine what proportion of the total number of directory
+     servers should be connected to a replication server, OpenDJ uses
+     replication server weight. When configuring a replication server, you
+     can assign it a weight (default: 1). The weight property takes an integer
+     that indicates capacity to provide replication service relative to other
+     servers. For example, a weight of 2 would indicate a replication server
+     that can handle twice as many connected servers as a replication server
+     with weight 1.</para>
+
+     <para>The proportion of directory servers in a topology that should be
+     connected to a given replication server is equal to (replication server
+     weight)/(sum of replication server weights). In other words, if there are
+     4 replication servers in a topology each with default weights, the
+     proportion for each replication server is 1/4.</para>
+    </listitem>
+   </orderedlist>
+
+   <para>Consider a situation where 7 directory servers are connected to
+   replication servers A, B, C, and D for <literal>dc=example,dc=com</literal>
+   data. Suppose 2 directory servers each are connected to A, B, and C, and 1
+   directory server is connected to replication server D. Replication server D
+   is therefore the server with the most available capacity relative to other
+   replication servers in the topology. All other criteria being equal,
+   replication server D is the server to connect to when an 8th directory
+   server joins the topology.</para>
+
+   <para>The directory server regularly updates the list of replication servers
+   in case it must reconnect. As available capacity of replication servers for
+   each replication topology can change dynamically, a directory server can
+   potentially reconnect to another replication server to balance the
+   replication load in the topology. For this reason the server can also end
+   up connected to different replication servers for different suffixes.</para>
+  </section>
  </section>
  
  <section xml:id="configure-repl">
