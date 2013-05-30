@@ -1396,10 +1396,10 @@
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
     <deb destfile="${package.dir}/${PKG_NAME}_${pkg_version_string}-${release}${pkg_version_qualifier}_all.deb"
-         control="${build.dir}/deb/control">
+         control="${build.dir}/deb/control" verbose="false">
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="**/*"
-	          excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+	          excludes="**/bat/**, **/QuickSetup.app/**, **/Uninstall.app/**, **/bin/ControlPanel.app/**, *.bat, bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
@@ -1409,7 +1409,7 @@
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/README_WINDOWS.txt"
                   prefix="${prefix}" filemode="644" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
                   prefix="${prefix}" filemode="444" dirmode="744" />
