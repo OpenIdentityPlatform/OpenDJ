@@ -37,7 +37,8 @@ then
     fi
   else 
 # Invalid installation, could not find the buildinfo file.
-    exit 0  
+    echo "Invalid installation, could not find the build info file."
+    exit -1  
   fi
 fi
 # End post install script
