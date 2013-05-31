@@ -104,12 +104,14 @@
             </call>                                                                                 
 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -274,12 +276,14 @@
             </call>                                          
                                             
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -438,12 +442,14 @@
             </call>                                          
 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -529,12 +535,14 @@
             </call>                                          
 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -819,12 +827,14 @@
             </call>                                          
 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -894,12 +904,14 @@
             </call>                                          
 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -1177,12 +1189,14 @@
             </call>
                                         
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -1460,12 +1474,14 @@
             </call>
                                                 
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
               <script>
                 sleepTime = 2000
               </script>
               <else>
+                <!-- Windows -->
                 <script>
-                  sleepTime = 5000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>

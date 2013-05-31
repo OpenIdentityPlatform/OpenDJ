@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011 ForgeRock AS
+ !      Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -1139,6 +1139,19 @@
                'Test Name = %s' % STAXCurrentTestcase
             </message>
 
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
+              <script>
+                ttl = 10
+              </script>
+              <else>
+                <!-- Windows -->
+                <script>
+                  ttl = 30
+                </script>
+              </else>
+            </if>
+
             <script>
               userDNsAndPswds={}
               userDNsAndPswds['uid=jwallace, ou=People, dc=AD,dc=com'] = ['linear',ldapPtaPolicyName]
@@ -1163,7 +1176,7 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Configure LDAP PTA Policy to use password caching with short ttl (10s).' }
+              { 'stepMessage' : 'Configure LDAP PTA Policy to use password caching with short ttl (%ss).' % ttl }
             </call>
 
             <script>
@@ -1171,7 +1184,7 @@
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapping-policy:unmapped')
               options.append('--set cached-password-storage-scheme:Clear')
-              options.append('--set cached-password-ttl:10s')
+              options.append('--set cached-password-ttl:%ss' % ttl)
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--set use-password-caching:true')
               options.append('--type ldap-pass-through')
@@ -1264,11 +1277,11 @@
             </iterate>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Waiting 10 s for password ttl to expire.' }
+              { 'stepMessage' : 'Waiting %ss for password ttl to expire.' % ttl }
             </call>
 
             <call function="'Sleep'">
-              { 'sleepForMilliSeconds'  : 10000 }
+              { 'sleepForMilliSeconds'  : ttl*1000 }
             </call>
 
             <call function="'testStep'">
