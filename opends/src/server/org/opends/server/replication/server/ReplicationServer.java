@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -165,8 +166,9 @@ public final class ReplicationServer
   private ECLWorkflowElement eclwe;
   private WorkflowImpl externalChangeLogWorkflowImpl = null;
 
-  // FIXME: why is this a set of ports? Do we claim to support multiple ports?
-  private static HashSet<Integer> localPorts = new HashSet<Integer>();
+  // This is required for unit testing, so that we can keep track of all the
+  // replication servers which are running in the VM.
+  private static Set<Integer> localPorts = new CopyOnWriteArraySet<Integer>();
 
   // Monitors for synchronizing domain creation with the connect thread.
   private final Object domainTicketLock = new Object();
