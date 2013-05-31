@@ -88,9 +88,11 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
   </programlisting>
 
-  <para>OpenDJ directory server's default behavior is to deny access that is not
-  specifically granted by an access control instruction.</para>
-  
+  <para>OpenDJ directory server's default behavior is that no access is allowed
+  unless it is specifically granted by an access control instruction. In
+  addition privileges assigned to certain users such as <literal>cn=Directory
+  Manager</literal> allow them to bypass access control checks.</para>
+
   <para>OpenDJ directory server provides several global ACIs out of the box to
   facilitate evaluation while maintaining a reasonable security policy. By
   default users are allow to read the root DSE, to read the schema, to use
@@ -176,6 +178,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <programlisting language="aci">(target = "ldap:///*=*,*,dc=example,dc=com")</programlisting>
       <para>The <replaceable>DN</replaceable> must be in the subtree of the
       entry on which the ACI is defined.</para>
+      <para>If you do not specify <literal>target</literal>, then the entry
+      holding this ACI will be affected. If <literal>targetscope</literal> is
+      also omitted, then this entry and all subordinates will be affected.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -537,6 +542,139 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
    </variablelist>   
+  </section>
+
+  <section xml:id="aci-required">
+   <title>ACI Required For LDAP Operations</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Operations</secondary>
+   </indexterm>
+
+   <para>The minimal access control information required for specific LDAP
+   operations is described here.</para>
+
+   <variablelist>
+    <varlistentry>
+     <term>Add</term>
+     <listitem>
+      <para>ACI is only required to allow the <literal>add</literal> permission
+      to entries in the target. This implicitly allows the attributes and values
+      to be set. Use <literal>targetattrfilters</literal> to explicitly deny
+      access to the values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
+      is:</para>
+      <programlisting language="ldif">aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
+ "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Bind</term>
+     <listitem>
+      <para>Because this is used to establish the user's identity and derived
+      authorizations, ACI is irrelevant for this operation and is not checked.
+      To prevent authentication,
+      disable the account instead. For more information see <link
+      xlink:href="admin-guide#manage-accounts"
+      xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Managing
+      Accounts Manually</citetitle></link>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Compare</term>
+     <listitem>
+      <para>ACI is required to allow the <literal>compare</literal> permission
+      to the attribute in the target entry.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to compare
+      values against the <literal>sn</literal> attribute is:</para>
+      <programlisting language="ldif">aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
+ allow (compare)(userdn =
+ "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Delete</term>
+     <listitem>
+      <para>ACI is only required to allow the <literal>delete</literal>
+      permission to the target entry. This implicitly allows the attributes and
+      values in the target to be deleted. Use
+      <literal>targetattrfilters</literal> to explicitly deny access to the
+      values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
+      entry is:</para>
+      <programlisting language="ldif">aci: (version 3.0;acl "Delete entry"; allow (delete)
+ (userdn = "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Modify</term>
+     <listitem>
+      <para>ACI is only required to allow the <literal>write</literal>
+      permission to attributes in the target entries. This implicitly allows all
+      values in the target attribute to be modified. Use
+      <literal>targetattrfilters</literal> to explicitly deny access to specific
+      values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to modify the 
+      <literal>description</literal> attribute in an entry is:</para>
+      <programlisting language="ldif">aci: (targetattr = "description")(version 3.0;
+ acl "Modify description"; allow (write)(userdn =
+ "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>ModifyDN</term>
+     <listitem>
+      <para>If the entry is being moved to a <literal>newSuperior</literal>, the
+      <literal>export</literal> permission must be allowed on the target, and
+      the <literal>import</literal> permission must be allowed on the
+      <literal>newSuperior</literal> entry.</para>
+      <para>The ACI must allow <literal>write</literal> permission to the
+      attributes in the old RDN and the new RDN. All values of the old RDN and
+      new RDN can be written implicitly; use
+      <literal>targetattrfilters</literal> to explicitly deny access to values
+      used if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to rename
+      entries named with the <literal>uid</literal> attribute to new
+      locations:</para>
+      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
+ allow (write, import, export)(userdn =
+ "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Search</term>
+     <listitem>
+      <para>ACI is required to process the search filter, and to determine what
+      attributes and values may be returned in the results. The
+      <literal>search</literal> permission is used to allow particular
+      attributes in the search filter. The <literal>read</literal> permission is
+      used to allow particular attributes to be returned. If
+      <literal>read</literal> permission is allowed to any attribute, the
+      server will automatically allow the <literal>objectClass</literal>
+      attribute to also be read. All values of readable attributes can be
+      implicitly read; to restrict this use
+      <literal>targetattrfilters</literal>.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to search for
+      <literal>uid</literal> attributes, and also to read that attribute in
+      matching entries is:</para>
+      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
+ allow (search, read)(userdn =
+ "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+   </variablelist>
   </section>
  </section>
  
