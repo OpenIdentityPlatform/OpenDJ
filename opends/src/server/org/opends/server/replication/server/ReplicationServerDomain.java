@@ -34,7 +34,6 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -3017,18 +3016,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    String hostname = "unknown";
-    try
-    {
-      hostname = InetAddress.getLocalHost().getHostName();
-    }
-    catch (Exception e) {}
-    return "Replication Server "
-           + replicationServer.getReplicationPort() + " "
-           + hostname
-           + " " + replicationServer.getServerId()
-           + ",cn=" + baseDn.replace(',', '_').replace('=', '_')
-           + ",cn=replication";
+    return "Replication server RS(" + replicationServer.getServerId() + ") "
+        + replicationServer.getServerURL() + ",cn="
+        + baseDn.replace(',', '_').replace('=', '_') + ",cn=Replication";
   }
 
   /**

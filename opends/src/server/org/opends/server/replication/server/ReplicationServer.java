@@ -537,11 +537,7 @@ public final class ReplicationServer
       dbEnv = new ReplicationDbEnv(getFileForPath(dbDirname).getAbsolutePath(),
           this);
 
-      /*
-       * Open replicationServer socket
-       */
-      String localhostname = InetAddress.getLocalHost().getHostName();
-      serverURL = localhostname + ":" + String.valueOf(replicationPort);
+      setServerURL();
       listenSocket = new ServerSocket();
       listenSocket.bind(new InetSocketAddress(replicationPort));
 
@@ -1038,8 +1034,7 @@ public final class ReplicationServer
         stopListen = false;
 
         replicationPort = newPort;
-        String localhostname = InetAddress.getLocalHost().getHostName();
-        serverURL = localhostname + ":" + String.valueOf(replicationPort);
+        setServerURL();
         listenSocket = new ServerSocket();
         listenSocket.bind(new InetSocketAddress(replicationPort));
 
@@ -1149,6 +1144,41 @@ public final class ReplicationServer
     }
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+  /*
+   * Try and set a sensible URL for this replication server. Since we are
+   * listening on all addresses there are a couple of potential candidates: 1) a
+   * matching server url in the replication server's configuration, 2) hostname
+   * local address.
+   */
+  private void setServerURL() throws UnknownHostException
+  {
+    /*
+     * First try the set of configured replication servers to see if one of them
+     * is this replication server (this should always be the case).
+     */
+    for (String rs : replicationServers)
+    {
+      /*
+       * No need validate the string format because the admin framework has
+       * already done it.
+       */
+      final int index = rs.lastIndexOf(":");
+      final String hostname = rs.substring(0, index);
+      final int port = Integer.parseInt(rs.substring(index + 1));
+      if (port == replicationPort && isLocalAddress(hostname))
+      {
+        serverURL = rs;
+        return;
+      }
+    }
+
+    /*
+     * Fall-back to the machine hostname.
+     */
+    serverURL = InetAddress.getLocalHost().getHostName() + ":"
+        + replicationPort;
   }
 
   /**
