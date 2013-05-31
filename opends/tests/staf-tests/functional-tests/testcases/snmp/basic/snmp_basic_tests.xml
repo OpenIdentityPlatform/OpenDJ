@@ -1698,24 +1698,31 @@
               }
             </call>
 
-            <script>
-              opendmkJarFile = '%s/%s/wrong_file' \
-                               % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
-              if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                opendmkJarFile = opendmkJarFile.replace('/', '\\')
-
-              msg1 = 'The specified OpenDMK jar file'
-              msg2 = '\'%s\' could not be found.' % opendmkJarFile
-              msg = '%s %s' % (msg1, msg2)
-            </script>
-
-            <call function="'grep'">
-              {
-              'location'  : STAF_REMOTE_HOSTNAME ,
-              'filename'  : serverLogFile ,
-              'testString': msg
-              }
-            </call>
+            <!-- Run this check only on Unix.
+                 Difficult to check that on Windows due to '\' characters -->
+            <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+              <!-- Unix -->
+              <sequence>
+	            <script>
+	              opendmkJarFile = '%s/%s/wrong_file' \
+	                               % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+	              if is_windows_platform(DIRECTORY_INSTANCE_HOST):
+	                opendmkJarFile = opendmkJarFile.replace('/', '\\')
+	
+	              msg1 = 'The specified OpenDMK jar file'
+	              msg2 = '\'%s\' could not be found.' % opendmkJarFile
+	              msg = '%s %s' % (msg1, msg2)
+	            </script>
+	
+	            <call function="'grep'">
+	              {
+	              'location'  : STAF_REMOTE_HOSTNAME ,
+	              'filename'  : serverLogFile ,
+	              'testString': msg
+	              }
+	            </call>
+              </sequence>
+            </if>
             
             <script>
               msg1 = 'Verify that the value set in the opendmk-jarfile'
