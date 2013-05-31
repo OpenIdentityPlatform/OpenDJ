@@ -1819,6 +1819,11 @@ public class ReplicationBroker
   private static Map<Integer, ReplicationServerInfo> filterServersOnSameHost(
       Map<Integer, ReplicationServerInfo> bestServers)
   {
+    /*
+     * Initially look for all servers on the same host. If we find one in the
+     * same VM, then narrow the search.
+     */
+    boolean filterServersInSameVM = false;
     Map<Integer, ReplicationServerInfo> result =
         new HashMap<Integer, ReplicationServerInfo>();
     for (Integer rsId : bestServers.keySet())
@@ -1835,13 +1840,21 @@ public class ReplicationBroker
           if (isLocalReplicationServerPort(port))
           {
             // An RS in the same VM will always have priority.
-            result.clear();
+            if (!filterServersInSameVM)
+            {
+              // Narrow the search to only include servers in this VM.
+              result.clear();
+              filterServersInSameVM = true;
+            }
             result.put(rsId, replicationServerInfo);
-            break;
+          }
+          else if (!filterServersInSameVM)
+          {
+            result.put(rsId, replicationServerInfo);
           }
           else
           {
-            result.put(rsId, replicationServerInfo);
+            // Skip: we have found some RSs in the same VM, but this RS is not.
           }
         }
       }
