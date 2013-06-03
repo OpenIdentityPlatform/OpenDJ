@@ -74,6 +74,12 @@
  <procedure xml:id="upgrade-zip">
   <title>To Upgrade an OpenDJ Directory Server</title>
 
+  <para>To upgrade OpenDJ directory server installed from native packages (.deb,
+  .rpm), use the package management tools provided by the system.</para>
+
+  <para>The following steps describe how to upgrade OpenDJ directory server
+  installed from the cross-platform (.zip) delivery.</para>
+
   <step>
    <para>Login as the user who owns the current OpenDJ server.</para>
   </step>

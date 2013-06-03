@@ -116,4 +116,61 @@ See /var/....log for a detailed log of this operation.</screen>
    <screen>$ rm -rf /path/to/opendj</screen>
   </step>
  </procedure>
+
+ <procedure xml:id="uninstall-deb">
+  <title>To Uninstall the Debian Package</title>
+  <indexterm><primary>Debian (.deb) package</primary></indexterm>
+
+  <para>When you uninstall the Debian package from the command line, OpenDJ
+  directory server is stopped if it is running.</para>
+
+  <step>
+   <para>Remove the package from your system.</para>
+
+   <screen>$ sudo dpkg -r opendj
+(Reading database ... 185725 files and directories currently installed.)
+Removing opendj ...
+*Stopping OpenDJ server...
+Stopping Server...
+[03/Jun/2013:10:00:49 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+
+*OpenDJ successfully removed
+
+$ </screen>
+
+   <para>Removing the package does not remove your data or configuration.
+    You must remove <filename>/opt/opendj</filename> manually to get rid of
+    all files.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="uninstall-rpm">
+  <title>To Uninstall the RPM Package</title>
+  <indexterm><primary>Red Hat (.rpm) package</primary></indexterm>
+
+  <para>When you uninstall the RPM package from the command line, OpenDJ
+  directory server is stopped if it is running.</para>
+
+  <step>
+   <para>Remove the package from your system.</para>
+
+   <screen># rpm -e opendj-<?eval ${docTargetVersion}?>.noarch.rpm
+Pre Uninstall - uninstall
+Stopping Server...
+[03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+Post Uninstall - uninstall
+OpenDJ successfully removed.
+# </screen>
+
+   <para>Removing the package does not remove your data or configuration.
+   You must remove <filename>/opt/opendj</filename> manually to get rid of
+   all files.</para>
+  </step>
+ </procedure>
 </chapter>

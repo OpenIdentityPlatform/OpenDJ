@@ -68,7 +68,21 @@
      </listitem>
     </varlistentry>
 
-    <!-- TODO: .deb, .rpm not yet posted on a download page -->
+    <varlistentry>
+     <term>opendj_<?eval ${docTargetVersion}?>_all.deb</term>
+     <listitem>
+      <para>OpenDJ directory server native package for Debian and related
+      Linux distributions.</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>opendj-<?eval ${docTargetVersion}?>.noarch.rpm</term>
+     <listitem>
+      <para>OpenDJ directory server native package for Red Hat and related
+      Linux distributions.</para>
+     </listitem>
+    </varlistentry>
 
     <varlistentry>
      <term>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</term>
@@ -352,7 +366,7 @@ Host Name:                opendj.example.com
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/opendj
 Version:                  OpenDJ <?eval ${docTargetVersion}?>
-Java Version:             1.6.0_29
+Java Version:             <replaceable>version</replaceable>
 Administration Connector: Port 4444 (LDAPS)
 
           --- Connection Handlers ---
@@ -377,6 +391,189 @@ Replication: Disabled</screen>
   <command>setup</command> command with the <option>--no-prompt</option>
   option, specifying values for all the other options you require.</para>
  </note>
+
+ <procedure xml:id="install-deb">
+  <title>To Install From the Debian Package</title>
+  <indexterm><primary>Debian (.deb) package</primary></indexterm>
+
+  <para>On Debian and related Linux distributions such as Ubuntu, you can
+  install OpenDJ directory server from the Debian package.</para>
+
+  <step>
+   <para>Before you install OpenDJ, install a Java runtime environment if none
+   is installed yet.</para>
+
+   <screen>$ sudo apt-get install default-jre</screen>
+  </step>
+
+  <step>
+   <para>Install the OpenDJ directory server package.</para>
+
+   <screen>$ sudo dpkg -i opendj*.deb
+Selecting previously unselected package opendj.
+(Reading database ... 185569 files and directories currently installed.)
+Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>_all.deb) ...
+
+Setting up opendj (<?eval ${docTargetVersion}?>) ...
+$</screen>
+
+   <para>The .deb installs OpenDJ directory server in the directory
+   <filename>/opt/opendj</filename>.</para>
+
+   <para>The files are owned by root by default, making it easier to have OpenDJ
+   listen on ports 389 and 636.</para>
+  </step>
+
+  <step>
+   <para>Configure OpenDJ directory server by using the command
+   <command>sudo /opt/opendj/setup</command>.</para>
+
+   <screen>$ sudo /opt/opendj/setup --cli
+[ sudo ] password for user:
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status</screen>
+  </step>
+
+  <step performance="optional">
+   <para>Check OpenDJ directory server status.</para>
+
+   <screen>$ sudo /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                ubuntu.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication: </screen>
+  </step>
+
+  <step performance="optional">
+   <para>If you want to run OpenDJ when the system starts, see <link
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-rpm">
+  <title>To Install From the RPM Package</title>
+  <indexterm><primary>Red Hat (.rpm) package</primary></indexterm>
+
+  <para>On Red Hat and related Linux distributions such as Fedora and CentOS,
+  you can install OpenDJ directory server from the RPM package.</para>
+
+  <step>
+   <para>Before you install OpenDJ, install a Java runtime environment if none
+   is installed yet.</para>
+
+   <screen>$ java -version
+java version ...
+OpenJDK Runtime Environment ...</screen>
+  </step>
+
+  <step>
+   <para>Install the OpenDJ directory server package.</para>
+
+   <screen>$ su
+Password:
+# rpm -i opendj*.rpm
+Pre Install - initial install
+Post Install - initial install
+
+#</screen>
+
+   <para>The .rpm installs OpenDJ directory server in the directory
+   <filename>/opt/opendj</filename>.</para>
+
+   <para>The files are owned by root by default, making it easier to have OpenDJ
+   listen on ports 389 and 636.</para>
+  </step>
+
+  <step>
+   <para>Configure OpenDJ directory server by using the command
+   <command>/opt/opendj/setup</command>.</para>
+
+   <screen># /opt/opendj/setup --cli
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status</screen>
+  </step>
+
+  <step performance="optional">
+   <para>Check OpenDJ directory server status.</para>
+
+   <screen># /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                fedora.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication: </screen>
+  </step>
+
+  <step performance="optional">
+   <para>If you want to run OpenDJ when the system starts, see <link
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
+  </step>
+ </procedure>
 
  <procedure xml:id="install-properties-file">
   <title>To Install OpenDJ Directory Server With a Properties File</title>
