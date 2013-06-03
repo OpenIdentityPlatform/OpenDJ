@@ -503,6 +503,9 @@ final class UpgradeUtils
                     changeType, lines));
             entry = Entries.modifyEntryPermissive(entry, mr.getModifications());
             changeCount++;
+            LOG.log(Level.INFO,
+                String.format("The following entry has been modified : %s",
+                    entry.getName()));
           }
           catch (Exception ex)
           {
@@ -607,7 +610,7 @@ final class UpgradeUtils
             final String definition =
                 "attributeTypes: " + schema.getAttributeType(att);
             definitionsList.add(definition);
-            LOG.log(Level.INFO, String.format("Added : %s", definition));
+            LOG.log(Level.INFO, String.format("Added %s", definition));
           }
           catch (UnknownSchemaElementException e)
           {
@@ -626,7 +629,7 @@ final class UpgradeUtils
             final String definition =
                 "objectClasses: " + schema.getObjectClass(oc);
             definitionsList.add(definition);
-            LOG.log(Level.INFO, String.format("Added : %s", definition));
+            LOG.log(Level.INFO, String.format("Added %s", definition));
           }
           catch (UnknownSchemaElementException e)
           {
