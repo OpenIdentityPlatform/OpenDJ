@@ -605,10 +605,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term>Add</term>
      <listitem>
-      <para>ACI is only required to allow the <literal>add</literal> permission
-      to entries in the target. This implicitly allows the attributes and values
-      to be set. Use <literal>targetattrfilters</literal> to explicitly deny
-      access to the values if required.</para>
+      <para>The ACI must allow the <literal>add</literal> permission to entries
+      in the target. This implicitly allows the attributes and values to be set.
+      Use <literal>targetattrfilters</literal> to explicitly deny access to any
+      values if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
       is:</para>
@@ -632,8 +632,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term>Compare</term>
      <listitem>
-      <para>ACI is required to allow the <literal>compare</literal> permission
-      to the attribute in the target entry.</para>
+      <para>The ACI must allow the <literal>compare</literal> permission to the
+      attribute in the target entry.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to compare
       values against the <literal>sn</literal> attribute is:</para>
@@ -646,11 +646,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term>Delete</term>
      <listitem>
-      <para>ACI is only required to allow the <literal>delete</literal>
-      permission to the target entry. This implicitly allows the attributes and
-      values in the target to be deleted. Use
-      <literal>targetattrfilters</literal> to explicitly deny access to the
-      values if required.</para>
+      <para>The ACI must allow the <literal>delete</literal> permission to the
+      target entry. This implicitly allows the attributes and values in the
+      target to be deleted. Use <literal>targetattrfilters</literal> to
+      explicitly deny access to the values if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
       entry is:</para>
@@ -662,8 +661,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term>Modify</term>
      <listitem>
-      <para>ACI is only required to allow the <literal>write</literal>
-      permission to attributes in the target entries. This implicitly allows all
+      <para>The ACI must allow the <literal>write</literal> permission to
+      attributes in the target entries. This implicitly allows all
       values in the target attribute to be modified. Use
       <literal>targetattrfilters</literal> to explicitly deny access to specific
       values if required.</para>
