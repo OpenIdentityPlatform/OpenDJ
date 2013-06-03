@@ -40,7 +40,6 @@ import static org.opends.server.tools.upgrade.
 FormattedNotificationCallback.TITLE_CALLBACK;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
-import static org.opends.server.tools.upgrade.VerificationCallback.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -359,12 +358,22 @@ public final class UpgradeCli extends ConsoleApplication implements
     // Main process
     try
     {
+
+      // Upgrade's context.
+      UpgradeContext context =
+          new UpgradeContext(BuildVersion.instanceVersion(), BuildVersion
+              .binaryVersion(), this);
+
+      context.setIgnoreErrorsMode(isIgnoreErrors());
+      context.setAcceptLicenseMode(isAcceptLicense());
+      context.setInteractiveMode(isInteractive());
+      context.setForceUpgradeMode(isForceUpgrade());
+
       // Creates the log file.
       UpgradeLog.initLogFileHandler();
 
       // Starts upgrade.
-      Upgrade.upgrade(BuildVersion.instanceVersion(), BuildVersion
-          .binaryVersion(), this);
+      Upgrade.upgrade(context);
     }
     catch (ClientException ex)
     {
@@ -435,72 +444,6 @@ public final class UpgradeCli extends ConsoleApplication implements
           LOG.log(SEVERE, "Unsupported message type: "
             + toc.getMessage());
           throw new IOException("Unsupported message type: ");
-        }
-      }
-      else if (c instanceof VerificationCallback)
-      {
-        final VerificationCallback cc = (VerificationCallback) c;
-        // Checks user's options.
-        if (cc.getRequiredOptions() != null)
-        {
-          for (final int opt : cc.getRequiredOptions())
-          {
-            if (opt == NEED_USER_INTERACTION)
-            {
-              if (!isInteractive())
-              {
-                cc.setSelectedIndex(cc.getDefaultOption());
-                return;
-              }
-            }
-
-            if (opt == MANDATORY_USER_INTERACTION)
-            {
-              if (!isInteractive() && !isForceUpgrade())
-              {
-                println(Style.ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED
-                    .get(OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
-                cc.setSelectedIndex(ConfirmationCallback.NO);
-                return;
-              }
-              else if (!isInteractive() && isForceUpgrade())
-              {
-                cc.setSelectedIndex(ConfirmationCallback.YES);
-              }
-            }
-
-            if (opt == TAKE_LONG_TIME_TO_COMPLETE
-                || opt == CANNOT_BE_REVERTED)
-            {
-              if (!isInteractive() && !isForceUpgrade())
-              {
-                println(Style.ERROR, ERR_UPGRADE_USER_INTERACTION_REQUIRED
-                    .get(OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE), 0);
-                cc.setSelectedIndex(ConfirmationCallback.NO);
-                return;
-              }
-            }
-
-            // Does the user specify the ignore errors mode ?
-            if (opt == IGNORE_ERRORS_MODE) {
-              if (!isIgnoreErrors())
-              {
-                cc.setSelectedIndex(ConfirmationCallback.NO);
-                return;
-              }
-              cc.setSelectedIndex(ConfirmationCallback.YES);
-            }
-
-            if (opt == ACCEPT_LICENSE_MODE) {
-              if (!isAcceptLicense())
-              {
-                cc.setSelectedIndex(ConfirmationCallback.NO);
-                return;
-              }
-              cc.setSelectedIndex(ConfirmationCallback.YES);
-            }
-          }
-          return;
         }
       }
       else if (c instanceof ConfirmationCallback)
@@ -597,14 +540,14 @@ public final class UpgradeCli extends ConsoleApplication implements
             LOG.log(INFO, value);
           }
         }
-        else
+        else // Non interactive mode :
         {
-          // Non interactive mode
+          // Force mode.
           if (isForceUpgrade())
           {
             cc.setSelectedIndex(ConfirmationCallback.YES);
           }
-          else
+          else // Default non interactive mode.
           {
             cc.setSelectedIndex(cc.getDefaultOption());
           }

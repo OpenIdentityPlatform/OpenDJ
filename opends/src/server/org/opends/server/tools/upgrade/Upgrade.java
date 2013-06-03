@@ -32,7 +32,6 @@ package org.opends.server.tools.upgrade;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
-import static org.opends.server.tools.upgrade.VerificationCallback.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -45,7 +44,6 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.ConfirmationCallback;
 
 import org.opends.messages.Message;
@@ -315,46 +313,35 @@ public final class Upgrade
     return tasks;
   }
 
-
-
   /**
-   * Upgrades the server from {@code fromVersion} to {@code toVersion}.
+   * Upgrades the server from {@code fromVersion} to {@code toVersion} located
+   * in the upgrade context.
    *
-   * @param fromVersion
-   *          The old version.
-   * @param toVersion
-   *          The new version.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
+   * @param context
+   *          The context of the upgrade.
    * @throws ClientException
    *           If an error occurred while performing the upgrade.
    */
-  public static void upgrade(final BuildVersion fromVersion,
-      final BuildVersion toVersion, final CallbackHandler handler)
+  public static void upgrade(final UpgradeContext context)
       throws ClientException
   {
-    /*
-     * Context through which tasks can interact with the server installation
-     * (e.g. config).
-     */
-    UpgradeContext context = new UpgradeContext(fromVersion, toVersion);
+
 
     // Checks and validate the version number.
-    isVersionCanBeUpdated(context, handler);
+    isVersionCanBeUpdated(context);
 
     // Server offline ?
     checkIfServerIsRunning();
 
-    context.notify(handler, INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
-    context.notify(handler, INFO_UPGRADE_SUMMARY.get(context.getFromVersion()
+    context.notify( INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
+    context.notify( INFO_UPGRADE_SUMMARY.get(context.getFromVersion()
         .toString(), context.getToVersion().toString()), NOTICE_CALLBACK);
-    context.notify(handler, INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
+    context.notify( INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
         .get(UpgradeUtils.getInstallationPath() + File.separator
             + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
 
     // Checks License.
-    checkLicence(context, handler);
+    checkLicence(context);
 
     /*
      * Get the list of required upgrade tasks.
@@ -363,7 +350,7 @@ public final class Upgrade
         context.getToVersion());
     if (tasks.isEmpty())
     {
-      changeBuildInfoVersion(context, handler);
+      changeBuildInfoVersion(context);
       return;
     }
 
@@ -373,16 +360,16 @@ public final class Upgrade
      * and the application is non-interactive then, the process
      * may abort immediately.
      */
-    verify(context, tasks, handler);
+    verify(context, tasks);
 
     /*
      * Asking upgrade requirements if needed to user.
      */
-    context.notify(handler, INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
-    interact(context, tasks, handler);
+    context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
+    interact(context, tasks);
 
     // Starts upgrade.
-    final int userResponse = context.confirmYN(handler,
+    final int userResponse = context.confirmYN(
         INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
     if (userResponse == ConfirmationCallback.NO)
     {
@@ -392,50 +379,43 @@ public final class Upgrade
 
     try
     {
-      // If the ignore errors mode is selected.
-      if (context.checkCLIUserOption(handler, IGNORE_ERRORS_MODE)
-          == ConfirmationCallback.YES)
-      {
-        context.setIgnoreErrorsMode(true);
-      }
-
       /*
        * Perform the upgrade tasks.
        */
-      context.notify(handler, INFO_UPGRADE_PERFORMING_TASKS.get(),
+      context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(),
           TITLE_CALLBACK);
 
-      perform(context, tasks, handler);
+      perform(context, tasks);
       if (UpgradeTasks.countErrors == 0)
       {
         // At the end, and if only if succeed, we need to change the buildInfo
         // file with the version number updated.
-        changeBuildInfoVersion(context, handler);
+        changeBuildInfoVersion(context);
 
         // Writes the license if needed.
         LicenseFile.createFileLicenseApproved();
       }
       else
       {
-        context.notify(handler,
+        context.notify(
             ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors), TITLE_CALLBACK);
       }
     }
     catch (final ClientException e)
     {
       LOG.log(Level.SEVERE, e.getMessage());
-      context.notify(handler, e.getMessageObject());
+      context.notify( e.getMessageObject());
       throw e;
     }
     catch (final Exception e)
     {
       LOG.log(Level.SEVERE, e.getMessage());
-      context.notify(handler, ERR_UPGRADE_TASKS_FAIL.get(e.getMessage()));
+      context.notify(ERR_UPGRADE_TASKS_FAIL.get(e.getMessage()));
       throw new ClientException(EXIT_CODE_ERROR, Message.raw(e.getMessage()));
     }
     finally
     {
-      context.notify(handler, INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
+      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
           .get(UpgradeUtils.getInstallationPath() + File.separator
               + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
     }
@@ -444,7 +424,7 @@ public final class Upgrade
 
 
   private static void perform(final UpgradeContext context,
-      final List<UpgradeTask> tasks, final CallbackHandler handler)
+      final List<UpgradeTask> tasks)
       throws ClientException
   {
     /*
@@ -452,7 +432,7 @@ public final class Upgrade
      */
     for (final UpgradeTask task : tasks)
     {
-      task.start(context, handler);
+      task.start(context);
     }
 
     /*
@@ -460,7 +440,7 @@ public final class Upgrade
      */
     for (final UpgradeTask task : tasks)
     {
-      task.perform(context, handler);
+      task.perform(context);
     }
 
     /*
@@ -469,7 +449,7 @@ public final class Upgrade
      */
     for (final UpgradeTask task : tasks)
     {
-      task.end(context, handler);
+      task.end(context);
     }
   }
 
@@ -493,7 +473,7 @@ public final class Upgrade
   }
 
   private static void interact(final UpgradeContext context,
-      final List<UpgradeTask> tasks, final CallbackHandler handler)
+      final List<UpgradeTask> tasks)
       throws ClientException
   {
     /*
@@ -501,14 +481,14 @@ public final class Upgrade
      */
     for (final UpgradeTask task : tasks)
     {
-      task.interact(context, handler);
+      task.interact(context);
     }
   }
 
 
 
   private static void verify(final UpgradeContext context,
-      final List<UpgradeTask> tasks, final CallbackHandler handler)
+      final List<UpgradeTask> tasks)
       throws ClientException
   {
     /*
@@ -516,7 +496,7 @@ public final class Upgrade
      */
     for (final UpgradeTask task : tasks)
     {
-      task.verify(context, handler);
+      task.verify(context);
     }
   }
 
@@ -564,13 +544,11 @@ public final class Upgrade
    *
    * @param context
    *          The current context which running the upgrade.
-   * @param callbackHandler
-   *          The callback handler in use.
    * @throws ClientException
    *           If an exception occurs - stops the process.
    */
-  private static void isVersionCanBeUpdated(final UpgradeContext context,
-      final CallbackHandler callbackHandler) throws ClientException
+  private static void isVersionCanBeUpdated(final UpgradeContext context)
+      throws ClientException
   {
     if (context.getFromVersion().equals(context.getToVersion()))
     {
@@ -599,15 +577,13 @@ public final class Upgrade
    *
    * @param context
    *          The current context which running the upgrade.
-   * @param callbackHandler
-   *          The callback handler in use.
    * @throws ClientException
    *           If an exception occurs when displaying the message.
    * @throws IOException
    *           If an exception occurs when trying to write the file.
    */
-  private static void changeBuildInfoVersion(final UpgradeContext context,
-      final CallbackHandler callbackHandler) throws ClientException
+  private static void changeBuildInfoVersion(final UpgradeContext context)
+      throws ClientException
   {
     FileWriter buildInfo = null;
     try
@@ -618,7 +594,7 @@ public final class Upgrade
       // Write the new version
       buildInfo.write(context.getToVersion().toString());
 
-      context.notify(callbackHandler, INFO_UPGRADE_SUCCESSFUL.get(context
+      context.notify(INFO_UPGRADE_SUCCESSFUL.get(context
           .getFromVersion().toString(), context.getToVersion().toString()),
           TITLE_CALLBACK);
 
@@ -634,28 +610,26 @@ public final class Upgrade
   }
 
 
-
-  private static void checkLicence(final UpgradeContext context,
-      final CallbackHandler handler) throws ClientException
+  private static void checkLicence(final UpgradeContext context)
+      throws ClientException
   {
     // Check license
     if (!LicenseFile.isAlreadyApproved())
     {
       if (LicenseFile.exists())
       {
-        context.notify(handler, Message.raw(LicenseFile.getText()));
+        context.notify(Message.raw(LicenseFile.getText()));
 
         // If the user asks for no-prompt. We just display the license text.
         // User doesn't asks for no-prompt. We just display the license text
         // and force to accept it.
-        context.notify(handler, INFO_LICENSE_DETAILS_CLI_LABEL.get());
+        context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
-        if (context.checkCLIUserOption(handler, ACCEPT_LICENSE_MODE)
-            == ConfirmationCallback.NO)
+        if (!context.isAcceptLicenseMode())
         {
 
           final int answer =
-              context.confirmYN(handler, INFO_LICENSE_ACCEPT.get(),
+              context.confirmYN(INFO_LICENSE_ACCEPT.get(),
                   ConfirmationCallback.NO);
 
           if (answer == ConfirmationCallback.NO)
@@ -669,8 +643,8 @@ public final class Upgrade
         }
         else
         {
-          context.notify(handler, INFO_LICENSE_ACCEPT.get());
-          context.notify(handler, INFO_PROMPT_YES_COMPLETE_ANSWER.get());
+          context.notify(INFO_LICENSE_ACCEPT.get());
+          context.notify(INFO_PROMPT_YES_COMPLETE_ANSWER.get());
           LicenseFile.setApproval(true);
         }
       }

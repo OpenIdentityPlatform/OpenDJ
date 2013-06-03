@@ -27,9 +27,9 @@
 
 package org.opends.server.tools.upgrade;
 
-
-
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.OPTION_LONG_FORCE_UPGRADE;
+import static org.opends.server.tools.ToolConstants.OPTION_LONG_NO_PROMPT;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.Upgrade.*;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
@@ -40,15 +40,13 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.ConfirmationCallback;
 
 import org.opends.messages.Message;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.ClientException;
-
-
+import org.opends.server.tools.upgrade.UpgradeTask.TaskType;
 
 /**
  * Factory methods for create new upgrade tasks.
@@ -66,8 +64,6 @@ public final class UpgradeTasks
   static private final Logger LOG = Logger
       .getLogger(UpgradeCli.class.getName());
 
-
-
   /**
    * Returns a new upgrade task which applies an LDIF record to all
    * configuration entries matching the provided filter.
@@ -84,8 +80,6 @@ public final class UpgradeTasks
   {
     return addConfigEntry0(summary, summary, false, ldif);
   }
-
-
 
   /**
    * Returns a new upgrade task which applies an LDIF record to all
@@ -106,8 +100,6 @@ public final class UpgradeTasks
     return addConfigEntry0(summary, description, true, ldif);
   }
 
-
-
   /**
    * This task copies the file placed in parameter within the config / schema
    * folder. If the file already exists, it's overwritten.
@@ -123,8 +115,7 @@ public final class UpgradeTasks
     return new AbstractUpgradeTask()
     {
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         final Message msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
         LOG.log(Level.INFO, msg.toString());
@@ -132,45 +123,40 @@ public final class UpgradeTasks
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 0);
 
-        final File schemaFileTemplate = new File(templateConfigSchemaDirectory,
-            fileName);
+        final File schemaFileTemplate =
+            new File(templateConfigSchemaDirectory, fileName);
 
         try
         {
-          context.notifyProgress(handler, pnc.changeProgress(20));
+          context.notifyProgress(pnc.changeProgress(20));
 
           copy(schemaFileTemplate, configSchemaDirectory, true);
-          context.notifyProgress(handler, pnc.changeProgress(100));
+          context.notifyProgress(pnc.changeProgress(100));
         }
         catch (final IOException e)
         {
-          manageTaskException(
-              context,
-              handler,
-              ERR_UPGRADE_COPYSCHEMA_FAILS.get(schemaFileTemplate.getName(),
-                  e.getMessage()), pnc);
+          manageTaskException(context, ERR_UPGRADE_COPYSCHEMA_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
     };
   }
 
   /**
-   * This task copies the file placed in parameter within the config
-   * folder. If the file already exists, it's overwritten.
+   * This task copies the file placed in parameter within the config folder. If
+   * the file already exists, it's overwritten.
    *
    * @param fileName
    *          The name of the file which need to be copied.
    * @return A task which copy the the file placed in parameter within the
-   *         config folder. If the file already exists, it's
-   *         overwritten.
+   *         config folder. If the file already exists, it's overwritten.
    */
   public static UpgradeTask addConfigFile(final String fileName)
   {
     return new AbstractUpgradeTask()
     {
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         final Message msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
         LOG.log(Level.INFO, msg.toString());
@@ -178,28 +164,23 @@ public final class UpgradeTasks
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 0);
 
-        final File configFile = new File(templateConfigDirectory,
-            fileName);
+        final File configFile = new File(templateConfigDirectory, fileName);
 
         try
         {
-          context.notifyProgress(handler, pnc.changeProgress(20));
+          context.notifyProgress(pnc.changeProgress(20));
 
           copy(configFile, configDirectory, true);
-          context.notifyProgress(handler, pnc.changeProgress(100));
+          context.notifyProgress(pnc.changeProgress(100));
         }
         catch (final IOException e)
         {
-          manageTaskException(
-              context,
-              handler,
-              ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(configFile.getName(),
-                  e.getMessage()), pnc);
+          manageTaskException(context, ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(
+              configFile.getName(), e.getMessage()), pnc);
         }
       }
     };
   }
-
 
   /**
    * Returns a new upgrade task which applies an LDIF record to all
@@ -219,8 +200,6 @@ public final class UpgradeTasks
   {
     return modifyConfigEntry(summary, summary, false, filter, ldif);
   }
-
-
 
   /**
    * Returns a new upgrade task which applies an LDIF record to all
@@ -243,8 +222,6 @@ public final class UpgradeTasks
     return modifyConfigEntry(summary, description, true, filter, ldif);
   }
 
-
-
   /**
    * This task adds a new attribute type (must exists in the original file) to
    * the specified file placed in parameter. The destination must be a file
@@ -253,11 +230,9 @@ public final class UpgradeTasks
    * already exists in the 00-core.ldif template schema file.
    *
    * <pre>
-   * register(
-   *     &quot;2.5.0.7192&quot;,
-   *     newAttributeTypes(Message.raw(&quot;New attribute etag&quot;), false,
-   *         &quot;00-core.ldif&quot;,
-   *         &quot;etag&quot;));
+   * register(&quot;2.5.0.7192&quot;,
+   *   newAttributeTypes(Message.raw(&quot;New attribute etag&quot;),
+   *   false, &quot;00-core.ldif&quot;, &quot;etag&quot;));
    * </pre>
    *
    * @param summary
@@ -277,39 +252,36 @@ public final class UpgradeTasks
     return new AbstractUpgradeTask()
     {
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         LOG.log(Level.INFO, summary.toString());
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, summary, 20);
-        context.notifyProgress(handler, pnc);
+        context.notifyProgress(pnc);
 
-        final File schemaFileTemplate = new File(templateConfigSchemaDirectory,
-            fileName);
+        final File schemaFileTemplate =
+            new File(templateConfigSchemaDirectory, fileName);
 
         final File pathDestination = new File(configSchemaDirectory, fileName);
         try
         {
-          final int changeCount = updateSchemaFile(schemaFileTemplate,
-              pathDestination, names, null);
+          final int changeCount =
+              updateSchemaFile(schemaFileTemplate, pathDestination,
+                  names, null);
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
-          context.notifyProgress(handler, pnc.changeProgress(100));
+          context.notifyProgress(pnc.changeProgress(100));
         }
         catch (final IOException e)
         {
-          manageTaskException(context, handler,
-              ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(schemaFileTemplate.getName(),
-                  e.getMessage()), pnc);
+          manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
     };
   }
-
-
 
   /**
    * This task adds a new object class (must exists in the original file) to the
@@ -333,42 +305,39 @@ public final class UpgradeTasks
     return new AbstractUpgradeTask()
     {
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         LOG.log(Level.INFO, summary.toString());
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, summary, 20);
-        context.notifyProgress(handler, pnc);
+        context.notifyProgress(pnc);
 
-        final File schemaFileTemplate = new File(templateConfigSchemaDirectory,
-            fileName);
+        final File schemaFileTemplate =
+            new File(templateConfigSchemaDirectory, fileName);
 
         final File pathDestination = new File(configSchemaDirectory, fileName);
 
-        context.notifyProgress(handler, pnc.changeProgress(20));
+        context.notifyProgress(pnc.changeProgress(20));
 
         try
         {
-          final int changeCount = updateSchemaFile(schemaFileTemplate,
-              pathDestination, null, names);
+          final int changeCount =
+              updateSchemaFile(schemaFileTemplate, pathDestination,
+                  null, names);
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
-          context.notifyProgress(handler, pnc.changeProgress(100));
+          context.notifyProgress(pnc.changeProgress(100));
         }
         catch (final IOException e)
         {
-          manageTaskException(context, handler,
-              ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
-                  schemaFileTemplate.getName(), e.getMessage()), pnc);
+          manageTaskException(context, ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
     };
   }
-
-
 
   /**
    * Creates a rebuild all indexes task.
@@ -383,61 +352,36 @@ public final class UpgradeTasks
     {
 
       @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void end(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
 
-
-
       @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void interact(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
 
-
-
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         // TODO
       }
 
-
-
       @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void start(final UpgradeContext context) throws ClientException
       {
-        context.notify(handler, summary);
+        context.notify(summary);
       }
 
-
-
       @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void verify(final UpgradeContext context) throws ClientException
       {
-        // This task which may take a long time to complete,
-        // we need to check user CLI options.
-        final int res = context.checkCLIUserOption(handler,
-            VerificationCallback.TAKE_LONG_TIME_TO_COMPLETE);
-
-        // The option is not present ? Stops the process.
-        if (res == ConfirmationCallback.NO)
-        {
-          throw new ClientException(EXIT_CODE_MANUAL_INTERVENTION,
-              ERR_UPGRADE_INVALID_USER_OPTIONS_SELECTED.get());
-        }
+        verifyTaskType(TaskType.MANDATORY_USER_INTERACTION, context);
       }
     };
   }
-
-
 
   /**
    * Creates a file object representing config/upgrade/schema.ldif.current which
@@ -453,34 +397,30 @@ public final class UpgradeTasks
     return new AbstractUpgradeTask()
     {
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         final Message msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
         LOG.log(Level.INFO, msg.toString());
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 20);
-        context.notifyProgress(handler, pnc);
+        context.notifyProgress(pnc);
 
         try
         {
-          updateConfigUpgradeSchemaFile(configSchemaDirectory,
-              String.valueOf(context.getToVersion().getRevisionNumber()));
+          updateConfigUpgradeSchemaFile(configSchemaDirectory, String
+              .valueOf(context.getToVersion().getRevisionNumber()));
 
-          context.notifyProgress(handler, pnc.changeProgress(100));
+          context.notifyProgress(pnc.changeProgress(100));
         }
         catch (final Exception ex)
         {
-          manageTaskException(context, handler,
-              ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()),
-              pnc);
+          manageTaskException(context, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER
+              .get(ex.getMessage()), pnc);
         }
       }
     };
   }
-
-
 
   private static UpgradeTask addConfigEntry0(final Message summary,
       final Message description, final boolean needsUserConfirmation,
@@ -490,42 +430,22 @@ public final class UpgradeTasks
     {
       private boolean userConfirmation = true;
 
-
-
       @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler)
+      public void end(final UpgradeContext context)
       {
         // Nothing to do: no cleanup required.
       }
 
-
-
       @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void interact(final UpgradeContext context) throws ClientException
       {
         if (needsUserConfirmation)
         {
-          // This task require an interaction with the user
-          // Which means it needs to check if CLI/GUI selected
-          // options are correct.
-          final int res = context.checkCLIUserOption(handler,
-              VerificationCallback.NEED_USER_INTERACTION);
-
           // Process needs to have user's response to perform the current
           // modification.
-          final int answer = context.confirmYN(handler,
-              INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description),
-              ConfirmationCallback.YES);
-
-          // If the CLI/GUI options are not correct, stops the process
-          // which can happens if user selected non-interactive mode for ex.
-          if (res == ConfirmationCallback.NO)
-          {
-            throw new ClientException(EXIT_CODE_ERROR,
-                ERR_UPGRADE_INVALID_USER_OPTIONS_SELECTED.get());
-          }
+          final int answer =
+              context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM
+                  .get(description), ConfirmationCallback.YES);
 
           // The user refuses to perform this task.
           if (answer == ConfirmationCallback.NO)
@@ -535,11 +455,8 @@ public final class UpgradeTasks
         }
       }
 
-
-
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         if (userConfirmation)
         {
@@ -548,70 +465,59 @@ public final class UpgradeTasks
           final ProgressNotificationCallback pnc =
               new ProgressNotificationCallback(0, summary, 20);
 
-          context.notifyProgress(handler, pnc);
+          context.notifyProgress(pnc);
 
           try
           {
             // TODO change the directory to the config if it exists.
-            final File configFile = new File(configDirectory,
-                Installation.CURRENT_CONFIG_FILE_NAME);
+            final File configFile =
+                new File(configDirectory,
+                    Installation.CURRENT_CONFIG_FILE_NAME);
 
-            final int changeCount = updateConfigFile(configFile.getPath(),
-                null, PersistentSearchChangeType.ADD, ldif);
+            final int changeCount =
+                updateConfigFile(configFile.getPath(), null,
+                    PersistentSearchChangeType.ADD, ldif);
 
             displayChangeCount(configFile.getPath(), changeCount);
 
-            context.notifyProgress(handler, pnc.changeProgress(100));
+            context.notifyProgress(pnc.changeProgress(100));
           }
           catch (final Exception e)
           {
-            manageTaskException(context, handler,
-                Message.fromObject(e.getMessage()), pnc);
+            manageTaskException(context, Message.fromObject(e.getMessage()),
+                pnc);
           }
         }
       }
 
-
-
       @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void start(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
 
-
-
       @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void verify(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
     };
   }
 
-
-
   private static void displayChangeCount(final String fileName,
       final int changeCount)
   {
     if (changeCount != 0)
     {
-      LOG.log(
-          Level.INFO,
-          INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(fileName,
-              String.valueOf(changeCount)).toString());
+      LOG.log(Level.INFO, INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(
+          fileName, String.valueOf(changeCount)).toString());
     }
     else
     {
-      LOG.log(Level.INFO,
-          INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE.get(
-              fileName).toString());
+      LOG.log(Level.INFO, INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE.get(
+          fileName).toString());
     }
   }
-
-
 
   private static void displayTaskLogInformation(final String summary,
       final String filter, final String... ldif)
@@ -627,22 +533,18 @@ public final class UpgradeTasks
     }
   }
 
-
-
   private static void manageTaskException(final UpgradeContext context,
-      final CallbackHandler handler, final Message message,
-      final ProgressNotificationCallback pnc) throws ClientException
+      final Message message, final ProgressNotificationCallback pnc)
+      throws ClientException
   {
     countErrors++;
-    context.notifyProgress(handler, pnc.changeProgress(-100));
+    context.notifyProgress(pnc.changeProgress(-100));
     LOG.log(Level.SEVERE, message.toString());
     if (!context.isIgnoreErrorsMode())
     {
       throw new ClientException(EXIT_CODE_ERROR, message);
     }
   }
-
-
 
   private static UpgradeTask modifyConfigEntry(final Message summary,
       final Message description, final boolean needsUserConfirmation,
@@ -652,42 +554,22 @@ public final class UpgradeTasks
     {
       private boolean userConfirmation = true;
 
-
-
       @Override
-      public void end(final UpgradeContext context,
-          final CallbackHandler handler)
+      public void end(final UpgradeContext context)
       {
         // Nothing to do: no cleanup required.
       }
 
-
-
       @Override
-      public void interact(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void interact(final UpgradeContext context) throws ClientException
       {
         if (needsUserConfirmation)
         {
-          // This task require an interaction with the user
-          // Which means it needs to check if CLI/GUI selected
-          // options are correct.
-          final int res = context.checkCLIUserOption(handler,
-              VerificationCallback.NEED_USER_INTERACTION);
-
           // Process needs to have user's response to perform the current
           // modification.
-          final int answer = context.confirmYN(handler,
-              INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description),
-              ConfirmationCallback.YES);
-
-          // If the CLI/GUI options are not correct, stops the process
-          // which can happen if user selected non-interactive mode for ex.
-          if (res == ConfirmationCallback.NO)
-          {
-            throw new ClientException(EXIT_CODE_ERROR,
-                ERR_UPGRADE_INVALID_USER_OPTIONS_SELECTED.get());
-          }
+          final int answer =
+              context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM
+                  .get(description), ConfirmationCallback.YES);
 
           // The user refuses to perform this task.
           if (answer == ConfirmationCallback.NO)
@@ -697,11 +579,8 @@ public final class UpgradeTasks
         }
       }
 
-
-
       @Override
-      public void perform(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
         if (userConfirmation)
         {
@@ -710,50 +589,75 @@ public final class UpgradeTasks
           final ProgressNotificationCallback pnc =
               new ProgressNotificationCallback(0, summary, 20);
 
-          context.notifyProgress(handler, pnc);
+          context.notifyProgress(pnc);
 
           try
           {
-            final File configFile = new File(configDirectory,
-                Installation.CURRENT_CONFIG_FILE_NAME);
+            final File configFile =
+                new File(configDirectory,
+                    Installation.CURRENT_CONFIG_FILE_NAME);
 
-            final int changeCount = updateConfigFile(configFile.getPath(),
-                LDAPFilter.decode(filter), PersistentSearchChangeType.MODIFY,
-                ldif);
+            final int changeCount =
+                updateConfigFile(configFile.getPath(), LDAPFilter
+                    .decode(filter), PersistentSearchChangeType.MODIFY, ldif);
 
             displayChangeCount(configFile.getPath(), changeCount);
 
-            context.notifyProgress(handler, pnc.changeProgress(100));
+            context.notifyProgress(pnc.changeProgress(100));
           }
           catch (final Exception e)
           {
-            manageTaskException(context, handler,
-                Message.fromObject(e.getMessage()), pnc);
+            manageTaskException(context, Message.fromObject(e.getMessage()),
+                pnc);
           }
         }
       }
 
-
-
       @Override
-      public void start(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void start(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
 
-
-
       @Override
-      public void verify(final UpgradeContext context,
-          final CallbackHandler handler) throws ClientException
+      public void verify(final UpgradeContext context) throws ClientException
       {
         // Nothing to do.
       }
     };
   }
 
-
+  @SuppressWarnings("fallthrough")
+  private static void verifyTaskType(final TaskType type,
+      final UpgradeContext context) throws ClientException
+  {
+    /*
+     * Checks CLI/GUI options via context. The process will stop
+     * if user has selected conflicting options.
+     */
+    switch (type)
+    {
+    case NEED_USER_INTERACTION:
+    {
+      // Nothing to do.
+      break;
+    }
+    case MANDATORY_USER_INTERACTION:
+    case TAKE_LONG_TIME_TO_COMPLETE:
+    case CANNOT_BE_REVERTED:
+      // The option is not present ? Stops the process.
+      if (!context.isInteractiveMode() && !context.isForceUpgradeMode())
+      {
+        context.notify(ERR_UPGRADE_USER_INTERACTION_REQUIRED.get(
+            OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE),
+            FormattedNotificationCallback.NOTICE_CALLBACK);
+        throw new ClientException(EXIT_CODE_MANUAL_INTERVENTION,
+            ERR_UPGRADE_INVALID_USER_OPTIONS_SELECTED.get());
+      }
+    default:
+      break;
+    }
+  }
 
   // Prevent instantiation.
   private UpgradeTasks()

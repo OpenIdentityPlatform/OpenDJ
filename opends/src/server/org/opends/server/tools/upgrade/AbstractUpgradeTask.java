@@ -26,8 +26,6 @@
  */
 package org.opends.server.tools.upgrade;
 
-import javax.security.auth.callback.CallbackHandler;
-
 import org.opends.server.tools.ClientException;
 
 /**
@@ -47,7 +45,7 @@ public abstract class AbstractUpgradeTask implements UpgradeTask
    * {@inheritDoc}
    */
   @Override
-  public void end(UpgradeContext context, CallbackHandler handler)
+  public void end(UpgradeContext context)
       throws ClientException
   {
     // Nothing to do.
@@ -57,7 +55,7 @@ public abstract class AbstractUpgradeTask implements UpgradeTask
    * {@inheritDoc}
    */
   @Override
-  public void interact(UpgradeContext context, CallbackHandler handler)
+  public void interact(UpgradeContext context)
       throws ClientException
   {
     // Nothing to do.
@@ -67,7 +65,7 @@ public abstract class AbstractUpgradeTask implements UpgradeTask
    * {@inheritDoc}
    */
   @Override
-  public void start(UpgradeContext context, CallbackHandler handler)
+  public void start(UpgradeContext context)
       throws ClientException
   {
     // Nothing to do.
@@ -77,7 +75,7 @@ public abstract class AbstractUpgradeTask implements UpgradeTask
    * {@inheritDoc}
    */
   @Override
-  public void verify(UpgradeContext context, CallbackHandler handler)
+  public void verify(UpgradeContext context)
       throws ClientException
   {
     // Nothing to do.
