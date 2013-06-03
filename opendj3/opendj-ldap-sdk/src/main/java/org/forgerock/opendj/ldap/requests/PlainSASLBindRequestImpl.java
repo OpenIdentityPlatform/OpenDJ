@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -184,8 +184,6 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
         builder.append(authenticationID);
         builder.append(", authorizationID=");
         builder.append(authorizationID);
-        builder.append(", password=");
-        builder.append(ByteString.wrap(password));
         builder.append(", controls=");
         builder.append(getControls());
         builder.append(")");

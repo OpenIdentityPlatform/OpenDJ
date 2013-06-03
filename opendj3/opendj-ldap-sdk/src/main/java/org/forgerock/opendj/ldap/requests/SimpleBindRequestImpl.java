@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -101,8 +100,6 @@ final class SimpleBindRequestImpl extends AbstractBindRequest<SimpleBindRequest>
         builder.append("SimpleBindRequest(name=");
         builder.append(getName());
         builder.append(", authentication=simple");
-        builder.append(", password=");
-        builder.append(ByteString.wrap(getPassword()));
         builder.append(", controls=");
         builder.append(getControls());
         builder.append(")");
