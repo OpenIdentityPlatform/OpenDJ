@@ -27,8 +27,6 @@
 
 package org.opends.server.tools.upgrade;
 
-import javax.security.auth.callback.CallbackHandler;
-
 import org.opends.server.tools.ClientException;
 
 /**
@@ -38,6 +36,32 @@ public interface UpgradeTask
 {
 
   /**
+   * Defines the different types of upgrade tasks.
+   */
+  public enum TaskType {
+    /**
+     * Defines a standard task.
+     */
+    NORMAL,
+    /**
+     * Defines a task which require a standard user interaction.
+     */
+    NEED_USER_INTERACTION,
+    /**
+     * Defines a critical task which require an imperative user interaction.
+     */
+    MANDATORY_USER_INTERACTION,
+    /**
+     * Defines a task which take a long time to complete.
+     */
+    TAKE_LONG_TIME_TO_COMPLETE,
+    /**
+     * Defines a task which cannot be reverted once started.
+     */
+    CANNOT_BE_REVERTED
+  }
+
+  /**
    * Notifies this task that the upgrade has completed. This method will be
    * invoked after all upgrade tasks have completed successfully. Most task
    * implementation will not need to do anything.
@@ -45,13 +69,10 @@ public interface UpgradeTask
    * @param context
    *          Context through which tasks can interact with the server
    *          installation.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @throws ClientException
    *           If an error occurred while performing the task.
    */
-  void end(UpgradeContext context, CallbackHandler handler)
+  void end(UpgradeContext context)
       throws ClientException;
 
   /**
@@ -60,13 +81,10 @@ public interface UpgradeTask
    * @param context
    *          Context through which tasks can interact with the server
    *          installation.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @throws ClientException
    *           If an error occurred while performing the task.
    */
-  void perform(UpgradeContext context, CallbackHandler handler)
+  void perform(UpgradeContext context)
       throws ClientException;
 
   /**
@@ -77,13 +95,10 @@ public interface UpgradeTask
    * @param context
    *          Context through which tasks can interact with the server
    *          installation.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @throws ClientException
    *           If an error occurred while starting the task.
    */
-  void start(UpgradeContext context, CallbackHandler handler)
+  void start(UpgradeContext context)
       throws ClientException;
 
   /**
@@ -92,13 +107,10 @@ public interface UpgradeTask
    * @param context
    *          Context through which tasks can interact with the server
    *          installation.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @throws ClientException
    *           If the upgrade cannot proceed.
    */
-  void verify(UpgradeContext context, CallbackHandler handler)
+  void verify(UpgradeContext context)
       throws ClientException;
 
   /**
@@ -109,12 +121,9 @@ public interface UpgradeTask
    * @param context
    *          Context through which tasks can interact with the server
    *          installation.
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @throws ClientException
    *           If the upgrade cannot proceed.
    */
-  void interact(UpgradeContext context, CallbackHandler handler)
+  void interact(UpgradeContext context)
       throws ClientException;
 }

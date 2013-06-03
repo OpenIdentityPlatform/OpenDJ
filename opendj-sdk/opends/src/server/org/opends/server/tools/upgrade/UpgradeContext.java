@@ -28,10 +28,9 @@
 package org.opends.server.tools.upgrade;
 
 import static org.opends.messages.ToolMessages.
-  ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR;
+ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR;
 import static org.opends.messages.ToolMessages.
-  ERR_UPGRADE_DISPLAY_CONFIRM_ERROR;
-import static org.opends.messages.ToolMessages.ERR_UPGRADE_DISPLAY_CHECK_ERROR;
+ERR_UPGRADE_DISPLAY_CONFIRM_ERROR;
 import static org.opends.messages.ToolMessages.INFO_PROMPT_NO_COMPLETE_ANSWER;
 import static org.opends.messages.ToolMessages.INFO_PROMPT_YES_COMPLETE_ANSWER;
 import static org.opends.messages.ToolMessages.INFO_TASKINFO_CMD_CANCEL_CHAR;
@@ -64,9 +63,30 @@ public final class UpgradeContext
   private final BuildVersion toVersion;
 
   /**
+   * The call-back handler for interacting with the upgrade application.
+   */
+  private CallbackHandler handler;
+
+  /**
    * If ignore errors is enabled.
    */
   private boolean isIgnoreErrorsMode;
+
+  /**
+   * If accept license is enabled.
+   */
+  private boolean isAcceptLicenseMode;
+
+  /**
+   * If interactive mode is enabled.
+   */
+  private boolean isInteractiveMode;
+
+  /**
+   * If force upgrade is enabled.
+   */
+  private boolean isForceUpgradeMode;
+
 
   /**
    * Constructor for the upgrade context.
@@ -75,12 +95,16 @@ public final class UpgradeContext
    *          The version number from we upgrade from.
    * @param toVersion
    *          The version number we want to upgrade to.
+   * @param handler
+   *          The call-back handler for interacting with the upgrade
+   *          application.
    */
-  UpgradeContext(final BuildVersion fromVersion, final BuildVersion toVersion)
+  UpgradeContext(final BuildVersion fromVersion, final BuildVersion toVersion,
+      CallbackHandler handler)
   {
     this.fromVersion = fromVersion;
     this.toVersion = toVersion;
-    this.isIgnoreErrorsMode = false;
+    this.handler = handler;
   }
 
   /**
@@ -106,7 +130,7 @@ public final class UpgradeContext
   /**
    * Returns the ignore error mode.
    *
-   * @return {@true} if ignore error mode is activated.
+   * @return {code true} if ignore error mode is activated.
    */
   public boolean isIgnoreErrorsMode()
   {
@@ -116,7 +140,8 @@ public final class UpgradeContext
   /**
    * Sets the ignore errors mode.
    *
-   * @param isIgnoreErrorsMode {@true} if ignore error mode is activated.
+   * @param isIgnoreErrorsMode
+   *          {@code true} if ignore error mode is activated.
    */
   public void setIgnoreErrorsMode(boolean isIgnoreErrorsMode)
   {
@@ -124,18 +149,99 @@ public final class UpgradeContext
   }
 
   /**
-   * Sends notification message to the application via the call-back handler.
+   * Returns the accept license mode.
+   *
+   * @return {@code true} if accept license mode is activated.
+   */
+  public boolean isAcceptLicenseMode()
+  {
+    return isAcceptLicenseMode;
+  }
+
+  /**
+   * Sets the accept license mode.
+   *
+   * @param isAcceptLicenseMode
+   *          {@code true} if the accept license mode is activated.
+   */
+  public void setAcceptLicenseMode(boolean isAcceptLicenseMode)
+  {
+    this.isAcceptLicenseMode = isAcceptLicenseMode;
+  }
+
+  /**
+   * Returns the callback handler.
+   *
+   * @return The actual callback handler.
+   */
+  public CallbackHandler getHandler()
+  {
+    return handler;
+  }
+
+  /**
+   * Sets the upgrade callback handler.
    *
    * @param handler
    *          The call-back handler for interacting with the upgrade
    *          application.
+   */
+  public void setHandler(CallbackHandler handler)
+  {
+    this.handler = handler;
+  }
+
+  /**
+   * Returns the status of the interactive mode.
+   *
+   * @return {@code true} if interactive mode is activated.
+   */
+  public boolean isInteractiveMode()
+  {
+    return isInteractiveMode;
+  }
+
+  /**
+   * Sets the interactive mode.
+   *
+   * @param isInteractiveMode
+   *          {@code true} if the interactive mode is activated.
+   */
+  public void setInteractiveMode(boolean isInteractiveMode)
+  {
+    this.isInteractiveMode = isInteractiveMode;
+  }
+
+  /**
+   * Returns the status of the force upgrade mode.
+   *
+   * @return {@code true} if the force upgrade mode is activated.
+   */
+  public boolean isForceUpgradeMode()
+  {
+    return isForceUpgradeMode;
+  }
+
+  /**
+   * Sets the force upgrade mode.
+   *
+   * @param isForceUpgradeMode
+   *          {@code true} if the force upgrade mode is activated.
+   */
+  public void setForceUpgradeMode(boolean isForceUpgradeMode)
+  {
+    this.isForceUpgradeMode = isForceUpgradeMode;
+  }
+
+  /**
+   * Sends notification message to the application via the call-back handler.
+   *
    * @param message
    *          The message to be reported.
    * @throws ClientException
    *           If an error occurred while reporting the message.
    */
-  public void notify(final CallbackHandler handler, final Message message)
-      throws ClientException
+  public void notify(final Message message) throws ClientException
   {
     try
     {
@@ -153,9 +259,6 @@ public final class UpgradeContext
    * Sends notification message to the application via the call-back handler
    * containing specific sub type message.
    *
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @param message
    *          The message to be reported.
    * @param msgType
@@ -163,8 +266,8 @@ public final class UpgradeContext
    * @throws ClientException
    *           If an error occurred while reporting the message.
    */
-  public void notify(final CallbackHandler handler, final Message message,
-      final int msgType) throws ClientException
+  public void notify(final Message message, final int msgType)
+      throws ClientException
   {
     try
     {
@@ -181,16 +284,13 @@ public final class UpgradeContext
   /**
    * Displays a progress callback.
    *
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @param callback
    *          The callback to display.
    * @throws ClientException
    *           If an error occurred while reporting the message.
    */
-  public void notifyProgress(final CallbackHandler handler,
-      final ProgressNotificationCallback callback) throws ClientException
+  public void notifyProgress(final ProgressNotificationCallback callback)
+      throws ClientException
   {
     try
     {
@@ -206,9 +306,6 @@ public final class UpgradeContext
   /**
    * Asks a confirmation to the user. Answer is yes or no.
    *
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
    * @param message
    *          The message to be reported.
    * @param defaultOption
@@ -217,8 +314,8 @@ public final class UpgradeContext
    *           If an error occurred while reporting the message.
    * @return an integer corresponding to the user's answer.
    */
-  public int confirmYN(final CallbackHandler handler, final Message message,
-      final int defaultOption) throws ClientException
+  public int confirmYN(final Message message, final int defaultOption)
+      throws ClientException
   {
     final ConfirmationCallback confirmYNCallback =
         new ConfirmationCallback(message.toString(),
@@ -234,40 +331,6 @@ public final class UpgradeContext
           ERR_UPGRADE_DISPLAY_CONFIRM_ERROR.get(e.getMessage()));
     }
     return confirmYNCallback.getSelectedIndex();
-  }
-
-  /**
-   * Checks the user's options. If a required option is not present in the
-   * user's options list, stops the process.
-   *
-   * @param handler
-   *          The call-back handler for interacting with the upgrade
-   *          application.
-   * @param options
-   *          The options which should be present in the user's upgrade options.
-   * @throws ClientException
-   *           If an error occurred while reporting the message.
-   * @return An integer which represents the user selected index.
-   */
-  public int checkCLIUserOption(final CallbackHandler handler,
-      final int... options) throws ClientException
-  {
-    final VerificationCallback checkCLICallback =
-        new VerificationCallback(VerificationCallback.WARNING,
-            ConfirmationCallback.OK_CANCEL_OPTION, ConfirmationCallback.OK,
-            options);
-
-    try
-    {
-      handler.handle(new Callback[] { checkCLICallback });
-    }
-    catch (final Exception e)
-    {
-      throw new ClientException(EXIT_CODE_ERROR,
-          ERR_UPGRADE_DISPLAY_CHECK_ERROR.get(e.getMessage()));
-    }
-    return checkCLICallback.getSelectedIndex();
-
   }
 
   /**
