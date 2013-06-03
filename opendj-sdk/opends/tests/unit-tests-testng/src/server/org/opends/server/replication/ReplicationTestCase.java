@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -632,7 +632,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
   {
     String monitorFilter =
-         "(&(cn=replication Domain*)(domain-name=" + baseDn + "))";
+         "(&(cn=Directory server*)(domain-name=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -641,7 +641,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       if (count++>0)
         Thread.sleep(100);
       op = connection.processSearch(
-          ByteString.valueOf("cn=monitor"),
+          ByteString.valueOf("cn=replication,cn=monitor"),
                                     SearchScope.WHOLE_SUBTREE,
                                     LDAPFilter.decode(monitorFilter));
     }

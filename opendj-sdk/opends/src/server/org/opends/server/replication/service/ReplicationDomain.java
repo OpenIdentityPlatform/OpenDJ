@@ -3565,6 +3565,18 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Returns the local address of this replication domain, or the empty string
+   * if it is not yet connected.
+   *
+   * @return The local address.
+   */
+  String getLocalUrl()
+  {
+    final ReplicationBroker tmp = broker;
+    return tmp != null ? tmp.getLocalUrl() : "";
+  }
+
+  /**
    * Returns the total number of entries to be processed when a total update
    * is in progress.
    *

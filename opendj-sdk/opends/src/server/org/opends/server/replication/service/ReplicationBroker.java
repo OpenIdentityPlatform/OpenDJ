@@ -1239,17 +1239,19 @@ public class ReplicationBroker
           .isSslEncryption(server);
 
       // Send our ServerStartMsg.
+      String url = socket.getLocalAddress().getHostName() + ":"
+          + socket.getLocalPort();
       StartMsg serverStartMsg;
       if (!isECL)
       {
-        serverStartMsg = new ServerStartMsg(serverId, baseDn,
+        serverStartMsg = new ServerStartMsg(serverId, url, baseDn,
             maxRcvWindow, heartbeatInterval, state,
             ProtocolVersion.getCurrentVersion(),
             this.getGenerationID(), isSslEncryption, groupId);
       }
       else
       {
-        serverStartMsg = new ServerStartECLMsg(0, 0, 0, 0,
+        serverStartMsg = new ServerStartECLMsg(url, 0, 0, 0, 0,
             maxRcvWindow, heartbeatInterval, state,
             ProtocolVersion.getCurrentVersion(),
             this.getGenerationID(), isSslEncryption, groupId);
@@ -3115,6 +3117,18 @@ public class ReplicationBroker
   public boolean shuttingDown()
   {
     return shutdown;
+  }
+
+  /**
+   * Returns the local address of this replication domain, or the empty string
+   * if it is not yet connected.
+   *
+   * @return The local address.
+   */
+  String getLocalUrl()
+  {
+    final ProtocolSession tmp = session;
+    return tmp != null ? tmp.getLocalUrl() : "";
   }
 
 }

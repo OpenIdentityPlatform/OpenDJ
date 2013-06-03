@@ -97,6 +97,19 @@ public class TopologyMsg extends ReplicationMsg
         int dsId = Integer.valueOf(serverIdString);
         pos += length + 1;
 
+        /* Read DS URL */
+        String dsUrl;
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V6)
+        {
+          length = getNextLength(in, pos);
+          dsUrl = new String(in, pos, length, "UTF-8");
+          pos += length + 1;
+        }
+        else
+        {
+          dsUrl = "";
+        }
+
         /* Read RS id */
         length =
           getNextLength(in, pos);
@@ -187,7 +200,7 @@ public class TopologyMsg extends ReplicationMsg
 
         /* Now create DSInfo and store it in list */
 
-        DSInfo dsInfo = new DSInfo(dsId, rsId, generationId, status,
+        DSInfo dsInfo = new DSInfo(dsId, dsUrl, rsId, generationId, status,
           assuredFlag, assuredMode, safeDataLevel, groupId, refUrls, attrs,
           delattrs, protocolVersion);
         dsList.add(dsInfo);
@@ -321,6 +334,12 @@ public class TopologyMsg extends ReplicationMsg
           String.valueOf(dsInfo.getDsId()).getBytes("UTF-8");
         oStream.write(byteServerId);
         oStream.write(0);
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V6)
+        {
+          // Put DS URL
+          oStream.write(dsInfo.getDsUrl().getBytes("UTF-8"));
+          oStream.write(0);
+        }
         // Put RS id
         byteServerId =
           String.valueOf(dsInfo.getRsId()).getBytes("UTF-8");

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -107,6 +107,13 @@ public interface ProtocolSession
    * @return true if the connection is encrypted, false otherwise.
    */
   public abstract boolean isEncrypted();
+
+  /**
+   * Retrieve the local URL in the form host:port.
+   *
+   * @return The local URL.
+   */
+  public abstract String getLocalUrl();
 
   /**
    * Retrieve the IP address of the remote server.

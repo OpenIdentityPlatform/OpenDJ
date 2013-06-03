@@ -557,11 +557,10 @@ public class DbHandler implements Runnable
     @Override
     public String getMonitorInstanceName()
     {
-      ReplicationServerDomain domain =
-        replicationServer.getReplicationServerDomain(baseDn, false);
-
-      return "ReplicationServer database " + String.valueOf(serverId) +
-             ",cn=" + domain.getMonitorInstanceName();
+      ReplicationServerDomain domain = replicationServer
+          .getReplicationServerDomain(baseDn, false);
+      return "Changelog for DS(" + serverId + "),cn="
+          + domain.getMonitorInstanceName();
     }
 
     /**

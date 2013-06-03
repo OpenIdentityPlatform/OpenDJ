@@ -472,7 +472,7 @@ public class DraftCNDbHandler implements Runnable
     @Override
     public String getMonitorInstanceName()
     {
-      return "ReplicationServer DraftCN database ";
+      return "Draft Changelog";
     }
 
     /**

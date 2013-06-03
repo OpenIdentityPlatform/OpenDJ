@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -65,6 +65,7 @@ public final class TLSSocketSession implements ProtocolSession
   private final byte[] rcvLengthBuf = new byte[8];
   private final String readableRemoteAddress;
   private final String remoteAddress;
+  private final String localUrl;
 
   /**
    * The time the last message published to this session.
@@ -124,8 +125,9 @@ public final class TLSSocketSession implements ProtocolSession
     this.output = secureSocket.getOutputStream();
     this.readableRemoteAddress = plainSocket.getRemoteSocketAddress()
         .toString();
-    this.remoteAddress = plainSocket.getInetAddress()
-        .getHostAddress();
+    this.remoteAddress = plainSocket.getInetAddress().getHostAddress();
+    this.localUrl = plainSocket.getLocalAddress().getHostName() + ":"
+        + plainSocket.getLocalPort();
   }
 
 
@@ -252,6 +254,17 @@ public final class TLSSocketSession implements ProtocolSession
       return System.currentTimeMillis();
     }
     return lastReceiveTime;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getLocalUrl()
+  {
+    return localUrl;
   }
 
 

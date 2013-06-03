@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -74,9 +75,10 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    return "Replication Domain " + domain.getServerId()
-           + ",cn=" + domain.getServiceID().replace(',', '_').replace('=', '_')
-           + ",cn=replication";
+    return "Directory server DS(" + domain.getServerId() + ") "
+        + domain.getLocalUrl() + ",cn="
+        + domain.getServiceID().replace(',', '_').replace('=', '_')
+        + ",cn=Replication";
   }
 
   /**

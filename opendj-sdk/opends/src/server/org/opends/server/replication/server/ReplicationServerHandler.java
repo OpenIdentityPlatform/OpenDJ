@@ -709,13 +709,11 @@ public class ReplicationServerHandler extends ServerHandler
       for (DSInfo dsInfo : dsInfos)
       {
         LightweightServerHandler lsh = new LightweightServerHandler(this,
-            serverId, dsInfo.getDsId(), dsInfo.getGenerationId(),
-            dsInfo.getGroupId(), dsInfo.getStatus(), dsInfo.getRefUrls(),
-            dsInfo.isAssured(), dsInfo.getAssuredMode(),
-            dsInfo.getSafeDataLevel(),
-            dsInfo.getEclIncludes(),
-            dsInfo.getEclIncludesForDeletes(),
-            dsInfo.getProtocolVersion());
+            serverId, dsInfo.getDsId(), dsInfo.getDsUrl(),
+            dsInfo.getGenerationId(), dsInfo.getGroupId(), dsInfo.getStatus(),
+            dsInfo.getRefUrls(), dsInfo.isAssured(), dsInfo.getAssuredMode(),
+            dsInfo.getSafeDataLevel(), dsInfo.getEclIncludes(),
+            dsInfo.getEclIncludesForDeletes(), dsInfo.getProtocolVersion());
         lsh.startHandler();
         remoteDirectoryServers.put(lsh.getServerId(), lsh);
       }
@@ -779,10 +777,8 @@ public class ReplicationServerHandler extends ServerHandler
   @Override
   public String getMonitorInstanceName()
   {
-    String str = serverURL + " " + String.valueOf(serverId);
-
-    return "Connected Replication Server " + str +
-    ",cn=" + replicationServerDomain.getMonitorInstanceName();
+    return "Connected replication server RS(" + serverId + ") " + serverURL
+        + ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
   /**
