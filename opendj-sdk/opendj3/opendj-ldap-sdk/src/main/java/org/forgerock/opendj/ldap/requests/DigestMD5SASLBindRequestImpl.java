@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -404,8 +404,6 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         builder.append(authorizationID);
         builder.append(", realm=");
         builder.append(realm);
-        builder.append(", password=");
-        builder.append(ByteString.wrap(password));
         builder.append(", controls=");
         builder.append(getControls());
         builder.append(")");

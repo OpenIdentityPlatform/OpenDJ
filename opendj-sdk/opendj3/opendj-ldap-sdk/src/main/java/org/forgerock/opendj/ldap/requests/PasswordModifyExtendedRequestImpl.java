@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -286,10 +286,6 @@ final class PasswordModifyExtendedRequestImpl extends
         builder.append(getOID());
         builder.append(", userIdentity=");
         builder.append(userIdentity);
-        builder.append(", oldPassword=");
-        builder.append(oldPassword);
-        builder.append(", newPassword=");
-        builder.append(newPassword);
         builder.append(", controls=");
         builder.append(getControls());
         builder.append(")");
