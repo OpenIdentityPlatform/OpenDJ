@@ -98,8 +98,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    // Be sure we use the latest protocol version for these tests
-    ProtocolVersion.resetCurrentVersion();
   }
 
   /**
@@ -837,10 +835,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
     ServerStartMsg msg = new ServerStartMsg(
-        serverId, baseDN, window, window, state,
+        serverId, "localhost:1234", baseDN, window, window, state,
         ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
     ServerStartMsg newMsg = new ServerStartMsg(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
+    assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
@@ -1006,19 +1005,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     a3.add("uid");
     Set<String> a4 = new HashSet<String>();
 
-    DSInfo dsInfo1 = new DSInfo(13, 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
+    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
 
-    DSInfo dsInfo2 = new DSInfo(-436, 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
+    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
 
-    DSInfo dsInfo3 = new DSInfo(2436, 591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, (long)0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
-
-    DSInfo dsInfo4 = new DSInfo(415, 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
+    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
 
-    DSInfo dsInfo5 = new DSInfo(452436, 45591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, (long)0, ServerStatus.NORMAL_STATUS,
         false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
@@ -1422,9 +1420,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
     ServerStartECLMsg msg = new ServerStartECLMsg(
-        window, window, window, window, window, window, state,
+        "localhost:1234", window, window, window, window, window, window, state,
         ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
     ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes());
+    assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
     assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
     assertEquals(msg.getMaxSendDelay(), newMsg.getMaxSendDelay());

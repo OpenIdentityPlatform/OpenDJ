@@ -75,14 +75,15 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V5 = 5;
 
   /**
+   * The constant for the 6th version of the replication protocol.
+   * - include DS local URL in the DSInfo of TopologyMsg.
+   */
+  public static final short REPLICATION_PROTOCOL_V6 = 6;
+
+  /**
    * The replication protocol version used by the instance of RS/DS in this VM.
    */
-  private static short currentVersion = -1;
-
-  static
-  {
-    resetCurrentVersion();
-  }
+  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V6;
 
   /**
    * Gets the current version of the replication protocol.
@@ -91,25 +92,7 @@ public class ProtocolVersion
    */
   public static short getCurrentVersion()
   {
-    return currentVersion;
-  }
-
-  /**
-   * For test purpose.
-   * @param curVersion The provided current version.
-   */
-  public static void setCurrentVersion(short curVersion)
-  {
-    currentVersion = curVersion;
-  }
-
-  /**
-   * Resets the protocol version to the default value (the latest version).
-   * For test purpose.
-   */
-  public static void resetCurrentVersion()
-  {
-    currentVersion = REPLICATION_PROTOCOL_V5;
+    return CURRENT_VERSION;
   }
 
   /**
@@ -121,7 +104,7 @@ public class ProtocolVersion
    */
   public static short minWithCurrent(short version)
   {
-    return (version < currentVersion ? version : currentVersion);
+    return (version < CURRENT_VERSION ? version : CURRENT_VERSION);
   }
 }
 

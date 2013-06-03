@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -43,6 +43,8 @@ public class DSInfo
 
   // DS server id
   private int dsId = -1;
+  // DS server url
+  private String dsUrl;
   // Server id of the RS the DS is connected to
   private int rsId = -1;
   // DS Generation Id
@@ -73,6 +75,7 @@ public class DSInfo
    *
    * @param dsId
    *          The DS id
+   * @param dsUrl Url of the DS
    * @param rsId
    *          The RS id the DS is connected to
    * @param generationId
@@ -96,13 +99,14 @@ public class DSInfo
    * @param protocolVersion
    *          Protocol version supported by this server.
    */
-  public DSInfo(int dsId, int rsId, long generationId,
+  public DSInfo(int dsId, String dsUrl, int rsId, long generationId,
       ServerStatus status, boolean assuredFlag,
       AssuredMode assuredMode, byte safeDataLevel, byte groupId,
       List<String> refUrls, Set<String> eclIncludes,
       Set<String> eclIncludesForDeletes, short protocolVersion)
   {
     this.dsId = dsId;
+    this.dsUrl = dsUrl;
     this.rsId = rsId;
     this.generationId = generationId;
     this.status = status;
@@ -123,6 +127,15 @@ public class DSInfo
   public int getDsId()
   {
     return dsId;
+  }
+
+  /**
+   * Get the DS URL.
+   * @return the DS URL
+   */
+  public String getDsUrl()
+  {
+    return dsUrl;
   }
 
   /**
@@ -298,6 +311,8 @@ public class DSInfo
     StringBuilder sb = new StringBuilder();
     sb.append("\nDS id: ");
     sb.append(dsId);
+    sb.append(" ; DS url: ");
+    sb.append(dsUrl);
     sb.append(" ; RS id: ");
     sb.append(rsId);
     sb.append(" ; Generation id: ");

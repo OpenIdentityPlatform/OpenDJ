@@ -28,8 +28,6 @@
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
@@ -67,6 +65,7 @@ public class ServerStartECLMsg extends StartMsg
    * Server after being connected to a replication server for a given
    * replication domain.
    *
+   * @param serverURL directory server URL
    * @param maxReceiveDelay The max receive delay for this server.
    * @param maxReceiveQueue The max receive Queue for this server.
    * @param maxSendDelay The max Send Delay from this server.
@@ -80,7 +79,7 @@ public class ServerStartECLMsg extends StartMsg
 *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartECLMsg(int maxReceiveDelay,
+  public ServerStartECLMsg(String serverURL, int maxReceiveDelay,
                            int maxReceiveQueue, int maxSendDelay,
                            int maxSendQueue, int windowSize,
                            long heartbeatInterval,
@@ -92,6 +91,7 @@ public class ServerStartECLMsg extends StartMsg
   {
     super(protocolVersion, generationId);
 
+    this.serverURL = serverURL;
     this.maxReceiveDelay = maxReceiveDelay;
     this.maxReceiveQueue = maxReceiveQueue;
     this.maxSendDelay = maxSendDelay;
@@ -101,15 +101,6 @@ public class ServerStartECLMsg extends StartMsg
     this.sslEncryption = sslEncryption;
     this.serverState = serverState;
     this.groupId = groupId;
-
-    try
-    {
-      /* TODO : find a better way to get the server URL */
-      this.serverURL = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e)
-    {
-      this.serverURL = "Unknown host";
-    }
   }
 
   /**

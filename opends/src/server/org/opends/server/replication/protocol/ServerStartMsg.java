@@ -28,8 +28,6 @@
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
@@ -70,6 +68,7 @@ public class ServerStartMsg extends StartMsg
    *
    * @param serverId2 The serverId of the server for which the ServerStartMsg
    *                 is created.
+   * @param serverURL directory server URL
    * @param baseDn   The base DN.
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
@@ -80,17 +79,15 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(int serverId2, String baseDn, int windowSize,
-                            long heartbeatInterval,
-                            ServerState serverState,
-                            short protocolVersion,
-                            long generationId,
-                            boolean sslEncryption,
-                            byte groupId)
+  public ServerStartMsg(int serverId2, String serverURL, String baseDn,
+      int windowSize, long heartbeatInterval, ServerState serverState,
+      short protocolVersion, long generationId, boolean sslEncryption,
+      byte groupId)
   {
     super(protocolVersion, generationId);
 
     this.serverId = serverId2;
+    this.serverURL = serverURL;
     this.baseDn = baseDn;
     this.maxReceiveDelay = 0;
     this.maxReceiveQueue = 0;
@@ -101,15 +98,6 @@ public class ServerStartMsg extends StartMsg
     this.sslEncryption = sslEncryption;
     this.serverState = serverState;
     this.groupId = groupId;
-
-    try
-    {
-      /* TODO : find a better way to get the server URL */
-      this.serverURL = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e)
-    {
-      this.serverURL = "Unknown host";
-    }
   }
 
   /**

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -933,7 +933,7 @@ public class TopologyViewTest extends ReplicationTestCase
       urls.add(str);
     }
 
-    return new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
+    return new DSInfo(dsId, "dummy:1234", rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
        (byte)assuredSdLevel, groupId, urls, eclIncludes, eclIncludes, protocolVersion);
   }
 
@@ -1137,7 +1137,7 @@ public class TopologyViewTest extends ReplicationTestCase
      Set<String> eclInclude = rd.getEclIncludes();
      Set<String> eclIncludeForDeletes = rd.getEclIncludesForDeletes();
      short protocolVersion = ProtocolVersion.getCurrentVersion();
-     DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
+     DSInfo dsInfo = new DSInfo(dsId, "dummy:1234", rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
        safeDataLevel, groupId, refUrls, eclInclude, eclIncludeForDeletes, protocolVersion);
      dsList.add(dsInfo);
 

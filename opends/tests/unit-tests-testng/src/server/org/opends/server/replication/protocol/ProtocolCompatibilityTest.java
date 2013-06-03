@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -65,6 +65,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
+import static org.opends.server.util.StaticUtils.byteToHex;
 import static org.opends.messages.ReplicationMessages.*;
 
 import static org.testng.Assert.assertEquals;
@@ -75,7 +76,8 @@ import static org.testng.Assert.assertTrue;
  */
 public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
-  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V5;
+  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.getCurrentVersion();
+
   /**
    * Set up the environment for performing the tests in this Class.
    *
@@ -87,8 +89,6 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void setUp() throws Exception
   {
     super.setUp();
-    // Be sure we use the latest protocol version for these tests
-    ProtocolVersion.resetCurrentVersion();
   }
 
   /**
@@ -101,8 +101,6 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void classCleanUp() throws Exception
   {
     super.classCleanUp();
-    // Do not disturb other tests
-    ProtocolVersion.resetCurrentVersion();
   }
 
   @DataProvider(name="createReplServerStartData")
@@ -945,12 +943,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createOldServerStartData")
   public Object[][] createOldServerStartData()
   {
-    return new Object[][] {
-        {"140531323438001f6f3d74657374003136006675726f6e0030003000" +
-          "300030003130300031303000747275650032363300303030303030303030303030303034" +
-          "623031303730303030303030350000",
-          16, "o=test", (byte) 31,}
-    };
+    return new Object[][] { {
+        "14"
+            + byteToHex((byte) ProtocolVersion.getCurrentVersion())
+            + "31323438001f6f3d74657374003136006675726f6e0030003000"
+            + "300030003130300031303000747275650032363300303030303030303030303030303034"
+            + "623031303730303030303030350000", 16, "o=test", (byte) 31, } };
   }
 
   @Test(dataProvider = "createOldServerStartData")
@@ -964,8 +962,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerId(), serverId);
     assertEquals(msg.getBaseDn(), dn);
     assertEquals(msg.getGroupId(), groupId);
-    // We use V4 here because these PDU have not changed since 2.0.
-    BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V5));
+    BigInteger bi = new BigInteger(msg.getBytes());
     assertEquals(bi.toString(16), oldPdu);
   }
 
@@ -1069,16 +1066,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     urls4.add("ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)");
     urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
-    DSInfo dsInfo1 = new DSInfo(13, 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
+    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo2 = new DSInfo(-436, 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
+    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo3 = new DSInfo(2436, 591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, (long)0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo4 = new DSInfo(415, 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
+    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();

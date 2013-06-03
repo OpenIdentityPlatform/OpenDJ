@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1829,7 +1829,7 @@ public class AssuredReplicationPluginTest
      * Find monitoring entry for requested base DN
      */
     String monitorFilter =
-         "(&(cn=replication Domain*)(domain-name=" + baseDn + "))";
+         "(&(cn=Directory server*)(domain-name=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -1838,7 +1838,7 @@ public class AssuredReplicationPluginTest
       if (count++>0)
         Thread.sleep(100);
       op = connection.processSearch(
-                                    ByteString.valueOf("cn=monitor"),
+                                    ByteString.valueOf("cn=replication,cn=monitor"),
                                     SearchScope.WHOLE_SUBTREE,
                                     LDAPFilter.decode(monitorFilter));
     }

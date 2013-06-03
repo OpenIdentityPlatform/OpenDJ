@@ -346,10 +346,8 @@ public class DataServerHandler extends ServerHandler
   @Override
   public String getMonitorInstanceName()
   {
-    String str = serverURL + " " + String.valueOf(serverId);
-
-    return "Connected Replica " + str +
-    ",cn=" + replicationServerDomain.getMonitorInstanceName();
+    return "Connected directory server DS(" + serverId + ") " + serverURL
+        + ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
   /**
@@ -662,8 +660,7 @@ public class DataServerHandler extends ServerHandler
    */
   public DSInfo toDSInfo()
   {
-
-    return new DSInfo(serverId, replicationServerId, generationId,
+    return new DSInfo(serverId, serverURL, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
       eclIncludes, eclIncludesForDeletes, protocolVersion);
   }

@@ -73,6 +73,8 @@ public class LightweightServerHandler
 
   // Server id of this DS
   private int serverId = -1;
+  // Server URL of this DS
+  private String serverUrl = null;
   // Generation id of this DS
   private long generationId = -1;
   // Group id of the DS;
@@ -103,6 +105,7 @@ public class LightweightServerHandler
    * @param replicationServerId The serverId of the RS this remote DS is
    * connected to
    * @param serverId The serverId of this remote DS.
+   * @param serverUrl The serverUrl of this remote DS.
    * @param generationId The generation id of this remote DS.
    * @param groupId The group id of the remote DS
    * @param status The  id of the remote DS
@@ -116,15 +119,17 @@ public class LightweightServerHandler
    * @param protocolVersion The protocol version supported by the remote DS.
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
-    int replicationServerId, int serverId, long generationId, byte groupId,
-    ServerStatus status, List<String> refUrls, boolean assuredFlag,
-    AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude,
-    Set<String> eclIncludeForDeletes, short protocolVersion)
+      int replicationServerId, int serverId, String serverUrl,
+      long generationId, byte groupId, ServerStatus status,
+      List<String> refUrls, boolean assuredFlag, AssuredMode assuredMode,
+      byte safeDataLevel, Set<String> eclInclude,
+      Set<String> eclIncludeForDeletes, short protocolVersion)
   {
     this.replServerHandler = replServerHandler;
     this.rsDomain = replServerHandler.getDomain();
     this.replicationServerId = replicationServerId;
     this.serverId = serverId;
+    this.serverUrl = serverUrl;
     this.generationId = generationId;
     this.groupId = groupId;
     this.status = status;
@@ -151,7 +156,7 @@ public class LightweightServerHandler
    */
   public DSInfo toDSInfo()
   {
-    return new DSInfo(serverId, replicationServerId, generationId,
+    return new DSInfo(serverId, serverUrl, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
       eclInclude, eclIncludeForDeletes, protocolVersion);
   }
@@ -216,10 +221,8 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
   @Override
   public String getMonitorInstanceName()
   {
-    String serverURL=""; // FIXME
-    String str = serverURL + " " + String.valueOf(serverId);
-    return "Undirect Replica " + str +
-                          ",cn=" + replServerHandler.getMonitorInstanceName();
+    return "Connected directory server DS(" + serverId + ") " + serverUrl
+        + ",cn=" + replServerHandler.getMonitorInstanceName();
   }
 
   /**
