@@ -544,6 +544,53 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    </variablelist>   
   </section>
 
+  <section xml:id="aci-evaluation">
+    <title>How ACI is Evaluated</title>
+    <indexterm>
+     <primary>Access control</primary>
+     <secondary>Evaluation</secondary>
+    </indexterm>
+
+   <para>Understanding how OpenDJ evaluates the aci values is critical when
+   implementing an access control policy. The rules the server follows are
+   simple.</para>
+   
+   <orderedlist>
+    <listitem>
+     <para>To determine if an operation is allowed or denied, the OpenDJ server
+     looks in the directory for the target of the operation. It collects any aci
+     values from that entry, and then walks up the directory tree to the suffix,
+     collecting all aci values en route. Global aci values are then collected.</para>
+    </listitem>
+    <listitem>
+     <para>It then separates the aci values into two lists; one list contains
+     all the aci values that matches the target and denies the required access,
+     and the other list contains all the aci values that matches the target and
+     allows the required access.</para>
+    </listitem>
+    <listitem>
+     <para>If the deny list contains any aci values after this procedure, access
+     will be immediately denied.</para>
+    </listitem>
+    <listitem>
+     <para>If the deny list is empty, then the allow list is processed. If the
+     allow list contains any aci values, access will be allowed.</para>
+    </listitem>
+    <listitem>
+     <para>If both lists are empty, access will be denied.</para>
+    </listitem>
+   </orderedlist>
+
+   <note>
+    <para>Some operations require multiple permissions and involve multiple
+    targets. Evaluation will therefore take place multiple times. For example a
+    search operation requires the <literal>search</literal> permission for each
+    attribute in the search filter. If all those are allowed, the
+    <literal>read</literal> permission is used to decide what attributes and
+    values can be returned.</para>
+   </note>
+  </section>
+
   <section xml:id="aci-required">
    <title>ACI Required For LDAP Operations</title>
    <indexterm>
