@@ -358,6 +358,8 @@ public final class UpgradeCli extends ConsoleApplication implements
     // Main process
     try
     {
+      // Creates the log file.
+      UpgradeLog.initLogFileHandler();
 
       // Upgrade's context.
       UpgradeContext context =
@@ -368,9 +370,6 @@ public final class UpgradeCli extends ConsoleApplication implements
       context.setAcceptLicenseMode(isAcceptLicense());
       context.setInteractiveMode(isInteractive());
       context.setForceUpgradeMode(isForceUpgrade());
-
-      // Creates the log file.
-      UpgradeLog.initLogFileHandler();
 
       // Starts upgrade.
       Upgrade.upgrade(context);
@@ -384,7 +383,8 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (Exception ex)
     {
-      LOG.log(SEVERE, ex.getMessage());
+      LOG.log(SEVERE, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex
+          .getMessage()).toString());
       println(Style.ERROR, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex
           .getMessage()), 0);
 
