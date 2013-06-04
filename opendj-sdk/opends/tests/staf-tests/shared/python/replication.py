@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS.
+#      Portions Copyright 2011-2013 ForgeRock AS.
 
 
 
@@ -166,7 +166,7 @@ class Server:
     self.changelogServer = None
     
     replServer = Server(new_hostname, new_dir, new_port, new_adminPort, new_sslPort,
-                        new_jmxPort, new_rootDn, new_rootPwd, new_baseDn)
+                        new_jmxPort, new_rootDn, new_rootPwd, new_baseDn, self.data)
     replServer.addChangelogServer(new_changelogServer)
 
     return replServer
