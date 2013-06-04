@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.workflowelement;
 
@@ -341,9 +342,8 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   public void finalizeWorkflowElement()
   {
     // Deregister the monitor provider.
-    if (this.statistics != null) {
-      DirectoryServer.deregisterMonitorProvider(
-          this.statistics.getMonitorInstanceName());
+    if (statistics != null) {
+      DirectoryServer.deregisterMonitorProvider(statistics);
     }
   }
 
@@ -461,12 +461,12 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    *        below this object.
    * @return boolean
    */
-  public boolean hasChildWorkflowElement(WorkflowElement element) {
+  public boolean hasChildWorkflowElement(WorkflowElement<?> element) {
     if (this.getChildWorkflowElements().size() == 0) {
       return (this.equals(element));
     }
 
-    for (WorkflowElement subElement:this.getChildWorkflowElements()) {
+    for (WorkflowElement<?> subElement : this.getChildWorkflowElements()) {
       if (subElement.equals(element) ||
           subElement.hasChildWorkflowElement(element)) {
         return true;

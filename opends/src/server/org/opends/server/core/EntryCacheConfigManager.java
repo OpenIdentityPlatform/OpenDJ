@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -342,8 +343,7 @@ public class EntryCacheConfigManager
         EntryCacheMonitorProvider monitor = entryCache.getEntryCacheMonitor();
         if (monitor != null)
         {
-          String instanceName = toLowerCase(monitor.getMonitorInstanceName());
-          DirectoryServer.deregisterMonitorProvider(instanceName);
+          DirectoryServer.deregisterMonitorProvider(monitor);
           monitor.finalizeMonitorProvider();
           entryCache.setEntryCacheMonitor(null);
         }
@@ -511,8 +511,7 @@ public class EntryCacheConfigManager
       EntryCacheMonitorProvider monitor = entryCache.getEntryCacheMonitor();
       if (monitor != null)
       {
-        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
-        DirectoryServer.deregisterMonitorProvider(instanceName);
+        DirectoryServer.deregisterMonitorProvider(monitor);
         monitor.finalizeMonitorProvider();
         entryCache.setEntryCacheMonitor(null);
       }
@@ -612,7 +611,7 @@ public class EntryCacheConfigManager
     )
     throws InitializationException
   {
-    EntryCache entryCache = null;
+    EntryCache<?> entryCache = null;
 
     // If we this entry cache is already installed and active it
     // should be present in the current cache order map, use it.
@@ -622,17 +621,17 @@ public class EntryCacheConfigManager
 
     try
     {
-      EntryCacheCfgDefn                   definition;
-      ClassPropertyDefinition             propertyDefinition;
-      Class<? extends EntryCache>         cacheClass;
-      EntryCache<? extends EntryCacheCfg> cache;
-
-      definition = EntryCacheCfgDefn.getInstance();
-      propertyDefinition = definition.getJavaClassPropertyDefinition();
-      cacheClass = propertyDefinition.loadClass(className, EntryCache.class);
+      EntryCacheCfgDefn definition = EntryCacheCfgDefn.getInstance();
+      ClassPropertyDefinition propertyDefinition = definition
+          .getJavaClassPropertyDefinition();
+      @SuppressWarnings("unchecked")
+      Class<? extends EntryCache<?>> cacheClass =
+          (Class<? extends EntryCache<?>>) propertyDefinition
+              .loadClass(className, EntryCache.class);
 
       // If there is some entry cache instance already initialized work with
       // it instead of creating a new one unless explicit init is requested.
+      EntryCache<? extends EntryCacheCfg> cache;
       if (initialize || (entryCache == null)) {
         cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
       } else {

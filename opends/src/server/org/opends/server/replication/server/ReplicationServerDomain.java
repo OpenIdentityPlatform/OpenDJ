@@ -1823,7 +1823,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void shutdown()
   {
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
 
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();

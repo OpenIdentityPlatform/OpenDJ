@@ -407,11 +407,8 @@ public class BackendImpl
       }
     }
 
-    DirectoryServer.deregisterMonitorProvider(
-        rootContainerMonitor.getMonitorInstanceName());
-
-    DirectoryServer.deregisterMonitorProvider(
-        diskMonitor.getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(rootContainerMonitor);
+    DirectoryServer.deregisterMonitorProvider(diskMonitor);
 
     // We presume the server will prevent more operations coming into this
     // backend, but there may be existing operations already in the
@@ -1764,7 +1761,6 @@ public class BackendImpl
 
   /**
    * {@inheritDoc}
-   * @param monitor
    */
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
@@ -1777,7 +1773,6 @@ public class BackendImpl
 
   /**
    * {@inheritDoc}
-   * @param monitor
    */
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
@@ -1790,7 +1785,6 @@ public class BackendImpl
 
   /**
    * {@inheritDoc}
-   * @param monitor
    */
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
     Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),

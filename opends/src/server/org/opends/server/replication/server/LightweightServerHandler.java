@@ -182,7 +182,7 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
       " LWSH for remote server " + this.serverId +
       " connected to:" + this.replServerHandler.getMonitorInstanceName() +
           " start");
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
 
   }
@@ -193,13 +193,12 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
   public void stopHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo(
-      "In " +
-replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
-      " LWSH for remote server " + this.serverId +
-      " connected to:" + this.replServerHandler.getMonitorInstanceName() +
-          " stop");
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+      TRACER.debugInfo("In "
+          + replServerHandler.getDomain().getReplicationServer()
+              .getMonitorInstanceName() + " LWSH for remote server "
+          + this.serverId + " connected to:"
+          + this.replServerHandler.getMonitorInstanceName() + " stop");
+    DirectoryServer.deregisterMonitorProvider(this);
   }
 
   /**

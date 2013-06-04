@@ -30,7 +30,6 @@ package org.opends.server.backends.jeb.importLDIF;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.DynamicConstants.BUILD_ID;
 import static org.opends.server.util.DynamicConstants.REVISION_NUMBER;
 import static org.opends.server.util.ServerConstants.*;
@@ -56,7 +55,6 @@ import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
@@ -71,11 +69,6 @@ import com.sleepycat.util.PackedInteger;
  */
 public final class Importer implements DiskSpaceMonitorHandler
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   private static final int TIMER_INTERVAL = 10000;
   private static final int KB = 1024;
   private static final int MB = (KB * KB);
@@ -858,10 +851,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
     finally
     {
-      DirectoryServer.deregisterMonitorProvider(tmpMonitor
-          .getMonitorInstanceName());
-      DirectoryServer.deregisterMonitorProvider(dbMonitor
-          .getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(tmpMonitor);
+      DirectoryServer.deregisterMonitorProvider(dbMonitor);
       tmpMonitor.finalizeMonitorProvider();
       dbMonitor.finalizeMonitorProvider();
     }
@@ -972,10 +963,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     finally
     {
       reader.close();
-      DirectoryServer.deregisterMonitorProvider(tmpMonitor
-          .getMonitorInstanceName());
-      DirectoryServer.deregisterMonitorProvider(dbMonitor
-          .getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(tmpMonitor);
+      DirectoryServer.deregisterMonitorProvider(dbMonitor);
       tmpMonitor.finalizeMonitorProvider();
       dbMonitor.finalizeMonitorProvider();
     }

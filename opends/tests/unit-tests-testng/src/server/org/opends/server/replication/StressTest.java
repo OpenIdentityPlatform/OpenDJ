@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock As.
  */
 
 package org.opends.server.replication;
@@ -163,7 +164,7 @@ public class StressTest extends ReplicationTestCase
 
     }
     finally {
-      DirectoryServer.deregisterMonitorProvider(REPLICATION_STRESS_TEST);
+      DirectoryServer.deregisterMonitorProvider(monitor);
       broker.stop();
     }
   }
