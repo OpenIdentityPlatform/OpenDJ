@@ -49,7 +49,6 @@ import org.opends.messages.Severity;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
@@ -188,11 +187,6 @@ public abstract class ReplicationDomain
    */
   private static Map<String, ReplicationDomain> domains =
     new HashMap<String, ReplicationDomain>();
-
-  /**
-   * The Monitor in charge of replication monitoring.
-   */
-  private ReplicationMonitor monitor;
 
   /*
    * Assured mode properties
@@ -1480,11 +1474,9 @@ public abstract class ReplicationDomain
       }
 
       if (debugEnabled())
-        TRACER.debugInfo(
-           "[IE] In " + this.monitor.getMonitorInstanceName()
-           + " export ends with "
-           + " connected=" + broker.isConnected()
-           + " exportRootException=" + exportRootException);
+        TRACER.debugInfo("[IE] In " + getReplicationMonitorInstanceName()
+            + " export ends with " + " connected=" + broker.isConnected()
+            + " exportRootException=" + exportRootException);
 
       if (exportRootException != null)
       {
@@ -1589,6 +1581,11 @@ public abstract class ReplicationDomain
       throw(exportRootException);
     }
 
+  }
+
+  private String getReplicationMonitorInstanceName()
+  {
+    return broker.getReplicationMonitor().getMonitorInstanceName();
   }
 
   /*
@@ -1839,9 +1836,8 @@ public abstract class ReplicationDomain
         msg = broker.receive(false, false, true);
 
         if (debugEnabled())
-          TRACER.debugInfo(
-              "[IE] In " + this.monitor.getMonitorInstanceName() +
-            ", receiveEntryBytes " + msg);
+          TRACER.debugInfo("[IE] In " + getReplicationMonitorInstanceName()
+              + ", receiveEntryBytes " + msg);
 
         if (msg == null)
         {
@@ -1892,9 +1888,9 @@ public abstract class ReplicationDomain
                   ieContext.msgCnt);
               broker.publish(amsg, false);
               if (debugEnabled())
-                TRACER.debugInfo(
-                    "[IE] In " + this.monitor.getMonitorInstanceName() +
-                    ", publish InitializeRcvAckMsg" + amsg);
+                TRACER.debugInfo("[IE] In "
+                    + getReplicationMonitorInstanceName()
+                    + ", publish InitializeRcvAckMsg" + amsg);
             }
           }
           return entryBytes;
@@ -3006,15 +3002,7 @@ public abstract class ReplicationDomain
             changetimeHeartbeatInterval);
 
         broker.start(replicationServers);
-
-        /*
-         * Create a replication monitor object responsible for publishing
-         * monitoring information below cn=monitor.
-         */
-        monitor = new ReplicationMonitor(this);
       }
-
-      DirectoryServer.registerMonitorProvider(monitor);
     }
   }
 
@@ -3101,7 +3089,6 @@ public abstract class ReplicationDomain
    */
   public void stopDomain()
   {
-    DirectoryServer.deregisterMonitorProvider(monitor);
     disableService();
     domains.remove(serviceID);
   }
