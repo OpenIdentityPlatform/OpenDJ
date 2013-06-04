@@ -601,9 +601,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     pendingChanges =
       new PendingChanges(generator, this);
 
-    startPublishService(replicationServers, window, heartbeatInterval,
-        configuration.getChangetimeHeartbeatInterval());
-
     remotePendingChanges = new RemotePendingChanges(getServerState());
 
     // listen for changes on the configuration
@@ -611,6 +608,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
+
+    startPublishService(replicationServers, window, heartbeatInterval,
+        configuration.getChangetimeHeartbeatInterval());
   }
 
   /**

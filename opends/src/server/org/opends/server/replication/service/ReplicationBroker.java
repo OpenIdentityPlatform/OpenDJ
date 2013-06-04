@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.DSInfo;
@@ -194,6 +195,15 @@ public class ReplicationBroker
   private int mustRunBestServerCheckingAlgorithm = 0;
 
   /**
+   * The monitor provider for this replication domain. The name of the monitor
+   * includes the local address and must therefore be re-registered every time
+   * the session is re-established or destroyed. The monitor provider can only
+   * be created (i.e. non-null) if there is a replication domain, which is not
+   * the case in unit tests.
+   */
+  private final ReplicationMonitor monitor;
+
+  /**
    * Creates a new ReplicationServer Broker for a particular ReplicationDomain.
    *
    * @param replicationDomain The replication domain that is creating us.
@@ -233,6 +243,14 @@ public class ReplicationBroker
     this.maxRcvWindow = window;
     this.halfRcvWindow = window / 2;
     this.changeTimeHeartbeatSendInterval = changeTimeHeartbeatInterval;
+
+    /*
+     * Only create a monitor if there is a replication domain (this is not the
+     * case in some unit tests).
+     */
+    this.monitor = replicationDomain != null ? new ReplicationMonitor(
+        replicationDomain) : null;
+    registerReplicationMonitor();
   }
 
   /**
@@ -1107,12 +1125,7 @@ public class ReplicationBroker
     {
       if (!connected)
       {
-        ProtocolSession localSession = session;
-        if (localSession != null)
-        {
-          localSession.close();
-          session = null;
-        }
+        setSession(null);
       }
     }
   }
@@ -1305,7 +1318,7 @@ public class ReplicationBroker
       // updates, store it.
       if (keepConnection)
       {
-        session = localSession;
+        setSession(localSession);
       }
 
       return replServerInfo;
@@ -1414,11 +1427,8 @@ public class ReplicationBroker
           server, baseDn, stackTraceToSingleLineString(e));
       logError(message);
 
-      if (session != null)
-      {
-        session.close();
-        session = null;
-      }
+      setSession(null);
+
       // Be sure to return null.
       topologyMsg = null;
     }
@@ -1489,11 +1499,8 @@ public class ReplicationBroker
           server, baseDn, stackTraceToSingleLineString(e));
       logError(message);
 
-      if (session != null)
-      {
-        session.close();
-        session = null;
-      }
+      setSession(null);
+
       // Be sure to return null.
       topologyMsg = null;
     }
@@ -2188,7 +2195,7 @@ public class ReplicationBroker
       rsGroupId = -1;
       rsServerId = -1;
       rsServerUrl = null;
-      session = null;
+      setSession(null);
     }
 
     while (true)
@@ -2713,10 +2720,8 @@ public class ReplicationBroker
       rsGroupId = -1;
       rsServerId = -1;
       rsServerUrl = null;
-      if (session != null)
-      {
-        session.close();
-      }
+      setSession(null);
+      deregisterReplicationMonitor();
     }
   }
 
@@ -2875,12 +2880,8 @@ public class ReplicationBroker
    */
   public boolean isSessionEncrypted()
   {
-    boolean isEncrypted = false;
-    if (session != null)
-    {
-      return session.isEncrypted();
-    }
-    return isEncrypted;
+    final ProtocolSession tmp = session;
+    return tmp != null ? tmp.isEncrypted() : false;
   }
 
   /**
@@ -3131,4 +3132,54 @@ public class ReplicationBroker
     return tmp != null ? tmp.getLocalUrl() : "";
   }
 
+  /**
+   * Returns the replication monitor associated with this broker.
+   *
+   * @return The replication monitor.
+   */
+  ReplicationMonitor getReplicationMonitor()
+  {
+    // Only invoked by replication domain so always non-null.
+    return monitor;
+  }
+
+  private void setSession(final ProtocolSession newSession)
+  {
+    // De-register the monitor with the old name.
+    deregisterReplicationMonitor();
+
+    final ProtocolSession oldSession = session;
+    if (oldSession != null)
+    {
+      oldSession.close();
+    }
+    session = newSession;
+
+    // Re-register the monitor with the new name.
+    registerReplicationMonitor();
+  }
+
+  private void registerReplicationMonitor()
+  {
+    /*
+     * The monitor should not be registered if this is a unit test because the
+     * replication domain is null.
+     */
+    if (monitor != null)
+    {
+      DirectoryServer.registerMonitorProvider(monitor);
+    }
+  }
+
+  private void deregisterReplicationMonitor()
+  {
+    /*
+     * The monitor should not be deregistered if this is a unit test because the
+     * replication domain is null.
+     */
+    if (monitor != null)
+    {
+      DirectoryServer.deregisterMonitorProvider(monitor);
+    }
+  }
 }
