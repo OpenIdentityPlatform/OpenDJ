@@ -5603,17 +5603,18 @@ public final class DirectoryServer
 
 
   /**
-   * Deregisters the specified monitor provider from the Directory Server.  If
-   * no such monitor provider is registered, no action will be taken.
+   * Deregisters the specified monitor provider from the Directory Server. If no
+   * such monitor provider is registered, no action will be taken.
    *
-   * @param  lowerName  The name of the monitor provider to deregister, in all
-   *                    lowercase characters.
+   * @param monitorProvider
+   *          The monitor provider to deregister from the Directory Server.
    */
-  public static void deregisterMonitorProvider(String lowerName)
+  public static void deregisterMonitorProvider(
+      MonitorProvider<? extends MonitorProviderCfg> monitorProvider)
   {
-    MonitorProvider provider =
-         directoryServer.monitorProviders.remove(toLowerCase(lowerName));
-
+    String monitorName = toLowerCase(monitorProvider.getMonitorInstanceName());
+    MonitorProvider<?> provider = directoryServer.monitorProviders
+        .remove(monitorName);
 
     // Try to deregister the monitor provider as an MBean.
     if (provider != null)
@@ -6339,8 +6340,7 @@ public final class DirectoryServer
       BackendMonitor monitor = backend.getBackendMonitor();
       if (monitor != null)
       {
-        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
-        deregisterMonitorProvider(instanceName);
+        deregisterMonitorProvider(monitor);
         monitor.finalizeMonitorProvider();
         backend.setBackendMonitor(null);
       }
@@ -7218,8 +7218,7 @@ public final class DirectoryServer
       ConnectionHandlerMonitor monitor = handler.getConnectionHandlerMonitor();
       if (monitor != null)
       {
-        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
-        deregisterMonitorProvider(instanceName);
+        deregisterMonitorProvider(monitor);
         monitor.finalizeMonitorProvider();
         handler.setConnectionHandlerMonitor(null);
       }
@@ -9691,20 +9690,16 @@ public final class DirectoryServer
   public static DN getMonitorProviderDN(MonitorProvider provider)
   {
     String monitorName = provider.getMonitorInstanceName();
-    getAttributeType(ATTR_COMMON_NAME);
-    DN monitorRootDN;
     try
     {
       // Get a complete DN which could be a tree naming schema
-      monitorRootDN = DN.decode("cn="+monitorName+","+DN_MONITOR_ROOT);
+      return DN.decode("cn="+monitorName+","+DN_MONITOR_ROOT);
     }
     catch (DirectoryException e)
     {
       // Cannot reach this point.
       throw new RuntimeException();
     }
-
-    return monitorRootDN;
   }
 
 

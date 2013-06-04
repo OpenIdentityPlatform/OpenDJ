@@ -399,14 +399,12 @@ public final class LDAPConnectionHandler extends
 
     if (connMonitor != null)
     {
-      String lowerName = toLowerCase(connMonitor.getMonitorInstanceName());
-      DirectoryServer.deregisterMonitorProvider(lowerName);
+      DirectoryServer.deregisterMonitorProvider(connMonitor);
     }
 
     if (statTracker != null)
     {
-      String lowerName = toLowerCase(statTracker.getMonitorInstanceName());
-      DirectoryServer.deregisterMonitorProvider(lowerName);
+      DirectoryServer.deregisterMonitorProvider(statTracker);
     }
 
     DirectoryServer.deregisterSupportedLDAPVersion(2, this);

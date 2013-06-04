@@ -695,7 +695,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       msgQueue.notifyAll();
     }
 
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
   }
 
   /**

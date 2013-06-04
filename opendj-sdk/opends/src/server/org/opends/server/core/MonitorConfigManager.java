@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -70,7 +71,7 @@ public class MonitorConfigManager
 {
   // A mapping between the DNs of the config entries and the associated monitor
   // providers.
-  private ConcurrentHashMap<DN,MonitorProvider> monitors;
+  private ConcurrentHashMap<DN,MonitorProvider<?>> monitors;
 
 
 
@@ -79,7 +80,7 @@ public class MonitorConfigManager
    */
   public MonitorConfigManager()
   {
-    monitors = new ConcurrentHashMap<DN,MonitorProvider>();
+    monitors = new ConcurrentHashMap<DN,MonitorProvider<?>>();
   }
 
 
@@ -238,11 +239,10 @@ public class MonitorConfigManager
     boolean           adminActionRequired = false;
     ArrayList<Message> messages            = new ArrayList<Message>();
 
-    MonitorProvider monitor = monitors.remove(configuration.dn());
+    MonitorProvider<?> monitor = monitors.remove(configuration.dn());
     if (monitor != null)
     {
-      String lowerName = toLowerCase(monitor.getMonitorInstanceName());
-      DirectoryServer.deregisterMonitorProvider(lowerName);
+      DirectoryServer.deregisterMonitorProvider(monitor);
       monitor.finalizeMonitorProvider();
     }
 
@@ -292,8 +292,7 @@ public class MonitorConfigManager
 
 
     // Get the existing monitor provider if it's already enabled.
-    MonitorProvider existingMonitor = monitors.get(configuration.dn());
-
+    MonitorProvider<?> existingMonitor = monitors.get(configuration.dn());
 
     // If the new configuration has the monitor disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -301,11 +300,8 @@ public class MonitorConfigManager
     {
       if (existingMonitor != null)
       {
-        String lowerName =
-             toLowerCase(existingMonitor.getMonitorInstanceName());
-        DirectoryServer.deregisterMonitorProvider(lowerName);
-
-        MonitorProvider monitor = monitors.remove(configuration.dn());
+        DirectoryServer.deregisterMonitorProvider(existingMonitor);
+        MonitorProvider<?> monitor = monitors.remove(configuration.dn());
         if (monitor != null)
         {
           monitor.finalizeMonitorProvider();
@@ -383,9 +379,11 @@ public class MonitorConfigManager
            MonitorProviderCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
            definition.getJavaClassPropertyDefinition();
-      Class<? extends MonitorProvider> providerClass =
-           propertyDefinition.loadClass(className, MonitorProvider.class);
-      MonitorProvider monitor = providerClass.newInstance();
+      @SuppressWarnings("unchecked")
+      Class<? extends MonitorProvider<?>> providerClass =
+          (Class<? extends MonitorProvider<?>>) propertyDefinition
+              .loadClass(className, MonitorProvider.class);
+      MonitorProvider<?> monitor = providerClass.newInstance();
 
       if (configuration != null)
       {

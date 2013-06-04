@@ -118,8 +118,7 @@ public class DraftCNDbHandler implements Runnable
     thread.start();
 
     // Monitoring registration
-    DirectoryServer.deregisterMonitorProvider(
-                      dbMonitor.getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(dbMonitor);
     DirectoryServer.registerMonitorProvider(dbMonitor);
   }
 
@@ -258,8 +257,7 @@ public class DraftCNDbHandler implements Runnable
     }
 
     db.shutdown();
-    DirectoryServer.deregisterMonitorProvider(
-        dbMonitor.getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(dbMonitor);
   }
 
   /**

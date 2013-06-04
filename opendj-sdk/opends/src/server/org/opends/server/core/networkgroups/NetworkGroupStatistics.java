@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.core.networkgroups;
@@ -81,7 +82,7 @@ public class NetworkGroupStatistics
    * Finalize the statistics.
    */
   public void finalizeStatistics() {
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
   }
 
 

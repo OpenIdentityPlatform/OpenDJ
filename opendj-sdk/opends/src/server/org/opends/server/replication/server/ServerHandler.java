@@ -393,7 +393,7 @@ public abstract class ServerHandler extends MessageHandler
       }
     }
 
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
   }
 
@@ -1074,7 +1074,7 @@ public abstract class ServerHandler extends MessageHandler
       heartbeatThread.shutdown();
     }
 
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(this);
 
     /*
      * Be sure to wait for ServerWriter and ServerReader death

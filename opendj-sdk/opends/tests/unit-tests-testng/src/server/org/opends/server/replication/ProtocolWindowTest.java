@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.replication;
@@ -70,9 +71,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
 {
   private static final int WINDOW_SIZE = 10;
   private static final int REPLICATION_QUEUE_SIZE = 100;
-
-  private static final String REPLICATION_STRESS_TEST =
-    "Replication Stress Test";
 
   /**
    * A "person" entry
@@ -190,7 +188,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
     }
     finally {
       broker.stop();
-      DirectoryServer.deregisterMonitorProvider(REPLICATION_STRESS_TEST);
       // Clean domain
       DN dn = repDomainEntry.getDN();
       try

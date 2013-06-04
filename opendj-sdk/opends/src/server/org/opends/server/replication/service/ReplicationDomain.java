@@ -3101,8 +3101,7 @@ public abstract class ReplicationDomain
    */
   public void stopDomain()
   {
-    DirectoryServer.deregisterMonitorProvider(monitor.getMonitorInstanceName());
-
+    DirectoryServer.deregisterMonitorProvider(monitor);
     disableService();
     domains.remove(serviceID);
   }

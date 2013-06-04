@@ -155,8 +155,7 @@ public class DbHandler implements Runnable
         + ") for domain \"" + baseDn + "\"");
     thread.start();
 
-    DirectoryServer.deregisterMonitorProvider(
-                      dbMonitor.getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(dbMonitor);
     DirectoryServer.registerMonitorProvider(dbMonitor);
   }
 
@@ -338,8 +337,7 @@ public class DbHandler implements Runnable
       flush();
 
     db.shutdown();
-    DirectoryServer.deregisterMonitorProvider(
-        dbMonitor.getMonitorInstanceName());
+    DirectoryServer.deregisterMonitorProvider(dbMonitor);
   }
 
   /**
