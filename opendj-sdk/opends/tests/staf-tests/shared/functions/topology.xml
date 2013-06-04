@@ -434,16 +434,105 @@
         </else>
       </if>
 
-      <!--- Install DS Extract zip file -->
-      <message>
-        'Extract DS zip archive to %s on %s' % (dsDir,dsHost)
-      </message>
-      <call function="'unZipFile'">
-        { 'location' : dsHost,
-          'zipfile'  : '%s/%s' % (dsDir,ZIPNAME),
-          'unzipdir' : dsDir
-        }
-      </call>
+      <if expr="UPGRADE_ZIPNAME == ''">
+        <sequence>
+          <!-- *********** -->
+          <!-- NORMAL MODE -->
+          <!-- *********** -->
+          
+	      <!--- Install DS Extract zip file -->
+	      <message>
+	        'Extract DS zip archive to %s on %s' % (dsDir,dsHost)
+	      </message>
+	      <call function="'unZipFile'">
+	        { 'location' : dsHost,
+	          'zipfile'  : '%s/%s' % (dsDir,ZIPNAME),
+	          'unzipdir' : dsDir
+	        }
+	      </call>
+        </sequence>
+        <else>
+		  <sequence>
+		    <!-- ************ -->
+            <!-- UPGRADE MODE -->
+            <!-- ************ -->
+            
+		    <!--- Install old DS Extract zip file -->
+		    <message>
+		      'Extract old DS zip archive to %s on %s' % (local.temp,STAXServiceMachine)
+		    </message>
+		    <call function="'unZipFile'">
+		      { 'location' : STAXServiceMachine,
+		        'zipfile'  : '%s/%s' % (UPGRADE_ZIPPATH,UPGRADE_ZIPNAME),
+		        'unzipdir' : local.temp
+		      }
+		    </call>
+		  
+		    <!-- Rename folder for the old version, for instanceOpenDJ-2.4.5 -> opendj -->
+            <message>
+              'Rename old DS zip folder from %s/%s to %s/%s' % (local.temp,UPGRADE_OPENDJNAME,local.temp,OPENDSNAME)
+            </message>
+		    <script>
+		      import os
+		    
+		      srcDir = os.path.join(local.temp, UPGRADE_OPENDJNAME) 
+		      destDir = os.path.join(local.temp, OPENDSNAME) 
+		      os.rename(srcDir, destDir)
+		    </script>
+		  
+		    <!-- Re-create a new archive for the old DS -->
+            <message>
+              'Re-create old DS archive %s/%s from %s/%s' % (local.temp,UPGRADE_ZIPNAME,local.temp,OPENDSNAME)
+            </message>
+		    <call function="'zipUpFile'">
+		      { 'location'   : STAXServiceMachine,
+		        'zipfile'    : '%s/%s' % (local.temp,UPGRADE_ZIPNAME), 
+		        'folder'     : '%s/%s' % (local.temp,OPENDSNAME),
+		        'relativeto' : local.temp 
+		      }                        
+		    </call>
+		   
+		    <!-- Check if old DS Copy zip exists -->
+		    <call function="'GetEntry'">
+		      {
+		        'location'  : dsHost,
+		        'entry'     : '%s/%s' % (dsDir,UPGRADE_ZIPNAME),
+		        'attribute' : 'TYPE'
+		      }
+		    </call>
+		    <if expr="RC == 48">
+		      <sequence>
+		        <!--- Copy old DS Copy zip file -->
+		        <message>
+		          'Copy old DS zip archive %s/%s to %s' % (local.temp,UPGRADE_ZIPNAME,dsHost)
+		        </message>
+		        <call function="'copyFile'">
+		          { 'srcfile'    : '%s/%s' % (local.temp,UPGRADE_ZIPNAME),
+		            'destfile'   : '%s/%s' % (dsDir,UPGRADE_ZIPNAME),
+		            'remotehost' : dsHost
+		          }
+		        </call>
+		      </sequence>
+		      <else>
+		        <message>
+		          'Old DS zip archive %s/%s already exists, nothing to do' % (dsDir,UPGRADE_ZIPNAME)
+		        </message>
+		      </else>
+		    </if>
+		  
+		    <!--- Install DS Extract zip file -->
+		    <message>
+		      'Extract old DS zip archive to %s on %s' % (dsDir,dsHost)
+		    </message>
+		    <call function="'unZipFile'">
+		      { 'location' : dsHost,
+		        'zipfile'  : '%s/%s' % (dsDir,UPGRADE_ZIPNAME),
+		        'unzipdir' : dsDir
+		      }
+		    </call>
+		  </sequence>
+        </else>
+      </if>
       
       <!-- fixMe: Windows Services are not enabled -->
       <if expr="is_windows_platform(dsHost)">
@@ -500,6 +589,32 @@
             'Failed to create instance.'
           </message>
         </else>
+      </if>
+      
+      <!-- ******* -->
+      <!-- UPGRADE -->
+      <!-- ******* -->
+      <if expr="UPGRADE_ZIPNAME != ''">
+        <sequence>
+          <!-- Copy content of new version into old version -->
+	      <!-- Install DS Extract zip file -->
+	      <message>
+	        'Extract DS zip archive to %s on %s' % (dsDir,dsHost)
+	      </message>
+	      <call function="'unZipFile'">
+	        { 'location' : dsHost,
+	          'zipfile'  : '%s/%s' % (dsDir,ZIPNAME),
+	          'unzipdir' : dsDir
+	        }
+	      </call>
+ 
+          <!--  Upgrade instance -->
+          <call function="'UpgradeDsWithScript'">
+            { 'location'   : dsHost,
+              'dsPath'     : '%s/%s' % (dsDir, OPENDSNAME),
+            }
+          </call>
+        </sequence>
       </if>
     </sequence> 
   </function>

@@ -52,6 +52,80 @@
 
   </function>
 
+  <!-- This function upgrades DS using the upgrade script -->
+  <function name="UpgradeDsWithScript" scope="local">
+    <function-prolog>
+      This function upgrades DS using the upgrade script
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          STAFCmd='%s/upgrade%s' % (dsPath,fileExt) 
+          STAFCmdParamsList.append('-n')
+                  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'name'      : 'Upgrade DS Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath,
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+    </sequence>
+  </function>
+
   <!-- This function sets up DS using the setup script -->
   <function name="SetUpDsWithScript" scope="local">
     <function-prolog>
