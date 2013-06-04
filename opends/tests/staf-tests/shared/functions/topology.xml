@@ -457,51 +457,49 @@
             <!-- UPGRADE MODE -->
             <!-- ************ -->
             
-		    <!--- Install old DS Extract zip file -->
-		    <message>
-		      'Extract old DS zip archive to %s on %s' % (local.temp,STAXServiceMachine)
-		    </message>
-		    <call function="'unZipFile'">
-		      { 'location' : STAXServiceMachine,
-		        'zipfile'  : '%s/%s' % (UPGRADE_ZIPPATH,UPGRADE_ZIPNAME),
-		        'unzipdir' : local.temp
-		      }
-		    </call>
-		  
-		    <!-- Rename folder for the old version, for instanceOpenDJ-2.4.5 -> opendj -->
-            <message>
-              'Rename old DS zip folder from %s/%s to %s/%s' % (local.temp,UPGRADE_OPENDJNAME,local.temp,OPENDSNAME)
-            </message>
-		    <script>
-		      import os
-		    
-		      srcDir = os.path.join(local.temp, UPGRADE_OPENDJNAME) 
-		      destDir = os.path.join(local.temp, OPENDSNAME) 
-		      os.rename(srcDir, destDir)
-		    </script>
-		  
-		    <!-- Re-create a new archive for the old DS -->
-            <message>
-              'Re-create old DS archive %s/%s from %s/%s' % (local.temp,UPGRADE_ZIPNAME,local.temp,OPENDSNAME)
-            </message>
-		    <call function="'zipUpFile'">
-		      { 'location'   : STAXServiceMachine,
-		        'zipfile'    : '%s/%s' % (local.temp,UPGRADE_ZIPNAME), 
-		        'folder'     : '%s/%s' % (local.temp,OPENDSNAME),
-		        'relativeto' : local.temp 
-		      }                        
-		    </call>
+            <!-- Check if old DS Copy zip exists -->
+            <call function="'GetEntry'">
+              {
+                'location'  : dsHost,
+                'entry'     : '%s/%s' % (dsDir,UPGRADE_ZIPNAME),
+                'attribute' : 'TYPE'
+              }
+            </call>
+            <if expr="RC == 48">
+              <sequence>
+			    <!--- Install old DS Extract zip file -->
+			    <message>
+			      'Extract old DS zip archive to %s on %s' % (local.temp,STAXServiceMachine)
+			    </message>
+			    <call function="'unZipFile'">
+			      { 'zipfile'  : '%s/%s' % (UPGRADE_ZIPPATH,UPGRADE_ZIPNAME),
+			        'unzipdir' : local.temp
+			      }
+			    </call>
+			  
+			    <!-- Rename folder for the old version, for instance OpenDJ-2.4.5 => opendj -->
+	            <message>
+	              'Rename old DS zip folder from %s/%s to %s/%s' % (local.temp,UPGRADE_OPENDJNAME,local.temp,OPENDSNAME)
+	            </message>
+			    <script>
+			      import os
+			    
+			      srcDir = os.path.join(local.temp, UPGRADE_OPENDJNAME) 
+			      destDir = os.path.join(local.temp, OPENDSNAME) 
+			      os.rename(srcDir, destDir)
+			    </script>
+			  
+			    <!-- Re-create a new archive for the old DS -->
+	            <message>
+	              'Re-create old DS archive %s/%s from %s/%s' % (local.temp,UPGRADE_ZIPNAME,local.temp,OPENDSNAME)
+	            </message>
+			    <call function="'zipUpFile'">
+			      { 'zipfile'    : '%s/%s' % (local.temp,UPGRADE_ZIPNAME), 
+			        'folder'     : '%s/%s' % (local.temp,OPENDSNAME),
+			        'relativeto' : local.temp 
+			      }                        
+			    </call>
 		   
-		    <!-- Check if old DS Copy zip exists -->
-		    <call function="'GetEntry'">
-		      {
-		        'location'  : dsHost,
-		        'entry'     : '%s/%s' % (dsDir,UPGRADE_ZIPNAME),
-		        'attribute' : 'TYPE'
-		      }
-		    </call>
-		    <if expr="RC == 48">
-		      <sequence>
 		        <!--- Copy old DS Copy zip file -->
 		        <message>
 		          'Copy old DS zip archive %s/%s to %s' % (local.temp,UPGRADE_ZIPNAME,dsHost)
@@ -512,6 +510,22 @@
 		            'remotehost' : dsHost
 		          }
 		        </call>
+		        
+			    <message>
+			      'Delete folder %s/%s' % (local.temp,OPENDSNAME)
+			    </message>
+			    <call function="'deleteFolder'">
+			      { 'foldername' : '%s/%s' % (local.temp,OPENDSNAME)
+			      }
+			    </call>
+			    
+                <message>
+                  'Delete archive %s/%s' % (local.temp,UPGRADE_ZIPNAME)
+                </message>
+                <call function="'deleteFile'">
+                  { 'filename'   : '%s/%s' % (local.temp,UPGRADE_ZIPNAME)
+                  }
+                </call>
 		      </sequence>
 		      <else>
 		        <message>
