@@ -399,7 +399,7 @@ Replication: Disabled</screen>
   <para>On Debian and related Linux distributions such as Ubuntu, you can
   install OpenDJ directory server from the Debian package.</para>
 
-  <step>
+  <step performance="optional">
    <para>Before you install OpenDJ, install a Java runtime environment if none
    is installed yet.</para>
 
@@ -490,7 +490,7 @@ Replication: </screen>
   <para>On Red Hat and related Linux distributions such as Fedora and CentOS,
   you can install OpenDJ directory server from the RPM package.</para>
 
-  <step>
+  <step performance="optional">
    <para>Before you install OpenDJ, install a Java runtime environment if none
    is installed yet.</para>
 
