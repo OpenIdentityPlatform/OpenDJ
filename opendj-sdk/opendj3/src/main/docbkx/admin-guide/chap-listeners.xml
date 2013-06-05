@@ -640,8 +640,8 @@ $ dsconfig
   </procedure>
  </section>
 
- <section xml:id="restrict-ldap-clients">
-  <title>Restricting LDAP Client Access</title>
+ <section xml:id="restrict-clients">
+  <title>Restricting Client Access</title>
   <indexterm><primary>Access control</primary></indexterm>
 
   <para>Using the OpenDJ directory server global configuration properties, you
