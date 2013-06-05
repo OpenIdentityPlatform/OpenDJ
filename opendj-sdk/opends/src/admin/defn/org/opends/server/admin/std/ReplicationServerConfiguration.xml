@@ -305,13 +305,16 @@
       The period between sending of monitoring messages.
     </adm:synopsis>
     <adm:description>
-      Defines the number of milliseconds that the replication server will wait
+      Defines the duration that the replication server will wait
       before sending new monitoring messages to its peers (replication servers
-      and directory servers).
+      and directory servers). Larger values increase the length of time it
+      takes for a directory server to detect and switch to a more suitable
+      replication server, whereas smaller values increase the amount of
+      background network traffic.  
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>3000ms</adm:value>
+        <adm:value>60s</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
