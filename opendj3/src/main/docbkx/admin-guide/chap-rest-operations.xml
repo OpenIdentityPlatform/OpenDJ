@@ -128,7 +128,101 @@
  <section xml:id="authenticate-rest">
   <title>Authenticating Over REST</title>
 
-  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-828</para>
+  <para>When you first try to get a resource that you can read as an LDAP
+  entry with an anonymous search, you might be surprised that you must
+  authenticate.</para>
+
+  <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "code" : 401,
+  "reason" : "Unauthorized",
+  "message" : "Unauthorized"
+}</screen>
+
+  <para>HTTP status code 401 tells your HTTP client that the request requires
+  user authentication. You can change this behavior by setting the HTTP
+  connection handler property, <literal>authentication-required</literal>,
+  to <literal>false</literal>.</para>
+
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set authentication-required:false
+ --no-prompt
+ --trustAll</screen>
+
+  <para>Out of the box both the HTTP Connection Handler and also the REST LDAP
+  gateway are configured to allow HTTP Basic authentication and HTTP header
+  based authentication in the style of OpenIDM. The authentication mechanisms
+  translate HTTP authentication to LDAP authentication on the directory server
+  side.</para>
+
+  <para>When you install OpenDJ either with generated sample user entries or
+  with data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  xlink:show="new">Example.ldif</link>, the relative distinguished name
+  attribute for the sample user entries is the user ID (<literal>uid</literal>)
+  attribute. For example, the DN and user ID for Babs Jensen are as
+  follows.</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen</programlisting>
+
+  <para>Given this pattern in the user entries, the default REST to LDAP
+  configuration assumes that the user name on the HTTP side is the value of
+  the user ID, and that user entries can be found under
+  <literal>ou=People,dc=example,dc=com</literal>. In other words, Babs Jensen
+  authenticates as <literal>bjensen</literal> (password:
+  <literal>hifalutin</literal>) over HTTP. This is mapped for an LDAP bind
+  to the bind DN <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
+
+  <para>With HTTP Basic authentication, it looks like this.</para>
+
+  <screen>$ curl
+ --user bjensen:hifalutin
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>Or, using the HTTP Basic
+  <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
+  in the URL, it looks like this.</para>
+
+  <screen>$ curl
+http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>With HTTP header based authentication, it looks like this.</para>
+
+  <screen>$ curl
+ --header "X-OpenIDM-Username: bjensen"
+ --header "X-OpenIDM-Password: hifalutin"
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>If your directory data are laid out differently, or if your user names
+  are email addresses rather than user IDs for example, then you must update
+  the configuration in order for authentication to work.</para>
+
+  <para>The REST LDAP gateway can also translate HTTP user name and password
+  authentication to PLAIN SASL authentication on the LDAP side. Moreover, the
+  gateway can fall back to proxied authorization as necessary, using a root DN
+  authenticated connection to LDAP servers. See <link xlink:show="new"
+  xlink:href="admin-guide#appendix-rest2ldap"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+  Configuration</citetitle></link> for details on all configuration
+  choices.</para>
  </section>
 
  <section xml:id="create-rest">
