@@ -17,7 +17,7 @@ A Java SE 6.0 (version 1.6.0_10) or higher runtime environment must be installed
 recommended that your system have at least 100MB of disk space and 256MB of free memory to run
 OpenDJ for evaluation purposes. Note that you can configure OpenDJ in such a way that it requires
 substantially less, or more, disk space. For more information, see the OpenDJ System Requirements
-at http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide/chap-before-you-install.html.
+at http://opendj.forgerock.org/doc/release-notes/index/chap-before-you-install.html.
 
 To Install OpenDJ in GUI mode
 -----------------------------
@@ -26,7 +26,7 @@ have downloaded and unzipped.
 
 If you run QuickSetup remotely, it automatically downloads and unzips the latest weekly build,
 and handles server configuration. To launch QuickSetup via Java Web Start, point your
-browser to http://www.forgerock.org/downloads/opendj/2.4.4/install/QuickSetup.jnlp.
+browser to http://www.forgerock.org/opendj.html and click on the [Nightly build] link.
 
 To run QuickSetup locally:
 
@@ -45,9 +45,9 @@ To Install OpenDJ in Command-Line Mode
 See Also
 --------
  * Installing the OpenDJ directory server
-  (http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide.html)
+  (http://opendj.forgerock.org/doc/install-guide/index.html)
  * Installing OpenDJ with the QuickSetup Wizard
-  (http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide/chap-install-gui.html)
+  (http://opendj.forgerock.org/doc/install-guide/index/chap-install-gui.html)
  * Installing OpenDJ from the Command Line
-  (http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide/chap-install-cli.html)
+  (http://opendj.forgerock.org/doc/install-guide/index/chap-install-cli.html)
 

@@ -23,7 +23,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
-	<string>OpenDS.icns</string>
+	<string>OpenDJ.icns</string>
 	<key>Java</key>
 	<dict>
 		<key>VMOptions</key>
