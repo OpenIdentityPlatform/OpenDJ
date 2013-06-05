@@ -326,6 +326,8 @@
       Specifies the policy that the
       <adm:user-friendly-name />
       should use regarding client SSL certificates.
+      Clients can use the SASL EXTERNAL mechanism only if the
+      policy is set to "optional" or "required".
     </adm:synopsis>
     <adm:description>
       This is only applicable if clients are allowed to use SSL.
@@ -342,7 +344,7 @@
       <adm:enumeration>
         <adm:value name="disabled">
           <adm:synopsis>
-            Clients are not required to provide their own
+            Clients must not provide their own
             certificates when performing SSL negotiation.
           </adm:synopsis>
         </adm:value>
@@ -356,9 +358,10 @@
         </adm:value>
         <adm:value name="required">
           <adm:synopsis>
-            Clients are required to provide their own certificates
-            when performing SSL negotiation and are refused access
-            if the do not provide a certificate.
+            Clients are requested to provide their own certificates
+            when performing SSL negotiation. The connection is
+            nevertheless accepted if the client does not provide a
+            certificate.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
