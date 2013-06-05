@@ -91,7 +91,7 @@ then
   JAVA_HOME=`java -cp "${ROOT_DIR}/resource" FindJavaHome 2> /dev/null`
   if test -z "${JAVA_HOME}"
   then
-    echo "Please set JAVA_HOME to the root of a Java 5.0 installation."
+    echo "Please set JAVA_HOME to the root of a Java 6.0 installation."
     exit 1
   else
     export JAVA_HOME
@@ -200,8 +200,8 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <homepage href="${HOMEPAGE}"/>
     <description>${PRODUCT_NAME} QuickSetup Application</description>
     <description kind="short">${PRODUCT_NAME} Web Start Installer</description>
-    <icon href="images/opendshref.png" height="128" width="128"/>
-    <icon kind="splash" href="images/opendssplash.png" height="114" width="479"/>
+    <icon href="images/opendjhref.png" height="128" width="128"/>
+    <icon kind="splash" href="images/opendjsplash.png" height="114" width="479"/>
   </information>
 
   <security>

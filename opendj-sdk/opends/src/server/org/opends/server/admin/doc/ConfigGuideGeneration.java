@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.admin.doc;
 
@@ -1003,7 +1003,7 @@ public class ConfigGuideGeneration {
             " Configuration Reference</h2></td>\n");
     htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
       "<a href=\"" + OpenDJHome + "\" target=\"_parent\">" +
-      "<img src=\"opends_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" " +
+      "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" " +
       "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
     htmlBuff.append("</tr>\n");
     htmlBuff.append("</tbody></table>\n");
