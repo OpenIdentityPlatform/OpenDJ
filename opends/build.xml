@@ -1382,7 +1382,7 @@
         <filter token="name" value="${PKG_NAME}"/>
         <filter token="homepage" value="${DOC_REFERENCE_HOME}"/>
         <filter token="maintainer" value="opendj@forgerock.org"/>
-        <filter token="description" value="${PKG_NAME}"/>
+        <filter token="description" value="${PRODUCT_NAME}"/>
       </filterset>
     </copy>
 
