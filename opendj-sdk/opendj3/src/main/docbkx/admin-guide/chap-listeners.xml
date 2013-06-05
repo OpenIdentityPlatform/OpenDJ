@@ -932,25 +932,34 @@ supportedTLSProtocols: TLSv1.2
     <para>If necessary, change the connection handler configuration using the
     <command>dsconfig</command> command.</para>
 
-<!-- The example I would like to use does not quite work for me, yet.
-
     <para>The following example shows how to set the port to 8443, and to
     configure the connection handler to do SSL (using the default server
-    certificate).</para>
+    certificate). If you did not generate a default, self-signed certificate
+    when installing OpenDJ directory server see the instructions, <link
+    xlink:show="new" xlink:href="admin-guide#new-self-signed-cert"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Create &amp;
+    Install a Self-Signed Certificate</citetitle></link>, and more generally the
+    section on <link xlink:show="new"
+    xlink:href="admin-guide#setup-server-cert"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Preparing For
+    Secure Communications</citetitle></link> for additional instructions
+    including how to import a CA-signed certificate.</para>
 
     <screen>$ dsconfig
  set-connection-handler-prop
- - -hostname opendj.example.com
- - -port 4444
- - -bindDN "cn=Directory Manager"
- - -bindPassword password
- - -handler-name "HTTP Connection Handler"
- - -set listen-port:8443
- - -set use-ssl:true
- - -set key-manager-provider:JKS
- - -set trust-manager-provider:"Blind Trust"
- - -no-prompt
-$ stop-ds - -restart
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set listen-port:8443
+ --set use-ssl:true
+ --set key-manager-provider:JKS
+ --set trust-manager-provider:"Blind Trust"
+ --no-prompt
+$ stop-ds --restart
+Stopping Server...
+.... The Directory Server has started successfully
 $ keytool
  -export
  -rfc
@@ -959,10 +968,29 @@ $ keytool
  -storepass `cat /path/to/opendj/config/keystore.pin`
  -file server-cert.pem
 Certificate stored in file &lt;server-cert.pem&gt;
-$ curl - -cacert server-cert.pem https://opendj.example.com:8443/users/bjensen?_prettyPrint
-curl: (35) error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol</screen>
-
--->
+$ curl
+ --cacert server-cert.pem
+ --user bjensen:hifalutin
+ https://opendj.example.com:8443/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000018c8b685",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
    </step>
   </procedure>
 
