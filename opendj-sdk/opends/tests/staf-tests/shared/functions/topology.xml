@@ -434,7 +434,7 @@
         </else>
       </if>
 
-      <if expr="UPGRADE_ZIPNAME == ''">
+      <if expr="UPGRADE_OPENDJNAME == ''">
         <sequence>
           <!-- *********** -->
           <!-- NORMAL MODE -->
@@ -608,7 +608,7 @@
       <!-- ******* -->
       <!-- UPGRADE -->
       <!-- ******* -->
-      <if expr="UPGRADE_ZIPNAME != ''">
+      <if expr="UPGRADE_OPENDJNAME != ''">
         <sequence>
           <!-- Copy content of new version into old version -->
 	      <!-- Install DS Extract zip file -->
