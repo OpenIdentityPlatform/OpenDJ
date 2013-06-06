@@ -111,7 +111,7 @@
               <else>
                 <!-- Windows -->
                 <script>
-                  sleepTime = 6000
+                  sleepTime = 10000
                 </script>
               </else>
             </if>
