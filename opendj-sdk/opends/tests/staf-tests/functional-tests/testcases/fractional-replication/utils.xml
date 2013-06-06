@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2012 ForgeRock AS.
+ !      Portions Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <function name="get-fractional-replication-attributes" scope="local">
@@ -319,7 +319,7 @@
       <script> 
         replicationDomainDN = replicationDomainSuffix
         for l in STAXResult[0][1].splitlines():
-          if l.startswith('dn: cn=Replication Domain'):
+          if l.startswith('dn: cn=Directory server DS'):
             replicationDomainDN = l.replace('dn: ','')
       </script>
 
