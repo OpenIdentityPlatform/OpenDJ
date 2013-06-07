@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -365,21 +364,16 @@ public class SchemaBackend
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
     DirectoryServer.setSchemaDN(baseDNs[0]);
-    for (int i=0; i < baseDNs.length; i++)
-    {
-      try
-      {
-        DirectoryServer.registerBaseDN(baseDNs[i], this, true);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
+    for (DN baseDN : baseDNs) {
+      try {
+        DirectoryServer.registerBaseDN(baseDN, this, true);
+      } catch (Exception e) {
+        if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            baseDNs[i].toString(), getExceptionMessage(e));
+            baseDN.toString(), getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }
@@ -472,6 +466,8 @@ public class SchemaBackend
                                       mods);
       if (! mods.isEmpty())
       {
+        // TODO : Raise an alert notification.
+
         DirectoryServer.setOfflineSchemaChanges(mods);
 
         // Write a new concatenated schema file with the most recent information
@@ -540,7 +536,7 @@ public class SchemaBackend
   private boolean isSchemaConfigAttribute(Attribute attribute)
   {
     AttributeType attrType = attribute.getAttributeType();
-    if (attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
+    return attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_ID.toLowerCase()) ||
@@ -551,12 +547,8 @@ public class SchemaBackend
         attrType.hasName(OP_ATTR_CREATORS_NAME_LC) ||
         attrType.hasName(OP_ATTR_CREATE_TIMESTAMP_LC) ||
         attrType.hasName(OP_ATTR_MODIFIERS_NAME_LC) ||
-        attrType.hasName(OP_ATTR_MODIFY_TIMESTAMP_LC))
-    {
-      return true;
-    }
+        attrType.hasName(OP_ATTR_MODIFY_TIMESTAMP_LC);
 
-    return false;
   }
 
 
@@ -1122,17 +1114,15 @@ public class SchemaBackend
     TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
 
     int pos = -1;
-    Iterator<Modification> iterator = mods.iterator();
-    while (iterator.hasNext())
+    for (Modification m : mods)
     {
-      Modification m = iterator.next();
       pos++;
 
       // Determine the type of modification to perform.  We will support add and
       // delete operations in the schema, and we will also support the ability
       // to add a schema element that already exists and treat it as a
       // replacement of that existing element.
-      Attribute     a  = m.getAttribute();
+      Attribute a = m.getAttribute();
       AttributeType at = a.getAttributeType();
       switch (m.getModificationType())
       {
@@ -1145,7 +1135,7 @@ public class SchemaBackend
               try
               {
                 type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1157,8 +1147,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addAttributeType(type, newSchema, modifiedSchemaFiles);
@@ -1172,7 +1161,7 @@ public class SchemaBackend
               try
               {
                 oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                                                         newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1184,8 +1173,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addObjectClass(oc, newSchema, modifiedSchemaFiles);
@@ -1199,7 +1187,7 @@ public class SchemaBackend
               try
               {
                 nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
-                                                   false);
+                    false);
               }
               catch (DirectoryException de)
               {
@@ -1211,8 +1199,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addNameForm(nf, newSchema, modifiedSchemaFiles);
@@ -1226,7 +1213,7 @@ public class SchemaBackend
               try
               {
                 dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                                                newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1238,8 +1225,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addDITContentRule(dcr, newSchema, modifiedSchemaFiles);
@@ -1253,7 +1239,7 @@ public class SchemaBackend
               try
               {
                 dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                           v.getValue(), newSchema, false);
+                    v.getValue(), newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1265,8 +1251,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addDITStructureRule(dsr, newSchema, modifiedSchemaFiles);
@@ -1280,7 +1265,7 @@ public class SchemaBackend
               try
               {
                 mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                                                 newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1292,25 +1277,23 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               addMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
             }
           }
-          else if(at.equals(ldapSyntaxesType))
+          else if (at.equals(ldapSyntaxesType))
           {
-            for(AttributeValue v : a)
+            for (AttributeValue v : a)
             {
-              LDAPSyntaxDescription lsd = null;
+              LDAPSyntaxDescription lsd;
               try
               {
                 lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                        v.getValue(),
-                        newSchema, false);
+                    v.getValue(), newSchema, false);
               }
-              catch(DirectoryException de)
+              catch (DirectoryException de)
               {
                 if (debugEnabled())
                 {
@@ -1318,13 +1301,12 @@ public class SchemaBackend
                 }
 
                 Message message =
-                        ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                            v.getValue().toString(), de.getMessageObject());
+                    ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
+                        v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
-              addLdapSyntaxDescription(lsd,newSchema,modifiedSchemaFiles);
+              addLdapSyntaxDescription(lsd, newSchema, modifiedSchemaFiles);
             }
           }
           else
@@ -1332,7 +1314,7 @@ public class SchemaBackend
             Message message =
                 ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+                message);
           }
 
           break;
@@ -1344,7 +1326,7 @@ public class SchemaBackend
             Message message =
                 ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+                message);
           }
 
           if (at.equals(attributeTypesType))
@@ -1355,7 +1337,7 @@ public class SchemaBackend
               try
               {
                 type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1367,12 +1349,11 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeAttributeType(type, newSchema, mods, pos,
-                                  modifiedSchemaFiles);
+                  modifiedSchemaFiles);
             }
           }
           else if (at.equals(objectClassesType))
@@ -1383,7 +1364,7 @@ public class SchemaBackend
               try
               {
                 oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                                                         newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1395,8 +1376,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeObjectClass(oc, newSchema, mods, pos, modifiedSchemaFiles);
@@ -1410,7 +1390,7 @@ public class SchemaBackend
               try
               {
                 nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
-                                                   false);
+                    false);
               }
               catch (DirectoryException de)
               {
@@ -1422,8 +1402,7 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeNameForm(nf, newSchema, mods, pos, modifiedSchemaFiles);
@@ -1437,7 +1416,7 @@ public class SchemaBackend
               try
               {
                 dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                                                newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1449,12 +1428,11 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeDITContentRule(dcr, newSchema, mods, pos,
-                                   modifiedSchemaFiles);
+                  modifiedSchemaFiles);
             }
           }
           else if (at.equals(ditStructureRulesType))
@@ -1465,7 +1443,7 @@ public class SchemaBackend
               try
               {
                 dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                           v.getValue(), newSchema, false);
+                    v.getValue(), newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1477,12 +1455,11 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeDITStructureRule(dsr, newSchema, mods, pos,
-                                     modifiedSchemaFiles);
+                  modifiedSchemaFiles);
             }
           }
           else if (at.equals(matchingRuleUsesType))
@@ -1493,7 +1470,7 @@ public class SchemaBackend
               try
               {
                 mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                                                 newSchema, false);
+                    newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1505,26 +1482,24 @@ public class SchemaBackend
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
               removeMatchingRuleUse(mru, newSchema, mods, pos,
-                                    modifiedSchemaFiles);
+                  modifiedSchemaFiles);
             }
           }
           else if (at.equals(ldapSyntaxesType))
           {
-            for(AttributeValue v : a)
+            for (AttributeValue v : a)
             {
-              LDAPSyntaxDescription lsd = null;
+              LDAPSyntaxDescription lsd;
               try
               {
                 lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                        v.getValue(),
-                        newSchema, false);
+                    v.getValue(), newSchema, false);
               }
-              catch(DirectoryException de)
+              catch (DirectoryException de)
               {
                 if (debugEnabled())
                 {
@@ -1532,13 +1507,12 @@ public class SchemaBackend
                 }
 
                 Message message =
-                        ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                          v.getValue().toString(), de.getMessageObject());
+                    ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
+                        v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               de);
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
-              removeLdapSyntaxDescription(lsd,newSchema,modifiedSchemaFiles);
+              removeLdapSyntaxDescription(lsd, newSchema, modifiedSchemaFiles);
             }
           }
           else
@@ -1546,7 +1520,7 @@ public class SchemaBackend
             Message message =
                 ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+                message);
           }
 
           break;
@@ -1559,7 +1533,7 @@ public class SchemaBackend
             Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
                 String.valueOf(m.getModificationType()));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+                message);
           }
           else
           {
@@ -1568,7 +1542,7 @@ public class SchemaBackend
             if (SchemaConfigManager.isSchemaAttribute(a))
             {
               Message message = ERR_SCHEMA_INVALID_REPLACE_MODIFICATION.get(
-                                  a.getNameWithOptions());
+                  a.getNameWithOptions());
               ErrorLogger.logError(message);
             }
             else
@@ -1581,9 +1555,9 @@ public class SchemaBackend
 
         default:
           Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
-                String.valueOf(m.getModificationType()));
+              String.valueOf(m.getModificationType()));
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       message);
+              message);
       }
     }
 
@@ -3886,21 +3860,12 @@ public class SchemaBackend
     ArrayList<File> tempFileList      = new ArrayList<File>();
     ArrayList<File> origFileList      = new ArrayList<File>();
 
-    File schemaInstallDir  =
-      new File(SchemaConfigManager.getSchemaDirectoryPath(false));
     File schemaInstanceDir =
-      new File(SchemaConfigManager.getSchemaDirectoryPath(true));
+      new File(SchemaConfigManager.getSchemaDirectoryPath());
 
     for (String name : tempSchemaFiles.keySet())
     {
-      File installFile = new File(schemaInstallDir, name);
-      if (installFile.exists())
-      {
-        installedFileList.add(installFile);
-      } else
-      {
-        installedFileList.add(new File(schemaInstanceDir, name));
-      }
+      installedFileList.add(new File(schemaInstanceDir, name));
       tempFileList.add(tempSchemaFiles.get(name));
       origFileList.add(new File(schemaInstanceDir, name + ".orig"));
     }
@@ -4525,7 +4490,7 @@ public class SchemaBackend
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
-            // definitions may vary between versions of OpenDS.
+            // definitions may vary between versions of OpenDJ.
             continue;
           }
 
@@ -4579,7 +4544,7 @@ public class SchemaBackend
       {
         // Don't import the file containing the definitions of the
         // Schema elements used for configuration because these
-        // definitions may vary between versions of OpenDS.
+        // definitions may vary between versions of OpenDJ.
         // Also never delete anything from the core schema file.
         continue;
       }
@@ -4642,7 +4607,7 @@ public class SchemaBackend
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
-            // definitions may vary between versions of OpenDS.
+            // definitions may vary between versions of OpenDJ.
             continue;
           }
 
@@ -4700,7 +4665,7 @@ public class SchemaBackend
       {
         // Don't import the file containing the definition of the
         // Schema elements used for configuration because these
-        // definitions may vary between versions of OpenDS.
+        // definitions may vary between versions of OpenDJ.
         continue;
       }
       if (!oidList.contains(removeClass.getOID()))
@@ -4971,7 +4936,7 @@ public class SchemaBackend
     // Get the path to the directory in which the schema files reside and
     // then get a list of all the files in that directory.
     String schemaInstanceDirPath =
-      SchemaConfigManager.getSchemaDirectoryPath(true);
+      SchemaConfigManager.getSchemaDirectoryPath();
     File schemaDir;
     File[] schemaFiles = null;
 
@@ -5385,7 +5350,7 @@ public class SchemaBackend
     // move the current schema directory out of the way so we can keep it around
     // to restore if a problem occurs.
     String schemaInstanceDirPath   =
-      SchemaConfigManager.getSchemaDirectoryPath(true);
+      SchemaConfigManager.getSchemaDirectoryPath();
 
     File   schemaInstanceDir       = new File(schemaInstanceDirPath);
 

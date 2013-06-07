@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.util;
 
 
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -36,11 +38,9 @@ import java.util.regex.Pattern;
 import java.util.Collection;
 
 import org.opends.messages.Message;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
@@ -54,13 +54,8 @@ import static org.opends.server.util.Validator.*;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class LDIFWriter
+public final class LDIFWriter implements Closeable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   // FIXME -- Add support for generating a hash when writing the data.
   // FIXME -- Add support for signing the hash that is generated.
 
@@ -263,7 +258,8 @@ public boolean writeEntries(Collection <Entry> entries)
    *                       to LDIF.
    *
    * @throws  LDIFException  If a problem occurs while trying to determine
-   *                         whether to include the temlate entry in the export.
+   *                         whether to include the template entry in the
+   *                         export.
    */
   public boolean writeTemplateEntry(TemplateEntry templateEntry)
   throws IOException, LDIFException

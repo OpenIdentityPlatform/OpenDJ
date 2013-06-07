@@ -581,7 +581,7 @@ public final class Schema
          subordinateTypes.get(attributeType);
     if (subTypes == null)
     {
-      return Collections.<AttributeType>emptyList();
+      return Collections.emptyList();
     }
     else
     {
@@ -3557,19 +3557,9 @@ public final class Schema
           throws IOException
   {
     // Get a sorted list of the files in the schema directory.
-    String schemaDirectory =
-                SchemaConfigManager.getSchemaDirectoryPath(false);
     TreeSet<File> schemaFiles = new TreeSet<File>();
-    for (File f : new File(schemaDirectory).listFiles())
-    {
-      if (f.isFile())
-      {
-        schemaFiles.add(f);
-      }
-    }
-
-    schemaDirectory =
-      SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory =
+      SchemaConfigManager.getSchemaDirectoryPath();
     for (File f : new File(schemaDirectory).listFiles())
     {
       if (f.isFile())

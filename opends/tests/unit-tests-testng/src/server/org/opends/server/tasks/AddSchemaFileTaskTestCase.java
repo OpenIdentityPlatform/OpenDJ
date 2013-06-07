@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -93,7 +94,7 @@ public class AddSchemaFileTaskTestCase
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     String[] fileLines =
     {
@@ -166,7 +167,7 @@ public class AddSchemaFileTaskTestCase
     Thread.sleep(2);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
 
     SchemaTestMatchingRule matchingRule1 =
@@ -340,7 +341,7 @@ public class AddSchemaFileTaskTestCase
     Thread.sleep(2);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     File emptyFile = new File(schemaDirectory, "05-empty.ldif");
     emptyFile.createNewFile();
@@ -375,7 +376,7 @@ public class AddSchemaFileTaskTestCase
   public void testAddInvalidSchemaFile()
          throws Exception
   {
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     File invalidFile = new File(schemaDirectory, "05-invalid.ldif");
     BufferedWriter writer = new BufferedWriter(new FileWriter(invalidFile));

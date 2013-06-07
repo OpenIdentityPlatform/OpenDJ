@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,6 +69,7 @@ import org.opends.server.types.Schema;
 import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 
 /**
  * The task that is launched when a schema element must be deleted.
@@ -149,6 +151,7 @@ public class DeleteSchemaElementsTask extends Task
       }
     }
 
+    assert allOcsToDelete != null;
     ArrayList<ObjectClass> lOcsToDelete =
       new ArrayList<ObjectClass>(allOcsToDelete);
     for (int i = lOcsToDelete.size() - 1; i >= 0; i--)
@@ -406,46 +409,29 @@ public class DeleteSchemaElementsTask extends Task
       new LDIFExportConfig(schemaFile,
           ExistingFileBehavior.OVERWRITE);
     LDIFReader reader = null;
-    Entry schemaEntry = null;
+    LDIFWriter writer = null;
     try
     {
       reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-      schemaEntry = reader.readEntry();
+      Entry schemaEntry = reader.readEntry();
 
       Modification mod = new Modification(ModificationType.DELETE,
           Attributes.create(
               getSchemaFileAttributeName(schemaElement).toLowerCase(),
               getSchemaFileAttributeValue(schemaElement)));
       schemaEntry.applyModification(mod);
-      LDIFWriter writer = new LDIFWriter(exportConfig);
+      writer = new LDIFWriter(exportConfig);
       writer.writeEntry(schemaEntry);
       exportConfig.getWriter().newLine();
     }
-    catch (Throwable t)
+    catch (IOException e)
     {
+      throw new OfflineUpdateException(
+          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e.toString()), e);
     }
     finally
     {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (Throwable t)
-        {
-        }
-      }
-      if (exportConfig != null)
-      {
-        try
-        {
-          exportConfig.close();
-        }
-        catch (Throwable t)
-        {
-        }
-      }
+      StaticUtils.close(reader, exportConfig, writer);
     }
   }
 
@@ -465,14 +451,8 @@ public class DeleteSchemaElementsTask extends Task
     if (!f.isAbsolute())
     {
       f = new File(
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(false),
-        schemaFile);
-      if (f == null || ! f.exists() || f.isDirectory())
-      {
-        f = new File(
-            DirectoryServer.getEnvironmentConfig().getSchemaDirectory(true),
-            schemaFile);
-      }
+          DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
+          schemaFile);
     }
     schemaFile = f.getAbsolutePath();
     return schemaFile;
@@ -480,10 +460,10 @@ public class DeleteSchemaElementsTask extends Task
 
   /**
    * Returns the attribute name in the schema entry that corresponds to the
-   * profived schema element.
+   * provided schema element.
    * @param element the schema element.
    * @return the attribute name in the schema entry that corresponds to the
-   * profived schema element.
+   * provided schema element.
    */
   private String getSchemaFileAttributeName(CommonSchemaElements element)
   {
@@ -565,14 +545,13 @@ public class DeleteSchemaElementsTask extends Task
       }
 
       StringBuilder sb = new StringBuilder();
-      sb.append(
-          msg+"<br><b>");
+      sb.append(msg).append("<br><b>");
       sb.append(equiv);
       sb.append("<br>");
       sb.append("dn: cn=schema<br>");
       sb.append("changetype: modify<br>");
-      sb.append("delete: "+attrName+"<br>");
-      sb.append(attrName+": "+attrValue);
+      sb.append("delete: ").append(attrName).append("<br>");
+      sb.append(attrName).append(": ").append(attrValue);
       sb.append("</b><br><br>");
       getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
           ColorAndFontConstants.progressFont));
@@ -583,13 +562,12 @@ public class DeleteSchemaElementsTask extends Task
   {
     AttributeType attrToAdd;
     boolean isSuperior = false;
-    AttributeType newSuperior = attrToDelete.getSuperiorType();
     for (AttributeType attr : providedAttrsToDelete)
     {
       if (attr.equals(attrToDelete.getSuperiorType()))
       {
         isSuperior = true;
-        newSuperior = attr.getSuperiorType();
+        AttributeType newSuperior = attr.getSuperiorType();
         while (newSuperior != null &&
             providedAttrsToDelete.contains(newSuperior))
         {
@@ -718,12 +696,8 @@ public class DeleteSchemaElementsTask extends Task
   private Set<ObjectClass> getNewSuperiors(ObjectClass currentSup)
   {
     Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
-    if (currentSup.getSuperiorClasses() == null ||
-        currentSup.getSuperiorClasses().isEmpty())
-    {
-      // Nothing to do
-    }
-    else
+    if (currentSup.getSuperiorClasses() != null &&
+        !currentSup.getSuperiorClasses().isEmpty())
     {
       for (ObjectClass o : currentSup.getSuperiorClasses())
       {

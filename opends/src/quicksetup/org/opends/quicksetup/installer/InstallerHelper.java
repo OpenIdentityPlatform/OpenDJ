@@ -928,10 +928,7 @@ public class InstallerHelper {
           hmJavaArguments.put(origJavaArguments, transformedArguments);
         }
       }
-      else
-      {
-        // Already checked if supported.
-      }
+        // else, support is already checked.
     }
 
     Properties fileProperties = getJavaPropertiesFileContents(
@@ -1157,6 +1154,12 @@ public class InstallerHelper {
     String libDir = Utils.getPath(Utils
         .getInstancePathFromInstallPath(installPath),
         Installation.LIBRARIES_PATH_RELATIVE);
+    // Create directory if it doesn't exist yet
+    File fLib = new File(libDir);
+    if (! fLib.exists())
+    {
+      fLib.mkdir();
+    }
     if (Utils.isWindows())
     {
       destinationFile = Utils.getPath(libDir,

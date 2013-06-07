@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -68,6 +68,8 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import org.opends.server.types.LDAPSyntaxDescription;
+import org.opends.server.util.StaticUtils;
+
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -109,16 +111,13 @@ public class SchemaConfigManager
   /**
    * Retrieves the path to the directory containing the server schema files.
    *
-   * @param userSchema indicates if we need to retrieve user schema or
-   * "unmodified" schema.
-   *
    * @return  The path to the directory containing the server schema files.
    */
-  public static String getSchemaDirectoryPath(boolean userSchema)
+  public static String getSchemaDirectoryPath()
   {
     File schemaDir =
               DirectoryServer.getEnvironmentConfig().
-                getSchemaDirectory(userSchema);
+                getSchemaDirectory();
     if (schemaDir != null) {
       return schemaDir.getAbsolutePath();
     } else {
@@ -199,11 +198,7 @@ public class SchemaConfigManager
     @Override
     public boolean accept(File directory, String filename)
     {
-      if (filename.endsWith(".ldif"))
-      {
-        return true;
-      }
-      return false;
+      return filename.endsWith(".ldif");
     }
   }
 
@@ -231,9 +226,7 @@ public class SchemaConfigManager
     // Construct the path to the directory that should contain the schema files
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
-    String schemaInstallDirPath   = getSchemaDirectoryPath(false);
-    String schemaInstanceDirPath  = getSchemaDirectoryPath(true);
-    File schemaInstallDir         = new File(schemaInstallDirPath);
+    String schemaInstanceDirPath  = getSchemaDirectoryPath();
     File schemaInstanceDir        = null;
 
     try
@@ -241,11 +234,6 @@ public class SchemaConfigManager
       if (schemaInstanceDirPath != null)
       {
         schemaInstanceDir = new File(schemaInstanceDirPath);
-        if (schemaInstallDir.getCanonicalPath().equals(
-            schemaInstanceDir.getCanonicalPath()))
-        {
-          schemaInstanceDir = null;
-        }
       }
     } catch (Exception e)
     {
@@ -257,39 +245,27 @@ public class SchemaConfigManager
 
     try
     {
-      if (schemaInstallDir == null || ! schemaInstallDir.exists())
+      if (schemaInstanceDir == null || ! schemaInstanceDir.exists())
       {
         Message message =
-          ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstallDirPath);
+          ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstanceDirPath);
         throw new InitializationException(message);
       }
-      if (! schemaInstallDir.isDirectory())
+      if (! schemaInstanceDir.isDirectory())
       {
         Message message =
-            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstallDirPath);
+            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstanceDirPath);
         throw new InitializationException(message);
       }
 
-      if ((schemaInstanceDir == null) || (!schemaInstanceDir.exists())
-          || (! schemaInstanceDir.isDirectory()))
-      {
-        schemaInstanceDir = null;
-      }
 
       FilenameFilter filter = new SchemaFileFilter();
-      File[] schemaInstallDirFiles =
-              schemaInstallDir.listFiles(filter);
-      int fileNumber = schemaInstallDirFiles.length;
-      File[] schemaInstanceDirFiles = null ;
-      if (schemaInstanceDir != null)
-      {
-        schemaInstanceDirFiles =
+      File[] schemaInstanceDirFiles =
                 schemaInstanceDir.listFiles(filter);
-        fileNumber =+ schemaInstanceDirFiles.length ;
-      }
-
+      int fileNumber = schemaInstanceDirFiles.length ;
       ArrayList<String> fileList = new ArrayList<String>(fileNumber);
-      for (File f : schemaInstallDirFiles)
+
+      for (File f : schemaInstanceDirFiles)
       {
         if (f.isFile())
         {
@@ -307,29 +283,6 @@ public class SchemaConfigManager
             (modificationTime > youngestModificationTime))
         {
           youngestModificationTime = modificationTime;
-        }
-      }
-      if (schemaInstanceDirFiles != null)
-      {
-        for (File f : schemaInstanceDirFiles)
-        {
-          if (f.isFile())
-          {
-            fileList.add(f.getName());
-          }
-
-          long modificationTime = f.lastModified();
-          if ((oldestModificationTime <= 0L)
-              || (modificationTime < oldestModificationTime))
-          {
-            oldestModificationTime = modificationTime;
-          }
-
-          if ((youngestModificationTime <= 0)
-              || (modificationTime > youngestModificationTime))
-          {
-            youngestModificationTime = modificationTime;
-          }
         }
       }
 
@@ -354,7 +307,7 @@ public class SchemaConfigManager
       }
 
       Message message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
-          schemaInstallDirPath, schemaInstanceDirPath, getExceptionMessage(e));
+          schemaInstanceDirPath, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
 
@@ -444,15 +397,8 @@ public class SchemaConfigManager
          throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
-    String schemaDirPath = null;
-
-    schemaDirPath = getSchemaDirectoryPath(true);
+    String schemaDirPath = getSchemaDirectoryPath();
     File f = new File(schemaDirPath, schemaFile);
-    if (!f.exists())
-    {
-      schemaDirPath = getSchemaDirectoryPath(false);
-      f = new File(schemaDirPath, schemaFile);
-    }
     LDIFReader reader;
     try
     {
@@ -510,6 +456,7 @@ public class SchemaConfigManager
       else
       {
         logError(message);
+        StaticUtils.close(reader);
         return null;
       }
     }
@@ -537,18 +484,7 @@ public class SchemaConfigManager
       logError(message);
     }
 
-    try
-    {
-      reader.close();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
+    StaticUtils.close(reader);
 
     // Get the attributeTypes attribute from the entry.
     LinkedList<Modification> mods = new LinkedList<Modification>();
@@ -859,7 +795,7 @@ public class SchemaConfigManager
       {
         for (AttributeValue v : a)
         {
-          LDAPSyntaxDescription syntaxDescription = null;
+          LDAPSyntaxDescription syntaxDescription;
           try
           {
             syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
@@ -1527,33 +1463,24 @@ public class SchemaConfigManager
   public static boolean isSchemaAttribute(Attribute attribute)
   {
     String attributeOid = attribute.getAttributeType().getOID();
-    if (attributeOid.equals("2.5.21.1") ||
+    return attributeOid.equals("2.5.21.1") ||
         attributeOid.equals("2.5.21.2") ||
         attributeOid.equals("2.5.21.4") ||
         attributeOid.equals("2.5.21.5") ||
         attributeOid.equals("2.5.21.6") ||
         attributeOid.equals("2.5.21.7") ||
         attributeOid.equals("2.5.21.8") ||
-        attributeOid.equals("2.5.4.3")  ||
+        attributeOid.equals("2.5.4.3") ||
         attributeOid.equals("1.3.6.1.4.1.1466.101.120.16") ||
         attributeOid.equals("cn-oid") ||
-        attributeOid.equals("attributetypes-oid")      ||
-        attributeOid.equals("objectclasses-oid")       ||
-        attributeOid.equals("matchingrules-oid")       ||
-        attributeOid.equals("matchingruleuse-oid")     ||
+        attributeOid.equals("attributetypes-oid") ||
+        attributeOid.equals("objectclasses-oid") ||
+        attributeOid.equals("matchingrules-oid") ||
+        attributeOid.equals("matchingruleuse-oid") ||
         attributeOid.equals("nameformdescription-oid") ||
-        attributeOid.equals("ditcontentrules-oid")     ||
+        attributeOid.equals("ditcontentrules-oid") ||
         attributeOid.equals("ditstructurerules-oid") ||
-        attributeOid.equals("ldapsyntaxes-oid")
-
-        )
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+        attributeOid.equals("ldapsyntaxes-oid");
   }
 }
 
