@@ -864,7 +864,7 @@ $ curl
  <section xml:id="action-rest">
   <title>Using Actions</title>
 
-  <para>OpenDJ implements an action that lets the server choose the resource ID
+  <para>OpenDJ implements an action that lets the server set the resource ID
   on creation. To use this action, perform an HTTP POST with header
   <literal>Content-Type: application/json</literal>,
   <literal>_action=create</literal> in the query string, and the JSON content of
@@ -873,7 +873,6 @@ $ curl
   <para>The following example creates a new user entry. Lines are folded for
   readability.</para>
 
-  <para>TODO, fix pending https://bugster.forgerock.org/jira/browse/OPENDJ-775</para>
   <screen width="82">$ curl
  --request POST
  --user kvaughan:bribery
@@ -919,8 +918,6 @@ $ curl
     "displayName" : "Kirsten Vaughan"
   } ]
 }</screen>
-
-  <para>TODO, https://bugster.forgerock.org/jira/browse/OPENDJ-695</para>
  </section>
 
  <section xml:id="query-rest">
@@ -1127,16 +1124,6 @@ $ curl
 }</screen>
        </listitem>
       </varlistentry>
-
-      <!--
-      <varlistentry>
-       <term><literal><replaceable>json-pointer</replaceable> <replaceable>string</replaceable> <replaceable>json-value</replaceable></literal></term>
-       <listitem>
-        <para>Matches an extended comparison.</para>
-        <screen>TODO</screen>
-       </listitem>
-      </varlistentry>
-      -->
      </variablelist>
     </listitem>
    </varlistentry>
@@ -1249,36 +1236,38 @@ $ curl
    </varlistentry>
   </variablelist>
 
+  <!--  Pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-702
   <para>You can have the server sort JSON resources before it returns them by
   using the <literal>_sortKeys[+-]=<replaceable>field</replaceable>[,&#8230;]</literal>
-  query string. TODO, pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-702</para>
+  query string.</para>
+  -->
 
+  <!-- Pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-701
   <variablelist>
    <para>You can page through search results using the following query string
    parameters.</para>
 
-   <para>TODO, pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-701</para>
-
    <varlistentry>
     <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para>TODO</para>
+     <para></para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><literal>__pagedResultsOffset=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para>TODO</para>
+     <para></para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para>TODO</para>
+     <para></para>
     </listitem>
    </varlistentry>
   </variablelist>
+  -->
  </section>
 </chapter>

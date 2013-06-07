@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-using-the-sdk'
@@ -180,6 +180,7 @@ try {
   problems after the fact.</para>
  </section>
 
+ <!-- Pending https://bugster.forgerock.org/jira/browse/OPENDJ-178
  <section xml:id="referral-handling">
   <title>Managing Referrals</title>
   <indexterm>
@@ -189,7 +190,8 @@ try {
   <indexterm>
    <primary>Referrals</primary>
   </indexterm>
-  <!-- See https://bugster.forgerock.org/jira/browse/OPENDJ-178 -->
-  <para>TODO</para>
+
+  <para></para>
  </section>
+ -->
 </chapter>
