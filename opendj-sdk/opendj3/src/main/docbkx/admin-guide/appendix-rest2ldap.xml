@@ -28,7 +28,7 @@
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
           xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
           xmlns:xlink='http://www.w3.org/1999/xlink'
-          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+        >
  <title>REST LDAP Configuration</title>
  <indexterm><primary>REST</primary></indexterm>
  <indexterm><primary>HTTP</primary></indexterm>
@@ -681,7 +681,7 @@
               </listitem>
 
               <listitem>
-               <para>(Optional) "defaultValue": the JSON value if no LDAP
+               <para>(Optional) "defaultJSONValue": the JSON value if no LDAP
                attribute is available on the entry.</para>
 
                <para>No default is set if this is omitted.</para>
@@ -841,12 +841,6 @@
               </listitem>
 
               <listitem>
-               <para>(Optional) "filter": specifies the LDAP filter to use to
-               search for the referenced entry. The default is
-               <literal>"(objectClass=*)"</literal>.</para>
-              </listitem>
-
-              <listitem>
                <para>(Optional) "isRequired": true means the LDAP attribute is
                mandatory and must be provided to create the resource; false
                means it is optional.</para>
@@ -862,10 +856,18 @@
                <para>Default: <literal>false</literal></para>
               </listitem>
 
+              <!-- Not used.
               <listitem>
                <para>(Optional) "scope": indicates the scope of the LDAP search
                to find the referenced entry. The default is
                <literal>"SearchScope.WHOLE_SUBTREE"</literal>.</para>
+              </listitem>
+              -->
+
+              <listitem>
+               <para>(Optional) "searchFilter": specifies the LDAP filter to
+               use to search for the referenced entry. The default is
+               <literal>"(objectClass=*)"</literal>.</para>
               </listitem>
 
               <listitem>
