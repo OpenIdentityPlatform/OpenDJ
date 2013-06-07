@@ -3,7 +3,7 @@ Version: [[version]]
 Section: misc
 Priority: low
 Architecture: all
-Depends: default-jre | java5-runtime | java6-runtime
+Depends: default-jre | java6-runtime | java7-runtime
 Homepage: [[homepage]]
 Maintainer: [[maintainer]]
 Description: [[description]]
