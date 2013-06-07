@@ -28,7 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Password Policy</title>
  <indexterm><primary>Password policy</primary></indexterm>
  
@@ -41,9 +41,7 @@
  
  <para>This chapter covers password policy, including examples of how
  to configure password policies for common use cases.</para>
- 
- <!-- TODO: A section with a larger set of examples would be nice. -->
- 
+
  <section xml:id="pwp-overview">
   <title>About OpenDJ Password Policies</title>
   
