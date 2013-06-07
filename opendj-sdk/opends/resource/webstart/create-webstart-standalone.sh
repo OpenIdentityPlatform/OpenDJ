@@ -175,6 +175,20 @@ do
                  "${INSTALL_DIR}/lib/${LIBFILE}" "${CERT_ALIAS}"
 done
 
+# Create and sign the licence.jar file if exists.
+if [ -d ${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/Legal ]
+then
+echo "Creating license.jar ..."
+cp "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/Legal" "${INSTALL_DIR}/lib"
+cd "${BUILD_DIR}/package"
+"${JAR}" -cf "${INSTALL_DIR}/lib/license.jar" -C "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/" "Legal"
+cd "${INSTALL_DIR}/lib"
+echo "Signing license.jar ..."
+"${JARSIGNER}" -keystore "${CERT_KEYSTORE}" -keypass "${CERT_KEYSTORE_PIN}" \
+               -storepass "${CERT_KEYSTORE_PIN}" license.jar "${CERT_ALIAS}"
+# Create the resource line to add to the jnlp script.
+LICENSEJAR="<jar href=\"lib/license.jar\" download=\"eager\"/>"               
+fi
 
 # Create and sign the zipped.jar file.
 echo "Creating zipped.jar ..."
@@ -211,6 +225,7 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
   <resources>
     <j2se version="1.6+" java-vm-args="-client"/>
     <jar href="lib/quicksetup.jar" download="eager" main="true"/>
+    ${LICENSEJAR}
     <jar href="lib/${PRODUCT_NAME}.jar" download="lazy"/>
     <jar href="lib/je.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>

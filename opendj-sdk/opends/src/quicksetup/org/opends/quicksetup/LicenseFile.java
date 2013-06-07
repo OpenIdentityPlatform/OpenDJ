@@ -28,42 +28,60 @@
 
 package org.opends.quicksetup;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Represents information about the license file.
  */
-public class LicenseFile {
+public class LicenseFile
+{
+
+  /**
+   * The license file name in Legal directory.
+   */
+  private final static String LICENSE_FILE_NAME = "license_to_accept.txt";
+
+  /**
+   * The Legal folder which contains license file.
+   */
+  private final static String LEGAL_FOLDER_NAME = "Legal";
+
+  /**
+   * The accepted license file name.
+   */
+  private final static String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
 
   /**
    * Get the directory in which legal files are stored.
    */
   private static String getLegalDirectory()
   {
-    if (Utils.isWebStart())
+
+    String installRootFromSystem = System.getProperty("INSTALL_ROOT");
+
+    if (installRootFromSystem == null)
     {
-      return File.separatorChar + "Legal";
+      installRootFromSystem = System.getenv("INSTALL_ROOT");
     }
-    else
+
+    if (installRootFromSystem == null)
     {
-      String installRootFromSystem = System.getProperty("INSTALL_ROOT");
-
-      if (installRootFromSystem == null)
-      {
-        installRootFromSystem = System.getenv("INSTALL_ROOT");
-      }
-
-      if (installRootFromSystem == null)
-      {
-        installRootFromSystem = "";
-      }
-
-      return installRootFromSystem + File.separatorChar + "Legal";
+      installRootFromSystem = "";
     }
+
+    return installRootFromSystem + File.separatorChar + LEGAL_FOLDER_NAME;
+
   }
 
   /**
@@ -72,34 +90,27 @@ public class LicenseFile {
   private static String getInstanceLegalDirectory()
   {
     String instanceLegalDirName;
-    if (Utils.isWebStart())
+    String installDirName = System.getProperty("INSTALL_ROOT");
+
+    if (installDirName == null)
     {
-      instanceLegalDirName = File.separatorChar + "Legal";
+      installDirName = System.getenv("INSTALL_ROOT");
     }
-    else
+
+    if (installDirName == null)
     {
-      String installDirName = System.getProperty("INSTALL_ROOT");
-
-      if (installDirName == null)
-      {
-        installDirName = System.getenv("INSTALL_ROOT");
-      }
-
-      if (installDirName == null)
-      {
-        installDirName = ".";
-      }
-
-      String instanceDirname = Utils
-          .getInstancePathFromInstallPath(installDirName);
-      instanceLegalDirName = instanceDirname + File.separator + "Legal";
-      File instanceLegalDir = new File(instanceLegalDirName);
-      if (!instanceLegalDir.exists())
-      {
-        instanceLegalDir.mkdir();
-      }
+      installDirName = ".";
     }
-    return instanceLegalDirName ;
+
+    String instanceDirname =
+        Utils.getInstancePathFromInstallPath(installDirName);
+    instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
+    File instanceLegalDir = new File(instanceLegalDirName);
+    if (!instanceLegalDir.exists())
+    {
+      instanceLegalDir.mkdir();
+    }
+    return instanceLegalDirName;
   }
 
   /**
@@ -117,7 +128,7 @@ public class LicenseFile {
    */
   static private String getName()
   {
-    return getLegalDirectory() + File.separatorChar + "license_to_accept.txt";
+    return getLegalDirectory() + File.separatorChar + LICENSE_FILE_NAME;
   }
 
   /**
@@ -125,69 +136,127 @@ public class LicenseFile {
    */
   static private File getFile()
   {
-    if (licFile == null) {
-       licFile = new File(getName());
+    if (licFile == null)
+    {
+      licFile = new File(getName());
     }
 
     return licFile;
   }
 
+  /**
+   * Returns the URL to the license file when using jnlp / java web start.
+   */
+  static private URL getWebStartLicenseFile()
+  {
+    final String licenseResource = LEGAL_FOLDER_NAME + File.separatorChar
+        + LICENSE_FILE_NAME;
+    return Thread.currentThread().getContextClassLoader().getResource(
+        licenseResource);
+  }
 
   /**
    * Checks if the license file exists.
-   * @return <CODE>true</CODE> a license file license_to_accept.txt
-   * exists in the Legal directory in the top level installation directory
-   * <CODE>false</CODE> otherwise.
+   *
+   * @return <CODE>true</CODE> a license file {@value #LICENSE_FILE_NAME} exists
+   *         in the Legal directory in the top level installation directory
+   *         <CODE>false</CODE> otherwise.
    */
   static public boolean exists()
   {
-    // TODO: Try to support License with webstart
-    return !Utils.isWebStart() && getFile().exists();
+    if (Utils.isWebStart())
+    {
+      return (getWebStartLicenseFile() != null);
+    }
+    else
+    {
+      return getFile().exists();
+    }
   }
-
 
   /**
    * Get the textual contents of the license file.
+   *
    * @return the textual contents of the license file.
    */
   static public String getText()
   {
-    FileReader reader;
-
-    try {
-       reader = new FileReader(getFile());
-    } catch(Exception e) {
-      return "";
+    InputStream input = null;
+    // Gets the inputstream of the license
+    // From a file as the usual way,
+    // from an URL if we use web start / jnlp.
+    if (!Utils.isWebStart())
+    {
+      try
+      {
+        input = new FileInputStream(getFile());
+      }
+      catch (FileNotFoundException e)
+      {
+        // Should not happen
+        return "";
+      }
     }
-
-    int fileLen = (int) getFile().length();
-
-    char[] charArray = new char[fileLen];
-
-    try {
-      reader.read(charArray);
-    } catch(IOException ioe) {
-      System.out.println("Could not read license file");
+    else
+    {
+      URL licenseURL = getWebStartLicenseFile();
+      if (licenseURL != null)
+      {
+        try
+        {
+          input = licenseURL.openStream();
+        }
+        catch (Exception e)
+        {
+          // Should not happen
+          return "";
+        }
+      }
     }
+    // Reads the inputstream content.
+    final StringBuilder sb = new StringBuilder();
+    if (input != null)
+    {
+      try
+      {
+        final BufferedReader br =
+            new BufferedReader(new InputStreamReader(input));
+        String read = br.readLine();
 
-    return new String(charArray);
+        while (read != null)
+        {
+          sb.append(read);
+          sb.append(ServerConstants.EOL);
+          read = br.readLine();
+        }
+      }
+      catch (IOException ioe)
+      {
+        // Should not happen
+        return "";
+      }
+    }
+    StaticUtils.close(input);
+
+    return sb.toString();
   }
-
 
   /**
    * Get the license approval status.
+   *
    * @return <CODE>true</CODE> if the license has been accepted by the user
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   static public boolean getApproval()
   {
     return approved;
   }
 
-
   /**
    * Sets the license approval status.
-   * @param p_approved the license approval status
+   *
+   * @param p_approved
+   *          the license approval status
    */
   static public void setApproval(boolean p_approved)
   {
@@ -199,12 +268,12 @@ public class LicenseFile {
    */
   static public void createFileLicenseApproved()
   {
-    if ( getApproval() )
+    if (getApproval())
     {
       try
       {
         new File(getInstanceLegalDirectory() + File.separatorChar
-            + "licenseAccepted").createNewFile();
+            + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
       }
       catch (IOException e)
       {
@@ -215,13 +284,15 @@ public class LicenseFile {
 
   /**
    * Indicate if the license had already been approved..
-   * @return <CODE>true</CODE> if the license had already been approved
-   * by the user <CODE>false</CODE> otherwise.
+   *
+   * @return <CODE>true</CODE> if the license had already been approved by the
+   *         user <CODE>false</CODE> otherwise.
    */
   static public boolean isAlreadyApproved()
   {
-    File f = new File(getInstanceLegalDirectory() + File.separatorChar
-        + "licenseAccepted");
+    final File f =
+        new File(getInstanceLegalDirectory() + File.separatorChar
+            + ACCEPTED_LICENSE_FILE_NAME);
     return f.exists();
   }
 

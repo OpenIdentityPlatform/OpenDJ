@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
@@ -155,6 +156,9 @@ public class WebStartInstaller extends Installer {
       configureServer();
 
       checkAbort();
+
+      // create license accepted file
+      LicenseFile.createFileLicenseApproved();
 
       createData();
 

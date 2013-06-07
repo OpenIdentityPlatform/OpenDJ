@@ -108,7 +108,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     JTextArea detailsTextArea = new JTextArea(10, 50);
     detailsTextArea.setBackground(
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
-
+    detailsTextArea.setFont(UIFactory.TEXTFIELD_FONT);
     detailsTextArea.setText(LicenseFile.getText());
 
     gbc.insets = UIFactory.getEmptyInsets();
