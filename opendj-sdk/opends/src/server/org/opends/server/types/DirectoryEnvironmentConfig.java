@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -536,12 +537,8 @@ public final class DirectoryEnvironmentConfig
   {
     String useLastKnownGoodStr =
          getProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG);
-    if (useLastKnownGoodStr == null)
-    {
-      return false;
-    }
-
-    return useLastKnownGoodStr.equalsIgnoreCase("true");
+    return useLastKnownGoodStr != null &&
+        useLastKnownGoodStr.equalsIgnoreCase("true");
   }
 
 
@@ -577,14 +574,8 @@ public final class DirectoryEnvironmentConfig
     String oldUseLastKnownGoodStr =
          setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
                      String.valueOf(useLastKnownGoodConfiguration));
-    if (oldUseLastKnownGoodStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return oldUseLastKnownGoodStr.equalsIgnoreCase("true");
-    }
+    return oldUseLastKnownGoodStr != null &&
+        oldUseLastKnownGoodStr.equalsIgnoreCase("true");
   }
 
 
@@ -602,12 +593,8 @@ public final class DirectoryEnvironmentConfig
   {
     String maintainArchiveStr =
          getProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE);
-    if (maintainArchiveStr == null)
-    {
-      return true;
-    }
-
-    return (! maintainArchiveStr.equalsIgnoreCase("false"));
+    return maintainArchiveStr == null ||
+        (!maintainArchiveStr.equalsIgnoreCase("false"));
   }
 
 
@@ -640,14 +627,8 @@ public final class DirectoryEnvironmentConfig
     String oldMaintainStr =
          setProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE,
                      String.valueOf(maintainConfigArchive));
-    if (oldMaintainStr == null)
-    {
-      return true;
-    }
-    else
-    {
-      return (! oldMaintainStr.equalsIgnoreCase("false"));
-    }
+    return oldMaintainStr == null ||
+        (!oldMaintainStr.equalsIgnoreCase("false"));
   }
 
 
@@ -757,13 +738,10 @@ public final class DirectoryEnvironmentConfig
    * directory of "config/schema" exists below the server root, then
    * that will be returned.
    *
-   * @param userSchema indicates if we need to retrieve user schema or
-   * "unmodified" schema.
-   *
    * @return  The directory that contains the server schema
    *          configuration files, or {@code null} if none is defined.
    */
-  public File getSchemaDirectory(boolean userSchema)
+  public File getSchemaDirectory()
   {
     String schemaDirectoryPath =
          getProperty(PROPERTY_SCHEMA_DIRECTORY);
@@ -772,25 +750,15 @@ public final class DirectoryEnvironmentConfig
       File serverRoot = getServerRoot();
       if (serverRoot != null)
       {
-        String schemaPath = null ;
-        if (userSchema)
-        {
-          File instanceRoot =
-            getInstanceRootFromServerRoot(serverRoot);
-          schemaPath = instanceRoot.getAbsolutePath();
-        }
-        else
-        {
-          schemaPath = serverRoot.getAbsolutePath();
-        }
-        File schemaDir = new File(schemaPath
+        File instanceRoot =
+          getInstanceRootFromServerRoot(serverRoot);
+        File schemaDir = new File(instanceRoot.getAbsolutePath()
             + File.separator + PATH_SCHEMA_DIR);
         if (schemaDir.exists() && schemaDir.isDirectory())
         {
           return schemaDir;
         }
       }
-
       return null;
     }
     else
@@ -973,12 +941,7 @@ public final class DirectoryEnvironmentConfig
   {
     String disableStr =
          getProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS);
-    if (disableStr == null)
-    {
-      return false;
-    }
-
-    return disableStr.equalsIgnoreCase("true");
+    return disableStr != null && disableStr.equalsIgnoreCase("true");
   }
 
   /**
@@ -994,12 +957,7 @@ public final class DirectoryEnvironmentConfig
   {
     String disableStr =
          getProperty(PROPERTY_DISABLE_SYNCHRONIZATION);
-    if (disableStr == null)
-    {
-      return false;
-    }
-
-    return disableStr.equalsIgnoreCase("true");
+    return disableStr != null && disableStr.equalsIgnoreCase("true");
   }
 
   /**
@@ -1015,12 +973,7 @@ public final class DirectoryEnvironmentConfig
   {
     String disableStr =
          getProperty(PROPERTY_DISABLE_ADMIN_DATA_SYNCHRONIZATION);
-    if (disableStr == null)
-    {
-      return false;
-    }
-
-    return disableStr.equalsIgnoreCase("true");
+    return disableStr != null && disableStr.equalsIgnoreCase("true");
   }
 
   /**
@@ -1053,14 +1006,7 @@ public final class DirectoryEnvironmentConfig
     String oldDisableStr =
          setProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS,
                      String.valueOf(disableConnectionHandlers));
-    if (oldDisableStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return oldDisableStr.equalsIgnoreCase("true");
-    }
+    return oldDisableStr != null && oldDisableStr.equalsIgnoreCase("true");
   }
 
 
@@ -1077,14 +1023,7 @@ public final class DirectoryEnvironmentConfig
   {
     String forceDaemonStr =
          getProperty(PROPERTY_FORCE_DAEMON_THREADS);
-    if (forceDaemonStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return forceDaemonStr.equalsIgnoreCase("true");
-    }
+    return forceDaemonStr != null && forceDaemonStr.equalsIgnoreCase("true");
   }
 
 
@@ -1116,14 +1055,8 @@ public final class DirectoryEnvironmentConfig
     String oldForceDaemonStr =
          setProperty(PROPERTY_FORCE_DAEMON_THREADS,
                      String.valueOf(forceDaemonThreads));
-    if (oldForceDaemonStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return oldForceDaemonStr.equalsIgnoreCase("true");
-    }
+    return oldForceDaemonStr != null &&
+        oldForceDaemonStr.equalsIgnoreCase("true");
   }
 
 
@@ -1139,14 +1072,7 @@ public final class DirectoryEnvironmentConfig
   public boolean disableExec()
   {
     String disableStr = getProperty(PROPERTY_DISABLE_EXEC);
-    if (disableStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return disableStr.equalsIgnoreCase("true");
-    }
+    return disableStr != null && disableStr.equalsIgnoreCase("true");
   }
 
 
@@ -1178,14 +1104,7 @@ public final class DirectoryEnvironmentConfig
 
     String oldDisableStr = setProperty(PROPERTY_DISABLE_EXEC,
                      String.valueOf(disableExec));
-    if (oldDisableStr == null)
-    {
-      return false;
-    }
-    else
-    {
-      return oldDisableStr.equalsIgnoreCase("true");
-    }
+    return oldDisableStr != null && oldDisableStr.equalsIgnoreCase("true");
   }
 
 
@@ -1206,7 +1125,7 @@ public final class DirectoryEnvironmentConfig
       return LockManager.DEFAULT_CONCURRENCY_LEVEL;
     }
 
-    int concurrencyLevel = -1;
+    int concurrencyLevel;
     try
     {
       concurrencyLevel = Integer.parseInt(levelStr);

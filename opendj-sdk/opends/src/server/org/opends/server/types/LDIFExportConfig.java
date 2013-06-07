@@ -23,18 +23,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -56,6 +52,7 @@ import org.opends.server.loggers.debug.DebugTracer;
      mayExtend=false,
      mayInvoke=true)
 public final class LDIFExportConfig extends OperationConfig
+  implements Closeable
 {
   /**
    * The tracer object for the debug logger.
@@ -784,12 +781,8 @@ public final class LDIFExportConfig extends OperationConfig
       return false;
     }
 
-    if (! includeAttributes.isEmpty())
-    {
-      return includeAttributes.contains(attributeType);
-    }
-
-    return true;
+    return includeAttributes.isEmpty() ||
+        includeAttributes.contains(attributeType);
   }
 
 

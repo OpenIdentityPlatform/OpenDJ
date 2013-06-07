@@ -283,8 +283,8 @@ public final class TestCaseUtils {
               buildRoot + File.separator + "build");
       File   buildDir = new File(buildDirStr);
       File   unitRoot  = new File(buildDir, "unit-tests");
-      File   testInstallRoot  = null;
-      File   testInstanceRoot  = null;
+      File   testInstallRoot;
+      File   testInstanceRoot;
       if (installedRoot == null) {
          testInstallRoot = new File(unitRoot, "package-install");
          testInstanceRoot = new File(unitRoot, "package-instance");
@@ -349,7 +349,7 @@ public final class TestCaseUtils {
       File testResourceDir  = new File(testSrcRoot, "resource");
       // Set the class variable
       testConfigDir    = new File(testInstanceRoot, "config");
-      File testSchemaDir    = new File(testInstallRoot, "config");
+      File testSchemaDir    = new File(testInstanceRoot, "config");
       File testClassesDir   = new File(testInstanceRoot, "classes");
       File testLibDir       = new File(testInstallRoot, "lib");
       File testBinDir       = new File(testInstallRoot, "bin");
@@ -1721,12 +1721,14 @@ public final class TestCaseUtils {
 
     String systemOut = TestCaseUtils.getSystemOutContents();
     if (systemOut.length() > 0) {
-      logsContents.append(EOL + "System.out contents:" + EOL + systemOut);
+      logsContents.append(EOL).append("System.out contents:")
+          .append(EOL).append(systemOut);
     }
 
     String systemErr = TestCaseUtils.getSystemErrContents();
     if (systemErr.length() > 0) {
-      logsContents.append(EOL + "System.err contents:" + EOL + systemErr);
+      logsContents.append(EOL).append("System.err contents:")
+          .append(EOL).append(systemErr);
     }
   }
 
@@ -1810,7 +1812,7 @@ public final class TestCaseUtils {
         bytes = bout.toByteArray();
       }
       finally {
-        if (close && is != null) {
+        if (close) {
           try {
             is.close();
           }

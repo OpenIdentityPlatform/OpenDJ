@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -66,6 +67,7 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * An abstract class used to re-factor some code between the different tasks
@@ -467,13 +469,14 @@ public class NewSchemaElementsTask extends Task
       msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_OBJECTCLASS_ONLINE.get(
           element.getNameOrOID());
     }
-    sb.append(msg+"<br><b>");
+    sb.append(msg).append("<br><b>");
     sb.append(equiv);
     sb.append("<br>");
     sb.append("dn: cn=schema<br>");
     sb.append("changetype: modify<br>");
-    sb.append("add: "+getAttributeName(element)+"<br>");
-    sb.append(getAttributeName(element)+": "+getValueOnline(element));
+    sb.append("add: ").append(getAttributeName(element)).append("<br>");
+    sb.append(getAttributeName(element)).append(": ")
+        .append(getValueOnline(element));
     sb.append("</b><br><br>");
     getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
         ColorAndFontConstants.progressFont));
@@ -510,25 +513,18 @@ public class NewSchemaElementsTask extends Task
       final List<AttributeType> attributes,
       final List<ObjectClass> objectClasses) throws OpenDsException
   {
-    final boolean userSchema;
-    final String fileName;
     if (file == null)
     {
       file = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
-      userSchema = true;
-    }
-    else
-    {
-      userSchema = false;
     }
     File f = new File(file);
     if (!f.isAbsolute())
     {
       f = new File(
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(userSchema),
+        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
         file);
     }
-    fileName = f.getAbsolutePath();
+    final String fileName = f.getAbsolutePath();
     final boolean isSchemaFileDefined = isSchemaFileDefined(fileName);
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -607,16 +603,18 @@ public class NewSchemaElementsTask extends Task
       StringBuilder sb = new StringBuilder();
       sb.append(
           INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ELEMENT_OFFLINE.get(
-              Utils.getStringFromCollection(names, ", "),
-              schemaFile)+"<br><b>");
+          Utils.getStringFromCollection(names, ", "),
+          schemaFile))
+        .append("<br><b>");
       for (AttributeType attribute : attributes)
       {
-        sb.append(
-            getAttributeName(attribute)+": "+getValueOffline(attribute)+"<br>");
+        sb.append(getAttributeName(attribute)).append(": ")
+            .append(getValueOffline(attribute)).append("<br>");
       }
       for (ObjectClass oc : objectClasses)
       {
-        sb.append(getAttributeName(oc)+": "+getValueOffline(oc)+"<br>");
+        sb.append(getAttributeName(oc)).append(": ")
+            .append(getValueOffline(oc)).append("<br>");
       }
       sb.append("</b><br><br>");
 
@@ -628,7 +626,7 @@ public class NewSchemaElementsTask extends Task
       StringBuilder sb = new StringBuilder();
       sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ENTRY_OFFLINE.get(
           Utils.getStringFromCollection(names, ", "),
-              schemaFile)+"<br><b>");
+          schemaFile)).append("<br><b>");
       for (String line : getSchemaEntryLines())
       {
         sb.append(line);
@@ -636,12 +634,13 @@ public class NewSchemaElementsTask extends Task
       }
       for (AttributeType attribute : attributes)
       {
-        sb.append(
-            getAttributeName(attribute)+": "+getValueOffline(attribute)+"<br>");
+        sb.append(getAttributeName(attribute)).append(": ")
+            .append(getValueOffline(attribute)).append("<br>");
       }
       for (ObjectClass oc : objectClasses)
       {
-        sb.append(getAttributeName(oc)+": "+getValueOffline(oc)+"<br>");
+        sb.append(getAttributeName(oc)).append(": ")
+            .append(getValueOffline(oc)).append("<br>");
       }
       sb.append("</b><br><br>");
       getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
@@ -651,7 +650,7 @@ public class NewSchemaElementsTask extends Task
 
   /**
    * Returns whether the file defined in the schema element exists or not.
-   * @param the path to the schema file.
+   * @param schemaFile the path to the schema file.
    * @return <CODE>true</CODE> if the schema file is defined and
    * <CODE>false</CODE> otherwise.
    */
@@ -673,17 +672,9 @@ public class NewSchemaElementsTask extends Task
     }
     finally
     {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (Throwable t)
-        {
-        }
-      }
+      StaticUtils.close(reader);
     }
+
     return schemaDefined;
   }
 
@@ -724,11 +715,11 @@ public class NewSchemaElementsTask extends Task
         new LDIFExportConfig(schemaFile,
                              ExistingFileBehavior.OVERWRITE);
       LDIFReader reader = null;
-      Entry schemaEntry = null;
+      LDIFWriter writer = null;
       try
       {
         reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-        schemaEntry = reader.readEntry();
+        Entry schemaEntry = reader.readEntry();
 
         for (AttributeType attribute : attributes)
         {
@@ -744,35 +735,18 @@ public class NewSchemaElementsTask extends Task
                   getValueOffline(oc)));
           schemaEntry.applyModification(mod);
         }
-        LDIFWriter writer = new LDIFWriter(exportConfig);
+        writer = new LDIFWriter(exportConfig);
         writer.writeEntry(schemaEntry);
         exportConfig.getWriter().newLine();
       }
       catch (Throwable t)
       {
+        throw new OfflineUpdateException(
+            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t.toString()), t);
       }
       finally
       {
-        if (reader != null)
-        {
-          try
-          {
-            reader.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-        if (exportConfig != null)
-        {
-          try
-          {
-            exportConfig.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        StaticUtils.close(reader, exportConfig, writer);
       }
     }
     else
@@ -808,16 +782,7 @@ public class NewSchemaElementsTask extends Task
       }
       finally
       {
-        if (exportConfig != null)
-        {
-          try
-          {
-            exportConfig.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        StaticUtils.close(exportConfig);
       }
     }
   }

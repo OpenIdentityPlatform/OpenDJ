@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -106,10 +107,10 @@ public class SchemaLoader
     }
   }
 
-  private static String getSchemaDirectoryPath(boolean userSchema)
+  private static String getSchemaDirectoryPath()
   {
     File schemaDir =
-      DirectoryServer.getEnvironmentConfig().getSchemaDirectory(userSchema);
+      DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
     if (schemaDir != null) {
       return schemaDir.getAbsolutePath();
     } else {
@@ -130,16 +131,11 @@ public class SchemaLoader
   {
     schema = getBaseSchema();
 
-    String[] fileNames = null;
+    String[] fileNames;
+    String schemaDirPath= getSchemaDirectoryPath();
     try
     {
-      String installPath  =
-        new File(DirectoryServer.getServerRoot()).getCanonicalPath();
-      String instancePath =
-        new File(DirectoryServer.getInstanceRoot()).getCanonicalPath();
-
       // Load install directory schema
-      String schemaDirPath= getSchemaDirectoryPath(false);
       File schemaDir = new File(schemaDirPath);
       if (schemaDirPath == null || ! schemaDir.exists())
       {
@@ -177,27 +173,11 @@ public class SchemaLoader
           return accept;
         }
       };
-      File[] schemaInstallDirFiles = schemaDir.listFiles(ldifFiles);
-      File[] schemaInstanceDirFiles = null ;
-      int size = schemaInstallDirFiles.length;
-
-      if (! installPath.equals(instancePath))
-      {
-        schemaDirPath= getSchemaDirectoryPath(true);
-        schemaDir = new File(schemaDirPath);
-        if (schemaDirPath != null
-            &&
-            schemaDir.exists()
-            &&
-            schemaDir.isDirectory())
-        {
-          schemaInstanceDirFiles = schemaDir.listFiles(ldifFiles);
-          size += schemaInstanceDirFiles.length;
-        }
-      }
+      File[] schemaFiles = schemaDir.listFiles(ldifFiles);
+      int size = schemaFiles.length;
 
       ArrayList<String> fileList = new ArrayList<String>(size);
-      for (File f : schemaInstallDirFiles)
+      for (File f : schemaFiles)
       {
         if (f.isFile())
         {
@@ -205,26 +185,10 @@ public class SchemaLoader
         }
       }
 
-      if (schemaInstanceDirFiles != null)
-      {
-        for (File f : schemaInstanceDirFiles)
-        {
-          if (f.isFile())
-          {
-            fileList.add(f.getName());
-          }
-        }
-      }
-
       fileNames = new String[fileList.size()];
       fileList.toArray(fileNames);
       Arrays.sort(fileNames);
     }
-    catch (Throwable t)
-    {
-      t.printStackTrace();
-    }
-    /*
     catch (InitializationException ie)
     {
       throw ie;
@@ -232,10 +196,9 @@ public class SchemaLoader
     catch (Exception e)
     {
       Message message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
-          schemaDirPath, getExceptionMessage(e));
+          schemaDirPath, e.getMessage());
       throw new InitializationException(message, e);
     }
-    */
 
 //  Iterate through the schema files and read them as an LDIF file containing
 //  a single entry.  Then get the attributeTypes and objectClasses attributes

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -75,7 +75,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * This class provides a set of test cases for the Directory Server JMX 
+ * This class provides a set of test cases for the Directory Server JMX
  * privilege subsystem.
  */
 public class JmxPrivilegeTestCase
@@ -312,7 +312,7 @@ public class JmxPrivilegeTestCase
     DeleteOperation deleteOperation = conn.processDelete(DN
         .decode("cn=Unprivileged Root,cn=Root DNs,cn=config"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     deleteOperation = conn.processDelete(DN
         .decode("cn=Unprivileged JMX Root,cn=Root DNs,cn=config"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -416,7 +416,7 @@ public class JmxPrivilegeTestCase
       assertTrue(false, "Unexpected exception - error message: "
           + e.getMessage());
     }
-    
+
     // Add JMX_READ privilege
     InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
@@ -426,7 +426,7 @@ public class JmxPrivilegeTestCase
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(user), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     //  Try connection withoutJMX_READ privilege
     // Expected result: success
     try
@@ -449,7 +449,7 @@ public class JmxPrivilegeTestCase
       assertTrue(false, "Unexpected exception - error message: "
           + e.getMessage());
     }
-    
+
     // remove JMX_READ privilege
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
@@ -457,7 +457,7 @@ public class JmxPrivilegeTestCase
     modifyOperation =
          rootConnection.processModify(DN.decode(user), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     // Try connection withoutJMX_READ privilege
     // Expected result: failed
     try
@@ -480,7 +480,7 @@ public class JmxPrivilegeTestCase
           + e.getMessage());
     }
   }
-  
+
 
   /**
    * Tests to ensure that search operations in the server configuration properly
@@ -773,7 +773,7 @@ public class JmxPrivilegeTestCase
                  hasPrivilege);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     String identifier;
     Entry authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();

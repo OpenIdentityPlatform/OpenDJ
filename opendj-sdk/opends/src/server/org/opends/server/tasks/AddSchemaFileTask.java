@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tasks;
+
 import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.util.LinkedList;
@@ -113,10 +113,8 @@ public class AddSchemaFileTask
 
     // Get the name(s) of the schema files to add and make sure they exist in
     // the schema directory.
-    String schemaInstallDirectory  =
-      SchemaConfigManager.getSchemaDirectoryPath(false);
     String schemaInstanceDirectory =
-      SchemaConfigManager.getSchemaDirectoryPath(true);
+      SchemaConfigManager.getSchemaDirectoryPath();
     filesToAdd = new TreeSet<String>();
     for (Attribute a : attrList)
     {
@@ -127,19 +125,13 @@ public class AddSchemaFileTask
 
         try
         {
-          File schemaFile = new File(schemaInstallDirectory, filename);
-          if ((! schemaFile.exists()) ||
-              (! schemaFile.getParent().equals(schemaInstallDirectory)))
+          File schemaFile = new File(schemaInstanceDirectory, filename);
+          if (! schemaFile.exists())
           {
-            // try in the instance
-            schemaFile = new File(schemaInstanceDirectory, filename);
-            if (! schemaFile.exists())
-            {
             Message message = ERR_TASK_ADDSCHEMAFILE_NO_SUCH_FILE.get(
-                filename, schemaInstallDirectory, schemaInstanceDirectory);
+                filename, schemaInstanceDirectory);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
-            }
           }
         }
         catch (Exception e)
@@ -150,7 +142,7 @@ public class AddSchemaFileTask
           }
 
           Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
-              filename, schemaInstallDirectory, schemaInstanceDirectory,
+              filename, schemaInstanceDirectory,
               getExceptionMessage(e));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message, e);
@@ -240,7 +232,7 @@ public class AddSchemaFileTask
             for (AttributeValue v : a)
             {
               String s = v.getValue().toString();
-              if (s.indexOf(SCHEMA_PROPERTY_FILENAME) < 0)
+              if (!s.contains(SCHEMA_PROPERTY_FILENAME))
               {
                 if (s.endsWith(" )"))
                 {

@@ -23,13 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.util;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -65,7 +63,7 @@ import static org.opends.server.util.Validator.ensureNotNull;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class LDIFReader
+public final class LDIFReader implements Closeable
 {
   /**
    * The tracer object for the debug logger.
@@ -317,11 +315,12 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          TRACER.debugInfo("Skipping entry %s because the it reading" +
+          TRACER.debugInfo("Skipping entry %s because reading" +
                   "its attributes failed.", entryDN);
         }
         Message message = ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
                                                        e.getMessage());
+        logToSkipWriter(lines, message);
         suffix.removePending(entryDN);
         continue;
       }
