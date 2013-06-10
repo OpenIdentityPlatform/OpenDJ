@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -59,13 +60,13 @@
             testList.append('import_ldif_bin_attr')
             testList.append('import_ldif_bin_attr_6m')
             testList.append('import_ldif_bin_attr_10m')
-            #testList.append('import_ldif_large_import_buffer')
-            #testList.append('import_ldif_many_thrds')
-            #testList.append('import_ldif_low_index_entry_limit')
-            #testList.append('import_ldif_out-of-box')
-            #testList.append('import_ldif_many_indexes')
-            #testList.append('import_ldif_tasks_bin_attr')
-            #testList.append('import_ldif_tasks_bin_attr_with_load')
+            testList.append('import_ldif_large_import_buffer')
+            testList.append('import_ldif_many_thrds')
+            testList.append('import_ldif_low_index_entry_limit')
+            testList.append('import_ldif_out-of-box')
+            testList.append('import_ldif_many_indexes')
+            testList.append('import_ldif_tasks_bin_attr')
+            testList.append('import_ldif_tasks_bin_attr_with_load')
           </script>
 
           <iterate var="__test" in="testList">

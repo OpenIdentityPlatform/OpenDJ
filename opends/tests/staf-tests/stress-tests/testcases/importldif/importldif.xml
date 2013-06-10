@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2012 ForgeRock AS.
+ !      Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="main_importldif" />
@@ -51,10 +51,10 @@
             <call function="'testGroup_Preamble'" />
             <script>
             suiteList = []
-            #suiteList.append('basic')
-            #suiteList.append('binary_attributes')
-            #suiteList.append('properties')
-            #suiteList.append('indexes')
+            suiteList.append('basic')
+            suiteList.append('binary_attributes')
+            suiteList.append('properties')
+            suiteList.append('indexes')
             suiteList.append('tasks')
             
             def get_testsuite_filename(testsdir,groupname,suitename):

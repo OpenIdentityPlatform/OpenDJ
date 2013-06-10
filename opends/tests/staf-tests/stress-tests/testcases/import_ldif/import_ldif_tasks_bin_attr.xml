@@ -54,13 +54,14 @@
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <script>
+                    numberOfEntries='100000'
+                    bin_attr_filename = '%s_entries.ldif' % numberOfEntries
+                
                     import os.path
                     curr_filename=remote.temp + "/" + bin_attr_filename
                     curr_file_exists='0'
                     if os.path.exists(curr_filename):
                       curr_file_exists='1'
-                    
-                    numberOfEntries='100000'
                 </script>
                 
                 <message>
@@ -156,8 +157,9 @@
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
-
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'tasks' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             
