@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -100,6 +101,9 @@
              <sequence>
                <call function="'testCase_Preamble'"/>
                <script>
+                    numberOfEntries='100000'
+                    bin_attr_filename = '%s_entries.ldif' % numberOfEntries
+                    
                     import os.path
                     curr_filename=remote.temp + "/" + bin_attr_filename
                     curr_file_exists='0'
@@ -248,8 +252,9 @@
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
-
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'tasks_with_load' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

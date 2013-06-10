@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011 ForgeRock AS
+ !      Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
   <!-- SDK ldapsearch Function -->
@@ -533,13 +533,13 @@
           
         if extraParams:
           STAFCmdParamsList.append('%s' % extraParams)
-          
+        
         if attribute:
-          STAFCmdParamsList.append('%s' % attribute)
-          
-        if formatString:
-          STAFCmdParamsList.append(':%s' % formatString)
- 
+          if formatString:
+            STAFCmdParamsList.append('%s:%s' % (attribute,formatString))
+          else:
+            STAFCmdParamsList.append('%s' % attribute)
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       <call function="'runCommand'">

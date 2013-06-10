@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -97,7 +98,7 @@
                     'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name description --add index-type:approximate --add index-type:equality --add index-type:presence --add index-type:substring ' ,
+                    'optionsString'        : '--index-name description --set index-type:approximate --set index-type:equality --set index-type:presence --set index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
@@ -108,7 +109,7 @@
                     'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name employeeNumber --add index-type:approximate --add index-type:equality --add index-type:ordering --add index-type:presence --add index-type:substring ' ,
+                    'optionsString'        : '--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
@@ -241,8 +242,9 @@
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
-
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'many_indexes' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

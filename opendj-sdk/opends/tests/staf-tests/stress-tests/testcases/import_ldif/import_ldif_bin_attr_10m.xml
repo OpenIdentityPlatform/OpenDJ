@@ -438,7 +438,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'">
-            { 'suiteSuffix' : 'import_1m' }
+            { 'suiteSuffix' : 'import_10m' }
           </call>
 
           <call function="'testSuite_Postamble'"/>

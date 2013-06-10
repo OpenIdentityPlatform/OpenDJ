@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -170,8 +171,9 @@
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
-
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'out_of_box' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

@@ -812,7 +812,7 @@
 
       <if expr="checkRC != 48">
         <sequence>
-          <message>
+          <message log="1" level="'Error'">
             'Server is not stopped after %sms \
             (%s/logs/server.pid still exists on %s)' \
             % (noOfLoops*noOfMilliSeconds,dsPath,location)
