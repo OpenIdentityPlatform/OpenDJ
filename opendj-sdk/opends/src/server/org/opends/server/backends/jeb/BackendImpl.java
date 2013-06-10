@@ -1158,9 +1158,16 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
       }
-      Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
+      if (execEx.getCause() instanceof DirectoryException)
+      {
+        throw ((DirectoryException) execEx.getCause());
+      }
+      else
+      {
+        Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
+        throw new DirectoryException(
+            DirectoryServer.getServerErrorResultCode(), message);
+      }
     }
     catch (InterruptedException intEx)
     {

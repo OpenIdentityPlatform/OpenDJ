@@ -72,6 +72,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
@@ -1540,8 +1541,17 @@ public class ImportLDIF extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      Message message =
-          ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject());
+      Message message = null;
+      if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
+      {
+        message =
+            ERR_LDIFIMPORT_ERROR_DURING_IMPORT
+                .get(ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get());
+      }
+      else
+      {
+        message = ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject());
+      }
       logError(message);
       retCode = 1;
     }
@@ -1550,7 +1560,6 @@ public class ImportLDIF extends TaskTool {
       Message message =
           ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(getExceptionMessage(e));
       logError(message);
-e.printStackTrace();
       retCode = 1;
     }
 
