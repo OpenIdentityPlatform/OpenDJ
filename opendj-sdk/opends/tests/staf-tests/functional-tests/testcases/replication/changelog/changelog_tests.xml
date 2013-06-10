@@ -111,7 +111,7 @@
               <else>
                 <!-- Windows -->
                 <script>
-                  sleepTime = 10000
+                  sleepTime = 6000
                 </script>
               </else>
             </if>
@@ -133,7 +133,23 @@
 
                   replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                 </script>
-                  
+
+                <!-- Trace for debug -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'         : replServer.getHostname(),
+                    'dsPath'           : replServerPath,
+                    'dsInstanceHost'   : replServer.getHostname(),
+                    'dsInstancePort'   : replServer.getPort(),
+                    'dsInstanceDn'     : replServer.getRootDn(),
+                    'dsInstancePswd'   : replServer.getRootPwd(),
+                    'dsBaseDN'         : 'dc=replicationChanges',
+                    'dsFilter'         : 'objectclass=*'
+                  }                
+                </call>
+                <message>
+                    STAXResult[0][1]
+                </message>
+  
                 <!-- Search for entry add -->
                 <call function="'ldapSearchWithScript'">
                   { 'location'         : replServer.getHostname(),
