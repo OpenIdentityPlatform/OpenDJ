@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -1023,8 +1024,18 @@ public class ImportTask extends Task
         }
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        Message message =
-            ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject());
+        Message message = null;
+        if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
+        {
+          message =
+              ERR_LDIFIMPORT_ERROR_DURING_IMPORT
+                  .get(ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get());
+        }
+        else
+        {
+          message = ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(
+              de.getMessageObject());
+        }
         logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }

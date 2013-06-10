@@ -2091,7 +2091,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      * {@inheritDoc}
      */
     @Override
-    public Void call() throws Exception
+    public Void call() throws Exception, DirectoryException
     {
       ByteBuffer key = null;
       ImportIDSet insertIDSet = null;
@@ -2214,7 +2214,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     private void addToDB(ImportIDSet insertSet, ImportIDSet deleteSet,
-        int indexID)
+        int indexID) throws DirectoryException
     {
       if (!indexMgr.isDN2ID())
       {
@@ -2249,6 +2249,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     private void addDN2ID(ImportIDSet record, Integer indexID)
+        throws DirectoryException
     {
       DNState dnState;
       if (!dnStateMap.containsKey(indexID))
@@ -2430,22 +2431,30 @@ public final class Importer implements DiskSpaceMonitorHandler
         return true;
       }
 
-      private void id2child(EntryID childID)
+      private void id2child(EntryID childID) throws DirectoryException
       {
         ImportIDSet idSet;
-        if (!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
+        if (parentID != null)
         {
-          idSet = new ImportIDSet(1, childLimit, childDoCount);
-          id2childTree.put(parentID.getDatabaseEntry().getData(), idSet);
+          if (!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
+          {
+            idSet = new ImportIDSet(1, childLimit, childDoCount);
+            id2childTree.put(parentID.getDatabaseEntry().getData(), idSet);
+          }
+          else
+          {
+            idSet = id2childTree.get(parentID.getDatabaseEntry().getData());
+          }
+          idSet.addEntryID(childID);
+          if (id2childTree.size() > DN_STATE_CACHE_SIZE)
+          {
+            flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
+          }
         }
         else
         {
-          idSet = id2childTree.get(parentID.getDatabaseEntry().getData());
-        }
-        idSet.addEntryID(childID);
-        if (id2childTree.size() > DN_STATE_CACHE_SIZE)
-        {
-          flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_PARENT_ENTRY_IS_MISSING.get());
         }
       }
 
@@ -2479,49 +2488,60 @@ public final class Importer implements DiskSpaceMonitorHandler
         return nodeID;
       }
 
-      private void id2SubTree(EntryID childID)
+      private void id2SubTree(EntryID childID) throws DirectoryException
       {
-        ImportIDSet idSet;
-        if (!id2subtreeTree.containsKey(parentID.getDatabaseEntry().getData()))
+        if (parentID != null)
         {
-          idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-          id2subtreeTree.put(parentID.getDatabaseEntry().getData(), idSet);
-        }
-        else
-        {
-          idSet = id2subtreeTree.get(parentID.getDatabaseEntry().getData());
-        }
-        idSet.addEntryID(childID);
-        // TODO:
-        //  Instead of doing this, we can just walk to parent cache if available
-        for (ByteBuffer dn = getParent(parentDN); dn != null; dn =
-            getParent(dn))
-        {
-          EntryID nodeID = getParentID(dn);
-          if (nodeID == null)
-          {
-            // We have a missing parent. Maybe parent checking was turned off?
-            // Just ignore.
-            break;
-          }
-          if (!id2subtreeTree.containsKey(nodeID.getDatabaseEntry().getData()))
+          ImportIDSet idSet;
+          if (!id2subtreeTree
+              .containsKey(parentID.getDatabaseEntry().getData()))
           {
             idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-            id2subtreeTree.put(nodeID.getDatabaseEntry().getData(), idSet);
+            id2subtreeTree.put(parentID.getDatabaseEntry().getData(), idSet);
           }
           else
           {
-            idSet = id2subtreeTree.get(nodeID.getDatabaseEntry().getData());
+            idSet = id2subtreeTree.get(parentID.getDatabaseEntry().getData());
           }
           idSet.addEntryID(childID);
+          // TODO:
+          // Instead of doing this,
+          // we can just walk to parent cache if available
+          for (ByteBuffer dn = getParent(parentDN); dn != null; dn =
+              getParent(dn))
+          {
+            EntryID nodeID = getParentID(dn);
+            if (nodeID == null)
+            {
+              // We have a missing parent. Maybe parent checking was turned off?
+              // Just ignore.
+              break;
+            }
+            if (!id2subtreeTree
+                .containsKey(nodeID.getDatabaseEntry().getData()))
+            {
+              idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
+              id2subtreeTree.put(nodeID.getDatabaseEntry().getData(), idSet);
+            }
+            else
+            {
+              idSet = id2subtreeTree.get(nodeID.getDatabaseEntry().getData());
+            }
+            idSet.addEntryID(childID);
+          }
+          if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
+          {
+            flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
+          }
         }
-        if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
+        else
         {
-          flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_PARENT_ENTRY_IS_MISSING.get());
         }
       }
 
-      public void writeToDB()
+      public void writeToDB() throws DirectoryException
       {
         entryContainer.getDN2ID().put(null, dnKey, dnValue);
         indexMgr.addTotDNCount(1);
