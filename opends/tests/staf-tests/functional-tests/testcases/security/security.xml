@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="main_security" />
@@ -47,8 +47,16 @@
               CurrentTestPath['group']='security'
               _group=CurrentTestPath['group']
 
-              GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||changeLogCookie||includedAttributes\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              import re
+              if UPGRADE_OPENDJNAME != '' and re.search('2.4.*',UPGRADE_OPENDJNAME) is not None:
+                # UPGRADE MODE
+                # Only for upgrade from 2.4.x
+                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||targetUniqueID||changeInitiatorsName||changeLogCookie\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              else:
+                # NORMAL MODE
+                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||changeLogCookie||includedAttributes\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
+
             <call function="'testGroup_Preamble'" />
             <script>
               suiteList = []
