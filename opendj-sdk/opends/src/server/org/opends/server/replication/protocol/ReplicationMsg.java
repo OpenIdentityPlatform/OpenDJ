@@ -246,7 +246,7 @@ public abstract class ReplicationMsg
         msg = new ECLUpdateMsg(buffer);
       break;
       case MSG_TYPE_CT_HEARTBEAT:
-        msg = new ChangeTimeHeartbeatMsg(buffer);
+        msg = new ChangeTimeHeartbeatMsg(buffer, version);
       break;
       case MSG_TYPE_REPL_SERVER_START_DS:
         msg = new ReplServerStartDSMsg(buffer);

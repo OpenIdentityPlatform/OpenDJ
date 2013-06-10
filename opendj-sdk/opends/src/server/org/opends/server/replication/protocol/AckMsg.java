@@ -230,7 +230,7 @@ public class AckMsg extends ReplicationMsg
       oStream.write(MSG_TYPE_ACK);
 
       /* Put the ChangeNumber */
-      byte[] changeNumberByte = changeNumber.format().getBytes("UTF-8");
+      byte[] changeNumberByte = changeNumber.toString().getBytes("UTF-8");
       oStream.write(changeNumberByte);
       oStream.write(0);
 

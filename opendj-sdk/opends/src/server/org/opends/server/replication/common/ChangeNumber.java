@@ -29,20 +29,71 @@ package org.opends.server.replication.common;
 
 import java.util.Date;
 
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteSequenceReader;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+
 /**
  * Class used to represent Change Numbers.
  */
 public class ChangeNumber implements java.io.Serializable,
                                      java.lang.Comparable<ChangeNumber>
 {
+  /**
+   * The number of bytes used by the byte string representation of a change
+   * number.
+   *
+   * @see #valueOf(ByteSequence)
+   * @see #toByteString()
+   * @see #toByteString(ByteStringBuilder)
+   */
+  public static final int BYTE_ENCODING_LENGTH = 14;
+
+  /**
+   * The number of characters used by the string representation of a change
+   * number.
+   *
+   * @see #valueOf(String)
+   * @see #toString()
+   */
+  public static final int STRING_ENCODING_LENGTH = 28;
+
   private static final long serialVersionUID = -8802722277749190740L;
   private final long timeStamp;
   private final int seqnum;
   private final int serverId;
 
-  // A String representation of the ChangeNumber suitable for network
-  // transmission.
-  private String formatedString = null;
+  /**
+   * Parses the provided {@link #toString()} representation of a change number.
+   *
+   * @param s
+   *          The string to be parsed.
+   * @return The parsed change number.
+   * @see #toString()
+   */
+  public static ChangeNumber valueOf(String s)
+  {
+    return new ChangeNumber(s);
+  }
+
+  /**
+   * Decodes the provided {@link #toByteString()} representation of a change
+   * number.
+   *
+   * @param bs
+   *          The byte sequence to be parsed.
+   * @return The decoded change number.
+   * @see #toByteString()
+   */
+  public static ChangeNumber valueOf(ByteSequence bs)
+  {
+    ByteSequenceReader reader = bs.asReader();
+    long timeStamp = reader.getLong();
+    int serverId = reader.getShort() & 0xffff;
+    int seqnum = reader.getInt();
+    return new ChangeNumber(timeStamp, seqnum, serverId);
+  }
 
   /**
    * Create a new ChangeNumber from a String.
@@ -59,8 +110,6 @@ public class ChangeNumber implements java.io.Serializable,
 
     temp = str.substring(20, 28);
     seqnum = Integer.parseInt(temp, 16);
-
-    formatedString = str;
   }
 
   /**
@@ -140,25 +189,47 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
+   * Encodes this change number as a byte string.
+   * <p>
+   * NOTE: this representation must not be modified otherwise interop with
+   * earlier protocol versions will be broken.
+   *
+   * @return The encoded representation of this change number.
+   * @see #valueOf(ByteSequence)
+   */
+  public ByteString toByteString()
+  {
+    return toByteString(new ByteStringBuilder(BYTE_ENCODING_LENGTH))
+        .toByteString();
+  }
+
+  /**
+   * Encodes this change number into the provided byte string builder.
+   * <p>
+   * NOTE: this representation must not be modified otherwise interop with
+   * earlier protocol versions will be broken.
+   *
+   * @param builder
+   *          The byte string builder.
+   * @return The byte string builder containing the encoded change number.
+   * @see #valueOf(ByteSequence)
+   */
+  public ByteStringBuilder toByteString(ByteStringBuilder builder)
+  {
+    return builder.append(timeStamp).append((short) (serverId & 0xffff))
+        .append(seqnum);
+  }
+
+  /**
    * Convert the ChangeNumber to a printable String.
+   * <p>
+   * NOTE: this representation must not be modified otherwise interop with
+   * earlier protocol versions will be broken.
+   *
    * @return the string
    */
   public String toString()
   {
-    return format();
-  }
-
-  /**
-   * Convert the ChangeNumber to a String that is suitable for network
-   * transmission.
-   *
-   * @return the string
-   */
-  public String format()
-  {
-    if (formatedString != null)
-      return formatedString;
-
     return String.format("%016x%04x%08x", timeStamp, serverId, seqnum);
   }
 
