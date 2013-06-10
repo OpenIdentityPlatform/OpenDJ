@@ -27,6 +27,7 @@
  */
 package org.opends.server.replication.common;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.types.ByteString;
 
 
@@ -278,6 +281,41 @@ public class ServerState implements Iterable<Integer>
     }
     return values;
   }
+
+
+
+  /**
+   * Encodes this server state to the provided ASN1 writer.
+   *
+   * @param writer
+   *          The ASN1 writer.
+   * @param protocolVersion
+   *          The replication protocol version.
+   * @throws IOException
+   *           If an error occurred during encoding.
+   */
+  public void writeTo(ASN1Writer writer, short protocolVersion)
+      throws IOException
+  {
+    synchronized (list)
+    {
+      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
+      {
+        for (ChangeNumber cn : list.values())
+        {
+          writer.writeOctetString(cn.toByteString());
+        }
+      }
+      else
+      {
+        for (ChangeNumber cn : list.values())
+        {
+          writer.writeOctetString(cn.toString());
+        }
+      }
+    }
+  }
+
   /**
    * Return the text representation of ServerState.
    * @return the text representation of ServerState

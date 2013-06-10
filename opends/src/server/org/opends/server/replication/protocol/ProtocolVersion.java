@@ -81,9 +81,15 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V6 = 6;
 
   /**
+   * The constant for the 7th version of the replication protocol.
+   * - compact encoding for length, CSNs, and server IDs.
+   */
+  public static final short REPLICATION_PROTOCOL_V7 = 7;
+
+  /**
    * The replication protocol version used by the instance of RS/DS in this VM.
    */
-  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V6;
+  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V7;
 
   /**
    * Gets the current version of the replication protocol.

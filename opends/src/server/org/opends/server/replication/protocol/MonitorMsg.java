@@ -27,12 +27,12 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -277,8 +277,16 @@ public class MonitorMsg extends RoutableMsg
         // loop on the list of CN of the state
         while(asn1Reader.hasNextElement())
         {
-          String s = asn1Reader.readOctetStringAsString();
-          ChangeNumber cn = new ChangeNumber(s);
+          ChangeNumber cn;
+          if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
+          {
+            cn = ChangeNumber.valueOf(asn1Reader.readOctetString());
+          }
+          else
+          {
+            cn = ChangeNumber.valueOf(asn1Reader.readOctetStringAsString());
+          }
+
           if ((data.replServerDbState != null) && (serverId == 0))
           {
             // we are on the first CN that is a fake CN to store the serverId
@@ -323,7 +331,6 @@ public class MonitorMsg extends RoutableMsg
    */
   @Override
   public byte[] getBytes()
-  throws UnsupportedEncodingException
   {
     return getBytes(ProtocolVersion.getCurrentVersion());
   }
@@ -333,12 +340,10 @@ public class MonitorMsg extends RoutableMsg
    */
   @Override
   public byte[] getBytes(short protocolVersion)
-     throws UnsupportedEncodingException
   {
     try
     {
       ByteStringBuilder byteBuilder = new ByteStringBuilder();
-      ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
@@ -362,66 +367,22 @@ public class MonitorMsg extends RoutableMsg
       }
 
       /* Put the serverStates ... */
+      ASN1Writer writer = ASN1.getWriter(byteBuilder);
       writer.writeStartSequence();
-
-      /* first put the Replication Server state */
-      writer.writeStartSequence();
-      ArrayList<ByteString> cnOctetList =
-        data.replServerDbState.toASN1ArrayList();
-      for (ByteString soci : cnOctetList)
       {
-        writer.writeOctetString(soci);
-      }
-      writer.writeEndSequence();
-
-      // then the LDAP server data
-      Set<Integer> servers = data.ldapStates.keySet();
-      for (Integer sid : servers)
-      {
-        ServerState statei = data.ldapStates.get(sid).state;
-        Long outime = data.ldapStates.get(sid).approxFirstMissingDate;
-
-        // retrieves the change numbers as an arrayList of ANSN1OctetString
-        cnOctetList = statei.toASN1ArrayList();
-
+        /* first put the Replication Server state */
         writer.writeStartSequence();
-        // a fake changenumber helps storing the LDAP server ID
-        ChangeNumber cn = new ChangeNumber(outime,1,sid);
-        writer.writeOctetString(cn.toString());
-
-        // the changenumbers that make the state
-        for (ByteString soci : cnOctetList)
         {
-          writer.writeOctetString(soci);
+          data.replServerDbState.writeTo(writer, protocolVersion);
         }
-
         writer.writeEndSequence();
+
+        // then the LDAP server data
+        writeServerStates(protocolVersion, writer, false /* DS */);
+
+        // then the RS server datas
+        writeServerStates(protocolVersion, writer, true /* RS */);
       }
-
-      // then the RS server datas
-      servers = data.rsStates.keySet();
-      for (Integer sid : servers)
-      {
-        ServerState statei = data.rsStates.get(sid).state;
-        Long outime = data.rsStates.get(sid).approxFirstMissingDate;
-
-        // retrieves the change numbers as an arrayList of ANSN1OctetString
-        cnOctetList = statei.toASN1ArrayList();
-
-        writer.writeStartSequence();
-        // a fake changenumber helps storing the LDAP server ID
-        ChangeNumber cn = new ChangeNumber(outime,0,sid);
-        writer.writeOctetString(cn.toString());
-
-        // the changenumbers that make the state
-        for (ByteString soci : cnOctetList)
-        {
-          writer.writeOctetString(soci);
-        }
-
-        writer.writeEndSequence();
-      }
-
       writer.writeEndSequence();
 
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -453,6 +414,39 @@ public class MonitorMsg extends RoutableMsg
     catch (Exception e)
     {
       return null;
+    }
+  }
+
+  private void writeServerStates(short protocolVersion, ASN1Writer writer,
+      boolean writeRSStates) throws IOException
+  {
+    Map<Integer, ServerData> servers = writeRSStates ? data.rsStates
+        : data.ldapStates;
+    for (Map.Entry<Integer, ServerData> server : servers.entrySet())
+    {
+      writer.writeStartSequence();
+      {
+        /*
+         * A fake change number helps storing the LDAP server ID. The sequence
+         * number will be used to differentiate between an LDAP server (1) or an
+         * RS (0).
+         */
+        ChangeNumber cn = new ChangeNumber(
+            server.getValue().approxFirstMissingDate, writeRSStates ? 0 : 1,
+            server.getKey());
+        if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
+        {
+          writer.writeOctetString(cn.toByteString());
+        }
+        else
+        {
+          writer.writeOctetString(cn.toString());
+        }
+
+        // the changenumbers that make the state
+        server.getValue().state.writeTo(writer, protocolVersion);
+      }
+      writer.writeEndSequence();
     }
   }
 
