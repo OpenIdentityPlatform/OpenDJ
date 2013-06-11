@@ -128,6 +128,9 @@ public final class Upgrade
         "delete: objectClass",
         "objectClass: ds-cfg-file-based-access-log-publisher"));
 
+    register ("2.5.0.7466",
+        renameSnmpSecurityConfig(INFO_UPGRADE_TASK_7466_SUMMARY.get()));
+
     register("2.5.0.7748",
         newAttributeTypes(INFO_UPGRADE_TASK_7748_1_SUMMARY.get(),
         "00-core.ldif", "etag"),
@@ -272,6 +275,8 @@ public final class Upgrade
           "cn=File Count Retention Policy,cn=Log Retention Policies,cn=config",
         "ds-cfg-log-file-permissions: 640",
         "ds-cfg-enabled: false"));
+
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
