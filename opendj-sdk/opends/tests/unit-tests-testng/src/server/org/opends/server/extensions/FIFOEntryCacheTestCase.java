@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -33,6 +34,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -51,7 +53,7 @@ import static org.testng.Assert.*;
  */
 @Test(groups = "entrycache", sequential=true)
 public class FIFOEntryCacheTestCase
-       extends CommonEntryCacheTestCase
+       extends CommonEntryCacheTestCase<FIFOEntryCacheCfg>
 {
   /**
    * Initialize the entry cache test.
@@ -59,7 +61,6 @@ public class FIFOEntryCacheTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  @SuppressWarnings("unchecked")
   public void entryCacheTestInit()
          throws Exception
   {
@@ -78,7 +79,7 @@ public class FIFOEntryCacheTestCase
       "ds-cfg-enabled: true",
       "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES));
     super.configuration = AdminTestCaseUtils.getConfiguration(
-      EntryCacheCfgDefn.getInstance(), cacheConfigEntry);
+      FIFOEntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
     // Force GC to make sure we have enough memory for
     // the cache capping constraints to work properly.
@@ -289,9 +290,9 @@ public class FIFOEntryCacheTestCase
   public void testHandleLowMemory()
          throws Exception
   {
-    assertNull(super.toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      super.toVerboseString());
+      cache.toVerboseString());
 
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
@@ -308,7 +309,7 @@ public class FIFOEntryCacheTestCase
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
-        super.toVerboseString());
+        cache.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -321,9 +322,9 @@ public class FIFOEntryCacheTestCase
   public void cacheConcurrencySetup()
          throws Exception
   {
-    assertNull(super.toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      super.toVerboseString());
+      cache.toVerboseString());
   }
 
 
@@ -361,9 +362,9 @@ public class FIFOEntryCacheTestCase
   public void testCacheRotation()
          throws Exception
   {
-    assertNull(super.toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      super.toVerboseString());
+      cache.toVerboseString());
 
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
@@ -377,7 +378,7 @@ public class FIFOEntryCacheTestCase
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
-        super.toVerboseString());
+        cache.toVerboseString());
     }
 
     // Make sure remaining NUMTESTENTRIES are still in the cache.
@@ -389,7 +390,7 @@ public class FIFOEntryCacheTestCase
         super.testEntriesList.get(i).getDN()), "Expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
-        super.toVerboseString());
+        cache.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.

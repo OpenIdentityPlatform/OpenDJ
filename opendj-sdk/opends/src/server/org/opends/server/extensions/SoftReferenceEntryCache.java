@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -55,10 +55,8 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
-
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -116,7 +114,6 @@ public class SoftReferenceEntryCache
 
     setExcludeFilters(new HashSet<SearchFilter>());
     setIncludeFilters(new HashSet<SearchFilter>());
-    setLockTimeout(LockManager.DEFAULT_TIMEOUT);
     referenceQueue = new ReferenceQueue<CacheEntry>();
   }
 
@@ -562,13 +559,11 @@ public class SoftReferenceEntryCache
   {
     // Local variables to read configuration.
     DN                    newConfigEntryDN;
-    long                  newLockTimeout;
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();
-    newLockTimeout   = configuration.getLockTimeout();
 
     // Get include and exclude filters.
     switch (errorHandler.getConfigPhase())
@@ -593,7 +588,6 @@ public class SoftReferenceEntryCache
 
     if (applyChanges && errorHandler.getIsAcceptable())
     {
-      setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
 
@@ -710,15 +704,9 @@ public class SoftReferenceEntryCache
 
 
   /**
-   * Return a verbose string representation of the current cache maps.
-   * This is useful primary for debugging and diagnostic purposes such
-   * as in the entry cache unit tests.
-   * @return String verbose string representation of the current cache
-   *                maps in the following format: dn:id:backend
-   *                one cache entry map representation per line
-   *                or <CODE>null</CODE> if all maps are empty.
+   * {@inheritDoc}
    */
-  private String toVerboseString()
+  public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
 

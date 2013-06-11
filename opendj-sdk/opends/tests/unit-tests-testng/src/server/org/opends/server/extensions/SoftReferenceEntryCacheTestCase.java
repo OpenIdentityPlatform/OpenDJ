@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -33,6 +34,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
@@ -48,7 +50,7 @@ import static org.testng.Assert.*;
  */
 @Test(groups = "entrycache", sequential=true)
 public class SoftReferenceEntryCacheTestCase
-       extends CommonEntryCacheTestCase
+       extends CommonEntryCacheTestCase<SoftReferenceEntryCacheCfg>
 {
   /**
    * Initialize the entry cache test.
@@ -56,7 +58,6 @@ public class SoftReferenceEntryCacheTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  @SuppressWarnings("unchecked")
   public void entryCacheTestInit()
          throws Exception
   {
@@ -75,7 +76,7 @@ public class SoftReferenceEntryCacheTestCase
       "org.opends.server.extensions.SoftReferenceEntryCache",
       "ds-cfg-enabled: true");
     super.configuration = AdminTestCaseUtils.getConfiguration(
-      EntryCacheCfgDefn.getInstance(), cacheConfigEntry);
+      SoftReferenceEntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
     // Force GC to make sure we have enough memory for
     // the cache capping constraints to work properly.
@@ -295,9 +296,9 @@ public class SoftReferenceEntryCacheTestCase
   public void cacheConcurrencySetup()
          throws Exception
   {
-    assertNull(super.toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      super.toVerboseString());
+      cache.toVerboseString());
   }
 
 

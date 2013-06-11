@@ -23,18 +23,17 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-import java.lang.reflect.Method;
+
+
+
 import org.opends.messages.Message;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -50,7 +49,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockType;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -110,7 +108,7 @@ public class DefaultEntryCache
   @Override
   public void finalizeEntryCache()
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.finalizeEntryCache();
     }
     // ReInitialize cache order array.
@@ -128,7 +126,7 @@ public class DefaultEntryCache
       return false;
     }
 
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       if (entryCache.containsEntry(entryDN)) {
         return true;
       }
@@ -142,52 +140,23 @@ public class DefaultEntryCache
    * {@inheritDoc}
    */
   @Override
-  public Entry getEntry(DN entryDN,
-                        LockType lockType,
-                        List<Lock> lockList)
+  public Entry getEntry(Backend backend, long entryID)
   {
-    Entry entry = null;
-
-    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder) {
-      entry = entryCache.getEntry(entryDN, lockType, lockList);
-      if (entry != null) {
-        break;
+    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder)
+    {
+      Entry entry = entryCache.getEntry(backend, entryID);
+      if (entry != null)
+      {
+        return entry.duplicate(true);
       }
     }
 
     // Indicate global cache miss.
-    if ((entry == null) && (cacheOrder.length != 0)) {
+    if (cacheOrder.length != 0)
+    {
       cacheMisses.getAndIncrement();
     }
-
-    return (entry != null ? entry.duplicate(true) : null);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Entry getEntry(Backend backend, long entryID,
-                                 LockType lockType,
-                                 List<Lock> lockList)
-  {
-    Entry entry = null;
-
-    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder) {
-      entry = entryCache.getEntry(backend, entryID, lockType,
-          lockList);
-      if (entry != null) {
-        break;
-      }
-    }
-
-    // Indicate global cache miss.
-    if ((entry == null) && (cacheOrder.length != 0)) {
-      cacheMisses.getAndIncrement();
-    }
-
-    return (entry != null ? entry.duplicate(true) : null);
+    return null;
   }
 
 
@@ -197,21 +166,21 @@ public class DefaultEntryCache
   @Override
   public Entry getEntry(DN entryDN)
   {
-    Entry entry = null;
-
-    for (EntryCache entryCache : cacheOrder) {
-      entry = entryCache.getEntry(entryDN);
-      if (entry != null) {
-        break;
+    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder)
+    {
+      Entry entry = entryCache.getEntry(entryDN);
+      if (entry != null)
+      {
+        return entry.duplicate(true);
       }
     }
 
     // Indicate global cache miss.
-    if ((entry == null) && (cacheOrder.length != 0)) {
+    if (cacheOrder.length != 0)
+    {
       cacheMisses.getAndIncrement();
     }
-
-    return (entry != null ? entry.duplicate(true) : null);
+    return null;
   }
 
 
@@ -222,16 +191,15 @@ public class DefaultEntryCache
   @Override
   public long getEntryID(DN entryDN)
   {
-    long entryID = -1;
-
-    for (EntryCache entryCache : cacheOrder) {
-      entryID = entryCache.getEntryID(entryDN);
-      if (entryID != -1) {
-        break;
+    for (EntryCache<?> entryCache : cacheOrder)
+    {
+      long entryID = entryCache.getEntryID(entryDN);
+      if (entryID != -1)
+      {
+        return entryID;
       }
     }
-
-    return entryID;
+    return -1;
   }
 
 
@@ -242,16 +210,15 @@ public class DefaultEntryCache
   @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
-    DN entryDN = null;
-
-    for (EntryCache entryCache : cacheOrder) {
-      entryDN = entryCache.getEntryDN(backend, entryID);
-      if (entryDN != null) {
-        break;
+    for (EntryCache<?> entryCache : cacheOrder)
+    {
+      DN entryDN = entryCache.getEntryDN(backend, entryID);
+      if (entryDN != null)
+      {
+        return entryDN;
       }
     }
-
-    return entryDN;
+    return null;
   }
 
 
@@ -262,7 +229,7 @@ public class DefaultEntryCache
   @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
@@ -281,7 +248,7 @@ public class DefaultEntryCache
   @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
@@ -301,7 +268,7 @@ public class DefaultEntryCache
   @Override
   public void removeEntry(DN entryDN)
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       if (entryCache.containsEntry(entryDN)) {
         entryCache.removeEntry(entryDN);
         break;
@@ -317,7 +284,7 @@ public class DefaultEntryCache
   @Override
   public void clear()
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.clear();
     }
   }
@@ -330,7 +297,7 @@ public class DefaultEntryCache
   @Override
   public void clearBackend(Backend backend)
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.clearBackend(backend);
     }
   }
@@ -343,7 +310,7 @@ public class DefaultEntryCache
   @Override
   public void clearSubtree(DN baseDN)
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.clearSubtree(baseDN);
     }
   }
@@ -356,7 +323,7 @@ public class DefaultEntryCache
   @Override
   public void handleLowMemory()
   {
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.handleLowMemory();
     }
   }
@@ -413,7 +380,7 @@ public class DefaultEntryCache
     // implementations.
     Long currentEntryCacheCount = new Long(0);
 
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       // Get cache hits and counts from every active cache.
       entryCacheHits += entryCache.getCacheHits();
       currentEntryCacheCount += entryCache.getCacheCount();
@@ -447,7 +414,7 @@ public class DefaultEntryCache
   {
     Long cacheCount = new Long(0);
 
-    for (EntryCache entryCache : cacheOrder) {
+    for (EntryCache<?> entryCache : cacheOrder) {
       cacheCount += entryCache.getCacheCount();
     }
 
@@ -457,41 +424,20 @@ public class DefaultEntryCache
 
 
   /**
-   * Return a verbose string representation of the current cache maps.
-   * This is useful primary for debugging and diagnostic purposes such
-   * as in the entry cache unit tests.
-   * @return String verbose string representation of the current cache
-   *                maps in the following format: dn:id:backend
-   *                one cache entry map representation per line
-   *                or <CODE>null</CODE> if all maps are empty.
+   * {@inheritDoc}
    */
-  private String toVerboseString()
+  public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
-
-    for (EntryCache entryCache : cacheOrder) {
-      final Method[] cacheMethods =
-        entryCache.getClass().getDeclaredMethods();
-      for (int i = 0; i < cacheMethods.length; ++i) {
-        if (cacheMethods[i].getName().equals("toVerboseString")) {
-          cacheMethods[i].setAccessible(true);
-          try {
-            Object cacheVerboseString =
-              cacheMethods[i].invoke(entryCache, (Object[]) null);
-            if (cacheVerboseString != null) {
-              sb.append((String) cacheVerboseString);
-            }
-          } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-          }
-        }
+    for (EntryCache<?> entryCache : cacheOrder)
+    {
+      String s = entryCache.toVerboseString();
+      if (s != null)
+      {
+        sb.append(s);
       }
     }
-
     String verboseString = sb.toString();
-
     return (verboseString.length() > 0 ? verboseString : null);
   }
 

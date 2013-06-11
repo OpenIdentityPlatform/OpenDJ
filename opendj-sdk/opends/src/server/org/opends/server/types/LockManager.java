@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -182,7 +183,7 @@ public final class LockManager
    * @return  The read lock that was acquired, or {@code null} if it
    *          was not possible to obtain a read lock for some reason.
    */
-  public static Lock tryLockRead(DN entryDN)
+  private static Lock tryLockRead(DN entryDN)
   {
     ReentrantReadWriteLock entryLock =
         new ReentrantReadWriteLock(fair);
@@ -297,7 +298,7 @@ public final class LockManager
    *          it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static Lock lockRead(DN entryDN, long timeout)
+  private static Lock lockRead(DN entryDN, long timeout)
   {
     // First, try to get the lock without blocking.
     Lock readLock = tryLockRead(entryDN);
@@ -396,7 +397,7 @@ public final class LockManager
    *          if it was not possible to obtain a write lock for some
    *          reason.
    */
-  public static Lock tryLockWrite(DN entryDN)
+  private static Lock tryLockWrite(DN entryDN)
   {
     ReentrantReadWriteLock entryLock =
         new ReentrantReadWriteLock(fair);
@@ -508,7 +509,7 @@ public final class LockManager
    *          if it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static Lock lockWrite(DN entryDN, long timeout)
+  private static Lock lockWrite(DN entryDN, long timeout)
   {
     // First, try to get the lock without blocking.
     Lock writeLock = tryLockWrite(entryDN);
