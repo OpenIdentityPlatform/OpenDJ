@@ -1643,8 +1643,8 @@ Stopping Server...
       <para>Looks for a match between an attribute of the certificate subject
       and an attribute of the entry (default: match <literal>cn</literal> in
       the certificate to <literal>cn</literal> on the entry, or match
-      <literal>e</literal> in the certificate to <literal>mail</literal> on
-      the entry).</para>
+      <literal>emailAddress</literal> in the certificate to
+      <literal>mail</literal> on the entry).</para>
      </listitem>
     </varlistentry>
 
