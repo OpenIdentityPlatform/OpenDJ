@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server;
 
@@ -399,6 +400,8 @@ public final class TestCaseUtils {
             new File(testConfigDir, "server.truststore"));
         copyFile(new File(testResourceDir, "client.keystore"),
             new File(testConfigDir, "client.keystore"));
+        copyFile(new File(testResourceDir, "client-emailAddress.keystore"),
+            new File(testConfigDir, "client-emailAddress.keystore"));
         copyFile(new File(testResourceDir, "client.truststore"),
             new File(testConfigDir, "client.truststore"));
         copyFile(new File(testResourceDir, "server-cert.p12"),
