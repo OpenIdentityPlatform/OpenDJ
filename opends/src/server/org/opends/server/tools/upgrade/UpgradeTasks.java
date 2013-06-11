@@ -422,6 +422,61 @@ public final class UpgradeTasks
     };
   }
 
+  /**
+   * Renames the SNMP security config file if it exists. Since 2.5.0.7466 this
+   * file has been renamed.
+   *
+   * @param summary
+   *          The summary of this upgrade task.
+   * @return An upgrade task which renames the old SNMP security config file if
+   *         it exists.
+   */
+  public static UpgradeTask renameSnmpSecurityConfig(final Message summary)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        /*
+         * Snmp config file contains old name in old version(like 2.4.5), in
+         * order to make sure the process will still work after upgrade, we need
+         * to rename it - only if it exists.
+         */
+        if (UpgradeUtils.configSnmpSecurityDirectory.exists())
+        {
+          ProgressNotificationCallback pnc =
+              new ProgressNotificationCallback(0, summary, 0);
+          try
+          {
+            final File oldSnmpConfig =
+                new File(UpgradeUtils.configSnmpSecurityDirectory
+                    + File.separator + "opends-snmp.security");
+            if (oldSnmpConfig.exists())
+            {
+              context.notifyProgress(pnc.changeProgress(20));
+              LOG.log(Level.INFO, summary.toString());
+
+              final File snmpConfig =
+                  new File(UpgradeUtils.configSnmpSecurityDirectory
+                      + File.separator + "opendj-snmp.security");
+
+              FileManager.rename(oldSnmpConfig, snmpConfig);
+
+              context.notifyProgress(pnc.changeProgress(100));
+            }
+          }
+          catch (final Exception ex)
+          {
+            manageTaskException(context,
+                ERR_UPGRADE_RENAME_SNMP_SECURITY_CONFIG_FILE.get(ex
+                    .getMessage()), pnc);
+          }
+        }
+      }
+    };
+  }
+
   private static UpgradeTask addConfigEntry0(final Message summary,
       final Message description, final boolean needsUserConfirmation,
       final String... ldif)

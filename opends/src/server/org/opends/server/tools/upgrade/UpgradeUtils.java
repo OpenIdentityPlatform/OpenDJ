@@ -97,13 +97,19 @@ final class UpgradeUtils
   /** The template/config/schema folder of the current installation. */
   static final File templateConfigSchemaDirectory = new File(
       getInstallationPath(), Installation.TEMPLATE_RELATIVE_PATH
-          + File.separator + Installation.CONFIG_PATH_RELATIVE + File.separator
-          + Installation.SCHEMA_PATH_RELATIVE);
+          + File.separator + Installation.CONFIG_PATH_RELATIVE
+          + File.separator + Installation.SCHEMA_PATH_RELATIVE);
 
   /** The template/config folder of the current installation. */
   static final File templateConfigDirectory = new File(
       getInstallationPath(), Installation.TEMPLATE_RELATIVE_PATH
           + File.separator + Installation.CONFIG_PATH_RELATIVE);
+
+  /** The config snmp security folder of the current installation. */
+  static final File configSnmpSecurityDirectory = new File(
+      getInstallationPath(), Installation.CONFIG_PATH_RELATIVE
+      + File.separator + Installation.SNMP_PATH_RELATIVE + File.separator
+      + Installation.SECURITY_PATH_RELATIVE);
 
   /**
    * Returns the path of the installation of the directory server. Note that

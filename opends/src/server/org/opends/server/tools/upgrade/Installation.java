@@ -90,6 +90,16 @@ public final class Installation
   public static final String TMP_PATH_RELATIVE = "tmp";
 
   /**
+   * Relative path to the snmp directory.
+   */
+  public static final String SNMP_PATH_RELATIVE = "snmp";
+
+  /**
+   * Relative path to the security directory.
+   */
+  public static final String SECURITY_PATH_RELATIVE = "security";
+
+  /**
    * The relative path to the current Configuration LDIF file.
    */
   public static final String CURRENT_CONFIG_FILE_NAME = "config.ldif";
