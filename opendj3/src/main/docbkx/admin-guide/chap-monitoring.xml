@@ -667,8 +667,9 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
  --bindPassword password
  --publisher-name "File-Based Access Logger"
  --criteria-name "Exclude LDAPS on 1636 and 4444"
- --add connection-port-equal-to:1636
- --add connection-port-equal-to:4444
+ --type generic
+ --set connection-port-equal-to:1636
+ --set connection-port-equal-to:4444
  --set connection-protocol-equal-to:ldaps
  --trustAll
  --no-prompt</screen>
