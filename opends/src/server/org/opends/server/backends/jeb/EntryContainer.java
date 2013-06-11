@@ -1283,7 +1283,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
     DatabaseEntry data = new DatabaseEntry();
     DatabaseEntry key = new DatabaseEntry(begin);
-    List<Lock> lockList = new ArrayList<Lock>(1);
 
     int lookthroughCount = 0;
     int lookthroughLimit =
@@ -1337,10 +1336,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             Entry entry;
             Entry cacheEntry;
 
-            // Try the entry cache first. Note no need to take a lock.
-            lockList.clear();
-            cacheEntry = entryCache.getEntry(backend, entryID.longValue(),
-                LockType.NONE, lockList);
+            // Try the entry cache first.
+            cacheEntry = entryCache.getEntry(backend, entryID.longValue());
 
             if (cacheEntry == null)
             {
@@ -1495,135 +1492,116 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Iterate through the index candidates.
     if (continueSearch)
     {
-      List<Lock> lockList = new ArrayList<Lock>();
       Iterator<EntryID> iterator = entryIDList.iterator(begin);
       while (iterator.hasNext())
       {
         EntryID id = iterator.next();
         Entry entry;
-        Entry cacheEntry;
 
-        // Try the entry cache first. Note no need to take a lock.
-        lockList.clear();
-        cacheEntry = entryCache.getEntry(backend, id.longValue(),
-            LockType.NONE, lockList);
-
-        // Release any entry lock whatever happens during this block.
-        // (This is actually redundant since we did not take a lock).
-        try
+        // Try the entry cache first.
+        Entry cacheEntry = entryCache.getEntry(backend, id.longValue());
+        if (cacheEntry == null)
         {
-          if (cacheEntry == null)
+          // Fetch the candidate entry from the database.
+          try
           {
-            // Fetch the candidate entry from the database.
-            try
-            {
-              entry = id2entry.get(null, id, LockMode.DEFAULT);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              continue;
-            }
+            entry = id2entry.get(null, id, LockMode.DEFAULT);
           }
-          else
+          catch (Exception e)
           {
-            entry = cacheEntry;
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            continue;
           }
+        }
+        else
+        {
+          entry = cacheEntry;
+        }
 
-          // Process the candidate entry.
-          if (entry != null)
+        // Process the candidate entry.
+        if (entry != null)
+        {
+          boolean isInScope = false;
+          DN entryDN = entry.getDN();
+
+          if (candidatesAreInScope)
           {
-            boolean isInScope = false;
-            DN entryDN = entry.getDN();
-
-            if (candidatesAreInScope)
+            isInScope = true;
+          }
+          else if (searchScope == SearchScope.SINGLE_LEVEL)
+          {
+            // Check if this entry is an immediate child.
+            if ((entryDN.getNumComponents() ==
+                aBaseDN.getNumComponents() + 1) &&
+                entryDN.isDescendantOf(aBaseDN))
             {
               isInScope = true;
             }
-            else if (searchScope == SearchScope.SINGLE_LEVEL)
+          }
+          else if (searchScope == SearchScope.WHOLE_SUBTREE)
+          {
+            if (entryDN.isDescendantOf(aBaseDN))
             {
-              // Check if this entry is an immediate child.
-              if ((entryDN.getNumComponents() ==
-                aBaseDN.getNumComponents() + 1) &&
-                entryDN.isDescendantOf(aBaseDN))
-              {
-                isInScope = true;
-              }
+              isInScope = true;
             }
-            else if (searchScope == SearchScope.WHOLE_SUBTREE)
+          }
+          else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
+          {
+            if ((entryDN.getNumComponents() >
+            aBaseDN.getNumComponents()) &&
+            entryDN.isDescendantOf(aBaseDN))
             {
-              if (entryDN.isDescendantOf(aBaseDN))
-              {
-                isInScope = true;
-              }
+              isInScope = true;
             }
-            else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
-            {
-              if ((entryDN.getNumComponents() >
-              aBaseDN.getNumComponents()) &&
-              entryDN.isDescendantOf(aBaseDN))
-              {
-                isInScope = true;
-              }
-            }
+          }
 
-            // Put this entry in the cache if it did not come from the cache.
-            if (cacheEntry == null)
-            {
-              // Put the entry in the cache making sure not to overwrite
-              // a newer copy that may have been inserted since the time
-              // we read the cache.
-              entryCache.putEntryIfAbsent(entry, backend, id.longValue());
-            }
+          // Put this entry in the cache if it did not come from the cache.
+          if (cacheEntry == null)
+          {
+            // Put the entry in the cache making sure not to overwrite
+            // a newer copy that may have been inserted since the time
+            // we read the cache.
+            entryCache.putEntryIfAbsent(entry, backend, id.longValue());
+          }
 
-            // Filter the entry if it is in scope.
-            if (isInScope)
+          // Filter the entry if it is in scope.
+          if (isInScope)
+          {
+            if (manageDsaIT || entry.getReferralURLs() == null)
             {
-              if (manageDsaIT || entry.getReferralURLs() == null)
+              if (searchOperation.getFilter().matchesEntry(entry))
               {
-                if (searchOperation.getFilter().matchesEntry(entry))
+                if (pageRequest != null &&
+                    searchOperation.getEntriesSent() ==
+                    pageRequest.getSize())
                 {
-                  if (pageRequest != null &&
-                      searchOperation.getEntriesSent() ==
-                        pageRequest.getSize())
-                  {
-                    // The current page is full.
-                    // Set the cookie to remember where we were.
-                    byte[] cookieBytes = id.getDatabaseEntry().getData();
-                    ByteString cookie = ByteString.wrap(cookieBytes);
-                    PagedResultsControl control;
-                    control = new PagedResultsControl(pageRequest.isCritical(),
-                        0, cookie);
-                    searchOperation.getResponseControls().add(control);
-                    return;
-                  }
+                  // The current page is full.
+                  // Set the cookie to remember where we were.
+                  byte[] cookieBytes = id.getDatabaseEntry().getData();
+                  ByteString cookie = ByteString.wrap(cookieBytes);
+                  PagedResultsControl control;
+                  control = new PagedResultsControl(pageRequest.isCritical(),
+                      0, cookie);
+                  searchOperation.getResponseControls().add(control);
+                  return;
+                }
 
-                  if (!searchOperation.returnEntry(entry, null))
-                  {
-                    // We have been told to discontinue processing of the
-                    // search. This could be due to size limit exceeded or
-                    // operation cancelled.
-                    break;
-                  }
+                if (!searchOperation.returnEntry(entry, null))
+                {
+                  // We have been told to discontinue processing of the
+                  // search. This could be due to size limit exceeded or
+                  // operation cancelled.
+                  break;
                 }
               }
             }
           }
         }
-        finally
-        {
-          // Release any entry lock acquired by the entry cache
-          // (This is actually redundant since we did not take a lock).
-          for (Lock lock : lockList)
-          {
-            lock.unlock();
-          }
-        }
-        searchOperation.checkIfCanceled(false);
       }
+      searchOperation.checkIfCanceled(false);
     }
 
     // Before we return success from the search we must ensure the base entry

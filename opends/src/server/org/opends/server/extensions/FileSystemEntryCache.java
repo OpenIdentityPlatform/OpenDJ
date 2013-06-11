@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -169,7 +169,7 @@ public class FileSystemEntryCache
   // Class database, catalog and binding for serialization.
   private Database entryCacheClassDB;
   private StoredClassCatalog classCatalog;
-  private EntryBinding entryCacheDataBinding;
+  private EntryBinding<FileSystemEntryCacheIndex> entryCacheDataBinding;
 
   // JE naming constants.
   private static final String ENTRYCACHEDBNAME = "EntryCacheDB";
@@ -186,6 +186,10 @@ public class FileSystemEntryCache
 
   // Currently registered configuration object.
   private FileSystemEntryCacheCfg registeredConfiguration;
+
+  // The maximum length of time to try to obtain a lock before giving
+  // up.
+  private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
 
   /**
    * Creates a new instance of this entry cache.
@@ -207,7 +211,6 @@ public class FileSystemEntryCache
    * {@inheritDoc}
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void initializeEntryCache(FileSystemEntryCacheCfg configuration)
           throws ConfigException, InitializationException {
 
@@ -304,9 +307,8 @@ public class FileSystemEntryCache
       classCatalog = new StoredClassCatalog(entryCacheClassDB);
       //This line causes an unchecked call error if the SuppressWarnings
       //annotation is removed at the beginning of this method.
-      entryCacheDataBinding =
-          new SerialBinding(classCatalog,
-          FileSystemEntryCacheIndex.class);
+      entryCacheDataBinding = new SerialBinding<FileSystemEntryCacheIndex>(
+          classCatalog, FileSystemEntryCacheIndex.class);
 
       // Get the root configuration object.
       ServerManagementContext managementContext =
@@ -336,9 +338,7 @@ public class FileSystemEntryCache
 
           if (OperationStatus.SUCCESS ==
               entryCacheDB.get(null, indexKey, indexData, LockMode.DEFAULT)) {
-            entryCacheIndex =
-                (FileSystemEntryCacheIndex)
-                entryCacheDataBinding.entryToObject(indexData);
+            entryCacheIndex = entryCacheDataBinding.entryToObject(indexData);
           } else {
             throw new CacheIndexNotFoundException();
           }
@@ -434,7 +434,6 @@ public class FileSystemEntryCache
    * {@inheritDoc}
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void finalizeEntryCache() {
 
     cacheWriteLock.lock();
@@ -590,17 +589,18 @@ public class FileSystemEntryCache
    */
   @Override
   public DN getEntryDN(Backend backend, long entryID) {
-
     DN entryDN = null;
     cacheReadLock.lock();
     try {
       // Get the map for the provided backend.  If it isn't present, then
       // return null.
-      Map map = entryCacheIndex.backendMap.get(backend.getBackendID());
-      if ( !(map == null) ) {
+      Map<Long, String> map = entryCacheIndex.backendMap.get(backend
+          .getBackendID());
+      if (map != null)
+      {
         // Get the entry DN from the map by its ID.  If it isn't present,
         // then return null.
-        entryDN = DN.decode((String) map.get(entryID));
+        entryDN = DN.decode(map.get(entryID));
       }
     } catch (Exception e) {
       // Ignore.
@@ -706,7 +706,6 @@ public class FileSystemEntryCache
    * {@inheritDoc}
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void clear() {
 
     cacheWriteLock.lock();
@@ -732,8 +731,8 @@ public class FileSystemEntryCache
           classCatalog = new StoredClassCatalog(entryCacheClassDB);
           //This line causes an unchecked call error if the SuppressWarnings
           //annotation is removed at the beginning of this method.
-          entryCacheDataBinding = new SerialBinding(classCatalog,
-            FileSystemEntryCacheIndex.class);
+          entryCacheDataBinding = new SerialBinding<FileSystemEntryCacheIndex>(
+              classCatalog, FileSystemEntryCacheIndex.class);
         }
       } catch (Exception e) {
         if (debugEnabled()) {
@@ -1142,7 +1141,7 @@ public class FileSystemEntryCache
           );
       // Iterate through native JE properties.
       try {
-        Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+        Map<String, ConfigParam> paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
         // If this entry cache is disabled then there is no open JE
         // environment to check against, skip mutable check if so.
         if (configuration.isEnabled()) {
@@ -1156,7 +1155,7 @@ public class FileSystemEntryCache
             if (st.countTokens() == 2) {
               String jePropertyName = st.nextToken();
               String jePropertyValue = st.nextToken();
-              ConfigParam param = (ConfigParam) paramsMap.get(jePropertyName);
+              ConfigParam param = paramsMap.get(jePropertyName);
               if (!param.isMutable()) {
                 String oldValue = oldEnvConfig.getConfigParam(param.getName());
                 String newValue = jePropertyValue;
@@ -1262,7 +1261,7 @@ public class FileSystemEntryCache
       encodeConfig     = new EntryEncodeConfig(true,
         newCompactEncoding, newCompactEncoding);
 
-      setLockTimeout(newLockTimeout);
+      lockTimeout = newLockTimeout;
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
 
@@ -1368,7 +1367,7 @@ public class FileSystemEntryCache
                                ByteStringBuilder entryBytes) {
     try {
       // Obtain a lock on the cache.  If this fails, then don't do anything.
-      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
+      if (!cacheWriteLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS)) {
         return false;
       }
       // See if the current fs space usage is within acceptable constraints. If
@@ -1488,15 +1487,9 @@ public class FileSystemEntryCache
   }
 
   /**
-   * Return a verbose string representation of the current cache maps.
-   * This is useful primary for debugging and diagnostic purposes such
-   * as in the entry cache unit tests.
-   * @return String verbose string representation of the current cache
-   *                maps in the following format: dn:id:backend
-   *                one cache entry map representation per line
-   *                or <CODE>null</CODE> if all maps are empty.
+   * {@inheritDoc}
    */
-  private String toVerboseString()
+  public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
 
@@ -1580,7 +1573,7 @@ public class FileSystemEntryCache
    * @return boolean {@code true} if the eldest entry should be removed
    *                 from the map; {@code false} if it should be retained.
    */
-  protected boolean removeEldestEntry(Map.Entry eldest) {
+  protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
     // Check if we hit the limit on max entries and if so remove
     // the eldest entry otherwise do nothing.
     if (entryCacheIndex.dnMap.size() > maxEntries.longValue()) {
@@ -1588,8 +1581,8 @@ public class FileSystemEntryCache
       cacheWriteLock.lock();
       try {
         // Remove the the eldest entry from supporting maps.
-        String entryStringDN = (String) eldest.getKey();
-        long entryID = ((Long) eldest.getValue()).longValue();
+        String entryStringDN = eldest.getKey();
+        long entryID = eldest.getValue();
         cacheEntryKey.setData(entryStringDN.getBytes("UTF-8"));
         Set<String> backendSet = entryCacheIndex.backendMap.keySet();
         Iterator<String> backendIterator = backendSet.iterator();
@@ -1630,9 +1623,6 @@ public class FileSystemEntryCache
   private class CacheIndexNotFoundException extends OpenDsException {
     static final long serialVersionUID = 6444756053577853869L;
     public CacheIndexNotFoundException() {}
-    public CacheIndexNotFoundException(Message message) {
-      super(message);
-    }
   }
 
   /**
@@ -1643,9 +1633,6 @@ public class FileSystemEntryCache
   private class CacheIndexImpairedException extends OpenDsException {
     static final long serialVersionUID = -369455697709478407L;
     public CacheIndexImpairedException() {}
-    public CacheIndexImpairedException(Message message) {
-      super(message);
-    }
   }
 
 }

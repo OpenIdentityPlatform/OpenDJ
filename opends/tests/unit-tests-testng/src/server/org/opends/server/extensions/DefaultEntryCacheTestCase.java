@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -59,12 +59,12 @@ import static org.testng.Assert.*;
  */
 @Test(groups = "entrycache", sequential=true)
 public class DefaultEntryCacheTestCase
-       extends CommonEntryCacheTestCase
+       extends CommonEntryCacheTestCase<EntryCacheCfg>
 {
   // Entry cache implementations participating in this test.
-  private EntryCache softRefCache = null;
-  private EntryCache fifoCache = null;
-  private EntryCache fsCache = null;
+  private SoftReferenceEntryCache softRefCache = null;
+  private FIFOEntryCache fifoCache = null;
+  private FileSystemEntryCache fsCache = null;
 
   // ... and their configuration entries.
   Entry cacheSoftReferenceConfigEntry = null;
@@ -113,7 +113,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=test1*",
       "ds-cfg-exclude-filter: uid=test0*");
     softRefCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
-      EntryCacheCfgDefn.getInstance(), cacheSoftReferenceConfigEntry));
+      SoftReferenceEntryCacheCfgDefn.getInstance(), cacheSoftReferenceConfigEntry));
     cacheOrderMap.put(1, softRefCache);
 
     fifoCache = new FIFOEntryCache();
@@ -130,7 +130,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=test2*",
       "ds-cfg-exclude-filter: uid=test0*");
     fifoCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
-      EntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
+      FIFOEntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
     cacheOrderMap.put(2, fifoCache);
 
     File cacheDirectory = TestCaseUtils.createTemporaryDirectory("opendj-test");
@@ -151,7 +151,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-cache-directory: " + cacheDirectory.getAbsolutePath());
 
     fsCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
-      EntryCacheCfgDefn.getInstance(), cacheFSConfigEntry));
+      FileSystemEntryCacheCfgDefn.getInstance(), cacheFSConfigEntry));
     cacheOrderMap.put(3, fsCache);
 
     // Plug all cache implementations into default entry cache.
@@ -265,7 +265,7 @@ public class DefaultEntryCacheTestCase
     }
 
     // Finilize all entry cache implementations.
-    for (EntryCache entryCache : cacheOrderMap.values()) {
+    for (EntryCache<?> entryCache : cacheOrderMap.values()) {
       entryCache.finalizeEntryCache();
     }
 
@@ -445,9 +445,9 @@ public class DefaultEntryCacheTestCase
   public void testCacheLevels()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -466,19 +466,19 @@ public class DefaultEntryCacheTestCase
         "Expected to find " +
         testSoftRefEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
         testFIFOEntriesList.get(0).getDN()),
         "Expected to find " +
         testFIFOEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
         testFSEntriesList.get(0).getDN()),
         "Expected to find " +
         testFSEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
     }
 
     // Ensure all test entries landed on their levels.
@@ -488,19 +488,19 @@ public class DefaultEntryCacheTestCase
         "Expected to find " +
         testSoftRefEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fifoCache.getEntry(
         testFIFOEntriesList.get(0).getDN()),
         "Expected to find " +
         testFIFOEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fsCache.getEntry(
         testFSEntriesList.get(0).getDN()),
         "Expected to find " +
         testFSEntriesList.get(0).getDN().toString() +
         " in the cache.  Cache contents:" +
-        ServerConstants.EOL + toVerboseString());
+        ServerConstants.EOL + cache.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -513,9 +513,9 @@ public class DefaultEntryCacheTestCase
   public void cacheConcurrencySetup()
          throws Exception
   {
-    assertNull(super.toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      super.toVerboseString());
+      cache.toVerboseString());
   }
 
 

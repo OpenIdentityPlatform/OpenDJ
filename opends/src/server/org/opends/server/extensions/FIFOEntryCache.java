@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -53,6 +53,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
@@ -125,6 +126,10 @@ public class FIFOEntryCache
 
   // Currently registered configuration object.
   private FIFOEntryCacheCfg registeredConfiguration;
+
+  // The maximum length of time to try to obtain a lock before giving
+  // up.
+  private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
 
 
 
@@ -320,7 +325,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
+      if (!cacheWriteLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS))
       {
         return;
       }
@@ -450,7 +455,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
+      if (!cacheWriteLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS))
       {
         // We can't rule out the possibility of a conflict, so return false.
         return false;
@@ -1026,11 +1031,9 @@ public class FIFOEntryCache
     {
       maxEntries       = newMaxEntries;
       maxAllowedMemory = newMaxAllowedMemory;
-
-      setLockTimeout(newLockTimeout);
+      lockTimeout = newLockTimeout;
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
-
       registeredConfiguration = configuration;
     }
 
@@ -1083,15 +1086,9 @@ public class FIFOEntryCache
 
 
   /**
-   * Return a verbose string representation of the current cache maps.
-   * This is useful primary for debugging and diagnostic purposes such
-   * as in the entry cache unit tests.
-   * @return String verbose string representation of the current cache
-   *                maps in the following format: dn:id:backend
-   *                one cache entry map representation per line
-   *                or <CODE>null</CODE> if all maps are empty.
+   * {@inheritDoc}
    */
-  private String toVerboseString()
+  public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
 

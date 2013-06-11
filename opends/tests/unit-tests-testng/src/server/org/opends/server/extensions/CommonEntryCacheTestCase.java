@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -38,7 +37,6 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockType;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.util.ServerConstants;
 
@@ -48,8 +46,9 @@ import org.testng.annotations.AfterClass;
 
 /**
  * A common set of test cases for all entry cache implementations.
+ * @param <C> The type of entry cache configuration.
  */
-public abstract class CommonEntryCacheTestCase
+public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
        extends ExtensionsTestCase
 {
   /**
@@ -87,37 +86,14 @@ public abstract class CommonEntryCacheTestCase
   /**
    * Cache implementation instance.
    */
-  protected EntryCache cache;
+  protected EntryCache<C> cache;
 
 
 
   /**
    * Entry cache configuration instance.
    */
-  protected EntryCacheCfg configuration;
-
-
-
-  /**
-   * Reflection of the toVerboseString implementation method.
-   */
-  protected String toVerboseString()
-            throws Exception
-  {
-    final Method[] cacheMethods =
-        cache.getClass().getDeclaredMethods();
-
-    for (int i = 0; i < cacheMethods.length; ++i) {
-      if (cacheMethods[i].getName().equals("toVerboseString")) {
-        cacheMethods[i].setAccessible(true);
-        Object verboseString =
-          cacheMethods[i].invoke(cache, (Object[]) null);
-        return (String) verboseString;
-      }
-    }
-
-    return null;
-  }
+  protected C configuration;
 
 
 
@@ -129,9 +105,9 @@ public abstract class CommonEntryCacheTestCase
   public void testContainsEntry()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -139,14 +115,14 @@ public abstract class CommonEntryCacheTestCase
     assertFalse(cache.containsEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
     assertTrue(cache.containsEntry(testEntriesList.get(0).getDN()),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -163,9 +139,9 @@ public abstract class CommonEntryCacheTestCase
   public void testGetEntry1()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -173,14 +149,14 @@ public abstract class CommonEntryCacheTestCase
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
     assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -194,30 +170,27 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testGetEntry2()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN(), LockType.NONE,
-      new ArrayList<Lock>()),
+    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN(), LockType.NONE,
-      new ArrayList<Lock>()),
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -231,28 +204,27 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testGetEntry3()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
-    assertNull(cache.getEntry(b, -1, LockType.NONE, new ArrayList<Lock>()),
+    assertNull(cache.getEntry(b, -1),
       "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertNotNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNotNull(cache.getEntry(b, 1),
       "Expected to find entry id " + Integer.toString(1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -268,9 +240,9 @@ public abstract class CommonEntryCacheTestCase
   public void testGetEntryID()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -278,14 +250,14 @@ public abstract class CommonEntryCacheTestCase
     assertEquals(cache.getEntryID(testEntriesList.get(0).getDN()), -1,
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
     assertEquals(cache.getEntryID(testEntriesList.get(0).getDN()), 1,
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -298,13 +270,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testPutEntry()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -314,12 +285,12 @@ public abstract class CommonEntryCacheTestCase
     assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNotNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNotNull(cache.getEntry(b, 1),
       "Expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -332,13 +303,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testPutEntryIfAbsent()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -346,22 +316,22 @@ public abstract class CommonEntryCacheTestCase
     assertTrue(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     assertFalse(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNotNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNotNull(cache.getEntry(b, 1),
       "Expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -374,13 +344,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testRemoveEntry()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -392,12 +361,12 @@ public abstract class CommonEntryCacheTestCase
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNull(cache.getEntry(b, 1),
       "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -410,13 +379,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testClear()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -428,12 +396,12 @@ public abstract class CommonEntryCacheTestCase
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNull(cache.getEntry(b, 1),
       "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -446,13 +414,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testClearBackend()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -463,20 +430,20 @@ public abstract class CommonEntryCacheTestCase
     cache.putEntry(testEntriesList.get(1), c, 1);
     cache.clearBackend(b);
 
-    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNull(cache.getEntry(b, 1),
       "Not expected to find entry id " + Integer.toString(1) + " on backend " +
       b.getBackendID() + " in the cache.  Cache contents:" +
-      ServerConstants.EOL + toVerboseString());
+      ServerConstants.EOL + cache.toVerboseString());
 
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNotNull(cache.getEntry(c, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNotNull(cache.getEntry(c, 1),
       "Expected to find entry id " + Integer.toString(1) + " on backend " +
       c.getBackendID() + " in the cache.  Cache contents:" +
-      ServerConstants.EOL + toVerboseString());
+      ServerConstants.EOL + cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -489,13 +456,12 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testClearSubtree()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -512,17 +478,17 @@ public abstract class CommonEntryCacheTestCase
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
-    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+    assertNull(cache.getEntry(b, 1),
       "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     assertNotNull(cache.getEntry(testEntry.getDN()),
       "Expected to find " + testEntry.getDN().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
@@ -538,9 +504,9 @@ public abstract class CommonEntryCacheTestCase
   public void testHandleLowMemory()
          throws Exception
   {
-    assertNull(toVerboseString(),
+    assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      toVerboseString());
+      cache.toVerboseString());
 
     cache.handleLowMemory();
 
@@ -556,7 +522,6 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @SuppressWarnings("unchecked")
   public void testCacheConcurrency()
          throws Exception
   {
@@ -568,7 +533,7 @@ public abstract class CommonEntryCacheTestCase
         cache.getEntry(testEntriesList.get(i).getDN());
         cache.removeEntry(testEntriesList.get(i).getDN());
         cache.putEntryIfAbsent(testEntriesList.get(i), b, i);
-        cache.getEntry(b, i, LockType.NONE, new ArrayList<Lock>());
+        cache.getEntry(b, i);
       }
     }
   }
