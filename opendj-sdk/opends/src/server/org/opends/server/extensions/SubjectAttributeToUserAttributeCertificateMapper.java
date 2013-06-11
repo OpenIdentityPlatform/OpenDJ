@@ -24,6 +24,7 @@
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.extensions;
 
@@ -134,6 +135,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
             String.valueOf(configEntryDN), mapStr);
         throw new ConfigException(message);
       }
+
+      // Try to normalize the provided certAttrName
+      certAttrName = normalizeAttributeName(certAttrName);
+
 
       if (attributeMap.containsKey(certAttrName))
       {
@@ -271,6 +276,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       for (int j=0; j < rdn.getNumValues(); j++)
       {
         String lowerName = toLowerCase(rdn.getAttributeName(j));
+
+        // Try to normalize lowerName
+        lowerName = normalizeAttributeName(lowerName);
+
         AttributeType attrType = theAttributeMap.get(lowerName);
         if (attrType != null)
         {
@@ -282,7 +291,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
     if (filterComps.isEmpty())
     {
-      Message message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(peerName);
+      Message message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(
+           String.valueOf(peerDN));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -356,7 +366,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         else
         {
           Message message = ERR_SATUACM_MULTIPLE_MATCHING_ENTRIES.
-              get(peerName, String.valueOf(userEntry.getDN()),
+              get(String.valueOf(peerDN), String.valueOf(userEntry.getDN()),
                   String.valueOf(entry.getDN()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
@@ -424,6 +434,9 @@ mapLoop:
         configAcceptable = false;
         break;
       }
+
+      // Try to normalize the provided certAttrName
+      certAttrName = normalizeAttributeName(certAttrName);
 
       if (newAttributeMap.containsKey(certAttrName))
       {
@@ -515,6 +528,9 @@ mapLoop:
         break;
       }
 
+      // Try to normalize the provided certAttrName
+      certAttrName = normalizeAttributeName(certAttrName);
+
       if (newAttributeMap.containsKey(certAttrName))
       {
         if (resultCode == ResultCode.SUCCESS)
@@ -597,6 +613,31 @@ mapLoop:
 
 
    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * Tries to normalize the given attribute name; if normalization is not
+   * possible the original String value is returned.
+   *
+   * @param   attrName  The attribute name which should be normalized.
+   *
+   * @return  The normalized attribute name.
+   */
+  private static String normalizeAttributeName(String attrName)
+  {
+    AttributeType attrType =
+         DirectoryServer.getAttributeType(attrName, false);
+    if (attrType != null)
+    {
+      String attrNameNormalized = attrType.getNormalizedPrimaryName();
+      if (attrNameNormalized != null)
+      {
+         attrName = attrNameNormalized;
+      }
+    }
+    return attrName;
   }
 }
 

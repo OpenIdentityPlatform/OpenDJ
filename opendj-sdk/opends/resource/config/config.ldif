@@ -22,7 +22,7 @@
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
 #      Portions Copyright 2010-2013 ForgeRock AS.
-#      Portions Copyright 2012 Manuel Gaupp
+#      Portions Copyright 2012-2013 Manuel Gaupp
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -410,7 +410,7 @@ cn: Subject Attribute to User Attribute
 ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper
 ds-cfg-enabled: true
 ds-cfg-subject-attribute-mapping: cn:cn
-ds-cfg-subject-attribute-mapping: e:mail
+ds-cfg-subject-attribute-mapping: emailAddress:mail
 
 dn: cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config
 objectClass: top

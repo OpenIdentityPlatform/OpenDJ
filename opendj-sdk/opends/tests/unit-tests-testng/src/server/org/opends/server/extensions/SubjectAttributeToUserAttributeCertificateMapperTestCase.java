@@ -24,6 +24,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.extensions;
 
@@ -180,7 +181,19 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
            "SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:cn",
-      "ds-cfg-user-base-dn: invalid");
+      "ds-cfg-user-base-dn: invalid",
+      "",
+      "dn: cn=Duplicate Cert Attr OID and Name,cn=Certificate Mappers,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-certificate-mapper",
+      "objectClass: " +
+           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "cn: Duplicate Cert Attr OID and Name",
+      "ds-cfg-java-class: org.opends.server.extensions." +
+           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-enabled: true",
+      "ds-cfg-subject-attribute-mapping: cn:cn",
+      "ds-cfg-subject-attribute-mapping: 2.5.4.3:displayName");
 
 
     Object[][] configEntries = new Object[entries.size()][1];
@@ -279,6 +292,128 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
+   * Tests a successful mapping using an OID for the mapping.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSuccessfulMappingUsingAnOID()
+         throws Exception
+  {
+    enableMapper();
+
+    try
+    {
+      setAttributeMappings(new String[] { "cn:cn", "1.2.840.113549.1.9.1:mail" });
+
+      TestCaseUtils.initializeTestBackend(true);
+      TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "objectClass: ds-certificate-user",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "mail: test@example.com");
+
+
+
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                            "config" + File.separator + "client-emailAddress.keystore";
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                              "config" + File.separator + "client.truststore";
+
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+        "-Z",
+        "-K", keyStorePath,
+        "-W", "password",
+        "-P", trustStorePath,
+        "-r",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    }
+    finally
+    {
+      disableMapper();
+      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
+    }
+  }
+
+
+
+  /**
+   * Tests a successful mapping using the default configuration and a
+   * certificate containing a subject with an emailAddress.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSuccessfulMappingDefaultConfigEmailAddress()
+         throws Exception
+  {
+    enableMapper();
+
+    try
+    {
+      TestCaseUtils.initializeTestBackend(true);
+      TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "objectClass: ds-certificate-user",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "mail: test@example.com");
+
+
+
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                            "config" + File.separator + "client-emailAddress.keystore";
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
+                              "config" + File.separator + "client.truststore";
+
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+        "-Z",
+        "-K", keyStorePath,
+        "-W", "password",
+        "-P", trustStorePath,
+        "-r",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    }
+    finally
+    {
+      disableMapper();
+    }
+  }
+
+
+
+  /**
    * Tests a successful mapping with multiple attributes.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -334,7 +469,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     finally
     {
       disableMapper();
-      setAttributeMappings(new String[] { "cn:cn", "e:mail" });
+      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
     }
   }
 
@@ -353,7 +488,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
     try
     {
-      setAttributeMappings(new String[] { "e:mail" });
+      setAttributeMappings(new String[] { "emailAddress:mail" });
 
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.addEntry(
@@ -396,7 +531,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     finally
     {
       disableMapper();
-      setAttributeMappings(new String[] { "cn:cn", "e:mail" });
+      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
     }
   }
 
@@ -592,7 +727,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to remove the subject attribute will fail.
+   * Tests to ensure that an attempt to remove the subject attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -620,7 +755,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with no colon
+   * Tests to ensure that an attempt to set an attribute mapping with no colon
    * will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -635,7 +770,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with no cert
+   * Tests to ensure that an attempt to set an attribute mapping with no cert
    * attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -650,7 +785,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with no user
+   * Tests to ensure that an attempt to set an attribute mapping with no user
    * attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -665,7 +800,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with an
+   * Tests to ensure that an attempt to set an attribute mapping with an
    * undefined user attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -680,7 +815,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with a
+   * Tests to ensure that an attempt to set an attribute mapping with a
    * duplicate cert attribute mapping will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -695,7 +830,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an attribute mapping with a
+   * Tests to ensure that an attempt to set an attribute mapping with a
    * duplicate user attribute mapping will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -710,7 +845,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an invalid base DN will fail.
+   * Tests to ensure that an attempt to set an invalid base DN will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
