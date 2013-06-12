@@ -525,7 +525,7 @@ public abstract class AbstractTextAccessLogPublisher
 
       if (targetDNEqualTo.length > 0)
       {
-        for (final PatternDN pattern : targetDNNotEqualTo)
+        for (final PatternDN pattern : targetDNEqualTo)
         {
           if (pattern.matchesDN(targetDN))
           {
@@ -690,7 +690,7 @@ public abstract class AbstractTextAccessLogPublisher
 
       if (userDNEqualTo.length > 0)
       {
-        for (final PatternDN pattern : userDNNotEqualTo)
+        for (final PatternDN pattern : userDNEqualTo)
         {
           if (pattern.matchesDN(userDN))
           {
