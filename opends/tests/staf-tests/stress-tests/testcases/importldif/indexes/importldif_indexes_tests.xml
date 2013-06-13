@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2012 ForgeRock AS.
+ !      Copyright 2012-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -97,7 +97,7 @@
                     'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name description --add index-type:approximate --add index-type:equality --add index-type:presence --add index-type:substring ' ,
+                    'optionsString'        : '--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
