@@ -4949,6 +4949,52 @@
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
+              
+              <!-- *************** -->
+              <!-- Trace for debug -->
+              <!-- *************** -->
+              <message>
+                'DEBUG: Get content of cn=changelog'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'location'         : replServer.getHostname(),
+                  'dsPath'           : replServerPath,
+                  'dsInstanceHost'   : replServer.getHostname(),
+                  'dsInstancePort'   : replServer.getPort(),
+                  'dsInstanceDn'     : replServer.getRootDn(),
+                  'dsInstancePswd'   : replServer.getRootPwd(),
+                  'dsBaseDN'         : 'cn=changelog',
+                  'dsFilter'         : 'objectclass=*'
+                }                
+              </call>
+              <message>
+                STAXResult[0][1]
+              </message>
+              
+              <message>
+                'DEBUG: Get value of purge delay'
+              </message>
+              <call function="'dsconfig'">
+                { 'location'            : replServer.getHostname(),
+                  'dsPath'              : replServerPath,
+                  'dsInstanceHost'      : replServer.getHostname(),
+                  'dsInstanceAdminPort' : replServer.getAdminPort(),
+                  'dsInstanceDn'        : replServer.getRootDn(),
+                  'dsInstancePswd'      : replServer.getRootPwd(),
+                  'subcommand'          : 'get-replication-server-prop',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                  'optionsString'       : '--advanced'
+                }
+              </call>
+              <message>
+                STAXResult[0][1]
+              </message>
+              <!-- *************** -->
+              <!-- Trace for debug -->
+              <!-- *************** -->
+
+
               <message>
                 'Reading changelog in replication server %s:%s from index: \
                 %s' % \
