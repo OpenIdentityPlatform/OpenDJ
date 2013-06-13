@@ -4631,39 +4631,20 @@ public class ReplicationCliMain extends ConsoleApplication
     ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
     InitialLdapContext ctxSource = null;
     InitialLdapContext ctxDestination = null;
-    try
-    {
-      ctxSource = createAdministrativeContext(uData.getHostNameSource(),
-          uData.getPortSource(), useSSL,
-          useStartTLS,
-          ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
-    }
-    catch (NamingException ne)
-    {
-      String hostPort = getServerRepresentation(uData.getHostNameSource(),
-          uData.getPortSource());
-      println();
-      println(getMessageForException(ne, hostPort));
-      LOG.log(Level.SEVERE, "Complete error stack:", ne);
-    }
-    try
-    {
-      ctxDestination = createAdministrativeContext(
-          uData.getHostNameDestination(),
-          uData.getPortDestination(), useSSL,
-          useStartTLS,
-          ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
-    }
-    catch (NamingException ne)
-    {
-      String hostPort = getServerRepresentation(uData.getHostNameDestination(),
-      uData.getPortDestination());
-      println();
-      println(getMessageForException(ne, hostPort));
-      LOG.log(Level.SEVERE, "Complete error stack:", ne);
-    }
+
+     ctxSource = getAdministrativeContext(uData.getHostNameSource(),
+         uData.getPortSource(), useSSL,
+         useStartTLS,
+         ADSContext.getAdministratorDN(uData.getAdminUid()),
+         uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
+
+     ctxDestination = getAdministrativeContext(
+         uData.getHostNameDestination(),
+         uData.getPortDestination(), useSSL,
+         useStartTLS,
+         ADSContext.getAdministratorDN(uData.getAdminUid()),
+         uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
+
     if ((ctxSource != null) && (ctxDestination != null))
     {
       LinkedList<String> baseDNs = uData.getBaseDNs();
@@ -4742,6 +4723,34 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return returnValue;
+  }
+
+  private InitialLdapContext getAdministrativeContext(final String host,
+      final int port, final boolean useSSL, final boolean useStartTLS,
+      final String bindDn, final String pwd, final int connectTimeout,
+      final ApplicationTrustManager trustManager)
+  {
+    InitialLdapContext context = null;
+    try
+    {
+      context = createAdministrativeContext(
+          host,
+          port,
+          useSSL,
+          useStartTLS,
+          bindDn,
+          pwd,
+          connectTimeout,
+          trustManager);
+    }
+    catch (NamingException ne)
+    {
+      final String hostPort = getServerRepresentation(host, port);
+      println();
+      println(Utils.getMessageForException(ne, hostPort));
+      LOG.log(Level.SEVERE, "Complete error stack:", ne);
+    }
+    return context;
   }
 
   /**
