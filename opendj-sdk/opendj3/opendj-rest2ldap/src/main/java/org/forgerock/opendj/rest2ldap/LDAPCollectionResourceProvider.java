@@ -920,8 +920,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         return new QueryResultHandler() {
             @Override
             public void handleError(final ResourceException error) {
-                c.close();
-                handler.handleError(error);
+                try {
+                    handler.handleError(error);
+                } finally {
+                    c.close();
+                }
             }
 
             @Override
@@ -931,8 +934,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
             @Override
             public void handleResult(final QueryResult result) {
-                c.close();
-                handler.handleResult(result);
+                try {
+                    handler.handleResult(result);
+                } finally {
+                    c.close();
+                }
             }
         };
     }
@@ -941,14 +947,20 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         return new ResultHandler<V>() {
             @Override
             public void handleError(final ResourceException error) {
-                c.close();
-                handler.handleError(error);
+                try {
+                    handler.handleError(error);
+                } finally {
+                    c.close();
+                }
             }
 
             @Override
             public void handleResult(final V result) {
-                c.close();
-                handler.handleResult(result);
+                try {
+                    handler.handleResult(result);
+                } finally {
+                    c.close();
+                }
             }
         };
     }
