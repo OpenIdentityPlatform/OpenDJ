@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -31,6 +31,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -42,10 +43,9 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  */
 final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultImpl<Result> implements
         SearchResultHandler {
-
     private SearchResultHandler searchResultHandler;
-
     private final SearchRequest request;
+    private final boolean isPersistentSearch;
 
     LDAPSearchFutureResultImpl(final int requestID, final SearchRequest request,
             final SearchResultHandler resultHandler,
@@ -54,6 +54,7 @@ final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultImpl<Resu
         super(requestID, resultHandler, intermediateResponseHandler, connection);
         this.request = request;
         this.searchResultHandler = resultHandler;
+        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID);
     }
 
     public boolean handleEntry(final SearchResultEntry entry) {
@@ -103,13 +104,18 @@ final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultImpl<Resu
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {
         return Responses.newResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(
                 cause);
+    }
+
+    /**
+     * Persistent searches should not time out.
+     */
+    @Override
+    boolean checkForTimeout() {
+        return !isPersistentSearch;
     }
 }
