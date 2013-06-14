@@ -875,12 +875,13 @@ public class HTTPConnectionHandler extends
       final String... urlPatterns) throws Exception
   {
     // parse and use JSON config
+    File jsonConfigFile = getFileForPath(this.currentConfig.getConfigFile());
     final JsonValue configuration =
-        parseJsonConfiguration(getFileForPath(this.currentConfig
-            .getConfigFile()));
+        parseJsonConfiguration(jsonConfigFile).recordKeyAccesses();
     final HTTPAuthenticationConfig authenticationConfig =
         getAuthenticationConfig(configuration);
     final ConnectionFactory connFactory = getConnectionFactory(configuration);
+    configuration.verifyAllKeysAccessed();
 
     Filter filter =
         new CollectClientConnectionsFilter(this, authenticationConfig);
