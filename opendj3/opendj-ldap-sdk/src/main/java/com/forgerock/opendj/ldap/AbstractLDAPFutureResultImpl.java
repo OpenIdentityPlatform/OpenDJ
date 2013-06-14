@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -47,13 +47,9 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 abstract class AbstractLDAPFutureResultImpl<S extends Result>
         extends AsynchronousFutureResult<S, ResultHandler<? super S>>
         implements IntermediateResponseHandler {
-
     private final Connection connection;
-
     private final int requestID;
-
     private IntermediateResponseHandler intermediateResponseHandler;
-
     private volatile long timestamp;
 
     AbstractLDAPFutureResultImpl(final int requestID,
@@ -136,4 +132,16 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
         timestamp = System.currentTimeMillis();
     }
 
+    /**
+     * Returns {@code true} if this request should be canceled once the timeout
+     * period expires. The default implementation is to return {@code true}
+     * which will be appropriate for nearly all requests, the one obvious
+     * exception being persistent searches.
+     *
+     * @return {@code true} if this request should be canceled once the timeout
+     *         period expires.
+     */
+    boolean checkForTimeout() {
+        return true;
+    }
 }

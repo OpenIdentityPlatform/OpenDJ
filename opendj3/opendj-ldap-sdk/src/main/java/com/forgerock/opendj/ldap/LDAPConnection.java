@@ -555,7 +555,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         if (timeout > 0) {
             for (final int requestID : pendingRequests.keySet()) {
                 final AbstractLDAPFutureResultImpl<?> future = pendingRequests.get(requestID);
-                if (future != null) {
+                if (future != null && future.checkForTimeout()) {
                     final long diff = (future.getTimestamp() + timeout) - currentTime;
                     if (diff <= 0 && pendingRequests.remove(requestID) != null) {
                         DEBUG_LOG.fine("Cancelling expired future result: " + future);
