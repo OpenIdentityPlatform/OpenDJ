@@ -39,7 +39,11 @@ public abstract class ReferenceCountedObject<T> {
      * released during garbage collection.
      */
     public final class Reference {
-        private T value;
+        /*
+         * The value will be accessed by the finalizer thread so it needs to be
+         * volatile in order to ensure that updates are published.
+         */
+        private volatile T value;
 
         private Reference(final T value) {
             this.value = value;
@@ -66,13 +70,23 @@ public abstract class ReferenceCountedObject<T> {
          * destroyed.
          */
         public void release() {
-            releaseIfSame(value);
+            T instanceToRelease = null;
+            synchronized (lock) {
+                if (value != null && instance == value && --refCount == 0) {
+                    instanceToRelease = value;
+                    instance = null;
 
-            /*
-             * Force NPE for subsequent get() attempts and prevent multiple
-             * releases.
-             */
-            value = null;
+                    /*
+                     * Force NPE for subsequent get() attempts and prevent
+                     * multiple releases.
+                     */
+                    value = null;
+                }
+            }
+
+            if (instanceToRelease != null) {
+                destroyInstance(instanceToRelease);
+            }
         }
 
         /**
@@ -108,6 +122,7 @@ public abstract class ReferenceCountedObject<T> {
                 assert instance == null;
                 instance = newInstance();
             }
+            assert instance != null;
             return new Reference(instance);
         }
     }
@@ -143,20 +158,5 @@ public abstract class ReferenceCountedObject<T> {
      * @return The new instance.
      */
     protected abstract T newInstance();
-
-    private final void releaseIfSame(final T instance) {
-        T instanceToRelease = null;
-        synchronized (lock) {
-            if (this.instance == instance) {
-                if (--refCount == 0) {
-                    instanceToRelease = instance;
-                    this.instance = null;
-                }
-            }
-        }
-        if (instanceToRelease != null) {
-            destroyInstance(instanceToRelease);
-        }
-    }
 
 }
