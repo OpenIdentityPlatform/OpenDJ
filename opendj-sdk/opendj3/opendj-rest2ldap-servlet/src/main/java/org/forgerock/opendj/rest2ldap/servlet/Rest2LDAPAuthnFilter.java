@@ -373,7 +373,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                 bindLDAPConnectionFactory =
                         Rest2LDAP.configureConnectionFactory(configuration.get(
                                 "ldapConnectionFactories").required(), ldapFactoryName);
-                // we are now done reading the config, 
+                // we are now done reading the config
                 configuration.verifyAllKeysAccessed();
 
 
