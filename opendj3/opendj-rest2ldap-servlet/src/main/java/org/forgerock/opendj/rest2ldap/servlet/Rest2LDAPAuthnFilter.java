@@ -318,7 +318,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
             }
 
             // Parse the authentication configuration.
-            final JsonValue configuration = new JsonValue(content);
+            final JsonValue configuration = new JsonValue(content).recordKeyAccesses();
             final JsonValue authnConfig = configuration.get("authenticationFilter");
             if (!authnConfig.isNull()) {
                 supportHTTPBasicAuthentication =
@@ -373,6 +373,9 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                 bindLDAPConnectionFactory =
                         Rest2LDAP.configureConnectionFactory(configuration.get(
                                 "ldapConnectionFactories").required(), ldapFactoryName);
+                // we are now done reading the config, 
+                configuration.verifyAllKeysAccessed();
+
 
                 // Set the completion handler factory based on the Servlet API version.
                 syncFactory = ServletApiVersionAdapter.getInstance(config.getServletContext());

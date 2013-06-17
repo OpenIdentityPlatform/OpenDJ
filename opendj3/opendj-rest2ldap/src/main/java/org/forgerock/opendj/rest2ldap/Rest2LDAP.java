@@ -16,9 +16,9 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
-import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.*;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
 import java.util.ArrayList;
@@ -575,11 +575,16 @@ public final class Rest2LDAP {
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
+    public static ConnectionFactory configureConnectionFactory(JsonValue configuration,
             final String name) {
+        configuration = configuration.recordKeyAccesses();
         final JsonValue normalizedConfiguration =
                 normalizeConnectionFactory(configuration, name, 0);
-        return configureConnectionFactory(normalizedConfiguration);
+        final ConnectionFactory connectionFactory =
+            configureConnectionFactory(normalizedConfiguration);
+        // we are now done reading the config,
+        configuration.verifyAllKeysAccessed();
+        return connectionFactory;
     }
 
     public static AttributeMapper constant(final Object value) {
