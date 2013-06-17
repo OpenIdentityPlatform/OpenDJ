@@ -276,7 +276,18 @@ public final class Upgrade
         "ds-cfg-log-file-permissions: 640",
         "ds-cfg-enabled: false"));
 
-
+    register("2.5.0.8985",
+        newAttributeTypes(INFO_UPGRADE_TASK_8985_1_SUMMARY.get(),
+        "00-core.ldif", "emailAddress"),
+        modifyConfigEntry(INFO_UPGRADE_TASK_8985_2_SUMMARY.get(),
+        "&(ds-cfg-java-class=org.opends.server.extensions." +
+        "SubjectAttributeToUserAttributeCertificateMapper)" +
+        "(ds-cfg-subject-attribute-mapping=e:mail)",
+        "delete:ds-cfg-subject-attribute-mapping",
+        "ds-cfg-subject-attribute-mapping: e:mail",
+        "-",
+        "add:ds-cfg-subject-attribute-mapping",
+        "ds-cfg-subject-attribute-mapping: emailAddress:mail"));
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
