@@ -582,7 +582,7 @@ public final class Rest2LDAP {
                 normalizeConnectionFactory(configuration, name, 0);
         final ConnectionFactory connectionFactory =
             configureConnectionFactory(normalizedConfiguration);
-        // we are now done reading the config,
+        // we are now done reading the config
         configuration.verifyAllKeysAccessed();
         return connectionFactory;
     }

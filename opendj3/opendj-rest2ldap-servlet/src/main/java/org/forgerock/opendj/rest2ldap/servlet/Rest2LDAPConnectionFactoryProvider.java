@@ -115,7 +115,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
                                 .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
-            // we are now done reading the config,
+            // we are now done reading the config
             configuration.verifyAllKeysAccessed();
 
 
