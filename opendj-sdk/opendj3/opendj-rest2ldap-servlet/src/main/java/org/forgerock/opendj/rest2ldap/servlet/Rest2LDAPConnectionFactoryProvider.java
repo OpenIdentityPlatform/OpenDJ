@@ -15,8 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap.servlet;
 
-import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.configureConnectionFactory;
+import static org.forgerock.json.resource.Resources.*;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -37,6 +37,8 @@ import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * The connection factory provider which is used by the OpenDJ Commons REST LDAP
@@ -81,7 +83,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
                 throw new ServletException("Servlet configuration file '" + configFileName
                         + "' does not contain a valid JSON configuration");
             }
-            final JsonValue configuration = new JsonValue(content);
+            final JsonValue configuration = new JsonValue(content).recordKeyAccesses();
 
             // Parse the authorization configuration.
             final AuthorizationPolicy authzPolicy =
@@ -113,6 +115,10 @@ public final class Rest2LDAPConnectionFactoryProvider {
                                 .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
+            // we are now done reading the config,
+            configuration.verifyAllKeysAccessed();
+
+
             final ConnectionFactory factory = newInternalConnectionFactory(router);
             if (ldapFactory != null) {
                 /*
@@ -147,11 +153,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
             throw new ServletException("Servlet configuration file '" + configFileName
                     + "' could not be read: " + e.getMessage());
         } finally {
-            try {
-                configFile.close();
-            } catch (final Exception e) {
-                // Ignore.
-            }
+            StaticUtils.closeSilently(configFile);
         }
     }
 
