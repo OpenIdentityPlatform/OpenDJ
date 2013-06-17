@@ -59,13 +59,13 @@
   <itemizedlist>
    <para>Start OpenDJ Control Panel.</para>
    <listitem>
-    <para>(UNIX) Run OpenDJ/bin/control-panel.</para>
+    <para>(UNIX) Run <command>opendj/bin/control-panel</command>.</para>
    </listitem>
    <listitem>
-    <para>(Windows) Double-click OpenDJ\bat\control-panel.bat.</para>
+    <para>(Windows) Double-click <filename>opendj\bat\control-panel.bat</filename>.</para>
    </listitem>
    <listitem>
-    <para>(Mac OS X) Double-click OpenDJ/bin/ControlPanel.app.</para>
+    <para>(Mac OS X) Double-click <filename>opendj/bin/ControlPanel.app</filename>.</para>
    </listitem>
   </itemizedlist>
   
@@ -129,9 +129,9 @@
      preventing unindexed searches, instead adding indexes required by specific
      applications. (Notice that if the number of user data entries is smaller
      than the default resource limits, you can still perform what appear
-     to be unindexed searches. That is because the dn2id indexes returns
-     all user data entries without hitting a resource limit that would make
-     the search unindexed.)</para>
+     to be unindexed searches. That is because the <literal>dn2id</literal>
+     index returns all user data entries without hitting a resource limit that
+     would make the search unindexed.)</para>
      <para>OpenDJ Control Panel also allows you to verify and rebuild
      existing indexes, which you may have to do after an upgrade operation,
      or if you have reason to suspect index corruption.</para>
@@ -164,7 +164,7 @@
   <title>Command-Line Tools</title>
   <indexterm><primary>Commands</primary></indexterm>
   
-  <para>All OpenDJ command-line tools take the --help option.</para>
+  <para>All OpenDJ command-line tools take the <option>--help</option> option.</para>
   
   <para>All commands call Java programs and therefore involve starting a
   JVM.</para>
@@ -174,10 +174,10 @@
    you unpacked OpenDJ, such as <filename>/path/to/opendj</filename>. Find the
    additional command-line tools for your platform.</para>
    <listitem>
-    <para>(UNIX) In opendj/bin.</para>
+    <para>(UNIX) In <filename>opendj/bin</filename>.</para>
    </listitem>
    <listitem>
-    <para>(Windows) In opendj\bat.</para>
+    <para>(Windows) In <filename>opendj\bat</filename>.</para>
    </listitem>
   </itemizedlist>
   
@@ -207,8 +207,8 @@
     (UNIX)</term>
     <listitem>
      <para>Generate a script you can use to start, stop, and restart the server
-     either directly or at system boot and shutdown. Use create-rc-script -f
-     <replaceable>script-file</replaceable>.</para>
+     either directly or at system boot and shutdown. Use <command>create-rc-script -f
+     <replaceable>script-file</replaceable></command>.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
