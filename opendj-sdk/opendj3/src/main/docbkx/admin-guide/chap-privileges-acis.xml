@@ -28,7 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Privileges &amp; Access Control</title>
 
  <para>OpenDJ supports two mechanisms to protect access to the directory,
@@ -613,7 +613,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
       is:</para>
       <programlisting language="ldif">aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
- "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
@@ -639,7 +639,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       values against the <literal>sn</literal> attribute is:</para>
       <programlisting language="ldif">aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
  allow (compare)(userdn =
- "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
@@ -654,7 +654,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
       entry is:</para>
       <programlisting language="ldif">aci: (version 3.0;acl "Delete entry"; allow (delete)
- (userdn = "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ (userdn = "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
@@ -671,7 +671,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literal>description</literal> attribute in an entry is:</para>
       <programlisting language="ldif">aci: (targetattr = "description")(version 3.0;
  acl "Modify description"; allow (write)(userdn =
- "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
@@ -693,7 +693,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       locations:</para>
       <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
  allow (write, import, export)(userdn =
- "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
@@ -716,7 +716,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       matching entries is:</para>
       <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
  allow (search, read)(userdn =
- "ldap://uid=bjensen,ou=People,dc=example,dc=com");)
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
     </varlistentry>
