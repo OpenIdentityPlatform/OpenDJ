@@ -81,11 +81,23 @@ ADD operation successful for DN ou=Groups,dc=example,dc=com</screen>
   <literal>groupOfNames</literal> where each <literal>member</literal>
   attribute value is a distinguished name of an entry, or
   <literal>groupOfUniqueNames</literal> where each
-  <literal>uniqueMember</literal> attribute value is also a DN, but no
-  <literal>uniqueMember</literal> value is repeated. Static group entries
-  can also take the object class <literal>groupOfEntries</literal> that
-  allows groups to be created before any <literal>member</literal>
-  entries are specified.</para>
+  <literal>uniqueMember</literal> attribute value has Name and Optional UID
+  syntax.<footnote><para>Name and Optional UID syntax values are a DN optionally
+  followed by <literal>#<replaceable>BitString</replaceable></literal>. The
+  <replaceable>BitString</replaceable>, such as <literal>'0101111101'B</literal>,
+  serves to distinguish the entry from another entry having the same DN, which
+  can occur when the original entry was deleted and a new entry created with the
+  same DN.</para></footnote> Like other LDAP attributes,
+  <literal>member</literal> and <literal>uniqueMember</literal> attributes take
+  sets of unique values.</para>
+
+  <para>Static group entries can also have the object class
+  <literal>groupOfEntries</literal>, which is like
+  <literal>groupOfNames</literal> except that it is designed to allow
+  groups not to have members.</para>
+
+  <para>When creating a group entry, use <literal>groupOfNames</literal> or
+  <literal>groupOfEntries</literal> where possible.</para>
   
   <para>To create a static group, add a group entry such as the following
   to the directory.</para>
@@ -139,6 +151,50 @@ member: uid=bjensen,ou=People,dc=example,dc=com
 member: uid=tmorris,ou=People,dc=example,dc=com
 member: uid=scarter,ou=People,dc=example,dc=com
 cn: My Static Group</screen>
+
+  <para>RFC 4519 says a <literal>groupOfNames</literal> entry must have
+  at least one member. Although OpenDJ allows you to create a
+  <literal>groupOfNames</literal> without members, strictly speaking that
+  behavior is not standard. Alternatively, you can use the
+  <literal>groupOfEntries</literal> object class as shown in the following
+  example.</para>
+
+  <screen>$ cat group-of-entries.ldif
+dn: cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+cn: Initially Empty Static Group
+objectClass: groupOfEntries
+objectClass: top
+ou: Groups
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename group-of-entries.ldif
+Processing ADD request for
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+ADD operation successful for DN
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+$ cat add-members.ldif
+# Now add some members to the group.
+dn: cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+changetype: modify
+add: member
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename add-members.ldif
+Processing MODIFY request for
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+MODIFY operation successful for DN
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com</screen>
  </section>
 
  <section xml:id="dynamic-groups">
