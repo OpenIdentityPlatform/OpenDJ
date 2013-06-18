@@ -575,16 +575,11 @@ public final class Rest2LDAP {
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
-    public static ConnectionFactory configureConnectionFactory(JsonValue configuration,
+    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
             final String name) {
-        configuration = configuration.recordKeyAccesses();
         final JsonValue normalizedConfiguration =
                 normalizeConnectionFactory(configuration, name, 0);
-        final ConnectionFactory connectionFactory =
-            configureConnectionFactory(normalizedConfiguration);
-        // we are now done reading the config
-        configuration.verifyAllKeysAccessed();
-        return connectionFactory;
+        return configureConnectionFactory(normalizedConfiguration);
     }
 
     public static AttributeMapper constant(final Object value) {

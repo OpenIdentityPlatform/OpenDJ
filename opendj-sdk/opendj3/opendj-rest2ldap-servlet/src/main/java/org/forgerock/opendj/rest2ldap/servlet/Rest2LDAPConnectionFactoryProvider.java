@@ -83,7 +83,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
                 throw new ServletException("Servlet configuration file '" + configFileName
                         + "' does not contain a valid JSON configuration");
             }
-            final JsonValue configuration = new JsonValue(content).recordKeyAccesses();
+            final JsonValue configuration = new JsonValue(content);
 
             // Parse the authorization configuration.
             final AuthorizationPolicy authzPolicy =
@@ -115,10 +115,6 @@ public final class Rest2LDAPConnectionFactoryProvider {
                                 .configureMapping(mapping).build();
                 router.addRoute(mappingUrl, provider);
             }
-            // we are now done reading the config
-            configuration.verifyAllKeysAccessed();
-
-
             final ConnectionFactory factory = newInternalConnectionFactory(router);
             if (ldapFactory != null) {
                 /*
