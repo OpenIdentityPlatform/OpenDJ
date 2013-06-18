@@ -29,7 +29,6 @@
     </description>
     <packaging>bundle</packaging>
     <properties>
-        <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
         <jacksonVersion>1.9.2</jacksonVersion>
         <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
     </properties>
