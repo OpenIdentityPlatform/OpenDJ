@@ -39,8 +39,16 @@ cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
+set TEMP_LOG=%TEMP%\logs\
 
-set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
+if NOT EXIST %INSTANCE_ROOT%\logs\ (
+  if NOT EXIST %TEMP_LOG% (
+    md %TEMP_LOG% 
+  )
+  set LOG="%TEMP_LOG%native-windows.out"
+) ELSE (
+  set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
+)
 set SCRIPT=start-ds.bat
 
 echo %SCRIPT%: invoked >> %LOG%

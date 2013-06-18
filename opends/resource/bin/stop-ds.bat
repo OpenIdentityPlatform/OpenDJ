@@ -24,7 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2012 ForgeRock AS
+rem      Portions Copyright 2011-2013 ForgeRock AS
 
 setlocal
 
@@ -50,8 +50,16 @@ cd /d%INSTALL_ROOT%
 cd /d%INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
 cd /d%CUR_DIR%
+set TEMP_LOG=%TEMP%\logs\
 
-set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
+if NOT EXIST %INSTANCE_ROOT%\logs\ (
+  if NOT EXIST %TEMP_LOG% (
+    md %TEMP_LOG% 
+  )
+  set LOG="%TEMP_LOG%native-windows.out"
+) ELSE (
+  set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
+)
 set SCRIPT=stop-ds.bat
 
 rem This is the template to use for logging.  Make sure to use >>
