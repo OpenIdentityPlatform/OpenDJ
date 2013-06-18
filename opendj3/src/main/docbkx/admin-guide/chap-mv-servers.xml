@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-mv-servers'
@@ -49,10 +49,10 @@
   You can move OpenDJ data between servers and operating systems. Most of the
   configuration is also portable.</para>
  
+  <indexterm><primary>Certificates</primary></indexterm>
   <itemizedlist>
    <para>Two aspects of the configuration are not portable.</para>
    <listitem>
-    <indexterm><primary>Certificates</primary></indexterm>
     <para>Server certificates contain the host name of the system. Even if you
     did not set up secure communications when you installed the server, the
     server still has a certificate used for secure communications on the

@@ -73,8 +73,8 @@
   server.</para>
 
   <para>For example, the ACIs on the following entry allow anonymous read
-  access to all attributes except passwords, and allow full read-write access
-  to directory administrators under <literal>dc=example,dc=com</literal>.</para>
+  access to all attributes except passwords, and allow read-write access
+  for directory administrators under <literal>dc=example,dc=com</literal>.</para>
   
   <programlisting language="ldif">dn: dc=example,dc=com
 objectClass: domain
@@ -1073,7 +1073,12 @@ The LDAP password modify operation was successful</screen>
   can be set using the <command>dsconfig</command> command. Global ACIs have
   attribute type <literal>ds-cfg-global-aci</literal>. Modify global ACIs from
   the Access Control Handler menu in <command>dsconfig</command>.</para>
-  
+
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Data access</secondary>
+   </indexterm>
+
   <itemizedlist>
    <para>Default global ACIs set up the following access rules.</para>
    <listitem>
@@ -1099,10 +1104,6 @@ The LDAP password modify operation was successful</screen>
     to entry updates and entry identification.</para>
    </listitem>
    <listitem>
-   <indexterm>
-    <primary>Replication</primary>
-    <secondary>Data access</secondary>
-   </indexterm>
     <para>Access to replication data is denied.</para>
    </listitem>
   </itemizedlist>

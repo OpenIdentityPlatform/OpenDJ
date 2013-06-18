@@ -228,7 +228,7 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
    happened after the backup was made. Replication uses internal change log
    records to determine what changes to apply.</para>
 
-   <para>Internal change log records are no kept forever, though. Replication
+   <para>Internal change log records are not kept forever, though. Replication
    is configured to purge the change log of old changes, preventing the log
    from growing indefinitely. Yet, for replication to determine what changes
    to apply to a restored replica, it must find change log records dating back

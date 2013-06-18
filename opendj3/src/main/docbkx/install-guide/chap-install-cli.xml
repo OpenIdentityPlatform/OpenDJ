@@ -34,6 +34,16 @@
  <para>This chapter covers command-line installation with additional
  information on setup options.</para>
 
+ <itemizedlist>
+  <listitem><para><xref linkend="before-you-install" /></para></listitem>
+  <listitem><para><xref linkend="command-line-install" /></para></listitem>
+  <listitem><para><xref linkend="install-deb" /></para></listitem>
+  <listitem><para><xref linkend="install-rpm" /></para></listitem>
+  <listitem><para><xref linkend="install-properties-file" /></para></listitem>
+  <listitem><para><xref linkend="install-rest2ldap-servlet" /></para></listitem>
+  <listitem><para><xref linkend="install-dsml-gateway" /></para></listitem>
+ </itemizedlist>
+
  <procedure xml:id="before-you-install">
   <title>To Prepare For Installation</title>
 
@@ -96,8 +106,8 @@
   <step xml:id="app-server-needed-for-dsml">
    <indexterm><primary>DSML gateway</primary></indexterm>
    
-   <para>If you plan to install OpenDJ DSML gateway, make sure you have an
-   appropriate application server installed.</para>
+   <para>If you plan to install OpenDJ DSML gateway or OpenDJ REST LDAP gateway,
+   make sure you have an appropriate application server installed.</para>
   </step>
 
   <step>
@@ -264,7 +274,7 @@ To see basic server configuration status and configuration you can launch \
       <term>LDAP port</term>
       <listitem>
         <para>The default for LDAP is 389. If you are working as a user
-        who cannot open port 389, setup suggests 1389 as a default.</para>
+        who cannot open port 389, setup suggests 1389 by default.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -387,9 +397,8 @@ Replication: Disabled</screen>
  </procedure>
 
  <note>
-  <para>You can install OpenDJ in unattended and silent fashion by using the
-  <command>setup</command> command with the <option>--no-prompt</option>
-  option, specifying values for all the other options you require.</para>
+  <para>You can install OpenDJ in unattended and silent fashion, too. See
+  the procedure, <xref linkend="install-properties-file" />.</para>
  </note>
 
  <procedure xml:id="install-deb">
@@ -719,7 +728,8 @@ To see basic server configuration status and configuration you can launch
    to the backend holding data from <filename>Example.ldif</filename>.</para>
 
    <screen
-   >$ curl http://opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true
+   >$ curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen
+ ?_prettyPrint=true
 {
   "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -742,7 +752,7 @@ To see basic server configuration status and configuration you can launch
 
    <para>If you generated example data, Babs Jensen's entry is not included.
    Try a URL such as
-   <literal>http://opendj.example.com:8080/rest2ldap/users/user.0</literal>
+   <literal>http://user.0:password@opendj.example.com:8080/rest2ldap/users/user.0</literal>
    instead.</para>
   </step>
  </procedure>

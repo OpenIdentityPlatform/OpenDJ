@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-before-you-install'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Before You Install OpenDJ Software</title>
 
  <para>This chapter covers requirements to consider before you run OpenDJ,
@@ -51,10 +51,10 @@
   SPARC and x86, various Linux distributions, Microsoft Windows,
   and Apple Mac OS X.</para>
   
-  <para>OpenDJ software requires Java 6, specifically at least the Java
-  Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment. ForgeRock
-  recommends that you use at least version 1.6.0_27 due to security
-  fixes.</para>
+  <para>OpenDJ software requires Java 6 or later, specifically at least the
+  Java Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment.
+  ForgeRock recommends that you keep your Java installation up to date with
+  the latest security fixes.</para>
 
   <para>To build applications with the OpenDJ LDAP SDK, you need the
   corresponding Java SDK.</para>

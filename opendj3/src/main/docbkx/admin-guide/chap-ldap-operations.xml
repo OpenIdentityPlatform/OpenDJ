@@ -96,8 +96,9 @@
   <example xml:id="simple-filter-search">
    <title>Search: Simple Filter</title>
    
-   <para>The following example searches for entries with UID containing
-   <literal>jensen</literal>, returning only DNs and uid values.</para>
+   <para>The following example searches for entries with user IDs
+   (<literal>uid</literal>) containing <literal>jensen</literal>, returning
+   only DNs and user ID values.</para>
    
    <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*jensen*)" uid
 dn: uid=ajensen,ou=People,dc=example,dc=com
@@ -1109,8 +1110,8 @@ ldapsearch.port=1389</programlisting>
   perform a simple bind.</para>
 
   <para>For example, suppose Babs Jensen enters her email address,
-  <literal>bjensen@example.com</literal> and her password for login. The client
-  application might search for the entry matching
+  <literal>bjensen@example.com</literal>, and her password in order to log in.
+  The client application might search for the entry matching
   <literal>(mail=bjensen@example.com)</literal> under base DN
   <literal>dc=example,dc=com</literal>. Alternatively, the client application
   might know to extract the user ID <literal>bjensen</literal> from the address,
@@ -1124,17 +1125,17 @@ ldapsearch.port=1389</programlisting>
   the identifier string and the entry DN. This translation is the job of a
   component called an identity mapper. Identity mappers are used to perform
   PLAIN SASL authentication (with a user name and password), SASL GSSAPI
-  authentication (Kerberos V5), SASL CRAM MD5 and DIGEST MD5 authentication,
-  and to handle authorization IDs during password modify extended operations and
-  proxied authorization. One use of PLAIN SASL is to translate user names from
-  HTTP Basic authentication to LDAP authentication.</para>
+  authentication (Kerberos V5), SASL CRAM MD5 and DIGEST MD5 authentication.
+  They also handle authorization IDs during password modify extended operations
+  and proxied authorization.</para>
 
-  <para>The following example shows PLAIN SASL authentication using the default
-  Exact Match identity mapper. In this (contrived) example, Babs Jensen reads
-  the hashed value of her password. (According to the access controls in the
-  example data, she must authenticate to read her password.) Notice the
-  authentication ID is her user ID rather than a DN,
-  <literal>u:bjensen</literal>.</para>
+  <para>One use of PLAIN SASL is to translate user names from HTTP Basic
+  authentication to LDAP authentication. The following example shows PLAIN SASL
+  authentication using the default Exact Match identity mapper. In this
+  (contrived) example, Babs Jensen reads the hashed value of her password.
+  (According to the access controls in the example data, Babs must authenticate
+  to read her password.) Notice the authentication ID is her user ID,
+  <literal>u:bjensen</literal>, rather than the DN of her entry.</para>
 
   <screen>$ ldapsearch
  --port 1389
@@ -1151,7 +1152,7 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</screen>
 
   <para>The Exact Match identity mapper searches for a match between the string
   provided (here, <literal>bjensen</literal>) and the value of a specified
-  attribute (by default the <literal>uid</literal> user ID attribute). If
+  attribute (by default the <literal>uid</literal> attribute). If
   you know users are entering their email addresses, you could create an
   exact match identity mapper for email addresses, and then use that for PLAIN
   SASL authentication as in the following example.</para>
@@ -1192,9 +1193,10 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</screen>
   <para>The Regular Expression identity mapper uses a regular expression to
   extract a substring from the string provided, and then searches for a match
   between the substring and the value of a specified attribute. In the case
-  of example data where an email address is user ID + @ + domain, you can use
-  the default Regular Expression identity mapper in the same way as the email
-  mapper from the previous example. The default regular expression pattern is
+  of example data where an email address is <replaceable>user ID</replaceable>
+  + @ + <replaceable>domain</replaceable>, you can use the default Regular
+  Expression identity mapper in the same way as the email mapper from the
+  previous example. The default regular expression pattern is
   <literal>^([^@]+)@.+$</literal>, and the part of the identity string matching
   <literal>([^@]+)</literal> is used to find the entry by user ID.</para>
 
@@ -1305,8 +1307,8 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</scre
   <literal>u:</literal> form rather than using <literal>dn:</literal>, you can
   set the identity mapper with the global configuration setting,
   <literal>proxied-authorization-identity-mapper</literal>. For example, if you
-  get UID values from the client, such as <literal>bjensen</literal>, you can
-  use the Exact Match Identity Mapper to match those to DNs based on an
+  get user ID values from the client, such as <literal>bjensen</literal>, you
+  can use the Exact Match Identity Mapper to match those to DNs based on an
   attribute of the entry. Use the <command>dsconfig</command> command
   interactively to investigate the settings you need.</para>
  </section>
@@ -1513,7 +1515,8 @@ sn: App</screen>
 
     <para>When the client presents its certificate to OpenDJ, by default OpenDJ
     has to be able to trust the client certificate before it can accept the
-    connection.</para>
+    connection. If OpenDJ cannot trust the client certificate, it cannot
+    establish a secure connection.</para>
 
     <screen>$ keytool
  -import

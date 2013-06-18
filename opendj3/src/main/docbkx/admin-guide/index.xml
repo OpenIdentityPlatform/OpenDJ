@@ -65,7 +65,7 @@
  <xinclude:include href='chap-admin-tools.xml' />
  <xinclude:include href='chap-server-process.xml' />
  <xinclude:include href='chap-import-export.xml' />
- <xinclude:include href='chap-listeners.xml' />
+ <xinclude:include href='chap-connection-handlers.xml' />
  <xinclude:include href='chap-privileges-acis.xml' />
  <xinclude:include href='chap-ldap-operations.xml' />
  <xinclude:include href='chap-rest-operations.xml' />

@@ -70,7 +70,7 @@
   </itemizedlist>
   
   <para>When you login to OpenDJ Control Panel, you authenticate over LDAP.
-  This means that if a user can run the Control Panel, she can use it to manage
+  This means that if users can run the Control Panel, they can use it to manage
   a running server. Yet, to start and stop the server process through OpenDJ
   Control Panel, you must start the Control Panel on the system where OpenDJ
   runs, as the user who owns the OpenDJ server files (such as the user who
@@ -246,6 +246,7 @@
      command.</para>
     </listitem>
    </varlistentry>
+<!--
    <varlistentry>
     <term><link xlink:href="admin-guide#dsframework-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsframework</link></term>
@@ -254,12 +255,14 @@
      users.</para>
     </listitem>
    </varlistentry>
+-->
    <varlistentry>
     <term><link xlink:href="admin-guide#dsjavaproperties-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsjavaproperties</link></term>
     <listitem>
-     <para>Apply changes you make to OpenDJ/config/java.properties, which sets
-     JVM runtime options.</para>
+     <para>Apply changes you make to
+     <filename>opendj/config/java.properties</filename>, which sets Java
+     runtime options.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -316,8 +319,8 @@
     <listitem>
      <para>Modify the specified attribute values for the specified
      entries.</para>
-     <para>Use the ldapmodify command with the -a option to add new
-     entries.</para>
+     <para>Use the <command>ldapmodify</command> command with the
+     <option>-a</option> option to add new entries.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -347,16 +350,16 @@
     <term><link xlink:href="admin-guide#ldifmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldifmodify</link></term>
     <listitem>
-     <para>Similar to the ldapmodify command, modify specified attribute values
-     for specified entries in an LDIF file.</para>
+     <para>Similar to the <command>ldapmodify</command> command, modify
+     specified attribute values for specified entries in an LDIF file.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
     <term><link xlink:href="admin-guide#ldifsearch-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldifsearch</link></term>
     <listitem>
-     <para>Similar to the ldapsearch command, search a branch of data in LDIF
-     for entries matching the LDAP filter you specify.</para>
+     <para>Similar to the <command>ldapsearch</command> command, search a branch
+     of data in LDIF for entries matching the LDAP filter you specify.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -372,9 +375,9 @@
     <listitem>
      <para>Generate directory data in LDIF, based on templates that define how
      the data should appear.</para>
-     <para>The make-ldif command is designed to help you quickly generate test
-     data that mimics data you expect to have in production, but without
-     compromising private information.</para>
+     <para>The <command>make-ldif</command> command is designed to help you
+     quickly generate test data that mimics data you expect to have in
+     production, but without compromising private information.</para>
     </listitem>
    </varlistentry>
    <varlistentry>

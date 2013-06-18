@@ -39,7 +39,7 @@
 
  <para>Account lockout disables a user account after a specified
  number of successive authentication failures. When you implement account
- lockout, you can opt to have the directory server unlock the account
+ lockout, you can opt to have OpenDJ directory server unlock the account
  again after a specified interval, or you can leave the account locked
  until the password is reset.</para>
  
@@ -49,8 +49,8 @@
   failures. Account lockout is not transactional across a replication topology,
   however. Under normal circumstances, replication nevertheless propagates
   lockout quickly. If ever replication is delayed, an attacker with direct
-  access to multiple replica could get more than the specified number of tries
-  to authenticate before being locked out on all replicas.</para>
+  access to multiple replicas could try to authenticate up to the specified
+  number of times on each replica before being locked out on all replicas.</para>
  </note>
   
  <para>This chapter shows you how to set up account lockout policies,
