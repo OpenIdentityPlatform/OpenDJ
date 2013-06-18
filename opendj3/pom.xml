@@ -106,7 +106,7 @@
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3</grizzlyFrameworkVersion>
-    <forgerockRestVersion>2.0.0-SNAPSHOT</forgerockRestVersion>
+    <forgerockRestVersion>2.0.0</forgerockRestVersion>
     <gaId>UA-23412190-8</gaId>
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional/>
