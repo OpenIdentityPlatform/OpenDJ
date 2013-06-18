@@ -1193,7 +1193,7 @@ $ dsconfig
    <para>As another example, you might exclude a custom attribute called
    <literal>sessionToken</literal> from being replicated.</para>
    
-   <screen>dsconfig
+   <screen>$ dsconfig
  set-replication-domain-prop
  --port 4444
  --hostname opendj.example.com

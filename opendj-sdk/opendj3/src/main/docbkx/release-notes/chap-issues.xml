@@ -24,15 +24,15 @@
   !    
 -->
 <chapter xml:id='chap-issues'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
 
  <para>This chapter covers the status of key issues and limitations for OpenDJ
- <?eval ${docTargetVersion}?> and OpenDJ SDK <?eval ${currentSDKversion}?>.
+ <?eval ${docTargetVersion}?> and OpenDJ SDK <?eval ${docTargetVersion}?>.
  For details and information on other issues, see the <link xlink:show="new"
  xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ" >OpenDJ issue
  tracker</link>.</para>

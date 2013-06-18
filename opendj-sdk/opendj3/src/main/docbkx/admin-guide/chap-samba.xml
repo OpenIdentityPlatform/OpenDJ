@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-samba'
@@ -33,8 +33,8 @@
  <indexterm><primary>Samba</primary></indexterm>
  
  <para><link xlink:href="http://www.samba.org/" xlink:show="new">Samba</link>,
- the Windows interoperability suite for Linux and Unix, stores accounts because
- Unix and Windows password storage management is not interoperable. The default
+ the Windows interoperability suite for Linux and UNIX, stores accounts because
+ UNIX and Windows password storage management is not interoperable. The default
  account storage mechanism is designed to work well with relatively small
  numbers of accounts and configurations with one domain controller. For larger
  installations, you can configure Samba to use OpenDJ for storing Samba

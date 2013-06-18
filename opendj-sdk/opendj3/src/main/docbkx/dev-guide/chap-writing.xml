@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-writing'
@@ -51,12 +51,24 @@
   order to track successful or failed binds for password policy reasons.</para>
   </footnote></para>
 
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
   <itemizedlist>
    <listitem>
-    <indexterm>
-     <primary>Adds</primary>
-    </indexterm>
-
     <para>An add request is used to create a new entry in an LDAP directory.
     The entry must have a unique distinguished name that belongs under a base
     DN served by the directory. The entry must have a list of attributes that
@@ -71,16 +83,10 @@
    </listitem>
 
    <listitem>
-    <indexterm>
-     <primary>Modifications</primary>
-    </indexterm>
     <para>A modify request is used to add, delete, or replace attribute values
     on an entry in an LDAP directory. The resulting entry must be valid
     according to the directory schema.</para>
 
-    <indexterm>
-     <primary>Renames</primary>
-    </indexterm>
     <para>A modify DN request is used to rename or move a directory entry.
     In both cases the distinguished name changes. Renaming involves changing
     the relative distinguished name, for example from
@@ -97,10 +103,6 @@
    </listitem>
 
    <listitem>
-    <indexterm>
-     <primary>Deletes</primary>
-    </indexterm>
-
     <para>A delete request is used to remove an entry from an LDAP
     directory.</para>
 
@@ -113,9 +115,6 @@
    </listitem>
   </itemizedlist>
 
-  <indexterm>
-   <primary>Authorizations</primary>
-  </indexterm>
   <para>As a rule, your client application must be authorized to create,
   update, and delete directory data. Therefore to prepare to change directory
   data, you first get a connection, and then bind on that connection as a

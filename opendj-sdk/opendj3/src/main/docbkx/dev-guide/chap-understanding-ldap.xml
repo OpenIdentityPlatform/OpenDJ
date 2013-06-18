@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-understanding-ldap'
@@ -69,7 +69,7 @@
   <para>Lightweight Directory Access Protocol has been around since the early
   1990s. LDAP was originally developed as an alternative protocol that would
   allow directory access over Internet protocols rather than OSI protocols,
-  and be lightweight enough for desktop implementations. By the mid 1990, LDAP
+  and be lightweight enough for desktop implementations. By the mid 1990s, LDAP
   directory servers became generally available and widely used.</para>
   
   <para>Until the late 1990s, LDAP directory servers were designed primarily
@@ -140,7 +140,7 @@ uidNumber: 1076
   attributes are allowed and optional for the entry. As the entries object
   classes can be updated online, and even the definitions of object classes
   and attributes are expressed as entries that can be updated online, directory
-  data is extensible on the fly.</para></footnote>. When you lookup her entry
+  data is extensible on the fly.</para></footnote>. When you look up her entry
   in the directory, you specify one or more attributes and values to match
   in the entries that come back as the result of your search. Typically the
   attributes you search for are indexed in the directory, so the directory
@@ -196,9 +196,9 @@ mail: escape@example.com</screen></footnote></para>
   as <literal>cn=config</literal>, under which the configuration is accessible
   through LDAP, and potentially others such as
   <literal>dc=mycompany,dc=com</literal> or <literal>o=myOrganization</literal>.
-  Thus when you lookup entries, you specify the parent entry to look under
+  Thus when you look up entries, you specify the parent entry to look under
   in the same way you need to know whether to look in the New York, Paris,
-  or Tokyo phone book to find someone's telephone number.<footnote>
+  or Tokyo phone book to find a telephone number.<footnote>
   <para>The root entry for the directory, technically the entry with DN
   <literal>""</literal> (the empty string), is called the root DSE, and
   contains information about what the server supports, including the other
@@ -229,12 +229,30 @@ mail: escape@example.com</screen></footnote></para>
    </textobject>
   </mediaobject>
   
+  <indexterm>
+   <primary>Authentications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Comparisons</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
   <itemizedlist xml:id="standard-ldap-operations">
    <para>The standard operations are as follows.</para>
    <listitem>
-    <indexterm>
-     <primary>Authentications</primary>
-    </indexterm>
     <para>Bind (authenticate). The first operation in an LDAP session involves
     the client binding to the LDAP server, with the server authenticating the
     client. Authentication identifies the client's identity in LDAP terms, the
@@ -242,9 +260,6 @@ mail: escape@example.com</screen></footnote></para>
     to directory data that the client wants to lookup or change.</para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Searches</primary>
-    </indexterm>
     <para>Search (lookup). After binding, the client can request that the server
     return entries based on an LDAP filter, which is an expression that the
     server uses to find entries that match the request, and a base DN under
@@ -255,17 +270,11 @@ mail: escape@example.com</screen></footnote></para>
     <literal>(mail=bjensen@example.com)</literal>.</para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Comparisons</primary>
-    </indexterm>
     <para>Compare. After binding, the client can request that the server
     compare an attribute value the client specifies with the value stored
     on an entry in the directory.</para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Modifications</primary>
-    </indexterm>
     <para>Modify. After binding, the client can request that the server
     change one or more attribute values stored on one or more entries. Often
     administrators do not allow clients to change directory data, so request
@@ -273,24 +282,15 @@ mail: escape@example.com</screen></footnote></para>
     application if you want to update data.</para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Adds</primary>
-    </indexterm>
     <para>Add. After binding, the client can request to add one or more
     new LDAP entries to the server. </para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Deletes</primary>
-    </indexterm>
     <para>Delete. After binding, the client can request that the server
     delete one or more entries. To delete and entry with other entries
     underneath, first delete the children, then the parent.</para>
    </listitem>
    <listitem>
-    <indexterm>
-     <primary>Renames</primary>
-    </indexterm>
     <para>Modify DN. After binding, the client can request that the server
     change the distinguished name of the entry. For example, if Barbara
     changes her unique identifier from <literal>bjensen</literal> to something

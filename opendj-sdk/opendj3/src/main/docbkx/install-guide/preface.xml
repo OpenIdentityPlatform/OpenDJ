@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <preface xml:id='preface'
@@ -39,10 +39,10 @@
 
  <para>If you want only to try OpenDJ server software, and you
  do not plan to store any real or important data that you want to keep,
- then you need not read this guide right now. Instead, visit the <link
- xlink:href='http://www.forgerock.org/opendj.html'
- >download page</link>, and click the link for the latest release to
- start the Java WebStart installer wizard directly from your browser.</para>
+ then you need not read this entire guide. Instead, try <link
+ xlink:href="install-guide#chap-install-gui"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Installing OpenDJ
+ With the QuickSetup Wizard</citetitle></link>.</para>
 
  <section>
   <title>Who Should Read this Guide</title>

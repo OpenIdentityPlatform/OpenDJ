@@ -354,7 +354,7 @@ myCustomAttribute: Testing 1, 2, 3...
    <varlistentry>
     <term><literal>X-PATTERN</literal></term>
     <listitem>
-     <para>used to define a syntax based on a regular expression pattern, where
+     <para>Used to define a syntax based on a regular expression pattern, where
      valid regular expressions are those defined for <link xlink:show="new"
      xlink:href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html"
      ><literal>java.util.regex.Pattern</literal></link>. The following attribute

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <preface xml:id='preface'
@@ -39,11 +39,11 @@
   <title>Who Should Read this Guide</title>
 
   <para>This guide is written for Java developers who want to build directory
-  client applications with OpenDJ SDK.</para>
+  client applications with OpenDJ LDAP SDK.</para>
 
   <para>This guide starts by explaining LDAP directories briefly, and
   describing best practices for LDAP client applications. Then it demonstrates
-  how to install and use OpenDJ SDK to build LDAP clients.</para>
+  how to install and use OpenDJ LDAP SDK to build LDAP clients.</para>
 
   <para>You do not need to be an LDAP wizard to learn something from this
   guide. You do need some background in writing Java 6 and client-server

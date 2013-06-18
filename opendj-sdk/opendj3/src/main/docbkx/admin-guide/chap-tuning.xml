@@ -198,24 +198,28 @@
   production, and then conduct experiments to determine how best to meet
   the requirements defined in the SLA.</para>
   
-  <para>Use <command>make-ldif</command> to generate sample data that match
-  what you expect to find in production.</para>
+  <para>Use <link xlink:show="new" xlink:href="admin-guide#make-ldif-1"
+  xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link> to generate
+  sample data that match what you expect to find in production.</para>
   
   <para>The OpenDJ LDAP Toolkit provides three command-line tools to help
   with basic performance testing.</para>
   
   <itemizedlist>
    <listitem>
-    <para>The <command>authrate</command> command measures bind throughput and
-    response time.</para>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#authrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">authrate</link> command
+    measures bind throughput and response time.</para>
    </listitem>
    <listitem>
-    <para>The <command>modrate</command> command measures modification
-    throughput and response time.</para>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#modrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">modrate</link> command
+    measures modification throughput and response time.</para>
    </listitem>
    <listitem>
-    <para>The <command>searchrate</command> command measures search throughput
-    and response time.</para>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#searchrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">searchrate</link> command
+    measures search throughput and response time.</para>
    </listitem>
   </itemizedlist>
   
@@ -237,10 +241,10 @@
  --set etime-resolution:nanoseconds
  --no-prompt</screen>
 
-  <para>For more extensive testing, try the <link
-  xlink:href="http://slamd.com/">SLAMD Distributed Load Generation
-  Engine</link>. SLAMD is built to test more than just directory, but is
-  particularly well suited to test directory service performance, is
+  <para>For more extensive testing, try the <link xlink:show="new"
+  xlink:href="http://dl.thezonemanager.com/slamd/">SLAMD Distributed Load
+  Generation Engine</link>. SLAMD is built to test more than just directory,
+  but is particularly well suited to test directory service performance, is
   well documented, and is available under the Sun Public License. SLAMD is
   designed both to offer an easy to used web-based interface, and also to
   allow you to customize jobs to match the access patterns you expect from

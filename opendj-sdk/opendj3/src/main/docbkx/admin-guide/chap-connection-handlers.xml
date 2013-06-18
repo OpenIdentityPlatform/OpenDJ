@@ -23,13 +23,13 @@
   !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
-<chapter xml:id='chap-listeners'
+<chapter xml:id='chap-connection-handlers'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
- <title>Configuring Servers For Client Application Access</title>
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Configuring Connection Handlers</title>
  <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
  <para>This chapter shows you how to configure OpenDJ directory server to
  listen for directory client requests, using connection handlers. You can view
@@ -121,7 +121,7 @@ $ dsconfig
   a trusted party.</para>
 
   <para>In practice this means that both OpenDJ and client applications must
-  have the certificates used to sign each others' certificates in their
+  put the certificates that were used to sign each others' certificates in their
   respective trust stores. Conventionally, certificates are therefore signed by
   a Certificate Authority (CA). A CA is trusted to sign other certificates. The
   Java runtime environment for example comes with a trust store holding
@@ -141,7 +141,7 @@ $ dsconfig
   server certificate without further configuration.</para>
 
   <para>In summary, if you need a certificate to be recognized automatically,
-  then use a CA-signed certificate from a well-known CA.</para>
+  get the certificate signed by a well-known CA.</para>
 
   <para>You can, however, choose to have your certificates signed some other
   way. You can set up your own CA. You can use a CA whose signing certificate
@@ -195,8 +195,7 @@ Trust this certificate? [no]:  yes
 Certificate was added to keystore</screen>
 
   <para>When working with a certificate in printable encoding format (.pem)
-  rather than binary format, use the keytool <option>-rfc</option> option,
-  too.</para>
+  rather than binary format, use the <option>-rfc</option> option, too.</para>
 
   <para>Restart OpenDJ after adding certificates to the trust store to make
   sure that OpenDJ reads the updated trust store file.</para>
@@ -475,7 +474,7 @@ Certificate reply was installed in keystore</screen>
      <para>Notice that the <option>-storepass</option> and
      <option>-keypass</option> options take identical password arguments.
      OpenDJ requires that you use the same password to protect both the
-     keystore and also the private key.</para>
+     key store and also the private key.</para>
     </note>
    </step>
    <step>
@@ -536,7 +535,16 @@ Certificate reply was installed in keystore</screen>
    <title>To Enable StartTLS on the LDAP Port</title>
    
    <step>
-    <para>Ensure you have a server certificate installed.</para>
+    <para>Make sure you have a server certificate installed.</para>
+
+    <screen>$ keytool
+ -list
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+server-cert, Jun 17, 2013, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 92:B7:4C:4F:2E:24:...:EB:7C:22:3F
+    </screen>
    </step>
    <step>
     <para>Activate StartTLS on the current LDAP port.</para>
@@ -574,7 +582,16 @@ Certificate reply was installed in keystore</screen>
    <title>To Set Up LDAPS Access</title>
    
    <step>
-    <para>Ensure you have a server certificate installed.</para>
+    <para>Make sure you have a server certificate installed.</para>
+
+    <screen>$ keytool
+ -list
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+server-cert, Jun 17, 2013, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 92:B7:4C:4F:2E:24:...:EB:7C:22:3F
+    </screen>
    </step>
    <step>
     <para>Configure the server to activate LDAPS access.</para>

@@ -53,49 +53,49 @@
 
   <variablelist>
    <varlistentry>
-    <term>Create</term>
+    <term><link linkend="create-rest">Create</link></term>
     <listitem>
      <para>Add a resource that does not yet exist</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Read</term>
+    <term><link linkend="read-rest">Read</link></term>
     <listitem>
      <para>Retrieve a single resource</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Update</term>
+    <term><link linkend="update-rest">Update</link></term>
     <listitem>
      <para>Replace an existing resource</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Delete</term>
+    <term><link linkend="delete-rest">Delete</link></term>
     <listitem>
      <para>Remove an existing resource</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Patch</term>
+    <term><link linkend="patch-rest">Patch</link></term>
     <listitem>
      <para>Modify part of an existing resource</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Action</term>
+    <term><link linkend="action-rest">Action</link></term>
     <listitem>
      <para>Perform a predefined action</para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>Query</term>
+    <term><link linkend="query-rest">Query</link></term>
     <listitem>
      <para>List a set of resources</para>
     </listitem>

@@ -24,18 +24,18 @@
   !
 -->
 <chapter xml:id='chap-install-gui'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ With the QuickSetup Wizard</title>
  <indexterm><primary>Downloading OpenDJ</primary></indexterm>
  <indexterm><primary>Quick install</primary></indexterm>
  
  <para>If you want only to try OpenDJ server software, and you do not plan to
  store any real or important data that you want to keep, then read only this
- section, or just try out installation without reading any further.</para>
+ chapter, or just try out installation without reading any further.</para>
 
  <xinclude:include href="../shared/itemizedlist-download.xml" />
 

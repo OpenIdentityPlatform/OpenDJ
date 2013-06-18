@@ -852,7 +852,7 @@ dn: uid=kvaughan,ou=People,dc=example,dc=com
 userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</screen>
 
    <para>Notice that with <literal>deprecated-password-storage-scheme</literal>
-   set appropriately, Kirsten Vaughan's password was rehashed after she
+   set appropriately, Kirsten Vaughan's password was hashed again after she
    authenticated successfully.</para>
  </section>
 
