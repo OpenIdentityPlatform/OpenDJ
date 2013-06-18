@@ -23,6 +23,7 @@
 *
 *
 *      Copyright 2008-2010 Sun Microsystems, Inc.
+*      Portions Copyright 2013 ForgeRock AS
 */
 
 #include "common.h"
@@ -40,6 +41,7 @@ DWORD MAX_DEBUG_LOG_SIZE = 500 * 1000;
 char * getDebugLogFileName();
 void debugInner(BOOL isError, const char *msg, va_list ap);
 void deleteIfLargerThan(char * fileName, DWORD maxSize);
+BOOL isExistingDirectory(char * fileName);
 
 // ----------------------------------------------------
 // Function used to create a process with the given command.
@@ -296,8 +298,8 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
     }
           
     vfprintf(fp, msg, ap);
-
-	  fprintf(fp, "\n");
+    
+    fprintf(fp, "\n");
     fclose(fp);
   }
   else
@@ -318,12 +320,16 @@ char * getDebugLogFileName()
   char path [MAX_PATH];
   char execName [MAX_PATH];
   char * lastSlash;
+  char logpath[MAX_PATH];
+  char * temp;  
+  FILE *file; 
 
   if (logFile != NULL) 
   {
     return logFile;
   }
-
+  temp = getenv("TEMP");
+  
   // Get the name of the executable.  
   GetModuleFileName (
     NULL,
@@ -339,9 +345,26 @@ char * getDebugLogFileName()
   lastSlash = strrchr(execName, '\\');
   lastSlash[0] = '\0';
 
-  sprintf(path, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
-  logFile = _strdup(path);
+  // Instance root is in execName (eg. C:\opendj 
+  // and adds the log's folder name to it  
+  strcpy(logpath, execName); 
+  strcat(logpath, "\\logs\\"); 
+  
+  // If the log folder doesn's exist in the instance path
+  // we create the log file in the temp directory.
+  if (isExistingDirectory(logpath)) 
+  {
+    sprintf(path, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
+  } else {
+    strcat(temp, "\\logs\\");
+    mkdir(temp);
+    strcat(temp, DEBUG_LOG_NAME);
+    file = fopen(temp,"a+");
+    fclose(file);
+    sprintf(path, "%s", temp);
+  }
 
+  logFile = _strdup(path);
   return logFile;
 }
 
@@ -394,4 +417,15 @@ void deleteIfLargerThan(char * fileName, DWORD maxSize)
   {
     DeleteFile(fileName);
   }
+}
+
+// ---------------------------------------------------------------
+// Checks if the specifed directory exist.
+// ---------------------------------------------------------------
+BOOL isExistingDirectory(char * fileName)
+{
+  DWORD str = GetFileAttributes(fileName);
+
+  return (str != INVALID_FILE_ATTRIBUTES && 
+         (str & FILE_ATTRIBUTE_DIRECTORY));
 }
