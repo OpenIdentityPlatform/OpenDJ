@@ -37,14 +37,14 @@
   <itemizedlist>
     <listitem>
      <para>OpenDJ now lets you use more TLS cipher suites in SSFs, including
-     those provided by Bouncy Castle and IBM. (<link xlink:show="new"
+     those provided by Bouncy Castle and IBM (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-826"
      >OPENDJ-826</link>).</para>
     </listitem>
 
     <listitem>
      <para>OpenDJ now provides native RESTful access over HTTP to directory
-     data. (<link xlink:show="new"
+     data (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-808"
      >OPENDJ-808</link>). See the procedure, <link xlink:show="new"
      xlink:href="admin-guide#setup-rest2ldap-connection-handler"
@@ -53,7 +53,7 @@
      feature.</para>
 
      <para>OpenDJ REST LDAP gateway lets clients access directory data in remote
-     LDAP servers over HTTP. (<link xlink:show="new"
+     LDAP servers over HTTP (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-757"
      >OPENDJ-757</link>). See the procedure, <link xlink:show="new"
      xlink:href="install-guide#install-rest2ldap-servlet"
@@ -63,7 +63,7 @@
 
     <listitem>
      <para>OpenDJ now lets you escape characters in <command>make-ldif</command>
-     templates. (<link xlink:show="new"
+     templates (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-800"
      >OPENDJ-800</link>).</para>
     </listitem>
@@ -77,14 +77,14 @@
     </listitem>
 
     <listitem>
-     <para>OpenDJ now runs more reliably as a Windows Service. (<link
+     <para>OpenDJ now runs more reliably as a Windows Service (<link
      xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-617"
      >OPENDJ-617</link>).</para>
     </listitem>
 
     <listitem>
-     <para>Country String syntax now validates ISO 3166 codes. (<link
+     <para>Country String syntax now validates ISO 3166 codes (<link
      xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-562"
      >OPENDJ-562</link>).</para>
@@ -132,7 +132,7 @@
      >OPENDJ-455</link>).</para>
 
      <para>Also, you can now force OpenDJ upgrade to complete if errors occur in
-     non-interactive mode. (<link xlink:show="new"
+     non-interactive mode (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-522"
      >OPENDJ-522</link>).</para>
 
