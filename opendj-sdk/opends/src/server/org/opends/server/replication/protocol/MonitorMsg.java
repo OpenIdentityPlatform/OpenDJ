@@ -330,15 +330,6 @@ public class MonitorMsg extends RoutableMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public byte[] getBytes(short protocolVersion)
   {
     try

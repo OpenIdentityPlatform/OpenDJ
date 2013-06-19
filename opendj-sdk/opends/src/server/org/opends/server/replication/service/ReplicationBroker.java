@@ -31,6 +31,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.server.ReplicationServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1259,14 +1260,12 @@ public class ReplicationBroker
       {
         serverStartMsg = new ServerStartMsg(serverId, url, baseDn,
             maxRcvWindow, heartbeatInterval, state,
-            ProtocolVersion.getCurrentVersion(),
             this.getGenerationID(), isSslEncryption, groupId);
       }
       else
       {
         serverStartMsg = new ServerStartECLMsg(url, 0, 0, 0, 0,
             maxRcvWindow, heartbeatInterval, state,
-            ProtocolVersion.getCurrentVersion(),
             this.getGenerationID(), isSslEncryption, groupId);
       }
       localSession.publish(serverStartMsg);
@@ -1299,8 +1298,8 @@ public class ReplicationBroker
        * replication server will use the same one (or an older one if it is an
        * old replication server).
        */
-      final short localProtocolVersion = ProtocolVersion
-          .minWithCurrent(replServerInfo.getProtocolVersion());
+      final short localProtocolVersion = getCompatibleVersion(replServerInfo
+          .getProtocolVersion());
       if (keepConnection)
       {
         protocolVersion = localProtocolVersion;

@@ -298,16 +298,6 @@ public class TopologyMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public byte[] getBytes(short version)
   throws UnsupportedEncodingException
   {

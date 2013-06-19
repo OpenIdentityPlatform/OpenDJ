@@ -77,11 +77,6 @@ public class StartSessionMsg extends ReplicationMsg
   private Set<String> eclIncludesForDeletes = new HashSet<String>();
 
   /**
-   * The protocolVersion that should be used when serializing this message.
-   */
-  private final short protocolVersion;
-
-  /**
    * Creates a new StartSessionMsg message from its encoded form.
    *
    * @param in The byte array containing the encoded form of the message.
@@ -91,7 +86,6 @@ public class StartSessionMsg extends ReplicationMsg
    */
   public StartSessionMsg(byte[] in, short version) throws DataFormatException
   {
-    protocolVersion = ProtocolVersion.getCurrentVersion();
     if (version <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
       decode_V23(in);
@@ -100,29 +94,6 @@ public class StartSessionMsg extends ReplicationMsg
     {
       decode_V45(in, version);
     }
-  }
-
-  /**
-   * Creates a new StartSessionMsg message from its encoded form.
-   *
-   * Creates a new  message with the given required parameters.
-   * @param status Status we are starting with
-   * @param referralsURLs Referrals URLs to be used by peer DSs
-   * @param assuredFlag If assured mode is enabled or not
-   * @param assuredMode Assured type
-   * @param safeDataLevel Assured mode safe data level
-   * @param replicationProtocol   The protocol version to use.
-   */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
-      boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
-      short replicationProtocol)
-  {
-    this.referralsURLs = referralsURLs;
-    this.status = status;
-    this.assuredFlag = assuredFlag;
-    this.assuredMode = assuredMode;
-    this.safeDataLevel = safeDataLevel;
-    this.protocolVersion = replicationProtocol;
   }
 
   /**
@@ -141,7 +112,6 @@ public class StartSessionMsg extends ReplicationMsg
     this.assuredFlag = assuredFlag;
     this.assuredMode = assuredMode;
     this.safeDataLevel = safeDataLevel;
-    this.protocolVersion = ProtocolVersion.getCurrentVersion();
   }
 
   /**
@@ -155,45 +125,11 @@ public class StartSessionMsg extends ReplicationMsg
     this.referralsURLs = referralsURLs;
     this.status = status;
     this.assuredFlag = false;
-    this.protocolVersion = ProtocolVersion.getCurrentVersion();
-  }
-
-  /**
-   * Creates a new message with the given required parameters.
-   * Assured mode is false.
-   * @param status Status we are starting with
-   * @param referralsURLs Referrals URLs to be used by peer DSs
-   * @param replicationProtocol The requested protocol version.
-   */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
-    short replicationProtocol)
-  {
-    this.referralsURLs = referralsURLs;
-    this.status = status;
-    this.assuredFlag = false;
-    this.protocolVersion = replicationProtocol;
   }
 
   // ============
   // Msg encoding
   // ============
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
-    {
-      return getBytes_V23();
-    }
-    else
-    {
-      return getBytes_V45(protocolVersion);
-    }
-  }
 
   /**
    * {@inheritDoc}

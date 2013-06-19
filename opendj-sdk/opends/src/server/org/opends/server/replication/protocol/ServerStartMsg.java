@@ -73,7 +73,6 @@ public class ServerStartMsg extends StartMsg
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
-   * @param protocolVersion The replication protocol version of the creator.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
@@ -81,10 +80,10 @@ public class ServerStartMsg extends StartMsg
    */
   public ServerStartMsg(int serverId2, String serverURL, String baseDn,
       int windowSize, long heartbeatInterval, ServerState serverState,
-      short protocolVersion, long generationId, boolean sslEncryption,
+      long generationId, boolean sslEncryption,
       byte groupId)
   {
-    super(protocolVersion, generationId);
+    super((short) -1 /* version set when sending */, generationId);
 
     this.serverId = serverId2;
     this.serverURL = serverURL;
@@ -282,7 +281,7 @@ public class ServerStartMsg extends StartMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes(short sessionProtocolVersion)
   {
     try {
       byte[] byteDn = baseDn.getBytes("UTF-8");
@@ -316,8 +315,8 @@ public class ServerStartMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(
-          MSG_TYPE_SERVER_START, length, ProtocolVersion.getCurrentVersion());
+      byte resultByteArray[] = encodeHeader(MSG_TYPE_SERVER_START, length,
+          sessionProtocolVersion);
       int pos = headerLength;
 
       pos = addByteArray(byteDn, resultByteArray, pos);

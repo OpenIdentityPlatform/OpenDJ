@@ -73,10 +73,9 @@ public class ServerStartECLMsg extends StartMsg
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
-   * @param protocolVersion The replication protocol version of the creator.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
-*                      after the start messages have been exchanged.
+   *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
   public ServerStartECLMsg(String serverURL, int maxReceiveDelay,
@@ -84,12 +83,11 @@ public class ServerStartECLMsg extends StartMsg
                            int maxSendQueue, int windowSize,
                            long heartbeatInterval,
                            ServerState serverState,
-                           short protocolVersion,
                            long generationId,
                            boolean sslEncryption,
                            byte groupId)
   {
-    super(protocolVersion, generationId);
+    super((short) -1 /* version set when sending */, generationId);
 
     this.serverURL = serverURL;
     this.maxReceiveDelay = maxReceiveDelay;
@@ -251,7 +249,7 @@ public class ServerStartECLMsg extends StartMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes(short sessionProtocolVersion)
   {
     try {
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
@@ -282,8 +280,8 @@ public class ServerStartECLMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(
-          MSG_TYPE_START_ECL, length, ProtocolVersion.getCurrentVersion());
+      byte resultByteArray[] = encodeHeader(MSG_TYPE_START_ECL, length,
+          sessionProtocolVersion);
       int pos = headerLength;
 
       pos = addByteArray(byteServerUrl, resultByteArray, pos);

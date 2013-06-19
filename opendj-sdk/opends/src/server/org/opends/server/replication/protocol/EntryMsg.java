@@ -150,16 +150,6 @@ public class EntryMsg extends RoutableMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public byte[] getBytes(short version)
   {
     try {

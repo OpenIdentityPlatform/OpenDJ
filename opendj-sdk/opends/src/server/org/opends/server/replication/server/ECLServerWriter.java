@@ -64,7 +64,6 @@ public class ECLServerWriter extends ServerWriter
   private ProtocolSession session;
   private ECLServerHandler handler;
   private ReplicationServerDomain replicationServerDomain;
-  private short protocolVersion = -1;
   private boolean suspended;
   private boolean shutdown;
   private PersistentSearch mypsearch;
@@ -88,8 +87,6 @@ public class ECLServerWriter extends ServerWriter
     this.session = session;
     this.handler = handler;
     this.replicationServerDomain = replicationServerDomain;
-    // Keep protocol version locally for efficiency
-    this.protocolVersion = handler.getProtocolVersion();
     this.suspended = false;
     this.shutdown = false;
 
@@ -249,7 +246,7 @@ public class ECLServerWriter extends ServerWriter
             // Done is used to end phase 1
             session.publish(new DoneMsg(
                 handler.getReplicationServerId(),
-                handler.getServerId()), protocolVersion);
+                handler.getServerId()));
           }
         }
 
@@ -295,7 +292,7 @@ public class ECLServerWriter extends ServerWriter
 
     if (session!=null)
     {
-      session.publish(msg, protocolVersion);
+      session.publish(msg);
     }
     else
     {

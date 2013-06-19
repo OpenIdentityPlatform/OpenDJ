@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -72,7 +73,6 @@ public class ReplServerStartMsg extends StartMsg
    * @param baseDn base DN for which the ReplServerStartMsg is created.
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
-   * @param protocolVersion The replication protocol version of the creator.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
@@ -82,13 +82,12 @@ public class ReplServerStartMsg extends StartMsg
   public ReplServerStartMsg(int serverId, String serverURL, String baseDn,
                                int windowSize,
                                ServerState serverState,
-                               short protocolVersion,
                                long generationId,
                                boolean sslEncryption,
                                byte groupId,
                                int degradedStatusThreshold)
   {
-    super(protocolVersion, generationId);
+    super((short) -1 /* version set when sending */, generationId);
     this.serverId = serverId;
     this.serverURL = serverURL;
     if (baseDn != null)
@@ -302,21 +301,11 @@ public class ReplServerStartMsg extends StartMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes(short protocolVersion)
+  public byte[] getBytes(short sessionProtocolVersion)
      throws UnsupportedEncodingException
   {
     // If an older version requested, encode in the requested way
-    switch(protocolVersion)
+    switch(sessionProtocolVersion)
     {
       case ProtocolVersion.REPLICATION_PROTOCOL_V1:
         return getBytes_V1();
@@ -344,8 +333,8 @@ public class ReplServerStartMsg extends StartMsg
       byteServerState.length + 1;
 
     /* encode the header in a byte[] large enough */
-    byte resultByteArray[] =
-      encodeHeader(MSG_TYPE_REPL_SERVER_START, length, protocolVersion);
+    byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START, length,
+        sessionProtocolVersion);
 
     int pos = headerLength;
 

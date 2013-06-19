@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -60,7 +61,7 @@ public class StopMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes(short protocolVersion)
   {
     return new byte[]
       {

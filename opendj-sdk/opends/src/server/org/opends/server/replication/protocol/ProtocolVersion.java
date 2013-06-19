@@ -108,7 +108,7 @@ public class ProtocolVersion
    * @param version The version to be compared to the current one.
    * @return The minimal protocol version.
    */
-  public static short minWithCurrent(short version)
+  public static short getCompatibleVersion(short version)
   {
     return (version < CURRENT_VERSION ? version : CURRENT_VERSION);
   }

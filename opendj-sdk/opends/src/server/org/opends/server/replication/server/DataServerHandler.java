@@ -31,6 +31,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.replication.common.StatusMachine.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -147,7 +148,7 @@ public class DataServerHandler extends ServerHandler
           {
             // V4 protocol introduces a StopMsg to properly close the
             // connection between servers
-            if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+            if (getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
             {
               try
               {
@@ -411,9 +412,9 @@ public class DataServerHandler extends ServerHandler
   public boolean processStartFromRemote(ServerStartMsg serverStartMsg)
   throws DirectoryException
   {
+    session
+        .setProtocolVersion(getCompatibleVersion(serverStartMsg.getVersion()));
     tmpGenerationId = serverStartMsg.getGenerationId();
-    protocolVersion = ProtocolVersion.minWithCurrent(
-        serverStartMsg.getVersion());
     serverId = serverStartMsg.getServerId();
     serverURL = serverStartMsg.getServerURL();
     groupId = serverStartMsg.getGroupId();
@@ -451,14 +452,14 @@ public class DataServerHandler extends ServerHandler
   }
 
   // Send our own TopologyMsg to DS
-  private TopologyMsg sendTopoToRemoteDS()
-  throws IOException
+  private TopologyMsg sendTopoToRemoteDS() throws IOException
   {
-    TopologyMsg outTopoMsg = replicationServerDomain.createTopologyMsgForDS(
-        this.serverId);
-    session.publish(outTopoMsg, protocolVersion);
+    TopologyMsg outTopoMsg = replicationServerDomain
+        .createTopologyMsgForDS(this.serverId);
+    sendTopoInfo(outTopoMsg);
     return outTopoMsg;
   }
+
   /**
    * Starts the handler from a remote ServerStart message received from
    * the remote data server.
@@ -512,7 +513,7 @@ public class DataServerHandler extends ServerHandler
 
       try
       {
-        StartMsg outStartMsg = sendStartToRemote(protocolVersion);
+        StartMsg outStartMsg = sendStartToRemote();
 
         // log
         logStartHandshakeRCVandSND(inServerStartMsg, outStartMsg);
@@ -597,61 +598,41 @@ public class DataServerHandler extends ServerHandler
   }
 
   /**
-   * Send the ReplServerStartDSMsg to the remote DS.
-   * @param requestedProtocolVersion The provided protocol version.
+   * Sends a start message to the remote DS.
+   *
    * @return The StartMsg sent.
-   * @throws IOException When an exception occurs.
+   * @throws IOException
+   *           When an exception occurs.
    */
-  private StartMsg sendStartToRemote(short requestedProtocolVersion)
-  throws IOException
+  private StartMsg sendStartToRemote() throws IOException
   {
+    final StartMsg startMsg;
+
     // Before V4 protocol, we sent a ReplServerStartMsg
-    if (protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V4)
+    if (getProtocolVersion() < ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-
       // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
-      ReplServerStartMsg outReplServerStartMsg
-      = new ReplServerStartMsg(
-          replicationServerId,
-          replicationServerURL,
-          getServiceId(),
-          maxRcvWindow,
+      startMsg = new ReplServerStartMsg(replicationServerId,
+          replicationServerURL, getServiceId(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
-          protocolVersion,
-          localGenerationId,
-          sslEncryption,
-          getLocalGroupId(),
-          replicationServerDomain.
-          getReplicationServer().getDegradedStatusThreshold());
-
-      session.publish(outReplServerStartMsg, requestedProtocolVersion);
-
-      return outReplServerStartMsg;
+          localGenerationId, sslEncryption, getLocalGroupId(),
+          replicationServerDomain.getReplicationServer()
+              .getDegradedStatusThreshold());
     }
     else
     {
       // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
-      ReplServerStartDSMsg outReplServerStartDSMsg
-      = new ReplServerStartDSMsg(
-          replicationServerId,
-          replicationServerURL,
-          getServiceId(),
-          maxRcvWindow,
+      startMsg = new ReplServerStartDSMsg(replicationServerId,
+          replicationServerURL, getServiceId(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
-          protocolVersion,
-          localGenerationId,
-          sslEncryption,
-          getLocalGroupId(),
-          replicationServerDomain.
-          getReplicationServer().getDegradedStatusThreshold(),
-          replicationServer.getWeight(),
+          localGenerationId, sslEncryption, getLocalGroupId(),
+          replicationServerDomain.getReplicationServer()
+              .getDegradedStatusThreshold(), replicationServer.getWeight(),
           replicationServerDomain.getConnectedLDAPservers().size());
-
-
-      session.publish(outReplServerStartDSMsg);
-
-      return outReplServerStartDSMsg;
     }
+
+    send(startMsg);
+    return startMsg;
   }
 
   /**
@@ -662,7 +643,7 @@ public class DataServerHandler extends ServerHandler
   {
     return new DSInfo(serverId, serverURL, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclIncludes, eclIncludesForDeletes, protocolVersion);
+      eclIncludes, eclIncludesForDeletes, getProtocolVersion());
   }
 
   /**

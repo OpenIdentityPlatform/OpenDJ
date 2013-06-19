@@ -54,8 +54,9 @@ public abstract class StartMsg extends ReplicationMsg
   /**
    * Create a new StartMsg.
    */
-  public StartMsg()
+  protected StartMsg()
   {
+    // Nothing to do.
   }
 
   /**
@@ -78,7 +79,7 @@ public abstract class StartMsg extends ReplicationMsg
    * @param type The type of the message to create.
    * @param additionalLength Additional length needed to encode the remaining
    *                         part of the UpdateMessage.
-   * @param protocolVersion  The version to use when encoding the header.
+   * @param sessionProtocolVersion  The version to use when encoding the header.
    * @return a byte array containing the common header and enough space to
    *         encode the remaining bytes of the UpdateMessage as was specified
    *         by the additionalLength.
@@ -87,7 +88,7 @@ public abstract class StartMsg extends ReplicationMsg
    */
   public byte[] encodeHeader(
       byte type, int additionalLength,
-      short protocolVersion)
+      short sessionProtocolVersion)
   throws UnsupportedEncodingException
   {
 
@@ -106,7 +107,7 @@ public abstract class StartMsg extends ReplicationMsg
     encodedMsg[0] = type;
 
     /* put the protocol version */
-    encodedMsg[1] = (byte)protocolVersion;
+    encodedMsg[1] = (byte)sessionProtocolVersion;
 
     /* put the generationId */
     int pos = 2;

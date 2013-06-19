@@ -322,15 +322,6 @@ public class NotAssuredUpdateMsg extends UpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public AssuredMode getAssuredMode()
   {
     return realUpdateMsg.getAssuredMode();

@@ -214,7 +214,7 @@ public class AckMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes(short protocolVersion)
   {
     try
     {

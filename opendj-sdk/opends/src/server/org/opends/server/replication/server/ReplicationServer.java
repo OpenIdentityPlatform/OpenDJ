@@ -330,21 +330,18 @@ public final class ReplicationServer
 
         if (msg instanceof ServerStartMsg)
         {
-          session.setProtocolVersion(((StartMsg)msg).getVersion());
           DataServerHandler handler = new DataServerHandler(session,
               queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteDS((ServerStartMsg)msg);
         }
         else if (msg instanceof ReplServerStartMsg)
         {
-          session.setProtocolVersion(((StartMsg)msg).getVersion());
           ReplicationServerHandler handler = new ReplicationServerHandler(
               session,queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteRS((ReplServerStartMsg)msg);
         }
         else if (msg instanceof ServerStartECLMsg)
         {
-          session.setProtocolVersion(((StartMsg)msg).getVersion());
           ECLServerHandler handler = new ECLServerHandler(
               session,queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteServer((ServerStartECLMsg)msg);

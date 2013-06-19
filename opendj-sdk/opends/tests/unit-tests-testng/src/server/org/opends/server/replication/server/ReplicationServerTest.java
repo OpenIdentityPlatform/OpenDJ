@@ -990,7 +990,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       ServerStartMsg msg =
         new ServerStartMsg( 1723, url, TEST_ROOT_DN_STRING,
             WINDOW, 5000, new ServerState(),
-            ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
+            0, sslEncryption, (byte)-1);
       session.publish(msg);
 
       // Read the Replication Server state from the ReplServerStartDSMsg that
