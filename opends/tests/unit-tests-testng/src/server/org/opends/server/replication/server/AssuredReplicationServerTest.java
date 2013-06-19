@@ -63,7 +63,6 @@ import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -2692,7 +2691,6 @@ public class AssuredReplicationServerTest
       boolean dsIsEligible = areGroupAndGenerationIdOk(otherFakeDsGid, otherFakeDsGenId);
       boolean rsIsEligible = areGroupAndGenerationIdOk(otherFakeRsGid, otherFakeRsGenId);
       boolean dsIsExpected = false;
-      boolean rsIsExpected = false;
       // Booleans to tell if we expect to see the timeout, wrong status and replay error flags
       boolean shouldSeeTimeout = false;
       boolean shouldSeeWrongStatus = false;
@@ -2725,7 +2723,6 @@ public class AssuredReplicationServerTest
         switch (otherFakeRsScen)
         {
           case REPLY_OK_RS_SCENARIO:
-            rsIsExpected = true;
             break;
           case TIMEOUT_RS_SCENARIO:
             shouldSeeRsIdInError = true;
