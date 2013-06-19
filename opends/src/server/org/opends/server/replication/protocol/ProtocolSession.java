@@ -49,31 +49,14 @@ public interface ProtocolSession
   public abstract void close();
 
   /**
-   * This method is called when a ReplicationMsg must be sent to
-   * the remote entity. The PDU is send using serialization of the current
-   * protocol version.
+   * Sends a replication message to the remote peer.
    *
-   * It can be called by several threads and must implement appropriate
-   * replication (typically, this method or a part of it should be
-   * synchronized).
-   *
-   * @param msg The ReplicationMsg that must be sent.
-   * @throws IOException If an IO error happen during the publish process.
+   * @param msg
+   *          The message to be sent.
+   * @throws IOException
+   *           If an IO error occurred.
    */
-  public abstract void publish(ReplicationMsg msg)
-                  throws IOException;
-
-  /**
-   * Same as publish(ReplicationMsg msg), but forcing the usage of a particular
-   * protocol version for the PDU serialization.
-   *
-   * @param msg The ReplicationMsg that must be sent.
-   * @param reqProtocolVersion The protocol version to use for serialization.
-   * The version should normally be older than the current one.
-   * @throws IOException If an IO error happen during the publish process.
-   */
-  public abstract void publish(ReplicationMsg msg, short reqProtocolVersion)
-                  throws IOException;
+  public abstract void publish(ReplicationMsg msg) throws IOException;
 
   /**
    * Attempt to receive a ReplicationMsg.
@@ -177,4 +160,11 @@ public interface ProtocolSession
    * @param version The version of the protocol that is currently used.
    */
   public abstract void setProtocolVersion(short version);
+
+  /**
+   * Returns the version of the protocol that is currently used.
+   *
+   * @return The version of the protocol that is currently used.
+   */
+  public abstract short getProtocolVersion();
 }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -179,13 +179,14 @@ public class ECLUpdateMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
+      throws UnsupportedEncodingException
   {
     byte[] byteCookie    = String.valueOf(cookie).getBytes("UTF-8");
     byte[] byteServiceId = String.valueOf(serviceId).getBytes("UTF-8");
     byte[] byteDraftChangeNumber =
       Integer.toString(draftChangeNumber).getBytes("UTF-8");
-    byte[] byteUpdateMsg = updateMsg.getBytes();
+    byte[] byteUpdateMsg = updateMsg.getBytes(protocolVersion);
 
     int length = 1 + byteCookie.length +
                  1 + byteServiceId.length +

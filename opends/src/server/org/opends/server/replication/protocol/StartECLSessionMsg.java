@@ -212,7 +212,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes(short protocolVersion)
   {
     String excludedSIDsString = "";
     for (String excludedServiceID : excludedServiceIDs)

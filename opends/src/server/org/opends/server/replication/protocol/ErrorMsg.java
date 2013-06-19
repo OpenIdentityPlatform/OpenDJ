@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 import org.opends.messages.Message;
@@ -174,15 +175,6 @@ public class ErrorMsg extends RoutableMsg
   // ============
   // Msg encoding
   // ============
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
 
   /**
    * {@inheritDoc}

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -74,7 +75,6 @@ public class ReplServerStartDSMsg extends StartMsg
    * @param baseDn base DN for which the ReplServerStartDSMsg is created.
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
-   * @param protocolVersion The replication protocol version of the creator.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
@@ -87,7 +87,6 @@ public class ReplServerStartDSMsg extends StartMsg
   public ReplServerStartDSMsg(int serverId, String serverURL, String baseDn,
                                int windowSize,
                                ServerState serverState,
-                               short protocolVersion,
                                long generationId,
                                boolean sslEncryption,
                                byte groupId,
@@ -95,7 +94,7 @@ public class ReplServerStartDSMsg extends StartMsg
                                int weight,
                                int connectedDSNumber)
   {
-    super(protocolVersion, generationId);
+    super((short) -1 /* version set when sending */, generationId);
     this.serverId = serverId;
     this.serverURL = serverURL;
     if (baseDn != null)
@@ -250,17 +249,7 @@ public class ReplServerStartDSMsg extends StartMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes(short protocolVersion)
+  public byte[] getBytes(short sessionProtocolVersion)
      throws UnsupportedEncodingException
   {
     /* The ReplServerStartDSMsg is stored in the form :
@@ -268,7 +257,6 @@ public class ReplServerStartDSMsg extends StartMsg
      * <degradedStatusThreshold><weight><connectedDSNumber>
      * <serverState>
      */
-
     byte[] byteDn = baseDn.getBytes("UTF-8");
     byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
     byte[] byteServerUrl = serverURL.getBytes("UTF-8");
@@ -290,8 +278,8 @@ public class ReplServerStartDSMsg extends StartMsg
       byteServerState.length + 1;
 
     /* encode the header in a byte[] large enough */
-    byte resultByteArray[] =
-      encodeHeader(MSG_TYPE_REPL_SERVER_START_DS, length, protocolVersion);
+    byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START_DS,
+        length, sessionProtocolVersion);
 
     int pos = headerLength;
 

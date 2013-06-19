@@ -918,7 +918,7 @@ public class AssuredReplicationServerTest
         // Send our repl server start msg
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,
           fakeUrl, baseDn, 100, serverState,
-          ProtocolVersion.getCurrentVersion(), generationId, sslEncryption,
+          generationId, sslEncryption,
           groupId, 5000);
         session.publish(replServerStartMsg);
 

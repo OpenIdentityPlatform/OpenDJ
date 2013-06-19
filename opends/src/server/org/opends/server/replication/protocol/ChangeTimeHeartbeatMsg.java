@@ -130,17 +130,6 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes()
-  {
-    return getBytes(ProtocolVersion.getCurrentVersion());
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public byte[] getBytes(short protocolVersion)
   {
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)

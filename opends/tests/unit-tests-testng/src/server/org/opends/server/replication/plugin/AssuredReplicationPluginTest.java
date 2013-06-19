@@ -473,7 +473,7 @@ public class AssuredReplicationPluginTest
         String serverURL = ("localhost:" + port);
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,
           serverURL, baseDn, windowSize, serverState,
-          ProtocolVersion.getCurrentVersion(), generationId, sslEncryption,
+          generationId, sslEncryption,
           groupId, degradedStatusThreshold);
         session.publish(replServerStartMsg);
 

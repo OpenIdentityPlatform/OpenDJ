@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.Message;
@@ -58,7 +58,6 @@ public class ServerWriter extends DirectoryThread
   private final ProtocolSession session;
   private final ServerHandler handler;
   private final ReplicationServerDomain replicationServerDomain;
-  private final short protocolVersion;
 
 
 
@@ -88,8 +87,6 @@ public class ServerWriter extends DirectoryThread
     this.session = session;
     this.handler = handler;
     this.replicationServerDomain = replicationServerDomain;
-    // Keep protocol version locally for efficiency
-    this.protocolVersion = handler.getProtocolVersion();
   }
 
   /**
@@ -194,7 +191,7 @@ public class ServerWriter extends DirectoryThread
 
         // Publish the update to the remote server using a protocol version he
         // it supports
-        session.publish(update, protocolVersion);
+        session.publish(update);
       }
     }
     catch (NoSuchElementException e)

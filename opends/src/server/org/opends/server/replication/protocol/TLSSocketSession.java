@@ -312,19 +312,7 @@ public final class TLSSocketSession implements ProtocolSession
   @Override
   public void publish(final ReplicationMsg msg) throws IOException
   {
-    publish(msg, ProtocolVersion.getCurrentVersion());
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void publish(final ReplicationMsg msg,
-      final short reqProtocolVersion) throws IOException
-  {
-    final byte[] buffer = msg.getBytes(reqProtocolVersion);
+    final byte[] buffer = msg.getBytes(protocolVersion);
     final String str = String.format("%08x", buffer.length);
     final byte[] sendLengthBuf = str.getBytes();
 
@@ -452,6 +440,17 @@ public final class TLSSocketSession implements ProtocolSession
   public void setProtocolVersion(final short version)
   {
     protocolVersion = version;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public short getProtocolVersion()
+  {
+    return protocolVersion;
   }
 
 

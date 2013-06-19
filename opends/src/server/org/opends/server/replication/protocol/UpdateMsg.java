@@ -109,6 +109,8 @@ public class UpdateMsg extends ReplicationMsg
 
   /**
    * Creates a new UpdateMsg with the given informations.
+   * <p>
+   * This constructor is only used for testing.
    *
    * @param changeNumber  The ChangeNumber associated with the change
    *                      encoded in this message.
@@ -177,18 +179,6 @@ public class UpdateMsg extends ReplicationMsg
   public int compareTo(UpdateMsg msg)
   {
     return changeNumber.compareTo(msg.getChangeNumber());
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
-  {
-    // There was no change since version 2.
-    return getBytes();
   }
 
   /**
@@ -355,20 +345,37 @@ public class UpdateMsg extends ReplicationMsg
   }
 
   /**
+   * Returns the encoded representation of this update message using the current
+   * protocol version.
+   *
+   * @return The encoded representation of this update message.
+   * @throws UnsupportedEncodingException
+   *           If the message could not be encoded.
+   */
+  public byte[] getBytes() throws UnsupportedEncodingException
+  {
+    return getBytes(ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * This implementation is only called during unit testing, so we are free to
+   * force the protocol version. Underlying implementations override this method
+   * in order to provide version specific encodings.
+   *
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
+      throws UnsupportedEncodingException
   {
     /* Encode the header in a byte[] large enough to also contain the payload */
-    byte [] resultByteArray =
-      encodeHeader(MSG_TYPE_GENERIC_UPDATE, payload.length,
-                   ProtocolVersion.getCurrentVersion());
+    byte[] resultByteArray = encodeHeader(MSG_TYPE_GENERIC_UPDATE,
+        payload.length, ProtocolVersion.getCurrentVersion());
 
     int pos = resultByteArray.length - payload.length;
 
     /* Add the payload */
-    for (int i=0; i<payload.length; i++,pos++)
+    for (int i = 0; i < payload.length; i++, pos++)
     {
       resultByteArray[pos] = payload[i];
     }

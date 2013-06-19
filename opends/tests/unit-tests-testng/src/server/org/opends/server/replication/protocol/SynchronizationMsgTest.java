@@ -29,6 +29,7 @@ package org.opends.server.replication.protocol;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
+import static org.opends.server.replication.protocol.ProtocolVersion.getCurrentVersion;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -735,7 +736,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg1.getFailedServers(), failedServers);
 
     // Constructor test (with byte[])
-    msg2 = new  AckMsg(msg1.getBytes());
+    msg2 = new  AckMsg(msg1.getBytes(getCurrentVersion()));
     assertEquals(msg2.getChangeNumber().compareTo(cn), 0);
     assertTrue(msg1.hasTimeout() == msg2.hasTimeout());
     assertTrue(msg1.hasWrongStatus() == msg2.hasWrongStatus());
@@ -743,7 +744,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg1.getFailedServers(), msg2.getFailedServers());
 
     // Check invalid bytes for constructor
-    byte[] b = msg1.getBytes();
+    byte[] b = msg1.getBytes(getCurrentVersion());
     b[0] = ReplicationMsg.MSG_TYPE_ADD;
     try
     {
@@ -758,7 +759,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     // Check that retrieved CN is OK
     msg2 = (AckMsg) ReplicationMsg.generateMsg(
-        msg1.getBytes(), ProtocolVersion.getCurrentVersion());
+        msg1.getBytes(getCurrentVersion()), getCurrentVersion());
   }
 
   @Test(enabled=true)
@@ -793,7 +794,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(delmsg.compareTo(delmsg2)==0);
 
     // Constructor test (with byte[])
-    ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes());
+    ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes(getCurrentVersion()));
     assertTrue(msg2.getCookie().equalsTo(msg2.getCookie()));
     assertTrue(msg2.getCookie().equalsTo(cookie));
     assertTrue(msg2.getServiceId().equalsIgnoreCase(msg1.getServiceId()));
@@ -836,8 +837,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     ServerStartMsg msg = new ServerStartMsg(
         serverId, "localhost:1234", baseDN, window, window, state,
-        ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
-    ServerStartMsg newMsg = new ServerStartMsg(msg.getBytes());
+        genId, sslEncryption, groupId);
+    ServerStartMsg newMsg = new ServerStartMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -846,7 +847,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
     assertEquals(msg.getServerState().getMaxChangeNumber(1),
         newMsg.getServerState().getMaxChangeNumber(1));
-    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
   }
@@ -879,16 +880,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     ReplServerStartMsg msg = new ReplServerStartMsg(serverId,
-        url, baseDN, window, state, ProtocolVersion.getCurrentVersion(), genId,
+        url, baseDN, window, state, genId,
         true, groupId, degTh);
-    ReplServerStartMsg newMsg = new ReplServerStartMsg(msg.getBytes());
+    ReplServerStartMsg newMsg = new ReplServerStartMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getMaxChangeNumber(1),
         newMsg.getServerState().getMaxChangeNumber(1));
-    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
@@ -925,16 +926,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          int weight, int connectedDSNumber) throws Exception
   {
     ReplServerStartDSMsg msg = new ReplServerStartDSMsg(serverId,
-        url, baseDN, window, state, ProtocolVersion.getCurrentVersion(), genId,
+        url, baseDN, window, state, genId,
         true, groupId, degTh, weight, connectedDSNumber);
-    ReplServerStartDSMsg newMsg = new ReplServerStartDSMsg(msg.getBytes());
+    ReplServerStartDSMsg newMsg = new ReplServerStartDSMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getMaxChangeNumber(1),
         newMsg.getServerState().getMaxChangeNumber(1));
-    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
@@ -952,7 +953,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void stopMsgTest() throws Exception
   {
     StopMsg msg = new StopMsg();
-    StopMsg newMsg = new StopMsg(msg.getBytes());
+    StopMsg newMsg = new StopMsg(msg.getBytes(getCurrentVersion()));
   }
 
   /**
@@ -963,7 +964,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void windowMsgTest() throws Exception
   {
     WindowMsg msg = new WindowMsg(123);
-    WindowMsg newMsg = new WindowMsg(msg.getBytes());
+    WindowMsg newMsg = new WindowMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getNumAck(), newMsg.getNumAck());
   }
 
@@ -976,7 +977,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void windowProbeMsgTest() throws Exception
   {
     WindowProbeMsg msg = new WindowProbeMsg();
-    new WindowProbeMsg(msg.getBytes());
+    new WindowProbeMsg(msg.getBytes(getCurrentVersion()));
   }
 
   @DataProvider(name="createTopologyData")
@@ -1071,7 +1072,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     throws Exception
   {
     TopologyMsg msg = new TopologyMsg(dsList, rsList);
-    TopologyMsg newMsg = new TopologyMsg(msg.getBytes(),
+    TopologyMsg newMsg = new TopologyMsg(msg.getBytes(getCurrentVersion()),
         ProtocolVersion.getCurrentVersion());
     assertEquals(msg.getDsList(), newMsg.getDsList());
     assertEquals(msg.getRsList(), newMsg.getRsList());
@@ -1139,7 +1140,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       assuredMode, safedataLevel);
     msg.setEclIncludes(attrs, attrs);
     StartSessionMsg newMsg =
-      new StartSessionMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+      new StartSessionMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getStatus(), newMsg.getStatus());
     assertTrue(msg.isAssured() == newMsg.isAssured());
     assertEquals(msg.getAssuredMode(), newMsg.getAssuredMode());
@@ -1170,7 +1171,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     throws Exception
   {
     ChangeStatusMsg msg = new ChangeStatusMsg(reqStatus, newStatus);
-    ChangeStatusMsg newMsg = new ChangeStatusMsg(msg.getBytes());
+    ChangeStatusMsg newMsg = new ChangeStatusMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getRequestedStatus(), newMsg.getRequestedStatus());
     assertEquals(msg.getNewStatus(), newMsg.getNewStatus());
   }
@@ -1182,7 +1183,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void heartbeatMsgTest() throws Exception
   {
     HeartbeatMsg msg = new HeartbeatMsg();
-    HeartbeatMsg newMsg = new HeartbeatMsg(msg.getBytes());
+    HeartbeatMsg newMsg = new HeartbeatMsg(msg.getBytes(getCurrentVersion()));
     assertNotNull(newMsg);
   }
 
@@ -1193,7 +1194,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void resetGenerationIdMsgTest() throws Exception
   {
     ResetGenerationIdMsg msg = new ResetGenerationIdMsg(23657);
-    ResetGenerationIdMsg newMsg = new ResetGenerationIdMsg(msg.getBytes());
+    ResetGenerationIdMsg newMsg = new ResetGenerationIdMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
   }
 
@@ -1204,7 +1205,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void monitorRequestMsgTest() throws Exception
   {
     MonitorRequestMsg msg = new MonitorRequestMsg(1,2);
-    MonitorRequestMsg newMsg = new MonitorRequestMsg(msg.getBytes());
+    MonitorRequestMsg newMsg = new MonitorRequestMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(newMsg.getDestination(), 2);
     assertEquals(newMsg.getSenderID(), 1);
   }
@@ -1251,7 +1252,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setServerState(sid2, s2, now+2, true);
     msg.setServerState(sid3, s3, now+3, false);
 
-    byte[] b = msg.getBytes();
+    byte[] b = msg.getBytes(getCurrentVersion());
     MonitorMsg newMsg = new MonitorMsg(b, ProtocolVersion.getCurrentVersion());
 
     assertEquals(rsState, msg.getReplServerDbState());
@@ -1319,7 +1320,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int target = 45678;
     byte[] entry = taskInitFromS2.getBytes();
     EntryMsg msg = new EntryMsg(sender, target, entry, 1);
-    EntryMsg newMsg = new EntryMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    EntryMsg newMsg = new EntryMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getEntryBytes(), newMsg.getEntryBytes());
@@ -1335,7 +1336,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int target = 56789;
     InitializeRequestMsg msg = new InitializeRequestMsg(
         TEST_ROOT_DN_STRING, sender, target, 100);
-    InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertTrue(msg.getBaseDn().equals(newMsg.getBaseDn()));
@@ -1355,7 +1356,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     InitializeTargetMsg msg = new InitializeTargetMsg(
         TEST_ROOT_DN_STRING, senderID, targetID, requestorID, entryCount, initWindow);
-    InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getInitiatorID(), newMsg.getInitiatorID());
@@ -1377,7 +1378,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void doneMsgTest() throws Exception
   {
     DoneMsg msg = new DoneMsg(1, 2);
-    DoneMsg newMsg = new DoneMsg(msg.getBytes());
+    DoneMsg newMsg = new DoneMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
   }
@@ -1389,7 +1390,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void errorMsgTest() throws Exception
   {
     ErrorMsg msg = new ErrorMsg(1, 2, Message.raw("details"));
-    ErrorMsg newMsg = new ErrorMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    ErrorMsg newMsg = new ErrorMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getMsgID(), newMsg.getMsgID());
@@ -1421,8 +1422,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     ServerStartECLMsg msg = new ServerStartECLMsg(
         "localhost:1234", window, window, window, window, window, window, state,
-        ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
-    ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes());
+        genId, sslEncryption, groupId);
+    ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
     assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
@@ -1433,7 +1434,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
     assertEquals(msg.getServerState().getMaxChangeNumber(1),
         newMsg.getServerState().getMaxChangeNumber(1));
-    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
   }
@@ -1469,7 +1470,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     dns.add(dn2);
     msg.setExcludedDNs(dns);
     // create copy
-    StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes());
+    StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes(getCurrentVersion()));
     // test equality between the two copies
     assertEquals(msg.getChangeNumber(), newMsg.getChangeNumber());
     assertTrue(msg.isPersistent() == newMsg.isPersistent());

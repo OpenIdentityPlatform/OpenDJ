@@ -91,176 +91,129 @@ public abstract class ReplicationMsg
   // change accordingly generateMsg method below
 
   /**
-   * Return the byte[] representation of this message.
-   * Depending on the message type, the first byte of the byte[] must be one of
-   * the MSG_TYPE* definitions. The serialization is done using the current
-   * protocol version. For a serialization using a particular protocol version,
-   * call the getBytes(byte protocolVersion) method that should be available
-   * for the subclasses (PDUs) that allow such a translation.
-   *
-   * @return the byte[] representation of this message.
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * Protected constructor.
    */
-  public abstract byte[] getBytes() throws UnsupportedEncodingException;
+  protected ReplicationMsg()
+  {
+    // Nothing to do.
+  }
 
   /**
    * Serializes the PDU using the provided replication protocol version.
    * WARNING: should be overwritten by a PDU (sub class) we want to support
    * older protocol version serialization for.
-   * @param reqProtocolVersion The protocol version to use for serialization.
-   * The version should normally be older than the current one.
+   *
+   * @param protocolVersion
+   *          The protocol version to use for serialization. The version should
+   *          normally be older than the current one.
    * @return The encoded PDU.
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported or the
-   *         requested protocol version to use is not supported by this PDU.
+   * @throws UnsupportedEncodingException
+   *           When the encoding of the message failed because the UTF-8
+   *           encoding is not supported or the requested protocol version to
+   *           use is not supported by this PDU.
    */
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
-  {
-    // Of course, always support current protocol version
-    if (reqProtocolVersion == ProtocolVersion.getCurrentVersion())
-    {
-      return getBytes();
-    }
+  public abstract byte[] getBytes(short protocolVersion)
+      throws UnsupportedEncodingException;
 
-    // Unsupported requested version
-    // Any PDU that support older protocol version serialization should
-    // overwrite this method for that.
-    throw new UnsupportedEncodingException(getClass().getSimpleName() +
-      " PDU does not support requested protocol version serialization: " +
-      reqProtocolVersion);
-  }
 
 
   /**
-   * Generates a ReplicationMsg from its encoded form. This un-serialization
-   * is done taking into account the various supported replication protocol
+   * Generates a ReplicationMsg from its encoded form. This un-serialization is
+   * done taking into account the various supported replication protocol
    * versions.
    *
-   * @param buffer    The encode form of the ReplicationMsg.
-   * @param version   The version to use to decode the msg.
-   *
+   * @param buffer
+   *          The encode form of the ReplicationMsg.
+   * @param protocolVersion
+   *          The version to use to decode the msg.
    * @return The generated SynchronizationMessage.
-   *
-   * @throws DataFormatException If the encoded form was not a valid msg.
-   * @throws UnsupportedEncodingException If UTF8 is not supported.
-   * @throws NotSupportedOldVersionPDUException If the PDU is part of an old
-   * protocol version and we do not support it.
+   * @throws DataFormatException
+   *           If the encoded form was not a valid msg.
+   * @throws UnsupportedEncodingException
+   *           If UTF8 is not supported.
+   * @throws NotSupportedOldVersionPDUException
+   *           If the PDU is part of an old protocol version and we do not
+   *           support it.
    */
-  public static ReplicationMsg generateMsg(
-                byte[] buffer,
-                short version)
-                throws DataFormatException, UnsupportedEncodingException,
-                NotSupportedOldVersionPDUException
+  public static ReplicationMsg generateMsg(byte[] buffer, short protocolVersion)
+      throws DataFormatException, UnsupportedEncodingException,
+      NotSupportedOldVersionPDUException
   {
-    ReplicationMsg msg;
     switch (buffer[0])
     {
-      case MSG_TYPE_SERVER_START_V1:
-        throw new NotSupportedOldVersionPDUException("Server Start",
+    case MSG_TYPE_SERVER_START_V1:
+      throw new NotSupportedOldVersionPDUException("Server Start",
           ProtocolVersion.REPLICATION_PROTOCOL_V1, buffer[0]);
-      case MSG_TYPE_REPL_SERVER_INFO_V1:
-        throw new NotSupportedOldVersionPDUException("Replication Server Info",
+    case MSG_TYPE_REPL_SERVER_INFO_V1:
+      throw new NotSupportedOldVersionPDUException("Replication Server Info",
           ProtocolVersion.REPLICATION_PROTOCOL_V1, buffer[0]);
-      case MSG_TYPE_MODIFY:
-        msg = new ModifyMsg(buffer);
-      break;
-      case MSG_TYPE_MODIFY_V1:
-          msg = ModifyMsg.createV1(buffer);
-      break;
-      case MSG_TYPE_ADD:
-      case MSG_TYPE_ADD_V1:
-          msg = new AddMsg(buffer);
-      break;
-      case MSG_TYPE_DELETE:
-      case MSG_TYPE_DELETE_V1:
-          msg = new DeleteMsg(buffer);
-      break;
-      case MSG_TYPE_MODIFYDN:
-      case MSG_TYPE_MODIFYDN_V1:
-          msg = new ModifyDNMsg(buffer);
-      break;
-      case MSG_TYPE_ACK:
-        msg = new AckMsg(buffer);
-      break;
-      case MSG_TYPE_SERVER_START:
-        msg = new ServerStartMsg(buffer);
-      break;
-      case MSG_TYPE_REPL_SERVER_START:
-      case MSG_TYPE_REPL_SERVER_START_V1:
-        msg = new ReplServerStartMsg(buffer);
-      break;
-      case MSG_TYPE_WINDOW:
-        msg = new WindowMsg(buffer);
-      break;
-      case MSG_TYPE_HEARTBEAT:
-        msg = new HeartbeatMsg(buffer);
-      break;
-      case MSG_TYPE_INITIALIZE_REQUEST:
-        msg = new InitializeRequestMsg(buffer, version);
-      break;
-      case MSG_TYPE_INITIALIZE_TARGET:
-        msg = new InitializeTargetMsg(buffer, version);
-      break;
-      case MSG_TYPE_ENTRY:
-        msg = new EntryMsg(buffer, version);
-      break;
-      case MSG_TYPE_DONE:
-        msg = new DoneMsg(buffer);
-      break;
-      case MSG_TYPE_ERROR:
-        msg = new ErrorMsg(buffer, version);
-      break;
-      case MSG_TYPE_RESET_GENERATION_ID:
-        msg = new ResetGenerationIdMsg(buffer);
-      break;
-      case MSG_TYPE_WINDOW_PROBE:
-        msg = new WindowProbeMsg(buffer);
-      break;
-      case MSG_TYPE_TOPOLOGY:
-        msg = new TopologyMsg(buffer, version);
-      break;
-      case MSG_TYPE_REPL_SERVER_MONITOR_REQUEST:
-        msg = new MonitorRequestMsg(buffer);
-      break;
-      case MSG_TYPE_REPL_SERVER_MONITOR:
-        msg = new MonitorMsg(buffer, version);
-      break;
-      case MSG_TYPE_START_SESSION:
-        msg = new StartSessionMsg(buffer, version);
-      break;
-      case MSG_TYPE_CHANGE_STATUS:
-        msg = new ChangeStatusMsg(buffer);
-      break;
-      case MSG_TYPE_GENERIC_UPDATE:
-        msg = new UpdateMsg(buffer);
-      break;
-      case MSG_TYPE_START_ECL:
-        msg = new ServerStartECLMsg(buffer);
-      break;
-      case MSG_TYPE_START_ECL_SESSION:
-        msg = new StartECLSessionMsg(buffer);
-      break;
-      case MSG_TYPE_ECL_UPDATE:
-        msg = new ECLUpdateMsg(buffer);
-      break;
-      case MSG_TYPE_CT_HEARTBEAT:
-        msg = new ChangeTimeHeartbeatMsg(buffer, version);
-      break;
-      case MSG_TYPE_REPL_SERVER_START_DS:
-        msg = new ReplServerStartDSMsg(buffer);
-      break;
-      case MSG_TYPE_STOP:
-        msg = new StopMsg(buffer);
-      break;
-      case MSG_TYPE_INITIALIZE_RCV_ACK:
-        msg = new InitializeRcvAckMsg(buffer);
-      break;
-      default:
-        throw new DataFormatException("received message with unknown type");
+    case MSG_TYPE_MODIFY:
+      return new ModifyMsg(buffer);
+    case MSG_TYPE_MODIFY_V1:
+      return ModifyMsg.createV1(buffer);
+    case MSG_TYPE_ADD:
+    case MSG_TYPE_ADD_V1:
+      return new AddMsg(buffer);
+    case MSG_TYPE_DELETE:
+    case MSG_TYPE_DELETE_V1:
+      return new DeleteMsg(buffer);
+    case MSG_TYPE_MODIFYDN:
+    case MSG_TYPE_MODIFYDN_V1:
+      return new ModifyDNMsg(buffer);
+    case MSG_TYPE_ACK:
+      return new AckMsg(buffer);
+    case MSG_TYPE_SERVER_START:
+      return new ServerStartMsg(buffer);
+    case MSG_TYPE_REPL_SERVER_START:
+    case MSG_TYPE_REPL_SERVER_START_V1:
+      return new ReplServerStartMsg(buffer);
+    case MSG_TYPE_WINDOW:
+      return new WindowMsg(buffer);
+    case MSG_TYPE_HEARTBEAT:
+      return new HeartbeatMsg(buffer);
+    case MSG_TYPE_INITIALIZE_REQUEST:
+      return new InitializeRequestMsg(buffer, protocolVersion);
+    case MSG_TYPE_INITIALIZE_TARGET:
+      return new InitializeTargetMsg(buffer, protocolVersion);
+    case MSG_TYPE_ENTRY:
+      return new EntryMsg(buffer, protocolVersion);
+    case MSG_TYPE_DONE:
+      return new DoneMsg(buffer);
+    case MSG_TYPE_ERROR:
+      return new ErrorMsg(buffer, protocolVersion);
+    case MSG_TYPE_RESET_GENERATION_ID:
+      return new ResetGenerationIdMsg(buffer);
+    case MSG_TYPE_WINDOW_PROBE:
+      return new WindowProbeMsg(buffer);
+    case MSG_TYPE_TOPOLOGY:
+      return new TopologyMsg(buffer, protocolVersion);
+    case MSG_TYPE_REPL_SERVER_MONITOR_REQUEST:
+      return new MonitorRequestMsg(buffer);
+    case MSG_TYPE_REPL_SERVER_MONITOR:
+      return new MonitorMsg(buffer, protocolVersion);
+    case MSG_TYPE_START_SESSION:
+      return new StartSessionMsg(buffer, protocolVersion);
+    case MSG_TYPE_CHANGE_STATUS:
+      return new ChangeStatusMsg(buffer);
+    case MSG_TYPE_GENERIC_UPDATE:
+      return new UpdateMsg(buffer);
+    case MSG_TYPE_START_ECL:
+      return new ServerStartECLMsg(buffer);
+    case MSG_TYPE_START_ECL_SESSION:
+      return new StartECLSessionMsg(buffer);
+    case MSG_TYPE_ECL_UPDATE:
+      return new ECLUpdateMsg(buffer);
+    case MSG_TYPE_CT_HEARTBEAT:
+      return new ChangeTimeHeartbeatMsg(buffer, protocolVersion);
+    case MSG_TYPE_REPL_SERVER_START_DS:
+      return new ReplServerStartDSMsg(buffer);
+    case MSG_TYPE_STOP:
+      return new StopMsg(buffer);
+    case MSG_TYPE_INITIALIZE_RCV_ACK:
+      return new InitializeRcvAckMsg(buffer);
+    default:
+      throw new DataFormatException("received message with unknown type");
     }
-    return msg;
   }
 
   /**
@@ -283,15 +236,21 @@ public abstract class ReplicationMsg
     return pos;
   }
 
+
+
   /**
    * Get the length of the next String encoded in the in byte array.
    *
-   * @param in the byte array where to calculate the string.
-   * @param pos the position where to start from in the byte array.
+   * @param in
+   *          the byte array where to calculate the string.
+   * @param pos
+   *          the position where to start from in the byte array.
    * @return the length of the next string.
-   * @throws DataFormatException If the byte array does not end with null.
+   * @throws DataFormatException
+   *           If the byte array does not end with null.
    */
-  protected int getNextLength(byte[] in, int pos) throws DataFormatException
+  protected static int getNextLength(byte[] in, int pos)
+      throws DataFormatException
   {
     int offset = pos;
     int length = 0;

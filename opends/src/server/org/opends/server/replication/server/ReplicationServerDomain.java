@@ -617,8 +617,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (preparedAssuredInfo.expectedServers == null)
     {
       // No eligible servers found, send the ack immediately
-      AckMsg ack = new AckMsg(cn);
-      sourceHandler.sendAck(ack);
+      sourceHandler.send(new AckMsg(cn));
     }
 
     return preparedAssuredInfo;
@@ -672,8 +671,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
              * mode with safe data level 1, coming from a DS. No need to wait
              * for more acks
              */
-            AckMsg ack = new AckMsg(cn);
-            sourceHandler.sendAck(ack);
+            sourceHandler.send(new AckMsg(cn));
           } else
           {
             /**
@@ -700,8 +698,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           } else
           {
             // level > 1, so Ack this message to originator RS
-            AckMsg ack = new AckMsg(cn);
-            sourceHandler.sendAck(ack);
+            sourceHandler.send(new AckMsg(cn));
           }
         }
       }
@@ -753,8 +750,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         // level > 1 and source is a DS but no eligible servers found, send the
         // ack immediately
-        AckMsg ack = new AckMsg(cn);
-        sourceHandler.sendAck(ack);
+        sourceHandler.send(new AckMsg(cn));
       }
     }
 
@@ -798,7 +794,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           ServerHandler origServer = expectedAcksInfo.getRequesterServer();
           try
           {
-            origServer.sendAck(finalAck);
+            origServer.send(finalAck);
           } catch (IOException e)
           {
             /**
@@ -877,7 +873,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               Integer.toString(origServer.getServerId()));
           try
           {
-            origServer.sendAck(finalAck);
+            origServer.send(finalAck);
           } catch (IOException e)
           {
             /**
@@ -2489,7 +2485,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             getReplicationServer().getServerId(),
             handler.getServerId(),
             message);
-        handler.sendError(errorMsg);
+        handler.send(errorMsg);
       }
 
       /*

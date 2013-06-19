@@ -82,7 +82,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * Creates a new UpdateMsg.
    */
-  public LDAPUpdateMsg()
+  protected LDAPUpdateMsg()
   {
   }
 
@@ -226,7 +226,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    */
   public void encode() throws UnsupportedEncodingException
   {
-    bytes = getBytes();
+    bytes = getBytes(ProtocolVersion.getCurrentVersion());
   }
 
   /**
@@ -341,17 +341,6 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     pos = addByteArray(byteEntryuuid, encodedMsg, pos);
 
     return encodedMsg;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes()
-  throws UnsupportedEncodingException
-  {
-    // Encode in the current protocol version
-    return getBytes(ProtocolVersion.getCurrentVersion());
   }
 
   /**

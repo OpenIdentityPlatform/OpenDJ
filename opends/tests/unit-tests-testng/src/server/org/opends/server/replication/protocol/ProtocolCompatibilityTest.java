@@ -65,6 +65,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
+import static org.opends.server.replication.protocol.ProtocolVersion.getCurrentVersion;
 import static org.opends.server.util.StaticUtils.byteToHex;
 import static org.opends.messages.ReplicationMessages.*;
 
@@ -134,12 +135,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void replServerStartMsgTestVLASTV1(int serverId, String baseDN, int window,
         String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
-    // Create VLAST message
+    // Create message with no version.
     ReplServerStartMsg msg = new ReplServerStartMsg(serverId,
-        url, baseDN, window, state, ProtocolVersion.getCurrentVersion(), genId, true, groupId, degTh);
-
-    // Check version of message
-    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
+        url, baseDN, window, state, genId, true, groupId, degTh);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -169,7 +167,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setDegradedStatusThreshold(degTh);
 
     // Serialize in VLAST msg
-    ReplServerStartMsg vlastMsg = new ReplServerStartMsg(newMsg.getBytes());
+    ReplServerStartMsg vlastMsg = new ReplServerStartMsg(newMsg.getBytes(getCurrentVersion()));
 
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -962,7 +960,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerId(), serverId);
     assertEquals(msg.getBaseDn(), dn);
     assertEquals(msg.getGroupId(), groupId);
-    BigInteger bi = new BigInteger(msg.getBytes());
+    BigInteger bi = new BigInteger(msg.getBytes(getCurrentVersion()));
     assertEquals(bi.toString(16), oldPdu);
   }
 
@@ -1187,7 +1185,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setMsgId(msgId);
 
     // Serialize in VLAST
-    EntryMsg vlastMsg = new EntryMsg(newMsg.getBytes(),REPLICATION_PROTOCOL_VLAST);
+    EntryMsg vlastMsg = new EntryMsg(newMsg.getBytes(getCurrentVersion()),REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getSenderID(), vlastMsg.getSenderID());
@@ -1233,7 +1231,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setCreationTime(creatTime);
 
     // Serialize in VLAST
-    ErrorMsg vlastMsg = new ErrorMsg(newMsg.getBytes(),
+    ErrorMsg vlastMsg = new ErrorMsg(newMsg.getBytes(getCurrentVersion()),
         REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
@@ -1284,8 +1282,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setInitWindow(initWindow);
 
     // Serialize in VLAST
-    InitializeRequestMsg vlastMsg = new InitializeRequestMsg(newMsg.getBytes(),
-        REPLICATION_PROTOCOL_VLAST);
+    InitializeRequestMsg vlastMsg = new InitializeRequestMsg(
+        newMsg.getBytes(getCurrentVersion()), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getSenderID(), vlastMsg.getSenderID());
@@ -1341,8 +1339,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setInitWindow(initWindow);
 
     // Serialize in VLAST
-    InitializeTargetMsg vlastMsg = new InitializeTargetMsg(newMsg.getBytes(),
-        REPLICATION_PROTOCOL_VLAST);
+    InitializeTargetMsg vlastMsg = new InitializeTargetMsg(
+        newMsg.getBytes(getCurrentVersion()), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getSenderID(), vlastMsg.getSenderID());

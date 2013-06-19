@@ -108,7 +108,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -158,7 +158,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -210,7 +210,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -262,7 +262,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -315,7 +315,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -328,7 +328,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -383,7 +383,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     // This server has less changes than the other one but it has the same
     // group id as us so he should be the winner
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -396,7 +396,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, LOOSER1, null, 0, aState, 0L,
       false, (byte)2, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -449,7 +449,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)2, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -462,7 +462,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(2L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)2, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -516,7 +516,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -529,7 +529,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(4L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -542,7 +542,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(13, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(13, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -596,7 +596,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -609,7 +609,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(3L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
       false, (byte)2, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -624,7 +624,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     // This server has less changes than looser2 but it has the same
     // group id as us so he should be the winner
     replServerStartMsg =
-      new ReplServerStartMsg(13, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(13, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -676,7 +676,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -766,7 +766,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(looser1T3, 0, myId3);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (looser1IsLocal)
@@ -781,7 +781,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(winnerT3, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (winnerIsLocal)
@@ -796,7 +796,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(looser2T3, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, 0L,
       false, (byte)1, 0);
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (looser2IsLocal)
@@ -867,7 +867,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(looser1T1, 0, myId1);
     aState.update(cn);
     ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, (short)0, looser1GenId,
+      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, looser1GenId,
       false, looser1GroupId, 0);
     rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (looser1IsLocal)
@@ -878,7 +878,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(winnerT1, 0, myId1);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, (short)0, winnerGenId,
+      new ReplServerStartMsg(12, WINNER, null, 0, aState, winnerGenId,
       false, winnerGroupId, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (winnerIsLocal)
@@ -889,7 +889,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(looser2T1, 0, myId1);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, (short)0, looser2GenId,
+      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, looser2GenId,
       false, looser2GroupId, 0);
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
     if (looser2IsLocal)
