@@ -288,6 +288,12 @@ public final class Upgrade
         "-",
         "add:ds-cfg-subject-attribute-mapping",
         "ds-cfg-subject-attribute-mapping: emailAddress:mail"));
+
+    /* See OPENDJ-992 */
+    register("2.5.0.9013",
+        regressionInVersion("2.5.0.7640",
+            rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get())));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
@@ -469,12 +475,10 @@ public final class Upgrade
     }
   }
 
-
-
   private static void register(final String versionString,
       final UpgradeTask... tasks)
   {
-    final BuildVersion version = version(versionString);
+    final BuildVersion version = BuildVersion.valueOf(versionString);
     List<UpgradeTask> taskList = TASKS.get(version);
     if (taskList == null)
     {
@@ -514,14 +518,6 @@ public final class Upgrade
     {
       task.verify(context);
     }
-  }
-
-
-
-  private static BuildVersion version(final String version)
-  {
-    // TODO Need to change it when change to GIT.
-    return BuildVersion.valueOf(version);
   }
 
 
