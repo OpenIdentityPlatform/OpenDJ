@@ -41,7 +41,93 @@
           <return>0</return>
         </sequence>
       </if>
-      <block name="'externalchangelog'">
+      <block name="'externalchangelog-opends'">
+        <try>
+          <sequence>
+
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='replication'
+              CurrentTestPath['suite']='externalchangelog'
+              
+              _group = 'replication'
+              _suite = 'externalchangelog'
+              _groupdir='%s/testcases/replication' % TESTS_DIR
+            </script>
+                
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              
+              <sequence>
+                
+                <!--- Test Suite information
+                #@TestSuiteName       Replication External Changelog Tests
+                #@TestSuitePurpose    Test the event notification system provided by
+                                      the External Changelog.
+                #@TestSuiteID         External Changelog Tests
+                #@TestSuiteGroup      External Changelog
+                #@TestGroup           Replication
+                #@TestScript          replication_externalchangelog.xml
+                #@TestHTMLLink        http://opends.dev.java.net/
+                -->
+  
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/replication/replication_setup.xml' 
+                              % (TESTS_DIR)"/>
+                <call function="'replication_setup'"/>
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
+                              % (TESTS_DIR, _group, _suite, _suite)"/>
+                <call function="'common_ecl_tests'">
+                  { 'ecl_mode' : 'opends' }
+                </call>
+                
+              </sequence>
+
+            <catch exception="'STAFException.TestSuite.SetupException'">
+              <sequence>
+                <message log="1" level="'fatal'">
+                  'Setup of test suite failed.'
+                </message>
+                <rethrow/>
+              </sequence>
+            </catch>
+
+            <finally>
+              <message>'Test Cases Completed.'</message>
+            </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Replication Cleanup.'</message>
+              <try>
+                <sequence>
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/replication/replication_cleanup.xml' 
+                            % (TESTS_DIR)"/>
+                   <call function="'replication_cleanup'" />
+                 </sequence>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+        </try>
+      </block>
+      <block name="'externalchangelog-draft'">
         <try>
           <sequence>
 
@@ -77,23 +163,12 @@
                               % (TESTS_DIR)"/>
                 <call function="'replication_setup'"/>
       
-                <script>
-                  ecl_modes=[]
-                  ecl_modes.append('opends')
-                  ecl_modes.append('draft')
-                </script>    
-
-                <!-- Import the files for this test suite -->
-                <iterate var="ecl_mode" in="ecl_modes">
-                  <sequence>
-                    <import machine="STAF_LOCAL_HOSTNAME"
-                            file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
-                                  % (TESTS_DIR, _group, _suite, _suite)"/>
-                    <call function="'common_ecl_tests'">
-                      { 'ecl_mode' : ecl_mode }
-                    </call>
-                  </sequence>             
-                </iterate> 
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
+                              % (TESTS_DIR, _group, _suite, _suite)"/>
+                <call function="'common_ecl_tests'">
+                  { 'ecl_mode' : 'draft' }
+                </call>
 
                 <!-- List of Import of Test Functions -->
                 <script>
@@ -125,7 +200,7 @@
                 <iterate var="__test" in="testsList">
                   <sequence>
                     <call function="'%s' % (__test)" />
-              </sequence>
+                  </sequence>
                 </iterate>
 
               </sequence>
