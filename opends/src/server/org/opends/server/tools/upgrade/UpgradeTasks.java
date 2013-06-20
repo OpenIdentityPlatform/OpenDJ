@@ -47,6 +47,7 @@ import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.upgrade.UpgradeTask.TaskType;
+import org.opends.server.util.BuildVersion;
 
 /**
  * Factory methods for create new upgrade tasks.
@@ -340,6 +341,99 @@ public final class UpgradeTasks
   }
 
   /**
+   * Creates a group of tasks which will only be invoked if the current version
+   * is more recent than the provided version. This may be useful in cases where
+   * a regression was introduced in version X and resolved in a later version Y.
+   * In this case, the provided upgrade tasks will only be invoked if the
+   * current version is between X (inclusive) and Y (exclusive).
+   *
+   * @param versionString
+   *          The lower bound version. The upgrade tasks will not be applied if
+   *          the current version is older than this version.
+   * @param tasks
+   *          The group of tasks to invoke if the current version is equal to or
+   *          more recent than {@code versionString}.
+   * @return An upgrade task which will only be invoked if the current version
+   *         is more recent than the provided version.
+   */
+  public static UpgradeTask regressionInVersion(final String versionString,
+      final UpgradeTask... tasks)
+  {
+    final BuildVersion version = BuildVersion.valueOf(versionString);
+    return new AbstractUpgradeTask()
+    {
+
+      @Override
+      public void verify(UpgradeContext context) throws ClientException
+      {
+        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        {
+          for (UpgradeTask task : tasks)
+          {
+            task.verify(context);
+          }
+        }
+      }
+
+      @Override
+      public void interact(UpgradeContext context) throws ClientException
+      {
+        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        {
+          for (UpgradeTask task : tasks)
+          {
+            task.interact(context);
+          }
+        }
+      }
+
+      @Override
+      public void start(UpgradeContext context) throws ClientException
+      {
+        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        {
+          for (UpgradeTask task : tasks)
+          {
+            task.start(context);
+          }
+        }
+      }
+
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        {
+          for (UpgradeTask task : tasks)
+          {
+            task.perform(context);
+          }
+        }
+      }
+
+      @Override
+      public void end(UpgradeContext context) throws ClientException
+      {
+        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        {
+          for (UpgradeTask task : tasks)
+          {
+            task.end(context);
+          }
+        }
+      }
+
+
+
+      private boolean currentVersionEqualToOrMoreRecentThan(
+          UpgradeContext context, final BuildVersion version)
+      {
+        return context.getFromVersion().compareTo(version) >= 0;
+      }
+    };
+  }
+
+  /**
    * Creates a rebuild all indexes task.
    *
    * @param summary
@@ -348,21 +442,8 @@ public final class UpgradeTasks
    */
   public static UpgradeTask rebuildAllIndexes(final Message summary)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
-
-      @Override
-      public void end(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-      @Override
-      public void interact(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
-      }
-
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
@@ -379,6 +460,55 @@ public final class UpgradeTasks
       public void verify(final UpgradeContext context) throws ClientException
       {
         verifyTaskType(TaskType.MANDATORY_USER_INTERACTION, context);
+      }
+    };
+  }
+
+
+
+  /**
+   * Creates a rebuild index task for a single index. At the moment this is
+   * implemented as a simple stub which displays a message which should prompt
+   * the user to rebuild the index manually once the upgrade has completed.
+   * <p>
+   * In future this task should register the index to be rebuilt in a table. A
+   * subsequent task executed at the end of the upgrade process will then obtain
+   * the set of indexes to be rebuilt, optimize it (e.g. removing duplicates),
+   * and perform the rebuild.
+   *
+   * @param summary
+   *          A message describing why the index needs to be rebuilt and asking
+   *          them whether or not they wish to continue.
+   * @return The rebuild index task.
+   */
+  public static UpgradeTask rebuildSingleIndex(final Message summary)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void verify(final UpgradeContext context) throws ClientException
+      {
+        verifyTaskType(TaskType.MANDATORY_USER_INTERACTION, context);
+      }
+
+      @Override
+      public void interact(UpgradeContext context) throws ClientException
+      {
+        // Require acknowledgment from the user.
+        final int answer = context.confirmYN(summary, ConfirmationCallback.NO);
+
+        // The user refused to perform this task.
+        if (answer == ConfirmationCallback.NO)
+        {
+          throw new ClientException(EXIT_CODE_MANUAL_INTERVENTION,
+              INFO_UPGRADE_ABORTED_BY_USER.get());
+        }
+      }
+
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        // TODO: automatic rebuild is not supported yet.
       }
     };
   }
@@ -481,15 +611,9 @@ public final class UpgradeTasks
       final Message description, final boolean needsUserConfirmation,
       final String... ldif)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
       private boolean userConfirmation = true;
-
-      @Override
-      public void end(final UpgradeContext context)
-      {
-        // Nothing to do: no cleanup required.
-      }
 
       @Override
       public void interact(final UpgradeContext context) throws ClientException
@@ -544,18 +668,6 @@ public final class UpgradeTasks
           }
         }
       }
-
-      @Override
-      public void start(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-      @Override
-      public void verify(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
-      }
     };
   }
 
@@ -605,15 +717,9 @@ public final class UpgradeTasks
       final Message description, final boolean needsUserConfirmation,
       final String filter, final String... ldif)
   {
-    return new UpgradeTask()
+    return new AbstractUpgradeTask()
     {
       private boolean userConfirmation = true;
-
-      @Override
-      public void end(final UpgradeContext context)
-      {
-        // Nothing to do: no cleanup required.
-      }
 
       @Override
       public void interact(final UpgradeContext context) throws ClientException
@@ -666,18 +772,6 @@ public final class UpgradeTasks
                 pnc);
           }
         }
-      }
-
-      @Override
-      public void start(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
-      }
-
-      @Override
-      public void verify(final UpgradeContext context) throws ClientException
-      {
-        // Nothing to do.
       }
     };
   }
