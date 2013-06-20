@@ -50,11 +50,11 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
-import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.StartMsg;
 import org.opends.server.replication.protocol.StartSessionMsg;
@@ -88,7 +88,7 @@ public abstract class ServerHandler extends MessageHandler
    * @param providedMsg     The provided error message.
    * @param handler         The handler that manages that session.
    */
-  static protected void closeSession(ProtocolSession providedSession,
+  static protected void closeSession(Session providedSession,
       Message providedMsg, ServerHandler handler)
   {
     if (providedMsg != null)
@@ -118,7 +118,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The session opened with the remote server.
    */
-  protected ProtocolSession session;
+  protected Session session;
 
   /**
    * The serverURL of the remote server.
@@ -237,7 +237,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Creates a new server handler instance with the provided socket.
    *
-   * @param session The ProtocolSession used by the ServerHandler to
+   * @param session The Session used by the ServerHandler to
    *                 communicate with the remote entity.
    * @param queueSize The maximum number of update that will be kept
    *                  in memory by this ServerHandler.
@@ -247,7 +247,7 @@ public abstract class ServerHandler extends MessageHandler
    * @param rcvWindowSize The window size to receive from the remote server.
    */
   public ServerHandler(
-      ProtocolSession session,
+      Session session,
       int queueSize,
       String replicationServerURL,
       int replicationServerId,
@@ -271,7 +271,7 @@ public abstract class ServerHandler extends MessageHandler
     // We did not recognize the message, close session as what
     // can happen after is undetermined and we do not want the server to
     // be disturbed
-    ProtocolSession localSession = session;
+    Session localSession = session;
     if (localSession != null)
     {
       closeSession(localSession, reason, this);
@@ -366,6 +366,22 @@ public abstract class ServerHandler extends MessageHandler
           replicationServerDomain);
       reader = new ServerReader(session, this);
 
+      session.setName("Replication server RS("
+          + this.getReplicationServerId()
+          + ") session thread to " + this.toString() + " at "
+          + session.getReadableRemoteAddress());
+      session.start();
+      try
+      {
+        session.waitForStartup();
+      }
+      catch (InterruptedException e)
+      {
+        final Message message =
+            ERR_SESSION_STARTUP_INTERRUPTED.get(session.getName());
+        throw new DirectoryException(ResultCode.OTHER,
+            message, e);
+      }
       reader.start();
       writer.start();
 

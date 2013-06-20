@@ -52,39 +52,17 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.ReplServerStartMsg;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.ServerStartMsg;
-import org.opends.server.replication.protocol.StartSessionMsg;
-import org.opends.server.replication.protocol.StopMsg;
-import org.opends.server.replication.protocol.TopologyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.replication.common.*;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.testng.Assert.*;
 
 /**
@@ -279,7 +257,7 @@ public class AssuredReplicationPluginTest
 
     private ServerSocket listenSocket;
     private boolean shutdown = false;
-    private ProtocolSession session = null;
+    private Session session = null;
 
     // Parameters given at constructor time
     private final int port;
@@ -626,8 +604,7 @@ public class AssuredReplicationPluginTest
         session.publish(addMsg);
 
         // Read and return matching ack
-        AckMsg ackMsg = (AckMsg)session.receive();
-        return ackMsg;
+        return (AckMsg)session.receive();
 
       } catch(SocketTimeoutException e)
       {
@@ -889,7 +866,7 @@ public class AssuredReplicationPluginTest
         replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
-      long startTime = System.currentTimeMillis();
+      long startTime;
       // Create a safe data assured domain
       if (rsGroupId == (byte)1)
       {
@@ -998,7 +975,7 @@ public class AssuredReplicationPluginTest
   {
 
     int TIMEOUT = 5000;
-    String testcase = "testSafeReadModeTimeout" + rsGroupId;;
+    String testcase = "testSafeReadModeTimeout" + rsGroupId;
     try
     {
       // Create and start a RS expecting clients in safe read assured mode
@@ -1008,7 +985,7 @@ public class AssuredReplicationPluginTest
         replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
-      long startTime = 0;
+      long startTime;
 
       // Create a safe data assured domain
       if (rsGroupId == (byte)1)
@@ -1363,10 +1340,9 @@ public class AssuredReplicationPluginTest
         "objectClass: organizationalUnit\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
       String parentUid = getEntryUUID(DN.decode(SAFE_READ_DN));
-      AckMsg ackMsg = null;
 
       try {
-        ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+        AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
 
          if (rsGroupId == (byte)2)
            fail("Should only go here for RS with same group id as DS");
@@ -1461,7 +1437,7 @@ public class AssuredReplicationPluginTest
       Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
       String parentUid = getEntryUUID(DN.decode(SAFE_DATA_DN));
 
-      AckMsg ackMsg = null;
+      AckMsg ackMsg;
       try
       {
         ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
@@ -1853,7 +1829,7 @@ public class AssuredReplicationPluginTest
     /*
      * Find the multi valued attribute matching the requested assured mode
      */
-    String assuredAttr = null;
+    String assuredAttr;
     switch(assuredMode)
     {
       case SAFE_READ_MODE:
@@ -1873,19 +1849,15 @@ public class AssuredReplicationPluginTest
       return resultMap; // Empty map
 
     Attribute attr = attrs.get(0);
-    Iterator<AttributeValue> attValIt = attr.iterator();
     // Parse and store values
-    while (attValIt.hasNext())
-    {
-      String srvStr = attValIt.next().toString();
+    for (AttributeValue val : attr) {
+      String srvStr = val.toString();
       StringTokenizer strtok = new StringTokenizer(srvStr, ":");
       String token = strtok.nextToken();
-      if (token != null)
-      {
+      if (token != null) {
         int serverId = Integer.valueOf(token);
         token = strtok.nextToken();
-        if (token != null)
-        {
+        if (token != null) {
           Integer nerrors = Integer.valueOf(token);
           resultMap.put(serverId, nerrors);
         }

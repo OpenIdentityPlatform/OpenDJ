@@ -40,7 +40,7 @@ import java.util.NoSuchElementException;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 
@@ -55,7 +55,7 @@ public class ServerWriter extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private final ProtocolSession session;
+  private final Session session;
   private final ServerHandler handler;
   private final ReplicationServerDomain replicationServerDomain;
 
@@ -66,13 +66,13 @@ public class ServerWriter extends DirectoryThread
    * for new updates and forward them to the server
    *
    * @param session
-   *          the ProtocolSession that will be used to send updates.
+   *          the Session that will be used to send updates.
    * @param handler
    *          handler for which the ServerWriter is created.
    * @param replicationServerDomain
    *          The ReplicationServerDomain of this ServerWriter.
    */
-  public ServerWriter(ProtocolSession session, ServerHandler handler,
+  public ServerWriter(Session session, ServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
     // Session may be null for ECLServerWriter.

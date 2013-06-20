@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 
@@ -35,8 +36,8 @@
  * The main classes of this packages are :
  * <br>
  * <ul>
- * <li><A HREF="SocketSession.html"><B>SocketSession</B></A>
- * implements the ProtocolSession interface that is
+ * <li><A HREF="Session.html"><B>Session</B></A>
+ * implements the session and protocol that is
  * used by the replication server and the directory server to communicate.
  * This is done by using the innate encoding/decoding capabilities of the
  * ReplicationMessages objects. This class is used by both the

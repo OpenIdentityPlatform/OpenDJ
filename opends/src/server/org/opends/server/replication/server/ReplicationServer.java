@@ -304,7 +304,7 @@ public final class ReplicationServer
 
       try
       {
-        ProtocolSession session;
+        Session session;
         Socket newSocket = null;
         try
         {
@@ -485,7 +485,7 @@ public final class ReplicationServer
                " connects to " + remoteServerURL);
 
     Socket socket = new Socket();
-    ProtocolSession session = null;
+    Session session = null;
     try
     {
       InetSocketAddress ServerAddr = new InetSocketAddress(

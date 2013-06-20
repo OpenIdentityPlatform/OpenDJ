@@ -161,7 +161,7 @@ public final class ReplSessionSecurity
    *           If the protocol session could not be established for some other
    *           reason.
    */
-  public ProtocolSession createClientSession(final Socket socket,
+  public Session createClientSession(final Socket socket,
       final int soTimeout) throws ConfigException, IOException
   {
     boolean hasCompleted = false;
@@ -197,7 +197,7 @@ public final class ReplSessionSecurity
       // Force TLS negotiation now.
       secureSocket.startHandshake();
       hasCompleted = true;
-      return new TLSSocketSession(socket, secureSocket);
+      return new Session(socket, secureSocket);
     }
     finally
     {
@@ -244,7 +244,7 @@ public final class ReplSessionSecurity
    *           If the protocol session could not be established for some other
    *           reason.
    */
-  public ProtocolSession createServerSession(final Socket socket,
+  public Session createServerSession(final Socket socket,
       final int soTimeout) throws ConfigException, IOException
   {
     boolean hasCompleted = false;
@@ -281,7 +281,7 @@ public final class ReplSessionSecurity
       // Force TLS negotiation now.
       secureSocket.startHandshake();
       hasCompleted = true;
-      return new TLSSocketSession(socket, secureSocket);
+      return new Session(socket, secureSocket);
     }
     catch (final SSLException e)
     {

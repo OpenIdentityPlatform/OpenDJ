@@ -62,7 +62,7 @@ import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -673,7 +673,7 @@ public class AssuredReplicationServerTest
       ServerStatus initStatus,
       ServerState replicationServerState,
       long generationId,
-      ProtocolSession session)
+      Session session)
     {
       super.sessionInitiated(initStatus, replicationServerState, generationId, session);
     }
@@ -813,7 +813,7 @@ public class AssuredReplicationServerTest
   {
 
     private boolean shutdown = false;
-    private ProtocolSession session = null;
+    private Session session = null;
 
     /** Parameters given at constructor time */
     private int port;
@@ -1942,7 +1942,7 @@ public class AssuredReplicationServerTest
         } else
         {
           // Already errors for this server, increment the value
-          int newVal = prevInt.intValue() + 1;
+          int newVal = prevInt + 1;
           prevServerErrors.put(serverId, newVal);
         }
       }
@@ -2018,11 +2018,8 @@ public class AssuredReplicationServerTest
    */
   private boolean areGroupAndGenerationIdOk(int fakeRsGid, long fakeRsGenId)
   {
-    if ((fakeRsGid != -1) && (fakeRsGenId != -1L))
-    {
-      return ( (fakeRsGid == DEFAULT_GID) && (fakeRsGenId == DEFAULT_GENID) );
-    }
-    return false;
+    return (fakeRsGid != -1) && (fakeRsGenId != -1L) &&
+        ((fakeRsGid == DEFAULT_GID) && (fakeRsGenId == DEFAULT_GENID));
   }
 
   /**
@@ -2030,7 +2027,10 @@ public class AssuredReplicationServerTest
    * data assured update and that are expected to effectively ack the update. If
    * -1 is used, the server is out of scope
    */
-  private List<Integer> computeExpectedServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen, int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
+  private List<Integer> computeExpectedServersSafeData(
+      int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
+      int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
+      int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
   {
     List<Integer> exptectedServers = new ArrayList<Integer>();
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
@@ -2650,7 +2650,7 @@ public class AssuredReplicationServerTest
        */
 
       fakeRd3 = createFakeReplicationDomain(FDS3_ID, otherFakeDsGid, RS1_ID,
-        otherFakeDsGenId, ((otherFakeDsGid == DEFAULT_GID) ? true : false),
+        otherFakeDsGenId, (otherFakeDsGid == DEFAULT_GID),
         AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
         otherFakeDsScen);
       assertNotNull(fakeRd3);
@@ -2669,7 +2669,7 @@ public class AssuredReplicationServerTest
        */
 
       fakeRs2 = createFakeReplicationServer(FRS2_ID, otherFakeRsGid, RS1_ID,
-        otherFakeRsGenId, ((otherFakeRsGid == DEFAULT_GID) ? true : false),
+        otherFakeRsGenId, (otherFakeRsGid == DEFAULT_GID),
         AssuredMode.SAFE_READ_MODE, 1, new ServerState(), otherFakeRsScen);
       assertNotNull(fakeRs2);
 
@@ -2684,13 +2684,14 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Compute some thing that will help determine what to check according to
-      // the current test configurarion: compute if DS and RS subject to conf
+      // the current test configuration: compute if DS and RS subject to conf
       // change are eligible and expected for safe read assured
       // eligible: the server should receive the ack request
       // expected: the server should send back an ack (with or without error)
       boolean dsIsEligible = areGroupAndGenerationIdOk(otherFakeDsGid, otherFakeDsGenId);
       boolean rsIsEligible = areGroupAndGenerationIdOk(otherFakeRsGid, otherFakeRsGenId);
       boolean dsIsExpected = false;
+      boolean rsIsExpected = false;
       // Booleans to tell if we expect to see the timeout, wrong status and replay error flags
       boolean shouldSeeTimeout = false;
       boolean shouldSeeWrongStatus = false;
@@ -2723,6 +2724,7 @@ public class AssuredReplicationServerTest
         switch (otherFakeRsScen)
         {
           case REPLY_OK_RS_SCENARIO:
+            rsIsExpected = true;
             break;
           case TIMEOUT_RS_SCENARIO:
             shouldSeeRsIdInError = true;
@@ -3443,7 +3445,7 @@ public class AssuredReplicationServerTest
 
       // DS 2 connected to RS 2
       fakeRd2 = createFakeReplicationDomain(FDS2_ID, fakeDsGid, RS2_ID,
-        fakeDsGenId, (fakeDsGid == DEFAULT_GID ? true : false),
+        fakeDsGenId, (fakeDsGid == DEFAULT_GID),
         AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, fakeDsScen);
       assertNotNull(fakeRd2);
 

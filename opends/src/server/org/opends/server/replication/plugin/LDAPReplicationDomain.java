@@ -86,19 +86,7 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
-import org.opends.server.replication.protocol.AddContext;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteContext;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.replication.protocol.ModifyContext;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyDnContext;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.RoutableMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.replication.service.ReplicationMonitor;
@@ -4581,7 +4569,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       ServerStatus initStatus,
       ServerState replicationServerState,
       long generationID,
-      ProtocolSession session)
+      Session session)
   {
     // Check domain fractional configuration consistency with local
     // configuration variables
@@ -4876,7 +4864,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   @Override
   public boolean processUpdate(UpdateMsg updateMsg)
   {
-    // Ignore message if fractional configuration is inconcsistent and
+    // Ignore message if fractional configuration is inconsistent and
     // we have been passed into bad data set status
     if (forceBadDataSet)
     {

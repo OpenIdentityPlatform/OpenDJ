@@ -187,7 +187,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   // The timer used to run the timeout code (timer tasks) for the assured update
   // messages we are waiting acks for.
   private Timer assuredTimeoutTimer = null;
-  // Counter used to purge the timer tasks referemces in assuredTimeoutTimer,
+  // Counter used to purge the timer tasks references in assuredTimeoutTimer,
   // every n number of treated assured messages
   private int assuredTimeoutTimerPurgeCounter = 0;
 
@@ -588,17 +588,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             if (serverStatus == ServerStatus.DEGRADED_STATUS)
             {
               wrongStatusServers.add(handler.getServerId());
-            } else
-            {
-              /**
-               * BAD_GEN_ID_STATUS or FULL_UPDATE_STATUS:
-               * We do not want this to be reported as an error to the update
-               * maker -> no pollution or potential misunderstanding when
-               * reading logs or monitoring and it was just administration (for
-               * instance new server is being configured in topo: it goes in bad
-               * gen then then full full update).
-               */
             }
+            /**
+             * else
+             * BAD_GEN_ID_STATUS or FULL_UPDATE_STATUS:
+             * We do not want this to be reported as an error to the update
+             * maker -> no pollution or potential misunderstanding when
+             * reading logs or monitoring and it was just administration (for
+             * instance new server is being configured in topo: it goes in bad
+             * gen then then full full update).
+             */
           }
         }
       }
@@ -685,19 +684,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
         } else
         { // A RS sent us the safe data message, for sure no further ack to wait
-          if (safeDataLevel == (byte) 1)
+          /**
+           * Level 1 has already been reached so no further acks to wait.
+           * Just deal with level > 1
+           */
+          if (safeDataLevel > (byte) 1)
           {
-            /**
-             * The original level was 1 so the RS that sent us this message
-             * should have already sent his ack to the sender DS. Level 1 has
-             * already been reached so no further acks to wait.
-             * This should not happen in theory as the sender RS server should
-             * have sent us a matching not assured message so we should not come
-             * to here.
-             */
-          } else
-          {
-            // level > 1, so Ack this message to originator RS
             sourceHandler.send(new AckMsg(cn));
           }
         }
@@ -815,11 +807,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           expectedAcksInfo.completed();
         }
       }
-    } else
-    {
-      // The timeout occurred for the update matching this change number and the
-      // ack with timeout error has probably already been sent.
     }
+    /* Else the timeout occurred for the update matching this change number
+     * and the ack with timeout error has probably already been sent.
+     */
   }
 
   /**
@@ -934,10 +925,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
                   expectedServerInTimeout.
                     incrementAssuredSdSentUpdatesTimeout();
                 }
-              } else
-              {
-                // Server disappeared ? Let's forget about it.
               }
+              /* else server disappeared ? Let's forget about it. */
             }
           }
           // Mark the ack info object as completed to prevent potential

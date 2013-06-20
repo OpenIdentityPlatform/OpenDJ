@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -34,7 +34,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.TimeThread;
 
@@ -55,7 +55,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
   /**
    * The session on which heartbeats are to be sent.
    */
-  private final ProtocolSession session;
+  private final Session session;
 
   /**
    * The time in milliseconds between heartbeats.
@@ -77,7 +77,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    *                          (in milliseconds).
    * @param serverId2 The serverId of the sender domain.
    */
-  public CTHeartbeatPublisherThread(String threadName, ProtocolSession session,
+  public CTHeartbeatPublisherThread(String threadName, Session session,
                   long heartbeatInterval, int serverId2)
   {
     super(threadName);
