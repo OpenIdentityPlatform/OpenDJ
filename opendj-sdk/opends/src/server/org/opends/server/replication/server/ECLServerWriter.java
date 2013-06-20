@@ -41,7 +41,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.ECLUpdateMsg;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -61,7 +61,7 @@ public class ECLServerWriter extends ServerWriter
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private ProtocolSession session;
+  private Session session;
   private ECLServerHandler handler;
   private ReplicationServerDomain replicationServerDomain;
   private boolean suspended;
@@ -71,12 +71,12 @@ public class ECLServerWriter extends ServerWriter
   /**
    * Create a ServerWriter.
    *
-   * @param session     the ProtocolSession that will be used to send updates.
+   * @param session     the Session that will be used to send updates.
    * @param handler     ECL handler for which the ServerWriter is created.
    * @param replicationServerDomain the ReplicationServerDomain of this
    *                    ServerWriter.
    */
-  public ECLServerWriter(ProtocolSession session, ECLServerHandler handler,
+  public ECLServerWriter(Session session, ECLServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
     super(session, handler, replicationServerDomain);

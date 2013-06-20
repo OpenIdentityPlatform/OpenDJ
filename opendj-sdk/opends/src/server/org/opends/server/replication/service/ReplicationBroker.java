@@ -95,7 +95,7 @@ public class ReplicationBroker
    */
   public final static String NO_CONNECTED_SERVER = "Not connected";
   private volatile String replicationServer = NO_CONNECTED_SERVER;
-  private volatile ProtocolSession session = null;
+  private volatile Session session = null;
   private final ServerState state;
   private final String baseDn;
   private final int serverId;
@@ -1230,7 +1230,7 @@ public class ReplicationBroker
     String port = server.substring(separator + 1);
     String hostname = server.substring(0, separator);
 
-    ProtocolSession localSession = null;
+    Session localSession = null;
     Socket socket = null;
     boolean hasConnected = false;
     Message errorMessage = null;
@@ -2180,7 +2180,7 @@ public class ReplicationBroker
    * @param failingSession the socket which failed
    * @param infiniteTry the socket which failed
    */
-  public void reStart(ProtocolSession failingSession, boolean infiniteTry)
+  public void reStart(Session failingSession, boolean infiniteTry)
   {
     if (failingSession != null)
     {
@@ -2308,7 +2308,7 @@ public class ReplicationBroker
       try
       {
         boolean credit;
-        ProtocolSession current_session;
+        Session current_session;
         Semaphore currentWindowSemaphore;
 
         /*
@@ -2465,7 +2465,7 @@ public class ReplicationBroker
 
       // Save session information for later in case we need it for log messages
       // after the session has been closed and/or failed.
-      final ProtocolSession savedSession = session;
+      final Session savedSession = session;
       if (savedSession == null)
       {
         // Must be shutting down.
@@ -2612,7 +2612,7 @@ public class ReplicationBroker
 
         if (!shutdown)
         {
-          final ProtocolSession tmpSession = session;
+          final Session tmpSession = session;
           if (tmpSession == null || !tmpSession.closeInitiated())
           {
             /*
@@ -2879,7 +2879,7 @@ public class ReplicationBroker
    */
   public boolean isSessionEncrypted()
   {
-    final ProtocolSession tmp = session;
+    final Session tmp = session;
     return tmp != null ? tmp.isEncrypted() : false;
   }
 
@@ -3127,7 +3127,7 @@ public class ReplicationBroker
    */
   String getLocalUrl()
   {
-    final ProtocolSession tmp = session;
+    final Session tmp = session;
     return tmp != null ? tmp.getLocalUrl() : "";
   }
 
@@ -3142,12 +3142,12 @@ public class ReplicationBroker
     return monitor;
   }
 
-  private void setSession(final ProtocolSession newSession)
+  private void setSession(final Session newSession)
   {
     // De-register the monitor with the old name.
     deregisterReplicationMonitor();
 
-    final ProtocolSession oldSession = session;
+    final Session oldSession = session;
     if (oldSession != null)
     {
       oldSession.close();

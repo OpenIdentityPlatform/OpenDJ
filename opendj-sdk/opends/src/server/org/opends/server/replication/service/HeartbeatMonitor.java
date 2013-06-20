@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -33,7 +33,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.api.DirectoryThread;
@@ -54,7 +54,7 @@ final class HeartbeatMonitor extends DirectoryThread
   /**
    * The session on which heartbeats are to be monitored.
    */
-  private final ProtocolSession session;
+  private final Session session;
 
 
   /**
@@ -93,7 +93,7 @@ final class HeartbeatMonitor extends DirectoryThread
    *          milliseconds).
    */
   HeartbeatMonitor(int serverID, int replicationServerID,
-      String baseDN, ProtocolSession session, long heartbeatInterval)
+      String baseDN, Session session, long heartbeatInterval)
   {
     super("Replica DS("
       + serverID + ") heartbeat monitor for domain \""

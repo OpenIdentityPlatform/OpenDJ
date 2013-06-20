@@ -391,7 +391,7 @@ public final class ECLServerHandler extends ServerHandler
    * @param rcvWindowSize The receiving window size.
    */
   public ECLServerHandler(
-      ProtocolSession session,
+      Session session,
       int queueSize,
       String replicationServerURL,
       int replicationServerId,

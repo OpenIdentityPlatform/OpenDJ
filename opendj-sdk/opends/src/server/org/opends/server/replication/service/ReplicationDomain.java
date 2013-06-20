@@ -68,7 +68,7 @@ import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.InitializeRcvAckMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
-import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -401,13 +401,13 @@ public abstract class ReplicationDomain
    * @param generationID            The current generationID of the
    *                                ReplicationServer with which the session
    *                                was established.
-   * @param session                 The ProtocolSession that is currently used.
+   * @param session                 The Session that is currently used.
    */
   public void sessionInitiated(
       ServerStatus initStatus,
       ServerState replicationServerState,
       long generationID,
-      ProtocolSession session)
+      Session session)
   {
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))

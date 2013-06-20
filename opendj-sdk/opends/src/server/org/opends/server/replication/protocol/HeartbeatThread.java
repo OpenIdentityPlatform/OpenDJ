@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -57,7 +57,7 @@ public class HeartbeatThread extends DirectoryThread
   /**
    * The session on which heartbeats are to be sent.
    */
-  private final ProtocolSession session;
+  private final Session session;
 
 
   /**
@@ -80,7 +80,7 @@ public class HeartbeatThread extends DirectoryThread
    * @param heartbeatInterval The desired interval between heartbeats in
    * milliseconds.
    */
-  public HeartbeatThread(String threadName, ProtocolSession session,
+  public HeartbeatThread(String threadName, Session session,
                   long heartbeatInterval)
   {
     super(threadName);

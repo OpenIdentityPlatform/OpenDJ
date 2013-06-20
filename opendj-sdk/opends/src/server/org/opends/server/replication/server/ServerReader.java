@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -58,7 +58,7 @@ public class ServerReader extends DirectoryThread
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  private final ProtocolSession session;
+  private final Session session;
   private final ServerHandler handler;
   private final String remoteAddress;
 
@@ -68,11 +68,11 @@ public class ServerReader extends DirectoryThread
    * Constructor for the LDAP server reader part of the replicationServer.
    *
    * @param session
-   *          The ProtocolSession from which to read the data.
+   *          The Session from which to read the data.
    * @param handler
    *          The server handler for this server reader.
    */
-  public ServerReader(ProtocolSession session, ServerHandler handler)
+  public ServerReader(Session session, ServerHandler handler)
   {
     super("Replication server RS(" + handler.getReplicationServerId()
         + ") reading from " + handler.toString() + " at "
@@ -313,18 +313,6 @@ public class ServerReader extends DirectoryThread
         }
         logError(errMessage);
       }
-    }
-    catch (ClassNotFoundException e)
-    {
-      if (debugEnabled())
-        TRACER.debugInfo(
-            "In " + this.getName() + " " + stackTraceToSingleLineString(e));
-      /*
-       * The remote server has sent an unknown message,
-       * close the connection.
-       */
-      errMessage = ERR_UNKNOWN_MESSAGE.get(handler.toString());
-      logError(errMessage);
     }
     catch (Exception e)
     {

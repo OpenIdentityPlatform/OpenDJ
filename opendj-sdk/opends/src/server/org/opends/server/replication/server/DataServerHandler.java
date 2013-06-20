@@ -90,7 +90,7 @@ public class DataServerHandler extends ServerHandler
    * @param rcvWindowSize The receiving window size.
    */
   public DataServerHandler(
-      ProtocolSession session,
+      Session session,
       int queueSize,
       String replicationServerURL,
       int replicationServerId,
