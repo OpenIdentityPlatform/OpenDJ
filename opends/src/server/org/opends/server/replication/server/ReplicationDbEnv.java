@@ -87,25 +87,40 @@ public class ReplicationDbEnv
     envConfig.setConfigParam("je.cleaner.threads", "2");
     envConfig.setConfigParam("je.checkpointer.highPriority", "true");
 
-    // If the JVM is reasonably large then we can safely default to
-    // bigger read buffers. This will result in more scalable checkpointer
-    // and cleaner performance.
+    /*
+     * Tests have shown that since the parsing of the Replication log is always
+     * done sequentially, it is not necessary to use a large DB cache.
+     */
     if (Runtime.getRuntime().maxMemory() > 256 * 1024 * 1024)
     {
-      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize", String
-          .valueOf(2 * 1024 * 1024));
+      /*
+       * If the JVM is reasonably large then we can safely default to bigger
+       * read buffers. This will result in more scalable checkpointer and
+       * cleaner performance.
+       */
+      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize",
+          String.valueOf(2 * 1024 * 1024));
 
-      envConfig.setConfigParam("je.log.iteratorReadSize", String
-          .valueOf(2 * 1024 * 1024));
+      envConfig.setConfigParam("je.log.iteratorReadSize",
+          String.valueOf(2 * 1024 * 1024));
 
-      envConfig.setConfigParam("je.log.faultReadSize", String
-          .valueOf(4 * 1024));
+      envConfig
+          .setConfigParam("je.log.faultReadSize", String.valueOf(4 * 1024));
+
+      /*
+       * The cache size must be bigger in order to accommodate the larger
+       * buffers - see OPENDJ-943.
+       */
+      envConfig
+          .setConfigParam("je.maxMemory", String.valueOf(16 * 1024 * 1024));
     }
-
-    // Tests have shown that since the parsing of the Replication log is always
-    // done sequentially, it is not necessary to use a large DB cache.
-    // Use 5M so that the replication can be used with 64M total for the JVM.
-    envConfig.setConfigParam("je.maxMemory", "5000000");
+    else
+    {
+      /*
+       * Use 5M so that the replication can be used with 64M total for the JVM.
+       */
+      envConfig.setConfigParam("je.maxMemory", String.valueOf(5 * 1024 * 1024));
+    }
 
     // Since records are always added at the end of the Replication log and
     // deleted at the beginning of the Replication log, this should never
