@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -512,7 +512,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addAttributeType(final String oid, final List<String> names,
+    SchemaBuilder addAttributeType(final String oid, final List<String> names,
             final String description, final boolean obsolete, final String superiorType,
             final String equalityMatchingRule, final String orderingMatchingRule,
             final String substringMatchingRule, final String approximateMatchingRule,
@@ -702,7 +702,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addDITContentRule(final String structuralClass, final List<String> names,
+    SchemaBuilder addDITContentRule(final String structuralClass, final List<String> names,
             final String description, final boolean obsolete, final Set<String> auxiliaryClasses,
             final Set<String> optionalAttributes, final Set<String> prohibitedAttributes,
             final Set<String> requiredAttributes, final Map<String, List<String>> extraProperties,
@@ -747,7 +747,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addDITStructureRule(final Integer ruleID, final List<String> names,
+    SchemaBuilder addDITStructureRule(final Integer ruleID, final List<String> names,
             final String description, final boolean obsolete, final String nameForm,
             final Set<Integer> superiorRules, final Map<String, List<String>> extraProperties,
             final boolean overwrite) {
@@ -1083,7 +1083,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addMatchingRule(final String oid, final List<String> names,
+    SchemaBuilder addMatchingRule(final String oid, final List<String> names,
             final String description, final boolean obsolete, final String assertionSyntax,
             final Map<String, List<String>> extraProperties, final MatchingRuleImpl implementation,
             final boolean overwrite) {
@@ -1252,7 +1252,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addMatchingRuleUse(final String oid, final List<String> names,
+    SchemaBuilder addMatchingRuleUse(final String oid, final List<String> names,
             final String description, final boolean obsolete, final Set<String> attributeOIDs,
             final Map<String, List<String>> extraProperties, final boolean overwrite) {
         lazyInitBuilder();
@@ -1439,7 +1439,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addNameForm(final String oid, final List<String> names,
+    SchemaBuilder addNameForm(final String oid, final List<String> names,
             final String description, final boolean obsolete, final String structuralClass,
             final Set<String> requiredAttributes, final Set<String> optionalAttributes,
             final Map<String, List<String>> extraProperties, final boolean overwrite) {
@@ -1636,7 +1636,7 @@ public final class SchemaBuilder {
      *             If {@code overwrite} was {@code false} and a conflicting
      *             schema element was found.
      */
-    public SchemaBuilder addObjectClass(final String oid, final List<String> names,
+    SchemaBuilder addObjectClass(final String oid, final List<String> names,
             final String description, final boolean obsolete, Set<String> superiorClassOIDs,
             final Set<String> requiredAttributeOIDs, final Set<String> optionalAttributeOIDs,
             final ObjectClassType objectClassType, final Map<String, List<String>> extraProperties,
@@ -2186,7 +2186,7 @@ public final class SchemaBuilder {
      * @throws NullPointerException
      *             If {@code definition} was {@code null}.
      */
-    public SchemaBuilder addSyntax(final String oid, final String description,
+    SchemaBuilder addSyntax(final String oid, final String description,
             final Map<String, List<String>> extraProperties, final SyntaxImpl implementation,
             final boolean overwrite) {
         lazyInitBuilder();
