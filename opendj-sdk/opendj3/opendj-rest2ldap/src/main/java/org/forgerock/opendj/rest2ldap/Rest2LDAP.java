@@ -16,9 +16,9 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
-import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.*;
+import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
 import java.util.ArrayList;
@@ -70,8 +70,6 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * collections.
  */
 public final class Rest2LDAP {
-    // @Checkstyle:off
-
     /**
      * A builder for incrementally constructing LDAP resource collections.
      */
@@ -79,45 +77,95 @@ public final class Rest2LDAP {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
         private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private DN baseDN; // TODO: support template variables.
-        private ConnectionFactory factory;
         private AttributeDescription etagAttribute;
+        private ConnectionFactory factory;
         private NameStrategy nameStrategy;
         private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
-        private boolean useSubtreeDelete;
         private boolean usePermissiveModify;
+        private boolean useSubtreeDelete;
 
-        Builder() {
+        private Builder() {
             useEtagAttribute();
             useClientDNNaming("uid");
         }
 
+        /**
+         * Specifies an additional LDAP attribute which should be included with
+         * new LDAP entries when they are created. Use this method to specify
+         * the LDAP objectClass attribute.
+         *
+         * @param attribute
+         *            The additional LDAP attribute to be included with new LDAP
+         *            entries.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder additionalLDAPAttribute(final Attribute attribute) {
             additionalLDAPAttributes.add(attribute);
             return this;
         }
 
+        /**
+         * Specifies an additional LDAP attribute which should be included with
+         * new LDAP entries when they are created. Use this method to specify
+         * the LDAP objectClass attribute.
+         *
+         * @param attribute
+         *            The name of the additional LDAP attribute to be included
+         *            with new LDAP entries.
+         * @param values
+         *            The value(s) of the additional LDAP attribute.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder additionalLDAPAttribute(final String attribute, final Object... values) {
             return additionalLDAPAttribute(new LinkedAttribute(ad(attribute), values));
         }
 
+        /**
+         * Sets the policy which should be for performing authorization.
+         *
+         * @param policy
+         *            The policy which should be for performing authorization.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder authorizationPolicy(final AuthorizationPolicy policy) {
             this.authzPolicy = ensureNotNull(policy);
             return this;
         }
 
+        /**
+         * Sets the base DN beneath which LDAP entries (resources) are to be
+         * found.
+         *
+         * @param dn
+         *            The base DN.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder baseDN(final DN dn) {
             ensureNotNull(dn);
             this.baseDN = dn;
             return this;
         }
 
+        /**
+         * Sets the base DN beneath which LDAP entries (resources) are to be
+         * found.
+         *
+         * @param dn
+         *            The base DN.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder baseDN(final String dn) {
             return baseDN(DN.valueOf(dn, schema));
         }
 
+        /**
+         * Creates a new LDAP resource collection configured using this builder.
+         *
+         * @return The new LDAP resource collection.
+         */
         public CollectionResourceProvider build() {
             ensureNotNull(baseDN);
             if (rootMapper == null) {
@@ -158,7 +206,7 @@ public final class Rest2LDAP {
          *
          * @param configuration
          *            The JSON configuration.
-         * @return A reference to this builder.
+         * @return A reference to this LDAP resource collection builder.
          * @throws IllegalArgumentException
          *             If the configuration is invalid.
          */
@@ -219,16 +267,48 @@ public final class Rest2LDAP {
             return this;
         }
 
+        /**
+         * Sets the LDAP connection factory to be used for accessing the LDAP
+         * directory. Each HTTP request will obtain a single connection from the
+         * factory and then close it once the HTTP response has been sent. It is
+         * recommended that the provided connection factory supports connection
+         * pooling.
+         *
+         * @param factory
+         *            The LDAP connection factory to be used for accessing the
+         *            LDAP directory.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder ldapConnectionFactory(final ConnectionFactory factory) {
             this.factory = factory;
             return this;
         }
 
+        /**
+         * Sets the attribute mapper which should be used for mapping JSON
+         * resources to and from LDAP entries.
+         *
+         * @param mapper
+         *            The attribute mapper.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder mapper(final AttributeMapper mapper) {
             this.rootMapper = mapper;
             return this;
         }
 
+        /**
+         * Sets the authorization ID template which will be used for proxied
+         * authorization. Template parameters are specified by including the
+         * parameter name surrounded by curly braces. The template should
+         * contain fields which are expected to be found in the security context
+         * create during authentication, e.g. "dn:{dn}" or "u:{id}".
+         *
+         * @param template
+         *            The authorization ID template which will be used for
+         *            proxied authorization.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder proxyAuthzIdTemplate(final String template) {
             this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
             return this;
@@ -242,7 +322,7 @@ public final class Rest2LDAP {
          * @param policy
          *            The policy which should be used in order to read an entry
          *            before it is deleted, or after it is added or modified.
-         * @return A reference to this builder.
+         * @return A reference to this LDAP resource collection builder.
          */
         public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
             this.readOnUpdatePolicy = ensureNotNull(policy);
@@ -256,71 +336,256 @@ public final class Rest2LDAP {
          * @param schema
          *            The schema which should be used when attribute types and
          *            controls.
-         * @return A reference to this builder.
+         * @return A reference to this LDAP resource collection builder.
          */
         public Builder schema(final Schema schema) {
             this.schema = ensureNotNull(schema);
             return this;
         }
 
+        /**
+         * Indicates that the JSON resource ID must be provided by the user, and
+         * will be used for naming the associated LDAP entry. More specifically,
+         * LDAP entry names will be derived by appending a single RDN to the
+         * {@link #baseDN(String) base DN} composed of the specified attribute
+         * type and LDAP value taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the user provides the
+         * resource name when creating new resources, which means it must be
+         * included in the resource content when not specified explicitly in the
+         * create request.
+         *
+         * @param attribute
+         *            The LDAP attribute which will be used for naming.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useClientDNNaming(final AttributeType attribute) {
             this.nameStrategy = new DNNameStrategy(attribute);
             return this;
         }
 
+        /**
+         * Indicates that the JSON resource ID must be provided by the user, and
+         * will be used for naming the associated LDAP entry. More specifically,
+         * LDAP entry names will be derived by appending a single RDN to the
+         * {@link #baseDN(String) base DN} composed of the specified attribute
+         * type and LDAP value taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the user provides the
+         * resource name when creating new resources, which means it must be
+         * included in the resource content when not specified explicitly in the
+         * create request.
+         *
+         * @param attribute
+         *            The LDAP attribute which will be used for naming.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useClientDNNaming(final String attribute) {
             return useClientDNNaming(at(attribute));
         }
 
+        /**
+         * Indicates that the JSON resource ID must be provided by the user, but
+         * will not be used for naming the associated LDAP entry. Instead the
+         * JSON resource ID will be taken from the {@code idAttribute} in the
+         * LDAP entry, and the LDAP entry name will be derived by appending a
+         * single RDN to the {@link #baseDN(String) base DN} composed of the
+         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the user provides the
+         * resource name when creating new resources, which means it must be
+         * included in the resource content when not specified explicitly in the
+         * create request.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @param idAttribute
+         *            The attribute which will be used for JSON resource IDs.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useClientNaming(final AttributeType dnAttribute,
                 final AttributeDescription idAttribute) {
             this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, false);
             return this;
         }
 
+        /**
+         * Indicates that the JSON resource ID must be provided by the user, but
+         * will not be used for naming the associated LDAP entry. Instead the
+         * JSON resource ID will be taken from the {@code idAttribute} in the
+         * LDAP entry, and the LDAP entry name will be derived by appending a
+         * single RDN to the {@link #baseDN(String) base DN} composed of the
+         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the user provides the
+         * resource name when creating new resources, which means it must be
+         * included in the resource content when not specified explicitly in the
+         * create request.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @param idAttribute
+         *            The attribute which will be used for JSON resource IDs.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useClientNaming(final String dnAttribute, final String idAttribute) {
             return useClientNaming(at(dnAttribute), ad(idAttribute));
         }
 
+        /**
+         * Indicates that the "etag" LDAP attribute should be used for resource
+         * versioning. This is the default behavior.
+         *
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useEtagAttribute() {
             return useEtagAttribute("etag");
         }
 
+        /**
+         * Indicates that the provided LDAP attribute should be used for
+         * resource versioning. The "etag" attribute will be used by default.
+         *
+         * @param attribute
+         *            The name of the attribute to use for versioning, or
+         *            {@code null} if resource versioning will not supported.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useEtagAttribute(final AttributeDescription attribute) {
             this.etagAttribute = attribute;
             return this;
         }
 
+        /**
+         * Indicates that the provided LDAP attribute should be used for
+         * resource versioning. The "etag" attribute will be used by default.
+         *
+         * @param attribute
+         *            The name of the attribute to use for versioning, or
+         *            {@code null} if resource versioning will not supported.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useEtagAttribute(final String attribute) {
-            return useEtagAttribute(ad(attribute));
+            return useEtagAttribute(attribute != null ? ad(attribute) : null);
         }
 
+        /**
+         * Indicates that all LDAP modify operations should be performed using
+         * the LDAP permissive modify control. The default behavior is to not
+         * use the permissive modify control. Use of the control is strongly
+         * recommended.
+         *
+         * @return A reference to this LDAP resource collection builder.
+         */
+        public Builder usePermissiveModify() {
+            this.usePermissiveModify = true;
+            return this;
+        }
+
+        /**
+         * Indicates that the JSON resource ID will be derived from the server
+         * provided "entryUUID" LDAP attribute. The LDAP entry name will be
+         * derived by appending a single RDN to the {@link #baseDN(String) base
+         * DN} composed of the {@code dnAttribute} taken from the LDAP entry
+         * once attribute mapping has been performed.
+         * <p>
+         * Note that this naming policy requires that the server provides the
+         * resource name when creating new resources, which means it must not be
+         * specified in the create request, nor included in the resource
+         * content.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
             return useServerNaming(dnAttribute, AttributeDescription
                     .create(getEntryUUIDAttributeType()));
         }
 
+        /**
+         * Indicates that the JSON resource ID will be derived from the server
+         * provided "entryUUID" LDAP attribute. The LDAP entry name will be
+         * derived by appending a single RDN to the {@link #baseDN(String) base
+         * DN} composed of the {@code dnAttribute} taken from the LDAP entry
+         * once attribute mapping has been performed.
+         * <p>
+         * Note that this naming policy requires that the server provides the
+         * resource name when creating new resources, which means it must not be
+         * specified in the create request, nor included in the resource
+         * content.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useServerEntryUUIDNaming(final String dnAttribute) {
             return useServerEntryUUIDNaming(at(dnAttribute));
         }
 
+        /**
+         * Indicates that the JSON resource ID must not be provided by the user,
+         * and will not be used for naming the associated LDAP entry. Instead
+         * the JSON resource ID will be taken from the {@code idAttribute} in
+         * the LDAP entry, and the LDAP entry name will be derived by appending
+         * a single RDN to the {@link #baseDN(String) base DN} composed of the
+         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the server provides the
+         * resource name when creating new resources, which means it must not be
+         * specified in the create request, nor included in the resource
+         * content.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @param idAttribute
+         *            The attribute which will be used for JSON resource IDs.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useServerNaming(final AttributeType dnAttribute,
                 final AttributeDescription idAttribute) {
             this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, true);
             return this;
         }
 
+        /**
+         * Indicates that the JSON resource ID must not be provided by the user,
+         * and will not be used for naming the associated LDAP entry. Instead
+         * the JSON resource ID will be taken from the {@code idAttribute} in
+         * the LDAP entry, and the LDAP entry name will be derived by appending
+         * a single RDN to the {@link #baseDN(String) base DN} composed of the
+         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
+         * has been performed.
+         * <p>
+         * Note that this naming policy requires that the server provides the
+         * resource name when creating new resources, which means it must not be
+         * specified in the create request, nor included in the resource
+         * content.
+         *
+         * @param dnAttribute
+         *            The attribute which will be used for naming LDAP entries.
+         * @param idAttribute
+         *            The attribute which will be used for JSON resource IDs.
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useServerNaming(final String dnAttribute, final String idAttribute) {
             return useServerNaming(at(dnAttribute), ad(idAttribute));
         }
 
+        /**
+         * Indicates that all LDAP delete operations should be performed using
+         * the LDAP subtree delete control. The default behavior is to not use
+         * the subtree delete control.
+         *
+         * @return A reference to this LDAP resource collection builder.
+         */
         public Builder useSubtreeDelete() {
             this.useSubtreeDelete = true;
-            return this;
-        }
-
-        public Builder usePermissiveModify() {
-            this.usePermissiveModify = true;
             return this;
         }
 
@@ -558,6 +823,12 @@ public final class Rest2LDAP {
         return ResourceException.getException(resourceResultCode, t.getMessage(), t);
     }
 
+    /**
+     * Returns a builder for incrementally constructing LDAP resource
+     * collections.
+     *
+     * @return An LDAP resource collection builder.
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -582,29 +853,91 @@ public final class Rest2LDAP {
         return configureConnectionFactory(normalizedConfiguration);
     }
 
+    /**
+     * Returns an attribute mapper which maps a single JSON attribute to a JSON
+     * constant.
+     *
+     * @param value
+     *            The constant JSON value (a Boolean, Number, String, Map, or
+     *            List).
+     * @return The attribute mapper.
+     */
     public static AttributeMapper constant(final Object value) {
         return new JSONConstantAttributeMapper(value);
     }
 
+    /**
+     * Returns an attribute mapper which maps JSON objects to LDAP attributes.
+     *
+     * @return The attribute mapper.
+     */
     public static ObjectAttributeMapper object() {
         return new ObjectAttributeMapper();
     }
 
+    /**
+     * Returns an attribute mapper which provides a mapping from a JSON value to
+     * a single DN valued LDAP attribute.
+     *
+     * @param attribute
+     *            The DN valued LDAP attribute to be mapped.
+     * @param baseDN
+     *            The search base DN for performing reverse lookups.
+     * @param primaryKey
+     *            The search primary key LDAP attribute to use for performing
+     *            reverse lookups.
+     * @param mapper
+     *            An attribute mapper which will be used to map LDAP attributes
+     *            in the referenced entry.
+     * @return The attribute mapper.
+     */
     public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
             final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
         return new ReferenceAttributeMapper(attribute, baseDN, primaryKey, mapper);
     }
 
+    /**
+     * Returns an attribute mapper which provides a mapping from a JSON value to
+     * a single DN valued LDAP attribute.
+     *
+     * @param attribute
+     *            The DN valued LDAP attribute to be mapped.
+     * @param baseDN
+     *            The search base DN for performing reverse lookups.
+     * @param primaryKey
+     *            The search primary key LDAP attribute to use for performing
+     *            reverse lookups.
+     * @param mapper
+     *            An attribute mapper which will be used to map LDAP attributes
+     *            in the referenced entry.
+     * @return The attribute mapper.
+     */
     public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
             final String primaryKey, final AttributeMapper mapper) {
         return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
                 AttributeDescription.valueOf(primaryKey), mapper);
     }
 
+    /**
+     * Returns an attribute mapper which provides a simple mapping from a JSON
+     * value to a single LDAP attribute.
+     *
+     * @param attribute
+     *            The LDAP attribute to be mapped.
+     * @return The attribute mapper.
+     */
     public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
         return new SimpleAttributeMapper(attribute);
     }
 
+    /**
+     * Returns an attribute mapper which provides a simple mapping from a JSON
+     * value to a single LDAP attribute.
+     *
+     * @param attribute
+     *            The LDAP attribute to be mapped.
+     * @return The attribute mapper.
+     */
     public static SimpleAttributeMapper simple(final String attribute) {
         return simple(AttributeDescription.valueOf(attribute));
     }
