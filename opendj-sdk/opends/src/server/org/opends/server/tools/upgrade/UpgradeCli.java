@@ -425,7 +425,7 @@ public final class UpgradeCli extends ConsoleApplication implements
               4);
           break;
         case NOTICE_CALLBACK:
-          println(Style.NOTICE, Message.raw(fnc.getMessage()), 0);
+          println(Style.NOTICE, Message.raw(fnc.getMessage()), 1);
           break;
         default:
           LOG.log(SEVERE, "Unsupported message type: "
