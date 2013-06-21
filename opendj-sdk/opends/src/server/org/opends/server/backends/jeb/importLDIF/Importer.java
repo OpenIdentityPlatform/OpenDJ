@@ -1782,21 +1782,20 @@ public final class Importer implements DiskSpaceMonitorHandler
         IndexOutputBuffer.ComparatorBuffer<byte[]> comparator,
         IndexKey indexKey, boolean insert) throws InterruptedException
     {
+      int sizeNeeded = IndexOutputBuffer.getRequiredSize(
+          key.length, entryID.longValue());
       IndexOutputBuffer indexBuffer = indexBufferMap.get(indexKey);
       if (indexBuffer == null)
       {
-        indexBuffer = getNewIndexBuffer();
+        indexBuffer = getNewIndexBuffer(sizeNeeded);
         indexBufferMap.put(indexKey, indexBuffer);
       }
-
-      if (!indexBuffer.isSpaceAvailable(key, entryID.longValue()))
+      else if (!indexBuffer.isSpaceAvailable(key, entryID.longValue()))
       {
-        // TODO Make sure the new indexBuffer has enough space for the
-        // key and ID. cf Bug OPENDJ-746
         indexBuffer.setComparator(comparator);
         indexBuffer.setIndexKey(indexKey);
         bufferSortService.submit(new SortTask(indexBuffer));
-        indexBuffer = getNewIndexBuffer();
+        indexBuffer = getNewIndexBuffer(sizeNeeded);
         indexBufferMap.put(indexKey, indexBuffer);
       }
       int id = System.identityHashCode(container);
@@ -1804,15 +1803,25 @@ public final class Importer implements DiskSpaceMonitorHandler
       return id;
     }
 
-    IndexOutputBuffer getNewIndexBuffer() throws InterruptedException
+    IndexOutputBuffer getNewIndexBuffer(int size)
+        throws InterruptedException
     {
-      IndexOutputBuffer indexBuffer = freeBufferQueue.take();
-      if (indexBuffer == null)
+      IndexOutputBuffer indexBuffer;
+      if (size > bufferSize)
       {
-        Message message =
-            Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                "Index buffer processing error.");
-        throw new InterruptedException(message.toString());
+        indexBuffer = new IndexOutputBuffer(size);
+        indexBuffer.setDiscard();
+      }
+      else
+      {
+        indexBuffer = freeBufferQueue.take();
+        if (indexBuffer == null)
+        {
+          Message message =
+              Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+                  "Index buffer processing error.");
+          throw new InterruptedException(message.toString());
+        }
       }
       if (indexBuffer.isPoison())
       {
