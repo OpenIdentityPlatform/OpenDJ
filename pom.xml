@@ -99,7 +99,7 @@
   <properties>
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
-    <currentServerVersion>${project.version}</currentServerVersion>
+    <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
     <stableServerVersion>2.4.6</stableServerVersion>
     <docTargetVersion>2.6.0</docTargetVersion>
     <sdkDocTargetVersion>2.6.0</sdkDocTargetVersion>
@@ -192,7 +192,7 @@
             <artifactItem>
               <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-log-ref</artifactId>
-              <version>${project.version}</version>
+              <version>${currentServerVersion}</version>
               <type>jar</type>
               <overWrite>true</overWrite>
               <outputDirectory>${project.build.directory}/logref</outputDirectory>
