@@ -469,7 +469,7 @@ public abstract class ConsoleApplication
         out.println();
         break;
       case NOTICE:
-        out.println(wrapText(" * " + msg, MAX_LINE_WIDTH, indent));
+        out.println(wrapText("* " + msg, MAX_LINE_WIDTH, indent));
         break;
       case ERROR:
         out.println();

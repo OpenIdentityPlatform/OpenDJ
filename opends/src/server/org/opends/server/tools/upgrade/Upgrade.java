@@ -630,7 +630,7 @@ public final class Upgrade
     {
       if (LicenseFile.exists())
       {
-        context.notify(Message.raw(LicenseFile.getText()));
+        context.notify(Message.raw("\n" + LicenseFile.getText()));
 
         // If the user asks for no-prompt. We just display the license text.
         // User doesn't asks for no-prompt. We just display the license text
