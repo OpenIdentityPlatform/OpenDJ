@@ -1,7 +1,0 @@
-dn: dc=example,dc=com
-changetype: add
-objectClass: top
-objectClass: domain
-dc: example
-description: test
-
