@@ -135,28 +135,46 @@
     <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
+    
+    <!-- Filtered docbkx sources -->
+    <docbkxSourceDirectory>target/docbkx-filtered</docbkxSourceDirectory>
   </properties>
   <build>
-
-    <!-- Filter XML to allow ${property} in attribute values. -->
-    <resources>
-      <resource>
-        <directory>src/main/docbkx</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>**/*.xml</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/docbkx</directory>
-        <filtering>false</filtering>
-        <excludes>
-          <exclude>**/*.xml</exclude>
-        </excludes>
-      </resource>
-    </resources>
-
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-docbkx-resources</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+              <!-- Filter XML to allow ${property} in attribute values. -->
+              <outputDirectory>${docbkxSourceDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/docbkx</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/*.xml</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>src/main/docbkx</directory>
+                  <filtering>false</filtering>
+                  <excludes>
+                    <exclude>**/*.xml</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -189,7 +207,7 @@
         <version>${frDocPluginVersion}</version>
         <inherited>false</inherited>
         <configuration>
-         <docbkxSourceDirectory>target/classes</docbkxSourceDirectory> <!-- Use filtered XML -->
+         <docbkxSourceDirectory>${docbkxSourceDirectory}</docbkxSourceDirectory> <!-- Use filtered XML -->
          <projectName>OpenDJ</projectName>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
         </configuration>
