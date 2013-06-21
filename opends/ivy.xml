@@ -27,9 +27,9 @@
  ! -->
 <!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version    "2.3">
-    <!ENTITY opendj.sdk.version "2.5.0-SNAPSHOT">
-    <!ENTITY crest.version      "2.0.0-SNAPSHOT">
+    <!ENTITY grizzly.version    "2.3.3">
+    <!ENTITY opendj.sdk.version "2.6.0">
+    <!ENTITY crest.version      "2.0.0">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
