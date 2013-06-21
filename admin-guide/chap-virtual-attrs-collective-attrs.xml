@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-virtual-attrs-collective-attrs'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Virtual and Collective Attributes</title>
+
+ <para>OpenDJ supports virtual attributes with dynamically generated values.
+ Virtual attributes are used by the server. You can also define your own.
+ OpenDJ also supports standard collective attributes as described in
+ <link xlink:href='http://tools.ietf.org/html/rfc3671'>RFC 3671</link>,
+ allowing entries to share common, read-only attribute values.</para>
+
+ <para>This chapter demonstrates how to define virtual and collective
+ attributes, showing common solutions as examples of their use.</para>
+ 
+ <section xml:id="virtual-attributes">
+  <title>Virtual Attributes</title>
+  <indexterm><primary>Virtual attributes</primary></indexterm>
+  
+  <para>OpenDJ defines a number of virtual attributes by default.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><literal>entryDN</literal></term>
+    <listitem><para>The value is the DN of the entry.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>entryUUID</literal></term>
+    <listitem><para>Provides a universally unique identifier for the
+    entry.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>etag</literal></term>
+    <listitem>
+     <para>Entity tag as defined in <link xlink:show="new"
+     xlink:href="http://tools.ietf.org/html/rfc2616#section-3.11"
+     >RFC 2616</link>, useful for checking whether an entry has changed since
+     you last read it from the directory.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>hasSubordinates</literal></term>
+    <listitem><para>Boolean. Whether the entry has children.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>numSubordinates</literal></term>
+    <listitem><para>Provides the number of direct child entries.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>isMemberOf</literal></term>
+    <listitem>
+     <para>Identifies groups the entry belongs to.</para>
+     <para>By default OpenDJ generates <literal>isMemberOf</literal> on user
+     entries (entries that have the object class <literal>person</literal>), and
+     on group entries (entries that have the object class
+     <literal>groupOfNames</literal>, <literal>groupOfUniqueNames</literal>, or
+     <literal>groupOfEntries</literal>). You can change this by editing
+     the filter property of the <literal>isMemberOf</literal> virtual
+     attribute configuration.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>member</literal></term>
+    <listitem><para>Generated for virtual static groups.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>uniqueMember</literal></term>
+    <listitem><para>Generated for virtual static groups.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>pwdPolicySubentry</literal></term>
+    <listitem>
+     <para>Identifies the password policy that applies to the
+     entry.</para>
+     <para>By default OpenDJ assigns <firstterm>root DN</firstterm> users
+     the password policy with DN <literal>cn=Root Password Policy,cn=Password
+     Policies,cn=config</literal> and regular users the password policy with DN
+     <literal>cn=Default Password Policy,cn=Password
+     Policies,cn=config</literal>. See <link
+     xlink:href="admin-guide#chap-pwd-policy"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+     Password Policy</citetitle></link> for information on configuring and
+     assigning password policies.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>subschemaSubentry</literal></term>
+    <listitem><para>References the schema definitions.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>collectiveAttributeSubentries</literal></term>
+    <listitem><para>References applicable collective attribute
+    definitions.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>governingStructureRule</literal></term>
+    <listitem><para>References the rule on what type of subordinates the entry
+    can have.</para></listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>structuralObjectClass</literal></term>
+    <listitem><para>References the structural object class for the
+    entry.</para></listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>These virtual attributes are typically operational, so you get them
+  back from a search only when you request them.</para>
+  
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example
+dn: dc=example,dc=com
+dc: example
+objectClass: domain
+objectClass: top
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example numSubordinates
+dn: dc=example,dc=com
+numSubordinates: 4
+</screen>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Not for virtual attributes</secondary>
+  </indexterm>
+  
+  <para>You can use the existing virtual attribute types to create your
+  own virtual attributes, and you can also use the
+  <literal>user-defined</literal> type to create your own. The virtual
+  attribute is defined by the server configuration, which is not
+  replicated.</para>
+  
+  <screen>$ dsconfig
+ create-virtual-attribute
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --name "Served By Description"
+ --type user-defined
+ --set enabled:true
+ --set attribute-type:description
+ --set base-dn:dc=example,dc=com
+ --set value:"Served by OpenDJ.Example.com"
+ --trustAll
+ --no-prompt
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Served by OpenDJ.Example.com
+</screen>
+  
+  <para>Collective attributes cover many use cases better than virtual
+  attributes.</para>
+ </section>
+
+ <section xml:id="collective-attributes">
+  <title>Collective Attributes</title>
+  <indexterm><primary>Collective attributes</primary></indexterm>
+  
+  <para>Collective attributes provide a standard mechanism for defining
+  attributes that appear on all the entries in a subtree potentially filtered
+  by object class. Standard collective attribute type names have the prefix
+  <literal>c-</literal>.</para>
+
+  <para>OpenDJ extends collective attributes to make them easier to use.
+  You can define any OpenDJ attribute as collective using the
+  <literal>;collective</literal> attribute option. You can use LDAP filters
+  in your subtree specification for fine-grained control over which entries
+  have the collective attributes.</para>
+
+  <para>You can have entries inherit attributes from other entries using
+  collective attributes. You establish the relationship between entries either
+  by specifying another attribute of the entry that specifies the DN of the
+  entry from which to inherit the attributes, or by specifying how to construct
+  the RDN of the entry from which to inherit the attributes.</para>
+
+  <itemizedlist>
+   <para><link xlink:href="admin-guide#change-group-privileges"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Add Privileges
+   For a Group of Administrators</citetitle></link> demonstrates setting
+   administrative privileges in OpenDJ using collective attributes. The
+   following examples demonstrate additional ways to use collective
+   attributes in OpenDJ.</para>
+   <listitem><para><xref linkend="example-collective-attrs-cos" /></para></listitem>
+   <listitem><para><xref linkend="example-dept-from-manager" /></para></listitem>
+   <listitem><para><xref linkend="example-inherit-from-locality" /></para></listitem>
+  </itemizedlist>
+
+  <example xml:id="example-collective-attrs-cos"><?dbfo keep-together="auto"?>
+   <title>Class of Service With Collective Attributes</title>
+
+   <para>This example defines attributes that specify services available to
+   a user depending on that user's service level.</para>
+
+    <note>
+     <para>The following example depends on the <literal>cos</literal> object
+     class, and the <literal>classOfService</literal> attribute type defined but
+     commented out in the <link xlink:show="new"
+     xlink:href="http://opendj.forgerock.org/Example.ldif"><filename
+     >Example.ldif</filename></link> file imported as sample data. To try this
+     example for yourself, add the attribute type and object class definitions
+     in comments near the top of the file, and then uncomment the
+     <literal>objectClass: cos</literal> and <literal>classOfService</literal>
+     attribute lines in <filename>Example.ldif</filename> before importing
+     the data into OpenDJ.</para>
+    </note>
+
+    <para>This example positions collective attributes that depend on the
+    <literal>classOfService</literal> attribute values.</para>
+
+    <itemizedlist>
+     <listitem>
+      <para>For entries with <literal>classOfService: bronze</literal>,
+      <literal>mailQuota</literal> is set to 1 GB, and
+      <literal>diskQuota</literal> is set to 10 GB.</para>
+     </listitem>
+     <listitem>
+      <para>For entries with <literal>classOfService: silver</literal>,
+      <literal>mailQuota</literal> is set to 5 GB, and
+      <literal>diskQuota</literal> is set to 50 GB.</para>
+     </listitem>
+     <listitem>
+      <para>For entries with <literal>classOfService: gold</literal>,
+      <literal>mailQuota</literal> is set to 10 GB, and
+      <literal>diskQuota</literal> is set to 100 GB.</para>
+     </listitem>
+    </itemizedlist>
+
+    <para>You define collective attributes in the user data using a subentry.
+    In other words, collective attributes can be replicated. Collective
+    attributes use attributes defined in the directory schema. First, add the
+    <literal>mailQuote</literal> and <literal>diskQuota</literal> attributes,
+    and adjust the definition of the <literal>cos</literal> object class to
+    allow the two quota attributes.</para>
+
+    <screen>$ cat quotas.ldif 
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( example-class-of-service-attribute-type NAME 'classOfService
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnore
+ SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+add: attributeTypes
+attributeTypes: ( example-class-of-service-disk-quota NAME 'diskQuota
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+add: attributeTypes
+attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
+ ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+ IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+ Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+-
+add: objectClasses
+objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
+ ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
+ umentation Examples' )
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename quotas.ldif
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema</screen>
+
+    <para>Use the following collective attribute definitions to set the quotas
+    depending on class of service.</para>
+
+    <programlisting language="ldif"># cos.ldif: quotas by class of service
+dn: cn=Bronze Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Bronze Class of Service
+diskQuota;collective: 10 GB
+mailQuota;collective: 1 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Silver Class of Service
+diskQuota;collective: 50 GB
+mailQuota;collective: 5 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Gold Class of Service
+diskQuota;collective: 100 GB
+mailQuota;collective: 10 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+</programlisting>
+
+    <para>You can add the collective attribute subentries by using the
+    <command>ldapmodify</command> command.</para>
+
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename cos.ldif
+Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Bronze Class of Service,dc=example,dc=com
+Processing ADD request for cn=Silver Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Silver Class of Service,dc=example,dc=com
+Processing ADD request for cn=Gold Class of Service,dc=example,dc=com
+ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</screen>
+
+    <para>With the collective attributes defined, you can see the results on
+    user entries.</para>
+
+    <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=bjensen
+ classOfService mailQuota diskQuota
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mailQuota: 1 GB
+classOfService: bronze
+diskQuota: 10 GB
+
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=kvaughan
+ classOfService mailQuota diskQuota
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+mailQuota: 5 GB
+classOfService: silver
+diskQuota: 50 GB
+
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=scarter
+ classOfService mailQuota diskQuota
+dn: uid=scarter,ou=People,dc=example,dc=com
+mailQuota: 10 GB
+classOfService: gold
+diskQuota: 100 GB</screen>
+  </example>
+
+  <example xml:id="example-dept-from-manager"><?dbfo keep-together="auto"?>
+   <title>Inheriting an Attribute From the Manager's Entry</title>
+
+   <para>This example demonstrates how to have OpenDJ set an employee's
+   department number using the manager's department number. To try the example,
+   first import <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   xlink:show="new"><filename>Example.ldif</filename></link> into OpenDJ in
+   order to load the appropriate sample data.</para>
+
+   <para>For this example the relationship between employee entries and manager
+   entries is based on the manager attributes on employee entries. Each
+   <literal>manager</literal> attribute on an employee's entry specifies the
+   DN of the manager's entry. OpenDJ retrieves the department number from the
+   manager's entry to populate the attribute on the employee's entry.</para>
+
+   <para>The collective attribute subentry that specifies the relationship
+   looks like this:</para>
+
+   <programlisting language="ldif"
+   >dn: cn=Inherit Department Number From Manager,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromDNCollectiveAttributeSubentry
+cn: Inherit Department Number From Manager
+subtreeSpecification: { base "ou=People" }
+inheritFromDNAttribute: manager
+inheritAttribute: departmentNumber
+
+</programlisting>
+
+   <para>This entry specifies that users inherit department number from their
+   manager.</para>
+
+   <para>As seen in <filename>Example.ldif</filename>, Babs Jensen's manager
+   is Torrey Rigden.</para>
+
+   <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+manager: uid=trigden, ou=People, dc=example,dc=com</programlisting>
+
+   <para>Torrey's department number is 3001.</para>
+
+   <programlisting language="ldif">dn: uid=trigden,ou=People,dc=example,dc=com
+departmentNumber: 3001</programlisting>
+
+   <para>Babs inherits her department number from Torrey.</para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen
+ departmentNumber
+dn: uid=bjensen,ou=People,dc=example,dc=com
+departmentNumber: 3001</screen>
+  </example>
+
+  <example xml:id="example-inherit-from-locality"><?dbfo keep-together="auto"?>
+   <title>Inheriting Attributes From the Locality</title>
+
+   <para>This example demonstrates how to have OpenDJ set a user's language
+   preferences and street address based on locality. To try the example, first
+   import <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   xlink:show="new"><filename>Example.ldif</filename></link> into OpenDJ in
+   order to load the appropriate sample data.</para>
+
+   <para>For this example the relationship between entries is based on locality.
+   The collective attribute subentry specifies how to construct the RDN of the
+   object holding the attribute values to inherit.</para>
+
+   <programlisting language="ldif"
+   >dn: cn=Inherit From Locality,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromRDNCollectiveAttributeSubentry
+cn: Inherit From Locality
+subtreeSpecification: { base "ou=People" }
+inheritFromBaseRDN: ou=Locations
+inheritFromRDNAttribute: l
+inheritFromRDNType: l
+inheritAttribute: preferredLanguage
+inheritAttribute: street
+collectiveConflictBehavior: real-overrides-virtual
+
+</programlisting>
+
+   <para>This specifies that the RDN of the entry from which to inherit
+   attributes is like <literal>l=<replaceable
+   >localityName</replaceable>,ou=Locations</literal>, where <replaceable
+   >localityName</replaceable> is the value of the <literal>l</literal>
+   (<literal>localityName</literal>) attribute on the user's entry.</para>
+
+   <para>In other words, if the user's entry has <literal>l: Bristol</literal>,
+   then the RDN of the entry from which to inherit attributes starts with
+   <literal>l=Bristol,ou=Locations</literal>. The actual entry looks like
+   this:</para>
+
+   <programlisting language="ldif">dn: l=Bristol,ou=Locations,dc=example,dc=com
+objectClass: top
+objectClass: locality
+objectClass: extensibleObject
+l: Bristol
+street: 60 Queen Square
+preferredLanguage: en-gb
+
+</programlisting>
+
+   <para>The subentry also specifies two attributes to inherit for preferred
+   language and street address.</para>
+
+   <para>The object class <literal>extensibleObject</literal> is added to allow
+   the entry to take a preferred language.<footnote><para>The object class
+   <literal>extensibleObject</literal> means, "Let me add whatever attributes
+   I want." It is usually better practice to add your own auxiliary object class
+   if you need to decorate an entry with more attributes. The shortcut is taken
+   here as the focus of this example is not schema extension, but instead how
+   to use collective attributes.</para></footnote></para>
+
+   <para>Notice the last line of the collective attribute subentry:</para>
+
+   <literallayout class="monospaced"
+   >collectiveConflictBehavior: real-overrides-virtual</literallayout>
+
+   <para>This line says that if a collective attribute clashes with a real
+   attribute, the real value takes precedence over the virtual, collective
+   value. You can also set <literal>collectiveConflictBehavior</literal> to
+   <literal>virtual-overrides-real</literal> for the opposite precedence, or to
+   <literal>merge-real-and-virtual</literal> to keep both sets of values.</para>
+
+   <para>Here, users can set their own language preferences. When users set
+   language preferences manually, the collective attribute subentry is
+   configured to give the user's settings precedence over the locality-based
+   setting, which is only a default guess.</para>
+
+   <para>Sam Carter is located in Bristol. Sam has specified no preferred
+   languages.</para>
+
+   <programlisting language="ldif">dn: uid=scarter,ou=People,dc=example,dc=com
+l: Bristol</programlisting>
+
+   <para>Sam inherits both the street address and also preferred language from
+   the Bristol locality.</para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=scarter
+ preferredLanguage street
+dn: uid=scarter,ou=People,dc=example,dc=com
+preferredLanguage: en-gb
+street: 60 Queen Square</screen>
+
+   <para>Babs's locality is San Francisco. Babs prefers English, but also knows
+   Korean.</para>
+
+   <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+preferredLanguage: en, ko;q=0.8
+l: San Francisco</programlisting>
+
+   <para>Babs inherits the street address from the San Francisco locality, but
+   keeps her language preferences.</para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen
+ preferredLanguage street
+dn: uid=bjensen,ou=People,dc=example,dc=com
+preferredLanguage: en, ko;q=0.8
+street: 500 3rd Street</screen>
+  </example>
+ </section>
+</chapter>

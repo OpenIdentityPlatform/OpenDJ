@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+ <screen xml:id="upgrade-earliest-supported"
+          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'
+          xmlns:xinclude='http://www.w3.org/2001/XInclude'
+>$ cd /path/to
+$ ls
+OpenDJ-2.4.5
+$ ./OpenDJ-2.4.5/bin/stop-ds --quiet
+... msg=The backend userRoot is now taken offline
+... msg=The Directory Server is now stopped
+$ zip -rq OpenDJ-backup.zip OpenDJ-2.4.5
+$ unzip -q ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip
+$ cp -r opendj/* OpenDJ-2.4.5/
+$ rm -rf opendj
+$ mv OpenDJ-2.4.5 opendj
+$ ./opendj/upgrade --no-prompt
+
+>>>> OpenDJ Upgrade Utility
+
+ * OpenDJ will be upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+>>>> Preparing to upgrade
+
+  OpenDJ <?eval ${docTargetVersion}?> modified the default configuration of the 'isMemberOf' virtual
+  attribute so that it is included with group entries. This was done in order
+  to make it easier for users to determine which groups a 'nested' group
+  belongs to.
+  Do you want to make this configuration change? (yes/no) yes
+
+  The upgrade is ready to proceed. Do you wish to continue? (yes/no) yes
+
+
+>>>> Performing upgrade
+
+  Fixing de-DE collation matching rule OID............................   100%
+  Updating password policy configurations.............................   100%
+  Updating audit log publisher configuration..........................   100%
+  Adding 'etag' virtual attribute schema..............................   100%
+  Configuring 'etag' virtual attribute................................   100%
+  Configuring 'ds-pwp-password-expiration-time' virtual attribute.....   100%
+  Updating certificate syntax configuration...........................   100%
+  Updating JPEG syntax configuration..................................   100%
+  Updating country string syntax configuration........................   100%
+  Modifying filter in 'isMemberOf' virtual attribute configuration....   100%
+  Updating dictionary password validator configuration................   100%
+  Updating attribute value password validator configuration...........   100%
+  Adding PBKDF2 password storage scheme configuration.................   100%
+  Adding 'http-config.json' configuration file........................   100%
+  Adding HTTP connection handler configuration........................   100%
+  Adding file-based HTTP access logger................................   100%
+  Replacing schema file '02-config.ldif'..............................   100%
+  Archiving concatenated schema.......................................   100%
+
+>>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+$ ./opendj/bin/start-ds --quiet
+$ </screen>

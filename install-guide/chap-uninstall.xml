@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-uninstall'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Removing OpenDJ Servers</title>
+ <indexterm><primary>Uninstalling</primary></indexterm>
+ 
+ <para>Remove OpenDJ directory server software with the
+ <command>uninstall</command> command.</para>
+ 
+ <procedure xml:id="uninstall-gui">
+  <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
+  <step>
+   <para>(UNIX) Run
+   <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall</command>.</para>
+   <para>(Windows) Double-click
+   <filename>OpenDJ-<?eval ${docTargetVersion}?>\uninstall.bat</filename>.</para>
+   <para>(Mac OS X) Double-click
+   <filename>OpenDJ-<?eval ${docTargetVersion}?>/Uninstall.app</filename>.</para>
+
+   <mediaobject xml:id="figure-uninstall-start">
+    <imageobject>
+     <imagedata fileref="images/uninstall-start.png" format="PNG" />
+    </imageobject>
+    <caption>
+     <para>Select what to remove in the initial screen.</para>
+    </caption>
+   </mediaobject>
+  </step>
+
+  <step>
+   <para>When the process is finished, you might still have some files
+   to remove manually.</para>
+   
+   <mediaobject xml:id="figure-uninstall-finished">
+    <imageobject>
+     <imagedata fileref="images/uninstall-finished.png" format="PNG" />
+    </imageobject>
+   </mediaobject>
+  </step>
+ </procedure>
+
+ <procedure xml:id="uninstall-cli">
+  <title>To Uninstall OpenDJ On the Command Line</title>
+  
+  <step>
+   <para>Login as the user who installed and runs the server.</para>
+  </step>
+  
+  <step>
+   <para>Run the <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall
+   --cli</command> command.</para>
+   
+   <para>This command starts the removal program in interactive mode on the
+   command line, prompting you for each option. Alternatively, use additional
+   <command>uninstall</command> options to specify choices for the options.
+   See <command>uninstall --help</command> for more information.</para>
+   
+   <screen>$ cd /path/to/opendj
+$ ./uninstall --cli
+Do you want to remove all components of the server or select the components to
+remove?
+
+    1)  Remove all components
+    2)  Select the components to be removed
+
+    q)  quit
+
+Enter choice [1]: 
+
+The server is currently running and must be stopped before uninstallation can
+continue.
+Stop the Server and permanently delete the files? (yes / no) [yes]: 
+
+Stopping Directory Server ..... Done.
+Deleting Files under the Installation Path ..... Done.
+
+The Uninstall Completed Successfully.
+To complete the uninstallation, you must delete manually the following files
+and directories:
+/path/to/opendj/lib
+See /var/....log for a detailed log of this operation.</screen>
+  </step>
+
+  <step>
+   <para>If the command output tells you to delete files manually, then remove
+   those remaining files to complete the process.</para>
+ 
+   <screen>$ rm -rf /path/to/opendj</screen>
+  </step>
+ </procedure>
+
+ <procedure xml:id="uninstall-deb">
+  <title>To Uninstall the Debian Package</title>
+  <indexterm><primary>Debian (.deb) package</primary></indexterm>
+
+  <para>When you uninstall the Debian package from the command line, OpenDJ
+  directory server is stopped if it is running.</para>
+
+  <step>
+   <para>Remove the package from your system.</para>
+
+   <screen>$ sudo dpkg -r opendj
+(Reading database ... 185725 files and directories currently installed.)
+Removing opendj ...
+*Stopping OpenDJ server...
+Stopping Server...
+[03/Jun/2013:10:00:49 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+
+*OpenDJ successfully removed
+
+$ </screen>
+
+   <para>Removing the package does not remove your data or configuration.
+    You must remove <filename>/opt/opendj</filename> manually to get rid of
+    all files.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="uninstall-rpm">
+  <title>To Uninstall the RPM Package</title>
+  <indexterm><primary>Red Hat (.rpm) package</primary></indexterm>
+
+  <para>When you uninstall the RPM package from the command line, OpenDJ
+  directory server is stopped if it is running.</para>
+
+  <step>
+   <para>Remove the package from your system.</para>
+
+   <screen># rpm -e opendj-<?eval ${docTargetVersion}?>.noarch.rpm
+Pre Uninstall - uninstall
+Stopping Server...
+[03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+Post Uninstall - uninstall
+OpenDJ successfully removed.
+# </screen>
+
+   <para>Removing the package does not remove your data or configuration.
+   You must remove <filename>/opt/opendj</filename> manually to get rid of
+   all files.</para>
+  </step>
+ </procedure>
+</chapter>

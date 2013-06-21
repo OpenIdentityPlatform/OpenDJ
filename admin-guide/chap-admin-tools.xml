@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-admin-tools'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Administration Interfaces &amp; Tools</title>
+
+ <para>OpenDJ server software installs with a cross-platform, Java Swing-based
+ Control Panel for many day-to-day tasks. OpenDJ server software also installs
+ command-line tools for configuration and management tasks.</para>
+ 
+ <para>This chapter is one of the few to include screen shots of the control
+ panel. Most examples make use of the command-line tools. Once you understand
+ the concepts, and how to perform a task using the command-line tools, you
+ no doubt need no more than to know where to start in the Control Panel to
+ accomplish what you set out to do.</para>
+ 
+ <para>At a protocol level, administration tools and interfaces connect to
+ servers through a different network port than that used to listen for traffic
+ from other client applications.</para>
+ 
+ <para>This chapter takes a quick look at the tools for managing directory
+ services.</para>
+ 
+ <section xml:id="control-panel">
+  <title>Control Panel</title>
+  <indexterm><primary>Control panel</primary></indexterm>
+  <para>OpenDJ Control Panel offers a graphical user interface for
+  managing both local and remote servers. You choose the server to manage
+  when you start the Control Panel. The Control Panel connects to the
+  administration server port, making a secure LDAPS connection.</para>
+  
+  <itemizedlist>
+   <para>Start OpenDJ Control Panel.</para>
+   <listitem>
+    <para>(UNIX) Run <command>opendj/bin/control-panel</command>.</para>
+   </listitem>
+   <listitem>
+    <para>(Windows) Double-click <filename>opendj\bat\control-panel.bat</filename>.</para>
+   </listitem>
+   <listitem>
+    <para>(Mac OS X) Double-click <filename>opendj/bin/ControlPanel.app</filename>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>When you login to OpenDJ Control Panel, you authenticate over LDAP.
+  This means that if users can run the Control Panel, they can use it to manage
+  a running server. Yet, to start and stop the server process through OpenDJ
+  Control Panel, you must start the Control Panel on the system where OpenDJ
+  runs, as the user who owns the OpenDJ server files (such as the user who
+  installed OpenDJ). In other words, the OpenDJ Control Panel does not do
+  remote process management.</para>
+  
+  <mediaobject xml:id="figure-opendj-control-panel">
+   <imageobject>
+    <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
+   </imageobject>
+   <caption><para>OpenDJ Control Panel displays key information about the
+   server.</para></caption>
+  </mediaobject>
+
+  <variablelist>
+   <para>Down the left side of OpenDJ Control Panel, notice what you can
+   configure.</para>
+   <varlistentry>
+    <term>Directory Data</term>
+    <listitem>
+     <para>Directory data provisioning is typically not something you do
+     by hand in most deployments. Usually entries are created, modified, and
+     deleted through specific directory client applications. The Manage
+     Entries window can be useful, however, both in the lab as you design
+     and test directory data, and also if you modify individual ACIs or
+     debug issues with particular entries.</para>
+     <mediaobject xml:id="figure-manage-entries">
+      <imageobject>
+       <imagedata fileref="images/Manage-Entries.png" format="PNG" />
+      </imageobject>
+      <caption><para>The Manage Entries window can check that your changes are
+     valid before sending the request to the directory.</para></caption>
+     </mediaobject>
+     <para>Additionally, the Directory Data list makes it easy to create
+     a new base DN, and then import user data for the new base DN from LDIF.
+     You can also use the tools in the list to export user data to LDIF,
+     and to backup and restore user data.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Schema</term>
+    <listitem>
+     <para>The Manage Schema window lets you browse and modify the rules
+     that define how data is stored in the directory. You can add new schema
+     definitions such as new attribute types and new object classes while the
+     server is running, and the changes you make take effect immediately.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Indexes</term>
+    <listitem>
+     <para>The Manage Indexes window gives you a quick overview of all
+     the indexes currently maintained for directory attributes. To protect
+     your directory resources from being absorbed by costly searches on
+     unindexed attributes, you may choose to keep the default behavior,
+     preventing unindexed searches, instead adding indexes required by specific
+     applications. (Notice that if the number of user data entries is smaller
+     than the default resource limits, you can still perform what appear
+     to be unindexed searches. That is because the <literal>dn2id</literal>
+     index returns all user data entries without hitting a resource limit that
+     would make the search unindexed.)</para>
+     <para>OpenDJ Control Panel also allows you to verify and rebuild
+     existing indexes, which you may have to do after an upgrade operation,
+     or if you have reason to suspect index corruption.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Monitoring</term>
+    <listitem>
+     <para>The Monitoring list gives you windows to observe information
+     about the system, the JVM used, and indications about how the cache is
+     used, whether the work queue has been filling up, as well as details
+     about the database. You can also view the numbers and types of requests
+     arriving over the connection handlers, and the current tasks in progress
+     as well.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Runtime Options</term>
+    <listitem>
+     <para>If you did not set appropriate JVM runtime options during the
+     installation process, this is the list that allows you to do so through
+     the Control Panel.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+   
+ </section>
+
+ <section xml:id="cli-overview">
+  <title>Command-Line Tools</title>
+  <indexterm><primary>Commands</primary></indexterm>
+  
+  <para>All OpenDJ command-line tools take the <option>--help</option> option.</para>
+  
+  <para>All commands call Java programs and therefore involve starting a
+  JVM.</para>
+  
+  <itemizedlist>
+   <para>Setup, upgrade, and uninstall tools are located in the directory where
+   you unpacked OpenDJ, such as <filename>/path/to/opendj</filename>. Find the
+   additional command-line tools for your platform.</para>
+   <listitem>
+    <para>(UNIX) In <filename>opendj/bin</filename>.</para>
+   </listitem>
+   <listitem>
+    <para>(Windows) In <filename>opendj\bat</filename>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>The following list uses the UNIX names for the tools. On Windows
+  all command-line tools have the extension .bat.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#backup-1"
+    xlink:role="http://docbook.org/xlink/role/olink">backup</link></term>
+    <listitem>
+     <para>Backup or schedule backup of directory data.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#base64-1"
+    xlink:role="http://docbook.org/xlink/role/olink">base64</link></term>
+    <listitem>
+     <para>Encode and decode data in base64 format.</para>
+     <para>Base64 encoding represents binary data in ASCII, and can be used to
+     encode character strings in LDIF, for example.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#create-rc-script-1"
+    xlink:role="http://docbook.org/xlink/role/olink">create-rc-script</link>
+    (UNIX)</term>
+    <listitem>
+     <para>Generate a script you can use to start, stop, and restart the server
+     either directly or at system boot and shutdown. Use <command>create-rc-script -f
+     <replaceable>script-file</replaceable></command>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#dbtest-1"
+    xlink:role="http://docbook.org/xlink/role/olink">dbtest</link></term>
+    <listitem>
+     <para>Debug JE databases.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#dsconfig-1"
+    xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link></term>
+    <listitem>
+     <para>The <command>dsconfig</command> command is the primary command-line
+     tool for viewing and editing OpenDJ configuration. When started without
+     arguments, <command>dsconfig</command> prompts you for administration
+     connection information. Once connected it presents you with a menu-driven
+     interface to the server configuration.</para>
+     <para>When you pass connection information, subcommands, and additional
+     options to <command>dsconfig</command>, the command runs in script mode
+     and so is not interactive.</para>
+     <para>You can prepare <command>dsconfig</command> batch scripts by running
+     the tool with the <option>--commandFilePath</option> option in interactive
+     mode, then reading from the batch file with the
+     <option>--batchFile</option> option in script mode. Batch files can be
+     useful when you have many <command>dsconfig</command> commands to run
+     and want to avoid starting the JVM and setting up a new connection for
+     each command.</para>
+     <para>In addition to the <link xlink:href="admin-guide#dsconfig-1"
+     xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
+     that covers subcommands, the <link xlink:show="new"
+     xlink:href="${configRefBase}"
+     ><citetitle>Configuration Reference</citetitle></link> covers the
+     properties you can set using the <command>dsconfig</command>
+     command.</para>
+    </listitem>
+   </varlistentry>
+<!--
+   <varlistentry>
+    <term><link xlink:href="admin-guide#dsframework-1"
+    xlink:role="http://docbook.org/xlink/role/olink">dsframework</link></term>
+    <listitem>
+     <para>Manage server registration, server groups, and administrative
+     users.</para>
+    </listitem>
+   </varlistentry>
+-->
+   <varlistentry>
+    <term><link xlink:href="admin-guide#dsjavaproperties-1"
+    xlink:role="http://docbook.org/xlink/role/olink">dsjavaproperties</link></term>
+    <listitem>
+     <para>Apply changes you make to
+     <filename>opendj/config/java.properties</filename>, which sets Java
+     runtime options.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#dsreplication-1"
+    xlink:role="http://docbook.org/xlink/role/olink">dsreplication</link></term>
+    <listitem>
+     <para>Configure data replication between directory servers to keep their
+     contents in sync.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#encode-password-1"
+    xlink:role="http://docbook.org/xlink/role/olink">encode-password</link></term>
+    <listitem>
+     <para>Encode a clear text password according to one of the available
+     storage schemes.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#export-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink">export-ldif</link></term>
+    <listitem>
+     <para>Export directory data to LDAP Data Interchange Format, a standard,
+     portable, text-based representation of directory content.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#import-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink">import-ldif</link></term>
+    <listitem>
+     <para>Load LDIF content into the directory, overwriting existing
+     data.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldapcompare-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldapcompare</link></term>
+    <listitem>
+     <para>Compare the attribute values you specify with those stored on
+     entries in the directory.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldapdelete-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldapdelete</link></term>
+    <listitem>
+     <para>Delete one entry or an entire branch of subordinate entries in the
+     directory.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldapmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldapmodify</link></term>
+    <listitem>
+     <para>Modify the specified attribute values for the specified
+     entries.</para>
+     <para>Use the <command>ldapmodify</command> command with the
+     <option>-a</option> option to add new entries.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldappasswordmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldappasswordmodify</link></term>
+    <listitem>
+     <para>Modify user passwords.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldapsearch-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldapsearch</link></term>
+    <listitem>
+     <para>Search a branch of directory data for entries matching the LDAP
+     filter that you specify.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldif-diff-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldif-diff</link></term>
+    <listitem>
+     <para>Display differences between two LDIF files, with the resulting output
+     having LDIF format.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldifmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldifmodify</link></term>
+    <listitem>
+     <para>Similar to the <command>ldapmodify</command> command, modify
+     specified attribute values for specified entries in an LDIF file.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#ldifsearch-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldifsearch</link></term>
+    <listitem>
+     <para>Similar to the <command>ldapsearch</command> command, search a branch
+     of data in LDIF for entries matching the LDAP filter you specify.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#list-backends-1"
+    xlink:role="http://docbook.org/xlink/role/olink">list-backends</link></term>
+    <listitem>
+     <para>List backends and base DNs served by OpenDJ.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#make-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link></term>
+    <listitem>
+     <para>Generate directory data in LDIF, based on templates that define how
+     the data should appear.</para>
+     <para>The <command>make-ldif</command> command is designed to help you
+     quickly generate test data that mimics data you expect to have in
+     production, but without compromising private information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#manage-account-1"
+    xlink:role="http://docbook.org/xlink/role/olink">manage-account</link></term>
+    <listitem>
+     <para>Lock and unlock user accounts, and view and manipulate password
+     policy state information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#manage-tasks-1"
+    xlink:role="http://docbook.org/xlink/role/olink">manage-tasks</link></term>
+    <listitem>
+     <para>View information about tasks scheduled to run in the server, and
+     cancel specified tasks.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#rebuild-index-1"
+    xlink:role="http://docbook.org/xlink/role/olink">rebuild-index</link></term>
+    <listitem>
+     <para>Rebuild an index stored in a JE backend.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#restore-1"
+    xlink:role="http://docbook.org/xlink/role/olink">restore</link></term>
+    <listitem>
+     <para>Restore user data from backup.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#start-ds-1"
+    xlink:role="http://docbook.org/xlink/role/olink">start-ds</link></term>
+    <listitem>
+     <para>Start OpenDJ directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#status-1"
+    xlink:role="http://docbook.org/xlink/role/olink">status</link></term>
+    <listitem>
+     <para>Display information about the server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#stop-ds-1"
+    xlink:role="http://docbook.org/xlink/role/olink">stop-ds</link></term>
+    <listitem>
+     <para>Stop OpenDJ directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><link xlink:href="admin-guide#verify-index-1"
+    xlink:role="http://docbook.org/xlink/role/olink">verify-index</link></term>
+    <listitem>
+     <para>Verify that an index stored in a JE backend is not corrupt.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>windows-service.bat (Windows)</term>
+    <listitem>
+     <para>Register OpenDJ as a Windows Service.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+</chapter>

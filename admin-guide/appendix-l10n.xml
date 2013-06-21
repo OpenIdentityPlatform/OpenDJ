@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<appendix xml:id='appendix-l10n'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Localization</title>
+
+ <para>OpenDJ software stores data in UTF-8 format. It enables you to store
+ and to search for attribute values according to a variety of language
+ specific locales. OpenDJ software is also itself localized for a smaller
+ variety of languages.</para>
+ 
+ <section xml:id="supported-languages">
+  <title>OpenDJ Languages</title>
+  <indexterm><primary>Languages</primary></indexterm>
+  <para>OpenDJ <?eval ${docTargetVersion}?> software has been localized
+  in the following languages.</para>
+  
+  <itemizedlist>
+    <listitem><para>French</para></listitem>
+    <listitem><para>German</para></listitem>
+    <listitem><para>Japanese</para></listitem>
+    <listitem><para>Simplified Chinese</para></listitem>
+    <listitem><para>Spanish</para></listitem>
+  </itemizedlist>
+   
+  <note>
+   <para>Certain messages have also been translated into Catalan, Korean,
+   Polish, and Traditional Chinese. Some error messages including messages
+   labeled SEVERE and FATAL are provided only in English.</para>
+  </note>
+ </section>
+ 
+ <section xml:id="supported-locales">
+  <title>Directory Support For Locales and Language Subtypes</title>
+  <indexterm><primary>Locales</primary></indexterm>
+  <para>OpenDJ software supports the following locales, with their
+  associated language and country codes, and their collation order
+  object identifiers. Locale support depends on the underlying Java
+  Virtual Machine.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term>Albanian</term>
+    <listitem>
+     <para>Code tag: sq</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.127.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic</term>
+    <listitem>
+     <para>Code tag: ar</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.3.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Algeria)</term>
+    <listitem>
+     <para>Code tag: ar-DZ</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.6.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Bahrain)</term>
+    <listitem>
+     <para>Code tag: ar-BH</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.5.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Egypt)</term>
+    <listitem>
+     <para>Code tag: ar-EG</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.7.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Iraq)</term>
+    <listitem>
+     <para>Code tag: ar-IQ</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.9.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Jordan)</term>
+    <listitem>
+     <para>Code tag: ar-JO</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.10.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Kuwait)</term>
+    <listitem>
+     <para>Code tag: ar-KW</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.11.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Lebanon)</term>
+    <listitem>
+     <para>Code tag: ar-LB</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.12.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Libya)</term>
+    <listitem>
+     <para>Code tag: ar-LY</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.13.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Morocco)</term>
+    <listitem>
+     <para>Code tag: ar-MA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.14.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Oman)</term>
+    <listitem>
+     <para>Code tag: ar-OM</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.15.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Qatar)</term>
+    <listitem>
+     <para>Code tag: ar-QA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.16.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Saudi Arabia)</term>
+    <listitem>
+     <para>Code tag: ar-SA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.17.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Sudan)</term>
+    <listitem>
+     <para>Code tag: ar-SD</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.18.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Syria)</term>
+    <listitem>
+     <para>Code tag: ar-SY</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.19.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Tunisia)</term>
+    <listitem>
+     <para>Code tag: ar-TN</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.20.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (United Arab Emirates)</term>
+    <listitem>
+     <para>Code tag: ar-AE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.4.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Arabic (Yemen)</term>
+    <listitem>
+     <para>Code tag: ar-YE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.21.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Belarusian</term>
+    <listitem>
+     <para>Code tag: be</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.22.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Bulgarian</term>
+    <listitem>
+     <para>Code tag: bg</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.23.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Catalan</term>
+    <listitem>
+     <para>Code tag: ca</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.25.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Chinese</term>
+    <listitem>
+     <para>Code tag: zh</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.143.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Chinese (Simplified) (China)</term>
+    <listitem>
+     <para>Code tag: zh-CN</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.144.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Chinese (Traditional) (Hong Kong)</term>
+    <listitem>
+     <para>Code tag: zh-HK</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.145.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Chinese (Traditional) (Taiwan)</term>
+    <listitem>
+     <para>Code tag: zh-TW</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.148.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Croatian</term>
+    <listitem>
+     <para>Code tag: hr</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.87.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Czech</term>
+    <listitem>
+     <para>Code tag: cs</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.26.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Danish</term>
+    <listitem>
+     <para>Code tag: da</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.27.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Dutch</term>
+    <listitem>
+     <para>Code tag: nl</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.105.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Dutch (Belgium)</term>
+    <listitem>
+     <para>Code tag: nl-BE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.106.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Dutch (Netherlands)</term>
+    <listitem>
+     <para>Code tag: nl-NL</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.105.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English</term>
+    <listitem>
+     <para>Code tag: en</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.34.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (Australia)</term>
+    <listitem>
+     <para>Code tag: en-AU</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.35.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (Canada)</term>
+    <listitem>
+     <para>Code tag: en-CA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.36.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (Great Britain)</term>
+    <listitem>
+     <para>Code tag: en-GB</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.37.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (India)</term>
+    <listitem>
+     <para>Code tag: en-IN</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.40.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (Ireland)</term>
+    <listitem>
+     <para>Code tag: en-IE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.39.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (New Zealand)</term>
+    <listitem>
+     <para>Code tag: en-NZ</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.42.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (South Africa)</term>
+    <listitem>
+     <para>Code tag: en-ZA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.46.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>English (United States)</term>
+    <listitem>
+     <para>Code tag: en-US</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.34.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Estonian</term>
+    <listitem>
+     <para>Code tag: et</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.69.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Finnish</term>
+    <listitem>
+     <para>Code tag: fi</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.74.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French</term>
+    <listitem>
+     <para>Code tag: fr</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.76.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French (Belgium)</term>
+    <listitem>
+     <para>Code tag: fr-BE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.77.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French (Canada)</term>
+    <listitem>
+     <para>Code tag: fr-CA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.78.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French (France)</term>
+    <listitem>
+     <para>Code tag: fr-FR</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.76.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French (Luxembourg)</term>
+    <listitem>
+     <para>Code tag: fr-LU</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.80.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>French (Switzerland)</term>
+    <listitem>
+     <para>Code tag: fr-CH</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.79.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>German</term>
+    <listitem>
+     <para>Code tag: de</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.28.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>German (Austria)</term>
+    <listitem>
+     <para>Code tag: de-AT</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.29.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>German (Germany)</term>
+    <listitem>
+     <para>Code tag: de-DE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.28.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>German (Luxembourg)</term>
+    <listitem>
+     <para>Code tag: de-LU</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.32.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>German (Switzerland)</term>
+    <listitem>
+     <para>Code tag: de-CH</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.31.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Greek</term>
+    <listitem>
+     <para>Code tag: el</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.33.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Hebrew</term>
+    <listitem>
+     <para>Code tag: he</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.85.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Hungarian</term>
+    <listitem>
+     <para>Code tag: hu</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.88.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Icelandic</term>
+    <listitem>
+     <para>Code tag: is</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.91.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Italian</term>
+    <listitem>
+     <para>Code tag: it</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.92.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Italian (Switzerland)</term>
+    <listitem>
+     <para>Code tag: it-CH</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.93.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Japanese</term>
+    <listitem>
+     <para>Code tag: ja</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.94.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Korean</term>
+    <listitem>
+     <para>Code tag: ko</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.97.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Latvian</term>
+    <listitem>
+     <para>Code tag: lv</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.101.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Lithuanian</term>
+    <listitem>
+     <para>Code tag: lt</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.100.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Macedonian</term>
+    <listitem>
+     <para>Code tag: mk</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.102.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Norwegian</term>
+    <listitem>
+     <para>Code tag: no</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.107.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Norwegian (Bokmål)</term>
+    <listitem>
+     <para>Code tag: no-NO</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.107.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Norwegian (Nynorsk)</term>
+    <listitem>
+     <para>Code tag: no-NO-NY</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.108.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Polish</term>
+    <listitem>
+     <para>Code tag: pl</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.114.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Portuguese</term>
+    <listitem>
+     <para>Code tag: pt</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.115.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Portuguese (Brazil)</term>
+    <listitem>
+     <para>Code tag: pt-BR</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.116.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Portuguese (Portugal)</term>
+    <listitem>
+     <para>Code tag: pt-PT</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.115.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Romanian</term>
+    <listitem>
+     <para>Code tag: ro</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.117.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Russian</term>
+    <listitem>
+     <para>Code tag: ru</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.118.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Russian (Russia)</term>
+    <listitem>
+     <para>Code tag: ru-RU</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.118.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Serbian</term>
+    <listitem>
+     <para>Code tag: sr</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.128.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Slovak</term>
+    <listitem>
+     <para>Code tag: sk</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.121.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Slovenian</term>
+    <listitem>
+     <para>Code tag: sl</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.122.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish</term>
+    <listitem>
+     <para>Code tag: es</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.49.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Argentina)</term>
+    <listitem>
+     <para>Code tag: es-AR</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.50.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Bolivia)</term>
+    <listitem>
+     <para>Code tag: es-BO</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.51.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Chile)</term>
+    <listitem>
+     <para>Code tag: es-CL</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.52.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Colombia)</term>
+    <listitem>
+     <para>Code tag: es-CO</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.53.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Costa Rica)</term>
+    <listitem>
+     <para>Code tag: es-CR</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.54.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Dominican Republic)</term>
+    <listitem>
+     <para>Code tag: es-DO</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.55.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Ecuador)</term>
+    <listitem>
+     <para>Code tag: es-EC</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.56.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (El Salvador)</term>
+    <listitem>
+     <para>Code tag: es-SV</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.65.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Guatemala)</term>
+    <listitem>
+     <para>Code tag: es-GT</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.57.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Honduras)</term>
+    <listitem>
+     <para>Code tag: es-HN</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.58.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Mexico)</term>
+    <listitem>
+     <para>Code tag: es-MX</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.59.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Nicaragua)</term>
+    <listitem>
+     <para>Code tag: es-NI</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.60.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Panama)</term>
+    <listitem>
+     <para>Code tag: es-PA</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.61.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Paraguay)</term>
+    <listitem>
+     <para>Code tag: es-PY</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.64.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Peru)</term>
+    <listitem>
+     <para>Code tag: es-PE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.62.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Puerto Rico)</term>
+    <listitem>
+     <para>Code tag: es-PR</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.63.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Spain)</term>
+    <listitem>
+     <para>Code tag: es-ES</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.49.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Uruguay)</term>
+    <listitem>
+     <para>Code tag: es-UY</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.67.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Spanish (Venezuela)</term>
+    <listitem>
+     <para>Code tag: es-VE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.68.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Swedish</term>
+    <listitem>
+     <para>Code tag: sv</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.129.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Swedish (Sweden)</term>
+    <listitem>
+     <para>Code tag: sv-SE</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.129.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Thai</term>
+    <listitem>
+     <para>Code tag: th</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.136.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Turkish</term>
+    <listitem>
+     <para>Code tag: tr</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.140.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Ukranian</term>
+    <listitem>
+     <para>Code tag: uk</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.141.1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Vietnamese</term>
+    <listitem>
+     <para>Code tag: vi</para>
+     <para>Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.142.1</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>OpenDJ software supports the following language subtypes.</para>
+  <indexterm><primary>Language subtypes</primary></indexterm>
+  <itemizedlist xml:id="supported-language-subtypes">
+   <listitem><para>Albanian, sq</para></listitem>
+   <listitem><para>Arabic, ar</para></listitem>
+   <listitem><para>Belarusian, be</para></listitem>
+   <listitem><para>Bulgarian, bg</para></listitem>
+   <listitem><para>Catalan, ca</para></listitem>
+   <listitem><para>Chinese, zh</para></listitem>
+   <listitem><para>Croatian, hr</para></listitem>
+   <listitem><para>Czech, cs</para></listitem>
+   <listitem><para>Danish, da</para></listitem>
+   <listitem><para>Dutch, nl</para></listitem>
+   <listitem><para>English, en</para></listitem>
+   <listitem><para>Estonian, et</para></listitem>
+   <listitem><para>Finnish, fi</para></listitem>
+   <listitem><para>French, fr</para></listitem>
+   <listitem><para>German, de</para></listitem>
+   <listitem><para>Greek, el</para></listitem>
+   <listitem><para>Hebrew, he</para></listitem>
+   <listitem><para>Hungarian, hu</para></listitem>
+   <listitem><para>Icelandic, is</para></listitem>
+   <listitem><para>Italian, it</para></listitem>
+   <listitem><para>Japanese, ja</para></listitem>
+   <listitem><para>Korean, ko</para></listitem>
+   <listitem><para>Latvian, lv</para></listitem>
+   <listitem><para>Lithuanian, lt</para></listitem>
+   <listitem><para>Macedonian, mk</para></listitem>
+   <listitem><para>Norwegian, no</para></listitem>
+   <listitem><para>Polish, pl</para></listitem>
+   <listitem><para>Portuguese, pt</para></listitem>
+   <listitem><para>Romanian, ro</para></listitem>
+   <listitem><para>Russian, ru</para></listitem>
+   <listitem><para>Serbian, sr</para></listitem>
+   <listitem><para>Slovak, sk</para></listitem>
+   <listitem><para>Slovenian, sl</para></listitem>
+   <listitem><para>Spanish, es</para></listitem>
+   <listitem><para>Swedish, sv</para></listitem>
+   <listitem><para>Thai, th</para></listitem>
+   <listitem><para>Turkish, tr</para></listitem>
+   <listitem><para>Ukranian, uk</para></listitem>
+   <listitem><para>Vietnamese, vi</para></listitem>
+  </itemizedlist>
+ </section>
+</appendix>

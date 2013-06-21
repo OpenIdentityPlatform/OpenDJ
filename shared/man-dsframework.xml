@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<refentry xml:id='dsframework-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>dsframework</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>dsframework</refname>
+  <refpurpose>manage OpenDJ administration framework</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>dsframework</command>
+   <command><replaceable>subcommand</replaceable></command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to perform operations in the directory server
+  administration framework.</para>
+  <para>This utility has no interactive mode. Consider using <option>-X</option>
+  if you authenticate over a secure connection protected with a self-signed
+  certificate.</para>
+ </refsect1>
+ <refsect1>
+  <title>Subcommands</title>
+  
+  <para>The <command>dsconfig</command> command provides many subcommands.
+  Use the following options to view help for subcommands.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><option>--help-all</option></term>
+    <listitem>
+     <para>Display all subcommands</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--help-admin-user</option></term>
+    <listitem>
+     <para>Display subcommands relating to admin-user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--help-server</option></term>
+    <listitem>
+     <para>Display subcommands relating to server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--help-server-group</option></term>
+    <listitem>
+     <para>Display subcommands relating to server-group</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>For help with individual subcommands, use <command>dsframework
+  <replaceable>subcommand</replaceable> --help</command>.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection. Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-I, --adminUID {adminUID}</option></term>
+     <listitem>
+      <para>User ID of the global administrator to use to bind to the server.
+      For the <command>enable</command> subcommand, if no global administrator
+      was defined previously for any servers, the global administrator will be
+      created using the UID provided.</para>
+      <para>Default value: admin</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --adminPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Global administrator password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para> Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server administration port number</para>
+      <para>Default value: 4444</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+      <para>Default value: /path/to/opendj/config/admin-truststore</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --adminPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password for the global administrator</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--noPropertiesFile</option></term>
+     <listitem>
+      <para>No properties file will be used to get default command line
+      argument values</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
+     <listitem>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>&gt; 0</term>
+     <listitem>
+      <para>An error occurred.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>This example lists server properties.</para>
+  <screen>
+$ dsframework -p 4444 -h opendj.example.com -D "cn=Directory Manager"
+ -w password -X list-server-properties
+Option Types:
+
+ r -- Property value(s) are readable
+ w -- Property value(s) are writable
+ m -- The property is mandatory
+ s -- The property is single-valued
+
+Property                       Options  Syntax              Default value
+-------------------------------------------------------------------------
+ldapsport                      rw--     INTEGER             -
+certificate                    rw-s     STRING              -
+hostname                       r-ms     STRING              localhost
+ldapport                       rwm-     INTEGER             389
+jmxsEnabled                    rw-s     BOOLEAN             false
+instancepath                   rw-s     STRING              -
+ldapsEnabled                   rw-s     BOOLEAN             false
+jmxsport                       rw--     INTEGER             -
+os                             rw-s     STRING              -
+ds-cfg-key-id                  rw-s     STRING              -
+jmxport                        rw--     INTEGER             -
+description                    rw-s     STRING              -
+id                             rw-s     STRING              -
+startTLSEnabled                rw-s     BOOLEAN             false
+jmxEnabled                     rw-s     BOOLEAN             false
+ds-cfg-public-key-certificate  rw-s     CERTIFICATE_BINARY  -
+location                       rw-s     STRING              -
+ldapEnabled                    rw-s     BOOLEAN             false</screen>
+ </refsect1>
+</refentry>

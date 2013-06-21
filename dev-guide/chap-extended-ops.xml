@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-extended-ops'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Extended Operations</title>
+ <indexterm>
+  <primary>Extended operations</primary>
+ </indexterm>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>Extended operations</secondary>
+ </indexterm>
+
+ <para>This chapter demonstrates how to use LDAP extended operations.</para>
+
+ <para>For complete examples corresponding to the excerpts shown below, see
+ <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ExtendedOperations.html"
+ xlink:show="new">ExtendedOperations.java</link>, one of the <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+ xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+ <section xml:id="about-ldap-extended-operations">
+  <title>About LDAP Extended Operations</title>
+  <para>Extended operations allow additional operations to be defined for
+  services not already available in the protocol</para>
+ </section>
+ 
+ <section xml:id="get-supported-extended-operations">
+  <title>Determining Supported Extended Operations</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Supported</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
+
+  <para>For OpenDJ, the extended operations supported are listed in the
+  <citetitle>Administration Guide</citetitle> appendix, <link
+  xlink:href="admin-guide#appendix-extended-ops"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP Extended
+  Operations</citetitle></link>. You can access the list of OIDs for
+  supported LDAP controls by reading the <literal>supportedExtension</literal>
+  attribute of the root DSE.</para>
+
+  <screen>$ ldapsearch
+ --baseDN ""
+ --searchScope base
+ --port 1389
+ "(objectclass=*)" supportedExtension
+dn: 
+supportedExtension: 1.3.6.1.1.8
+supportedExtension: 1.3.6.1.4.1.26027.1.6.1
+supportedExtension: 1.3.6.1.4.1.26027.1.6.2
+supportedExtension: 1.3.6.1.4.1.26027.1.6.3
+supportedExtension: 1.3.6.1.4.1.4203.1.11.1
+supportedExtension: 1.3.6.1.4.1.4203.1.11.3
+supportedExtension: 1.3.6.1.4.1.1466.20037</screen>
+
+  <para>The following excerpt shows code to check for supported extended
+  operations.</para>
+
+  <programlisting language="java">
+/**
+ * Controls supported by the LDAP server.
+ */
+private static Collection&lt;String&gt; extendedOperations;
+
+/**
+ * Populate the list of supported LDAP extended operation OIDs.
+ * 
+ * @param connection
+ *            Active connection to the LDAP server.
+ * @throws ErrorResultException
+ *             Failed to get list of extended operations.
+ */
+static void checkSupportedExtendedOperations(Connection connection)
+        throws ErrorResultException {
+    extendedOperations = RootDSE.readRootDSE(connection)
+            .getSupportedExtendedOperations();
+}
+
+/**
+ * Check whether an extended operation is supported. Call
+ * {@code checkSupportedExtendedOperations} first.
+ * 
+ * @param extendedOperation
+ *            Check support for this extended operation, provided by OID.
+ * @return True if the control is supported.
+ */
+static boolean isSupported(final String extendedOperation) {
+    if (extendedOperations != null &amp;&amp; !extendedOperations.isEmpty()) {
+        return extendedOperations.contains(extendedOperation);
+    }
+    return false;
+}
+</programlisting>
+ </section>
+ 
+ <section xml:id="use-cancel-extended-operation">
+  <title>Cancel Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Cancel</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Cancel</secondary>
+  </indexterm>
+
+  <para>RFC 3909, <link xlink:href="http://tools.ietf.org/html/rfc3909"
+  xlink:show="new"><citetitle>LDAP Cancel Operation</citetitle></link>, defines
+  an extended operation that lets you cancel an operation in progress and get
+  an indication of the outcome.</para>
+
+  <para>The Cancel extended request uses the request ID of operation you
+  want to cancel, and so therefore works with asynchronous searches and
+  updates. Depending on the delay between your application sending the Cancel
+  request and the directory server receiving the request, the server might have
+  already finished processing the original request before it receives your
+  Cancel request.</para>
+
+  <para>You can add a Cancel extended request for example to stop handling
+  entries returned from a search if the directory server returns more entries
+  than you want.</para>
+
+  <programlisting language="java">
+private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
+private static final CountDownLatch CANCEL_LATCH = new CountDownLatch(1);
+private static final LDIFEntryWriter WRITER = new LDIFEntryWriter(System.out);
+
+static int requestID;
+static int entryCount = 0;
+
+// The requestID is obtained from the future result of the asynchronous search.
+// For more context see the example, SearchAsync.java.
+
+private static final class SearchResultHandlerImpl
+        implements SearchResultHandler {
+
+    @Override
+    public synchronized boolean handleEntry(final SearchResultEntry entry) {
+        try {
+            // Cancel the search if it returns too many results.
+            if (entryCount &lt; 10) {
+                WRITER.writeComment("Search result entry: "
+                        + entry.getName().toString());
+                WRITER.writeEntry(entry);
+                ++entryCount;
+            } else {
+                CancelExtendedRequest request =
+                        Requests.newCancelExtendedRequest(requestID);
+                connection.extendedRequestAsync(
+                        request, null, new CancelResultHandlerImpl());
+                return false;
+            }
+        } catch (final IOException e) {
+            System.err.println(e.getMessage());
+            resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+            COMPLETION_LATCH.countDown();
+            return false;
+        }
+        return true;
+    }
+    ...
+}
+
+private static final class CancelResultHandlerImpl
+        implements ResultHandler&lt;ExtendedResult&gt; {
+
+    @Override
+    public void handleErrorResult(final ErrorResultException error) {
+        System.err.println("Cancel request failed with result code: "
+                + error.getResult().getResultCode().intValue());
+        CANCEL_LATCH.countDown();
+    }
+
+    @Override
+    public void handleResult(final ExtendedResult result) {
+        System.err.println("Cancel request succeeded");
+        CANCEL_LATCH.countDown();
+    }
+
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the cancel operation. If OpenDJ
+  directory server manages to return all entries in
+  <filename>Example.ldif</filename> before it receives the Cancel extended
+  request, you can see the Cancel request fail because the request ID refers
+  to the search, which is no longer in progress. Try adding a new base DN using
+  OpenDJ control panel and adding the default 2000 generated entries to ensure
+  more search results. For example if <literal>dc=example,dc=org</literal>
+  contains 2000 generated entries, and the <literal>SearchAsync</literal>
+  example is run with the arguments <literal>sub objectclass=* cn</literal>
+  for scope, filter, and attributes respectively, then the example produces
+  something like the following output:</para>
+
+  <programlisting>
+Canceled: Processing on this operation was terminated as a result of receiving
+ a cancel request (message ID 3)
+# Search result entry: dc=example,dc=org
+dn: dc=example,dc=org
+
+# Search result entry: ou=People,dc=example,dc=org
+dn: ou=People,dc=example,dc=org
+
+# Search result entry: uid=user.0,ou=People,dc=example,dc=org
+dn: uid=user.0,ou=People,dc=example,dc=org
+cn: Aaccf Amar
+
+...
+
+Cancel request succeeded</programlisting>
+ </section>
+
+ <section xml:id="use-password-modify-extended-operation">
+  <title>Password Modify Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Password modify</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Password modify</secondary>
+  </indexterm>
+
+  <para>RFC 3062, <link xlink:href="http://tools.ietf.org/html/rfc3062"
+  xlink:show="new"><citetitle>LDAP Password Modify Extended
+  Operation</citetitle></link>, defines an extended operation for modifying
+  user passwords that does not depend on the authentication identity, nor on
+  the way passwords are stored.</para>
+
+  <programlisting language="java">
+if (isSupported(PasswordModifyExtendedRequest.OID)) {
+    final String userIdentity = "u:scarter";
+    final char[] oldPassword = "sprain".toCharArray();
+    final char[] newPassword = "secret12".toCharArray();
+
+    final PasswordModifyExtendedRequest request =
+            Requests.newPasswordModifyExtendedRequest()
+                .setUserIdentity(userIdentity)
+                .setOldPassword(oldPassword)
+                .setNewPassword(newPassword);
+
+    final PasswordModifyExtendedResult result =
+            connection.extendedRequest(request);
+    if (result.isSuccess()) {
+        System.out.println("Changed password for " + userIdentity);
+    } else {
+        System.err.println(result.getDiagnosticMessage());
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the password modify operation.</para>
+
+  <programlisting>Changed password for u:scarter</programlisting>
+ </section>
+
+ <section xml:id="use-starttls-extended-operation">
+  <title>Start TLS Extended Operation</title>
+
+  <para>Use Start TLS when setting up your connection to protect what your
+  application sends to and receives from the directory server. For an example,
+  read the section on <link
+  xlink:href="dev-guide#simple-auth-with-starttls-or-ssl"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Start TLS &amp;
+  SSL Authentication</citetitle></link>.</para>
+ </section>
+
+ <section xml:id="use-who-am-i-extended-operation">
+  <title>Who am I? Extended Operation</title>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>Who am I?</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <para>RFC 4532, <link xlink:href="http://tools.ietf.org/html/rfc4532"
+  xlink:show="new"><citetitle>LDAP "Who am I?" Operation</citetitle></link>,
+  defines an extended operation that lets your application determine the
+  current authorization ID.</para>
+
+  <programlisting language="java">
+if (isSupported(WhoAmIExtendedRequest.OID)) {
+
+    final String name = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] password = "hifalutin".toCharArray();
+
+    final Result result = connection.bind(name, password);
+    if (result.isSuccess()) {
+
+        final WhoAmIExtendedRequest request =
+                Requests.newWhoAmIExtendedRequest();
+        final WhoAmIExtendedResult extResult =
+                connection.extendedRequest(request);
+
+        if (extResult.isSuccess()) {
+            System.out.println("Authz ID: "  + extResult.getAuthorizationID());
+        }
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the "Who am I?" operation.</para>
+
+  <programlisting
+  >Authz ID: dn:uid=bjensen,ou=People,dc=example,dc=com</programlisting>
+ </section>
+</chapter>

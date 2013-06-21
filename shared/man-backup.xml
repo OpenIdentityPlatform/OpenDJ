@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<refentry xml:id='backup-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>backup</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>backup</refname>
+  <refpurpose>back up OpenDJ directory data</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>backup</command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to back up one or more directory server
+  backends.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --backUpAll</option></term>
+    <listitem>
+     <para>Back up all backends in the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-A, --hash</option></term>
+    <listitem>
+     <para>Generate a hash of the backup contents</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-B, --incrementalBaseID {backupID}</option></term>
+    <listitem>
+     <para>Backup ID of the source archive for an incremental backup.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --compress</option></term>
+    <listitem>
+     <para>Compress the backup content</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-d, --backupDirectory {backupDir}</option></term>
+    <listitem>
+     <para>Path to the target directory for the backup file(s)</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-i, --incremental</option></term>
+    <listitem>
+     <para>Perform an incremental backup rather than a full backup</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-I, --backupID {backupID}</option></term>
+    <listitem>
+     <para>Use the provided identifier for the backup</para>
+    </listitem>
+   </varlistentry>  
+   <varlistentry>
+    <term><option>-n, --backendID {backendName}</option></term>
+    <listitem>
+     <para>Backend ID for the backend to archive</para>
+    </listitem>
+   </varlistentry>  
+   <varlistentry>
+    <term><option>-s, --signHash</option></term>
+    <listitem>
+     <para>Sign the hash of the backup contents</para>
+    </listitem>
+   </varlistentry>  
+   <varlistentry>
+    <term><option>-y, --encrypt</option></term>
+    <listitem>
+     <para>Encrypt the backup contents</para>
+    </listitem>
+   </varlistentry>  
+  </variablelist>
+  <refsect2>
+   <title>Task Backend Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection. Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --bindPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Bind password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para>Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server administration port number</para>
+      <para>Default value: 4444</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --bindPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password to use to bind to the server</para>
+      <para>Use <option>-w -</option> to have the command prompt for the
+      password, rather than enter the password on the command line.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Task Scheduling Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--completionNotify {emailAddress}</option></term>
+     <listitem>
+      <para>Email address of a recipient to be notified when the task
+      completes. This option may be specified more than once.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--dependency {taskID}</option></term>
+     <listitem>
+      <para>ID of a task upon which this task depends. A task will not start
+      execution until all its dependencies have completed execution.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--errorNotify {emailAddress}</option></term>
+     <listitem>
+      <para>Email address of a recipient to be notified if an error occurs
+      when this task executes. This option may be specified more than
+      once.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--failedDependencyAction {action}</option></term>
+     <listitem>
+      <para>Action this task will take should one if its dependent tasks fail.
+      The value must be one of PROCESS, CANCEL, DISABLE. If not specified
+      defaults to CANCEL.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--recurringTask {schedulePattern}</option></term>
+     <listitem>
+      <para>Indicates the task is recurring and will be scheduled according
+      to the value argument expressed in crontab(5) compatible time/date
+      pattern.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-t, --start {startTime}</option></term>
+     <listitem>
+      <para>Indicates the date/time at which this operation will start when
+      scheduled as a server task expressed in YYYYMMDDhhmmssZ format for UTC
+      time or YYYYMMDDhhmmss for local time. A value of '0' will cause the
+      task to be scheduled for immediate execution. When this option is
+      specified the operation will be scheduled to start at the specified
+      time after which this utility will exit immediately.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--noPropertiesFile</option></term>
+     <listitem>
+      <para>No properties file will be used to get default command line
+      argument values</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
+     <listitem>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>1</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example backs up all user data while the server is
+  online.</para>
+  <screen>$ backup -p 4444 -D "cn=Directory Manager" -w password
+ -a -d /path/to/opendj/bak -t 0
+Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
+
+  <para>The following example schedules back up of all user data every night at
+  2 AM when the server is online, and notifies diradmin@example.com when
+  finished, or on error.</para>
+  <screen>$ backup -p 4444 -D "cn=Directory Manager" -w password -a
+ -d /path/to/opendj/bak --recurringTask "00 02 * * *"
+ --completionNotify diradmin@example.com --errorNotify diradmin@example.com
+Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
+scheduled successfully</screen>
+
+  <para>The following example backs up all user data while the server is
+  offline.</para>
+  <screen>$ /path/to/opendj/bin/stop-ds
+Stopping Server...
+...
+$ /path/to/opendj/bin/backup --backupAll --backupDirectory /path/to/opendj/bak
+...
+[28/Sep/2012:12:14:22 +0200] ... msg=The backup process completed successfully
+$ /path/to/opendj/bin/start-ds
+[28/Sep/2012:12:15:48 +0200] ... The Directory Server has started successfully
+</screen>
+ </refsect1>
+</refentry>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<refentry xml:id='dsjavaproperties-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>dsjavaproperties</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>dsjavaproperties</refname>
+  <refpurpose>apply OpenDJ Java home and JVM settings</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>dsjavaproperties</command>
+   <arg choice="opt">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to change the Java arguments and Java home
+  that are used by other server commands.</para>
+  <para>Before launching the command, edit the properties file located in
+  <filename>/path/to/opendj/config/java.properties</filename> to specify the
+  Java arguments and Java home. When you have edited the properties file, run
+  this command for the changes to be taken into account.</para>
+  <para>Changes apply to the current server installation. No modifications
+  are made to your environment variables.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-Q, --quiet</option></term>
+    <listitem>
+     <para>Run the tool in quiet mode. Quiet mode will not output progress
+     information to standard output.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Files</title>
+  <para>This command depends on the content of the
+  <filename>config/java.properties</filename> file.</para>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>&gt; 0</term>
+     <listitem>
+      <para>An error occurred.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <screen>$ dsjavaproperties 
+The operation was successful.  The server commands will use the java arguments
+ and java home specified in the properties file located in
+ /path/to/opendj/config/java.properties</screen>
+ </refsect1>
+</refentry>

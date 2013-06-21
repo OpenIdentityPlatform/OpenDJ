@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-compatibility'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>OpenDJ Compatibility</title>
+
+ <para>This chapter covers both major changes to existing functionality, and
+ also deprecated and removed functionality.</para>
+
+ <section xml:id="changed-functionality">
+  <title>Major Changes to Existing Functionality</title>
+
+  <para>OpenDJ <?eval ${docTargetVersion}?> improves on earlier releases
+  introducing many new features. Also take the following into account.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>The upgrade process and <command>upgrade</command> command have
+    changed to facilitate native packaging on more platforms. See
+    <link xlink:show="new" xlink:href="install-guide#chap-upgrade"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading to
+    OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
+    instructions.</para>
+   </listitem>
+   <listitem>
+    <para>The default DB cache size is now 50%, rather than 10%.</para>
+    <para>If you have multiple backends, configure cache sizes
+    accordingly.</para>
+   </listitem>
+   <listitem>
+    <para>The number of LDAP request handlers now defaults to half the CPU
+    count.</para>
+   </listitem>
+   <listitem>
+    <para>The replication purge delay default has increased from one day to
+    three days.</para>
+   </listitem>
+   <listitem>
+    <para>Syntax checking has been added for certificate and country attribute
+    values. This affects applications updating those attribute values.
+    Applications updating country attribute values must now use Country String
+    syntax for example, which uses two-character codes from <link
+    xlink:show="new" xlink:href="http://www.iso.org/iso/country_codes.htm">ISO
+    3166</link> such as <literal>US</literal> instead of full names such as
+    <literal>United States</literal>.</para>
+   </listitem>
+  </itemizedlist>
+
+<!-- Not yet for OpenDJ 2.6.0.
+  <para>The <command>ldif-diff</command> command has been renamed
+  <command>ldifdiff</command>, and the <option>-\-outputLDIF</option>,
+  <option>-\-overwriteExisting</option>, <option>-\-sourceLDIF</option>,
+  <option>-\-targetLDIF</option> options have been dropped in favor of a
+  format closer to that of the <command>diff</command> command.</para>
+-->
+ </section>
+
+ <section xml:id="deprecated-functionality">
+  <title>Deprecated Functionality</title>
+  
+  <para>OpenDJ <?eval ${docTargetVersion}?> makes use of new environment
+  variables aligned with the project name to use <literal>OPENDJ</literal>.
+  Use of the old variables is deprecated. The old variables are likely to be
+  removed in a future release.</para>
+ </section>
+ 
+ <section xml:id="removed-functionality">
+  <title>Removed Functionality</title>
+  
+  <para>Native packages in SVR4 format for Solaris are no longer provided.</para>
+ </section>
+</chapter>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-using-the-sdk'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Using the LDAP SDK</title>
+
+ <para>As LDAP relies on a connection from the client to the directory server,
+ the starting point for working with the LDAP SDK is a new
+ <literal>LDAPConnectionFactory</literal>, from which you then get either
+ a synchronous connection, or pass in a handler to an asynchronous
+ connection. You then use the connection to make requests and get responses
+ from the directory server.</para>
+
+ <section xml:id="sync-vs-async">
+  <title>Synchronous &amp; Asynchronous Operations</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Asynchronous</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Synchronous</secondary>
+  </indexterm>
+
+  <para>For synchronous operations your application gets a connection from
+  the <literal>LDAPConnectionFactory</literal> and requests operations on
+  the connection. When finished, your application closes the connection.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+
+try {
+    connection = factory.getConnection();
+
+    // Perform operations on the connection, such as connection.bind(),
+    // connection.search(), connection.modify(), etc.
+
+    } catch (final ErrorResultException e) {
+        System.err.println(e.getMessage());
+        System.exit(e.getResult().getResultCode().intValue());
+        return;
+    } finally {
+        if (connection != null) {
+            connection.close();
+        }
+    }
+</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+  xlink:show="new">Search.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+  <para>For asynchronous operations, your application passes a result handler
+  to <literal>LDAPConnectionFactory.getConnectionAsync()</literal> that
+  implements the <literal>ResultHandler&lt;Connection&gt;</literal>
+  interface.</para>
+
+  <programlisting language="java">
+private static final class ConnectResultHandlerImpl
+        implements ResultHandler&lt;Connection&gt; {
+    @Override
+    public void handleErrorResult(final ErrorResultException error) {
+        ...
+    }
+
+    @Override
+    public void handleResult(final Connection connection) {
+        // Connect succeeded: save connection and initiate bind.
+        SearchAsync.connection = connection;
+
+        final BindRequest request =
+                Requests.newSimpleBindRequest(userName, password.toCharArray());
+        connection.bindAsync(request, null, new BindResultHandlerImpl());
+    }
+}
+
+// Main method initiates async operations by getting a connection...
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
+factory.getConnectionAsync(new ConnectResultHandlerImpl());
+
+...
+
+if (connection != null) {
+    connection.close();
+}
+</programlisting>
+
+  <para>When the connection result handler gets a connection, your application
+  can pass result handlers for other operations using methods on the connection
+  named <literal>*Async()</literal>. For most operations, your application
+  implements <literal>ResultHandler</literal>. For searches, your application
+  implements <literal>SearchResultHandler</literal>. The result handler is
+  notified upon completion of the operation.</para>
+
+  <para>Asynchronous methods are non-blocking, returning a
+  <literal>FutureResult</literal> whose <literal>get()</literal> method lets
+  you retrieve the result. Your application must coordinate concurrency when
+  you use asynchronous operations.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchAsync.html"
+  xlink:show="new">SearchAsync.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+
+ <section xml:id="error-handling">
+  <title>Managing Errors</title>
+  <indexterm>
+   <primary>Errors</primary>
+  </indexterm>
+
+  <para>LDAP <link xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A"
+  xlink:show="new">defines many result codes</link> to deal with conditions
+  other than success. The <literal>ResultCode</literal> class encapsulates the
+  LDAP codes and additional client-side codes specific to the SDK.</para>
+
+  <para>Your application deals with most non-success result codes when it
+  catches one of the LDAP SDK exceptions corresponding to the operation you
+  requested. <literal>ErrorResultException</literal> is a common way for the
+  SDK to indicate a non-successful result. Your application can then take
+  remedial action based on the result code, as in the following synchronous
+  excerpt.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+
+try {
+    connection = factory.getConnection();
+    connection.bind(name, password);
+
+    // Perform operations on the connection...
+
+} catch (final ErrorResultException e) {
+
+    // Take remedial action based on the result code...
+    // e.getResult().getResultCode() returns the code for you to interpret.
+
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}
+</programlisting>
+
+  <para>Also notice the methods <literal>ResultCode.getName()</literal> that
+  provides a short, human-readable version of the result code, and
+  <literal>Result.getDiagnosticMessage()</literal> that can also help debug
+  problems after the fact.</para>
+ </section>
+
+ <!-- Pending https://bugster.forgerock.org/jira/browse/OPENDJ-178
+ <section xml:id="referral-handling">
+  <title>Managing Referrals</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+
+  <para></para>
+ </section>
+ -->
+</chapter>

@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-install-cli'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Installing OpenDJ From the Command Line</title>
+
+ <para>This chapter covers command-line installation with additional
+ information on setup options.</para>
+
+ <itemizedlist>
+  <listitem><para><xref linkend="before-you-install" /></para></listitem>
+  <listitem><para><xref linkend="command-line-install" /></para></listitem>
+  <listitem><para><xref linkend="install-deb" /></para></listitem>
+  <listitem><para><xref linkend="install-rpm" /></para></listitem>
+  <listitem><para><xref linkend="install-properties-file" /></para></listitem>
+  <listitem><para><xref linkend="install-rest2ldap-servlet" /></para></listitem>
+  <listitem><para><xref linkend="install-dsml-gateway" /></para></listitem>
+ </itemizedlist>
+
+ <procedure xml:id="before-you-install">
+  <title>To Prepare For Installation</title>
+
+  <step xml:id="check-for-java">
+   <para>Make sure you have the correct Java environment installed, as
+   described in the <citetitle>Release Notes</citetitle> section on <link
+   xlink:href="release-notes#prerequisites-java" xlink:show="new"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
+   Environment</citetitle></link> requirements.</para>
+
+   <para>If your default Java environment is not appropriate, set
+   <literal>OPENDJ_JAVA_HOME</literal> to the path to the correct Java
+   environment, or set <literal>OPENDJ_JAVA_BIN</literal> to the absolute path
+   of the <command>java</command> command. The latter environment variable is
+   useful for example if you have both 32-bit and 64-bit versions of the Java
+   environment installed, and want to make sure you use the 64-bit
+   version.</para>
+  </step>
+
+  <step xml:id="download-opendj">
+   <indexterm><primary>Downloading OpenDJ</primary></indexterm>
+   
+   <xinclude:include href="../shared/itemizedlist-download.xml" />
+
+   <variablelist>
+    <para>The following server software is available.</para>
+
+    <varlistentry>
+     <term>OpenDJ-<?eval ${docTargetVersion}?>.zip</term>
+     <listitem>
+      <para>Cross-platform OpenDJ directory server installation files</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>opendj_<?eval ${docTargetVersion}?>_all.deb</term>
+     <listitem>
+      <para>OpenDJ directory server native package for Debian and related
+      Linux distributions.</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>opendj-<?eval ${docTargetVersion}?>.noarch.rpm</term>
+     <listitem>
+      <para>OpenDJ directory server native package for Red Hat and related
+      Linux distributions.</para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</term>
+     <listitem>
+      <para>Cross-platform OpenDJ DSML gateway web archive</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </step>
+
+  <step xml:id="app-server-needed-for-dsml">
+   <indexterm><primary>DSML gateway</primary></indexterm>
+   
+   <para>If you plan to install OpenDJ DSML gateway or OpenDJ REST LDAP gateway,
+   make sure you have an appropriate application server installed.</para>
+  </step>
+
+  <step>
+   <para>If you plan to configure SSL or TLS to secure network
+   communications between the server and client applications, get a
+   properly signed digital certificate that your client applications
+   recognize, such as one that fits with your organization's PKI or one
+   provided by a recognized certificate authority.</para>
+
+   <para>To use the certificate during installation, the certificate
+   must be located in a key store provided with Java (JKS, JCEKS, PKCS#12),
+   or on a PKCS#11 token. To import a signed certificate into a key store,
+   you can use the Java <command>keytool</command> command.</para>
+
+   <para>See <link xlink:href="admin-guide#setup-server-cert"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Preparing For
+   Secure Communications</citetitle></link> in the <citetitle>Administration
+   Guide</citetitle> for examples.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="command-line-install">
+  <title>To Install OpenDJ Directory Server</title>
+  <indexterm><primary>Command-line installation</primary></indexterm>
+  <step>
+   <para>Unzip <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>
+   in the file system directory where you want to install the server.</para>
+
+   <para>Unlike the web-based Quick Setup install, the <command>setup</command>
+   command uses the directory where you unzipped the files as the installation
+   directory, and does not ask you where to install OpenDJ. Therefore, if you
+   want to install elsewhere on the file system, unzip the files in that
+   location.</para>
+  </step>
+  
+  <step>
+   <para>Run the <command>setup --cli</command> command found in the
+   <filename>opendj</filename> directory.</para>
+
+   <para>This command starts the setup program in interactive mode on the
+   command line, prompting you for each option. Alternatively, use
+   additional <command>setup</command> options to specify
+   values for the options you choose during interactive mode, thus
+   scripting the installation process. See <command>setup --help</command>
+   and the notes below.</para>
+   
+   <indexterm><primary>Silent installation</primary></indexterm>
+   <para>To perform a non-interactive, silent installation, provide all
+   the options to configure OpenDJ, and then also use the <literal>-n</literal>
+   or <literal>--no-prompt</literal> option.</para>
+   
+   <para>The <command>setup</command> command without the
+   <literal>--cli</literal> option runs the Quick Start
+   GUI installer with your local version of software, as does
+   Java WebStart with a remote version of the software.</para>
+
+   <screen>$ /path/to/opendj/setup --cli
+
+OpenDJ <?eval ${docTargetVersion}?>
+Please wait while the setup program initializes...
+
+What would you like to use as the initial root user DN for the Directory
+Server? [cn=Directory Manager]:
+Please provide the password to use for the initial root user:
+Please re-enter the password for confirmation:
+
+Provide the fully-qualified directory server host name that will be used when
+generating self-signed certificates for LDAP SSL/StartTLS, the administration
+connector, and replication [opendj.example.com]:
+
+On which port would you like the Directory Server to accept connections from
+LDAP clients? [1389]: 
+
+On which port would you like the Administration Connector to accept
+connections? [4444]: 
+
+Do you want to create base DNs in the server? (yes / no) [yes]: 
+
+Provide the base DN for the directory data: dc=example,dc=com
+Options for populating the database:
+
+    1)  Only create the base entry
+    2)  Leave the database empty
+    3)  Import data from an LDIF file
+    4)  Load automatically-generated sample data
+
+Enter choice [1]: 3
+
+Please specify the path to the LDIF file containing the data to import: \
+/path/to/Example.ldif
+
+Do you want to enable SSL? (yes / no) [no]:
+
+Do you want to enable Start TLS? (yes / no) [no]:
+
+Do you want to start the server when the configuration is completed? (yes /
+no) [yes]:
+
+
+Setup Summary
+=============
+LDAP Listener Port:            1389
+Administration Connector Port: 4444
+LDAP Secure Access:            disabled
+Root User DN:                  cn=Directory Manager
+Directory Data:                Create New Base DN dc=example,dc=com.
+Base DN Data: Import Data from LDIF File (/path/to/Example.ldif)
+
+Start Server when the configuration is completed
+
+
+What would you like to do?
+
+    1)  Set up the server with the parameters above
+    2)  Provide the setup parameters again
+    3)  Print equivalent non-interactive command-line
+    4)  Cancel and exit
+
+Enter choice [1]:
+
+See /var/.../opendj-setup...log for a detailed log of this operation.
+
+Configuring Directory Server ..... Done.
+Importing LDIF file /path/to/Example.ldif ........... Done.
+Starting Directory Server ........... Done.
+
+To see basic server configuration status and configuration you can launch \
+/path/to/opendj/bin/status</screen>
+
+   <variablelist>
+    <para>Some notes on the options follow.</para>
+    <varlistentry>
+      <term>Initial root user DN</term>
+      <listitem>
+        <para>The root user Distinguished Name identifies a
+        user who can perform all administrative and other operations
+        allowed for the server, called root user due to the similarity
+        to the UNIX root. The default, <literal>cn=Directory Manager</literal>,
+        is a well-known name. If you have reason to be paranoid, you might
+        opt for a different name.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Initial root user password</term>
+      <listitem>
+        <para>The root user will use simple, password-based authentication.
+        Later you can limit clear text access to avoid snooping, but for
+        now use a strong password here unless this is a throwaway server.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Fully-qualified directory server host name</term>
+      <listitem>
+        <para>OpenDJ uses fully-qualified host name in self-signed certificates
+        and for identification when you use replication. If you are installing
+        a single server temporarily for evaluation, and are not concerned about
+        replication and whether self-signed certificates can be trusted, then
+        you can use an FQDN such as <literal>localhost.localdomain</literal>.
+        Otherwise, use an FQDN that other hosts can resolve to reach your
+        server.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>LDAP port</term>
+      <listitem>
+        <para>The default for LDAP is 389. If you are working as a user
+        who cannot open port 389, setup suggests 1389 by default.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Administration port</term>
+      <listitem>
+        <para>This is the service entrance used to configure the server,
+        run tasks, and so forth. The default is 4444.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Create base DNs</term>
+      <listitem>
+        <para>You need a base Distinguished Name, such as
+        <literal>dc=example,dc=com</literal>, to add directory data. If you
+        already have LDIF, the base DN you want is the distinguished name
+        suffix common to all entries in your LDIF. You can provide more than
+        one base DN if your data belongs in more than one suffix.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Import LDIF</term>
+      <listitem>
+       <para>LDAP data interchange format is the standard text format for
+       expressing LDAP data. If you have LDIF already, one reason you might
+       not want to import the data at the same time you install is because
+       your data uses attributes not defined in the default schema, and so
+       you will wait to add schema definitions before you import.</para>
+
+       <para>If you have a huge data set to import, you no doubt should
+       also increase the import cache size, which you can do by passing
+       a Java properties file. You might also prefer to perform data
+       import offline.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Enable SSL and TLS</term>
+     <listitem>
+      <para>Enabling Secure Sockets Layer or Transport Layer Security lets
+      you protect the network traffic between directory clients and your
+      server.</para>
+      <variablelist>
+       <varlistentry>
+        <term>SSL</term>
+        <listitem>
+         <para>SSL requires its own, separate port for LDAPS traffic. The
+         default port for LDAPS is 636. If you are working as a user
+         who cannot open port 636, setup suggests 1636 by default.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>TLS</term>
+        <listitem>
+         <para>TLS lets you use StartTLS to negotiate a secure connection
+         between a client and server, starting from the same server port
+         you configured for LDAP.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>X.509 certificates</term>
+         <listitem>
+          <para>The digital certificate you need for SSL and TLS can be
+          self-signed and created on the fly. Trouble is, client
+          applications view self-signed certificates like fake IDs, and
+          so do not trust them. Self-signed certificates facilitate testing,
+          but are not intended for production use.</para>
+         </listitem>
+       </varlistentry>
+      </variablelist>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Start the server</term>
+     <listitem>
+      <para>If you do not start the server during installation, you can use
+      the <command>bin/start-ds</command> command later.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </step>
+
+  <step>
+   <para>Run the <command>status</command> command to make sure your OpenDJ
+   server is working as expected.</para>
+
+   <screen>$ /path/to/opendj/bin/status
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                opendj.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol : State
+-------------:----------:---------
+--           : LDIF     : Disabled
+0.0.0.0:161  : SNMP     : Disabled
+0.0.0.0:636  : LDAPS    : Disabled
+0.0.0.0:1389 : LDAP     : Enabled
+0.0.0.0:1689 : JMX      : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     160
+Replication: Disabled</screen>
+  </step>
+ </procedure>
+
+ <note>
+  <para>You can install OpenDJ in unattended and silent fashion, too. See
+  the procedure, <xref linkend="install-properties-file" />.</para>
+ </note>
+
+ <procedure xml:id="install-deb">
+  <title>To Install From the Debian Package</title>
+  <indexterm><primary>Debian (.deb) package</primary></indexterm>
+
+  <para>On Debian and related Linux distributions such as Ubuntu, you can
+  install OpenDJ directory server from the Debian package.</para>
+
+  <step performance="optional">
+   <para>Before you install OpenDJ, install a Java runtime environment if none
+   is installed yet.</para>
+
+   <screen>$ sudo apt-get install default-jre</screen>
+  </step>
+
+  <step>
+   <para>Install the OpenDJ directory server package.</para>
+
+   <screen>$ sudo dpkg -i opendj*.deb
+Selecting previously unselected package opendj.
+(Reading database ... 185569 files and directories currently installed.)
+Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>_all.deb) ...
+
+Setting up opendj (<?eval ${docTargetVersion}?>) ...
+$</screen>
+
+   <para>The .deb installs OpenDJ directory server in the directory
+   <filename>/opt/opendj</filename>.</para>
+
+   <para>The files are owned by root by default, making it easier to have OpenDJ
+   listen on ports 389 and 636.</para>
+  </step>
+
+  <step>
+   <para>Configure OpenDJ directory server by using the command
+   <command>sudo /opt/opendj/setup</command>.</para>
+
+   <screen>$ sudo /opt/opendj/setup --cli
+[ sudo ] password for user:
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status</screen>
+  </step>
+
+  <step performance="optional">
+   <para>Check OpenDJ directory server status.</para>
+
+   <screen>$ sudo /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                ubuntu.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication: </screen>
+  </step>
+
+  <step performance="optional">
+   <para>If you want to run OpenDJ when the system starts, see <link
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-rpm">
+  <title>To Install From the RPM Package</title>
+  <indexterm><primary>Red Hat (.rpm) package</primary></indexterm>
+
+  <para>On Red Hat and related Linux distributions such as Fedora and CentOS,
+  you can install OpenDJ directory server from the RPM package.</para>
+
+  <step performance="optional">
+   <para>Before you install OpenDJ, install a Java runtime environment if none
+   is installed yet.</para>
+
+   <screen>$ java -version
+java version ...
+OpenJDK Runtime Environment ...</screen>
+  </step>
+
+  <step>
+   <para>Install the OpenDJ directory server package.</para>
+
+   <screen>$ su
+Password:
+# rpm -i opendj*.rpm
+Pre Install - initial install
+Post Install - initial install
+
+#</screen>
+
+   <para>The .rpm installs OpenDJ directory server in the directory
+   <filename>/opt/opendj</filename>.</para>
+
+   <para>The files are owned by root by default, making it easier to have OpenDJ
+   listen on ports 389 and 636.</para>
+  </step>
+
+  <step>
+   <para>Configure OpenDJ directory server by using the command
+   <command>/opt/opendj/setup</command>.</para>
+
+   <screen># /opt/opendj/setup --cli
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status</screen>
+  </step>
+
+  <step performance="optional">
+   <para>Check OpenDJ directory server status.</para>
+
+   <screen># /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                fedora.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication: </screen>
+  </step>
+
+  <step performance="optional">
+   <para>If you want to run OpenDJ when the system starts, see <link
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-properties-file">
+  <title>To Install OpenDJ Directory Server With a Properties File</title>
+
+  <para>You can install OpenDJ directory server by using the
+  <command>setup</command> command with a properties file.</para>
+
+  <para>Property names correspond to the option names, but without leading
+  dashes. Options that take no arguments become boolean properties as in the
+  following example.</para>
+
+  <programlisting language="ini">enableStartTLS=true</programlisting>
+
+  <para>If you use a properties file with multiple tools, prefix the property
+  name with the tool name followed by a dot (<literal>.</literal>), as in the
+  following example.</para>
+
+  <programlisting language="ini">setup.rootUserPasswordFile=/tmp/pwd.txt</programlisting>
+
+  <para>The following steps demonstrate use of a properties file as part of a
+  scripted installation process.</para>
+
+  <step>
+   <para>Prepare your properties file.</para>
+
+   <para>This procedure uses the following example properties file.</para>
+
+   <programlisting language="ini">#
+# Sample properties file to set up OpenDJ directory server
+#
+hostname                        =opendj.example.com
+ldapPort                        =1389
+generateSelfSignedCertificate   =true
+enableStartTLS                  =true
+ldapsPort                       =1636
+jmxPort                         =1689
+adminConnectorPort              =4444
+rootUserDN                      =cn=Directory Manager
+rootUserPassword                =password
+baseDN                          =dc=example,dc=com
+ldifFile                        =/net/install/dj/Example.ldif
+#sampleData                     =2000</programlisting>
+
+   <para>If you have multiple servers to install, consider scripting creation
+   of the properties files.</para>
+  </step>
+
+  <step>
+   <para>Prepare an installation script.</para>
+
+   <screen>$ cat /net/install/dj/1/setup.sh
+#!/bin/sh
+
+unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp; cd /path/to/opendj
+./setup --cli --propertiesFilePath /net/install/dj/1/setup.props --no-prompt</screen>
+  </step>
+
+  <step>
+   <para>Run your installation script.</para>
+
+   <screen>$ /net/install/dj/1/setup.sh
+Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
+   creating: /path/to/opendj
+...
+  inflating: /path/to/opendj/setup
+  inflating: /path/to/opendj/uninstall
+  inflating: /path/to/opendj/upgrade
+
+OpenDJ <?eval ${docTargetVersion}?>
+Please wait while the setup program initializes...
+
+See /var/folders/.../opendj-setup-....log for a detailed log of this operation.
+
+Configuring Directory Server ..... Done.
+Configuring Certificates ..... Done.
+Importing LDIF file /net/install/dj/Example.ldif ....... Done.
+Starting Directory Server ....... Done.
+
+To see basic server configuration status and configuration you can launch
+ /path/to/opendj/bin/status</screen>
+
+   <para>At this point you can use OpenDJ directory server, or you can perform
+   additional configuration.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-rest2ldap-servlet">
+  <title>To Install OpenDJ REST LDAP Gateway</title>
+  <indexterm><primary>REST LDAP gateway</primary></indexterm>
+
+  <para>The OpenDJ REST LDAP gateway functions as a web application in a web
+  application container, running independently of OpenDJ. Alternatively,
+  you can use the HTTP connection handler in OpenDJ directory server. See the
+  procedure, <link xlink:href="admin-guide#setup-rest2ldap-connection-handler"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
+  Access to OpenDJ Directory Server</citetitle></link>, for instructions.</para>
+
+  <para>You configure the gateway to access your directory service by editing
+  <filename>opendj-rest2ldap-servlet.json</filename> where you deploy the
+  gateway web application.</para>
+
+  <step>
+   <para>Deploy
+   <filename>opendj-rest2ldap-servlet-<?eval ${sdkDocTargetVersion}?>-servlet.war</filename>
+   according to the instructions for your application server.</para>
+  </step>
+
+  <step>
+   <para>Edit <filename>opendj-rest2ldap-servlet.json</filename> where you
+   deployed the gateway web application.</para>
+
+   <para>The default JSON resource for the configuration includes both
+   connection and authentication information, and also
+   <literal>mappings</literal>. The <literal>mappings</literal> describe how
+   the gateway translates between JSON and LDAP representations of your
+   data. The default <literal>mappings</literal> are built to work with
+   generated example data and also the sample content in <link xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/Example.ldif"
+   >Example.ldif</link>.</para>
+
+   <para>At minimum, make sure that the host name and port numbers for
+   <literal>primaryLDAPServers</literal> are properly configured, that
+   <literal>authentication</literal> reflects the correct simple bind
+   credentials, and that the <literal>mappings</literal> for the endpoints
+   correctly match your directory data.</para>
+
+   <para>For details on the configuration, see <link
+   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+   Configuration</citetitle></link>.</para>
+  </step>
+
+  <step>
+   <para>Restart the REST LDAP gateway or the application server to make
+   sure the changes are taken into account.</para>
+  </step>
+
+  <step>
+   <para>Make sure that your directory server is running, and then check that
+   the gateway is connecting correctly.</para>
+
+   <para>The following command reads Babs Jensen's entry through the gateway
+   to the backend holding data from <filename>Example.ldif</filename>.</para>
+
+   <screen
+   >$ curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen
+ ?_prettyPrint=true
+{
+  "_rev" : "000000002ee3b764",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+
+   <para>If you generated example data, Babs Jensen's entry is not included.
+   Try a URL such as
+   <literal>http://user.0:password@opendj.example.com:8080/rest2ldap/users/user.0</literal>
+   instead.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-dsml-gateway">
+  <title>To Install OpenDJ DSML gateway</title>
+  <indexterm><primary>DSML gateway</primary></indexterm>
+  
+  <para>The OpenDJ DSML gateway functions as a web application located in a
+  web application container. The DSML gateway runs independently of OpenDJ
+  directory server. You configure the gateway to access your directory service
+  by editing the <literal>ldap.host</literal> and <literal>ldap.port</literal>
+  parameters in the <filename>WEB-INF/web.xml</filename> configuration
+  file.</para>
+
+  <step>
+   <para>Deploy <filename>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</filename>
+   according to the instructions for your application server.</para>
+  </step>
+
+  <step>
+   <para>Edit <filename>WEB-INF/web.xml</filename> to ensure the values for
+   <literal>ldap.host</literal> and <literal>ldap.port</literal> are
+   correct.</para>
+  </step>
+
+  <step>
+   <para>Restart the web application container according to the instructions
+   for your application server.</para>
+  </step>
+ </procedure>
+</chapter>

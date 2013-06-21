@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-authenticating'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Authenticating To the Directory</title>
+
+ <para>When your client application connects to the directory, the first
+ operation to perform is a bind operation. The bind operation authenticates
+ the client to the directory.</para>
+
+ <section xml:id="simple-auth">
+  <title>Simple Authentication</title>
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>Simple</secondary>
+  </indexterm>
+
+  <para>You perform simple authentication by binding with the distinguished
+  name of a user's directory entry and the user's password. For this reason
+  simple authentication over unsecure network connections should be done only
+  in the lab. If your real end users are providing their passwords, your
+  application must use simple authentication only if the network is
+  secure.</para>
+  
+  <para>To bind using Barbara Jensen's identity and simple authentication,
+  for example, your application would provide the DN
+  <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> with the
+  password <literal>hifalutin</literal>.</para>
+  
+  <para>The directory stores the password value used for simple authentication
+  in binary form on the <literal>userPassword</literal> attribute of the entry.
+  In other words, for the purposes of your application the password is not a
+  string, but instead an array of bytes. Typically the directory is further
+  configured to store only hashed values of user passwords, rather than plain
+  text versions. Thus even if someone managed to read the stored password
+  values, they would still have to crack the hash in order to learn the
+  actual passwords. When your application performing simple authentication
+  sends the password value, the directory server therefore hashes the password
+  value, and then compares the hashed result with the value of the
+  <literal>userPassword</literal> on the user entry. If the values match,
+  then the directory authenticates the user. Once the user has authenticated,
+  the directory determines authorization for operations on the connection
+  based on the users identity.</para>
+  
+  <programlisting language="java">
+/**
+ * Authenticate over LDAP.
+ */
+private static void connect()
+{
+  final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+    host, port);
+  Connection connection = null;
+
+  try
+  {
+    connection = factory.getConnection();
+    connection.bind(bindDN, bindPassword.toCharArray());
+    System.out.println("Authenticated as " + bindDN + ".");
+  }
+  catch (final ErrorResultException e)
+  {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+  }
+  finally
+  {
+    if (connection != null) connection.close();
+  }
+}</programlisting>
+  
+  <para>If the password values do not match, a directory might nevertheless
+  authenticate the client application. The LDAP specifications say that in this
+  case, however, the directory authenticates the user as anonymous, therefore
+  no doubt with fewer rights than the normal user, and surely fewer rights
+  than an administrator.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
+  xlink:show="new">SimpleAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+ 
+ <section xml:id="simple-auth-with-starttls-or-ssl">
+  <title>Start TLS &amp; SSL Authentication</title>
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>StartTLS, SSL</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>StartTLS</secondary>
+  </indexterm>
+
+  <para>Simple authentication involves sending a user name and password to
+  the directory server. To avoid sending the user name and password in
+  the clear, you can use SSL or Start TLS.</para>
+  
+  <para>For both SSL and Start TLS, you pass LDAP options to the connection
+  factory in order to set an SSL context, and set whether to use Start TLS.
+  The SSL context lets you set a trust manager to check server certificates,
+  and also set a key manager to provide keys when the server needs to check
+  your client certificates. In the simplest, not-so-secure case, you can
+  set up a trust manager that trusts all certificates.</para>
+  
+  <para>The following example is an excerpt from the OpenDJ LDAP SDK example,
+  <filename>org.forgerock.opendj.examples.SimpleAuth.java</filename>.</para>
+  
+  <programlisting language="java">
+private static LDAPOptions getTrustAllOptions()
+  throws GeneralSecurityException
+{
+  LDAPOptions lo = new LDAPOptions();
+  SSLContext sslContext = new SSLContextBuilder()
+    .setTrustManager(TrustManagers.trustAll()).getSSLContext();
+  lo.setSSLContext(sslContext);
+  lo.setUseStartTLS(useStartTLS);
+  return lo;
+}</programlisting>
+  
+  <para>A more secure and extensive SSL context would include a trust manager
+  using a trust store and trust manager methods to check server certificates.
+  If you also want to be able to authenticate to the server using your client
+  certificate, you would need a key manager.</para>
+  
+  <para>The authentication over SSL or using Start TLS in the trust-all case is
+  much like simple authentication over LDAP without connection-level security.
+  The primary differences are that you pass the <literal>LDAPOptions</literal>
+  to the LDAP connection factory, and that you handle the potential security
+  exception involved in setting up the SSL context.</para>
+  
+  <programlisting language="java">
+/**
+ * Perform authentication over a secure connection, trusting all server
+ * certificates.
+ */
+private static void trustAllConnect()
+{
+  Connection connection = null;
+
+  try
+  {
+    final LDAPConnectionFactory factory =
+        new LDAPConnectionFactory(host, port, getTrustAllOptions());
+    connection = factory.getConnection();
+    connection.bind(bindDN, bindPassword.toCharArray());
+    System.out.println("Authenticated as " + bindDN + ".");
+  }
+  catch (final ErrorResultException e)
+  {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+  }
+  catch (final GeneralSecurityException e)
+  {
+    System.err.println(e.getMessage());
+    System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+  }
+  finally
+  {
+    if (connection != null)
+      connection.close();
+  }
+}</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
+  xlink:show="new">SimpleAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+ 
+ <section xml:id="sasl-auth">
+  <title>SASL Authentication</title>
+  <indexterm>
+   <primary>Authentications</primary>
+   <secondary>SASL</secondary>
+  </indexterm>
+
+  <para>Simple Authentication and Security Layer (SASL) provides a way to
+  use other mechanisms for authentication such as Kerberos or Digest
+  authentication, or even to define your own authentication mechanism. The
+  directory server likely advertises supported SASL mechanisms in the root
+  DSE. The follow example shows how to search OpenDJ for supported SASL
+  mechanisms.</para>
+  
+  <screen>$ ldapsearch
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN ""
+ --searchScope base
+ "(objectclass=*)" supportedSASLMechanisms
+dn: 
+supportedSASLMechanisms: PLAIN
+supportedSASLMechanisms: EXTERNAL
+supportedSASLMechanisms: DIGEST-MD5
+supportedSASLMechanisms: CRAM-MD5</screen>
+
+  <para>Notice that neither the Kerberos (GSSAPI SASL) nor the Anonymous
+  mechanism is enabled by default, though OpenDJ implements both.</para>
+  
+  <para>In order to use a SASL mechanism to bind, your program must set up
+  a <literal>SASLBindRequest</literal> and pass that to the
+  <literal>bind()</literal> method of the <literal>Connection</literal>.</para>
+  
+  <para>This section shows an example using the SASL PLAIN mechanism, which
+  takes either a DN or a user ID to authenticate, with an optional DN or user
+  ID as the authorization ID that identifies the user who performs operations.
+  The SASL PLAIN mechanism itself does not secure the connection, so the
+  example uses StartTLS. The example is provided with the OpenDJ LDAP SDK
+  examples in <filename>org.forgerock.opendj.examples.SASLAuth.java</filename>.
+  The following excerpt shows the core of the bind process.</para>
+  
+  <programlisting language="java">
+try
+{
+  final LDAPConnectionFactory factory =
+      new LDAPConnectionFactory(host, port, getTrustAllOptions());
+  connection = factory.getConnection();
+  PlainSASLBindRequest request =
+      Requests.newPlainSASLBindRequest(authcid, passwd.toCharArray())
+      .setAuthorizationID(authzid);
+  connection.bind(request);
+  System.out.println("Authenticated as " + authcid + ".");
+}</programlisting>
+
+  <para>The implementation for <literal>getTrustAllOptions()</literal>, the
+  same as in the example above, sets up Start TLS. When you run this example
+  with both authorization and authentication IDs, <literal>authzid</literal>
+  and <literal>authcid</literal>, set to <literal>u:bjensen</literal> and
+  password <literal>hifalutin</literal>, the bind is successful, and the
+  program reaches the final line of the <literal>try</literal> block.</para>
+  
+  <screen>Authenticated as u:bjensen.</screen>
+  
+  <para>Behind the scenes, OpenDJ has the SASL PLAIN mechanism configured by
+  default to use the Exact Match Identity Mapper to look up user IDs as
+  <literal>uid</literal> values. If you use another directory server, you might
+  have to configure how it maps user IDs to user entries.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SASLAuth.html"
+  xlink:show="new">SASLAuth.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+</chapter>

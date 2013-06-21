@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-get-sdk'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Getting OpenDJ LDAP SDK</title>
+
+ <para>This chapter introduces OpenDJ LDAP SDK, demonstrating how to get the
+ software and to build a first basic directory client application.</para>
+
+ <section xml:id="about-opendj-ldap-sdk">
+  <title>About OpenDJ LDAP SDK</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>About</secondary>
+  </indexterm>
+
+  <para>OpenDJ LDAP SDK provides a set of modern, developer-friendly Java APIs
+  as part of the OpenDJ product suite. The product suite includes the client
+  SDK alongside command-line tools and sample code, a 100% pure Java directory
+  server, and more. You can use OpenDJ LDAP SDK to create client applications
+  for use with any server that complies with the <citetitle>Lightweight
+  Directory Access Protocol (LDAP): Technical Specification Road
+  Map</citetitle>, <link xlink:href='http://tools.ietf.org/html/rfc4510'
+  xlink:show="new">RFC 4510</link>.</para>
+
+  <para>OpenDJ LDAP SDK brings you easy-to-use connection management, connection
+  pooling, load balancing, and all the standard LDAP operations to read and
+  write directory entries. OpenDJ LDAP SDK also lets you build applications with
+  capabilities defined in additional draft and experimental RFCs that are
+  supported by modern LDAP servers.</para>
+ </section>
+
+ <section xml:id="prepare-ldap-server">
+  <title>Preparing an LDAP Server</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Data</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Examples</primary>
+   <secondary>Data</secondary>
+  </indexterm>
+
+  <para>Install an LDAP server such as OpenDJ directory server that you can
+  use to test the applications you develop. Also, load sample data into your
+  server. The sample data used in this guide are available in LDIF form at
+  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+  >http://opendj.forgerock.org/Example.ldif</link>.</para>
+ </section>
+
+ <section xml:id="getting-the-ldap-sdk">
+  <title>Getting the LDAP SDK</title>
+
+  <para>You can either install a build or build your own from source.</para>  
+
+  <para>Before you either download a build of OpenDJ LDAP SDK, or get the
+  source code to build your own SDK, make sure you have a Java Development Kit
+  installed. See the <citetitle>Release Notes</citetitle> section on
+  <link xlink:href="release-notes#prerequisites-java" xlink:show="new"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Java
+  Environment</citetitle></link> requirements.</para>
+
+  <procedure xml:id="use-maven">
+   <title>To Include the SDK as a Maven Dependency</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>With Maven</secondary>
+   </indexterm>
+
+   <para>Let that expensive computer you bought do the work.</para>
+
+   <step>
+    <para>Include the ForgeRock repository in your list, and include the SDK
+    as a dependency.</para>
+
+    <programlisting language="xml">&lt;repositories&gt;
+  &lt;repository&gt;
+    &lt;id&gt;forgerock-staging-repository&lt;/id&gt;
+    &lt;name&gt;ForgeRock Release Repository&lt;/name&gt;
+    &lt;url&gt;http://maven.forgerock.org/repo/releases&lt;/url&gt;
+    &lt;snapshots&gt;
+      &lt;enabled&gt;false&lt;/enabled&gt;
+    &lt;/snapshots&gt;
+  &lt;/repository&gt;
+  &lt;repository&gt;
+    &lt;id&gt;forgerock-snapshots-repository&lt;/id&gt;
+    &lt;name&gt;ForgeRock Snapshot Repository&lt;/name&gt;
+    &lt;url&gt;http://maven.forgerock.org/repo/snapshots&lt;/url&gt;
+    &lt;releases&gt;
+      &lt;enabled&gt;false&lt;/enabled&gt;
+    &lt;/releases&gt;
+  &lt;/repository&gt;
+&lt;/repositories&gt;
+
+...
+
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.forgerock.opendj&lt;/groupId&gt;
+    &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
+    &lt;version&gt;<?eval ${currentSDKversion}?>&lt;/version&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;</programlisting>
+   </step>
+  </procedure>
+
+  <procedure xml:id="install-latest-sdk">
+   <title>To Install the Latest SDK &amp; Tools</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>From download</secondary>
+   </indexterm>
+
+   <step>
+    <para>Download the latest OpenDJ LDAP Client Toolkit nightly build from the
+    <link xlink:href="http://forgerock.org/opendj.html" xlink:show="new"
+    >Nightly Builds</link> page.</para>
+   </step>
+   <step>
+    <para>Unzip the bundle,
+    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</filename>,
+    where you want to install the SDK.</para>
+    <screen>$ unzip opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</screen>
+   </step>
+    <step>
+     <para>Add the tools to your PATH.</para>
+     <screen>(UNIX)
+$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin:$PATH</screen>
+        <screen>(Windows)
+C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat:%PATH%</screen>
+    </step>
+    <step>
+     <para> Add the OpenDJ LDAP SDK for the APIs, the I18N core library,
+     and Grizzly I/O framework for the transport to your CLASSPATH, typically found under
+     <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
+     <screen>(UNIX)
+$ export CLASSPATH=/path/to/lib/grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:$CLASSPATH
+     </screen>
+     <screen>(Windows)
+C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:%CLASSPATH%</screen>
+    </step>
+  </procedure>
+
+  <procedure xml:id="proc-roll-your-own-sdk">
+   <title>To Build Your Own SDK From Source</title>
+   <indexterm>
+    <primary>Installing</primary>
+    <secondary>Build your own</secondary>
+   </indexterm>
+
+   <step>
+    <para>Make sure you have Subversion (<command>svn</command>) and
+    Maven (<command>mvn</command>) installed.</para>
+   </step>
+   <step>
+    <para>Check out the source code.</para>
+    <screen>$ svn co https://svn.forgerock.org/opendj/trunk/opendj3
+...
+Checked out revision <replaceable>XXXX</replaceable>.</screen>
+   </step>
+   <step>
+    <para>Build the modules and install them in the local repository.</para>
+    <screen>$ cd opendj3/
+$ mvn install
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] OpenDJ Directory Services Project
+[INFO] OpenDJ LDAP SDK
+[INFO] OpenDJ LDAP Toolkit
+[INFO] OpenDJ LDAP SDK Examples
+[INFO] OpenDJ Commons REST Adapter
+[INFO] OpenDJ Commons REST LDAP Gateway
+[INFO] OpenDJ Server 2.x Adapter
+[INFO]
+       ...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 2:51.315s
+[INFO] Finished at: Wed Apr 10 14:28:36 CEST 2013
+[INFO] Final Memory: 37M/382M
+[INFO] ------------------------------------------------------------------------</screen>
+   </step>
+   <step>
+    <para>Unzip the tools and libraries included in the file,
+    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</filename>.</para>
+   </step>
+   <step>
+    <para>Add the <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>
+    (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat</filename>
+    (Windows) directory to your PATH.</para>
+   </step>
+   <step>
+    <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
+    <filename>opendj-ldap-sdk-<?eval ${currentSDKVersion}?>.jar</filename>, 
+    the I18N core library,
+    <filename>i18n-core-<?eval ${i18nFrameworkVersion}?>.jar</filename>, and the
+    Grizzly framework,
+    <filename>grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar</filename>
+    under
+    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
+   </step>
+  </procedure>
+
+  <para>After you install OpenDJ LDAP SDK and configure your environment as
+  described, if you have a directory server running import sample data,
+  and test your configuration with a sample client application.</para>
+
+  <programlisting language="java">import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+//Test.java:
+//Kick the SDK tires, reading Babs Jensen's entry and displaying LDIF.
+//If your LDAP server is not listening on localhost:1389, or if your
+//data are different change the appropriate lines below.
+
+class Test {
+    public static void main(String[] args) {
+
+        // Create an LDIF writer which will write the search results to stdout.
+
+        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+        Connection connection = null;
+
+        try {
+            // Connect and bind to the server.
+            // CHANGE THIS IF SERVER IS NOT AT localhost:1389.
+            final LDAPConnectionFactory factory =
+                    new LDAPConnectionFactory("localhost", 1389);
+
+            connection = factory.getConnection();
+            // CHANGE THIS IF ANONYMOUS SEARCHES ARE NOT ALLOWED.
+            // connection.bind(userName, password);
+
+            // Read the entries and output them as LDIF.
+            // CHANGE THIS IF NO uid=bjensen,ou=people,dc=example,dc=com EXISTS.
+            final ConnectionEntryReader reader =
+                    connection.search("dc=example,dc=com",
+                            SearchScope.WHOLE_SUBTREE, "(uid=bjensen)", "*");
+            while (reader.hasNext()) {
+                if (reader.isEntry()) {
+                    // Got an entry.
+                    final SearchResultEntry entry = reader.readEntry();
+                    writer.writeComment("Search result entry: "
+                            + entry.getName().toString());
+                    writer.writeEntry(entry);
+                } else {
+                    // Got a continuation reference.
+                    final SearchResultReference ref = reader.readReference();
+                    writer.writeComment("Search result reference: "
+                            + ref.getURIs().toString());
+                }
+            }
+            writer.flush();
+        } catch (final Exception e) {
+            // Handle exceptions...
+            System.err.println(e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+    }
+}
+</programlisting>
+
+  <para>If all goes well, <filename>Test.java</filename> compiles without
+  errors. The test program displays Babs Jensen's entry in LDIF.</para>
+
+  <screen>$ javac Test.java
+$ java Test
+# Search result entry: uid=bjensen,ou=People,dc=example,dc=com
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+uid: bjensen
+cn: Barbara Jensen
+cn: Babs Jensen
+sn: Jensen
+telephoneNumber: +1 408 555 1862
+roomNumber: 0209
+ou: Product Development
+ou: People
+l: Cupertino
+mail: bjensen@example.com
+facsimileTelephoneNumber: +1 408 555 1992</screen>
+ </section>
+
+ <section xml:id="opendj-ldap-sdk-examples">
+  <title>Accessing Example Java Code</title>
+  <indexterm>
+   <primary>Examples</primary>
+   <secondary>Java</secondary>
+  </indexterm>
+
+  <para>A number of OpenDJ LDAP SDK examples are available online on the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ community site</link>. There you find samples
+  whose excerpts are shown in this guide.</para>
+ </section>
+</chapter>

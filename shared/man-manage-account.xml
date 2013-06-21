@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='manage-account-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>manage-account</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>manage-account</refname>
+  <refpurpose>manage state of directory server accounts</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>manage-account</command>
+   <command><replaceable>subcommand</replaceable></command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to retrieve and manipulate the values of
+  password policy state variables.</para>
+ </refsect1>
+ <refsect1>
+  <title>Subcommands</title>
+  <para>The following subcommands are supported.</para>
+  <variablelist>
+    <varlistentry>
+    <term><command>manage-account clear-account-is-disabled</command></term>
+    <listitem>
+     <para>Clear account disabled state information from the user account</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-account-expiration-time</command></term>
+    <listitem>
+     <para>Display when the user account will expire</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-account-is-disabled</command></term>
+    <listitem>
+     <para>Display information about whether the user account has been
+     administratively disabled</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-all</command></term>
+    <listitem>
+     <para>Display all password policy state information for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-authentication-failure-times</command></term>
+    <listitem>
+     <para>Display the authentication failure times for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-grace-login-use-times</command></term>
+    <listitem>
+     <para>Display the grace login use times for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-last-login-time</command></term>
+    <listitem>
+     <para>Display the time that the user last authenticated to the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-changed-by-required-time</command></term>
+    <listitem>
+     <para>Display the required password change time with which the user last
+     complied</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-changed-time</command></term>
+    <listitem>
+     <para>Display the time that the user's password was last changed</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-expiration-warned-time</command></term>
+    <listitem>
+     <para>Display the time that the user first received an expiration warning 
+     notice</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-history</command></term>
+    <listitem>
+     <para>Display password history state values for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-is-reset</command></term>
+    <listitem>
+     <para>Display information about whether the user will be required to
+     change his or her password on the next successful authentication</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-password-policy-dn</command></term>
+    <listitem>
+     <para>Display the DN of the password policy for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-remaining-authentication-failure-count</command></term>
+    <listitem>
+     <para>Display the number of remaining authentication failures until the
+     user's account is locked</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-remaining-grace-login-count</command></term>
+    <listitem>
+     <para>Display the number of grace logins remaining for the user</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-account-expiration</command></term>
+    <listitem>
+     <para>Display the length of time in seconds until the user account
+     expires</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-authentication-failure-unlock</command></term>
+    <listitem>
+     <para>Display the length of time in seconds until the authentication
+     failure lockout expires</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-idle-lockout</command></term>
+    <listitem>
+     <para>Display the length of time in seconds until user's account is locked
+     because it has remained idle for too long</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-password-expiration</command></term>
+    <listitem>
+     <para>Display length of time in seconds until the user's password expires</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-password-expiration-warning</command></term>
+    <listitem>
+     <para>Display the length of time in seconds until the user should start
+     receiving password expiration warning notices</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-password-reset-lockout</command></term>
+    <listitem>
+     <para>Display the length of time in seconds until user's account is locked
+     because the user failed to change the password in a timely manner after an
+     administrative reset</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account get-seconds-until-required-change-time</command></term>
+    <listitem>
+     <para>Display the length of time in seconds that the user has remaining to
+     change his or her password before the account becomes locked due to the
+     required change time</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>manage-account set-account-is-disabled</command></term>
+    <listitem>
+     <para>Specify whether the user account has been administratively disabled</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Global Options</title>
+  <para>The following global options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-b, --targetDN {targetDN}</option></term>
+    <listitem>
+     <para>The DN of the user entry for which to get and set password policy
+     state information</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --bindPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Bind password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para>Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server administration port number</para>
+      <para>Default value: 4444</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --bindPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password to use to bind to the server</para>
+      <para>Use <option>-w -</option> to have the command prompt for the
+      password, rather than enter the password on the command line.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>89</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>For the following examples, the directory admin user, Kirsten Vaughan,
+  has <literal>ds-privilege-name: password-reset</literal>, and the following
+  ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
+  <literallayout class="monospaced">(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
+  <para>The following command locks a user account.</para>
+  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery set-account-is-disabled -O true
+ -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  true</screen>
+  <para>The following command unlocks a user account.</para>
+  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery clear-account-is-disabled
+ -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  false</screen>
+ </refsect1>
+</refentry>

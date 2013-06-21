@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='control-panel-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>control-panel</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>control-panel</refname>
+  <refpurpose>start the OpenDJ graphical admin interface</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>control-panel</command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to display the Control Panel window which
+  displays basic server information and allows to do some basic administration
+  tasks on the server.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-r, --remote</option></term>
+    <listitem>
+     <para>Connect to a remote server</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection. Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --adminPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Global administrator password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server administration port number</para>
+      <para>Default value: 4444</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --adminPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password for the global administrator</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>&gt; 0</term>
+     <listitem>
+      <para>An error occurred.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example starts the Control Panel on a remote host.</para>
+  
+  <screen>$ control-panel -r -h opendj.example.com -p 4444 &amp;</screen>
+ </refsect1>
+</refentry>

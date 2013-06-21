@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<appendix xml:id='appendix-file-layout'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>File Layout</title>
+
+ <para>OpenDJ software installs and creates the following files and
+ directories. The following list is not necessarily exhaustive.</para>
+ <indexterm><primary>File layout</primary></indexterm>
+ <indexterm><primary>Installed files</primary></indexterm>
+ <variablelist>
+  <varlistentry>
+   <term><filename>QuickSetup.app</filename></term>
+   <listitem>
+    <para>Mac OS X GUI for installing OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>Uninstall.app</filename></term>
+   <listitem>
+    <para>Mac OS X GUI for removing OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>bak</filename></term>
+   <listitem>
+    <para>Directory for saving backup files</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>bat</filename></term>
+   <listitem>
+    <para>Windows command-line tools and control panel</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>bin</filename></term>
+   <listitem>
+    <para>UNIX/Linux/Mac OS X command-line tools and control panel</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>changelogDb</filename></term>
+   <listitem>
+    <para>JE backend data for the external change log when using
+    replication</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>classes</filename></term>
+   <listitem>
+    <para>Directory added to the <literal>CLASSPATH</literal> for OpenDJ,
+    permitting individual classes to be patched</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config</filename></term>
+   <listitem>
+    <para>OpenDJ server configuration and schema, PKI stores, LDIF generation
+    templates, resources for upgrade</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/MakeLDIF</filename></term>
+   <listitem>
+    <para>Templates for use with the <command>make-ldif</command> LDIF
+    generation tool</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/config.ldif</filename></term>
+   <listitem>
+    <para>LDIF representation of current OpenDJ server config</para>
+    <para>Use the <command>dsconfig</command> command to edit OpenDJ server
+    configuration.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/java.properties</filename></term>
+   <listitem>
+    <para>JVM settings for OpenDJ server and tools</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/schema</filename></term>
+   <listitem>
+    <para>OpenDJ directory server LDAP schema definition files</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/tasks.ldif</filename></term>
+   <listitem>
+    <para>Data used by task scheduler backend so that scheduled tasks and
+    recurring tasks persist after server restart</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/tools.properties</filename></term>
+   <listitem>
+    <para>Default settings for command-line tools</para>
+    <para>Use as a template when creating an
+    <filename>~/.opendj/tools.properties</filename> file.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/upgrade</filename></term>
+   <listitem>
+    <para>Resources used by the upgrade command to move to the next version
+    of OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>config/wordlist.txt</filename></term>
+   <listitem>
+    <para>List of words used to check password strength</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>db</filename></term>
+   <listitem>
+    <para>JE backend data for backends that you create</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>example-plugin.zip</filename></term>
+   <listitem>
+    <para>Sample OpenDJ plugin code. Custom plugins are meant to be installed
+    in <filename>lib/extensions</filename>.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>import-tmp</filename></term>
+   <listitem>
+    <para>Used when importing data into OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>install.html</filename></term>
+   <listitem>
+    <para>Quick installation instructions in case you are offline</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>install.txt</filename></term>
+   <listitem>
+    <para>Text version of <filename>install.html</filename></para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>instance.loc</filename></term>
+   <listitem>
+    <para>Pointer to OpenDJ on the file system, useful in installations where
+    the program files are separate from the server instance files</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>ldif</filename></term>
+   <listitem>
+    <para>Directory for saving LDIF export files</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>legal-notices</filename></term>
+   <listitem>
+    <para>License information</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>lib</filename></term>
+   <listitem>
+    <para>Scripts and libraries needed by OpenDJ and added to the
+    <literal>CLASSPATH</literal> for OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>lib/extensions</filename></term>
+   <listitem>
+    <para>File system directory to hold your custom plugins</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>locks</filename></term>
+   <listitem>
+    <para>Directory to hold lock files used when OpenDJ is running to prevent
+    backends from accidentally being used by more than one server process</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>logs</filename></term>
+   <listitem>
+    <para>Access, errors, audit, and replication logs</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>logs/server.pid</filename></term>
+   <listitem>
+    <para>Contains the process ID for the server when OpenDJ is running</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>setup</filename></term>
+   <listitem>
+    <para>UNIX setup utility</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>setup.bat</filename></term>
+   <listitem>
+    <para>Windows setup utility</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>uninstall</filename></term>
+   <listitem>
+    <para>UNIX utility for removing OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>uninstall.bat</filename></term>
+   <listitem>
+    <para>Windows utility for removing OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>upgrade</filename></term>
+   <listitem>
+    <para>UNIX utility for upgrading OpenDJ by pointing to the new .zip</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>upgrade.bat</filename></term>
+   <listitem>
+    <para>Windows utility for upgrading OpenDJ by pointing to the new .zip</para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</appendix>

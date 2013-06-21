@@ -1,0 +1,1279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-connection-handlers'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Configuring Connection Handlers</title>
+ <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
+ <para>This chapter shows you how to configure OpenDJ directory server to
+ listen for directory client requests, using connection handlers. You can view
+ information about connection handlers in the OpenDJ Control Panel, and update
+ the configuration using the <command>dsconfig</command> command.</para>
+ 
+ <section xml:id="configure-ldap-port">
+  <title>LDAP Client Access</title>
+  
+  <para>You configure LDAP client access by using the command-line tool
+  <command>dsconfig</command>. By default you configure OpenDJ to listen for
+  LDAP when you install.</para>
+  
+  <para>The standard port number for LDAP client access is 389. If you
+  install OpenDJ directory server as a user who can use port 389 and the port
+  is not yet in use, then 389 is the default port number presented at
+  installation time. If you install as a user who cannot use a port &lt; 1024,
+  then the default port number presented at installation time is 1389.</para>
+  
+  <procedure xml:id="change-ldap-port">
+   <title>To Change the LDAP Port Number</title>
+   
+   <step>
+    <para>Change the port number using the <command>dsconfig</command>
+    command.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set listen-port:11389
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 11389 in the configuration.</para>
+   </step>
+   <step>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+ </section>
+ 
+ <section xml:id="setup-server-cert">
+  <title>Preparing For Secure Communications</title>
+  <indexterm><primary>Certificates</primary></indexterm>
+
+  <para>One common way to protect connections between OpenDJ and client
+  applications involves using StartTLS for LDAP or LDAPS to secure
+  connections. OpenDJ and client applications use X.509 digital certificates
+  to set up secure connections.</para>
+
+  <para>Both OpenDJ and client applications check that certificates are signed
+  by a trusted party before accepting them. Merely setting up a secure
+  connection therefore involves a sort of authentication using certificates.
+  If either OpenDJ or the client application cannot trust the peer certificate,
+  then the attempt to set up a secure connection must fail.</para>
+
+  <para>By default OpenDJ client tools prompt you if they do not recognize the
+  server certificate. Other clients might not prompt you. OpenDJ server has no
+  one to prompt when a client presents a certificate that cannot be
+  trusted, so it must simply refuse to set up the
+  connection.<footnote><para>Unless you use the Blind Trust Manager
+  Provider, which is recommended only for test purposes.</para></footnote>
+  In other words, it is important for both OpenDJ and client applications
+  to be able to verify that peer certificates exchanged have been signed by
+  a trusted party.</para>
+
+  <para>In practice this means that both OpenDJ and client applications must
+  put the certificates that were used to sign each others' certificates in their
+  respective trust stores. Conventionally, certificates are therefore signed by
+  a Certificate Authority (CA). A CA is trusted to sign other certificates. The
+  Java runtime environment for example comes with a trust store holding
+  certificates from many well-known CAs.<footnote><para><filename
+   >$JAVA_HOME/jre/lib/security/cacerts</filename> holds the CA certificates.
+   To read the full list, use the following command.</para>
+   <screen>$ keytool
+ -list
+ -v
+ -keystore $JAVA_HOME/jre/lib/security/cacerts
+ -storepass changeit</screen></footnote> If your client uses a valid
+  certificate signed by one of these CAs, then OpenDJ can verify the
+  certificate without additional configuration, because OpenDJ can find
+  the CA certificate in the Java CA certificate trust store. Likewise if
+  you set up StartTLS or LDAPS in OpenDJ using a valid certificate signed
+  by one of these CAs, then many client applications can verify the OpenDJ
+  server certificate without further configuration.</para>
+
+  <para>In summary, if you need a certificate to be recognized automatically,
+  get the certificate signed by a well-known CA.</para>
+
+  <para>You can, however, choose to have your certificates signed some other
+  way. You can set up your own CA. You can use a CA whose signing certificate
+  is not widely distributed. You can also use self-signed certificates. In each
+  case, you must add the signing certificates into the trust store of each
+  peer making secure connections.</para>
+
+  <para>For OpenDJ directory server, you can choose to import your own CA-signed
+  certificate as part of the installation process, or later using command-line
+  tools. Alternatively, you can let the OpenDJ installation program create a
+  self-signed certificate as part of the OpenDJ installation process. In
+  addition, you can add a signing certificate to the OpenDJ trust store using
+  the Java <command>keytool</command> command.</para>
+
+  <para>The following example shows the <command>keytool</command> command to
+  add a client application's binary format, self-signed certificate to the
+  OpenDJ trust store (assuming OpenDJ is already configured to use secure
+  connections). This enables OpenDJ to recognize the self-signed client
+  application certificate. (By definition a self-signed certificate is itself
+  the signing certificate. Notice that the Owner and the Issuer are the
+  same.)</para>
+
+  <screen>$ keytool
+ -import
+ -alias myapp-cert
+ -file myapp-cert.crt
+ -keystore /path/to/opendj/config/truststore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 5ae2277
+Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
+Certificate fingerprints:
+	 MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+	 SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
+	 SHA256: 2D:B1:58:CD:33:40:E9:ED:...:EA:C9:FF:6A:19:93:FE:E4:84:E3
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
+0010: C9 6B 32 95                                        .k2.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+
+  <para>When working with a certificate in printable encoding format (.pem)
+  rather than binary format, use the <option>-rfc</option> option, too.</para>
+
+  <para>Restart OpenDJ after adding certificates to the trust store to make
+  sure that OpenDJ reads the updated trust store file.</para>
+
+  <para>On the client side, if your applications are also Java applications,
+  then you can also import the OpenDJ signing certificate into the trust
+  store for the applications using the <command>keytool</command>
+  command.</para>
+
+  <para>The following example shows the <command>keytool</command> command
+  to export the OpenDJ self-signed certificate in binary format.</para>
+
+  <screen>$ keytool
+ -export
+ -alias server-cert
+ -file server-cert.crt
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+Certificate stored in file &lt;server-cert.crt&gt;</screen>
+
+  <para>Importing the server certificate is similar to importing the client
+  certificate, as shown above.</para>
+
+  <para>The following sections describe how to get and install certificates
+  for OpenDJ directory server on the command line, for use when setting up
+  StartTLS or LDAPS.</para>
+
+  <procedure xml:id="new-ca-signed-cert">
+   <title>To Request and Install a CA-Signed Certificate</title>
+
+   <para>First you create a server certificate in a Java Key Store. Next you
+   issue a signing request to the CA, and get the CA-signed certificate as a
+   reply. Then you set up the Key Manager Provider and Trust Manager Provider
+   to rely on your new server certificate stored in the OpenDJ key store.</para>
+
+   <step>
+    <para>Generate the server certificate by using the Java
+    <command>keytool</command> command.</para>
+
+    <para>The CN attribute value is the FQDN for OpenDJ directory server, which
+    you can see under Server Details in the OpenDJ Control Panel.</para>
+
+    <screen>$ keytool
+ -genkey
+ -alias server-cert
+ -keyalg rsa
+ -dname "CN=opendj.example.com,O=Example Corp,C=FR"
+ -keystore /path/to/opendj/config/keystore
+ -storepass changeit
+ -keypass changeit</screen>
+
+    <note><para>Notice that the <option>-storepass</option> and
+    <option>-keypass</option> options take identical password arguments.
+    OpenDJ requires that you use the same password to protect both the keystore
+    and also the private key.</para></note>
+   </step>
+
+   <step>
+    <para>Create a certificate signing request file for the certificate you
+    generated.</para>
+
+    <screen>$ keytool
+ -certreq
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass changeit
+ -file server-cert.csr</screen>
+   </step>
+
+   <step>
+    <para>Have the CA sign the request
+    (<filename>server-cert.csr</filename>).</para>
+    <para>See the instructions from your CA on how to provide the
+    request.</para>
+    <para>The CA returns the signed certificate.</para>
+
+    <!-- Create a CA cert for signing certificates.
+
+Not part of the procedure, but helpful when trying this out:
+http://social.rocho.org/jan/selfsign.html
+
+$ openssl genrsa -des3 -out ca.key 4096
+Generating RSA private key, 4096 bit long modulus
+.....++
+.......................++
+e is 65537 (0x10001)
+Enter pass phrase for ca.key:
+Verifying - Enter pass phrase for ca.key:
+
+$ openssl req -new -x509 -days 7300 -key ca.key -out ca.crt
+Enter pass phrase for ca.key:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+
+Country Name (2 letter code) [AU]:FR
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:Grenoble
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example Corp
+Organizational Unit Name (eg, section) []:
+Common Name (eg, YOUR name) []:Example CA
+Email Address []:mark.craig@forgerock.com
+
+$ openssl x509 -req -in server-cert.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server-cert.crt
+Signature ok
+subject=/C=FR/O=Example Corp/CN=openam.example.com
+Getting CA Private Key
+Enter pass phrase for ca.key:
+
+$ openssl x509 -req -in myapp-cert.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out myapp-cert.crt
+Signature ok
+subject=/DC=com/DC=example/OU=Apps/CN=My App
+Getting CA Private Key
+Enter pass phrase for ca.key:
+
+-->
+   </step>
+
+   <step>
+    <para>If you have set up your own CA and signed the certificate, or are
+    using a CA whose signing certificate is not included in the Java runtime
+    environment, import the CA certificate into the key store so that it can be
+    trusted.</para>
+
+    <para>Otherwise, when you import the signed certificate in the reply from
+    the (unknown) CA, <command>keytool</command> fails to import the signed
+    certificate with the message <literal>keytool error: java.lang.Exception:
+    Failed to establish chain from reply</literal>.</para>
+
+    <para>The following example illustrates import of a CA certificate created
+    with the <command>openssl</command> command. See the
+    <command>openssl</command> documentation for instructions on creating CAs
+    and on signing other certificates with the CA you created.</para>
+
+    <screen>$ keytool
+ -import
+ -keystore /path/to/opendj/config/keystore
+ -file ca.crt
+ -alias ca-cert
+ -storepass changeit
+Owner: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Issuer: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Serial number: d4586ea05c878b0c
+Valid from: Tue Jan 29 09:30:31 CET 2013 until: Mon Jan 24 09:30:31 CET 2033
+Certificate fingerprints:
+	 MD5:  8A:83:61:9B:E7:18:A2:21:CE:92:94:96:59:68:60:FA
+	 SHA1: 01:99:18:38:3A:57:D7:92:7B:D6:03:8C:7B:E4:1D:37:45:0E:29:DA
+	 SHA256: 5D:20:F1:86:CC:CD:64:50:...:DF:15:43:07:69:44:00:FB:36:CF
+	 Signature algorithm name: SHA1withRSA
+	 Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+[EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR]
+SerialNumber: [    d4586ea0 5c878b0c]
+]
+
+#2: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+   </step>
+
+   <step>
+    <para>Import the signed certificate from the CA reply into the keystore
+    where you generated the server certificate.</para>
+
+    <para>In this example the certificate from the reply is
+    <filename>~/Downloads/server-cert.crt</filename>.</para>
+
+    <screen>$ keytool
+ -import
+ -trustcacerts
+ -alias server-cert
+ -file ~/Downloads/server-cert.crt
+ -keystore /path/to/opendj/config/keystore
+ -storepass changeit
+ -keypass changeit
+Certificate reply was installed in keystore</screen>
+   </step>
+
+   <step>
+    <para>Configure the File Based Key Manager Provider for JKS to use the file
+    name and key store PIN that you set up with the <command>keytool</command>
+    command.</para>
+
+    <screen>$ dsconfig
+ set-key-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set key-store-pin:changeit
+ --remove key-store-pin-file:config/keystore.pin
+ --trustAll
+ --no-prompt</screen>
+   </step>
+
+   <step>
+    <para>Configure the File Based Trust Manager Provider for JKS to use the
+    key store and PIN as well.</para>
+
+    <screen>$ dsconfig
+ set-trust-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set trust-store-file:config/keystore
+ --set trust-store-pin:changeit
+ --trustAll
+ --no-prompt</screen>
+
+    <para>At this point, OpenDJ directory server can use your new CA-signed
+    certificate, for example for StartTLS and LDAPS connection handlers.</para>
+   </step>
+
+   <step>
+    <para>If you use a CA certificate that is not known to clients, such as a
+    CA that you set up yourself rather than a well-known CA whose certificate
+    is included with the client system, import the CA certificate into the
+    client application trust store. Otherwise the client application cannot
+    trust the signature on the OpenDJ CA-signed server certificate.</para>
+   </step>
+  </procedure>
+
+  <procedure xml:id="new-self-signed-cert">
+   <title>To Create &amp; Install a Self-Signed Certificate</title>
+   
+   <para>First you create and sign a server certificate that you place in
+   a Java Key Store. Then you set up the Key Manager Provider and Trust Manager
+   Provider to rely on your new server certificate in its key store.</para>
+   
+   <step>
+    <para>Generate the server certificate using the Java
+    <command>keytool</command> command.</para>
+    <screen>$ keytool
+ -genkey
+ -alias server-cert
+ -keyalg rsa
+ -dname "CN=opendj.example.com,O=Example Corp,C=FR"
+ -keystore /path/to/opendj/config/keystore
+ -storepass changeit
+ -keypass changeit</screen>
+    <para>In this example, OpenDJ is running on a system with fully qualified
+    host name <literal>opendj.example.com</literal>. The Java Key Store (JKS)
+    is created in the <filename>config</filename> directory where OpenDJ is
+    installed, which is the default value for JKS.</para>
+
+    <note>
+     <para>Notice that the <option>-storepass</option> and
+     <option>-keypass</option> options take identical password arguments.
+     OpenDJ requires that you use the same password to protect both the
+     key store and also the private key.</para>
+    </note>
+   </step>
+   <step>
+    <para>Self-sign the server certificate.</para>
+    <screen>$ keytool
+ -selfcert
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass changeit</screen>
+   </step>
+   <step>
+    <para>Configure the File Based Key Manager Provider for JKS to use the
+    file name and key store PIN that you set up with the
+    <command>keytool</command> command.</para>
+    <screen>$ dsconfig
+ set-key-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set key-store-pin:changeit
+ --remove key-store-pin-file:config/keystore.pin
+ --trustAll
+ --no-prompt</screen>
+   </step>
+   <step>
+    <para>Configure the File Based Trust Manager Provider for JKS to use the
+    key store and PIN as well.</para>
+    <screen>$ dsconfig
+ set-trust-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name JKS
+ --set enabled:true
+ --set trust-store-file:config/keystore
+ --set trust-store-pin:changeit
+ --trustAll
+ --no-prompt</screen>
+    <para>At this point, OpenDJ directory server can use your new self-signed
+    certificate, for example for StartTLS and LDAPS connection handlers.</para>
+   </step>
+  </procedure>
+ </section>
+ 
+ <section xml:id="configure-starttls">
+  <title>LDAP Client Access With Transport Layer Security</title>
+  <indexterm><primary>StartTLS</primary></indexterm>
+  <para>StartTLS (Transport Layer Security) negotiations start on the unsecure
+  LDAP port, and then protect communication with the client. You can opt to
+  configure StartTLS during installation, or later using the
+  <command>dsconfig</command> command.</para>
+    
+  <procedure xml:id="setup-starttls-port">
+   <title>To Enable StartTLS on the LDAP Port</title>
+   
+   <step>
+    <para>Make sure you have a server certificate installed.</para>
+
+    <screen>$ keytool
+ -list
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+server-cert, Jun 17, 2013, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 92:B7:4C:4F:2E:24:...:EB:7C:22:3F
+    </screen>
+   </step>
+   <step>
+    <para>Activate StartTLS on the current LDAP port.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set allow-start-tls:true
+ --set key-manager-provider:JKS
+ --set trust-manager-provider:JKS
+ --trustAll
+ --no-prompt</screen>
+    <para>The change takes effect. No need to restart the server.</para>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="configure-ssl">
+  <title>LDAP Client Access Over SSL</title>
+  <indexterm><primary>SSL</primary></indexterm>
+  <para>You configure LDAPS (LDAP/SSL) client access by using the command-line
+  tool <command>dsconfig</command>. You can opt to configure LDAPS access
+  when you install.</para>
+
+  <para>The standard port number for LDAPS client access is 636. If you
+  install OpenDJ directory server as a user who can use port 636 and the port
+  is not yet in use, then 636 is the default port number presented at
+  installation time. If you install as a user who cannot use a port &lt; 1024,
+  then the default port number presented at installation time is 1636.</para>
+  
+  <procedure xml:id="setup-ssl-port">
+   <title>To Set Up LDAPS Access</title>
+   
+   <step>
+    <para>Make sure you have a server certificate installed.</para>
+
+    <screen>$ keytool
+ -list
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+server-cert, Jun 17, 2013, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 92:B7:4C:4F:2E:24:...:EB:7C:22:3F
+    </screen>
+   </step>
+   <step>
+    <para>Configure the server to activate LDAPS access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set listen-port:1636
+ --set enabled:true
+ --set use-ssl:true
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 1636 in the configuration.</para>
+   </step>
+  </procedure>
+
+  <procedure xml:id="change-ssl-port">
+   <title>To Change the LDAPS Port Number</title>
+   
+   <step>
+    <para>Change the port number using the <command>dsconfig</command>
+    command.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set listen-port:11636
+ --trustAll
+ --no-prompt</screen>
+    <para>This example changes the port number to 11636 in the configuration.</para>
+   </step>
+   <step>
+    <para>Restart the connection handler so the change takes effect.</para>
+    <para> To restart the connection handler, you disable it, then enable
+    it again.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="restrict-clients">
+  <title>Restricting Client Access</title>
+  <indexterm><primary>Access control</primary></indexterm>
+
+  <para>Using the OpenDJ directory server global configuration properties, you
+  can add global restrictions on how clients access the server. These settings
+  are per server, and so much be set independently on each server in replication
+  topology.</para>
+
+  <para>These global settings are fairly coarse-grained. For a full discussion
+  of the rich set of administrative privileges and fine-grained access control
+  instructions that OpenDJ supports, see the chapter on <link
+  xlink:href="admin-guide#chap-privileges-acis"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+  Privileges &amp; Access Control</citetitle></link>.</para>
+
+  <variablelist>
+   <para>Consider the following global configuration settings.</para>
+
+   <varlistentry>
+    <term><literal>bind-with-dn-requires-password</literal></term>
+    <listitem>
+     <para>Whether the directory server should reject any simple bind request
+     that contains a DN but no password. Default: <literal>true</literal></para>
+     <para>To change this setting use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set bind-with-dn-requires-password:false
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>max-allowed-client-connections</literal></term>
+    <listitem>
+     <para>Restricts the number of concurrent client connections to the
+     directory server. Default: 0, meaning no limit is set</para>
+     <para>To set a limit of 32768 use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set max-allowed-client-connections:32768
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>reject-unauthenticated-requests</literal></term>
+    <listitem>
+     <para>Rejects any request (other than bind or StartTLS requests) received
+     from a client that has not yet been authenticated, whose last
+     authentication attempt was unsuccessful, or whose last authentication
+     attempt used anonymous authentication. Default: <literal>false</literal></para>
+     <para>To shut down anonymous binds use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set reject-unauthenticated-requests:true
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>return-bind-error-messages</literal></term>
+    <listitem>
+     <para>Does not restrict access, but by default prevents OpenDJ directory
+     server from returning extra information about why a bind failed, as that
+     information could be used by an attacker. Instead, the information is
+     written to the server errors log. Default: <literal>false</literal></para>
+     <para>To have OpenDJ return additional information about why a bind failed
+     use the following command.</para>
+     <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set return-bind-error-messages:true
+ --no-prompt</screen>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+
+ <section xml:id="tls-protocols-cipher-suites">
+  <title>TLS Protocols &amp; Cipher Suites</title>
+  <indexterm>
+   <primary>TLS</primary>
+  </indexterm>
+
+  <para>By default OpenDJ supports the SSL and TLS protocols and the cipher
+  suites supported by the underlying Java virtual machine. For details see the
+  documentation for the Java virtual machine in which you run OpenDJ. For Oracle
+  Java, see the <citetitle>Java Cryptography Architecture Oracle Providers
+  Documentation</citetitle> for the <link xlink:show="new"
+  xlink:href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider"
+  >The <literal>SunJSSE</literal> Provider</link>.</para>
+
+  <para>To list the available protocols and cipher suites, read the
+  <literal>supportedTLSProtocols</literal> and
+  <literal>supportedTLSCiphers</literal> attributes of the root DSE. Install
+  unlimited strength Java cryptography extensions for stronger ciphers.</para>
+
+  <screen
+  >$ ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)"
+ supportedTLSCiphers supportedTLSProtocols
+dn:
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_MD5
+supportedTLSCiphers: TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+supportedTLSProtocols: SSLv2Hello
+supportedTLSProtocols: SSLv3
+supportedTLSProtocols: TLSv1
+supportedTLSProtocols: TLSv1.1
+supportedTLSProtocols: TLSv1.2
+</screen>
+
+  <para>You can restrict the list of protocols and cipher suites used by setting
+  the <literal>ssl-protocol</literal> and <literal>ssl-cipher-suite</literal>
+  connection handler properties to include only the protocols or cipher suites
+  you want.</para>
+
+  <para>For example, to restrict the cipher suites to
+  <literal>TLS_EMPTY_RENEGOTIATION_INFO_SCSV</literal> and
+  <literal>TLS_RSA_WITH_AES_256_CBC_SHA</literal> use the <command>dsconfig
+  set-connection-handler-prop</command> command as shown in the following
+  example.</para>
+
+  <screen>$ dsconfig
+   set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAPS Connection Handler"
+ --add ssl-cipher-suite:TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+ --add ssl-cipher-suite:TLS_RSA_WITH_AES_256_CBC_SHA
+ --no-prompt
+ --trustAll</screen>
+ </section>
+
+ <section xml:id="setup-rest2ldap">
+  <title>RESTful Client Access</title>
+  <indexterm><primary>HTTP</primary></indexterm>
+  <indexterm><primary>JSON</primary></indexterm>
+  <indexterm><primary>REST</primary></indexterm>
+
+  <orderedlist>
+   <para>OpenDJ offers two ways to give RESTful client applications HTTP access
+   to directory data as JSON resources.</para>
+
+   <listitem>
+    <para>Enable the listener on OpenDJ directory server to respond
+    to REST requests.</para>
+
+    <para>With this approach, you do not need to install additional
+    software.</para>
+   </listitem>
+
+   <listitem>
+    <para>Configure the external REST LDAP gateway Servlet to access your
+    directory service.</para>
+
+    <para>With this approach, you must install the gateway separately.</para>
+   </listitem>
+  </orderedlist>
+
+  <procedure xml:id="setup-rest2ldap-connection-handler">
+   <title>To Set Up REST Access to OpenDJ Directory Server</title>
+
+   <para>OpenDJ directory server has a handler for HTTP connections, where it
+   exposes the RESTful API demonstrated in the chapter on
+   <link xlink:href="admin-guide#chap-rest-operations" xlink:show="new"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Performing
+   RESTful Operations</citetitle></link>. The HTTP connection handler is not
+   enabled by default.</para>
+
+   <para>You configure the mapping between JSON resources and LDAP entries
+   by editing the configuration file for the HTTP connection handler, by
+   default <filename>/path/to/opendj/config/http-config.json</filename>. The
+   configuration is described in the appendix, <link xlink:show="new"
+   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+   Configuration</citetitle></link>. The default mapping works out of the box
+   with default Example.com data and with <link xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/Example.ldif">Example.ldif</link>.</para>
+
+   <step>
+    <para>Enable the connection handler.</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set enabled:true
+ --no-prompt
+ --trustAll</screen>
+   </step>
+
+   <step>
+    <para>Enable the HTTP access log.</para>
+
+    <screen>$ dsconfig
+ set-log-publisher-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based HTTP Access Logger"
+ --set enabled:true
+ --no-prompt
+ --trustAll</screen>
+
+    <para>This enables the HTTP access log,
+    <filename>opendj/logs/http-access</filename>. For details on the
+    format of the HTTP access log, see the section on <link xlink:show="new"
+    xlink:href="admin-guide#logging"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Server
+    Logs</citetitle></link>.</para>
+   </step>
+
+   <step performance="optional">
+    <para>Try reading a resource.</para>
+
+    <para>The HTTP connection handler paths start by default at the root
+    context, as shown in the following example.</para>
+
+    <screen>$ curl http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen
+ ?_prettyPrint=true
+{
+  "_rev" : "00000000315fb731",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen"
+}</screen>
+   </step>
+
+   <step performance="optional">
+    <para>If necessary, change the connection handler configuration using the
+    <command>dsconfig</command> command.</para>
+
+    <para>The following example shows how to set the port to 8443, and to
+    configure the connection handler to do SSL (using the default server
+    certificate). If you did not generate a default, self-signed certificate
+    when installing OpenDJ directory server see the instructions, <link
+    xlink:show="new" xlink:href="admin-guide#new-self-signed-cert"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Create &amp;
+    Install a Self-Signed Certificate</citetitle></link>, and more generally the
+    section on <link xlink:show="new"
+    xlink:href="admin-guide#setup-server-cert"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Preparing For
+    Secure Communications</citetitle></link> for additional instructions
+    including how to import a CA-signed certificate.</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set listen-port:8443
+ --set use-ssl:true
+ --set key-manager-provider:JKS
+ --set trust-manager-provider:"Blind Trust"
+ --no-prompt
+$ stop-ds --restart
+Stopping Server...
+.... The Directory Server has started successfully
+$ keytool
+ -export
+ -rfc
+ -alias server-cert
+ -keystore /path/to/opendj/config/keystore
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+ -file server-cert.pem
+Certificate stored in file &lt;server-cert.pem&gt;
+$ curl
+ --cacert server-cert.pem
+ --user bjensen:hifalutin
+ https://opendj.example.com:8443/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000018c8b685",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="setup-rest2ldap-gateway">
+   <title>To Set Up OpenDJ REST LDAP Gateway</title>
+
+   <para>Follow these steps to set up OpenDJ REST LDAP gateway Servlet to access
+   your directory service.</para>
+
+   <step>
+    <para>Download and install the gateway as described in <link
+    xlink:href="install-guide#install-rest2ldap-servlet"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install
+    OpenDJ REST LDAP Gateway</citetitle></link>.</para>
+   </step>
+
+   <step>
+    <para>Adjust the configuration for your directory service as described in
+    <link xlink:href="admin-guide#appendix-rest2ldap"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+    Configuration</citetitle></link>.</para>
+   </step>
+  </procedure>
+ </section>
+
+  <section xml:id="setup-dsml">
+  <title>DSML Client Access</title>
+  <indexterm><primary>DSML</primary></indexterm>
+  
+  <para>Directory Services Markup Language (DSML) client access is implemented
+  as a servlet that runs in a web application container.</para>
+
+  <para>You configure DSML client access by editing the
+  <filename>WEB-INF/web.xml</filename> after you deploy the web
+  application. In particular, you must at least set the
+  <literal>ldap.host</literal> and <literal>ldap.port</literal> parameters
+  if they differ from the default values, which are
+  <literal>localhost</literal> and <literal>389</literal>.</para>
+  
+  <variablelist>
+   <para>The list of DSML configuration parameters, including those that are
+   optional, consists of the following.</para>
+   <varlistentry>
+    <term><literal>ldap.host</literal></term>
+    <listitem>
+     <para>Required parameter indicating the host name of the underlying
+     directory server. Default: <literal>localhost</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.port</literal></term>
+    <listitem>
+     <para>Required parameter indicating the LDAP port of the underlying
+     directory server. Default: 389.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userdn</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the DN used by the DSML gateway to
+     bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userpassword</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the password used by the DSML gateway
+     to bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.authzidtypeisid</literal></term>
+    <listitem>
+     <para>This parameter can help you set up the DSML gateway to do HTTP
+     Basic Access Authentication, given the appropriate mapping between the
+     user ID, and the user's entry in the directory.</para>
+     <para>Required boolean parameter specifying whether the HTTP Authorization
+     header field's Basic credentials in the request hold a plain ID, rather
+     than a DN. If set to <literal>true</literal>, then the gateway performs an
+     LDAP SASL bind using SASL plain, enabled by default in OpenDJ to look for
+     an exact match between a <literal>uid</literal> value and the plain ID
+     value from the header. In other words, if the plain ID is
+     <literal>bjensen</literal>, and that corresponds in the directory server
+     to Babs Jensen's entry with DN
+     <literal>uid=bjensen,ou=people,dc=example,dc=com</literal>, then the bind
+     happens as Babs Jensen. Note also that you can configure OpenDJ identity
+     mappers for scenarios that use a different attribute than
+     <literal>uid</literal>, such as the <literal>mail</literal>
+     attribute.</para>
+     <para>Default: <literal>false</literal></para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usessl</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether <literal>ldap.port</literal>
+     points to a port listening for LDAPS (LDAP/SSL) traffic. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usestarttls</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether to use StartTLS to connect
+     to the specified <literal>ldap.port</literal>. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.trustall</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether blindly to trust all
+     certificates presented to the DSML gateway when using secure connections
+     (LDAPS or StartTLS). Default: <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.path</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store used to verify
+     certificates when using secure connections. If you want to connect
+     using LDAPS or StartTLS, and do not want the gateway blindly to trust
+     all certificates, then you must set up a trust store. Not used by
+     default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.password</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store password. If you
+     set up and configure a trust store, then you need to set this as well.
+     Not used by default.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>The DSML servlet translates between DSML and LDAP, and passes requests
+  to the directory server. For initial testing purposes, you might try
+  <link xlink:href="http://jxplorer.org/">JXplorer</link>, where DSML Service:
+  /<replaceable>webapp-dir</replaceable>/DSMLServlet. Here,
+  <replaceable>webapp-dir</replaceable> refers to the name of the directory
+  in which you unpacked the DSML .war file.</para>
+  
+  <mediaobject xml:id="figure-jxplorer-dsml">
+   <imageobject>
+    <imagedata fileref="images/JXplorer-dsml.png" format="PNG" />
+   </imageobject>
+   <caption><para>JXplorer accessing OpenDJ through DSML</para></caption>
+  </mediaobject>
+ </section>
+ 
+  <section xml:id="jmx-access">
+  <title>JMX Client Access</title>
+  <indexterm><primary>JMX</primary></indexterm>
+  
+  <para>You configure Java Management Extensions (JMX) client access by using
+  the command-line tool, <command>dsconfig</command>.</para>
+  
+  <procedure xml:id="setup-jmx">
+   <title>To Set Up JMX Access</title>
+   
+   <step>
+    <para>Configure the server to activate JMX access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "JMX Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+    <para>This example uses the default port number, 1689.</para>
+   </step>
+   <step>
+    <para>Restart the server so the change takes effect.</para>
+    <screen>$ stop-ds --restart</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="access-jmx">
+   <title>To Configure Access To JMX</title>
+
+   <para>After you set up OpenDJ directory server to listen for JMX connections,
+   you must assign privileges in order to allow a user to connect over
+   protocol.</para>
+
+   <step>
+    <para>Assign the privileges, <literal>jmx-notify</literal>,
+    <literal>jmx-read</literal>, and <literal>jmx-write</literal> as
+    necessary to the user who connects over JMX.</para>
+    <para>See the section on <link xlink:href="admin-guide#configure-privileges"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+    Privileges</citetitle></link> for details.</para>
+   </step>
+   <step>
+    <para>Connect using the service URI, user name, and password.</para>
+    <variablelist>
+     <varlistentry>
+      <term>Service URI</term>
+      <listitem>
+       <para>Full URI to the service including the hostname or IP address
+       and port number for JMX where OpenDJ directory server listens for
+       connections. For example, if the server IP is
+       <literal>192.168.0.10</literal> and you configured OpenDJ to listen
+       for JMX connections on port 1689, then the service URI is
+       <literal>service:jmx:rmi:///jndi/rmi://192.168.0.10:1689/org.opends.server.protocols.jmx.client-unknown</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>User name</term>
+      <listitem>
+       <para>The full DN of the user with privileges to connect over JMX such
+       as <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>Password</term>
+      <listitem>
+       <para>The bind password for the user.</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="ldif-access">
+  <title>LDIF File Access</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>File as backend</secondary>
+  </indexterm>
+  
+  <para>The LDIF connection handler lets you make changes to directory data
+  by placing LDIF in a file system directory that OpenDJ server regularly
+  polls for changes. The LDIF, once consumed, is deleted.</para>
+  
+  <para>You configure LDIF file access by using the command-line tool
+  <command>dsconfig</command>.</para>
+  
+  <procedure xml:id="setup-ldif-access">
+   <title>To Set Up LDIF File Access</title>
+   
+   <step>
+    <para>Activate LDIF file access.</para>
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDIF Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+    <para>The change takes effect immediately.</para>
+   </step>
+   <step>
+    <para>Add the directory where you put LDIF to be processed.</para>
+    <screen>$ mkdir /path/to/opendj/config/auto-process-ldif</screen>
+    <para>This example uses the default value of the
+    <literal>ldif-directory</literal> property for the LDIF connection
+    handler.</para>
+   </step>
+  </procedure>
+ </section>
+</chapter>

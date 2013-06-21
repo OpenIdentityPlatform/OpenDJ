@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-issues'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
+
+ <para>This chapter covers the status of key issues and limitations for OpenDJ
+ <?eval ${docTargetVersion}?> and OpenDJ SDK <?eval ${docTargetVersion}?>.
+ For details and information on other issues, see the <link xlink:show="new"
+ xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ" >OpenDJ issue
+ tracker</link>.</para>
+
+ <section xml:id="fixes">
+  <title>Key Fixes</title>
+
+  <para>The following important bugs were fixed in this release.</para>
+
+  <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
+ </section>
+
+ <section xml:id="limitations">
+  <title>Limitations</title>
+
+  <para>Release <?eval ${docTargetVersion}?> has the following limitations,
+  none of which are new since <?eval ${stableServerVersion}?>.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>OpenDJ directory server provides full LDAP v3 support, except for
+    alias dereferencing, and limited support for LDAPv2.</para>
+   </listitem>
+   <listitem>
+    <para>When you configure account lockout as part of password policy,
+    OpenDJ locks an account after the specified number of consecutive
+    authentication failures. Account lockout is not transactional across a
+    replication topology, however. Global account lockout occurs as soon as
+    the authentication failure times have been replicated.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
+    directory server can be run as a service, and thus displayed in the
+    Windows Services Control Panel.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ replication is designed to permit an unlimited number
+    of replication servers in your topology. Project testing has, however,
+    focused only on topologies of up to eight replication servers.</para>
+   </listitem>
+   <listitem>
+    <para>On Niagara systems such as T2000, hardware SSL crypto acceleration
+    runs more slowly than software crypto acceleration. To work around this
+    issue take the following actions.</para>
+    <orderedlist>
+     <listitem>
+      <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
+      connection handlers.</para>
+     </listitem>
+     <listitem>
+      <para>Disable hardware acceleration for server's JVM by removing the
+      SunPKCS11 security provider from
+      <filename>jre/lib/security/java.security</filename>.</para>
+     </listitem>
+    </orderedlist>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section xml:id="known-issues">
+  <title>Known Issues</title>
+
+  <tip>
+   <para>When deploying for production, make sure that you follow the
+   installation instructions on allowing OpenDJ to use at least 64K (65536)
+   file descriptors, and on tuning the JVM appropriately.</para>
+  </tip>
+
+  <para>The following important issues remained open at the time this release
+  became available.</para>
+
+  <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
+ </section>
+</chapter>

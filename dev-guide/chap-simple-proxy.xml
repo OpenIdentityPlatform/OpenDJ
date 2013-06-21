@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-simple-proxy'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Writing a Simple LDAP Proxy</title>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>Proxy</secondary>
+ </indexterm>
+
+ <para>The OpenDJ LDAP SDK <link xlink:show="new"
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Proxy.html"
+ >example Proxy</link> demonstrates a simple LDAP proxy that forwards requests
+ to one or more remote directory servers. Although the implementation is
+ intended as an example, it does demonstrate use of the asynchronous API,
+ load balancing, and connection pooling.</para>
+ <indexterm>
+  <primary>Connections</primary>
+  <secondary>Asynchronous</secondary>
+ </indexterm>
+
+ <para>The Proxy example sets up connections pools with load balancing to the
+ directory servers. It passes the connection factories to a
+ <literal>ProxyBackend</literal> that handles the requests passed back
+ to the directory servers. It also sets up an LDAP listener to receive incoming
+ connections from clients of the Proxy.</para>
+
+ <para>The <literal>ProxyBackend</literal> uses separate connection factories,
+ one for bind operations, the other for other operations. It uses the proxied
+ authorization control to ensure operations are performed using the bind
+ identity for the operation.</para>
+
+ <para>The <literal>ProxyBackend</literal>'s function is to handle each client
+ request, encapsulating the result handlers that allow it to deal with each
+ basic operation. It authenticates to the directory server to check incoming
+ credentials, and adds the proxied authorization control to requests other than
+ binds. The <literal>ProxyBackend</literal> handles all operations using
+ asynchronous connections and methods.</para>
+
+ <section xml:id="connection-pooling">
+  <title>Connection Pooling</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Pooling</secondary>
+  </indexterm>
+
+  <para>As shown in the Proxy example, the
+  <literal>Connections.newFixedConnectionPool()</literal> returns a connection
+  pool of the maximum size you specify.</para>
+
+  <programlisting language="java"
+>final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;~&gt;();
+
+factories.add(Connections.newFixedConnectionPool(Connections
+        .newAuthenticatedConnectionFactory(Connections
+                .newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                        remoteAddress, remotePort)),
+                        Requests.newSimpleBindRequest(proxyDN,
+                                proxyPassword.toCharArray())),
+                                Integer.MAX_VALUE));</programlisting>
+
+  <para>Connections are returned to the pool when you <literal>close()</literal>
+  them. Notice that <literal>Connections</literal> also provides methods to
+  return <literal>ConnectionFactory</literal>s with a heart beat check on
+  connections provided by the factory, and connection factories that
+  authenticate connections before returning them.</para>
+
+  <para>Connections in the pool are intended for reuse. The Proxy gets an
+  authenticated connection, which is a connection where the OpenDJ LDAP
+  SDK passes a bind request immediately when getting the connection. The Proxy
+  then uses proxied authorization to handle the identity from the client
+  requesting the operation. As a rule, either handle binds separately and use
+  proxied authorization as in the Proxy example, or else make sure that the
+  first operation on a connection retrieved from the pool is a bind that
+  correctly authenticates the user currently served by the connection.</para>
+
+  <para>When you <literal>close()</literal> a connection from the pool, the
+  OpenDJ LDAP SDK does not perform an <literal>unbind()</literal>. This is why
+  you must be careful about how you manage authentication on connections from a
+  pool.</para>
+ </section>
+
+ <section xml:id="load-balancing-and-failover">
+  <title>Load Balancing &amp; Failover</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Load balancing</secondary>
+  </indexterm>
+
+  <para>The <literal>Connections.newLoadBalancer()</literal> method returns a
+  load balancer based on the algorithm you choose. Algorithms include both
+  round robin for equitably sharing load across local directory servers, and
+  also failover usually used for switching automatically from an unresponsive
+  server group to an alternative server group. The algorithms take collections
+  of connection factories, such as those that you set up for connection
+  pooling.</para>
+
+  <para>The following excerpt shows how to set up round robin load balancing
+  across directory servers.</para>
+
+  <programlisting language="java"
+  >final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
+
+// Set up a ConnectionFactory for each directory server in the pool as shown in
+// the previous example, and then set up a load balancer.
+
+final RoundRobinLoadBalancingAlgorithm algorithm =
+        new RoundRobinLoadBalancingAlgorithm(factories);
+
+final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
+
+  <para>With multiple pools of directory servers, for example in a deployment
+  across multiple data centers, also use fail over load balancing. Fail over
+  load balancing directs all requests to the first (preferred) pool of servers
+  until problems are encountered with the connections to that pool. Then it
+  fails over to the next pool in the list. Therefore in each data center you
+  can set up round robin load balancing, and then set up fail over load
+  balancing across data centers.</para>
+
+  <programlisting language="java"
+  >// localFactory:  ConnectionFactory to servers in the local data center
+// remoteFactory: ConnectionFactory for servers in a remote data center
+// localFactory and remoteFactory use round robin load balancing "internally".
+
+final List&lt;ConnectionFactory&gt; factories =
+        Arrays.asList(localFactory, remoteFactory);
+
+final FailoverLoadBalancingAlgorithm algorithm =
+        new FailoverLoadBalancingAlgorithm(factories);
+
+final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
+
+  <para>The algorithms also include constructors that let you adjust timeouts
+  and so forth.</para>
+ </section>
+
+ <section xml:id="handling-client-connections">
+  <title>Listening For &amp; Handling Client Connections</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Listening for</secondary>
+  </indexterm>
+
+  <para>You create an <literal>LDAPListener</literal> to handle incoming client
+  connections. The <literal>LDAPListener</literal> takes a connection handler
+  that deals with the connections, in this case connections back to the
+  directory servers handling client requests.</para>
+
+  <programlisting language="java">
+final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
+LDAPListener listener = null;
+try {
+    listener = new LDAPListener(localAddress, localPort, connectionHandler,
+            options);
+    System.out.println("Press any key to stop the server...");
+    System.in.read();
+} catch (final IOException e) {
+    System.out.println("Error listening on " + localAddress + ":" + localPort);
+    e.printStackTrace();
+} finally {
+    if (listener != null) {
+        listener.close();
+    }
+}
+</programlisting>
+
+  <para>You get a <literal>ServerConnectionFactory</literal> to handle requests
+  coming from clients. The <literal>ServerConnectionFactory</literal> takes a
+  request handler that deals with the incoming client requests. The request
+  handler implements handlers for all supported operations. The Proxy example
+  implements a <literal>ProxyBackend</literal> to handle requests. The
+  <literal>ProxyBackend</literal> sends the requests on to the backend
+  directory servers and routes the results returned back to client
+  applications.</para>
+
+  <programlisting language="java">
+final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
+final ServerConnectionFactory&lt;LDAPClientContext, Integer&gt; connectionHandler =
+        Connections.newServerConnectionFactory(backend);
+</programlisting>
+
+  <para>See the Proxy example code for details about the
+  <literal>ProxyBackend</literal> implementation.</para>
+ </section>
+
+ <section xml:id="dn-attr-rewriting">
+  <title>DN &amp; Attribute Rewriting</title>
+  <indexterm>
+   <primary>Attributes</primary>
+   <secondary>Rewriting</secondary>
+  </indexterm>
+
+  <para>Suppose you have a client application that expects a different
+  attribute name, such as <literal>fullname</literal> for a standard attribute
+  like <literal>cn</literal> (common name), and that expects a distinguished
+  name (DN) suffix different from what is stored in the directory. If you
+  cannot change the application, one possible alternative is a proxy layer
+  that does DN and attribute rewriting.<footnote><para>Some servers, such as
+  OpenDJ directory server, can do attribute rewriting without a proxy layer.
+  See your directory server's documentation for details.</para></footnote></para>
+
+  <screen># A search accessing the directory server
+$ ldapsearch -b dc=example,dc=com -p 1389 "(cn=Babs Jensen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+# The same search search accessing a proxy that rewrites requests and responses
+$ ldapsearch -b o=example -p 8389 "(fullname=Babs Jensen)" fullname
+dn: uid=bjensen,ou=People,o=example
+fullname: Barbara Jensen
+fullname: Babs Jensen
+</screen>
+
+  <para>The OpenDJ LDAP SDK <link xlink:show="new"
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/RewriterProxy.html"
+  >RewriterProxy</link> example builds on the Proxy example, rewriting requests
+  and search result entries. When you read the example, look for the
+  <literal>rewrite()</literal> methods.</para>
+
+  <para>In the above output, the rewriter proxy listens on port 8389,
+  connecting to a directory server listening on 1389. The directory server
+  contains data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  xlink:show="new"><filename>Example.ldif</filename></link>.</para>
+ </section>
+</chapter>

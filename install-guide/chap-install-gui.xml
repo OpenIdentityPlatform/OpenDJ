@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-install-gui'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Installing OpenDJ With the QuickSetup Wizard</title>
+ <indexterm><primary>Downloading OpenDJ</primary></indexterm>
+ <indexterm><primary>Quick install</primary></indexterm>
+ 
+ <para>If you want only to try OpenDJ server software, and you do not plan to
+ store any real or important data that you want to keep, then read only this
+ chapter, or just try out installation without reading any further.</para>
+
+ <xinclude:include href="../shared/itemizedlist-download.xml" />
+
+ <para>The Quick Setup and Nightly Build links use Java WebStart to let you
+ perform an installation of OpenDJ directory server starting with a click in
+ your web browser, which can be a great way to try OpenDJ directory server for
+ the first time, or to do a quick test installation.</para>
+
+ <note>
+  <para>OpenDJ directory server relies on Java 6 or later, so if your browser
+  picks up an old installation of Java 5 for example, installation can
+  fail. You might see an application error message such as this:</para>
+ 
+  <mediaobject xml:id="figure-missing-java6">
+   <alt>Application error due to old Java version</alt>
+   <imageobject>
+    <imagedata fileref="images/missing-java6.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>Message showing the browser is unable to launch the application</para>
+   </textobject>
+  </mediaobject>
+ </note>
+
+ <para>If the WebStart installation does not work in your browser, copy
+ the WebStart URL, ending in <literal>QuickSetup.jnlp</literal>, from the
+ OpenDJ download page. This is the first link in the list of links for
+ a version of OpenDJ. Next, pass the link as an argument to the
+ <command>javaws</command> command in a terminal window to start the
+ installer.</para>
+
+ <screen>$ export PATH=/path/to/java6/bin:$PATH
+$ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
+
+ <para>The WebStart installer corresponds to what you start if you download
+ OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
+ OpenDJ-<?eval ${docTargetVersion}?>/setup (UNIX), OpenDJ-<?eval
+ ${docTargetVersion}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
+
+ <para>Java WebStart launches the the QuickSetup wizard, and soon the
+ Welcome screen appears.</para>
+
+ <mediaobject xml:id="figure-quicksetup-welcome">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-welcome.png" format="PNG" />
+  </imageobject>
+  <caption><para>The Welcome screen appears.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-svrconf">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-svrconf.png" format="PNG" />
+  </imageobject>
+  <caption><para>Notice in the Server Settings screen that the default ports
+  are 389 or 1389 for LDAP, 4444 for administrative access.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-replopts">
+   <imageobject>
+     <imagedata fileref="images/QuickSetup-replopts.png" format="PNG" />
+   </imageobject>
+   <caption><para>You can replicate data for high availability through the
+   Topology Options screen.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-gendata">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-gendata.png" format="PNG" />
+  </imageobject>
+  <caption><para>Generate test data as part of server setup in the Directory
+  Data screen.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-jvmopts">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-jvmopts.png" format="PNG" />
+  </imageobject>
+  <caption><para>For a real installation, you can adjust JVM parameters for
+  your server, for example to allow OpenDJ to use more memory.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-review">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-review.png" format="PNG" />
+  </imageobject>
+  <caption><para>Opt to start your server when setup completes.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-finished">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-finished.png" format="PNG" />
+  </imageobject>
+  <caption><para>Finally, click Launch Control Panel to check your newly
+  installed server.</para></caption>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-cpstart">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-cpstart.png" format="PNG" />
+  </imageobject>
+  <caption><para>Run <command>OpenDJ-<?eval
+  ${docTargetVersion}?>/bin/control-panel</command> (UNIX), double-click
+  <command>OpenDJ-<?eval ${docTargetVersion}?>\bat\control-panel.bat</command>
+  (Windows), or <command>bin/Control Panel.app</command> (Mac OS X) to launch
+  the Control Panel again later.</para></caption>
+ </mediaobject>
+</chapter>

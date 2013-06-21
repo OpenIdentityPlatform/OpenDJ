@@ -1,0 +1,1273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-rest-operations'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Performing RESTful Operations</title>
+ <indexterm><primary>HTTP</primary></indexterm>
+ <indexterm><primary>JSON</primary></indexterm>
+ <indexterm><primary>REST</primary></indexterm>
+
+ <para>OpenDJ lets you access directory data as JSON resources over HTTP.
+ This chapter demonstrates basic RESTful client operations using the
+ default configuration and sample directory data imported into OpenDJ from
+ <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+ >Example.ldif</link>. Before trying the examples, enable HTTP access to
+ OpenDJ directory server as described in procedure, <link xlink:show="new"
+ xlink:href="admin-guide#setup-rest2ldap-connection-handler"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
+ Access to OpenDJ Directory Server</citetitle></link>.</para>
+
+ <section xml:id="understand-rest">
+  <title>Understanding the OpenDJ REST API</title>
+
+  <para>The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API
+  for interacting with JSON Resources. APIs built on this common layer all let
+  you perform the following operations.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term><link linkend="create-rest">Create</link></term>
+    <listitem>
+     <para>Add a resource that does not yet exist</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="read-rest">Read</link></term>
+    <listitem>
+     <para>Retrieve a single resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="update-rest">Update</link></term>
+    <listitem>
+     <para>Replace an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="delete-rest">Delete</link></term>
+    <listitem>
+     <para>Remove an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="patch-rest">Patch</link></term>
+    <listitem>
+     <para>Modify part of an existing resource</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="action-rest">Action</link></term>
+    <listitem>
+     <para>Perform a predefined action</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><link linkend="query-rest">Query</link></term>
+    <listitem>
+     <para>List a set of resources</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>The present implementation in OpenDJ maps JSON resources onto LDAP
+  entries, meaning REST clients can in principle do just about anything an
+  LDAP client can do with directory data.</para>
+
+  <variablelist>
+   <para>In addition to query string parameters that depend on the operation,
+   the examples in this chapter make use of the following parameters that
+   apply to the JSON resource returned for all operations.</para>
+   <varlistentry>
+    <term><literal>_fields=<replaceable>field</replaceable>[,&#8230;]</literal></term>
+    <listitem>
+     <para>Retain only the specified fields in the JSON resource returned.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>_prettyPrint=true|false</literal></term>
+    <listitem>
+     <para>Make the JSON resource returned easy for humans to read.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+
+ <section xml:id="authenticate-rest">
+  <title>Authenticating Over REST</title>
+
+  <para>When you first try to get a resource that you can read as an LDAP
+  entry with an anonymous search, you might be surprised that you must
+  authenticate.</para>
+
+  <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "code" : 401,
+  "reason" : "Unauthorized",
+  "message" : "Unauthorized"
+}</screen>
+
+  <para>HTTP status code 401 tells your HTTP client that the request requires
+  user authentication. You can change this behavior by setting the HTTP
+  connection handler property, <literal>authentication-required</literal>,
+  to <literal>false</literal>.</para>
+
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ --set authentication-required:false
+ --no-prompt
+ --trustAll</screen>
+
+  <para>Out of the box both the HTTP Connection Handler and also the REST LDAP
+  gateway are configured to allow HTTP Basic authentication and HTTP header
+  based authentication in the style of OpenIDM. The authentication mechanisms
+  translate HTTP authentication to LDAP authentication on the directory server
+  side.</para>
+
+  <para>When you install OpenDJ either with generated sample user entries or
+  with data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  xlink:show="new">Example.ldif</link>, the relative distinguished name
+  attribute for the sample user entries is the user ID (<literal>uid</literal>)
+  attribute. For example, the DN and user ID for Babs Jensen are as
+  follows.</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen</programlisting>
+
+  <para>Given this pattern in the user entries, the default REST to LDAP
+  configuration assumes that the user name on the HTTP side is the value of
+  the user ID, and that user entries can be found under
+  <literal>ou=People,dc=example,dc=com</literal>. In other words, Babs Jensen
+  authenticates as <literal>bjensen</literal> (password:
+  <literal>hifalutin</literal>) over HTTP. This is mapped for an LDAP bind
+  to the bind DN <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
+
+  <para>With HTTP Basic authentication, it looks like this.</para>
+
+  <screen>$ curl
+ --user bjensen:hifalutin
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>Or, using the HTTP Basic
+  <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
+  in the URL, it looks like this.</para>
+
+  <screen>$ curl
+http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>With HTTP header based authentication, it looks like this.</para>
+
+  <screen>$ curl
+ --header "X-OpenIDM-Username: bjensen"
+ --header "X-OpenIDM-Password: hifalutin"
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}</screen>
+
+  <para>If your directory data are laid out differently, or if your user names
+  are email addresses rather than user IDs for example, then you must update
+  the configuration in order for authentication to work.</para>
+
+  <para>The REST LDAP gateway can also translate HTTP user name and password
+  authentication to PLAIN SASL authentication on the LDAP side. Moreover, the
+  gateway can fall back to proxied authorization as necessary, using a root DN
+  authenticated connection to LDAP servers. See <link xlink:show="new"
+  xlink:href="admin-guide#appendix-rest2ldap"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
+  Configuration</citetitle></link> for details on all configuration
+  choices.</para>
+ </section>
+
+ <section xml:id="create-rest">
+  <title>Creating Resources</title>
+
+  <para>There are two ways to create resources.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>To create a resource using an ID that you specify, perform an HTTP PUT
+    request with headers <literal>Content-Type: application/json</literal> and
+    <literal>If-None-Match: *</literal>, and the JSON content of your
+    resource.</para>
+
+    <para>The following example creates a new user entry with ID
+    <literal>newuser</literal>.</para>
+
+    <screen>$ curl
+ --request PUT
+ --user kvaughan:bribery
+ --header "Content-Type: application/json"
+ --header "If-None-Match: *"
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
+ }'
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "000000005b337348",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+   </listitem>
+
+   <listitem>
+    <para>To create a resource letting the server choose the ID, perform an HTTP
+    POST with <literal>_action=create</literal> as described in
+    <xref linkend="action-rest" />.</para>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section xml:id="read-rest">
+  <title>Reading a Resource</title>
+
+  <para>To read a resource, perform an HTTP GET.</para>
+
+  <screen>$ curl
+ --request GET
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "000000005b337348",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+ </section>
+
+ <section xml:id="update-rest">
+  <title>Updating Resources</title>
+
+  <para>To update a resource, perform an HTTP PUT with the changes to the
+  resource. For read-only fields, either include unmodified versions, or omit
+  them from your updated version.</para>
+
+  <para>The following example adds a manager for Sam Carter.</para>
+
+  <screen>$ curl
+ --request PUT
+ --user kvaughan:bribery
+ --header "Content-Type: application/json"
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }'
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true
+{
+  "_rev" : "00000000a1923db2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 4798",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
+  "meta" : {
+    "lastModified" : "2013-04-12T07:42:34Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ]
+}</screen>
+
+  <para>To update a resource only if the resource matches a particular version,
+  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
+  header.</para>
+
+  <screen> $ curl
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/scarter?_fields=_rev
+<emphasis>{"_rev":"00000000b017c5b8"}</emphasis>
+$ curl
+ --request PUT
+ --user kvaughan:bribery
+ <emphasis>--header "If-Match: 00000000b017c5b8"</emphasis>
+ --header "Content-Type: application/json"
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 1212",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }'
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true
+{
+  "_rev" : "00000000a1ee3da3",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "meta" : {
+    "lastModified" : "2013-04-12T07:47:45Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+ </section>
+
+ <section xml:id="delete-rest">
+  <title>Deleting Resources</title>
+
+  <para>To delete a resource, perform an HTTP DELETE on the resource URL.
+  On success, the operation returns the resource you deleted.</para>
+
+  <screen>$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "000000003a5f3cb2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+
+  <para>To delete a resource only if the resource matches a particular version,
+  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
+  header.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/newuser?_fields=_rev
+{"_rev":"000000006d8d7358"}
+$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ --header "If-Match: 000000006d8d7358"
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true
+{
+  "_rev" : "00000000383f3cae",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T12:48:48Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+
+  <orderedlist>
+   <para>To delete a resource and all its children, you must change the
+   configuration, get the REST LDAP gateway or HTTP Connection Handler to
+   reload its configuration, and perform the operation as a user who has the
+   access rights required. The following steps show one way to do this with
+   the HTTP Connection Handler.</para>
+
+   <para>In this case the LDAP view of the user to delete shows two child
+   entries.</para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&amp;)" dn
+dn: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</screen>
+
+   <listitem>
+    <para>In the configuration file for the HTTP Connection Handler, by default
+    <filename>/path/to/opendj/config/http-config.json</filename>, set
+    <literal>"useSubtreeDelete" : true</literal>.</para>
+
+    <note>
+     <para>After this change, only users who have access to request a tree
+     delete can delete resources.</para>
+    </note>
+   </listitem>
+
+   <listitem>
+    <para>Force the HTTP Connection Handler to reread its configuration.</para>
+
+    <screen>$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ <emphasis>--set enabled:false</emphasis>
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "HTTP Connection Handler"
+ <emphasis>--set enabled:true</emphasis>
+ --no-prompt</screen>
+   </listitem>
+
+   <listitem>
+    <para>Delete as a user who has rights to perform a subtree delete on
+    the resource.</para>
+
+    <screen>$ curl
+ --request DELETE
+ --user kvaughan:bribery
+ http://opendj.example.com:8080/users/nbohr?_prettyPrint=true
+{
+  "_rev" : "000000003d912113",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "nbohr@example.com"
+  },
+  "_id" : "nbohr",
+  "name" : {
+    "familyName" : "Bohr",
+    "givenName" : "Niels"
+  },
+  "userName" : "nbohr@example.com",
+  "displayName" : "Niels Bohr"
+}</screen>
+   </listitem>
+  </orderedlist>
+ </section>
+
+ <section xml:id="patch-rest">
+  <title>Patching Resources</title>
+
+  <para>OpenDJ lets you patch JSON resources, updating part of the resource
+  rather than replacing it. For example, you could change Babs Jensen's
+  email address by issuing an HTTP PATCH request, as in the example that
+  follows.</para>
+
+  <para>Notice that the data sent specifies the type of patch operation, the
+  field to change, and a value that depends on the field you change and on the
+  operation. A single-valued field takes an object, boolean, string, or number
+  depending on its type, whereas a multi-valued field takes an array of values.
+  Getting the type wrong results in an error. Also notice that the patch data is
+  itself an array, since you could patch more than one part of the resource by
+  using a set of patch operations in the same request.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]'
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "00000000f3fdd370",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T14:35:31Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+
+  <variablelist>
+   <para>OpenDJ supports four types of patch operation.</para>
+
+   <varlistentry>
+    <term>"add"</term>
+    <listitem>
+     <para>The add operation ensures that the target field contains the value
+     provided, creating parent fields as necessary.</para>
+
+     <para>If the target field is single-valued and a value already exists, then
+     that value is replaced with the value you provide. <emphasis
+     role="strong">Note that you do not get an error when adding a value to a
+     single-valued field that already has a value.</emphasis> A single-valued
+     field is one whose value is not an array (an object, string, boolean, or
+     number).</para>
+
+     <para>If the target field is multi-valued, then the array of values you
+     provide is merged with the set of values already in the resource. New
+     values are added, and duplicate values are ignored. A multi-valued field
+     takes an array value.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"remove"</term>
+    <listitem>
+     <para>The remove operation ensures that the target field does not contain
+     the value provided. If you do not provide a value, the entire field is
+     removed if it already exists.</para>
+
+     <para>If the target field is single-valued and a value is provided, then
+     the provided value must match the existing value to remove, otherwise the
+     field is left unchanged.</para>
+
+     <para>If the target field is multi-valued, then values in the array you
+     provide are removed from the existing set of values.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"replace"</term>
+    <listitem>
+     <para>The replace operation removes existing values on the target field,
+     and replaces them with the values you provide. It is equivalent to
+     performing a remove on the field, then an add with the values you
+     provide.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>"increment"</term>
+    <listitem>
+     <para>The increment operation increments or decrements the value or values
+     in the target field by the amount you specify, which is positive to
+     increment, negative to decrement. The target field must be a number or
+     a set of numbers. The value you provide must be a single number.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>One key nuance in how patch works with OpenDJ has to do with
+  multi-valued fields. Although JSON resources represent multi-valued fields as
+  <emphasis>arrays</emphasis>, OpenDJ treats those values as
+  <emphasis>sets</emphasis>. In other words, values in the field are unique,
+  and the ordering of an array of values is not meaningful in the context of
+  patch operations. If you reference array values by index, OpenDJ returns
+  an error.<footnote><para>OpenDJ does let you use a hyphen as the last element
+  of the "field" JSON pointer value to add an element to the set, as in
+  <command>curl --user kvaughan:bribery --request PATCH --header "Content-Type:
+  application/json" --data '[{ "operation" : "add", "field" : "/members/-",
+  "value" : { "_id" : "bjensen" } }]'
+  http://opendj.example.com:8080/groups/Directory%20Administrators</command>.</para>
+  </footnote></para>
+
+  <para>Instead use the patch operations as if arrays values were sets. For
+  example, you can include Barbara Jensen in a group by adding her to the set
+  of members.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "add",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]'
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+ ?_prettyPrint=true
+{
+  "_rev" : "00000000b70c881a",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:23Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "bjensen",
+    "displayName" : "Barbara Jensen"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}</screen>
+
+  <para>Removing her from the group is similar.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "remove",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]'
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+ ?_prettyPrint=true
+{
+  "_rev" : "00000000e241797e",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:55Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}</screen>
+
+  <para>You can use resource revision numbers in <literal>If-Match:
+  <replaceable>revision</replaceable></literal> headers to patch the resource
+  only if the resource matches a particular version.</para>
+
+  <screen>$ curl
+ --user kvaughan:bribery
+ "http://opendj.example.com:8080/users/bjensen?_prettyPrint=true&amp;_fields=_rev"
+{
+  "_rev" : "00000000c1b6d4c7"
+}
+$ curl
+ --user kvaughan:bribery
+ --request PATCH
+ --header "If-Match: 00000000c1b6d4c7"
+ --header "Content-Type: application/json"
+ --data '[
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]'
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
+{
+  "_rev" : "00000000f946d377",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:56:33Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}</screen>
+
+  <para>The resource revision changes after you successfully perform the patch
+  operation.</para>
+ </section>
+
+ <section xml:id="action-rest">
+  <title>Using Actions</title>
+
+  <para>OpenDJ implements an action that lets the server set the resource ID
+  on creation. To use this action, perform an HTTP POST with header
+  <literal>Content-Type: application/json</literal>,
+  <literal>_action=create</literal> in the query string, and the JSON content of
+  your resource.</para>
+
+  <para>The following example creates a new user entry. Lines are folded for
+  readability.</para>
+
+  <screen width="82">$ curl
+ --request POST
+ --user kvaughan:bribery
+ --header "Content-Type: application/json"
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
+ }'
+ "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"
+{
+  "_rev" : "0000000034a23ca7",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T11:19:08Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}</screen>
+ </section>
+
+ <section xml:id="query-rest">
+  <title>Querying Resource Collections</title>
+
+  <para>To query resource collections, perform an HTTP GET with a
+  <literal>_queryFilter=<replaceable>filter</replaceable></literal> parameter
+  in your query string.</para>
+
+  <variablelist>
+   <para>For query operations, your <replaceable>filter</replaceable>
+   expressions are constructed from the following building blocks.
+   Make sure you URL encode the filter expressions, which are shown here
+   without URL encoding to make them easier to read.</para>
+
+   <para>In these expressions the simplest
+   <replaceable>json-pointer</replaceable> is a field of the JSON resource,
+   such as <literal>userName</literal> or <literal>id</literal>. A
+   <replaceable>json-pointer</replaceable> can however point to nested
+   elements as described in the <link xlink:show="new"
+   xlink:href="http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer">JSON
+   Pointer</link> Internet-Draft.</para>
+
+   <varlistentry>
+    <term>Comparison expressions</term>
+    <listitem>
+     <para>You can build filters using the following comparison expressions.</para>
+
+     <para>Request URLs are folded in the following examples to make them
+     easier to read.</para>
+
+     <variablelist>
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> eq <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer equals the value, as in the following
+        example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+eq+"bjensen@example.com"&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "_rev" : "00000000315fb731",
+    "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "manager" : [ {
+      "_id" : "trigden",
+      "displayName" : "Torrey Rigden"
+    } ],
+    "contactInformation" : {
+      "telephoneNumber" : "+1 408 555 1862",
+      "emailAddress" : "bjensen@example.com"
+    },
+    "_id" : "bjensen",
+    "name" : {
+      "familyName" : "Jensen",
+      "givenName" : "Barbara"
+    },
+    "userName" : "bjensen@example.com",
+    "displayName" : "Barbara Jensen"
+  } ],
+  "resultCount" : 1,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> co <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer contains the value, as in the following
+        example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+co+"jensen"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "ajensen@example.com"
+  }, {
+    "userName" : "bjensen@example.com"
+  }, {
+    "userName" : "gjensen@example.com"
+  }, {
+    "userName" : "jjensen@example.com"
+  }, {
+    "userName" : "kjensen@example.com"
+  }, {
+    "userName" : "rjensen@example.com"
+  }, {
+    "userName" : "tjensen@example.com"
+  } ],
+  "resultCount" : 7,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> sw <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer starts with the value, as in the
+        following example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+sw+"ab"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> lt <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is less than the value, as in the
+        following example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+lt+"ac"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> le <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is less than or equal to the value, as
+        in the following example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+le+"ad"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  }, {
+    "userName" : "achassin@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> gt <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is greater than the value, as in the
+        following example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+gt+"tt"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "ttully@example.com"
+  }, {
+    "userName" : "tward@example.com"
+  }, {
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><literal><replaceable>json-pointer</replaceable> ge <replaceable>json-value</replaceable></literal></term>
+       <listitem>
+        <para>Matches when the pointer is greater than or equal to the value,
+        as in the following example.</para>
+
+        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName+ge+"tw"&amp;_fields=userName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "userName" : "tward@example.com"
+  }, {
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Presence expression</term>
+    <listitem>
+     <para><literal><replaceable>json-pointer</replaceable> pr</literal> matches
+     any resource on which the <replaceable>json-pointer</replaceable> is
+     present, as in the following example.</para>
+
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=userName%20pr&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "_rev" : "000000002210a544",
+    "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "manager" : [ {
+      "_id" : "scarter",
+      "displayName" : "Sam Carter"
+    } ],
+    "contactInformation" : {
+      "telephoneNumber" : "+1 408 555 9445",
+      "emailAddress" : "abarnes@example.com"
+    },
+    "_id" : "abarnes",
+    "name" : {
+      "familyName" : "Barnes",
+      "givenName" : "Anne-Louise"
+    },
+    "userName" : "abarnes@example.com",
+    "displayName" : "Anne-Louise Barnes"
+  },&#8230; many entries omitted &#8230;
+    "_id" : "newuser",
+    "name" : {
+      "familyName" : "New",
+      "givenName" : "User"
+    },
+    "userName" : "newuser@example.com",
+    "displayName" : "New User",
+    "meta" : {
+      "created" : "2013-03-26T10:52:42Z"
+    }
+  } ],
+  "resultCount" : 152,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Literal expressions</term>
+    <listitem>
+     <para><literal>true</literal> matches any resource in the collection.</para>
+     <para><literal>false</literal> matches no resource in the collection.</para>
+
+     <para>In other words you can list all resources in a collection as in the
+     following example.</para>
+
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /groups?_queryFilter=true&amp;_fields=displayName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "displayName" : "Accounting Managers"
+  }, {
+    "displayName" : "Directory Administrators"
+  }, {
+    "displayName" : "HR Managers"
+  }, {
+    "displayName" : "PD Managers"
+  }, {
+    "displayName" : "QA Managers"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>Complex expressions</term>
+    <listitem>
+     <para>You can combine expressions using boolean operators
+     <literal>and</literal>, <literal>or</literal>, and <literal>!</literal>
+     (not), using parentheses,
+     <literal>(<replaceable>expression</replaceable>)</literal>, to group
+     expressions. The following example queries resources with last name
+     Jensen and manager name starting with <literal>Bar</literal>. Notice that
+     the filters use the JSON pointers <literal>name/familyName</literal> and
+     <literal>manager/displayName</literal> to identify the fields that are
+     nested inside the <literal>name</literal> and <literal>manager</literal>
+     objects.</para>
+
+     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
+ /users?_queryFilter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
+ &amp;_fields=displayName&amp;_prettyPrint=true'
+{
+  "result" : [ {
+    "displayName" : "Jody Jensen"
+  }, {
+    "displayName" : "Ted Jensen"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "remainingPagedResults" : -1
+}</screen>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <!--  Pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-702
+  <para>You can have the server sort JSON resources before it returns them by
+  using the <literal>_sortKeys[+-]=<replaceable>field</replaceable>[,&#8230;]</literal>
+  query string.</para>
+  -->
+
+  <!-- Pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-701
+  <variablelist>
+   <para>You can page through search results using the following query string
+   parameters.</para>
+
+   <varlistentry>
+    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>__pagedResultsOffset=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <listitem>
+     <para></para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  -->
+ </section>
+</chapter>

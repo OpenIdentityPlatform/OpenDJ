@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<book xml:id='dev-guide'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <title>OpenDJ <?eval ${currentSDKversion}?> SDK Developer's Guide</title>
+  <abstract>
+   <para>Hands-on guide to developing applications with the OpenDJ SDK. The
+   OpenDJ project offers open source LDAP directory services in Java.</para>
+  </abstract>
+  <copyright>
+   <year>2011-2013</year>
+   <holder>ForgeRock AS</holder>
+  </copyright>
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
+   </author>
+   <author>
+    <personname><firstname>Ludovic</firstname><surname>Poitou</surname></personname>
+   </author>
+  </authorgroup>
+  <xinclude:include href='../legal.xml' />
+  <date><?dbtimestamp format="B d, Y"?></date>
+  <pubdate>Publication date: <?dbtimestamp format="B d, Y"?></pubdate>
+ </info>
+
+ <toc />
+ 
+ <xinclude:include href="preface.xml" />
+ 
+ <xinclude:include href='chap-understanding-ldap.xml' />
+ <xinclude:include href='chap-best-practices.xml' />
+ <xinclude:include href='chap-get-sdk.xml' />
+ <xinclude:include href='chap-using-the-sdk.xml' />
+ <xinclude:include href='chap-authenticating.xml' />
+ <xinclude:include href='chap-reading.xml' />
+ <xinclude:include href='chap-getting-directory-info.xml' />
+ <xinclude:include href='chap-writing.xml' />
+ <xinclude:include href='chap-ldif.xml' />
+ <xinclude:include href='chap-controls.xml' />
+ <xinclude:include href='chap-extended-ops.xml' />
+ <xinclude:include href='chap-i18n.xml' />
+ <xinclude:include href='chap-simple-proxy.xml' />
+ 
+ <reference xml:id="dev-tools-ref">
+  <title>Tools Reference</title>
+
+  <partintro>
+   <para>You can find the tools under the <filename>bin/</filename> or
+   <filename>bat\</filename> folder where you installed OpenDJ LDAP SDK
+   toolkit as described in the procedure explaining how <link
+   xlink:href="dev-guide#install-latest-sdk"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install the
+   Latest SDK &amp; Tools</citetitle></link>. For example,
+   <filename>/path/to/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>.</para>
+  </partintro>
+
+  <xinclude:include href='../shared/man-authrate.xml' />
+  <xinclude:include href='../shared/man-ldapcompare.xml' />
+  <xinclude:include href='../shared/man-ldapmodify.xml' />
+  <xinclude:include href='../shared/man-ldappasswordmodify.xml' />
+  <xinclude:include href='../shared/man-ldapsearch.xml' />
+  <xinclude:include href='../shared/man-ldifdiff.xml' />
+  <xinclude:include href='../shared/man-ldifmodify.xml' />
+  <xinclude:include href='../shared/man-ldifsearch.xml' />
+  <xinclude:include href='../shared/man-modrate.xml' />
+  <xinclude:include href='../shared/man-searchrate.xml' />
+ </reference>
+
+ <xinclude:include href="../shared/glossary.xml" />
+
+ <index />
+</book>

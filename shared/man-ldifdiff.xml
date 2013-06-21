@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='ldifdiff-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>ldifdiff</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>ldifdiff</refname>
+  <refpurpose>compare small LDIF files</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>ldifdiff</command>
+   <arg choice="opt">options</arg>
+   <arg choice="plain"><replaceable>source</replaceable>.ldif</arg>
+   <arg choice="plain"><replaceable>target</replaceable>.ldif</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to compare two LDIF files and report the
+  differences in LDIF format.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --ignoreAttrs {file}</option></term>
+    <listitem>
+     <para>File containing a list of attributes to ignore when computing the
+     difference.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--checkSchema</option></term>
+    <listitem>
+     <para>Takes into account the syntax of the attributes as defined in the
+     schema to make the value comparison. The provided LDIF files must conform
+     to the server schema.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-e, --ignoreEntries {file}</option></term>
+    <listitem>
+     <para>File containing a list of entries (DN) to ignore when computing the
+     difference.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-S, --singleValueChanges</option></term>
+    <listitem>
+     <para>Each attribute-level change should be written as a separate
+     modification per attribute value rather than one modification per
+     entry.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information.</para>
+    </listitem>
+   </varlistentry>
+    <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>&gt; 0</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example demonstrates use of the command with two
+  small LDIF files.</para>
+  <screen>$ cat /path/to/newuser.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example.com
+userPassword: changeme
+
+$ cat /path/to/neweruser.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example.com
+userPassword: secret12
+description: A new description.
+
+$ ldifdiff /path/to/newuser.ldif /path/to/neweruser.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: userPassword
+userPassword: secret12
+-
+delete: userPassword
+userPassword: changeme
+-
+add: description
+description: A new description.
+</screen>
+ </refsect1>
+</refentry>

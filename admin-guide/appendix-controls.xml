@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<appendix xml:id='appendix-controls'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>LDAP Controls</title>
+
+ <para>Controls provide a mechanism whereby the semantics and arguments of
+ existing LDAP operations may be extended. One or more controls may be
+ attached to a single LDAP message. A control only affects the semantics of
+ the message it is attached to. Controls sent by clients are termed
+ <emphasis>request controls</emphasis>, and those sent by servers are termed
+ <emphasis>response controls</emphasis>.</para>
+
+ <para>OpenDJ software supports the following LDAP controls.</para>
+ <variablelist>
+  <varlistentry xml:id="account-usability-control">
+   <term>Account Usability Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Account usability</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.8</para>
+    <para>Control originally provided by Sun Microsystems, used to determine
+    whether a user account can be used to authenticate to the directory.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="assertion-request-control">
+   <term>Assertion Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Assertion</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.12</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4528'>RFC 4528
+    - Lightweight Directory Access Protocol (LDAP) Assertion Control</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="authorization-identity-request-control">
+   <term>Authorization Identity Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Authorization identity</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.16</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3829'>RFC 3829
+    - Lightweight Directory Access Protocol (LDAP) Authorization Identity
+    Request and Response Controls</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="authorization-identity-response-control">
+   <term>Authorization Identity Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Authorization identity</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.15</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3829'>RFC 3829
+    - Lightweight Directory Access Protocol (LDAP) Authorization Identity
+    Request and Response Controls</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="entry-change-notification-response-control">
+   <term>Entry Change Notification Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Entry change notification</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.7</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-psearch'
+    >draft-ietf-ldapext-psearch - Persistent Search: A Simple LDAP Change
+    Notification Mechanism</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="get-effective-rights-request-control">
+   <term>Get Effective Rights Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Get effective rights</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.2</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-acl-model'
+    >draft-ietf-ldapext-acl-model - Access Control Model for LDAPv3</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="manage-dsait-request-control">
+   <term>Manage DSAIT Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Manage DSAIT</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.2</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3296'>RFC 3296
+    - Named Subordinate References in Lightweight Directory Access Protocol
+    (LDAP) Directories</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="matched-values-request-control">
+   <term>Matched Values Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Matched values</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.826.0.1.3344810.2.3</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3876'>RFC 3876
+    - Returning Matched Values with the Lightweight Directory Access Protocol
+    version 3 (LDAPv3)</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="noop-control">
+   <term>No-Op Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>No-op</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.10.2</para>
+    <para>Internet-Draft: <link
+    xlink:href="http://tools.ietf.org/html/draft-zeilenga-ldap-noop-01"
+    >draft-zeilenga-ldap-noop - LDAP No-Op Control</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-expired-response-control">
+   <term>Password Expired Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Password expired</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.4</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy'
+    >draft-vchu-ldap-pwd-policy - Password Policy for LDAP Directories</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-expiring-response-control">
+   <term>Password Expiring Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Password expiring</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.5</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy'
+    >draft-vchu-ldap-pwd-policy - Password Policy for LDAP Directories</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-policy-response-control">
+   <term>Password Policy Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Password policy</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.42.2.27.8.5.1</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-behera-ldap-password-policy'
+    >draft-behera-ldap-password-policy - Password Policy for LDAP
+    Directories</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="permissive-modify-request-control">
+   <term>Permissive Modify Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Permissive modify</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.840.113556.1.4.1413</para>
+    <para>Microsoft defined this control that, "Allows an LDAP modify to work
+    under less restrictive conditions. Without it, a delete will fail if an
+    attribute done not exist, and an add will fail if an attribute already
+    exists. No data is needed in this control." (<link
+    xlink:href='http://www.alvestrand.no/objectid/1.2.840.113556.1.4.1413.html'
+    >source of quote</link>)</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="persistent-search-request-control">
+   <term>Persistent Search Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Persistent search</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.3</para>
+    <para>Internet-Draft:
+    <link xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-psearch'
+    >draft-ietf-ldapext-psearch - Persistent Search: A Simple LDAP Change
+    Notification Mechanism</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="post-read-request-control">
+   <term>Post-Read Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Post-read</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.13.2</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4527'>RFC 4527
+    - Lightweight Directory Access Protocol (LDAP) Read Entry Controls</link>
+   </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="post-read-response-control">
+   <term>Post-Read Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Post-read</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.13.2</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4527'>RFC 4527
+    - Lightweight Directory Access Protocol (LDAP) Read Entry Controls</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="pre-read-request-control">
+   <term>Pre-Read Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Pre-read</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.13.1</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4527'>RFC 4527
+    - Lightweight Directory Access Protocol (LDAP) Read Entry Controls</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="pre-read-response-control">
+   <term>Pre-Read Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Pre-read</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.13.1</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4527'>RFC 4527
+    - Lightweight Directory Access Protocol (LDAP) Read Entry Controls</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="proxied-authorization-v1-request-control">
+   <term>Proxied Authorization v1 Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Proxied authorization</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.12</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-weltman-ldapv3-proxy-04'
+    >draft-weltman-ldapv3-proxy-04 - LDAP Proxied Authorization Control</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="proxied-autorization-v2-request-control">
+   <term>Proxied Authorization v2 Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Proxied authorization</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.18</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4370'>RFC 4370
+    - Lightweight Directory Access Protocol (LDAP) Proxied Authorization
+    Control</link></para>
+   </listitem>
+  </varlistentry>
+  
+  <varlistentry xml:id="public-changelog-exchange-control">
+   <term>Public Changelog Exchange Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Public changelog exchange</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.5.4</para>
+    <para>OpenDJ specific, for using the bookmark cookie when reading
+    the external change log.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="server-side-sort-request-control">
+   <term>Server Side Sort Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Server side sort</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.840.113556.1.4.473</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc2891'>RFC 2891
+    - LDAP Control Extension for Server Side Sorting of Search Results</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="server-side-sort-response-control">
+   <term>Server Side Sort Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Server side sort</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.840.113556.1.4.474</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc2891'>RFC 2891
+    - LDAP Control Extension for Server Side Sorting of Search Results</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="simple-paged-results-control">
+   <term>Simple Paged Results Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Simple paged results</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.840.113556.1.4.319</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc2696'>RFC 2696 
+    - LDAP Control Extension for Simple Paged Results Manipulation</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="subentries-request-controls">
+   <term>Subentries Request Controls</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Subentries</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.10.1</para>
+    <para>RFC: <link
+    xlink:href='http://tools.ietf.org/html/rfc3672'
+    >Subentries in the Lightweight Directory Access Protocol (LDAP)</link></para>
+    <para>Object Identifier: 1.3.6.1.4.1.7628.5.101.1</para>
+    <para>Internet-Draft: <link
+     xlink:href='http://tools.ietf.org/html/draft-ietf-ldup-subentry'
+     >draft-ietf-ldup-subentry - LDAP Subentry Schema</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="subtree-delete-request-control">
+   <term>Subtree Delete Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Subtree delete</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.2.840.113556.1.4.805</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-armijo-ldap-treedelete'
+    >draft-armijo-ldap-treedelete - Tree Delete Control</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="virtual-list-view-request-control">
+   <term>Virtual List View Request Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Virtual list view (browsing)</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.9</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv'
+    >draft-ietf-ldapext-ldapv3-vlv - LDAP Extensions for Scrolling View
+    Browsing of Search Results</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="virtual-list-view-response-control">
+   <term>Virtual List View Response Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Virtual list view (browsing)</secondary>
+    </indexterm>
+    <para>Object Identifier: 2.16.840.1.113730.3.4.10</para>
+    <para>Internet-Draft: <link
+    xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv'
+    >draft-ietf-ldapext-ldapv3-vlv - LDAP Extensions for Scrolling View
+    Browsing of Search Results</link></para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</appendix>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='base64-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>base64</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>base64</refname>
+  <refpurpose>encode and decode base64 strings</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>base64 <replaceable>subcommand</replaceable></command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to encode and decode information using base64.</para>
+ </refsect1>
+ <refsect1>
+  <title>Subcommands</title>
+  <para>The following subcommands are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><command>base64 decode</command></term>
+    <listitem>
+     <para>Decode base64-encoded information into raw data</para>
+     <para>When no options are specified, this subcommand reads from standard
+     input and writes to standard output.</para>
+     <variablelist>
+      <title>Decode Options</title>
+      <varlistentry>
+       <term><option>-d, --encodedData {data}</option></term>
+       <listitem>
+        <para>The base64-encoded data to be decoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-f, --encodedDataFile {path}</option></term>
+       <listitem>
+        <para>The path to a file containing the base64-encoded data to be
+        decoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-o, --toRawFile {path}</option></term>
+       <listitem>
+        <para>The path to a file to which the raw base64-decoded data should be
+        written</para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>base64 encode</command></term>
+    <listitem>
+     <para>Encode raw data using base64</para>
+     <para>When no options are specified, this subcommand reads from standard
+     input and writes to standard output.</para>
+     <variablelist>
+      <title>Decode Options</title>
+      <varlistentry>
+       <term><option>-d, --rawData {data}</option></term>
+       <listitem>
+        <para>The raw data to be base64 encoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-f, --rawDataFile {path}</option></term>
+       <listitem>
+        <para>The path to a file containing the raw data to be base64
+        encoded</para>
+       </listitem>
+      </varlistentry>
+      <varlistentry>
+       <term><option>-o, --toEncodedFile {path}</option></term>
+       <listitem>
+        <para>The path to a file to which the base64-encoded data should be
+        written</para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>General Options</title>
+  <variablelist>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information</para>
+    </listitem>
+   </varlistentry>
+    <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>&gt; 0</term>
+     <listitem>
+      <para>An error occurred.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following command shows the changes from the external change log
+  in human-readable format.</para>
+  <screen>$ base64 decode -d YWRkOiBkZXNjcmlwdGlvbgpkZXNjcmlwdGlvbjogQSB0aGlyZCBjaGFuZ2UK
+LQpyZXBsYWNlOiBtb2RpZmllcnNOYW1lCm1vZGlmaWVyc05hbWU6IGNuPURpcmVjdG9yeSBNYW5hZ2V
+yLGNuPVJvb3QgRE5zLGNuPWNvbmZpZwotCnJlcGxhY2U6IG1vZGlmeVRpbWVzdGFtcAptb2RpZnlUaW
+1lc3RhbXA6IDIwMTEwNjEzMDcxMjEwWgotCg==
+add: description
+description: A third change
+-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+-
+replace: modifyTimestamp
+modifyTimestamp: 20110613071210Z
+-
+</screen>
+ </refsect1>
+</refentry>

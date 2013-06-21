@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-before-you-install'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Before You Install OpenDJ Software</title>
+
+ <para>This chapter covers requirements to consider before you run OpenDJ,
+ especially before you run OpenDJ in your production environment.</para>
+
+ <para>If you have a special request to support a combination not listed here,
+ contact ForgeRock at <link xlink:href='mailto:info@forgerock.com'
+ >info@forgerock.com</link>.</para>
+
+ <section xml:id="prerequisites-java">
+  <title>Java Environment</title>
+  <indexterm>
+   <primary>Java</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+  
+  <para>OpenDJ software consists of pure Java applications. OpenDJ servers
+  and clients therefore should run on any system with full Java support.
+  OpenDJ is tested on a variety of operating systems, including Solaris
+  SPARC and x86, various Linux distributions, Microsoft Windows,
+  and Apple Mac OS X.</para>
+  
+  <para>OpenDJ software requires Java 6 or later, specifically at least the
+  Java Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment.
+  ForgeRock recommends that you keep your Java installation up to date with
+  the latest security fixes.</para>
+
+  <para>To build applications with the OpenDJ LDAP SDK, you need the
+  corresponding Java SDK.</para>
+ </section>
+
+ <section xml:id="prerequisites-file-descriptors">
+  <title>Maximum Open Files</title>
+  <indexterm>
+   <primary>File descriptors</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ needs to be able to open many files, especially when handling
+  many client connections. Linux systems in particular often set a limit of
+  1024 per user, which is too low for OpenDJ.</para>
+
+  <para>When setting up OpenDJ for production use, make sure OpenDJ can use
+  at least use at least 64K (65536) file descriptors. For example when running
+  OpenDJ as user <literal>opendj</literal> on a Linux system that uses
+  <filename>/etc/security/limits.conf</filename> to set user level limits,
+  you can set soft and hard limits by adding these lines to the file.</para>
+
+  <programlisting language="none">opendj soft nofile 65536
+opendj hard nofile 131072</programlisting>
+
+  <para>The example above assumes the system has enough file descriptors
+  available overall. You can check the Linux system overall maximum as
+  follows.</para>
+
+  <screen>$ cat /proc/sys/fs/file-max
+204252</screen>
+ </section>
+
+ <section xml:id="prerequisites-operating-systems">
+  <title>Operating System</title>
+  <indexterm>
+   <primary>Operating systems</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ software depends on the Java environment more than it depends
+  on the underlying operating system. That said, OpenDJ
+  <?eval ${docTargetVersion}?> has been validated on the following operating
+  systems.</para>
+
+ <itemizedlist>
+  <listitem>
+   <para>Apple Mac OS X 10.7</para>
+  </listitem>
+  <listitem>
+   <para>Linux 2.6 and later</para>
+  </listitem>
+  <listitem>
+   <para>Microsoft Windows Server 2008</para>
+  </listitem>
+  <listitem>
+   <para>Oracle Solaris 10</para>
+  </listitem>
+ </itemizedlist>
+
+  <para>In order to avoid directory database file corruption after crashes or
+  power failures on Linux systems, enable file system write barriers and make
+  sure that the file system journaling mode is ordered. For details on how to
+  enable write barriers and how to set the journaling mode for data, see the
+  options for your file system in the <command>mount</command> command manual
+  page.</para>
+ </section>
+
+ <section xml:id="prerequisites-application-servers">
+  <title>Application Servers</title>
+  <indexterm>
+   <primary>Application servers</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>OpenDJ directory server runs as a standalone Java service, and
+  does not depend on an application server.</para>
+
+  <para>OpenDJ <?eval ${docTargetVersion}?> DSML and REST LDAP gateway Servlets
+  have been validated on Apache Tomcat 6.</para>
+ </section>
+
+ <section xml:id="prerequisites-fqdn">
+  <title>FQDNs For Replication</title>
+
+  <indexterm><primary>Fully qualified domain name requirements</primary></indexterm>
+  <para>OpenDJ replication requires that you use fully qualified domain names,
+  such as <literal>opendj.example.com</literal>.</para>
+
+  <para>Although you can use host names like <literal>my-laptop.local</literal>
+  for evaluation, in production and even in your lab, you must either ensure
+  DNS is set up correctly to provide fully qualified domain names, or set up
+  <filename>/etc/hosts</filename> (or
+  <filename>C:\Windows\System32\drivers\etc\hosts</filename>) to provide
+  fully qualified domain names.</para>
+ </section>
+
+ <section xml:id="prerequisites-hardware">
+  <title>Hardware</title>
+
+  <para>Thanks to the underlying Java platform, OpenDJ software runs well
+  on a variety of processor architectures. Many directory service
+  deployments meet their service-level agreements without the very latest
+  or very fastest hardware.</para>
+
+  <indexterm><primary>Memory requirements</primary></indexterm>
+  <para>For a server evaluation installation, you need 256 MB memory (32-bit)
+  or 1 GB memory (64-bit) available to OpenDJ, with 100 MB free disk space for
+  the software and a small set of sample data. For installation in production,
+  read the rest of this section. You need at least 2 GB memory for OpenDJ and
+  4 times the disk space needed to house initial production data in LDIF
+  format.<footnote>
+   <para>OpenDJ stores data in Berkeley DB Java Edition, which is implemented
+   as a rolling log. Berkeley DB appends updates to the end of the last log
+   file, and marks old pages as deleted. Berkeley DB cleaner threads monitor
+   the log file occupancy ratio, moving the data to get rid of old log files.
+   Yet, with the default occupancy ratio of 50%, log files are cleaned only
+   when they have less than 50% valid pages. As a result, the database can
+   reach twice its initial size in the worst case.</para>
+   <para>Furthermore, when you import data from LDIF, OpenDJ stores not only
+   the data, but also builds indexes for many of the attributes, resulting in
+   some growth. Replication historical data and other operational attributes
+   can also take up space.</para>
+   <para>Finally, it makes sense to leave space for growth in the database size
+   as you modify and add entries over time.</para></footnote>
+  To get a more accurate estimate of the disk space needed, import a known
+  fraction of the initial LDIF with OpenDJ configured as for production, run
+  tests based on the estimated rates of change and growth in directory data,
+  and then use the actual space used in the test environment to estimate how
+  much disk space you need in production.</para>
+
+  <para>OpenDJ directory servers almost always benefit from having enough
+  system memory to cache all directory database files used. The reason
+  is that reading from and writing to memory is typically much faster
+  than reading from and writing to disk storage. For small data sets,
+  you might not need extra memory. For large directories with millions of
+  user directory entries, the system might not have enough slots to house
+  sufficient memory to cache everything. To improve performance in such
+  cases, one approach is to add solid state drives as an intermediate
+  cache between memory and disk storage.</para>
+
+  <para>Processor architectures that provide fast single thread execution
+  tend to help OpenDJ software deliver the lowest response times. For top end
+  performance in terms both of sub-millisecond response times and also
+  of throughput ranging from tens of thousands to hundreds of thousands
+  of operations per second, the latest x86 architecture chips tend to
+  perform better than others tested. Chip multi-threading (CMT) processors
+  can do very well on directory servers providing pure search throughput,
+  even though response times can be higher. Yet, CMT processors can be slow
+  to absorb hundreds or thousands of write operations per second. Their
+  slower threads get blocked waiting on resources, and thus are not optimal
+  for topologies with high write throughput requirements.</para>
+
+  <indexterm><primary>Network requirements</primary></indexterm>
+  <para>On systems with fast processors and enough memory to cache directory
+  data completely, the network can become a bottleneck. Even if a single
+  1 Gbit Ethernet interface offers plenty of bandwidth to handle your
+  average traffic load, it can be too small for peak traffic loads.
+  Furthermore, you might choose to use separate interfaces for
+  administrative traffic and application traffic. To estimate what network
+  hardware you need, calculate the size of the data you return to
+  applications during peak load. For example, if you expect to have a
+  peak load of 100,000 searches per second, each returning a full 8 KB
+  entry, you need a network that can handle 800 MB/sec (3.2 Gbit/sec)
+  throughput, not counting any other operations such as writes that
+  result in replication traffic.</para>
+
+  <indexterm><primary>Storage requirements</primary></indexterm>
+  <para>The storage hardware you choose must allow you to house not only
+  directory data including historical data for replication, but also
+  logs. If you choose to retain access logs for auditing purposes on a
+  heavily used directory, dedicate storage for the log archives as well.
+  Furthermore, your storage must also keep pace with the write
+  throughput. Write throughput can arise from modify, modify DN, add,
+  and delete operations, but it can also result from bind operations.
+  Such is the case when the last successful bind is recorded, and when
+  account lockout is configured, for example. In a replicated topology,
+  not only does a directory service write entries to disk when they are
+  changed, but a directory service also writes changelog data and
+  historical information in order to resolve potential replication
+  conflicts. You base your network throughput needs on peak loads. Also
+  base your storage throughput needs on peak loads.</para>
+
+  <note>
+   <para>OpenDJ servers do not currently support network file systems such
+   as NFS for database storage. Provide sufficient disk space on local storage
+   such as internal disk or an attached disk array.</para>
+  </note>
+ </section>
+</chapter>

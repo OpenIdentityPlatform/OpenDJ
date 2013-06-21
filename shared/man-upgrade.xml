@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !
+-->
+<refentry xml:id='upgrade-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>upgrade</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>upgrade</refname>
+  <refpurpose>upgrade OpenDJ configuration &amp; application data</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>upgrade</command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+
+  <para>This utility upgrades OpenDJ configuration (schema, directory server
+  configuration, and other configuration files) and application data (primarily
+  directory data) so that it is compatible with the binary files and scripts
+  that are installed.</para>
+
+  <para>The <command>upgrade</command> command thus performs only part of the
+  upgrade process, which includes the following phases for a single
+  server.</para>
+
+  <orderedlist>
+   <listitem>
+    <para>Get and unpack a newer version of OpenDJ directory server
+    software.</para>
+   </listitem>
+   <listitem>
+    <para>Stop the current OpenDJ directory server.</para>
+   </listitem>
+   <listitem>
+    <para>Overwrite existing binary and script files with those of the
+    newer version, and then run this utility, the <command>upgrade</command>
+    command, before restarting OpenDJ.</para>
+   </listitem>
+   <listitem>
+    <para>Start the upgraded OpenDJ directory server.</para>
+   </listitem>
+  </orderedlist>
+
+  <important>
+   <para>The <command>upgrade</command> command <emphasis>does not back up
+   OpenDJ before you upgrade, nor does it restore OpenDJ if the
+   <command>upgrade</command> command fails</emphasis>. In order to revert a
+   failed upgrade, make sure you back up OpenDJ directory server before you
+   overwrite existing binary and script files.</para>
+  </important>
+
+  <para>By default, the <command>upgrade</command> command requests
+  confirmation before making important configuration changes. You can use
+  the <option>--no-prompt</option> option to run the command
+  non-interactively.</para>
+
+  <para>When using the <option>--no-prompt</option> option, if the
+  <command>upgrade</command> command cannot complete because it requires
+  confirmation for a potentially very long or critical task, then it exits
+  with an error and a message about how to finish making the changes. You can
+  add the <option>--force</option> option to force a non-interactive upgrade
+  to continue in this case, also performing long running and critical
+  tasks.</para>
+
+  <para>After upgrading, see the resulting <filename>upgrade.log</filename>
+  file for a full list of operations performed.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>--acceptLicense</option></term>
+    <listitem>
+     <para>Automatically accepts the product license if there is one in the
+     delivery.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--force</option></term>
+    <listitem>
+     <para>Forces a non-interactive upgrade to continue even if it requires
+     user interaction. In particular, long running or critical upgrade tasks,
+     such as re-indexing, which require user confirmation will be skipped. This
+     option may only be used with the <option>--no-prompt</option> option.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--ignoreErrors</option></term>
+    <listitem>
+     <para>Ignores any errors which occur during the upgrade. This option
+     should be used with caution and may be useful in automated deployments
+     where potential errors are known in advance and resolved after the upgrade
+     has completed.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-n, --no-prompt</option></term>
+     <listitem>
+      <para>Use non-interactive mode. Prompt for any required information
+      rather than fail.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Q, --quiet</option></term>
+     <listitem>
+      <para>Use quiet mode.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information.</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>2</term>
+    <listitem>
+     <para>The command was run in non-interactive mode, but could not complete
+     because confirmation was required to run a long or critical task.</para>
+     <para>See the error message or the log for details.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Other</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>See the <citetitle>Installation Guide</citetitle> for an example
+  upgrade process for OpenDJ directory server installed from the cross-platform
+  (.zip) delivery, <link xlink:show="new"
+  xlink:href="install-guide#upgrade-zip-example"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading From
+  OpenDJ 2.4.5</citetitle></link>.</para>
+
+  <para>Native packages (.deb, .rpm) perform more of the upgrade process,
+  stopping OpenDJ if it is running, overwriting older files with newer files,
+  running this utility, and starting OpenDJ if it was running when you upgraded
+  the package(s).</para>
+ </refsect1>
+</refentry>

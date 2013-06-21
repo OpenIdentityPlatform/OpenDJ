@@ -1,0 +1,1522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-replication'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+        >
+ <title>Managing Data Replication</title>
+
+ <para>OpenDJ uses advanced data replication with automated conflict
+ resolution to help ensure your directory services remain available in the
+ event a server crashes or a network goes down, and also as you backup or
+ upgrade your directory service. You can configure data replication as part
+ of OpenDJ installation, and in many cases let replication do its work in
+ the background.</para>
+
+ <section xml:id="repl-quick-setup">
+  <title>Replication Quick Setup</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Quick setup</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>High availability</primary>
+   <see>Replication</see>
+  </indexterm>
+  
+  <para>You can set up replication during installation by choosing to
+  configure replication through the setup wizard.</para>
+  
+  <para>In the Topology Options screen for the first server you set up, select
+  This server will be part of a replication topology. If you also choose
+  Configure as Secure, then replication traffic is protected by SSL.</para>
+  
+  <mediaobject xml:id="figure-repla-setup">
+   <imageobject>
+    <imagedata fileref="images/replA-setup.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>In the Topology Options screen for subsequent servers, also select
+  There is already a server in the topology, providing the Host Name,
+  Administration Connector Port number, Admin User, and Admin Password for
+  the first replica you set up.</para>
+  
+  <mediaobject xml:id="figure-replb-setup">
+   <imageobject>
+    <imagedata fileref="images/replB-setup.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>You also set up a global administrator account, stored under
+  <literal>cn=admin data</literal> across replicas, used to manage replication
+  in the topology.</para>
+  
+  <mediaobject xml:id="figure-replb-global-admin">
+   <imageobject>
+    <imagedata fileref="images/replB-global-admin.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>You further set up what to replicate.</para>
+  
+  <mediaobject xml:id="figure-replb-data-repl">
+   <imageobject>
+    <imagedata fileref="images/replB-data-repl.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>Once replication is set up, it works for all the replicas. You can
+  monitor the replication connection and status through the OpenDJ Control
+  Panel.</para>
+  
+  <mediaobject xml:id="figure-repla-monitor-repl">
+   <imageobject>
+    <imagedata fileref="images/replA-monitor-repl.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+ </section>
+
+ <section xml:id="about-repl">
+  <title>About Replication</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Overview</secondary>
+  </indexterm>
+  
+  <para>Before you take replication further than setting up replication
+  in the setup wizard, read this section to learn more about how OpenDJ
+  replication works.</para>
+
+  <section xml:id="repl-what-it-is">
+   <title>What Replication Is</title>
+
+   <para>Replication is the process of copying updates between OpenDJ
+   directory servers such that all servers converge on identical copies of
+   directory data. Replication is designed to let convergence happen over
+   time by default. <footnote><para>Assured replication can require, however,
+   that the convergence happen before the client application is notified that
+   the operation was successful.</para></footnote> Letting convergence
+   happen over time means that different replicas can be momentarily out of
+   sync, but it also means that if you lose an individual server or even an
+   entire data center, your directory service can keep on running, and then
+   get back in sync when the servers are restarted or the network is
+   repaired.</para>
+
+   <para>Replication is specific to the OpenDJ directory service. Replication
+   uses a specific protocol that replays update operations quickly, storing
+   enough historical information about the updates to resolve most conflicts
+   automatically. For example, if two client applications separately update
+   a user entry to change the phone number, replication can work out which
+   was the latest change, and apply that change across servers. The historical
+   information needed to resolve these issues is periodically purged to avoid
+   growing larger and larger forever. As a directory administrator, you must
+   ensure that you do not purge the historical information more often than you
+   backup your directory data.</para>
+
+   <para>Keep server clocks synchronized for your topology. You can use NTP for
+   example. Keeping server clocks synchronized helps prevent issues with SSL
+   connections and with replication itself. Keeping server clocks synchronized
+   also makes it easier to compare timestamps from multiple servers.</para>
+  </section>
+
+  <section xml:id="repl-per-suffix">
+   <title>Replication Per Suffix</title>
+
+   <para>The primary unit of replication is the suffix, specified by a
+   base DN such as <literal>dc=example,dc=com</literal>.<footnote><para>When
+   you configure partial and fractional replication, however, you can replicate
+   only part of a suffix, or only certain attributes on entries. Also,
+   if you split your suffix across multiple backends, then you need to set up
+   replication separately for each part of suffix in a different backend.</para>
+   </footnote> Replication also depends on the directory schema, defined on
+   <literal>cn=schema</literal>, and the <literal>cn=admin data</literal>
+   suffix with administrative identities and certificates for protecting
+   communications. Thus that content gets replicated as well.</para>
+
+   <para>The set of OpenDJ servers replicating data for a given suffix is
+   called a replication topology. You can have more than one replication
+   topology. For example, one topology could be devoted to
+   <literal>dc=example,dc=com</literal>, and another to
+   <literal>dc=example,dc=org</literal>. OpenDJ servers are capable of
+   serving more than one suffix. They are also capable of participating in
+   more than one replication topology.</para>
+
+   <mediaobject xml:id="figure-replication-topologies-right">
+    <alt>Three replication topologies set up correctly</alt>
+    <imageobject>
+     <imagedata fileref="images/repl-topologies-right.png" format="PNG" />
+    </imageobject>
+    <textobject>
+     <para>In this figure, all OpenDJ servers serve the replicated suffix
+     <literal>dc=example,dc=com</literal>. Only servers A and B serve
+     <literal>dc=example,dc=org</literal>. Only server C and D serve
+     <literal>dc=example,dc=net</literal>.</para>
+    </textobject>
+   </mediaobject>
+
+   <para>Within a replication topology, the suffixes being replicated are
+   identified to the replication servers by their DN. As all the replication
+   servers are fully connected in a topology, a consequence is that it is
+   impossible to have multiple "sub-topologies" within the overall set of
+   servers as illustrated in the following diagram.</para>
+
+   <mediaobject xml:id="figure-replication-topologies-wrong">
+    <alt>Two replication topologies, one of which does not work</alt>
+    <imageobject>
+     <imagedata fileref="images/repl-topologies-wrong.png" format="PNG" />
+    </imageobject>
+    <textobject>
+     <para>You cannot have all servers replicating both
+     <literal>dc=example,dc=com</literal> and also
+     <literal>dc=example,dc=org</literal>, but with all servers connected for
+     <literal>dc=example,dc=com</literal> and only some of the servers
+     connected for <literal>dc=example,dc=org</literal>.</para>
+    </textobject>
+   </mediaobject>
+  </section>
+
+  <section xml:id="repl-connection-selection">
+   <title>Replication Connection Selection</title>
+
+   <para>In order to understand what happens when individual servers stop
+   responding due to a network partition or a crash, know that OpenDJ can
+   offer both directory service and also replication service, and the two
+   services are not the same, even if they can run alongside each other in
+   the same OpenDJ server in the same Java Virtual Machine.</para>
+
+   <para>Replication relies on the replication service provided by OpenDJ
+   replication servers, where OpenDJ directory servers publish changes made
+   to their data, and subscribe to changes published by other OpenDJ directory
+   servers. A replication server manages replication data only, handling
+   replication traffic with directory servers and with other replication
+   servers, receiving, sending, and storing only changes to directory data
+   rather than directory data itself. Once a replication server is connected
+   to a replication topology, it maintains connections to all other
+   replication servers in that topology.</para>
+
+   <para>A directory server handles directory data. It responds to requests,
+   stores directory data and historical information. For each replicated
+   suffix, such as <literal>dc=example,dc=com</literal>,
+   <literal>cn=schema</literal> and <literal>cn=admin data</literal>, the
+   directory server publishes changes to a replication server, and subscribes
+   to changes from that replication server. (Directory servers do not publish
+   changes to other directory servers.) A directory server also resolves any
+   conflicts that arise when reconciling changes from other directory servers,
+   using the historical information about changes to resolve the conflicts.
+   (Conflict resolution is the responsibility of the directory server rather
+   than the replication server.)</para>
+
+   <para>Once a directory server is connected to a replication topology for a
+   particular suffix, it connects to one replication server at a time for that
+   suffix. The replication server provides the directory server with a list of
+   all replication servers for that suffix. Given the list of possible
+   replication servers to which it can connect, the directory server can
+   determine which replication server to connect to when starting up, or when
+   the current connection is lost or becomes unresponsive.</para>
+
+   <orderedlist>
+    <para>For each replicated suffix, a directory server prefers to connect to
+    a replication server:</para>
+
+    <listitem>
+     <para>In the same group as the directory server</para>
+    </listitem>
+
+    <listitem>
+     <para>Having the same initial data for the suffix as the directory
+     server</para>
+    </listitem>
+
+    <listitem>
+     <para>If initial data were the same, having all the latest changes from
+     the directory server</para>
+    </listitem>
+
+    <listitem>
+     <para>Running in the same Java Virtual Machine as the directory
+     server</para>
+    </listitem>
+
+    <listitem>
+     <para>Having the most available capacity relative to other eligible
+     replication servers</para>
+
+     <para>Available capacity depends on how many directory servers in the
+     topology are already connected to a replication server, and what
+     proportion of all directory servers in the topology ought to be connected
+     to the replication server.</para>
+
+     <para>To determine what proportion of the total number of directory
+     servers should be connected to a replication server, OpenDJ uses
+     replication server weight. When configuring a replication server, you
+     can assign it a weight (default: 1). The weight property takes an integer
+     that indicates capacity to provide replication service relative to other
+     servers. For example, a weight of 2 would indicate a replication server
+     that can handle twice as many connected servers as a replication server
+     with weight 1.</para>
+
+     <para>The proportion of directory servers in a topology that should be
+     connected to a given replication server is equal to (replication server
+     weight)/(sum of replication server weights). In other words, if there are
+     4 replication servers in a topology each with default weights, the
+     proportion for each replication server is 1/4.</para>
+    </listitem>
+   </orderedlist>
+
+   <para>Consider a situation where 7 directory servers are connected to
+   replication servers A, B, C, and D for <literal>dc=example,dc=com</literal>
+   data. Suppose 2 directory servers each are connected to A, B, and C, and 1
+   directory server is connected to replication server D. Replication server D
+   is therefore the server with the most available capacity relative to other
+   replication servers in the topology. All other criteria being equal,
+   replication server D is the server to connect to when an 8th directory
+   server joins the topology.</para>
+
+   <para>The directory server regularly updates the list of replication servers
+   in case it must reconnect. As available capacity of replication servers for
+   each replication topology can change dynamically, a directory server can
+   potentially reconnect to another replication server to balance the
+   replication load in the topology. For this reason the server can also end
+   up connected to different replication servers for different suffixes.</para>
+  </section>
+ </section>
+ 
+ <section xml:id="configure-repl">
+  <title>Configuring Replication</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Configuring</secondary>
+  </indexterm>
+  
+  <para>This section shows how to configure replication with command-line
+  tools.</para>
+  
+  <section xml:id="enable-repl">
+   <title>Enabling Replication</title>
+   
+   <para>You can start the replication process by using the
+   <command>dsreplication enable</command> command.</para>
+   
+   <screen>$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --host1 opendj.example.com
+ --port1 4444
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --replicationPort1 8989
+ --host2 opendj2.example.com
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --replicationPort2 8989
+ --trustAll
+ --no-prompt
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Updating remote references on server opendj.example.com:4444 ..... Done.
+Configuring Replication port on server opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2.example.com:4444 ..... Done.
+Initializing registration information on server opendj2.example.com:4444 with
+ the contents of server opendj.example.com:4444 ..... Done.
+Initializing schema on server opendj2.example.com:4444 with the contents of
+ server opendj.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to
+ work you must initialize the contents of the base DN's that are being
+  replicated (use dsreplication initialize to do so).
+
+See
+/var/.../opends-replication-7958637258600693490.log
+for a detailed log of this operation.</screen>
+   
+   <para>To enable secure connections for replication use the
+   <option>--secureReplication1</option> and
+   <option>--secureReplication2</option> options, which are equivalent to
+   selecting Configure as Secure in the replication topology options screen of
+   the setup wizard.</para>
+   
+   <para>As you see in the command output, replication is set up to function
+   once enabled. You must however initialize replication in order to start
+   the process.</para>
+   
+   <tip>
+    <para>When scripting the configuration to set up multiple replicas in quick
+    succession, use the same initial replication server each time you run the
+    command. In other words, pass the same <option>--host1</option>,
+    <option>--port1</option>, <option>--bindDN1</option>,
+    <option>--bindPassword1</option>, and <option>--replicationPort1</option>
+    options for each of the other replicas that you set up in your
+    script.</para>
+   </tip>
+   
+   <para>If you need to add another OpenDJ directory server to participate
+   in replication, use the <command>dsreplication enable</command> with
+   the new server as the second server.</para>
+  </section>
+  
+  <section xml:id="init-repl">
+   <title>Initializing Replicas</title>
+  
+   <para>Although you can enable replication before you have user data, you
+   must initialize each replica to activate the replication process.</para>
+   
+   <para>You can perform initialization either over the replication protocol,
+   by importing the same LDIF data on all server before performing
+   initialization when starting out, by importing data from LDIF that you
+   exported from another replica when adding a server to the topology, or by
+   restoring a backup from an existing replica onto a new server.</para>
+   
+   <procedure xml:id="init-repl-online">
+    <title>To Initialize Online</title>
+    
+    <para>Online initialization is straightforward, and works well if
+    your network bandwidth is large compared to the amount of data to
+    replicate.</para>
+    
+    <step>
+     <para>Make sure you have enabled servers you want to participate in
+     replication.</para>
+    </step>
+    <step>
+     <para>Start replication with the <command>dsreplication
+     initialize-all</command> command.</para>
+     
+     <screen>$ dsreplication
+ initialize-all
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --hostname opendj.example.com
+ --port 4444
+ --trustAll
+ --no-prompt
+
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 160 entries processed (100 % complete).
+Base DN initialized successfully.
+
+See
+/var/.../opends-replication-5020375834904394170.log
+for a detailed log of this operation.</screen>
+    </step>
+   </procedure>
+
+   <procedure xml:id="init-repl-ldif">
+    <title>To Initialize All Servers From the Same LDIF</title>
+    
+    <para>Follow these steps to prepare a replication topology starting from
+    directory data in LDIF.</para>
+    
+    <para>Depending on the size of the data and your network bandwidth, you
+    might find it quicker to initialize all replica as described in
+    <xref linkend="init-repl-online" />, and then import the LDIF on a single
+    replica.</para>
+    
+    <step>
+     <para>Import the same LDIF on all servers you want to participate in
+     replication.</para>
+    </step>
+    <step>
+     <para>Make sure you have enabled servers you want to participate in
+     replication.</para>
+    </step>
+    <step>
+     <para>Start replication with the <command>dsreplication
+     initialize-all</command> command.</para>
+     <screen>$ dsreplication
+ initialize-all
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --hostname opendj.example.com
+ --port 4444
+ --trustAll
+ --no-prompt
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 161 entries processed (100 % complete).
+Base DN initialized successfully.
+
+See
+/var/.../opends-replication-5745536041520679254.log
+for a detailed log of this operation.</screen>
+    </step>
+   </procedure>
+   
+   <procedure xml:id="init-repl-backup">
+    <title>To Create a New Replica From Existing Backup</title>
+    
+    <para>You can create a new replica from a backup of a server in the existing
+    topology. The <command>dsreplication</command> commands use differ slightly
+    from the other cases, as you must reset the generation ID on the new
+    replica, such that replication can proceed from the proper starting point.
+    Follow these steps to add another server to the topology.</para>
+    
+    <step>
+     <para>Install a new server to serve as the new replica.</para>
+    </step>
+    <step>
+     <para>Backup the database to replicate from an existing server.</para>
+    </step>
+    <step>
+     <para>Enable replication on the new replica.</para>
+     <screen>$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --host1 opendj.example.com
+ --port1 4444
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --replicationPort1 8989
+ --host2 opendj3.example.com
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --replicationPort2 8989
+ --trustAll
+ --no-prompt
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Updating remote references on server opendj.example.com:4444 ..... Done.
+Configuring Replication port on server opendj3.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj3.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2.example.com:4444 ..... Done.
+Updating remote references on server opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj3.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj3.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2.example.com:4444 ..... Done.
+Initializing registration information on server opendj3.example.com:4444 with
+ the contents of server opendj.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to
+ work you must initialize the contents of the base DN's that are being
+ replicated (use dsreplication initialize to do so).
+
+See
+/var/.../opends-replication-1672058070147419978.log
+for a detailed log of this operation.</screen>
+    </step>
+    <step>
+     <para>Prepare the new replica for initialization.</para>
+     <screen>$ dsreplication
+ pre-external-initialization
+ --adminUID admin
+ --adminPassword password
+ --port 4444
+ --baseDN dc=example,dc=com
+ --trustAll
+ --no-prompt
+
+Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
+
+Now you can proceed to the initialization of the contents of the base DN's
+ on all the replicated servers.  You can use the command import-ldif or the
+ binary copy to do so.  You must use the same LDIF file or binary copy on
+ each server.
+
+When the initialization is completed you must use the subcommand
+ 'post-external-initialization' for replication to work with the
+ new base DN's contents.</screen>
+    </step>
+    <step>
+     <para>On the new server, restore the database from the backup
+     archive.</para>
+    </step>
+    <step>
+     <para>Initialize replication on the new replica.</para>
+     <screen>$ dsreplication
+ post-external-initialization
+ --adminUID admin
+ --adminPassword password
+ --port 4444
+ --baseDN dc=example,dc=com
+ --trustAll
+ --no-prompt
+
+Updating replication information on base DN dc=example,dc=com ..... Done.
+
+Post initialization procedure completed successfully.</screen>
+    </step>
+   </procedure>
+  </section>
+  
+  <section xml:id="stop-repl">
+   <title>Stopping Replication</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Stopping</secondary>
+   </indexterm>
+   
+   <para>How you stop replication depends on whether the change is meant to
+   be temporary or permanent.</para>
+   
+   <procedure xml:id="stop-repl-tmp">
+    <title>To Stop Replication Temporarily For a Replica</title>
+
+    <para>If you need to stop a server from replicating temporarily, you can
+    do so using <command>dsconfig</command> command.</para>
+    
+    <warning>
+     <para>Do not allow modifications on the replica for which replication is
+     disabled, as no record of such changes is kept, and the changes cause
+     replication to diverge.</para>
+    </warning>
+
+    <step>
+     <para>Disable the multimaster synchronization provider.</para>
+     <screen>$ dsconfig
+ set-synchronization-provider-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set enabled:false
+ --trustAll
+ --no-prompt</screen>
+    </step>
+    <step performance="optional">
+     <para>When you are ready to resume replication, enable the multimaster
+     synchronization provider.</para>
+     <screen>$ dsconfig
+ set-synchronization-provider-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+    </step>
+   </procedure>
+   
+   <procedure xml:id="stop-repl-permanent">
+    <title>To Stop Replication Permanently For a Replica</title>
+    
+    <para>If you need to stop a server from replicating permanently, for
+    example in preparation to remove a server, you can do so with the
+    <command>dsreplication disable</command> command.</para>
+
+    <step>
+     <para>Stop replication using the <command>dsreplication disable</command>
+     command.</para>
+     <screen>$ dsreplication
+ disable
+ --disableAll
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --adminPassword password
+ --trustAll
+ --no-prompt
+Establishing connections ..... Done.
+Disabling replication on base DN cn=admin data of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication on base DN dc=example,dc=com of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication on base DN cn=schema of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication port 8989 of server
+ opendj2.example.com:4444 ..... Done.
+Removing registration information ..... Done.
+Removing truststore information ..... Done.
+
+See
+/var/.../opends-replication-125248191132797765.log
+for a detailed log of this operation.</screen>
+     <para>The <command>dsreplication disable</command> as shown completely
+     removes the replication configuration information from the server.</para>
+    </step>
+    <step performance="optional">
+     <para>If you want to restart replication for the server, you need to run
+     the <command>dsreplication enable</command> and <command>dsreplication
+     initialize</command> commands again.</para>
+    </step>
+   </procedure>
+  </section>
+
+  <section xml:id="repl-dedicated-servers">
+   <title>Stand-alone Replication Servers</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Dedicated servers</secondary>
+   </indexterm>
+   
+   <para>Replication in OpenDJ is designed to be both easy to implement in
+   environments with a few servers, and also scalable in environments with
+   many servers. You can enable the replication service on each OpenDJ
+   directory server in your deployment, for example, to limit the number
+   of servers you deploy. Yet in a large deployment, you can use stand-alone
+   replication servers &#8212; OpenDJ servers that do nothing but relay
+   replication messages &#8212; to configure (and troubleshoot) the replication
+   service separately from the directory service. You only need a few
+   stand-alone replication servers publishing changes to serve many directory
+   servers subscribed to the changes. Furthermore, replication is designed
+   such that you need only connect a directory server to the nearest
+   replication server for the directory server to replicate with all others
+   in your topology. Yet only the stand-alone replication servers participate
+   in fully-meshed replication.</para>
+   
+
+   <para>All replication servers in a topology are connected to all other
+   replication servers. Directory servers are connected only to one replication
+   server at a time, and their connections should be to replication servers on
+   the same LAN. Therefore the total number of replication connections,
+   Total<subscript>conn</subscript> is expressed as follows.</para>
+   
+   <equation>
+    <mathphrase>Total<subscript>conn</subscript> = (N<subscript>RS</subscript> *
+    N<subscript>RS</subscript>-1)/2 + N<subscript>DS</subscript></mathphrase>
+   </equation>
+   
+   <para>Here, N<subscript>RS</subscript> is the number of replication servers,
+   and N<subscript>DS</subscript> is the number of stand-alone directory
+   servers. In other words, if you have only 3 servers, then
+   Total<subscript>conn</subscript> is 3 with no stand-alone servers.
+   However, if you have two data centers, and need 12 directory servers, then
+   with no stand-alone directory servers Total<subscript>conn</subscript> is
+   (12 * 11)/2 or 66. Yet, with 4 stand-alone replication servers, and 12
+   stand-alone directory servers, Total<subscript>conn</subscript> is
+   (4 * 3)/2 + 12, or 18, with only four of those connections needing to go
+   over the WAN. (By running four directory servers that also run replication
+   servers and eight stand-alone directory servers, you reduce the number of
+   replication connections to 14 for 12 replicas.)</para>
+   
+   <mediaobject xml:id="figure-standalone-repl">
+    <alt>Dedicated servers versus consolidated instances</alt>
+    <imageobject>
+     <imagedata fileref="images/standalone-repl.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+     <para>Dedicated servers are suited to environments with large numbers
+     of replicas.</para>
+    </textobject>
+   </mediaobject>
+
+   <tip>
+    <para>If you set up OpenDJ directory server to replicate by using the
+    Quick Setup wizard, then the wizard activated the replication service for
+    that server. You can turn off the replication service on OpenDJ directory
+    server, and then configure the server to work with a separate, stand-alone
+    replication server instead. Start by using the <command>dsreplication
+    disable --disableReplicationServer</command> command to turn off the
+    replication service on the server.</para>
+   </tip>
+   
+   <procedure xml:id="repl-setup-dedicated-server">
+    <title>To Set Up a Stand-alone Replication Server</title>
+
+    <para>This example sets up a stand-alone replication server to handle
+    the replication traffic between two directory servers that do not
+    handle replication themselves.</para>
+    
+    <para>Here the replication server is <literal>rs.example.com</literal>. The
+    directory servers are <literal>opendj.example.com</literal> and
+    <literal>opendj2.example.com</literal>.</para>
+    
+    <para>In a real deployment, you would have more replication servers
+    to avoid a single point of failure.</para>
+    
+    <step>
+     <para>Setup the replication server as a directory server that has
+     no database.</para>
+    </step>
+    <step>
+     <para>Setup the directory servers as stand-alone directory servers.</para>
+    </step>
+    <step>
+     <para>Enable replication with the appropriate
+     <option>--noReplicationServer</option> and
+     <option>--onlyReplicationServer</option> options.</para>
+     <screen>$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --host1 opendj.example.com
+ --port1 4444
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --noReplicationServer1
+ --host2 rs.example.com
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --replicationPort2 8989
+ --onlyReplicationServer2
+ --trustAll
+ --no-prompt
+Establishing connections ..... Done.
+Only one replication server will be defined for the following base DN's:
+dc=example,dc=com
+It is recommended to have at least two replication servers (two changelogs) to
+avoid a single point of failure in the replication topology.
+
+Checking registration information ..... Done.
+Configuring Replication port on server rs.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ rs.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Initializing registration information on server rs.example.com:4444 with
+ the contents of server opendj.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to work
+ you must initialize the contents of the base DN's that are being
+ replicated (use dsreplication initialize to do so).
+
+See
+/var/.../opends-replication-1720959352638609971.log
+for a detailed log of this operation.
+
+$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --host1 opendj2.example.com
+ --port1 4444
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --noReplicationServer1
+ --host2 rs.example.com
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --replicationPort2 8989
+ --onlyReplicationServer2
+ --trustAll
+ --no-prompt
+
+Establishing connections ..... Done.
+Only one replication server will be defined for the following base DN's:
+dc=example,dc=com
+It is recommended to have at least two replication servers (two changelogs) to
+avoid a single point of failure in the replication topology.
+
+Checking registration information ..... Done.
+Updating remote references on server rs.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ rs.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Initializing registration information on server opendj2.example.com:4444 with
+ the contents of server rs.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to work
+ you must initialize the contents of the base DN's that are being
+ replicated (use dsreplication initialize to do so).
+
+See
+/var/folders/.../opends-replication-5893037538856033562.log
+for a detailed log of this operation.</screen>
+    </step>
+    <step>
+     <para>Initialize replication from one of the directory servers.</para>
+     <screen>$ dsreplication
+ initialize-all
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --hostname opendj.example.com
+ --port 4444
+ --trustAll
+ --no-prompt
+
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 160 entries processed (100 % complete).
+Base DN initialized successfully.
+
+See
+/var/.../opends-replication-7677303986403997574.log
+for a detailed log of this operation.</screen>
+    </step>
+   </procedure>
+  </section>
+  
+  <section xml:id="repl-groups">
+   <title>Replication Groups</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Grouping servers</secondary>
+   </indexterm>
+   
+   <para>Replication lets you define groups so that replicas communicate
+   first with replication servers in the group before going to replication
+   servers outside the group. Groups are identified with unique numeric
+   group IDs.</para>
+   
+   <para>Replication groups are designed for deployments across multiple data
+   centers, where you aim to focus replication traffic on the LAN rather than
+   the WAN. In multi-data center deployments, group nearby servers
+   together.</para>
+   
+   <procedure xml:id="define-repl-groups">
+    <title>To Set Up Replication Groups</title>
+    
+    <para>For each group, set the appropriate group ID for the topology
+    on both the replication servers and the directory servers.</para>
+
+    <para>The example commands in this procedure set up two replication
+    groups, each with a replication server and a directory server. The
+    directory servers are <literal>opendj.example.com</literal> and
+    <literal>opendj2.example.com</literal>. The replication servers
+    are <literal>rs.example.com</literal> and
+    <literal>rs2.example.com</literal>. In a full-scale deployment, you would
+    have multiple servers of each type in each group, such as all the replicas
+    and replication servers in each data center being in the same group.</para>
+    
+    <step>
+     <para>Pick a group ID for each group.</para>
+     <para>The default group ID is 1.</para>
+    </step>
+    <step>
+     <para>Set the group ID for each group by replication domain on the
+     directory servers.</para>
+     <screen>$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set group-id:1
+ --trustAll
+ --no-prompt
+
+$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set group-id:2
+ --trustAll
+ --no-prompt</screen>
+    </step>
+    <step>
+     <para>Set the group ID for each group on the replication servers.</para>
+     <screen>$ dsconfig
+ set-replication-server-prop
+ --port 4444
+ --hostname rs.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set group-id:1
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-replication-server-prop
+ --port 4444
+ --hostname rs2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --set group-id:2
+ --trustAll
+ --no-prompt</screen>
+    </step>
+   </procedure>
+  </section>
+
+  <section xml:id="read-only-repl">
+   <title>Read-Only Replicas</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Read-only servers</secondary>
+   </indexterm>
+   
+   <para>By default all directory servers in a replication topology are
+   read-write. You can however choose to make replicas take updates only
+   from the replication protocol, and refuse updates from client
+   applications.</para>
+
+   <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set writability-mode:internal-only
+ --trustAll
+ --no-prompt</screen>
+  </section>
+
+  <section xml:id="repl-assured">
+   <title>Assured Replication</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Assured</secondary>
+   </indexterm>
+   
+   <para>In standard replication, when a client requests an update operation
+   the directory server performs the update and, if the update is successful,
+   sends information about the update to the replication service, and sends
+   a result code to the client application right away. As a result, the
+   client application can conclude that the update was successful,
+   <emphasis>but only on the replica that handled the update</emphasis>.</para>
+   
+   <para>Assured replication lets you force the replica performing the initial
+   update to wait for confirmation that the update has been received elsewhere
+   in the topology before sending a result code to the client application.
+   You can configure assured replication either to wait for one or more
+   replication servers to acknowledge having received the update, or to wait
+   for all directory servers to have replayed the update.</para>
+   
+   <para>As you might imagine, assured replication is theoretically safer than
+   standard replication, yet it is also slower, potentially waiting for a
+   timeout before failing when the network or other servers are down.</para>
+
+   <procedure xml:id="repl-safe-data">
+    <title>To Ensure Updates Reach Replication Servers</title>
+    
+    <para>Safe data mode requires the update be sent to
+    <literal>assured-sd-level</literal> replication servers before
+    acknowledgement is returned to the client application.</para>
+    
+    <step>
+     <para>For each directory server, set safe data mode for the replication
+     domain, and also set the safe data level.</para>
+     
+     <screen>$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-data
+ --set assured-sd-level:1
+ --trustAll
+ --no-prompt
+
+$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-data
+ --set assured-sd-level:1
+ --trustAll
+ --no-prompt</screen>
+    </step>
+   </procedure>
+   
+   <procedure xml:id="repl-safe-read">
+    <title>To Ensure Updates Are Replayed Everywhere</title>
+    
+    <para>Safe read mode requires the update be replayed on all directory
+    servers before acknowledgement is returned to the client application.</para>
+    
+    <step>
+     <para>For each directory server, set safe read mode for the replication
+     domain.</para>
+     
+     <screen>$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-read
+ --trustAll
+ --no-prompt
+
+$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj2.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-read
+ --trustAll
+ --no-prompt</screen>
+    </step>
+   </procedure>
+   
+   <para>When working with assured replication, the replication server property
+   <literal>degraded-status-threshold</literal> (default: 5000), sets the
+   number of operations allowed to build up in the replication queue before
+   the server is assigned degraded status. When a replication server has
+   degraded status, assured replication ceases to have an effect.</para>
+  </section>
+
+  <section xml:id="repl-subtree">
+   <title>Subtree Replication</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Subtree</secondary>
+   </indexterm>
+   
+   <para>OpenDJ can perform subtree replication, for example replicating
+   <literal>ou=People,dc=example,dc=com</literal>, but not the rest of
+   <literal>dc=example,dc=com</literal>, by putting the subtree in a separate
+   backend from the rest of the suffix.</para>
+   
+   <para>For example, in this case you might have a <literal>userRoot</literal>
+   backend containing everything in <literal>dc=example,dc=com</literal>
+   except <literal>ou=People,dc=example,dc=com</literal>, and a separate
+   <literal>peopleRoot</literal> backend for
+   <literal>ou=People,dc=example,dc=com</literal>. Then you replicate
+   <literal>ou=People,dc=example,dc=com</literal> in its own topology.</para>
+  </section>
+
+  <section xml:id="repl-fractional">
+   <title>Fractional Replication</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Fractional</secondary>
+   </indexterm>
+   
+   <para>OpenDJ can perform fractional replication, whereby you specify
+   the attributes to include in or to exclude from the replication
+   process.</para>
+   
+   <para>You set fractional replication configuration as
+   <literal>fractional-include</literal> or
+   <literal>fractional-exclude</literal> properties for a replication
+   domain. When you include attributes, the attributes that are required on
+   the relevant object classes are also included, whether you specify them
+   or not. When you exclude attributes, the excluded attributes must be
+   optional attributes for the relevant object classes. Fractional
+   replicas still respect schema definitions.</para>
+   
+   <para>Fractional replication works by filtering objects at the replication
+   server. Initialize replication as you would normally. Of course you cannot
+   create a full replica from a replica with only a subset of the data. If you
+   must prevent data from being replicated across a national boundary, split
+   the replication server handling the updates from the directory servers
+   receiving the updates as described in
+   <xref linkend="repl-setup-dedicated-server" />.</para>
+   
+   <para>For example, you might configure an externally facing
+   fractional replica to include only some <literal>inetOrgPerson</literal>
+   attributes.</para>
+   
+   <screen>$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --trustAll
+ --no-prompt
+ --set
+ fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</screen>
+   
+   <para>As another example, you might exclude a custom attribute called
+   <literal>sessionToken</literal> from being replicated.</para>
+   
+   <screen>$ dsconfig
+ set-replication-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set fractional-exclude:*:sessionToken
+ --trustAll
+ --no-prompt</screen>
+
+   <para>This last example only works if you first define a
+   <literal>sessionToken</literal> attribute in the directory server
+   schema.</para>
+  </section>
+ </section>
+ 
+ <section xml:id="repl-change-notification">
+  <title>Change Notification For Your Applications</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>External change log</primary>
+  </indexterm>
+  
+  <para>Some applications require notification when directory data updates
+  occur. For example, an application might need to sync directory data with
+  another database, or the application might need to kick off other processing
+  when certain updates occur.</para>
+  
+  <para>In addition to supporting persistent search operations, OpenDJ
+  provides an external change log mechanism to allow applications to be
+  notified of changes to directory data.</para>
+  
+  <procedure xml:id="enable-ecl">
+   <title>To Enable the External Change Log</title>
+
+   <para>OpenDJ directory servers without replication cannot expose an
+   external change log. The OpenDJ server that exposes the change log must
+   function both as a directory server, and also as a replication server for
+   the suffix whose changes you want logged.</para>
+   
+   <step>
+    <para>Enable replication without using the
+    <option>--noReplicationServer</option> or
+    <option>--onlyReplicationServer</option> options.</para>
+
+    <para>With replication enabled, the changelog data can be accessed under
+    <literal>cn=changelog</literal>. For example, the following search shows
+    the publicly visible data available before any changes have been
+    made.</para>
+    
+    <screen>$ ldapsearch --baseDN cn=changelog --port 1389 "(objectclass=*)" \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: cn=changelog
+</screen>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="use-ecl">
+   <title>To Use the External Change Log</title>
+   
+   <para>You read the external change log over LDAP. In addition, when you
+   poll the change log periodically, you can get the list of updates that
+   happened since your last request.</para>
+   
+   <para>The external change log mechanism uses an LDAP control with
+   OID <literal>1.3.6.1.4.1.26027.1.5.4</literal> to allow the exchange
+   of cookies for the client application to bookmark the last changes seen,
+   and then start reading the next set of changes from where it left off on
+   the previous request.</para>
+   
+   <para>This procedure shows the client reading the change log as
+   <literal>cn=Directory Manager</literal>. Make sure your client application
+   reads the changes with sufficient access to view all the changes it
+   needs to see.</para>
+   
+   <step>
+    <para>Send an initial search request using the LDAP control with no
+    cookie value.</para>
+    
+    <para>Notice the value of the <literal>changeLogCookie</literal> attribute
+    for the last of the two changes.</para>
+    
+    <screen>$ ldapsearch
+ --baseDN cn=changelog
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --control "1.3.6.1.4.1.26027.1.5.4:false"
+ "(objectclass=*)"
+ \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: true
+entryDN: cn=changelog
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087cbc28212d100000001;
+dn: replicationCSN=0000013087cbc28212d100000001,dc=example,dc=com,cn=changelog
+targetDN: cn=arsene lupin,ou=special users,dc=example,dc=com
+changeNumber: 0
+changes:: b2JqZWN0Q2xhc3M6IHBlcnNvbgpvYmplY3RDbGFzczogdG9wCmNuOiBBcnNlbmUgTHVwaW
+ 4KdGVsZXBob25lTnVtYmVyOiArMzMgMSAyMyA0NSA2NyA4OQpzbjogTHVwaW4KZW50cnlVVUlEOiA5M
+ GM3MTRmNy00ODZiLTRkNDctOTQwOS1iNDRkMTlkZWEzMWUKY3JlYXRlVGltZXN0YW1wOiAyMDExMDYx
+ MzA2NTg1NVoKY3JlYXRvcnNOYW1lOiBjbj1EaXJlY3RvcnkgTWFuYWdlcixjbj1Sb290IEROcyxjbj1
+ jb25maWcK
+changeType: add
+changeTime: 20110613065855Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: 90c714f7-486b-4d47-9409-b44d19dea31e
+replicationCSN: 0000013087cbc28212d100000001
+numSubordinates: 0
+replicaIdentifier: 4817
+changeLogCookie: dc=example,dc=com:0000013087cbc28212d100000001;
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087cbc28212d100000001,dc=example,dc=com,cn=change
+ log
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087cbc34a12d100000002;
+dn: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=changelog
+targetDN: cn=horace velmont,ou=special users,dc=example,dc=com
+changeNumber: 0
+changes:: b2JqZWN0Q2xhc3M6IHBlcnNvbgpvYmplY3RDbGFzczogdG9wCmNuOiBIb3JhY2UgVmVsbW
+ 9udAp0ZWxlcGhvbmVOdW1iZXI6ICszMyAxIDEyIDIzIDM0IDQ1CnNuOiBWZWxtb250CmVudHJ5VVVJR
+ DogNmIyMjQ0MGEtNzZkMC00MDMxLTk0YjctMzViMWQ4NmYwNjdlCmNyZWF0ZVRpbWVzdGFtcDogMjAx
+ MTA2MTMwNjU4NTVaCmNyZWF0b3JzTmFtZTogY249RGlyZWN0b3J5IE1hbmFnZXIsY249Um9vdCBETnM
+ sY249Y29uZmlnCg==
+changeType: add
+changeTime: 20110613065855Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
+replicationCSN: 0000013087cbc34a12d100000002
+numSubordinates: 0
+replicaIdentifier: 4817
+<emphasis>changeLogCookie: dc=example,dc=com:0000013087cbc34a12d100000002;</emphasis>
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=change
+ log
+</screen>
+    
+    <para>In this example, two new users were added to another replica
+    before the change log request was made.</para>
+    
+    <para>Here the changes are base64 encoded, so you can decode them using
+    the <command>base64</command> command.</para>
+    
+    <screen>$ base64 decode --encodedData b2JqZW...ZmlnCg==
+objectClass: person
+objectClass: top
+cn: Horace Velmont
+telephoneNumber: +33 1 12 23 34 45
+sn: Velmont
+entryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
+createTimestamp: 20110613065855Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+    </screen>
+   </step>
+   
+   <step>
+    <para>For the next search, provide the cookie to start reading where
+   you left off last time.</para>
+   
+    <para>In this example, a description was added to Babs Jensen's entry.</para>
+   
+    <screen>$ ldapsearch
+ --baseDN cn=changelog
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --control "1.3.6.1.4.1.26027.1.5.4:false:
+ dc=example,dc=com:0000013087cbc34a12d100000002;"
+ "(objectclass=*)"
+ \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: true
+entryDN: cn=changelog
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087d7e27f12d100000003;
+dn: replicationCSN=0000013087d7e27f12d100000003,dc=example,dc=com,cn=changelog
+targetDN: uid=bjensen,ou=people,dc=example,dc=com
+changeNumber: 0
+changes:: YWRkOiBkZXNjcmlwdGlvbgpkZXNjcmlwdGlvbjogQSB0aGlyZCBjaGFuZ2UKLQpyZXBsYW
+ NlOiBtb2RpZmllcnNOYW1lCm1vZGlmaWVyc05hbWU6IGNuPURpcmVjdG9yeSBNYW5hZ2VyLGNuPVJvb
+ 3QgRE5zLGNuPWNvbmZpZwotCnJlcGxhY2U6IG1vZGlmeVRpbWVzdGFtcAptb2RpZnlUaW1lc3RhbXA6
+ IDIwMTEwNjEzMDcxMjEwWgotCg==
+changeType: modify
+changeTime: 20110613071210Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c
+replicationCSN: 0000013087d7e27f12d100000003
+numSubordinates: 0
+replicaIdentifier: 4817
+changeLogCookie: dc=example,dc=com:0000013087d7e27f12d100000003;
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087d7e27f12d100000003,dc=example,dc=com,cn=change
+ log
+    </screen>
+    
+    <para>If we base64-decode the changes, we see the following.</para>
+    
+    <screen>$ base64 decode --encodedData YWRkO...gotCg==
+add: description
+description: A third change
+-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+-
+replace: modifyTimestamp
+modifyTimestamp: 20110613071210Z
+-
+</screen>
+   </step>
+   <step>
+    <para>If for some reason you lose the cookie, you can start over from
+    the earliest available change by sending a search request with no
+    value for the cookie.</para>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="ecl-add-attributes">
+   <title>To Include Unchanged Attributes in the External Change Log</title>
+   
+   <para>As shown above, the changes returned from a search on the external
+   change log include only what was actually changed. If you have applications
+   that need additional attributes published with every change log entry,
+   regardless of whether or not the attribute itself has changed, then specify
+   those using <literal>ecl-include</literal> and
+   <literal>ecl-include-for-deletes</literal>.</para>
+   
+   <step>
+    <para>Set the attributes to include for all update operations with
+    <literal>ecl-include</literal>.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --set ecl-include:"@person"
+ --trustAll
+ --no-prompt</screen>
+   </step>
+   <step>
+    <para>Set the attributes to include for deletes with
+    <literal>ecl-include-for-deletes</literal>.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --add ecl-include-for-deletes:"*"
+ --add ecl-include-for-deletes:"+"
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="ecl-limit-content">
+   <title>To Limit External Change Log Content</title>
+   
+   <para>You can limit external change log content by disabling the domain
+   for a base DN. By default, <literal>cn=schema</literal> and
+   <literal>cn=admin data</literal> are not enabled.</para>
+   
+   <step>
+    <para>Prevent OpenDJ from logging changes by disabling the domain.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --set enabled:false
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+  
+  <para xml:id="ecl-legacy-format">The external change log can also work for
+  applications that follow the <link
+  xlink:href="http://tools.ietf.org/html/draft-good-ldap-changelog-04"
+  >Internet-Draft: Definition of an Object Class to Hold LDAP Change
+  Records</link>. Nothing special is required to get the objects specified for
+  this legacy format. Such applications cannot however use the change log
+  cookies that are shared across the replication topology, and therefore
+  can continue to be used after failover to another replica in a multi-master
+  replication environment.</para>
+   <indexterm>
+    <primary>External change log</primary>
+    <secondary>Legacy format</secondary>
+   </indexterm>
+ </section>
+</chapter>

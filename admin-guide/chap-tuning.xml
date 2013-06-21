@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-tuning'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Tuning Servers For Performance</title>
+ <indexterm><primary>Performance tuning</primary></indexterm>
+ 
+ <para>Server tuning refers to the art of adjusting server, JVM, and system
+ configuration to meet the service level performance requirements of directory
+ clients. In the optimal case you achieve service level performance
+ requirements without much tuning at all, perhaps only setting JVM runtime
+ options when installing OpenDJ.</para>
+ 
+ <para>If you are reading this chapter, however, you are probably not
+ facing an optimal situation. Instead you are looking for trade offs that
+ maximize performance for clients given the constraints of your deployment.
+ This chapter therefore aims to provide suggestions on how to measure and
+ to improve directory service performance for better trade offs.</para>
+ 
+ <section xml:id="perf-define-starting-points">
+  <title>Defining Performance Requirements &amp; Constraints</title>
+  
+  <para>Your key performance requirement is most likely to satisfy your
+  users or customers with the resources available to you. Before you can
+  solve potential performance problems, define what those users or customers
+  expect, and determine what resources you will have to satisfy their
+  expectations.</para>
+  
+  <section xml:id="perf-sla">
+   <title>Service-Level Agreements</title>
+   
+   <para>Service-level agreement (SLA) is a formal name for what directory
+   client applications and the people who run them expect from your service in
+   terms of performance.</para>
+   
+   <para>SLAs might cover many aspects of the directory service. Whether or not
+   your SLA is formally defined, you ought to know what is expected, or at least
+   what you provide, in the following four areas.</para>
+   
+   <itemizedlist>
+    <listitem>
+     <para>Directory service <firstterm>response times</firstterm></para>
+     
+     <para>Directory service response times range from less than a
+     millisecond on average across a low latency connection on the same
+     network to however long it takes your network to deliver the response.
+     More important than average or best response times is the response time
+     distribution, because applications set timeouts based on worst case
+     scenarios. For example, a response time performance requirement might
+     be defined as, "Directory response times must average less than 10
+     milliseconds for all operations except searches returning more than 10
+     entries, with 99.9% of response times under 40 milliseconds."</para>
+    </listitem>
+    <listitem>
+     <para>Directory service <firstterm>throughput</firstterm></para>
+     
+     <indexterm>
+      <primary>Replication</primary>
+      <secondary>Write throughput</secondary>
+     </indexterm>
+     <para>Directory service throughput can range up to many thousands of
+     operations per second. In fact there is no upper limit for read operations
+     such as searches, because only write operations must be replicated. To
+     increase read throughput, simply add additional replicas. More important
+     than average throughput is peak throughput. You might have peak write
+     throughput in the middle of the night when batch jobs update entries in
+     bulk, and peak binds for a special event or first thing Monday morning.
+     For example, a throughput performance requirement might be expressed as,
+     "The directory service must sustain a mix of 5,000 operations per second
+     made up of 70% reads, 25% modifies, 3% adds, and 2% deletes."</para>
+     
+     <para>Even better is to mimic the behavior of key operations for
+     performance testing, so that you understand the patterns of operations
+     in the throughput you need to provide.</para>
+    </listitem>
+    <listitem>
+     <para>Directory service <firstterm>availability</firstterm></para>
+     
+     <para>OpenDJ is designed to let you build directory services that are
+     basically available, including during maintenance and even upgrade of
+     individual servers. Yet, in order to reach very high levels of
+     availability, you must make sure not only that the software is
+     designed for availability, but also that your operations execute in
+     such a way as to preserve availability. Availability requirements
+     can be as lax as best effort, or as stringent as 99.999% or more
+     uptime.</para>
+     
+     <para>Replication is the OpenDJ feature that allows you to build a
+     highly available directory service.</para>
+    </listitem>
+    <listitem>
+     <para>Directory service administrative support</para>
+     
+     <para>Do not forget to make sure you understand and set expectations
+     about how you support your users when they run into trouble. Directory
+     services can perhaps help you turn password management into a self-service
+     visit to a web site, but some users no doubt still need to know what they
+     can expect if they need your help.</para>
+    </listitem>
+   </itemizedlist>
+   
+   <para>Writing down the SLA, even if your first version consists of
+   guesses, helps you reduce performance tuning from an open-ended project
+   to a clear set of measurable goals for a manageable project with a definite
+   outcome.</para>
+  </section>
+  
+  <section xml:id="perf-constraints">
+   <title>Available Resources</title>
+   
+   <para>With your SLA in hand, take inventory of the server, networks,
+   storage, people, and other resources at your disposal. Now is the time to
+   estimate whether it is possible to meet the requirements at all.</para>
+   
+   <para>If for example you are expected to serve more throughput than the
+   network can transfer, maintain high availability with only one physical
+   machine, store 100 GB of backups on a 50 GB partition, or provide 24/7
+   support all alone, no amount of tweaking available resources is likely to
+   fix the problem.</para>
+   
+   <para>When checking that the resources you have at least theoretically
+   suffice to meet your requirements, do not forget that high availability in
+   particular requires at least two of everything to avoid single points
+   of failure. Be sure to list the resources you expect to have, when and how
+   long you expect to have them, and why you need them. Also make note of
+   what is missing and why.</para>
+   
+   <section xml:id="perf-hardware">
+    <title>Server Hardware Recommendations</title>
+   
+    <para>Concerning server hardware, OpenDJ runs on systems with Java support,
+    and is therefore quite portable. That said, OpenDJ tends to perform best on
+    single-board, x86 systems due to low memory latency.</para>
+   </section>
+   
+   <section xml:id="perf-storage">
+    <title>Storage Recommendations</title>
+    
+    <para>OpenDJ is designed to work with local storage for the database,
+    not for network file systems such as NFS.</para>
+    
+    <para>High performance storage is essential if you need to handle high
+    write throughput.</para>
+    
+    <para>The Berkeley Java Edition DB works well with traditional disks as
+    long as the database cache size allows the DB to stay fully cached in
+    memory. This is the case because the database transaction log is append
+    only. When the DB is too big to stay cached in memory, however, then
+    cache misses lead to random disk access, slowing OpenDJ performance.</para>
+    
+    <para>You might mitigate this effect by using solid-state disks for
+    persistent storage, or for file system cache.</para>
+    
+    <para>Regarding database size on disk, if you have sustained write traffic
+    then the database grows to about twice its initial size on disk. This is
+    normal, and due to the way the database manages its logs. The size on disk
+    does not impact the DB cache size requirements.</para>
+   </section>
+  </section>
+ </section>
+ 
+ <section xml:id="perf-testing">
+  <title>Testing Performance</title>
+  
+  <para>Even if you do not need high availability, you still need two of
+  everything, because your test environment needs to mimic your production
+  environment as closely as possible if you want to avoid nasty
+  surprises.</para>
+  
+  <para>In your test environment, you set up OpenDJ as you will later in
+  production, and then conduct experiments to determine how best to meet
+  the requirements defined in the SLA.</para>
+  
+  <para>Use <link xlink:show="new" xlink:href="admin-guide#make-ldif-1"
+  xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link> to generate
+  sample data that match what you expect to find in production.</para>
+  
+  <para>The OpenDJ LDAP Toolkit provides three command-line tools to help
+  with basic performance testing.</para>
+  
+  <itemizedlist>
+   <listitem>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#authrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">authrate</link> command
+    measures bind throughput and response time.</para>
+   </listitem>
+   <listitem>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#modrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">modrate</link> command
+    measures modification throughput and response time.</para>
+   </listitem>
+   <listitem>
+    <para>The <link xlink:show="new" xlink:href="dev-guide#searchrate-1"
+    xlink:role="http://docbook.org/xlink/role/olink">searchrate</link> command
+    measures search throughput and response time.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>All three commands show you information about the response time
+  distributions, and allow you to perform tests at specific levels of
+  throughput.</para>
+
+  <para>If you need additional precision when evaluating response times, use
+  the global configuration setting <literal>etime-resolution</literal> to
+  change elapsed processing time resolution from milliseconds (default) to
+  nanoseconds.</para>
+
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set etime-resolution:nanoseconds
+ --no-prompt</screen>
+
+  <para>For more extensive testing, try the <link xlink:show="new"
+  xlink:href="http://dl.thezonemanager.com/slamd/">SLAMD Distributed Load
+  Generation Engine</link>. SLAMD is built to test more than just directory,
+  but is particularly well suited to test directory service performance, is
+  well documented, and is available under the Sun Public License. SLAMD is
+  designed both to offer an easy to used web-based interface, and also to
+  allow you to customize jobs to match the access patterns you expect from
+  client applications.</para>
+ </section>
+ 
+ <section xml:id="perf-tweaking">
+  <title>Tweaking OpenDJ Performance</title>
+  
+  <para>When your tests show that OpenDJ performance is lacking even though
+  you have the right underlying network, hardware, storage, and system
+  resources in place, you can tweak OpenDJ performance in a number of ways.
+  This section mentions the most common tweaks.</para>
+  
+  <section xml:id="perf-java">
+   <title>Java Settings</title>
+   
+   <para>Default Java settings let you evaluate OpenDJ using limited system
+   resources. If you need high performance for production system, test with
+   the following JVM options. These apply to the Sun/Oracle JVM.</para>
+   
+   <tip>
+    <para>To apply JVM settings for your server, edit
+    <filename>config/java.properties</filename>, and apply the changes with the
+    <command>dsjavaproperties</command> command.</para>
+   </tip>
+   
+   <variablelist>
+    <varlistentry>
+     <term><option>-server</option></term>
+     <listitem>
+      <para>Use the C2 compiler and optimizer.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-d64</option></term>
+     <listitem>
+      <para>To use a heap larger than about 3.5 GB on a 64-bit system, use
+      this option.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Xms, -Xmx</option></term>
+     <listitem>
+      <para>Set both minimum and maximum heap size to the same value to avoid
+      resizing. Leave space for the entire DB cache and more.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Xmn</option></term>
+     <listitem>
+      <para>Set the new generation size between 1-4 GB for high throughput
+      deployments, but leave enough overall JVM heap to avoid overlaps with
+      the space used for DB cache.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-XX:MaxTenuringThreshold=1</option></term>
+     <listitem>
+      <para>Force OpenDJ to create only objects that have either a short
+      lifetime, or a long lifetime.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-XX:+UseConcMarkSweepGC</option></term>
+     <listitem>
+      <para>The CMS garbage collector tends to give the best performance
+      characteristics. You might also consider the G1 garbage collector.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-XX:+PrintGCDetails</option></term>
+     <term><option>-XX:+PrintGCTimeStamps</option></term>
+     <listitem>
+      <para>Use these when diagnosing JVM tuning problems. You can turn them
+      off when everything is running smoothly.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-XX:+UseCompressedOops</option></term>
+     <listitem>
+      <para>Java object pointers normally have the same size as native machine
+      pointers. If you run a small, but 64-bit JVM, then compressed object
+      pointers can save space. Set this option when you have a 64-bit JVM,
+      <option>-Xmx</option> less than 32 GB, and Java SE 6u23 or later.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </section>
+  
+  <section xml:id="perf-data-storage">
+   <title>Data Storage Settings</title>
+   
+   <para>By default, OpenDJ compressing attribute descriptions and object class
+   sets to reduce data size. This is called compact encoding.</para>
+
+   <para>By default, OpenDJ does not however compress entries stored in its
+   backend database. If your entries hold values that compress well &#8212;
+   such as text, and not JPEG photos or MP3 audio &#8212; you can gain space
+   by setting the local DB backend property
+   <literal>entries-compressed</literal> to <literal>true</literal> before you
+   (re-)import data from LDIF. With <literal>entries-compressed: true</literal>
+   OpenDJ compresses entries before writing them to the database.<footnote>
+   <para>OpenDJ does not proactively rewrite all entries in the database after
+   you change the settings. Instead, to force OpenDJ to compress all entries,
+   import the data from LDIF.</para></footnote></para>
+   
+   <screen>$ dsconfig
+ set-backend-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backend-name userRoot
+ --set entries-compressed:true
+ --trustAll
+ --no-prompt
+$ import-ldif
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --ldifFile /path/to/Example.ldif
+ --backendID userRoot
+ --includeBranch dc=example,dc=com
+ --start 0
+Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</screen>
+  </section>
+  
+  <section xml:id="perf-import">
+   <title>LDIF Import Settings</title>
+   <indexterm>
+    <primary>Importing data</primary>
+    <secondary>Performance</secondary>
+   </indexterm>
+   
+   <para>You can tweak OpenDJ to speed up import of large LDIF files.</para>
+   
+   <para>By default, the temporary directory used for scratch files is
+   <filename>import-tmp</filename> under the directory where you installed
+   OpenDJ. Use <command>import-ldif</command> with the
+   <option>--tmpdirectory</option> option to set this directory to a
+   <literal>tmpfs</literal> file system, such as
+   <filename>/tmp</filename>.</para>
+   
+   <para>In some cases, you can improve performance by using the
+   <option>--threadCount</option> option with the
+   <command>import-ldif</command> command to set the thread count larger than
+   the default, which is twice the number of CPUs.</para>
+   
+   <para>If you are certain your LDIF contains only valid entries with
+   correct syntax, because the LDIF was exported from OpenDJ with all checks
+   active for example, you can skip schema and DN validation. Use the
+   <option>--skipSchemaValidation</option> and
+   <option>--skipDNValidation</option> options with the
+   <command>import-ldif</command> command to skip validation.</para>
+  </section>
+  
+  <section xml:id="perf-db-cache">
+   <title>Database Cache Settings</title>
+   
+   <para>Database cache size is, by default, set as a percentage of the JVM
+   heap, using the backend property <literal>db-cache-percent</literal>.
+   Alternatively, you use the backend property
+   <literal>db-cache-size</literal> to set the size. If you set up multiple
+   database backends, the total percent of JVM heap used must remain less than
+   100, and must leave space for other uses. Default settings work for servers
+   with one user data backend JVM heaps up to 2 GB. For heaps larger than 2 GB,
+   you can allocate a larger percentage of heap space to DB cache.</para>
+   
+   <para>Depending on the size of your database, you have a choice to make
+   about database cache settings.</para>
+   
+   <para>By caching the entire database in the JVM heap, you can get more
+   deterministic response times and limit disk I/O. Yet, caching the whole
+   DB can require a very large JVM, which you must pre-load on startup, and
+   which can result in long garbage collections and a difficult-to-manage
+   JVM. Test database pre-load on startup by setting the
+   <literal>preload-time-limit</literal> for the backend.</para>
+   
+   <screen>$ dsconfig
+ set-backend-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backend-name userRoot
+ --set preload-time-limit:30m
+ --trustAll
+ --no-prompt</screen>
+   
+   <para>Database pre-load is single-threaded, and loads each database one
+   at a time.</para>
+   
+   <para>By allowing file system cache to hold the portion of database that
+   does not fit in DB cache, you trade less deterministic and slightly slower
+   response times for not having to pre-load the DB and not having garbage
+   collection pauses with large JVMs. How you configure the file system cache
+   depends on your operating system.</para>
+  </section>
+  
+  <section xml:id="perf-entry-cache">
+   <title>Entry Cache Settings</title>
+   
+   <para>OpenDJ implements an entry cache. The entry cache is not designed to
+   cache every entry in your database, but is instead useful in cases where you
+   have a few, typically large entries that are regularly used. For example, if
+   you have a few large static groups and applications that regularly check
+   group membership, you could cache your group entries.</para>
+   
+   <screen>$ dsconfig
+ create-entry-cache
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --cache-name "Large Group Entry Cache"
+ --type fifo
+ --set cache-level:1
+ --set include-filter:"(ou=Large Static Groups)"
+ --set max-entries:10
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+
+   <para>You can use the global setting, <literal>entry-cache-preload</literal>,
+   to force OpenDJ to load the entry cache as part of server startup.</para>
+
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set entry-cache-preload:true
+ --no-prompt</screen>
+
+   <para>By default, OpenDJ does not pre-load the entry cache.</para>
+  </section>
+  
+  <section xml:id="perf-logging">
+   <title>Logging Settings</title>
+   
+   <para>Debug logs trace the internal workings of OpenDJ, and therefore
+   generally should be used sparingly, especially in high performance
+   deployments.</para>
+   
+   <para>In general leave other logs active for production environments to
+   help troubleshoot any issues that arise.</para>
+   
+   <para>For OpenDJ servers handling very high throughput, however, such as
+   100,000 operations per second or more, the access log constitute a
+   performance bottleneck, as each client request results in multiple access log
+   messages. Consider disabling the access log in such cases.</para>
+   
+   <screen>$ dsconfig
+ set-log-publisher-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --set enabled:false
+ --trustAll
+ --no-prompt</screen>
+  </section>
+ </section>
+</chapter>

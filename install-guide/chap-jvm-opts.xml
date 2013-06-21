@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-jvm-opts'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Tuning JVM Options</title>
+
+ <para>By default, OpenDJ installs with options appropriate for evaluation, not
+ for production.</para>
+
+ <indexterm><primary>Java</primary><secondary>Settings</secondary></indexterm>
+
+ <variablelist>
+  <para>You can change JVM options for the server in the QuickStart installer,
+  and alternatively using the Control Panel (Runtime Options > Java Settings),
+  or with the <command>dsjavaproperties</command> command after editing the
+  <filename>config/java.properties</filename> file.</para>
+
+  <varlistentry>
+   <term>Heap size</term>
+   <listitem>
+    <para>The JVM heap size by default is either 256 MB or 1 GB.</para>
+    <para>In production, use at least a 2 GB heap (-Xms2G -Xmx2G).</para>
+   </listitem>
+  </varlistentry>
+  
+  <varlistentry>
+   <term>Server optimizations</term>
+   <listitem>
+    <para>Use -server to select the HotSpot Server VM.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>32-bit vs. 64-bit</term>
+   <listitem>
+    <para>For heap sizes over 4 GB on 64-bit systems use -d64.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>Garbage collection</term>
+   <listitem>
+    <para>Use -XX:+UseConcMarkSweepGC to select the CMS garbage collector
+    for low GC pause times.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>New generation size</term>
+   <listitem>
+    <para>If your directory handles high throughput, set the new generation
+    size large enough for the JVM to avoid promoting short-lived objects
+    into the old gen space (-XX:NewSize=512M).</para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</chapter>

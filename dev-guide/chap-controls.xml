@@ -1,0 +1,1439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-controls'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Controls</title>
+ <indexterm>
+  <primary>Controls</primary>
+ </indexterm>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>Controls</secondary>
+ </indexterm>
+
+ <para>This chapter demonstrates how to use LDAP controls.</para>
+
+ <para>For complete examples corresponding to the excerpts shown below, see
+ <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Controls.html"
+ xlink:show="new">Controls.java</link>, one of the <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+ xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+ <section xml:id="about-ldap-controls">
+  <title>About LDAP Controls</title>
+  <para>Controls provide a mechanism whereby the semantics and arguments of
+  existing LDAP operations may be extended. One or more controls may be
+  attached to a single LDAP message. A control only affects the semantics of
+  the message it is attached to. Controls sent by clients are termed
+  <emphasis>request controls</emphasis>, and those sent by servers are termed
+  <emphasis>response controls</emphasis>.</para>
+ </section>
+
+ <section xml:id="get-supported-controls">
+  <title>Determining Supported Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Supported</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
+
+  <para>For OpenDJ, the controls supported are listed in the
+  <citetitle>Administration Guide</citetitle> appendix, <link
+  xlink:href="admin-guide#appendix-controls"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
+  Controls</citetitle></link>. You can access the list of OIDs for
+  supported LDAP controls by reading the <literal>supportedControl</literal>
+  attribute of the root DSE.</para>
+
+  <screen>$ ldapsearch
+ --baseDN ""
+ --searchScope base
+ --port 1389
+ "(objectclass=*)" supportedControl
+dn: 
+supportedControl: 1.2.826.0.1.3344810.2.3
+supportedControl: 1.2.840.113556.1.4.1413
+supportedControl: 1.2.840.113556.1.4.319
+supportedControl: 1.2.840.113556.1.4.473
+supportedControl: 1.2.840.113556.1.4.805
+supportedControl: 1.3.6.1.1.12
+supportedControl: 1.3.6.1.1.13.1
+supportedControl: 1.3.6.1.1.13.2
+supportedControl: 1.3.6.1.4.1.26027.1.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.8.5.1
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.8
+supportedControl: 1.3.6.1.4.1.4203.1.10.1
+supportedControl: 1.3.6.1.4.1.4203.1.10.2
+supportedControl: 1.3.6.1.4.1.7628.5.101.1
+supportedControl: 2.16.840.1.113730.3.4.12
+supportedControl: 2.16.840.1.113730.3.4.16
+supportedControl: 2.16.840.1.113730.3.4.17
+supportedControl: 2.16.840.1.113730.3.4.18
+supportedControl: 2.16.840.1.113730.3.4.19
+supportedControl: 2.16.840.1.113730.3.4.2
+supportedControl: 2.16.840.1.113730.3.4.3
+supportedControl: 2.16.840.1.113730.3.4.4
+supportedControl: 2.16.840.1.113730.3.4.5
+supportedControl: 2.16.840.1.113730.3.4.9</screen>
+
+  <para>The following excerpt shows couple of methods to check whether the
+  directory server supports a control.</para>
+
+  <programlisting language="java">
+/**
+ * Controls supported by the LDAP server.
+ */
+private static Collection&lt;String> controls;
+
+/**
+ * Populate the list of supported LDAP control OIDs.
+ *
+ * @param connection
+ *            Active connection to the LDAP server.
+ * @throws ErrorResultException
+ *             Failed to get list of controls.
+ */
+static void checkSupportedControls(Connection connection)
+        throws ErrorResultException {
+    controls = RootDSE.readRootDSE(connection).getSupportedControls();
+}
+
+/**
+ * Check whether a control is supported. Call {@code checkSupportedControls}
+ * first.
+ *
+ * @param control
+ *            Check support for this control, provided by OID.
+ * @return True if the control is supported.
+ */
+static boolean isSupported(final String control) {
+    if (controls != null &amp;&amp; !controls.isEmpty()) {
+        return controls.contains(control);
+    }
+    return false;
+}
+</programlisting>
+ </section>
+
+ <section xml:id="use-assertion-request-control">
+  <title>Assertion Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Assertion</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
+
+  <para>The <link xlink:href="http://tools.ietf.org/html/rfc4528"
+  xlink:show="new" >LDAP assertion control</link> lets you specify a condition
+  that must be true in order for the operation you request to be processed
+  normally. The following excerpt shows, for example, how you might check
+  that no description exists on the entry before adding your description.</para>
+
+  <programlisting language="java">
+if (isSupported(AssertionRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+    final ModifyRequest request =
+            Requests.newModifyRequest(dn)
+                .addControl(AssertionRequestControl.newControl(
+                        true, Filter.valueOf("!(description=*)")))
+                .addModification(ModificationType.ADD, "description",
+                        "Created using LDAP assertion control");
+
+    connection.modify(request);
+
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        writer.writeEntry(connection.readEntry(dn, "description"));
+        writer.close();
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the LDAP assertion control:</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Created using LDAP assertion control</programlisting>
+ </section>
+
+ <section xml:id="use-authorization-identity-control">
+  <title>Authorization Identity Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Authorization ID</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <para>The <link xlink:href="http://tools.ietf.org/html/rfc3829"
+  xlink:show="new">LDAP Authorization Identity Controls</link> let you get the
+  authorization identity established when you bind to the directory server.
+  The following excerpt shows simple use of the controls.</para>
+
+  <programlisting language="java">
+if (isSupported(AuthorizationIdentityRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] pwd = "hifalutin".toCharArray();
+
+    System.out.println("Binding as " + dn);
+    final BindRequest request =
+            Requests.newSimpleBindRequest(dn, pwd)
+                .addControl(AuthorizationIdentityRequestControl.newControl(true));
+
+    final BindResult result = connection.bind(request);
+    try {
+        final AuthorizationIdentityResponseControl control =
+                result.getControl(AuthorizationIdentityResponseControl.DECODER,
+                        new DecodeOptions());
+        System.out.println("Authorization ID returned: "
+                        + control.getAuthorizationID());
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the LDAP Authorization Identity
+  Controls:</para>
+
+  <programlisting>Binding as uid=bjensen,ou=People,dc=example,dc=com
+Authorization ID returned: dn:uid=bjensen,ou=People,dc=example,dc=com</programlisting>
+ </section>
+ 
+ <section xml:id="use-entry-change-notification-control">
+  <title>Entry Change Notification Response Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Entry change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Entry change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Change notification</primary>
+  </indexterm>
+
+  <para>When performing a persistent search, your application can retrieve
+  information using this response control about why the directory server
+  returned the entry. See the Internet-Draft on <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-psearch">persistent
+  searches</link> for background information.</para>
+
+  <programlisting language="java">
+if (isSupported(PersistentSearchRequestControl.OID)) {
+    final SearchRequest request =
+            Requests.newSearchRequest(
+                    "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                    "(objectclass=inetOrgPerson)", "cn")
+                    .addControl(PersistentSearchRequestControl.newControl(
+                            true, true, true, // critical,changesOnly,returnECs
+                            PersistentSearchChangeType.ADD,
+                            PersistentSearchChangeType.DELETE,
+                            PersistentSearchChangeType.MODIFY,
+                            PersistentSearchChangeType.MODIFY_DN));
+
+    final ConnectionEntryReader reader = connection.search(request);
+
+    try {
+        while (reader.hasNext()) {
+            if (!reader.isReference()) {
+                final SearchResultEntry entry = reader.readEntry();
+                System.out.println("Entry changed: "
+                        + entry.getName().toString());
+
+                EntryChangeNotificationResponseControl control =
+                        entry.getControl(
+                                EntryChangeNotificationResponseControl.DECODER,
+                                new DecodeOptions());
+
+                PersistentSearchChangeType type = control.getChangeType();
+                System.out.println("Change type: " + type.toString());
+                if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
+                    System.out.println("Previous DN: "
+                            + control.getPreviousName().toString());
+                }
+                System.out.println("Change number: "
+                        + control.getChangeNumber());
+                System.out.println(); // Add a blank line.
+           }
+        }
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    } catch (final ErrorResultIOException e) {
+        // Request failed due to an IO problem.
+    } catch (final SearchResultReferenceIOException e) {
+        // Read a reference, rather than an entry.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports persistent searches and the entry
+  change notification response control. When another application renames
+  Anne-Louise Barnes's entry, the sample code picks up information from the
+  entry change notification response control:</para>
+
+  <programlisting>Entry changed: uid=bdobbs,ou=People,dc=example,dc=com
+Change type: modifyDN
+Previous DN: uid=abarnes,ou=People,dc=example,dc=com
+Change number: -1</programlisting>
+
+  <para>In this case, <literal>Change number: -1</literal> because the server
+  did not set a change number value. OpenDJ directory server does not set the
+  change number value in the response control. If you need to track the order
+  of changes with OpenDJ directory server, read the external change log instead
+  of using the entry change notification response control.</para>
+ </section>
+
+ <section xml:id="use-get-effective-rights-control">
+  <title>GetEffectiveRights Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>GetEffectiveRights</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <para>Your application can attach the GetEffectiveRights request control to
+  retrieve information about what the directory server permits a user to do.
+  Use this control during a search to see permissions on the entries returned.
+  See the Internet-Draft on the <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-acl-model">Access
+  Control Model for LDAP</link> for background.</para>
+
+  <programlisting language="java">
+if (isSupported(GetEffectiveRightsRequestControl.OID)) {
+    final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
+
+    final SearchRequest request =
+            Requests.newSearchRequest(
+                    "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                    "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo")
+                    .addControl(GetEffectiveRightsRequestControl.newControl(
+                            true, authDN, "cn"));
+
+    final ConnectionEntryReader reader = connection.search(request);
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        while (reader.hasNext()) {
+            if (!reader.isReference()) {
+                final SearchResultEntry entry = reader.readEntry();
+                writer.writeEntry(entry);
+            }
+        }
+        writer.close();
+    } catch (final ErrorResultIOException e) {
+        // Request failed due to an IO problem.
+    } catch (final SearchResultReferenceIOException e) {
+        // Read a reference, rather than an entry.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ SDK currently implements the request control, but not the
+  response control. The results are shown as values of the
+  <literal>aclRights</literal> and more verbose <literal>aclRightsInfo</literal>
+  attributes.</para>
+
+  <programlisting language="ldif">
+dn: uid=bjensen,ou=People,dc=example,dc=com
+aclRightsInfo;logs;attributeLevel;selfwrite_delete;cn: acl_summary(main)
+ : access allowed(write) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com
+ , distinguishedName) to (uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read
+ ) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, objectClass) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied) ( reason
+ : evaluated allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;attributeLevel;proxy;cn: acl_summary(main)
+ : access not allowed(proxy) on entry/attr(uid=bjensen,ou=People,dc=example,
+ dc=com, cn) to (uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) (reason: no acis matched the subject )
+aclRights;attributeLevel;cn: search:1,read:1,compare:1,write:1,selfwrite_add:1,
+ selfwrite_delete:1,proxy:0
+aclRightsInfo;logs;attributeLevel;write;cn: acl_summary(main): access allowed
+ (write) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, cn) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+aclRights;entryLevel: add:1,delete:1,read:1,write:1,proxy:0
+aclRightsInfo;logs;attributeLevel;search;cn: acl_summary(main): access allowed(
+ search) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, cn) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access allowed(write
+ ) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, NULL) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+aclRightsInfo;logs;attributeLevel;selfwrite_add;cn: acl_summary(main
+ ): access allowed(write) on entry/attr(uid=bjensen,ou=People,dc=example,
+ dc=com, distinguishedName) to (uid=kvaughan,ou=People,dc=example,dc=com) (
+ not proxied) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access allowed(add
+ ) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, NULL) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+aclRightsInfo;logs;attributeLevel;read;cn: acl_summary(main): access allowed(
+ read) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, cn) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: Anonymous read-search access)
+cn: Barbara Jensen
+cn: Babs Jensen
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(
+ proxy) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, NULL) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: no acis matched the subject )
+aclRightsInfo;logs;attributeLevel;compare;cn: acl_summary(main): access allowed
+ (compare) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, cn) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(
+ delete) on entry/attr(uid=bjensen,ou=People,dc=example,dc=com, NULL) to (
+ uid=kvaughan,ou=People,dc=example,dc=com) (not proxied
+ ) ( reason: evaluated allow , deciding_aci: allow all Admin group)
+</programlisting>
+ </section>
+
+ <section xml:id="use-managedsait-control">
+  <title>ManageDsaIT Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>ManageDsaIT</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+
+  <para>The ManageDsaIT control, described in <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/rfc3296">RFC 3296, <citetitle>Named
+  Subordinate References in LDAP Directories</citetitle></link>, lets your
+  application handle references and other special entries as normal entries.
+  Use it when you want to read from or write to reference or special
+  entry.</para>
+
+  <programlisting language="java">
+if (isSupported(ManageDsaITRequestControl.OID)) {
+    final String dn = "dc=ref,dc=com";
+
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        System.out.println("Referral without the ManageDsaIT control.");
+        SearchRequest request = Requests.newSearchRequest(dn,
+                SearchScope.SUBORDINATES, "(objectclass=*)", "");
+        final ConnectionEntryReader reader = connection.search(request);
+        while (reader.hasNext()) {
+            if (reader.isReference()) {
+                final SearchResultReference ref = reader.readReference();
+                System.out.println("Reference: " + ref.getURIs().toString());
+            }
+        }
+
+        System.out.println("Referral with the ManageDsaIT control.");
+        request.addControl(ManageDsaITRequestControl.newControl(true));
+        final SearchResultEntry entry = connection.searchSingleEntry(request);
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final ErrorResultIOException e) {
+        // Request failed due to an IO problem.
+    } catch (final SearchResultReferenceIOException e) {
+        // Read a reference, rather than an entry.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the ManageDsaIT Request Control. To use
+  the example entry create a new base DN, <literal>dc=ref,dc=com</literal>
+  before you import the data:</para>
+
+  <programlisting>Referral without the ManageDsaIT control.
+Reference: [ldap:///dc=example,dc=com??sub?]
+Referral with the ManageDsaIT control.
+dn: dc=references,dc=ref,dc=com</programlisting>
+ </section>
+
+ <section xml:id="use-matched-values-request-control">
+  <title>Matched Values Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Matched values</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Groups</primary>
+  </indexterm>
+
+  <para>RFC 3876, <link xlink:href="http://tools.ietf.org/html/rfc3876"
+  xlink:show="new"><citetitle>Returning Matched Values with the
+  LDAPv3</citetitle></link>, describes a control that lets your application
+  pass a filter in a search request getting a multivalued attribute such that
+  the directory server only returns attribute values that match the
+  filter.</para>
+
+  <para>Barbara Jensen's entry contains two common name values,
+  <literal>Barbara Jensen</literal> and <literal>Babs Jensen</literal>. The
+  following excerpt retrieves only the latter.</para>
+
+  <programlisting language="java">
+if (isSupported(MatchedValuesRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final SearchRequest request =
+            Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+                    "(objectclass=*)", "cn")
+                    .addControl(MatchedValuesRequestControl.newControl(
+                            true, "(cn=Babs Jensen)"));
+
+    final SearchResultEntry entry = connection.searchSingleEntry(request);
+    System.out.println("Reading entry with matched values request.");
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the matched values request
+  control.</para>
+
+  <programlisting language="ldif">Reading entry with matched values request.
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Babs Jensen
+</programlisting>
+ </section>
+
+ <section xml:id="use-password-expired-control">
+  <title>Password Expired Response Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password expired</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
+
+  <para>A directory server can return the Password Expired Response Control,
+  described in the Internet-Draft <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy"><citetitle
+  >Password Policy for LDAP Directories</citetitle></link>, when a bind fails
+  because the password has expired. In order to see this, you must configure
+  the directory to expire Barbara Jensen's password.</para>
+
+  <programlisting language="java">
+if (isSupported(PasswordExpiredResponseControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] pwd = "hifalutin".toCharArray();
+
+    try {
+        connection.bind(dn, pwd);
+    } catch (final ErrorResultException e) {
+        final Result result = e.getResult();
+        try {
+            final PasswordExpiredResponseControl control =
+                    result.getControl(PasswordExpiredResponseControl.DECODER,
+                            new DecodeOptions());
+            if (!(control == null) &amp;&amp; control.hasValue()) {
+                System.out.println("Password expired for " + dn);
+            }
+        } catch (final DecodeException de) {
+            // Failed to decode the response control.
+        }
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the Password Expired Response Control.
+  To obtain the following output from the excerpt, you can change the default
+  password policy configuration to set a short maximum password age, change
+  Barbara Jensen's password, and wait for it to expire. See the OpenDJ
+  <citetitle>Administration Guide</citetitle> procedure explaining how
+  <link xlink:href="admin-guide#default-pwp"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+  >To Adjust the Default Password Policy</citetitle></link> for an example
+  of how to adjust the maximum password age.</para>
+
+  <programlisting
+  >Password expired for uid=bjensen,ou=People,dc=example,dc=com</programlisting>
+ </section>
+
+ <section xml:id="use-password-expiring-control">
+  <title>Password Expiring Response Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password expiring</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
+
+  <para>The Password Expiring Response Control, described in the Internet-Draft
+  <link xlink:href="http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy"
+  xlink:show="new" ><citetitle>Password Policy for LDAP
+  Directories</citetitle></link>, warns your application during a bind
+  that the password used will soon expire.</para>
+
+  <programlisting language="java">
+if (isSupported(PasswordExpiringResponseControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] pwd = "hifalutin".toCharArray();
+
+    final BindResult result = connection.bind(dn, pwd);
+    try {
+        final PasswordExpiringResponseControl control =
+                result.getControl(PasswordExpiringResponseControl.DECODER,
+                        new DecodeOptions());
+        if (!(control == null) &amp;&amp; control.hasValue()) {
+            System.out.println("Password for " + dn + " expires in "
+                    + control.getSecondsUntilExpiration() + " seconds.");
+        }
+    } catch (final DecodeException de) {
+        // Failed to decode the response control.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the Password Expiring Response Control.
+  To obtain the following output from the excerpt, you can change the default
+  password policy configuration to set a maximum password age and a warning
+  interval, change Barbara Jensen's password, and wait until you enter the
+  warning interval before password expiration. See the OpenDJ
+  <citetitle>Administration Guide</citetitle> procedure explaining how
+  <link xlink:href="admin-guide#default-pwp"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+  >To Adjust the Default Password Policy</citetitle></link> for an example
+  of how to adjust the maximum password age. Also set a short
+  <literal>password-expiration-warning-interval</literal> value.</para>
+
+  <programlisting>Password for uid=bjensen,ou=People,dc=example,dc=com
+ expires in 237 seconds.</programlisting>
+ </section>
+ 
+ <section xml:id="use-password-policy-controls">
+  <title>Password Policy Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Password policy</secondary>
+  </indexterm>
+
+  <para>The Behera Internet-Draft, <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/draft-behera-ldap-password-policy"
+  ><citetitle>Password Policy for LDAP Directories</citetitle></link>, describes
+  Password Policy Request and Response Controls. You send the request control
+  with a request to let the directory server know that your application can
+  handle the response control. The directory server sends the response control
+  on applicable operations to communicate warnings and errors.</para>
+
+  <programlisting language="java">
+if (isSupported(PasswordPolicyRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final char[] pwd = "hifalutin".toCharArray();
+
+    try {
+        final BindRequest request = Requests.newSimpleBindRequest(dn, pwd)
+                .addControl(PasswordPolicyRequestControl.newControl(true));
+
+        final BindResult result = connection.bind(request);
+
+        final PasswordPolicyResponseControl control =
+                result.getControl(PasswordPolicyResponseControl.DECODER,
+                        new DecodeOptions());
+        if (!(control == null) &amp;&amp; !(control.getWarningType() == null)) {
+            System.out.println("Password policy warning "
+                    + control.getWarningType().toString() + ", value "
+                    + control.getWarningValue() + " for " + dn);
+        }
+    } catch (final ErrorResultException e) {
+        final Result result = e.getResult();
+        try {
+            final PasswordPolicyResponseControl control =
+                    result.getControl(PasswordPolicyResponseControl.DECODER,
+                            new DecodeOptions());
+            if (!(control == null)) {
+                System.out.println("Password policy error "
+                        + control.getErrorType().toString() + " for " + dn);
+            }
+        } catch (final DecodeException de) {
+            // Failed to decode the response control.
+        }
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the Password Policy Controls. To obtain
+  the output from the excerpt, you can change the default password policy
+  configuration to set a maximum password age and a warning interval, change
+  Barbara Jensen's password, and then run the example during the warning
+  interval and after the password has expired. See the OpenDJ
+  <citetitle>Administration Guide</citetitle> procedure explaining how
+  <link xlink:href="admin-guide#default-pwp"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+  >To Adjust the Default Password Policy</citetitle></link> for an example
+  of how to adjust the maximum password age. Also set a short
+  <literal>password-expiration-warning-interval</literal> value.</para>
+
+  <para>For a warning:</para>
+  <programlisting>Password policy warning timeBeforeExpiration, value 237 for
+ uid=bjensen,ou=People,dc=example,dc=com</programlisting>
+
+  <para>For an error:</para>
+  <programlisting>Password policy error passwordExpired for
+ uid=bjensen,ou=People,dc=example,dc=com</programlisting>
+ </section>
+
+ <section xml:id="use-permissive-modify-request-control">
+  <title>Permissive Modify Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Permissive modify</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Permissive modify</secondary>
+  </indexterm>
+
+  <para>Microsoft defined a Permissive Modify Request Control that relaxes
+  some constraints when your application performs a modify operation and
+  tries to <literal>add</literal> an attribute that already exists, or to
+  <literal>delete</literal> an attribute that does not exist.</para>
+
+  <programlisting language="java">
+if (isSupported(PermissiveModifyRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+    final ModifyRequest request =
+            Requests.newModifyRequest(dn)
+                .addControl(PermissiveModifyRequestControl.newControl(true))
+                .addModification(ModificationType.ADD, "uid", "bjensen");
+
+    connection.modify(request);
+    System.out.println("Permissive modify did not complain about "
+            + "attempt to add uid: bjensen to " + dn + ".");
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the Permissive Modify Request
+  Control:</para>
+
+  <programlisting>Permissive modify did not complain about attempt to add
+ uid: bjensen to uid=bjensen,ou=People,dc=example,dc=com.</programlisting>
+ </section>
+
+ <section xml:id="use-persistent-search-request-control">
+  <title>Persistent Search Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Change notification</primary>
+  </indexterm>
+
+  <para>See <xref linkend="use-entry-change-notification-control" />.</para>
+ </section>
+
+ <section xml:id="use-post-read-control">
+  <title>Post-Read Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Post-read</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+
+  <para>RFC 4527, <link xlink:href="http://tools.ietf.org/html/rfc4527"
+  xlink:show="new"><citetitle>LDAP Read Entry Controls</citetitle></link>,
+  describes the post-read controls that let your application get the content
+  of an entry immediately after modifications are applied.</para>
+
+  <programlisting language="java">
+if (isSupported(PostReadRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+    final ModifyRequest request =
+            Requests.newModifyRequest(dn)
+            .addControl(PostReadRequestControl.newControl(true, "description"))
+            .addModification(ModificationType.REPLACE,
+                    "description", "Using the PostReadRequestControl");
+
+    final Result result = connection.modify(request);
+    try {
+        final PostReadResponseControl control =
+                result.getControl(PostReadResponseControl.DECODER,
+                        new DecodeOptions());
+        final Entry entry = control.getEntry();
+
+        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports these controls:</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Using the PostReadRequestControl</programlisting>
+ </section>
+
+ <section xml:id="use-pre-read-control">
+  <title>Pre-Read Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Pre-read</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
+
+  <para>RFC 4527, <link xlink:href="http://tools.ietf.org/html/rfc4527"
+  xlink:show="new"><citetitle>LDAP Read Entry Controls</citetitle></link>,
+  describes the pre-read controls that let your application get the content
+  of an entry immediately before modifications are applied.</para>
+
+  <programlisting language="java">
+if (isSupported(PreReadRequestControl.OID)) {
+    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+    final ModifyRequest request =
+            Requests.newModifyRequest(dn)
+            .addControl(PreReadRequestControl.newControl(true, "mail"))
+            .addModification(
+                    ModificationType.REPLACE, "mail", "modified@example.com");
+
+    final Result result = connection.modify(request);
+    try {
+        final PreReadResponseControl control =
+                result.getControl(PreReadResponseControl.DECODER,
+                        new DecodeOptions());
+        final Entry entry = control.getEntry();
+
+        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports these controls:</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com</programlisting>
+ </section>
+
+ <section xml:id="use-proxy-authz-control">
+  <title>Proxied Authorization Request Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Proxied authorization</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <para>Proxied authorization provides a standard control as defined in
+  <link xlink:href="http://tools.ietf.org/html/rfc4370" xlink:show="new">RFC
+  4370</link> (and an earlier Internet-Draft) for binding with the user
+  credentials of a proxy, who carries out LDAP operations on behalf of other
+  users. You might use proxied authorization, for example, to have your
+  application bind with its credentials, and then carry out operations as the
+  users who login to the application.</para>
+
+  <programlisting language="java">
+if (isSupported(ProxiedAuthV2RequestControl.OID)) {
+    final String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";
+    final String targetDn = "uid=bjensen,ou=People,dc=example,dc=com";
+    final String authzId = "dn:uid=kvaughan,ou=People,dc=example,dc=com";
+
+    final ModifyRequest request =
+            Requests.newModifyRequest(targetDn)
+            .addControl(ProxiedAuthV2RequestControl.newControl(authzId))
+            .addModification(ModificationType.REPLACE, "description",
+                    "Done with proxied authz");
+
+    connection.bind(bindDN, "password".toCharArray());
+    connection.modify(request);
+    final Entry entry = connection.readEntry(targetDn, "description");
+
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        writer.writeEntry(entry);
+        writer.close();
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}</programlisting>
+
+  <para>OpenDJ supports proxied authorization, and the example works with the
+  sample data:</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Done with proxied authz</programlisting>
+ </section>
+
+ <section xml:id="use-server-side-sort-control">
+  <title>Server-Side Sort Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Server-side sort</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Server-side sort</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
+
+  <para>The server-side sort controls are described in RFC 2891, <link
+  xlink:show="new" xlink:href="http://tools.ietf.org/html/rfc2891"><citetitle
+  >LDAP Control Extension for Server Side Sorting of Search
+  Results</citetitle></link>. If possible, sort on the client side instead to
+  reduce load on the server. If not, then you can request a server-side
+  sort.</para>
+
+  <programlisting language="java">
+static void useServerSideSortRequestControl(Connection connection)
+        throws ErrorResultException {
+    if (isSupported(ServerSideSortRequestControl.OID)) {
+        final SearchRequest request =
+                Requests.newSearchRequest("ou=People,dc=example,dc=com",
+                        SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+                        .addControl(ServerSideSortRequestControl.newControl(
+                                        true, new SortKey("cn")));
+
+        final SearchResultHandler resultHandler = new MySearchResultHandler();
+        final Result result = connection.search(request, resultHandler);
+
+        try {
+            final ServerSideSortResponseControl control =
+                    result.getControl(ServerSideSortResponseControl.DECODER,
+                            new DecodeOptions());
+            if (control != null &amp;&amp; control.getResult() == ResultCode.SUCCESS) {
+                System.out.println("# Entries are sorted.");
+            } else {
+                System.out.println("# Entries not necessarily sorted");
+            }
+        } catch (final DecodeException e) {
+            // Failed to decode the response control.
+        }
+    } else {
+        System.out.println("ServerSideSortRequestControl not supported");
+    }
+}
+
+private static class MySearchResultHandler implements SearchResultHandler {
+
+    @Override
+    public void handleErrorResult(ErrorResultException error) {
+        // Ignore.
+    }
+
+    @Override
+    public void handleResult(Result result) {
+        // Ignore.
+    }
+
+    @Override
+    public boolean handleEntry(SearchResultEntry entry) {
+        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+        try {
+            writer.writeEntry(entry);
+            writer.flush();
+        } catch (final IOException e) {
+            // The writer could not write to System.out.
+        }
+        return true;
+    }
+
+    @Override
+    public boolean handleReference(SearchResultReference reference) {
+        System.out.println("Got a reference: " + reference.toString());
+        return false;
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports server-side sorting:</para>
+
+  <programlisting language="ldif">dn: uid=ajensen,ou=People,dc=example,dc=com
+cn: Allison Jensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+cn: Bjorn Jensen
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+cn: Gern Jensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+cn: Jody Jensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+cn: Kurt Jensen
+
+dn: uid=rjense2,ou=People,dc=example,dc=com
+cn: Randy Jensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+cn: Richard Jensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+cn: Ted Jensen
+
+# Entries are sorted.</programlisting>
+ </section>
+
+ <section xml:id="use-simple-paged-results-control">
+  <title>Simple Paged Results Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Simple paged results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Simple paged results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
+
+  <para>RFC 2696, <link xlink:href="http://tools.ietf.org/html/rfc2696"
+  xlink:show="new"><citetitle>LDAP Control Extension for Simple Paged Results
+  Manipulation</citetitle></link>, defines a control for simple paging of
+  search results that works with a cookie mechanism.</para>
+
+  <programlisting language="java">
+if (isSupported(SimplePagedResultsControl.OID)) {
+    ByteString cookie = ByteString.empty();
+    SearchRequest request;
+    final SearchResultHandler resultHandler = new MySearchResultHandler();
+    Result result;
+
+    int page = 1;
+    do {
+        System.out.println("# Simple paged results: Page " + page);
+
+        request =
+                Requests.newSearchRequest("dc=example,dc=com",
+                        SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
+                        .addControl(SimplePagedResultsControl.newControl(
+                                true, 3, cookie));
+
+        result = connection.search(request, resultHandler);
+        try {
+            SimplePagedResultsControl control =
+                    result.getControl(SimplePagedResultsControl.DECODER,
+                            new DecodeOptions());
+            cookie = control.getCookie();
+        } catch (final DecodeException e) {
+            // Failed to decode the response control.
+        }
+
+        ++page;
+    } while (cookie.length() != 0);
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports getting simple paged results:</para>
+
+  <programlisting language="ldif"># Simple paged results: Page 1
+dn: uid=ajensen,ou=People,dc=example,dc=com
+cn: Allison Jensen
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+cn: Bjorn Jensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+# Simple paged results: Page 2
+dn: uid=gjensen,ou=People,dc=example,dc=com
+cn: Gern Jensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+cn: Jody Jensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+cn: Kurt Jensen
+
+# Simple paged results: Page 3
+dn: uid=rjense2,ou=People,dc=example,dc=com
+cn: Randy Jensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+cn: Richard Jensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+cn: Ted Jensen
+</programlisting>
+ </section>
+
+ <section xml:id="use-subentry-request-control">
+  <title>Subentries Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Subentries</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Subentries</secondary>
+  </indexterm>
+
+  <para>RFC 3672, <link xlink:href="http://tools.ietf.org/html/rfc3672"
+  xlink:show="new"><citetitle>Subentries in LDAP</citetitle></link>, describes
+  subentries and also the subentries request control. When you perform a search
+  without the control and visibility set to <literal>TRUE</literal>, subentries
+  are only visible in searches with
+  <literal>SearchScope.BASE_OBJECT</literal>.</para>
+
+  <programlisting language="java">
+if (isSupported(SubentriesRequestControl.OID)) {
+    final SearchRequest request =
+            Requests.newSearchRequest("dc=example,dc=com",
+                        SearchScope.WHOLE_SUBTREE,
+                        "cn=*Class of Service", "cn", "subtreeSpecification")
+                    .addControl(SubentriesRequestControl.newControl(
+                        true, true));
+
+    final ConnectionEntryReader reader = connection.search(request);
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    try {
+        while (reader.hasNext()) {
+            if (reader.isEntry()) {
+                final SearchResultEntry entry = reader.readEntry();
+                writer.writeEntry(entry);
+            }
+        }
+        writer.close();
+    } catch (final ErrorResultIOException e) {
+        // Request failed due to an IO problem.
+    } catch (final SearchResultReferenceIOException e) {
+        // Read a reference, rather than an entry.
+    } catch (final IOException e) {
+        // The writer could not write to System.out.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the control.</para>
+
+  <programlisting language="ldif">dn: cn=Bronze Class of Service,dc=example,dc=com
+cn: Bronze Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+cn: Silver Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+cn: Gold Class of Service
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+</programlisting>
+ </section>
+
+ <section xml:id="use-subtree-delete-control">
+  <title>Subtree Delete Request Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Subtree delete</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+   <secondary>Subtree delete</secondary>
+  </indexterm>
+
+  <para>The subtree delete request control, described in the Internet-Draft
+  <link xlink:href="http://tools.ietf.org/html/draft-armijo-ldap-treedelete"
+  xlink:show="new"><citetitle>Tree Delete Control</citetitle></link>, lets
+  your application delete an entire branch of entries starting with the entry
+  you target for deletion.</para>
+
+  <programlisting language="java">
+if (isSupported(SubtreeDeleteRequestControl.OID)) {
+
+    final String dn = "ou=Apps,dc=example,dc=com";
+    final DeleteRequest request =
+            Requests.newDeleteRequest(dn)
+                    .addControl(SubtreeDeleteRequestControl.newControl(true));
+
+    final Result result = connection.delete(request);
+    if (result.isSuccess()) {
+        System.out.println("Successfully deleted " + dn
+                + " and all entries below.");
+    } else {
+        System.out.println("Result: " + result.getDiagnosticMessage());
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the subtree delete control:</para>
+
+  <programlisting
+  >Successfully deleted ou=Apps,dc=example,dc=com and all entries below.</programlisting>
+ </section>
+
+ <section xml:id="use-vlv-control">
+  <title>Virtual List View Controls</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Virtual list view</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Virtual list view</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Browsing</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
+
+  <para>The virtual list view controls are intended to be used by applications
+  that let users browse lists of directory entries. The Internet-Draft <link
+  xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv"
+  xlink:show="new"><citetitle>LDAP Extensions for Scrolling View Browsing of
+  Search Results</citetitle></link> describes the controls. The virtual list
+  view request control is used in conjunction with the server-side sort
+  control such that the subset of entries the directory server returns from
+  a search are a window into the full sorted list.</para>
+
+  <programlisting language="java">
+if (isSupported(VirtualListViewRequestControl.OID)) {
+    ByteString contextID = ByteString.empty();
+
+    // Add a window of 2 entries on either side of the first sn=Jensen entry.
+    final SearchRequest request =
+            Requests.newSearchRequest("ou=People,dc=example,dc=com",
+                    SearchScope.WHOLE_SUBTREE, "(sn=*)", "sn", "givenName")
+                    .addControl(ServerSideSortRequestControl.newControl(
+                            true, new SortKey("sn")))
+                    .addControl(
+                            VirtualListViewRequestControl.newAssertionControl(
+                                    true,
+                                    ByteString.valueOf("Jensen"),
+                                    2, 2, contextID));
+
+    final SearchResultHandler resultHandler = new MySearchResultHandler();
+    final Result result = connection.search(request, resultHandler);
+
+    try {
+        final ServerSideSortResponseControl sssControl =
+                result.getControl(ServerSideSortResponseControl.DECODER,
+                        new DecodeOptions());
+        if (sssControl != null &amp;&amp; sssControl.getResult() == ResultCode.SUCCESS){
+            System.out.println("# Entries are sorted.");
+        } else {
+            System.out.println("# Entries not necessarily sorted");
+        }
+
+        final VirtualListViewResponseControl vlvControl =
+                result.getControl(VirtualListViewResponseControl.DECODER,
+                        new DecodeOptions());
+        System.out.println("# Position in list: "
+                + vlvControl.getTargetPosition() + "/"
+                + vlvControl.getContentCount());
+    } catch (final DecodeException e) {
+        // Failed to decode the response control.
+    }
+}
+</programlisting>
+
+  <para>OpenDJ directory server supports the virtual list view controls.
+  In order to set up OpenDJ directory server to produce the following output
+  with the example code, use OpenDJ Control Panel &gt; Manage Indexes &gt; New
+  VLV Index... to set up a virtual list view index for people by last name,
+  using the filter <literal>(|(givenName=*)(sn=*))</literal>, and sorting first
+  by surname, <literal>sn</literal>, in ascending order, then by given name
+  also in ascending order.</para>
+
+  <programlisting language="ldif">dn: uid=skellehe,ou=People,dc=example,dc=com
+givenName: Sue
+sn: Kelleher
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+givenName: Emanuel
+sn: Johnson
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+givenName: Allison
+sn: Jensen
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+givenName: Bjorn
+sn: Jensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+sn: Jensen
+
+# Entries are sorted.
+# Position in list: 92/150</programlisting>
+ </section>
+
+ <section xml:id="use-generic-control">
+  <title>Using a Generic Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Generic</secondary>
+  </indexterm>
+
+  <para>OpenDJ LDAP SDK supports many controls, but you might still need to
+  work with additional controls. If so, then in some cases you can use the
+  <literal>GenericControl</literal> class when adding the control to your
+  request.</para>
+
+  <para>For example, the Microsoft <link xlink:show="new"
+  xlink:href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366983(v=vs.85).aspx"
+  >LDAP Server Notification Control</link> with OID
+  <literal>1.2.840.113556.1.4.528</literal> can be used to register a change
+  notification request for a search on Microsoft Active Directory. You can use
+  a <literal>GenericControl.newControl()</literal> static method to add the
+  request control to your search.</para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.GetADChangeNotifications:--- JCite ---]</programlisting>
+
+  <para>When you run the search against Active Directory and then create,
+  update, and delete a new user, in this example
+  <literal>CN=New User,CN=Users,DC=ad,DC=example,DC=com</literal>, Active
+  Directory notifies you of changes to directory data.</para>
+
+  <programlisting language="ldif"
+  ># Search result entry: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,
+ DC=ad,DC=example,DC=com
+dn: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: rIDSet
+objectGUID:: 178zQQic3EOoBOB1j2QVgQ==
+uSNChanged: 12446
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12753
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12755
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12757
+
+# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+uSNChanged: 12758
+
+# Search result entry: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,
+# CN=Deleted Objects,DC=ad,DC=example,DC=com
+dn: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,CN=Deleted Objects,
+ DC=ad,DC=example,DC=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
+isDeleted: TRUE
+uSNChanged: 12759
+</programlisting>
+
+  <para>The <literal>GenericControl</literal> class is useful with controls that
+  do not require you to encode complex request values, or decode complex
+  response values. If the control you want to you requires complex encoding
+  or decoding, you might have to implement
+  <literal>org.forgerock.opendj.ldap.controls.Control</literal>.</para>
+ </section>
+</chapter>

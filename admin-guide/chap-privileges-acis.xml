@@ -1,0 +1,1438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-privileges-acis'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Configuring Privileges &amp; Access Control</title>
+
+ <para>OpenDJ supports two mechanisms to protect access to the directory,
+ <firstterm>access control instructions</firstterm> and
+ <firstterm>privileges</firstterm>.</para>
+
+ <para>Access control instructions apply to directory data, providing
+ fine-grained control over what a user or group member is authorized to do in
+ terms of LDAP operations. Most access control instructions specify scopes
+ (targets) to which they apply such that an administrative user who has all
+ access to <literal>dc=example,dc=com</literal> need not have any access to
+ <literal>dc=example,dc=org</literal>.</para>
+
+ <para>Privileges control the administrative tasks that users can perform,
+ such as bypassing the access control mechanism, performing backup and restore
+ operations, making changes to the configuration, and so forth. Privileges are
+ implemented independently from access control. By default, privileges restrict
+ administrative access to directory root users, though any user can be assigned
+ a privilege. Privileges apply to a directory server, and do not have a
+ scope.</para>
+
+ <para>Some operations require both privileges and also access control
+ instructions. For example, in order to reset user's passwords, an administrator
+ needs both the <literal>password-reset</literal> privilege and also access
+ control to write <literal>userPassword</literal> values on the user entries.
+ By combining an access control instruction with a privilege, you can
+ effectively restrict the scope of that privilege to a particular branch of
+ the Directory Information Tree.</para>
+
+ <para>This chapter covers both access control instructions and privileges,
+ demonstrating how to configure both.</para>
+ 
+ <section xml:id="about-acis">
+  <title>About Access Control Instructions</title>
+  <indexterm><primary>Access control</primary></indexterm>
+  
+  <para>OpenDJ directory server access control instructions (ACIs) exist as
+  operational <literal>aci</literal> attribute values on directory entries, and
+  as global ACIs stored in the configuration. ACIs apply to a scope defined in
+  the instruction, and set permissions that depend on what operation is
+  requested, who requested the operation, and how the client connected to the
+  server.</para>
+
+  <para>For example, the ACIs on the following entry allow anonymous read
+  access to all attributes except passwords, and allow read-write access
+  for directory administrators under <literal>dc=example,dc=com</literal>.</para>
+  
+  <programlisting language="ldif">dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+  </programlisting>
+
+  <para>OpenDJ directory server's default behavior is that no access is allowed
+  unless it is specifically granted by an access control instruction. In
+  addition privileges assigned to certain users such as <literal>cn=Directory
+  Manager</literal> allow them to bypass access control checks.</para>
+
+  <para>OpenDJ directory server provides several global ACIs out of the box to
+  facilitate evaluation while maintaining a reasonable security policy. By
+  default users are allow to read the root DSE, to read the schema, to use
+  certain controls and extended operations, to modify their own entries, to
+  bind, and so forth. Global ACIs are defined on the access control handler,
+  and apply to the entire directory server. You must adjust the default global
+  ACIs to match the security policies for your organization, for example to
+  restrict anonymous access.</para>
+  
+  <para>ACI attribute values use a specific language described in this section.
+  Although ACI attribute values can become difficult to read in LDIF, the
+  basic syntax is simple.</para>
+
+  <literallayout class="monospaced"><replaceable
+  >targets</replaceable>(version 3.0;acl "<replaceable
+  >name</replaceable>";<replaceable>permissions</replaceable> <replaceable
+  >subjects</replaceable>;)</literallayout>
+
+  <para>The following list briefly explains the variables in the syntax above.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term><replaceable>targets</replaceable></term>
+    <listitem>
+     <para>The <replaceable>targets</replaceable> specifies entries, attributes,
+     controls, and extended operations to which the ACI applies.</para>
+     <para>To include multiple <replaceable>targets</replaceable>, enclose
+     each individual target in parentheses, (). When you specify multiple
+     targets, all targets must match for the ACI to apply
+     (<literal>AND</literal>).</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>name</replaceable></term>
+    <listitem>
+     <para>Supplies a human-readable description of what the ACI does.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>permissions</replaceable></term>
+    <listitem>
+     <para>Defines which actions to allow, and which to deny. Paired with
+     <replaceable>subjects</replaceable>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>subjects</replaceable></term>
+    <listitem>
+     <para>Identify clients to which the ACI applies depending on
+     who connected, and when, where, and how they connected. Paired with
+     <replaceable>permissions</replaceable>.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>Separate multiple pairs of <replaceable>permissions</replaceable>
+  <replaceable>subjects</replaceable> definitions with semicolons, ;. When you
+  specify multiple permissions-subjects pairs, at least one must match
+  (<literal>OR</literal>).</para>
+  
+  <section xml:id="aci-targets">
+   <title>ACI Targets</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Targets</secondary>
+   </indexterm>
+   
+   <para>The seven types of ACI targets identify the objects to which the ACI
+   applies.</para>
+   
+   <variablelist>
+    <varlistentry>
+     <term><literal>(target = "ldap:///<replaceable>DN</replaceable>")</literal></term>
+     <term><literal>(target != "ldap:///<replaceable>DN</replaceable>")</literal></term>
+     <listitem>
+      <para>Sets the scope to the entry with distinguished name
+      <replaceable>DN</replaceable>, and to child entries.</para>
+      <para>You can use asterisks, *, to replace attribute types, attribute
+      values, and entire DN components. In other words, the following
+      specification targets both
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> and also
+      <literal>cn=Frank Zappa,ou=Musicians,dc=example,dc=com</literal>.</para>
+      <programlisting language="aci">(target = "ldap:///*=*,*,dc=example,dc=com")</programlisting>
+      <para>The <replaceable>DN</replaceable> must be in the subtree of the
+      entry on which the ACI is defined.</para>
+      <para>If you do not specify <literal>target</literal>, then the entry
+      holding this ACI will be affected. If <literal>targetscope</literal> is
+      also omitted, then this entry and all subordinates will be affected.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetattr = "<replaceable>attr-list</replaceable>")</literal></term>
+     <term><literal>(targetattr != "<replaceable>attr-list</replaceable>")</literal></term>
+     <listitem>
+      <para>Replace <replaceable>attr-list</replaceable> with a list of
+      attribute type names, such as <literal>userPassword</literal>, separating
+      multiple attribute type names with ||.</para>
+      <para>This specification affects the entry where the ACI is located, or
+      the entries specified by other targets in the ACI.</para>
+      <para>You can use an asterisk, *, to specify all non-operational
+      attributes, although you will see better performance when explicitly
+      including or excluding attribute types needed. You can use a plus, +, to
+      specify all operational attributes.</para>
+      <para>If you do not include this target specification, then by default
+      no attributes are affected by the ACI.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetfilter = "<replaceable>ldap-filter</replaceable>")</literal></term>
+     <term><literal>(targetfilter != "<replaceable>ldap-filter</replaceable>")</literal></term>
+     <listitem>
+      <para>Sets the scope to match the <replaceable>ldap-filter</replaceable>
+      dynamically, as in an LDAP search. The
+      <replaceable>ldap-filter</replaceable> can be any valid LDAP filter.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targattrfilters = "<replaceable>expression</replaceable>")</literal></term>
+     <term><literal>(targattrfilters != "<replaceable>expression</replaceable>")</literal></term>
+     <listitem>
+      <para>Use this target specification when managing changes made to
+      particular attributes.</para>
+      <para>Here <replaceable>expression</replaceable> takes one of the
+      following forms. Separate expressions with semicolons, ;.</para>
+      <literallayout class="monospaced"><replaceable
+      >op</replaceable>=<replaceable>attr1</replaceable>:<replaceable
+      >filter1</replaceable>[&amp;&amp; <replaceable
+      >attr2</replaceable>:<replaceable>filter2</replaceable> &#8230;][;<replaceable
+      >op</replaceable>=<replaceable>attr3</replaceable>:<replaceable
+      >filter3</replaceable>[&amp;&amp; <replaceable
+      >attr4</replaceable>:<replaceable>filter4</replaceable> &#8230;] &#8230;]</literallayout>
+      <para>Here <replaceable>op</replaceable> can be either
+      <literal>add</literal> for operations creating attributes, or
+      <literal>delete</literal> for operations removing them.
+      Replace <replaceable>attr</replaceable> with an attribute type.
+      Replace <replaceable>filter</replaceable> with an LDAP filter that
+      corresponds to the <replaceable>attr</replaceable> attribute type.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetscope = "base|onelevel|subtree|subordinate")</literal></term>
+     <listitem>
+      <para>Here <literal>base</literal> refers to the entry where the ACI is
+      defined, <literal>onelevel</literal> to immediate children,
+      <literal>subtree</literal> to the base entry and all children, and
+      <literal>subordinate</literal> to all children only.</para>
+      <para>If you do not specify <literal>targetscope</literal>, then the
+      default is <literal>subtree</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetcontrol = "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(targetcontrol != "<replaceable>OID</replaceable>")</literal></term>
+     <listitem>
+      <para>Replace <replaceable>OID</replaceable> with the object identifier
+      for the LDAP control to target. Separate multiple OIDs with ||.</para>
+      <para>This target cannot be restricted to a specific subtree by combining
+      it with another target.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(extop = "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(extop != "<replaceable>OID</replaceable>")</literal></term>
+     <listitem>
+      <para>Replace <replaceable>OID</replaceable> with the object identifier
+      for the extended operation to target. Separate multiple OIDs with ||.</para>
+      <para>This target cannot be restricted to a specific subtree by combining
+      it with another target.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </section>
+
+  <section xml:id="aci-permissions">
+   <title>ACI Permissions</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Permissions</secondary>
+   </indexterm>
+   
+   <para>ACI permission definitions take one of the following forms.</para>
+   
+   <literallayout class="monospaced">allow(<replaceable
+   >action</replaceable>[, <replaceable>action</replaceable> &#8230;])</literallayout>
+   <literallayout class="monospaced">deny(<replaceable
+   >action</replaceable>[, <replaceable>action</replaceable> &#8230;])</literallayout>
+   
+   <tip>
+    <para>Although <literal>deny</literal> is supported, avoid restricting
+    permissions by using <literal>deny</literal>. Instead, explicitly
+    <literal>allow</literal> access only where needed. What looks harmless and
+    simple in your lab examples can grow difficult to maintain in a real-world
+    deployment with nested ACIs.</para>
+   </tip>
+   
+   <para>Replace <replaceable>action</replaceable> with one of the following.</para>
+   
+   <variablelist>
+    <varlistentry>
+     <term><literal>add</literal></term>
+     <listitem>
+      <para>Entry creation, as for an LDAP add operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>all</literal></term>
+     <listitem>
+      <para>All permissions, except <literal>export</literal>,
+      <literal>import</literal>, <literal>proxy</literal></para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>compare</literal></term>
+     <listitem>
+      <para>Attribute value comparison, as for an LDAP compare operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>delete</literal></term>
+     <listitem>
+      <para>Entry deletion, as for an LDAP delete operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>export</literal></term>
+     <listitem>
+      <para>Entry export during a modify DN operation.</para>
+      <para>Despite the name, this action is unrelated to LDIF export
+      operations.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>import</literal></term>
+     <listitem>
+      <para>Entry import during a modify DN operation.</para>
+      <para>Despite the name, this action is unrelated to LDIF import
+      operations.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>proxy</literal></term>
+     <listitem>
+      <para>Access the ACI target using the rights of another user</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>read</literal></term>
+     <listitem>
+      <para>Read entries and attributes</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>search</literal></term>
+     <listitem>
+      <para>Search the ACI targets. Needs to be combine with
+      <literal>read</literal> in order to read the search results.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>selfwrite</literal></term>
+     <listitem>
+      <para>Add or delete own DN from a group</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>write</literal></term>
+     <listitem>
+      <para>Modify attributes on ACI target entries</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   
+  </section>
+
+  <section xml:id="aci-subjects">
+   <title>ACI Subjects</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Subjects</secondary>
+   </indexterm>
+   
+   <para>ACI subjects match characteristics of the client connection to the
+   server. Use subjects to restrict whether the ACI applies depending on who
+   connected, and when, where, and how they connected.</para>
+
+   <variablelist>
+    <varlistentry>
+     <term><literal>authmethod = "none|simple|ssl|sasl <replaceable
+     >mech</replaceable>"</literal></term>
+     <term><literal>authmethod != "none|simple|ssl|sasl <replaceable
+     >mech</replaceable>"</literal></term>
+     <listitem>
+      <para>Here you use <literal>none</literal> to mean do not check,
+      <literal>simple</literal> for simple authentication,
+      <literal>ssl</literal> for certificate-based authentication over LDAPS,
+      <literal>sasl <replaceable>mech</replaceable></literal> for
+      SASL where <replaceable>mech</replaceable> is DIGEST-MD5, EXTERNAL, or
+      GSSAPI.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable
+     >day</replaceable> &#8230;]"</literal></term>
+     <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable
+     >day</replaceable> &#8230;]"</literal></term>
+     <listitem>
+      <para>Replace <replaceable>day</replaceable> with one of
+      <literal>sun</literal>, <literal>mon</literal>, <literal>tue</literal>,
+      <literal>wed</literal>, <literal>thu</literal>, <literal>fri</literal>,
+      <literal>sat</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>dns = "<replaceable>hostname</replaceable>"</literal></term>
+     <term><literal>dns != "<replaceable>hostname</replaceable>"</literal></term>
+     <listitem>
+      <para>You can use asterisks, *, to replace name components, such as
+      <literal>dns = "*.myCompany.com"</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>groupdn = "ldap:///<replaceable
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
+     <term><literal>groupdn != "ldap:///<replaceable
+     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
+     <listitem>
+      <para>Replace <replaceable>DN</replaceable> with the distinguished name
+      of a group to permit or restrict access for members.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>ip = "<replaceable>addresses</replaceable>"</literal></term>
+     <term><literal>ip != "<replaceable>addresses</replaceable>"</literal></term>
+     <listitem>
+      <para>Here <replaceable>addresses</replaceable> can be specified for
+      IPv4 or IPv6. IPv6 addresses are specified in brackets as
+      <literal>ldap://[<replaceable>address</replaceable>]/<replaceable
+      >subnet-prefix</replaceable></literal>
+      where /<replaceable>subnet-prefix</replaceable> is optional.
+      You can specify individual IPv4 addresses, addresses with asterisks (*) to
+      replace subnets and host numbers, CIDR notation, and forms such as
+      <literal>192.168.0.*+255.255.255.0</literal> to specify subnet masks.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>ssf = "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf != "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &gt; "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &gt;= "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &lt; "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &lt;= "<replaceable>strength</replaceable>"</literal></term>
+     <listitem>
+      <para>Here the security strength factor pertains to the cipher key
+      strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS. For
+      example, to require that the connection must have at least 128 bits
+      of encryption, specify <literal>ssf &gt;= 128</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>timeofday = "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday != "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &gt; "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &gt;= "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &lt; "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &lt;= "<replaceable>hhmm</replaceable>"</literal></term>
+     <listitem>
+      <para>Here <replaceable>hhmm</replaceable> is expressed as on a 24-hour
+      clock. For example, 1:15 PM is written <literal>1315</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>userattr = "<replaceable>attr</replaceable>#<replaceable
+     >value</replaceable>"</literal></term>
+     <term><literal>userattr != "<replaceable>attr</replaceable>#<replaceable
+     >value</replaceable>"</literal></term>
+     <term><literal>userattr = <replaceable
+     >ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr != <replaceable
+     >ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr = "[parent[<replaceable
+     >child-level</replaceable>]. ]<replaceable>attr</replaceable
+     >#GROUPDN|USERDN"</literal></term>
+     <term><literal>userattr != "[parent[<replaceable
+     >child-level</replaceable>]. ]<replaceable>attr</replaceable
+     >#GROUPDN|USERDN"</literal></term>
+     <listitem>
+      <para>The <literal>userattr</literal> subject specifies an attribute
+      that must match on both the bind entry and the target of the ACI.</para>
+      <para>To match when the attribute on the bind DN entry corresponds
+      directly to the attribute on the target entry, replace
+      <replaceable>attr</replaceable> with the attribute type, and
+      <replaceable>value</replaceable> with the attribute value.</para>
+      <para>To match when the target entry is identified by an LDAP URL, and
+      the bind DN is in the subtree of the DN of the LDAP URL, use
+      <replaceable>ldap-url</replaceable>#LDAPURL.</para>
+      <para>To match when the bind DN corresponds to a member of the group
+      identified by the <replaceable>attr</replaceable> value on the target
+      entry, use <replaceable>attr</replaceable>#GROUPDN.</para>
+      <para>To match when the bind DN corresponds to the
+      <replaceable>attr</replaceable> value on the target entry, use
+      <replaceable>attr</replaceable>#USERDN.</para>
+      <para>The optional inheritance specification,
+      <literal>parent[<replaceable>child-level</replaceable>].</literal>, lets
+      you specify how many levels below the target entry inherit the ACI.
+      Here <replaceable>child-level</replaceable> is a number from 0 to 9, with
+      0 indicating the target entry only. Separate multiple
+      <replaceable>child-level</replaceable> digits with commas (,).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable
+     >ldap-url++</replaceable> &#8230;]"</literal></term>
+     <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable
+     >ldap-url++</replaceable> &#8230;]"</literal></term>
+     <listitem>
+      <para>To match the bind DN, replace <replaceable>ldap-url++</replaceable>
+      with either a valid LDAP URL such as
+      <literal>ldap:///uid=bjensen,ou=People,dc=example,dc=com</literal>,
+      <literal>ldap:///dc=example,dc=com??sub?(uid=bjensen)</literal>,
+      or a special LDAP URL-like keyword from the following list.</para>
+      <variablelist>
+       <varlistentry>
+        <term><literal>ldap:///all</literal></term>
+        <listitem>
+         <para>Match authenticated users.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///anyone</literal></term>
+        <listitem>
+         <para>Match anonymous and authenticated users.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///parent</literal></term>
+        <listitem>
+         <para>Match when the bind DN is a parent of the ACI target.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///self</literal></term>
+        <listitem>
+         <para>Match when the bind DN entry corresponds to ACI target.</para>
+        </listitem>
+       </varlistentry>
+      </variablelist>
+     </listitem>
+    </varlistentry>
+   </variablelist>   
+  </section>
+
+  <section xml:id="aci-evaluation">
+    <title>How ACI is Evaluated</title>
+    <indexterm>
+     <primary>Access control</primary>
+     <secondary>Evaluation</secondary>
+    </indexterm>
+
+   <para>Understanding how OpenDJ evaluates the aci values is critical when
+   implementing an access control policy. The rules the server follows are
+   simple.</para>
+   
+   <orderedlist>
+    <listitem>
+     <para>To determine if an operation is allowed or denied, the OpenDJ server
+     looks in the directory for the target of the operation. It collects any aci
+     values from that entry, and then walks up the directory tree to the suffix,
+     collecting all aci values en route. Global aci values are then collected.</para>
+    </listitem>
+    <listitem>
+     <para>It then separates the aci values into two lists; one list contains
+     all the aci values that matches the target and denies the required access,
+     and the other list contains all the aci values that matches the target and
+     allows the required access.</para>
+    </listitem>
+    <listitem>
+     <para>If the deny list contains any aci values after this procedure, access
+     will be immediately denied.</para>
+    </listitem>
+    <listitem>
+     <para>If the deny list is empty, then the allow list is processed. If the
+     allow list contains any aci values, access will be allowed.</para>
+    </listitem>
+    <listitem>
+     <para>If both lists are empty, access will be denied.</para>
+    </listitem>
+   </orderedlist>
+
+   <note>
+    <para>Some operations require multiple permissions and involve multiple
+    targets. Evaluation will therefore take place multiple times. For example a
+    search operation requires the <literal>search</literal> permission for each
+    attribute in the search filter. If all those are allowed, the
+    <literal>read</literal> permission is used to decide what attributes and
+    values can be returned.</para>
+   </note>
+  </section>
+
+  <section xml:id="aci-required">
+   <title>ACI Required For LDAP Operations</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Operations</secondary>
+   </indexterm>
+
+   <para>The minimal access control information required for specific LDAP
+   operations is described here.</para>
+
+   <variablelist>
+    <varlistentry>
+     <term>Add</term>
+     <listitem>
+      <para>The ACI must allow the <literal>add</literal> permission to entries
+      in the target. This implicitly allows the attributes and values to be set.
+      Use <literal>targetattrfilters</literal> to explicitly deny access to any
+      values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
+      is:</para>
+      <programlisting language="ldif">aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Bind</term>
+     <listitem>
+      <para>Because this is used to establish the user's identity and derived
+      authorizations, ACI is irrelevant for this operation and is not checked.
+      To prevent authentication,
+      disable the account instead. For more information see <link
+      xlink:href="admin-guide#manage-accounts"
+      xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Managing
+      Accounts Manually</citetitle></link>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Compare</term>
+     <listitem>
+      <para>The ACI must allow the <literal>compare</literal> permission to the
+      attribute in the target entry.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to compare
+      values against the <literal>sn</literal> attribute is:</para>
+      <programlisting language="ldif">aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
+ allow (compare)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Delete</term>
+     <listitem>
+      <para>The ACI must allow the <literal>delete</literal> permission to the
+      target entry. This implicitly allows the attributes and values in the
+      target to be deleted. Use <literal>targetattrfilters</literal> to
+      explicitly deny access to the values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
+      entry is:</para>
+      <programlisting language="ldif">aci: (version 3.0;acl "Delete entry"; allow (delete)
+ (userdn = "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Modify</term>
+     <listitem>
+      <para>The ACI must allow the <literal>write</literal> permission to
+      attributes in the target entries. This implicitly allows all
+      values in the target attribute to be modified. Use
+      <literal>targetattrfilters</literal> to explicitly deny access to specific
+      values if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to modify the 
+      <literal>description</literal> attribute in an entry is:</para>
+      <programlisting language="ldif">aci: (targetattr = "description")(version 3.0;
+ acl "Modify description"; allow (write)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>ModifyDN</term>
+     <listitem>
+      <para>If the entry is being moved to a <literal>newSuperior</literal>, the
+      <literal>export</literal> permission must be allowed on the target, and
+      the <literal>import</literal> permission must be allowed on the
+      <literal>newSuperior</literal> entry.</para>
+      <para>The ACI must allow <literal>write</literal> permission to the
+      attributes in the old RDN and the new RDN. All values of the old RDN and
+      new RDN can be written implicitly; use
+      <literal>targetattrfilters</literal> to explicitly deny access to values
+      used if required.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to rename
+      entries named with the <literal>uid</literal> attribute to new
+      locations:</para>
+      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
+ allow (write, import, export)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Search</term>
+     <listitem>
+      <para>ACI is required to process the search filter, and to determine what
+      attributes and values may be returned in the results. The
+      <literal>search</literal> permission is used to allow particular
+      attributes in the search filter. The <literal>read</literal> permission is
+      used to allow particular attributes to be returned. If
+      <literal>read</literal> permission is allowed to any attribute, the
+      server will automatically allow the <literal>objectClass</literal>
+      attribute to also be read. All values of readable attributes can be
+      implicitly read; to restrict this use
+      <literal>targetattrfilters</literal>.</para>
+      <para>For example, the ACI required to allow
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to search for
+      <literal>uid</literal> attributes, and also to read that attribute in
+      matching entries is:</para>
+      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
+ allow (search, read)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </section>
+ </section>
+ 
+ <section xml:id="about-privileges">
+  <title>About Privileges</title>
+  <indexterm><primary>Privileges</primary></indexterm>
+  
+  <para>Privileges provide access control for server administration
+  independently from access control instructions.</para>
+  
+  <para>Directory root users, such as <literal>cn=Directory Manager</literal>,
+  are granted privileges in the following list and marked with an asterisk (*)
+  by default. Other administrator users can be assigned privileges, too.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><literal>backend-backup</literal>*</term>
+    <listitem>
+     <para>Request a task to backup data</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>backend-restore</literal>*</term>
+    <listitem>
+     <para>Request a task to restore data from backup</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>bypass-acl</literal>*</term>
+    <listitem>
+     <para>Perform operations without regard to ACIs</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>bypass-lockdown</literal>*</term>
+    <listitem>
+     <para>Perform operations without regard to lockdown mode</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>cancel-request</literal>*</term>
+    <listitem>
+     <para>Cancel any client request</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>config-read</literal>*</term>
+    <listitem>
+     <para>Read the server configuration</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>config-write</literal>*</term>
+    <listitem>
+     <para>Change the server configuration</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>data-sync</literal></term>
+    <listitem>
+     <para>Perform data synchronization</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>disconnect-client</literal>*</term>
+    <listitem>
+     <para>Close any client connection</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-notify</literal></term>
+    <listitem>
+     <para>Subscribe to JMX notifications</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-read</literal></term>
+    <listitem>
+     <para>Read JMX attribute values</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-write</literal></term>
+    <listitem>
+     <para>Write JMX attribute values</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldif-export</literal>*</term>
+    <listitem>
+     <para>Export data to LDIF</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldif-import</literal>*</term>
+    <listitem>
+     <para>Import data from LDIF</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>modify-acl</literal>*</term>
+    <listitem>
+     <para>Change ACIs</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>password-reset</literal>*</term>
+    <listitem>
+     <para>Reset other users' passwords</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>privilege-change</literal>*</term>
+    <listitem>
+     <para>Change the privileges assigned to users</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>proxied-auth</literal></term>
+    <listitem>
+     <para>Use the Proxied Authorization control</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>server-lockdown</literal>*</term>
+    <listitem>
+     <para>Put OpenDJ into, and take OpenDJ out of, lockdown mode</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>server-restart</literal>*</term>
+    <listitem>
+     <para>Request a task to restart the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>server-shutdown</literal>*</term>
+    <listitem>
+     <para>Request a task to stop the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>subentry-write</literal>*</term>
+    <listitem>
+     <para>Perform LDAP subentry write operations</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>unindexed-search</literal>*</term>
+    <listitem>
+     <para>Search using a filter with no correponding index</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>update-schema</literal>*</term>
+    <listitem>
+     <para>Change OpenDJ schema definitions</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>* = default directory root user privileges</para>
+ </section>
+
+ <section xml:id="configure-privileges">
+  <title>Configuring Privileges</title>
+  
+  <para>For root directory administrators, by default <literal>cn=Directory
+  Manager</literal>, you configure privileges using the
+  <command>dsconfig</command> command.</para>
+  
+  <para>For non-root directory administrators, you add privileges with
+  the <command>ldapmodify</command> command.</para>
+  
+  <procedure xml:id="change-root-dn-privileges">
+   <title>To Change Root DN Privileges</title>
+   
+   <step>
+    <para>Start <command>dsconfig</command> in interactive mode.</para>
+    <screen>$ dsconfig
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password</screen>
+   </step>
+   <step>
+    <para>Select the Root DN menu.</para>
+   </step>
+   <step>
+    <para>Select View and edit the Root DN.</para>
+   </step>
+   <step>
+    <para>Edit the <literal>default-root-privilege-name</literal>.</para>
+   </step>
+   <step>
+    <para>Make sure you apply the changes when finished.</para>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="change-individual-privileges">
+   <title>To Add Privileges on an Individual Entry</title>
+   
+   <para>Privileges are specified using the <literal>ds-privilege-name</literal>
+   operational attribute, which you can change on the command-line using
+   <command>ldapmodify</command>.</para>
+   
+   <step>
+    <para>Determine the privileges to add.</para>
+    <screen>$ cat privilege.ldif 
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: config-read
+ds-privilege-name: password-reset
+</screen>
+    <para>This example lets the user read the server configuration, and reset
+    user passwords. In order for the user to be able to change a user password,
+    you must also allow the modification using ACIs. For this example, Kirsten
+    Vaughan is a member of the Directory Administrators group for Example.com,
+    and already has access to modify user entries.</para>
+    <para>Prior to having the privileges, Kirsten gets messages about
+    insufficent access when trying to read the server configuration, or
+    reset a user password.</para>
+    <screen>$ ldapsearch
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --baseDN cn=config
+ "(objectclass=*)"
+SEARCH operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  You do not have sufficient privileges to perform
+ search operations in the Directory Server configuration
+$ ldappasswordmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
+ --newPassword changeit
+The LDAP password modify operation failed with result code 50
+Error Message:  You do not have sufficient privileges to perform password
+reset operations</screen>
+   </step>
+   <step>
+    <para>Apply the change as a user with the
+    <literal>privilege-change</literal> privilege.</para>
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename privilege.ldif
+Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
+    <para>At this point, Kirsten can perform the operations requiring
+    privileges.</para>
+    <screen>$ ldapsearch
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --baseDN cn=config
+ "(objectclass=*)"
+dn: cn=config
+ds-cfg-return-bind-error-messages: false
+ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
+ cn=config
+&#8230;
+$ ldappasswordmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
+ --newPassword changeit
+The LDAP password modify operation was successful</screen>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="change-group-privileges">
+   <title>To Add Privileges For a Group of Administrators</title>
+   
+   <para>For deployments with more than one administrator, you no doubt use
+   a group to define adminstrative rights. You can use a collective attribute
+   subentry to specify privileges for the administrator group.</para>
+   
+   <para>Collective attributes provide a standard mechanism for defining
+   attributes that appear on all the entries in a particular subtree. OpenDJ
+   extends collective attributes to give you fine-grained control over the
+   which entries in the subtree are targetted. Also, OpenDJ lets you use
+   virtual attributes, such as <literal>isMemberOf</literal> to construct the
+   filter for targetting entries to which the collective attributes apply. This
+   allows you, for example, to define administrative privileges that apply to
+   all users who belong to an administrator group.</para>
+   
+   <step>
+    <para>Create an LDAP subentry that specifies the collective attributes.</para>
+    <screen>$ cat collective.ldif 
+dn: cn=Administrator Privileges,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Administrator Privileges
+ds-privilege-name;collective: config-read
+ds-privilege-name;collective: config-write
+ds-privilege-name;collective: ldif-export
+ds-privilege-name;collective: modify-acl
+ds-privilege-name;collective: password-reset
+ds-privilege-name;collective: proxied-auth
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename collective.ldif
+Processing ADD request for cn=Administrator Privileges,dc=example,dc=com
+ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</screen>
+    <para>The Directory Administrators group for Example.com includes members
+    like Kirsten Vaughan.</para>
+   </step>
+   <step>
+    <para>Observe that the change takes effect immediately.</para>
+    <screen>$ ldappasswordmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
+ --newPassword changeit
+The LDAP password modify operation was successful</screen>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="configure-acis">
+  <title>Configuring Access Control</title>
+  <indexterm>
+   <primary>Access control</primary>
+   <secondary>Examples</secondary>
+  </indexterm>
+  
+  <para>Access control instructions are defined in the data, as values for
+  <literal>aci</literal> attributes. They can be imported in LDIF. They can
+  be modified over LDAP. Yet in order to make changes to ACIs users first
+  need the <literal>modify-acl</literal> privilege described previously.
+  By default, only the root DN user has the <literal>modify-acl</literal>
+  privilege.</para>
+  
+  <para>Global ACIs on <literal>cn=Access Control Handler,cn=config</literal>
+  can be set using the <command>dsconfig</command> command. Global ACIs have
+  attribute type <literal>ds-cfg-global-aci</literal>. Modify global ACIs from
+  the Access Control Handler menu in <command>dsconfig</command>.</para>
+
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Data access</secondary>
+   </indexterm>
+
+  <itemizedlist>
+   <para>Default global ACIs set up the following access rules.</para>
+   <listitem>
+    <para>Users can employ LDAP controls and perform extended operations.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for most user data attributes.</para>
+   </listitem>
+   <listitem>
+    <para>Users can read password values on their own entries after binding.
+    (Also by default, password values are hashed.)</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for schema-related operational
+    attributes.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for root DSE attributes describing
+    what the server supports.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for operational attributes related
+    to entry updates and entry identification.</para>
+   </listitem>
+   <listitem>
+    <para>Access to replication data is denied.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Users with write access to add ACIs and with the
+  <literal>modify-acl</literal> privilege can use the
+  <command>ldapmodify</command> command to change ACIs located in user
+  data.</para>
+  
+  <para>This section therefore focuses on ACI examples, rather than
+  demonstrating how to update the directory for each example. To update ACIs,
+  either change them using the <command>ldapmodify</command> command, or
+  using OpenDJ Control Panel.</para>
+
+  <para>If you use OpenDJ Control Panel, find the entry to modify in the Manage
+  Entries window. Then try View &gt; LDIF View to edit the entry. Control Panel
+  checks your syntax and lets you know if you made an error before it saves any
+  changes.</para>
+
+  <para>For hints on updating directory entries with
+  <command>ldapmodify</command>, see the section on <link
+  xlink:role="http://docbook.org/xlink/role/olink"
+  xlink:href="admin-guide#modify-ldap"><citetitle>Modifying Entry
+  Attributes</citetitle></link>, keeping in mind that the name of the ACI
+  attribute is <literal>aci</literal> as shown in the examples that
+  follow.</para>
+
+  <example xml:id="access-control-anonymous-reads">
+   <title>ACI: Anonymous Reads &amp; Searches</title>
+   
+   <para>This works when the only attributes you do not want world-readable
+   are password attributes.</para>
+   <programlisting language="ldif">aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "authPassword || userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+ </programlisting>
+  </example>
+
+  <example xml:id="access-control-disable-anonymous"><?dbfo keep-together="auto"?>
+   <title>ACI: Disable Anonymous Access</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Disabling anonymous access</secondary>
+   </indexterm>
+
+   <para>By default OpenDJ denies access unless an access control explicitly
+   allows access.<footnote><para>This does not apply to the directory root
+   user, such as <literal>cn=Directory Manager</literal>, who bypasses
+   ACIs.</para></footnote> However, OpenDJ also allows anonymous access by
+   default to use some controls, to perform certain extended operations, to
+   view root DSE operational attributes, to view directory schema definitions,
+   to view some other operational attibutes, and to perform compare and search
+   operations.</para>
+
+   <para>These default capabilities are defined on the
+   <literal>global-aci</literal> property of the access control handler, which
+   you can read by using the
+   <command>dsconfig get-access-control-handler-prop</command> command.</para>
+
+   <screen>$ dsconfig
+ get-access-control-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --property global-aci</screen>
+
+   <para>To disable anonymous read access for example, use the
+   <command>dsconfig set-access-control-handler-prop</command> command.</para>
+
+   <para>First, remove the <literal>global-aci</literal> attribute value that
+   allows anonymous read access. Do not wrap the lines in the following
+   example if you use it as the basis for your script.</para>
+
+   <screen>$ dsconfig \
+ set-access-control-handler-prop \
+ --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|changes\|\
+\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\
+\|newSuperior\|\|deleteOldRDN\|\|targetEntryUUID\|\|changeInitiatorsName\|\
+\|changeLogCookie\|\|includedAttributes\"\)\(version\ 3.0\;\ acl\ \"Anonymous\
+\ read\ access\"\;\ allow\ \(read,search,compare\)\
+\ userdn=\"ldap:///anyone\"\;\)\
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN cn=Directory\ Manager \
+ --bindPassword password \
+ --trustAll \
+ --no-prompt</screen>
+
+   <para>If the <literal>global-aci</literal> does not match the ACI exactly
+   then the command fails to remove the value. An alternative approach is to
+   use the <command>dsconfig</command> command interactively, adding the
+   <option>--commandFilePath</option> option. You can then use the command
+   you capture to remove the property value on other servers for example.
+   To use the <command>dsconfig</command> command this way, start the
+   command as follows.</para>
+
+   <screen>$ dsconfig
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --commandFilePath /tmp/captured-command.sh</screen>
+
+   <para>Next, add a global ACI value that allows authenticated users to
+   perform read operations. You can use <command>dsconfig</command>
+   interactively to add the ACI value as shown below
+   <literal>(targetattr!= &#8230; userdn="ldap:///all";)</literal>.</para>
+
+   <programlisting language="ldif">global-aci: (targetattr!="userPassword||
+ authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||
+ newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||
+ changeLogCookie||includedAttributes")(version 3.0; acl "Authenticated users
+ read access"; allow (read,search,compare) userdn="ldap:///all";)</programlisting>
+
+   <para>Notice that these changes are made to the OpenDJ directory server
+   configuration, and so are not replicated to other servers. You must instead
+   apply the changes separately to each server.</para>
+  </example>
+
+  <example xml:id="access-control-full-access">
+   <title>ACI: Full Access for Administrators</title>
+   
+   <para>Directory Administrators need privileges as well for full access to
+   administrative operations.</para>
+   <programlisting language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "* || +")(version 3.0;acl "Admins can run amok"; allow(
+ all, proxy, import, export) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+ </programlisting>
+   <para>Notice both <literal>targetattr = "* || +"</literal>, which permits
+   access to both all user attributes and all operational attributes, and
+   <literal>allow(all, proxy, import, export)</literal>, which permits not
+   only all user operations, but also proxy authorization as well as data
+   import and export operations.</para>
+  </example>
+
+  <example xml:id="access-control-selfwrite-password">
+   <title>ACI: Change Own Password</title>
+   
+   <para>By default this capability is set in a global ACI.</para>
+   <programlisting language="ldif">aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+ "authPassword || userPassword")(version 3.0;acl "Allow users to change pass
+ words"; allow (write)(userdn = "ldap:///self");)</programlisting>
+  </example>
+
+  <example xml:id="access-control-selfwrite-group">
+   <title>ACI: Manage Own Group Membership</title>
+   
+   <para>For some static groups such as carpoolers and social club members,
+   you might choose to let users manage their own memberships.</para>
+   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targetattr = "member")(version 3.0;acl "Self registration"; allow(selfwrite)(
+ userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)</programlisting>
+  </example>
+
+  <example xml:id="access-control-self-service-group">
+   <title>ACI: Manage Self Service Groups</title>
+   
+   <para>Let users create and delete self-managed groups.</para>
+   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targattrfilters="add=objectClass:(objectClass=groupOfNames)")(version 3.0;
+ acl "All can create self service groups"; allow (add)(userdn= "
+ ldap:///uid=*,ou=People,dc=example,dc=com");)
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
+ .0; acl "Owner can delete self service groups"; allow (delete)(userattr= "
+ owner#USERDN");)</programlisting>
+  </example>
+ 
+  <example xml:id="access-control-loopback-only">
+   <title>ACI: Permit Clear Text Access Over Loopback Only</title>
+   
+   <para>This ACI uses IP address and Security Strength Factor subjects.</para>
+   <programlisting language="ldif">aci: (target = "ldap:///dc=example,dc=com")(targetattr =
+ "*")(version 3.0;acl "Use loopback only for LDAP in the clear"; deny (all)(
+ ip != "127.0.0.1" and ssf &lt;= "1");)</programlisting>
+   <para>The <literal>ssf</literal> is one for example when using SSL but you
+   have not configured a cipher, so the packets are checksummed for integrity
+   checking by all content is nevertheless sent in clear text.</para>
+  </example>
+ </section>
+
+ <section xml:id="get-effective-rights">
+  <title>Viewing Effective Rights</title>
+  <indexterm>
+   <primary>Access control</primary>
+   <secondary>Debugging</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Access control</primary>
+   <secondary>Effective rights</secondary>
+  </indexterm>
+  
+  <para>Once you set up a number of ACIs, you might find it difficult to
+  understand by inspection what rights a user actually has to a given entry.
+  The Get Effective Rights control can help.</para>
+  
+  <note>
+   <para>The control OID, <literal>1.3.6.1.4.1.42.2.27.9.5.2</literal>, is
+   not allowed by the default global ACIs.</para>
+  </note>
+  
+  <para>In this example, Babs Jensen is the owner of a small group of people
+  who are willing to carpool.</para>
+  
+  <screen>$ ldapsearch
+ --port 1389
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
+ --bindPassword hifalutin
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*" 
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+member: uid=bjensen,ou=People,dc=example,dc=com
+description: People who are willing to carpool
+owner: uid=bjensen,ou=People,dc=example,dc=com
+cn: Carpoolers
+</screen>
+
+  <para>Performing the same search with the get effective rights control, and
+  asking for the <literal>aclRights</literal> attribute, shows what rights
+  Babs has on the entry.</para>
+  
+  <screen>$ ldapsearch
+ --control effectiverights
+ --port 1389
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
+ --bindPassword hifalutin
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*"
+ aclRights
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+</screen>
+
+  <para>Requesting the <literal>aclRightsInfo</literal> attribute results in
+  information about the ACIs applied to arrive at the results.</para>
+  
+  <screen>$ ldapsearch
+ --control effectiverights
+ --port 1389
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
+ --bindPassword hifalutin
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*"
+ aclRights
+ aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluat
+ ed allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
+ matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis matc
+ hed the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(delete) 
+ on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) 
+ to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluated 
+ allow , deciding_aci: Owner can delete self service groups)
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
+ matched the subject )
+</screen>
+
+  <para>You can also request the effective rights for another user by using the
+  <option>--getEffectiveRightsAuthzid</option> (short form: <option>-g</option>)
+  option, which takes the authorization identity of the other user as an
+  argument. The following example shows Directory Manager checking anonymous
+  user rights to the same entry. Notice that the authorization identity for an
+  anonymous user is expressed as <literal>"dn:"</literal>.</para>
+
+  <screen>$ ldapsearch
+ --getEffectiveRightsAuthzid "dn:"
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "cn=*" aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (anonymous) (not proxied) ( reason: evaluated allow , deciding_aci: Anony
+ mous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access not allowed(dele
+ te) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NU
+ LL) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )</screen>
+
+  <para>When you need to check access to an attribute that might not yet exist
+  on the entry, you can further use the
+  <option>--getEffectiveRightsAttribute</option> (short form:
+  <option>-e</option>) option, which takes an attribute list as an argument.
+  The following example shows Directory Manager checking anonymous user
+  access to the description attribute for the Self Service groups organizational
+  unit entry. The description attribute is not present on the entry, yet.</para>
+
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "ou=Self Service" description
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+
+$ ldapsearch
+ --getEffectiveRightsAuthzid "dn:"
+ --getEffectiveRightsAttribute description
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
+ "ou=Self Service" aclRights
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;attributeLevel;description: search:1,read:1,compare:1,write:0,selfwrit
+ e_add:0,selfwrite_delete:0,proxy:0
+aclRights;entryLevel: add:0,delete:0,read:1,write:0,proxy:0</screen>
+ </section>
+</chapter>
