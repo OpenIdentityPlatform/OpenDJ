@@ -113,7 +113,7 @@ state-update-failure-policy               : reactive</screen>
 
    <para>See the <citetitle>OpenDJ Configuration Reference</citetitle> page
    on <link xlink:show="new"
-   xlink:href="http://opendj.forgerock.org/opendj-server/configref/password-policy.html"
+   xlink:href="${configRefBase}password-policy.html"
    ><citetitle>Password Policy</citetitle></link> for detailed descriptions of
    each property.</para>
 

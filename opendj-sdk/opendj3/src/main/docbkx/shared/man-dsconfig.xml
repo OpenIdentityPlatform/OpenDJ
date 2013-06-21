@@ -89,8 +89,8 @@
   component's <literal>allow-start-tls</literal> property to
   <literal>true</literal> to permit LDAP client applications to use StartTLS.
   Much of the configuration you do with <command>dsconfig</command> involves
-  setting component properties. The <link
-  xlink:href="http://opendj.forgerock.org/opendj-server/configref/index.html"
+  setting component properties. The <link xlink:show="new"
+  xlink:href="${configRefBase}"
   ><citetitle>OpenDJ Configuration Reference</citetitle></link> covers all
   <command>dsconfig</command> component properties in detail, drawing on the
   documentation you also view when getting help through the
@@ -375,8 +375,7 @@
   </itemizedlist>
   
   <para>Component properties for the <command>dsconfig</command> command are
-  covered in the <link
-  xlink:href="http://opendj.forgerock.org/opendj-server/configref/index.html"
+  covered in the <link xlink:show="new" xlink:href="${configRefBase}"
   ><citetitle>OpenDJ Configuration Reference</citetitle></link>.</para>
   
   <para>Many subcommands let you set property values. Notice in the reference

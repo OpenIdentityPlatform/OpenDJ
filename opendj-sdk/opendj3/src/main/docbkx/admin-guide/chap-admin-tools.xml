@@ -240,7 +240,7 @@
      <para>In addition to the <link xlink:href="admin-guide#dsconfig-1"
      xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
      that covers subcommands, the <link xlink:show="new"
-     xlink:href="http://opendj.forgerock.org/opendj-server/configref/index.html"
+     xlink:href="${configRefBase}"
      ><citetitle>Configuration Reference</citetitle></link> covers the
      properties you can set using the <command>dsconfig</command>
      command.</para>

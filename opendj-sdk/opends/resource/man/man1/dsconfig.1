@@ -2,12 +2,12 @@
 .\"     Title: dsconfig
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 05/16/2013
+.\"      Date: 06/19/2013
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.6.0
 .\"  Language: English
 .\"
-.TH "DSCONFIG" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.TH "DSCONFIG" "1" "06/19/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -518,7 +518,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Attribute Syntax which should be created (Default: generic)\&. The value for TYPE can be one of: attribute\-type\-description | directory\-string | generic | telephone\-number
+The type of Attribute Syntax which should be created (Default: generic)\&. The value for TYPE can be one of: attribute\-type\-description | certificate | country\-string | directory\-string | generic | jpeg | telephone\-number
 .RE
 .SS "dsconfig create\-backend"
 .PP
@@ -572,7 +572,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Connection Handler which should be created\&. The value for TYPE can be one of: custom | jmx | ldap | ldif | snmp
+The type of Connection Handler which should be created\&. The value for TYPE can be one of: custom | http | jmx | ldap | ldif | snmp
 .RE
 .SS "dsconfig create\-debug\-target"
 .PP
@@ -749,7 +749,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Log Publisher which should be created\&. The value for TYPE can be one of: custom\-access | custom\-debug | custom\-error | file\-based\-access | file\-based\-audit | file\-based\-debug | file\-based\-error
+The type of Log Publisher which should be created\&. The value for TYPE can be one of: custom\-access | custom\-debug | custom\-error | custom\-http\-access | file\-based\-access | file\-based\-audit | file\-based\-debug | file\-based\-error | file\-based\-http\-access
 .RE
 .SS "dsconfig create\-log\-retention\-policy"
 .PP
@@ -875,7 +875,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Password Storage Scheme which should be created\&. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | rc4 | salted\-md5 | salted\-sha1 | salted\-sha256 | salted\-sha384 | salted\-sha512 | sha1 | triple\-des
+The type of Password Storage Scheme which should be created\&. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | rc4 | salted\-md5 | salted\-sha1 | salted\-sha256 | salted\-sha384 | salted\-sha512 | sha1 | triple\-des
 .RE
 .SS "dsconfig create\-password\-validator"
 .PP
@@ -1024,7 +1024,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Virtual Attribute which should be created\&. The value for TYPE can be one of: collective\-attribute\-subentries | custom | entry\-dn | entry\-uuid | governing\-structure\-rule | has\-subordinates | is\-member\-of | member | num\-subordinates | password\-policy\-subentry | structural\-object\-class | subschema\-subentry | user\-defined
+The type of Virtual Attribute which should be created\&. The value for TYPE can be one of: collective\-attribute\-subentries | custom | entity\-tag | entry\-dn | entry\-uuid | governing\-structure\-rule | has\-subordinates | is\-member\-of | member | num\-subordinates | password\-expiration\-time | password\-policy\-subentry | structural\-object\-class | subschema\-subentry | user\-defined
 .RE
 .SS "dsconfig delete\-access\-log\-filtering\-criteria"
 .PP
@@ -4418,5 +4418,5 @@ dsconfig
 itself, and include the bind password for the administrative user (or replace that option with an alternative, such as reading the password from a file)\&.
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br

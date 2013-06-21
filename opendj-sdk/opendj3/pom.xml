@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -130,8 +130,32 @@
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <frDocPluginVersion>1.2.0</frDocPluginVersion>
+
+    <!-- Permit doc build to override relative locations of non DocBook content -->
+    <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
+    <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
+    <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
   </properties>
   <build>
+
+    <!-- Filter XML to allow ${property} in attribute values. -->
+    <resources>
+      <resource>
+        <directory>src/main/docbkx</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/docbkx</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.xml</exclude>
+        </excludes>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -165,6 +189,7 @@
         <version>${frDocPluginVersion}</version>
         <inherited>false</inherited>
         <configuration>
+         <docbkxSourceDirectory>target/classes</docbkxSourceDirectory> <!-- Use filtered XML -->
          <projectName>OpenDJ</projectName>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
         </configuration>
