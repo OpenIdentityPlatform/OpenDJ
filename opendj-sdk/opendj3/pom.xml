@@ -63,9 +63,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/branches/b2.6-sdk</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.6-sdk</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.6-sdk</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
@@ -109,7 +109,7 @@
     <forgerockRestVersion>2.0.0</forgerockRestVersion>
     <gaId>UA-23412190-8</gaId>
     <!-- OSGi bundles properties -->
-    <opendj.osgi.import.additional/>
+    <opendj.osgi.import.additional />
     <!--
      | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
      | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
@@ -126,7 +126,7 @@
           -D"releaseDate=Software release date: January 1, 1970"
       Otherwise release date should remain empty.
     -->
-    <releaseDate/>
+    <releaseDate />
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <frDocPluginVersion>1.2.0</frDocPluginVersion>
@@ -356,7 +356,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
