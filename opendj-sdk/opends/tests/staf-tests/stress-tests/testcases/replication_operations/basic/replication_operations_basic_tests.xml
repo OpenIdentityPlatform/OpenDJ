@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2013 ForgeRock AS
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->
+
+  <!--- Test Cases : Basic : Replication Operations -->
+ 
+  <!--- Test Case information  
+  #@TestMarker          Basic: replication operations
+  #@TestName            Basic: replication operations 
+  #@TestID              basic_replication_operations_000
+  #@TestPurpose         Preamble
+  #@TestPreamble        Common Setup
+  #@TestStep            Import sample data
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_replication_operations_000" scope="local">
+  <testcase name="getTestCaseName('Preamble')">
+    <sequence>
+      <call function="'testCase_Preamble'"/>
+      
+      <script>
+        ldifTemplate = '%s/import_Entries_100k.template' % remote.temp
+      </script>
+      
+      <message>
+       'Preamble: Stop DS running on port %s' % master.getPort()
+      </message>
+  
+      <call function="'StopDsWithScript'">
+      { 'location'    : masterHost,
+          'dsPath'      : masterPath,
+          'dsHost'      : masterHost,
+          'dsAdminPort' : master.getAdminPort(),
+          'dsBindDN'    : master.getRootDn(),
+          'dsBindPwd'   : master.getRootPwd() }
+      </call>
+  
+      <!-- Check if 'ldifFile' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : masterHost ,
+        'entry'     : ldifFile ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC == 48">
+        <sequence>
+          <message>
+            'Preamble: File %s does not exist, create it' % ldifFile
+          </message>
+  
+          <message>
+            'Preamble: Make an make-ldif template file'
+          </message>
+  
+          <call function="'MakeAMakeLdifTemplate'">
+            {
+            'suffix'               : synchroSuffix,
+            'numEntries'           : numberOfEntries ,
+            'additionalAttributes' : True ,
+            'extraLine'            : 'userpassword: password' ,
+            'templateFile'         : ldifTemplate ,
+            'templateLocation'     : masterHost
+            }
+          </call>
+  
+          <message>
+            'Preamble: Make the ldif file'
+          </message>
+  
+          <call function="'MakeLdifWithScript'">
+            {
+            'location'     : masterHost,
+              'dsPath'       : masterPath,
+            'templateFile' : ldifTemplate ,
+            'ldifFile'     : ldifFile
+            }
+          </call>
+        </sequence>
+        <else>
+          <message>
+            'Preamble: File %s exists, do nothing' % ldifFile
+          </message>
+        </else>
+      </if>
+  
+      <message>
+         'Preamble: Import the ldif file'
+      </message>
+  
+      <call function="'ImportLdifWithScript'">
+        {
+        'location'   : masterHost ,
+        'dsPath'     : masterPath,
+        'ldifFile'   : ldifFile ,
+        'backEnd'    : 'userRoot'
+        }
+      </call>
+  
+      <message>
+        'Preamble: Start DS to run on port %s' % master.getPort()
+      </message>
+      
+      <call function="'StartDsWithScript'">
+        { 'location' : masterHost,
+          'dsPath'   : masterPath }
+      </call>
+
+        <message>
+          'Preamble: Perform the total update'
+        </message>
+        
+        <call function="'initializeReplication'">
+          { 'location'                : clientHost,
+            'dsPath'                  : clientPath,
+            'sourceInstanceHost'      : masterHost,
+            'sourceInstanceAdminPort' : master.getAdminPort(),
+            'replicationDnList'       : [synchroSuffix]
+          }
+        </call>
+
+        <message>
+          'Preamble: Verify the tree synchronization'
+        </message>
+        
+        <call function="'verifyTreesSdk'">
+          [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+        </call>
+
+      <call function="'testCase_Postamble'"/>
+  
+    </sequence>
+  </testcase>
+  </function>
+  
+  <!--- Test Case information
+  #@TestMarker          Basic: replication operations
+  #@TestName            Basic: replication operations 
+  #@TestID              basic_replication_operations_001
+  #@TestPurpose         Verify basic LDAP modify operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP modify operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_replication_operations_001" scope="local">
+    <testcase name="getTestCaseName('modrate')">                  
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'ModRate.' }
+            </call>
+            
+            <timer duration="timerDuration">
+              <sequence>
+                <call function="'modRate'">
+                  { 'dsPath'         : masterPath,
+                    'dsInstanceHost' : masterHost,
+                    'dsInstancePort' : master.getPort(),
+                    'dsInstanceDn'   : master.getRootDn(),
+                    'dsInstancePswd' : master.getRootPwd(),
+                    'dsBaseDN'       : '"uid=user.%s,ou=People,o=example"',
+                    'extraParams'    : '-g "rand(0,%s)" -g "randstr(40)" -c 10' % (numberOfEntries - 1),
+                    'attribute'      : 'description' ,
+                    'formatString'   : '"%s"',
+                    'outputFile'     : 'replication_modrate.res',
+                    'outputPath'     : remote.temp
+                  }
+                </call>
+              </sequence>
+            </timer>
+            
+            <call function="'getFile'">
+              { 'location'    : masterHost ,
+                'filename'    : '%s/replication_modrate.res' % remote.temp
+              }
+            </call>
+            <message>
+              cmdResult
+            </message>
+
+            <script>
+              import re
+              f=open('%s/replication_modrate.res' % remote.temp)
+              errorFound=False
+              for line in f.readlines():
+                line = line.replace('\n','')
+                if re.search('^[0-9].*', line) is not None:
+                  if line.split()[7] != '0.0':
+                    errorFound=True
+            </script>
+            <if expr="errorFound == False">
+              <tcstatus result="'pass'"/>
+              <else>
+                <sequence>
+                  <message>'Error found during modrate'</message>
+                  <tcstatus result="'fail'"/>
+                </sequence>
+              </else>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the master.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : masterPath,
+              'dsInstanceHost'   : masterHost,
+              'dsInstancePort'   : master.getPort(),
+              'dsInstanceDn'     : master.getRootDn(),
+              'dsInstancePswd'   : master.getRootPwd(),
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn'
+              }                
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the client.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : clientPath,
+              'dsInstanceHost'   : clientHost,
+              'dsInstancePort'   : client.getPort(),
+              'dsInstanceDn'     : client.getRootDn(),
+              'dsInstancePswd'   : client.getRootPwd(),
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn'
+              }                
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify the tree synchronization.' }
+            </call>
+
+            <call function="'verifyTreesSdk'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>  
+  
+  <!--- Test Case information
+  #@TestMarker          Basic: replication operations
+  #@TestName            Basic: replication operations 
+  #@TestID              basic_replication_operations_002
+  #@TestPurpose         Verify basic LDAP authentication operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP authentication operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_replication_operations_002" scope="local">
+    <testcase name="getTestCaseName('addrate')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Addrate.' }
+            </call>
+
+            <timer duration="timerDuration">
+              <sequence>
+              <call function="'addRate'">
+                { 'dsPath'         : masterPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'templateFile'   : addTemplate,
+                  'extraParams'    : '-g "inc(%s,%s)" -g "randstr(5)" -g "randstr(5)" -g "randstr(5)" -g "randstr(5)" -m 100000' \
+                                    % (numberOfEntries, 2 * numberOfEntries),
+                  'outputFile'     : 'replication_addrate.res',
+                  'outputPath'     : remote.temp
+                }
+              </call>
+              </sequence>
+            </timer>
+            
+            <call function="'getFile'">
+              { 'location'    : masterHost ,
+                'filename'    : '%s/replication_addrate.res' % remote.temp
+              }
+            </call>
+            <message>
+              cmdResult
+            </message>
+
+            <script>
+              import re
+              f=open('%s/replication_addrate.res' % remote.temp)
+              errorFound=False
+              for line in f.readlines():
+                line = line.replace('\n','')
+                if re.search('^[0-9].*', line) is not None:
+                  if line.split()[7] != '0.0':
+                    errorFound=True
+            </script>
+            <if expr="errorFound == False">
+              <tcstatus result="'pass'"/>
+              <else>
+              <sequence>
+                <message>'Error found during addrate'</message>
+                <tcstatus result="'fail'"/>
+              </sequence>
+              </else>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the master and check number of entries.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : masterPath,
+              'dsInstanceHost'   : masterHost,
+              'dsInstancePort'   : master.getPort(),
+              'dsInstanceDn'     : master.getRootDn(),
+              'dsInstancePswd'   : master.getRootPwd(),
+              'dsCountEntries'   : 'True' ,
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn',
+              'outputFile'       : 'ldapsearch_add_master.out' ,
+              'outputPath'       : remote.temp
+              }                
+            </call>
+            
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : '%s/ldapsearch_add_master.out' % remote.temp ,
+              'testString': 'Total number of matching entries: 200002'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the client and check number of entries.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : clientPath,
+              'dsInstanceHost'   : clientHost,
+              'dsInstancePort'   : client.getPort(),
+              'dsInstanceDn'     : client.getRootDn(),
+              'dsInstancePswd'   : client.getRootPwd(),
+              'dsCountEntries'   : 'True' ,
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn',
+              'outputFile'       : 'ldapsearch_add_client.out' ,
+              'outputPath'       : remote.temp
+              }                
+            </call>
+            
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : '%s/ldapsearch_add_client.out' % remote.temp ,
+              'testString': 'Total number of matching entries: 200002'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify the tree synchronization.' }
+            </call>
+
+            <call function="'verifyTreesSdk'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Basic: replication operations
+  #@TestName            Basic: replication operations 
+  #@TestID              basic_replication_operations_003
+  #@TestPurpose         Verify basic LDAP search operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP search operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_replication_operations_003" scope="local">
+    <testcase name="getTestCaseName('delrate')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'DelRate.' }
+            </call>
+            
+            <timer duration="timerDuration">
+              <sequence>
+              <call function="'delRate'">
+                { 'dsPath'         : masterPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'dsBaseDN'       : '"uid=user.%s,ou=People,o=example"',
+                  'extraParams'    : '-g "inc(0,%s)" -m 100000' % (numberOfEntries - 1),
+                  'outputFile'     : 'replication_delrate.res',
+                  'outputPath'     : remote.temp
+                }
+              </call>
+              </sequence>
+            </timer>
+
+            <call function="'getFile'">
+              { 'location'    : masterHost ,
+                'filename'    : '%s/replication_delrate.res' % remote.temp
+              }
+            </call>
+            <message>
+              cmdResult
+            </message>
+            
+            <script>
+              import re
+              f=open('%s/replication_delrate.res' % remote.temp)
+              errorFound=False
+              for line in f.readlines():
+                line = line.replace('\n','')
+                if re.search('^[0-9].*', line) is not None:
+                  if line.split()[7] != '0.0':
+                    errorFound=True
+            </script>
+            <if expr="errorFound == False">
+              <tcstatus result="'pass'"/>
+              <else>
+                <sequence>
+                  <message>'Error found during delrate'</message>
+                  <tcstatus result="'fail'"/>
+                </sequence>
+              </else>
+            </if>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the master and check number of entries.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : masterPath,
+              'dsInstanceHost'   : masterHost,
+              'dsInstancePort'   : master.getPort(),
+              'dsInstanceDn'     : master.getRootDn(),
+              'dsInstancePswd'   : master.getRootPwd(),
+              'dsCountEntries'   : 'True' ,
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn',
+              'outputFile'       : 'ldapsearch_del_master.out' ,
+              'outputPath'       : remote.temp
+              }                
+            </call>
+            
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : '%s/ldapsearch_del_master.out' % remote.temp ,
+              'testString': 'Total number of matching entries: 100002'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : 'Do search on the client and check number of entries.' }
+            </call>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+              'dsPath'           : clientPath,
+              'dsInstanceHost'   : clientHost,
+              'dsInstancePort'   : client.getPort(),
+              'dsInstanceDn'     : client.getRootDn(),
+              'dsInstancePswd'   : client.getRootPwd(),
+              'dsCountEntries'   : 'True' ,
+              'dsBaseDN'         : synchroSuffix,
+              'dsFilter'         : 'objectclass=*',
+              'dsAttributes'     : 'dn',
+              'outputFile'       : 'ldapsearch_del_client.out' ,
+              'outputPath'       : remote.temp
+              }                
+            </call>
+            
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : '%s/ldapsearch_del_client.out' % remote.temp ,
+              'testString': 'Total number of matching entries: 100002'
+              }
+            </call>
+            
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify the tree synchronization.' }
+            </call>
+
+            <call function="'verifyTreesSdk'">
+              [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+</stax>

@@ -534,7 +534,7 @@
       <return> diffRC </return>
     </sequence>
   </function>
-  
+
   <!-- This function modifies an LDIF file using ldifmodify script -->
   <function name="LdifModifyWithScript">
     <function-prolog>
@@ -869,7 +869,213 @@
       <return>[myRC, failedServers]</return>
     </sequence>
   </function>
-  
+
+  <function name="verifyTreesSdk">
+    <function-prolog>
+      This function verifies that the trees in a group of ldap servers are
+      synchronized.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="referenceServer" type="required">
+        <function-arg-description>
+          Server that should be taken as reference.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server"/>
+      </function-arg-def>
+      
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="treeSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="ignoreAttrsFile" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          File containing a list of attributes to ignore when computing the
+          difference
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-list-args>
+    <sequence>
+      <script>
+        myRC = 0
+        myKnownIssue = knownIssue
+        failedServers = []
+        failingServerList = ''
+        referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)
+        referenceTree = 'referenceTree.ldif'
+        sampleTree = 'sampleTree.ldif'
+        treeDiffs = 'treeDiffs.ldif'
+      </script>
+      
+      <!-- Verify the synchronization of the trees among the servers in 
+        the topology -->         
+      <call function="'getReplicationStatus'">
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : referenceServer.getHostname(),
+          'dsInstanceAdminPort' : referenceServer.getAdminPort(),
+          'replicationDnList'   : [treeSuffix],
+          'noOfLoops'           : 10, 
+          'noOfMilliSeconds'    : 6000
+        }
+      </call>
+      
+      <message>
+        'Verify tree %s taking %s as reference.' \
+        % (treeSuffix, referenceServerPath)
+      </message>
+      <!-- Retrieve the tree from the reference server -->      
+      <call function="'exportLdifWithScript'">
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : referenceServer.getHostname(),
+          'dsInstanceAdminPort' : referenceServer.getAdminPort(),
+          'dsInstanceDn'        : referenceServer.getRootDn(),
+          'dsInstancePswd'      : referenceServer.getRootPwd(),
+          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree),
+          'includeBranches'     : [treeSuffix]
+        }
+      </call>
+            
+      <if expr="RC != 0">
+        <!-- If the reference tree could not be retrieved, return an error -->
+        <return> [1, None] </return>
+      </if>
+      <iterate var="server" in="serverList">
+        <sequence>
+          <!-- Retrieve the same tree for every other server in the list -->
+          <if expr="server.getHostname() == location">
+            <script>
+              filePath = dsPath
+              isSameLocation = True
+            </script>
+            <else>
+              <script>
+                filePath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                isSameLocation = False
+              </script>
+            </else>
+          </if>
+          <call function="'exportLdifWithScript'">
+            { 'location'            : location,
+              'dsPath'              : dsPath,
+              'dsInstanceHost'      : server.getHostname(),
+              'dsInstanceAdminPort' : server.getAdminPort(),
+              'dsInstanceDn'        : server.getRootDn(),
+              'dsInstancePswd'      : server.getRootPwd(),
+              'ldifFile'            : '%s/../%s' % (filePath, sampleTree),
+              'includeBranches'     : [treeSuffix]
+            }
+          </call>
+          
+          <if expr="RC == 0">
+            <sequence>
+              
+              <if expr="not isSameLocation">
+                <!-- Copy sample tree file to reference server -->  
+                <call function="'copyFile'">
+                  { 'location'   : server.getHostname(),
+                    'remotehost' : location,
+                    'srcfile'    : '%s/../%s' % (filePath, sampleTree),
+                    'destfile'   : '%s/../%s' % (dsPath, sampleTree)
+                  }
+                </call>
+              </if>
+              
+              <!-- Compare this tree to the reference one -->
+              <call function="'LdifDiffSdk'">
+                { 'location'        : location,
+                  'dsPath'          : dsPath,
+                  'sourceLdif'      : '%s/../%s' % (dsPath, sampleTree),
+                  'targetLdif'      : '%s/../%s' % (dsPath, referenceTree),
+                  'outputLdif'      : '%s/../%s' % (dsPath, treeDiffs)
+                }
+              </call>
+              <if expr="STAXResult[0][0] != 0">
+                <sequence>
+                  <script>
+                    failedServers.append('%s:%s' % \
+                                         (server.getHostname(), server.getPort()))
+                  </script>
+                  <message log="1" level="'Error'">
+                    'Tree is DIFFERENT for %s:%s compared to %s:%s' % \
+                    (server.getHostname(), server.getPort(), 
+                     referenceServer.getHostname(), referenceServer.getPort())
+                  </message>
+                </sequence>
+              </if>
+            </sequence>
+            <else>
+              <script>
+                failedServers.append('%s:%s' % \
+                                     (server.getHostname(), server.getPort()))
+              </script>
+            </else>
+          </if>
+        </sequence>
+      </iterate>
+      <if expr="len(failedServers) > 0">
+        <!-- If at least one server failed to successfully compare to the
+         !   reference tree, return an error, along with the list of the 
+         !   servers that failed to do so --> 
+        <script>
+          myRC = 1
+          comma = ','  
+          failingServerList = \
+            'List of non-synchronized servers (tree verify FAILED): %s ' \
+            % comma.join(failedServers)
+        </script>
+        <else>
+          <message>
+            'All servers synchronized (tree verify SUCCEEDED).'
+          </message>
+        </else>
+      </if>
+      <call function="'checktestRC'">
+        { 'returncode' : myRC,
+          'result'     : failingServerList,
+          'expected'   : 0,
+          'issue'      : myKnownIssue
+        }
+      </call>
+      <return>[myRC, failedServers]</return>
+    </sequence>
+  </function>
   
   <function name="verifySchemas">
     <function-prolog>

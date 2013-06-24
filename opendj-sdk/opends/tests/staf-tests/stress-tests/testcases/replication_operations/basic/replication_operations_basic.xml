@@ -23,17 +23,17 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011-2013 ForgeRock AS.
+ !      Copyright 2013 ForgeRock AS.
  ! -->
 <stax>
-  <defaultcall function="main_operations_basic"/>
-  <function name="main_operations_basic" scope="local">
+  <defaultcall function="main_replication_operations_basic"/>
+  <function name="main_replication_operations_basic" scope="local">
     <sequence>
-      <block name="'main_operations_basic'">
+      <block name="'main_replication_operations_basic'">
         <try>
           <sequence>
             <script>
-              CurrentTestPath['group']='operations'        
+              CurrentTestPath['group']='replication_operations'        
               CurrentTestPath['suite']='basic'
               
               __group=CurrentTestPath['group']
@@ -41,8 +41,8 @@
             </script>
 
             <!--- Test Suite information
-            #@TestSuiteName       Basic operations suite
-            #@TestSuitePurpose    Verify basic operations
+            #@TestSuiteName       Basic replication operations suite
+            #@TestSuitePurpose    Verify basic replication operations
             #@TestSuiteID         Suite
             #@TestSuiteGroup      Basic
             #@TestGroup           Basic
@@ -54,17 +54,14 @@
             <try>
               <sequence> 
 
-                <call function="'common_setup'">
-                  {
-                    'quickStart'    : False ,
-                    'startServer'   : False
-                  }
-                </call>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/../functional-tests/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
+                <call function="'replication_setup'"/>
  
                 <!-- List of Import of Test Functions -->
                 <script>
                   importList=[]
-                  importList.append('basic/operations_basic_tests')
+                  importList.append('basic/replication_operations_basic_tests')
                 </script>
 
                 <!-- Import the files for this test suite -->
@@ -77,18 +74,17 @@
                 <script>
                   timerDuration   = '2h'
                   numberOfEntries = 100000
-                  addTemplate     = '%s/operations/add_template.ldif' % remote.data
+                  addTemplate     = '%s/replication_operations/add_template.ldif' % remote.data
                   ldifFile        = '%s/import_Entries_100k.ldif' % remote.temp
                 </script>
-			    
+          
                 <!-- List of Test Cases -->
                 <script>
                   testsList=[]
-                  testsList.append('basic_operations_000')
-                  testsList.append('basic_operations_001')
-                  testsList.append('basic_operations_002')
-                  testsList.append('basic_operations_003')
-                  testsList.append('basic_operations_004')
+                  testsList.append('basic_replication_operations_000')
+                  #testsList.append('basic_replication_operations_001')
+                  testsList.append('basic_replication_operations_002')
+                  testsList.append('basic_replication_operations_003')
                 </script>
 
                 <!-- Execute the Tests -->
@@ -121,8 +117,11 @@
               <!-- Test Suite Cleanup -->
               <message>'Finally: Global Cleanup.'</message>
               <try>
-                <!--<call function="'common_cleanup'" />-->
-                <message>'gfgd'</message>
+                <sequence>
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
+                  <call function="'replication_cleanup'"/>
+                </sequence>
               <catch exception="'STAFException'">
                 <sequence>
                   <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
