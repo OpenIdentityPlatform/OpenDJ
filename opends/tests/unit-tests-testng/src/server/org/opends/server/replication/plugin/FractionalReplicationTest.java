@@ -23,24 +23,20 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.util.StaticUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -60,84 +56,80 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Various tests around fractional replication
  */
+@SuppressWarnings("javadoc")
 public class FractionalReplicationTest extends ReplicationTestCase {
 
-  // The RS
+  /** The RS */
   private ReplicationServer replicationServer = null;
-  // RS port
+  /** RS port */
   private int replServerPort = -1;
-  // Represents the real domain to test (replays and filters)
+  /** Represents the real domain to test (replays and filters) */
   private Entry fractionalDomainCfgEntry = null;
-  // The domain used to send updates to the reald domain
+  /** The domain used to send updates to the reald domain */
   private FakeReplicationDomain replicationDomain = null;
 
-  // Ids of servers
+  /** Ids of servers */
   private static final int DS1_ID = 1; // fractional domain
   private static final int DS2_ID = 2; // fake domain
   private static final int RS_ID = 91; // replication server
 
   private final String testName = this.getClass().getSimpleName();
 
-  // Fractional mode
+  /** Fractional mode */
   private static final int EXCLUDE_FRAC_MODE = 0;
   private static final int INCLUDE_FRAC_MODE = 1;
 
   int initWindow = 100;
   private ChangeNumberGenerator gen = null;
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
-  // Number of seconds before generating an error if some conditions not met
+  /** Number of seconds before generating an error if some conditions not met */
   private static final int TIMEOUT = 10000;
 
-  // Uuid of the manipulated entry
+  /** Uuid of the manipulated entry */
   private static final String ENTRY_UUID =
     "11111111-1111-1111-1111-111111111111";
   private static final String ENTRY_UUID2 =
     "22222222-2222-2222-2222-222222222222";
   private static final String ENTRY_UUID3 =
     "33333333-3333-3333-3333-333333333333";
-  // Dn of the manipulated entry
+  /** Dn of the manipulated entry */
   private static String ENTRY_DN = "uid=1," + TEST_ROOT_DN_STRING;
 
-  // Optional attribute not part of concerned attributes of the fractional
-  // configuration during tests. It should not be impacted by fractional
-  // mechanism
+  /**
+   * Optional attribute not part of concerned attributes of the fractional
+   * configuration during tests. It should not be impacted by fractional
+   * mechanism
+   */
   private static final String OPTIONAL_ATTR = "description";
 
-  // Optional attribute used as synchronization attribute to know when the modify
-  // operation has been processed (used as add new attribute in the modify operation)
-  // It may or may not be part of the filtered attributes, depending on the fractional
-  // test mode : exclusive or inclusive
+  /**
+   * Optional attribute used as synchronization attribute to know when the
+   * modify operation has been processed (used as add new attribute in the
+   * modify operation) It may or may not be part of the filtered attributes,
+   * depending on the fractional test mode : exclusive or inclusive
+   */
   private static final String SYNCHRO_OPTIONAL_ATTR = "seeAlso";
 
-  // Second test backend
+  /** Second test backend */
   private static final String TEST2_ROOT_DN_STRING = "dc=example,dc=com";
   private static final String TEST2_ORG_DN_STRING = "o=test2," + TEST2_ROOT_DN_STRING;
   private static String ENTRY_DN2 = "uid=1," + TEST2_ORG_DN_STRING;
@@ -456,7 +448,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void createFakeReplicationDomain(boolean firstBackend, long generationId)
   {
     try{
-
       List<String> replicationServers = new ArrayList<String>();
       replicationServers.add("localhost:" + replServerPort);
 
@@ -474,7 +465,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       String rdPortStr = serverStr.substring(index + 1);
       try
       {
-        rdPort = (new Integer(rdPortStr)).intValue();
+        rdPort = Integer.valueOf(rdPortStr);
       } catch (Exception e)
       {
         fail("Enable to get an int from: " + rdPortStr);
@@ -706,11 +697,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       this.exportedEntryCount = exportedEntryCount;
     }
 
-    public void initImport(StringBuilder importString)
-    {
-      this.importString = importString;
-    }
-
     @Override
     public long countEntries() throws DirectoryException
     {
@@ -730,7 +716,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
           ERR_BACKEND_EXPORT_ENTRY.get("", ""));
       }
-
     }
 
     @Override
@@ -761,16 +746,11 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     }
 
     @Override
-    public boolean processUpdate(UpdateMsg updateMsg)
+    public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
     {
       if (queue != null)
         queue.add(updateMsg);
       return true;
-    }
-
-    public void setGenerationID(long newGenerationID)
-    {
-      generationID = newGenerationID;
     }
   }
 
@@ -1320,7 +1300,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           "domain status obtained after " + (toWait-nSec) + " second(s).");
         return;
       }
-      sleep(1000);
+      TestCaseUtils.sleep(1000);
       nSec--;
     }
     fail("Did not get expected replication domain status: expected <" + expectedStatus +
@@ -1567,9 +1547,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       String entryLdif = "dn: displayName=ValueToBeKept," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1620,9 +1599,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1698,9 +1676,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       String entryLdif = "dn: displayName=ValueToBeKept," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1754,9 +1731,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1834,9 +1810,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1936,7 +1911,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   @Test
   public void testModifyDnWithForbiddenAttrInRDNInclude()
   {
-     String testcase = "testModifyDnWithForbiddenAttrInRDNInclude";
+    String testcase = "testModifyDnWithForbiddenAttrInRDNInclude";
 
     initTest();
 
@@ -1953,9 +1928,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       /*
-       * Perform add operation with fornbidden attribute in RDN
+       * Perform add operation with forbidden attribute in RDN
        */
-
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +

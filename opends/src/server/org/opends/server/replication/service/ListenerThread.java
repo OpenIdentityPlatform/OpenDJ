@@ -26,14 +26,15 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.service;
-import org.opends.messages.Message;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -50,7 +51,7 @@ public class ListenerThread extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
 
   private final ReplicationDomain repDomain;
-  private volatile boolean shutdown = false;
+  private AtomicBoolean shutdown = new AtomicBoolean(false);
   private volatile boolean done = false;
 
 
@@ -72,7 +73,7 @@ public class ListenerThread extends DirectoryThread
    */
   public void shutdown()
   {
-    shutdown = true;
+    shutdown.set(true);
   }
 
   /**
@@ -81,22 +82,21 @@ public class ListenerThread extends DirectoryThread
   @Override
   public void run()
   {
-    UpdateMsg updateMsg = null;
-
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Listener thread starting.");
     }
 
-    while (!shutdown)
+    while (!shutdown.get())
     {
+      UpdateMsg updateMsg = null;
       try
       {
-        // Loop receiving update messages and puting them in the update message
+        // Loop receiving update messages and putting them in the update message
         // queue
-        while ((!shutdown) && ((updateMsg = repDomain.receive()) != null))
+        while (!shutdown.get() && ((updateMsg = repDomain.receive()) != null))
         {
-          if (repDomain.processUpdate(updateMsg))
+          if (repDomain.processUpdate(updateMsg, shutdown))
           {
             repDomain.processUpdateDoneSynchronous(updateMsg);
           }
@@ -104,7 +104,7 @@ public class ListenerThread extends DirectoryThread
 
         if (updateMsg == null)
         {
-          shutdown = true;
+          shutdown.set(true);
         }
       }
       catch (Exception e)

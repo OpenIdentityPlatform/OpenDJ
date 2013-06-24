@@ -26,20 +26,20 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.opends.messages.Message;
-
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
 /**
  * Thread that is used to get message from the replication servers (stored
@@ -56,7 +56,7 @@ public class ReplayThread extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
 
   private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
-  private volatile boolean shutdown = false;
+  private AtomicBoolean shutdown = new AtomicBoolean(false);
   private static int count = 0;
 
   /**
@@ -75,7 +75,7 @@ public class ReplayThread extends DirectoryThread
    */
   public void shutdown()
   {
-    shutdown = true;
+    shutdown.set(true);
   }
 
   /**
@@ -84,27 +84,26 @@ public class ReplayThread extends DirectoryThread
   @Override
   public void run()
   {
-
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Replay thread starting.");
     }
 
-    while (!shutdown)
+    while (!shutdown.get())
     {
       try
       {
         UpdateToReplay updateToreplay;
         // Loop getting an updateToReplayQueue from the update message queue and
         // replaying matching changes
-        while ( (!shutdown) &&
+        while (!shutdown.get() &&
           ((updateToreplay = updateToReplayQueue.poll(1L,
           TimeUnit.SECONDS)) != null))
         {
           // Find replication domain for that update message
           LDAPUpdateMsg updateMsg = updateToreplay.getUpdateMessage();
           LDAPReplicationDomain domain = updateToreplay.getReplicationDomain();
-          domain.replay(updateMsg);
+          domain.replay(updateMsg, shutdown);
         }
       } catch (Exception e)
       {

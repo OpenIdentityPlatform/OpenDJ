@@ -23,13 +23,16 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
@@ -40,24 +43,20 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.types.*;
 import org.testng.annotations.Test;
-
-
-import static org.testng.Assert.*;
-
 
 /**
  * Test the naming conflict resolution code.
  */
+@SuppressWarnings("javadoc")
 public class NamingConflictTest extends ReplicationTestCase
 {
+
+  private static final AtomicBoolean SHUTDOWN = new AtomicBoolean(false);
+
   /**
    * Test for issue 3402 : test, that a modrdn that is older than an other
    * modrdn but that is applied later is ignored.
@@ -123,10 +122,10 @@ public class NamingConflictTest extends ReplicationTestCase
       "uid=simultaneous2");
 
       // Put the message in the replay queue
-      domain.processUpdate(modDnMsg);
+      domain.processUpdate(modDnMsg, SHUTDOWN);
 
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // This MODIFY DN uses an older DN and should therefore be cancelled
       // at replay time.
@@ -137,11 +136,11 @@ public class NamingConflictTest extends ReplicationTestCase
       "uid=simulatneouswrong");
 
       // Put the message in the replay queue
-      domain.processUpdate(modDnMsg);
+      domain.processUpdate(modDnMsg, SHUTDOWN);
 
       // Make the domain replay the change from the replay queue
       // and resolve conflict
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the conflict resolution
       assertFalse(DirectoryServer.entryExists(entry.getDN()),
@@ -158,8 +157,6 @@ public class NamingConflictTest extends ReplicationTestCase
    * a delete operation has removed one of the conflicting entries
    * the other conflicting entry is correctly renamed to its
    * original name.
-   *
-   * @throws Exception if the test fails.
    */
   @Test(enabled=true)
   public void conflictCleaningDelete() throws Exception
@@ -215,10 +212,10 @@ public class NamingConflictTest extends ReplicationTestCase
             null);
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg);
+      domain.processUpdate(addMsg, SHUTDOWN);
 
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Now delete the first entry that was added at the beginning
       TestCaseUtils.deleteEntry(entry.getDN());
@@ -226,7 +223,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Expect the conflict resolution : the second entry should now
       // have been renamed with the original DN.
       Entry resultEntry = DirectoryServer.getEntry(entry.getDN());
-      assertTrue(resultEntry != null, "The conflict was not cleared");
+      assertNotNull(resultEntry, "The conflict was not cleared");
       assertEquals(getEntryUUID(resultEntry.getDN()),
           "c9cb8c3c-615a-4122-865d-50323aaaed48",
           "The wrong entry has been renamed");
@@ -300,10 +297,10 @@ public class NamingConflictTest extends ReplicationTestCase
             null);
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg);
+      domain.processUpdate(addMsg, SHUTDOWN);
 
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Now delete the first entry that was added at the beginning
       InternalClientConnection conn =
@@ -316,7 +313,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Expect the conflict resolution : the second entry should now
       // have been renamed with the original DN.
       Entry resultEntry = DirectoryServer.getEntry(entry.getDN());
-      assertTrue(resultEntry != null, "The conflict was not cleared");
+      assertNotNull(resultEntry, "The conflict was not cleared");
       assertEquals(getEntryUUID(resultEntry.getDN()),
           "c9cb8c3c-615a-4122-865d-50323aaaed48",
           "The wrong entry has been renamed");
@@ -409,9 +406,9 @@ public class NamingConflictTest extends ReplicationTestCase
       delMsg.setSubtreeDelete(true);
 
       // Put the message in the replay queue
-      domain.processUpdate(delMsg);
+      domain.processUpdate(delMsg, SHUTDOWN);
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the subtree to be deleted and no conflict entry created
       assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
@@ -488,9 +485,9 @@ public class NamingConflictTest extends ReplicationTestCase
       // NOT SUBTREE
 
       // Put the message in the replay queue
-      domain.processUpdate(delMsg);
+      domain.processUpdate(delMsg, SHUTDOWN);
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the parent entry to be deleted
       assertTrue(!DirectoryServer.entryExists(parentEntry.getDN()),
@@ -502,7 +499,6 @@ public class NamingConflictTest extends ReplicationTestCase
           "+cn=child,o=test");
       assertTrue(DirectoryServer.entryExists(childDN),
           "Child entry conflict exist with DN="+childDN);
-
     }
     finally
     {
@@ -572,9 +568,9 @@ public class NamingConflictTest extends ReplicationTestCase
           new ArrayList<Attribute>());
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg);
+      domain.processUpdate(addMsg, SHUTDOWN);
       // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage());
+      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the parent entry to be deleted
       assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
@@ -586,7 +582,6 @@ public class NamingConflictTest extends ReplicationTestCase
           "+cn=child,o=test");
       assertTrue(DirectoryServer.entryExists(childDN),
           "Child entry conflict exist with DN="+childDN);
-
     }
     finally
     {
