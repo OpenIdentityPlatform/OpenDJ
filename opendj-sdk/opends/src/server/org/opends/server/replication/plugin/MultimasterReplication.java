@@ -29,7 +29,8 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.replication.plugin.ReplicationRepairRequestControl.*;
+import static org.opends.server.replication.plugin.
+ReplicationRepairRequestControl.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
