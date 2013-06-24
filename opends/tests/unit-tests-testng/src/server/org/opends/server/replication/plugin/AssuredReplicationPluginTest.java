@@ -32,13 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.UUID;
+import java.util.*;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -71,21 +65,20 @@ import static org.testng.Assert.*;
  * DS (timeout, wait for acks, error handling...)
  * Also check for monitoring values for assured replication
  */
-public class AssuredReplicationPluginTest
-  extends ReplicationTestCase
+public class AssuredReplicationPluginTest extends ReplicationTestCase
 {
 
-  /**
-   * The port of the replicationServer.
-   */
+  /** The port of the replicationServer. */
   private int replServerPort;
   private final int RS_SERVER_ID = 90;
-  // Sleep time of the RS, before sending an ack
+  /** Sleep time of the RS, before sending an ack */
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
-  private final String testName = this.getClass().getSimpleName();
+  private final String testName = getClass().getSimpleName();
 
-  // Create to distincts base dn, one for safe data replication, the other one
-  // for safe read replication
+  /**
+   * Create two distinct base dns, one for safe data replication, the other one
+   * for safe read replication
+   */
   private final String SAFE_DATA_DN = "ou=safe-data," + TEST_ROOT_DN_STRING;
   private final String SAFE_READ_DN = "ou=safe-read," + TEST_ROOT_DN_STRING;
   private final String NOT_ASSURED_DN = "ou=not-assured," + TEST_ROOT_DN_STRING;
@@ -93,7 +86,7 @@ public class AssuredReplicationPluginTest
   private Entry safeReadDomainCfgEntry = null;
   private Entry notAssuredDomainCfgEntry = null;
 
-  // The fake replication server
+  /** The fake replication server */
   private FakeReplicationServer replicationServer = null;
 
   // Definitions for the scenario the RS supports
@@ -104,7 +97,7 @@ public class AssuredReplicationPluginTest
   private static final int SAFE_DATA_MANY_ERRORS = 5;
   private static final int NO_READ = 6;
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private void debugInfo(String s)
