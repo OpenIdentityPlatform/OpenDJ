@@ -97,7 +97,7 @@
                     'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
+                    'optionsString'        : '--index-name description --set index-type:approximate --set index-type:equality --set index-type:presence --set index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
@@ -108,7 +108,7 @@
                     'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name employeeNumber --add index-type:approximate --add index-type:equality --add index-type:ordering --add index-type:presence --add index-type:substring ' ,
+                    'optionsString'        :'--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
