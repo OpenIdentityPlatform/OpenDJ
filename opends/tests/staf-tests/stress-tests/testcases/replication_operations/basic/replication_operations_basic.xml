@@ -82,7 +82,7 @@
                 <script>
                   testsList=[]
                   testsList.append('basic_replication_operations_000')
-                  #testsList.append('basic_replication_operations_001')
+                  testsList.append('basic_replication_operations_001')
                   testsList.append('basic_replication_operations_002')
                   testsList.append('basic_replication_operations_003')
                 </script>
