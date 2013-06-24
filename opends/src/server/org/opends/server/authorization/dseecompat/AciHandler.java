@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.authorization.dseecompat;
@@ -61,30 +61,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
 
 
@@ -1096,15 +1073,7 @@ public final class AciHandler extends
       LocalBackendModifyDNOperation op) throws DirectoryException
   {
     boolean ret = false;
-    Lock entryLock = null;
-    for (int i = 0; i < 3; i++)
-    {
-      entryLock = LockManager.lockRead(superiorDN);
-      if (entryLock != null)
-      {
-        break;
-      }
-    }
+    final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
       Message message =

@@ -23,87 +23,42 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
-
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.crypto.Mac;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.CryptoManager;
-import org.opends.server.types.CryptoManagerException;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.opends.server.types.*;
+import org.opends.server.util.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -711,18 +666,10 @@ public class TaskBackend
     Lock entryLock = null;
     if (! taskScheduler.holdsSchedulerLock())
     {
-      for (int i=0; i < 3; i++)
-      {
-        entryLock = LockManager.lockWrite(entryDN);
-        if (entryLock != null)
-        {
-          break;
-        }
-      }
-
+      entryLock = LockManager.lockWrite(entryDN);
       if (entryLock == null)
       {
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(ResultCode.BUSY,
                                      ERR_TASKBE_MODIFY_CANNOT_LOCK_ENTRY.get(
                                           String.valueOf(entryDN)));
       }
@@ -2043,6 +1990,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
                                             List<Message> unacceptableReasons)
   {
@@ -2140,6 +2088,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;

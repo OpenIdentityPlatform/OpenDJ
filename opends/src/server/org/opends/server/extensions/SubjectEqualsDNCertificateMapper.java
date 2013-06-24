@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -30,8 +31,9 @@ package org.opends.server.extensions;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import javax.security.auth.x500.X500Principal;
 import java.util.concurrent.locks.Lock;
+
+import javax.security.auth.x500.X500Principal;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SubjectEqualsDNCertificateMapperCfg;
@@ -39,19 +41,11 @@ import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements a very simple Directory Server certificate mapper that
@@ -74,7 +68,6 @@ public class SubjectEqualsDNCertificateMapper
   public SubjectEqualsDNCertificateMapper()
   {
     super();
-
   }
 
 
@@ -82,6 +75,7 @@ public class SubjectEqualsDNCertificateMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeCertificateMapper(SubjectEqualsDNCertificateMapperCfg
                                                configuration)
          throws ConfigException, InitializationException
@@ -111,6 +105,7 @@ public class SubjectEqualsDNCertificateMapper
    *                              error message should be returned to the
    *                              client.
    */
+  @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
@@ -163,21 +158,11 @@ public class SubjectEqualsDNCertificateMapper
 
     // Acquire a read lock on the user entry.  If this fails, then so will the
     // certificate mapping.
-    Lock readLock = null;
-    for (int i=0; i < 3; i++)
-    {
-      readLock = LockManager.lockRead(subjectDN);
-      if (readLock != null)
-      {
-        break;
-      }
-    }
-
+    final Lock readLock = LockManager.lockRead(subjectDN);
     if (readLock == null)
     {
-      Message message =
-          ERR_SEDCM_CANNOT_LOCK_ENTRY.get(String.valueOf(subjectDN));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
+      throw new DirectoryException(ResultCode.BUSY, ERR_SEDCM_CANNOT_LOCK_ENTRY
+          .get(String.valueOf(subjectDN)));
     }
 
 

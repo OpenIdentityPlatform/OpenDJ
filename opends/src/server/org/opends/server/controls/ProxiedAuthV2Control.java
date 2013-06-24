@@ -26,27 +26,26 @@
  *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
 
-
-
-import java.util.concurrent.locks.Lock;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
+import org.opends.messages.Message;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.protocols.asn1.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.ensureNotNull;
-
+import static org.opends.server.util.Validator.*;
 
 /**
  * This class implements version 2 of the proxied authorization control as
@@ -247,22 +246,11 @@ public class ProxiedAuthV2Control
           authzDN = actualDN;
         }
 
-        Lock entryLock = null;
-        for (int i=0; i < 3; i++)
-        {
-          entryLock = LockManager.lockRead(authzDN);
-          if (entryLock != null)
-          {
-            break;
-          }
-        }
-
+        final Lock entryLock = LockManager.lockRead(authzDN);
         if (entryLock == null)
         {
-          Message message =
-              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(String.valueOf(authzDN));
-          throw new DirectoryException(
-                  ResultCode.AUTHORIZATION_DENIED, message);
+          throw new DirectoryException(ResultCode.BUSY,
+              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(String.valueOf(authzDN)));
         }
 
         try

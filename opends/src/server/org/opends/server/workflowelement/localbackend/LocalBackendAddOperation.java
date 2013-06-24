@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -46,19 +46,8 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.LDAPPostReadRequestControl;
-import org.opends.server.controls.PasswordPolicyErrorType;
-import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.AddOperationWrapper;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -152,6 +141,7 @@ public class LocalBackendAddOperation
    * @return  The entry to be added to the server, or <CODE>null</CODE> if it is
    *          not yet available.
    */
+  @Override
   public final Entry getEntryToAdd()
   {
     return entry;
@@ -234,21 +224,12 @@ addProcessing:
         // always released when exiting this method, no matter what.  Since
         // the entry shouldn't exist yet, locking earlier than necessary
         // shouldn't cause a problem.
-        for (int i=0; i < 3; i++)
-        {
-          entryLock = LockManager.lockWrite(entryDN);
-          if (entryLock != null)
-          {
-            break;
-          }
-        }
-
+        entryLock = LockManager.lockWrite(entryDN);
         if (entryLock == null)
         {
-          setResultCode(DirectoryServer.getServerErrorResultCode());
+          setResultCode(ResultCode.BUSY);
           appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
                                   String.valueOf(entryDN)));
-
           break addProcessing;
         }
 
@@ -751,6 +732,7 @@ addProcessing:
     {
       registerPostResponseCallback(new Runnable()
       {
+        @Override
         public void run()
         {
           // Notify persistent searches.
@@ -823,18 +805,10 @@ addProcessing:
     }
     else
     {
-      for (int i=0; i < 3; i++)
-      {
-        parentLock = LockManager.lockRead(parentDN);
-        if (parentLock != null)
-        {
-          break;
-        }
-      }
-
+      parentLock = LockManager.lockRead(parentDN);
       if (parentLock == null)
       {
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(ResultCode.BUSY,
                                      ERR_ADD_CANNOT_LOCK_PARENT.get(
                                           String.valueOf(entryDN),
                                           String.valueOf(parentDN)));

@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
-
 
 import java.util.List;
 import java.util.Set;
@@ -39,11 +37,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.CompareOperationWrapper;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationCompareOperation;
@@ -53,8 +47,6 @@ import org.opends.server.types.operation.PreOperationCompareOperation;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines an operation that may be used to determine whether a
@@ -114,6 +106,7 @@ public class LocalBackendCompareOperation
    * @return  The entry to target with the compare operation, or
    *          <CODE>null</CODE> if the entry is not yet available.
    */
+  @Override
   public Entry getEntryToCompare()
   {
     return entry;
@@ -180,22 +173,12 @@ compareProcessing:
 
 
       // Grab a read lock on the entry.
-      Lock readLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        readLock = LockManager.lockRead(entryDN);
-        if (readLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock readLock = LockManager.lockRead(entryDN);
       if (readLock == null)
       {
-        setResultCode(DirectoryServer.getServerErrorResultCode());
+        setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
                                 String.valueOf(entryDN)));
-
         break compareProcessing;
       }
 

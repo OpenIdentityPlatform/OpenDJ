@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -47,23 +47,12 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an implementation of a SASL mechanism that uses digest
@@ -349,23 +338,12 @@ public class CRAMMD5SASLMechanismHandler
 
       // Acquire a read lock on the user entry.  If this fails, then so will the
       // authentication.
-      Lock readLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        readLock = LockManager.lockRead(userDN);
-        if (readLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock readLock = LockManager.lockRead(userDN);
       if (readLock == null)
       {
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-
-        Message message = INFO_SASLCRAMMD5_CANNOT_LOCK_ENTRY.get(
-                String.valueOf(userDN));
-        bindOperation.setAuthFailureReason(message);
+        bindOperation.setResultCode(ResultCode.BUSY);
+        bindOperation.setAuthFailureReason(INFO_SASLCRAMMD5_CANNOT_LOCK_ENTRY
+            .get(String.valueOf(userDN)));
         return;
       }
 
@@ -614,6 +592,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       CramMD5SASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
@@ -626,6 +605,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               CramMD5SASLMechanismHandlerCfg configuration)
   {

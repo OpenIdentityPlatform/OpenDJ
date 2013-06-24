@@ -27,14 +27,13 @@
  */
 package org.opends.server.tasks;
 
-import org.opends.messages.Message;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
@@ -43,16 +42,14 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an implementation of a Directory Server task that can be
@@ -66,12 +63,13 @@ public class AddSchemaFileTask
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The list of files to be added to the server schema.
+  /** The list of files to be added to the server schema. */
   TreeSet<String> filesToAdd;
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return INFO_TASK_ADD_SCHEMA_FILE_NAME.get();
   }
@@ -195,17 +193,13 @@ public class AddSchemaFileTask
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     // Obtain a write lock on the server schema so that we can be sure nothing
     // else tries to write to it at the same time.
     DN schemaDN = DirectoryServer.getSchemaDN();
-    Lock schemaLock = LockManager.lockWrite(schemaDN);
-    for (int i=0; ((schemaLock == null) && (i < 3)); i++)
-    {
-      schemaLock = LockManager.lockWrite(schemaDN);
-    }
-
+    final Lock schemaLock = LockManager.lockWrite(schemaDN);
     if (schemaLock == null)
     {
       Message message = ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA.get(
