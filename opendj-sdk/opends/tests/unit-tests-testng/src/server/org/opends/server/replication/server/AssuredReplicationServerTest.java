@@ -43,6 +43,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -704,7 +705,7 @@ public class AssuredReplicationServerTest
     }
 
     @Override
-    public boolean processUpdate(UpdateMsg updateMsg)
+    public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
     {
       checkUpdateAssuredParameters(updateMsg);
       nReceivedUpdates++;
