@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -37,15 +38,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,22 +49,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -1697,18 +1675,11 @@ public class TaskScheduler
   Lock readLockEntry(DN entryDN)
        throws DirectoryException
   {
-    Lock lock = LockManager.lockRead(entryDN);
-    for (int i=0; ((lock == null) && (i < 4)); i++)
-    {
-      lock = LockManager.lockRead(entryDN);
-    }
-
+    final Lock lock = LockManager.lockRead(entryDN);
     if (lock == null)
     {
-      Message message =
-          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      throw new DirectoryException(ResultCode.BUSY,
+          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
     }
     else
     {
@@ -2138,6 +2109,7 @@ public class TaskScheduler
    * @return  The DN of the configuration entry with which this alert generator
    *          is associated.
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return taskBackend.getConfigEntryDN();
@@ -2152,6 +2124,7 @@ public class TaskScheduler
    * @return  The fully-qualified name of the Java class for this alert
    *          generator implementation.
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -2169,6 +2142,7 @@ public class TaskScheduler
    * @return  Information about the set of alerts that this generator may
    *          produce.
    */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();

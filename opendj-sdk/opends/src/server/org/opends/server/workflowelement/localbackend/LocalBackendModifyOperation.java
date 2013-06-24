@@ -46,20 +46,8 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.LDAPPostReadRequestControl;
-import org.opends.server.controls.LDAPPreReadRequestControl;
-import org.opends.server.controls.PasswordPolicyErrorType;
-import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyOperationWrapper;
-import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -209,6 +197,7 @@ public class LocalBackendModifyOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *          available.
    */
+  @Override
   public final Entry getCurrentEntry()
   {
     return currentEntry;
@@ -227,6 +216,7 @@ public class LocalBackendModifyOperation
    *          modify request, or <CODE>null</CODE> if there were none or this
    *          information is not yet available.
    */
+  @Override
   public final List<AttributeValue> getCurrentPasswords()
   {
     return currentPasswords;
@@ -243,6 +233,7 @@ public class LocalBackendModifyOperation
    * @return  The modified entry that is to be written to the backend, or
    *          <CODE>null</CODE> if it is not yet available.
    */
+  @Override
   public final Entry getModifiedEntry()
   {
     return modifiedEntry;
@@ -260,6 +251,7 @@ public class LocalBackendModifyOperation
    *          request, or <CODE>null</CODE> if there were none or this
    *          information is not yet available.
    */
+  @Override
   public final List<AttributeValue> getNewPasswords()
   {
     return newPasswords;
@@ -342,19 +334,10 @@ modifyProcessing:
       checkIfCanceled(false);
 
       // Acquire a write lock on the target entry.
-      Lock entryLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        entryLock = LockManager.lockWrite(entryDN);
-        if (entryLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock entryLock = LockManager.lockWrite(entryDN);
       if (entryLock == null)
       {
-        setResultCode(DirectoryServer.getServerErrorResultCode());
+        setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(
                                 String.valueOf(entryDN)));
         break modifyProcessing;
@@ -699,6 +682,7 @@ modifyProcessing:
       registerPostResponseCallback(new Runnable()
       {
 
+        @Override
         public void run()
         {
           // Notify persistent searches.

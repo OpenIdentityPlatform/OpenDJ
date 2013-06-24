@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
-
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -39,26 +37,19 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.DeleteOperationWrapper;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines an operation used to delete an entry in a local backend
@@ -127,6 +118,7 @@ public class LocalBackendDeleteOperation
    * @return  The entry to be deleted, or <CODE>null</CODE> if the entry is not
    *          yet available.
    */
+  @Override
   public Entry getEntryToDelete()
   {
     return entry;
@@ -169,19 +161,10 @@ deleteProcessing:
       }
 
       // Grab a write lock on the entry.
-      Lock entryLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        entryLock = LockManager.lockWrite(entryDN);
-        if (entryLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock entryLock = LockManager.lockWrite(entryDN);
       if (entryLock == null)
       {
-        setResultCode(DirectoryServer.getServerErrorResultCode());
+        setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(
                                 String.valueOf(entryDN)));
         break deleteProcessing;
@@ -455,6 +438,7 @@ deleteProcessing:
       registerPostResponseCallback(new Runnable()
       {
 
+        @Override
         public void run()
         {
           // Notify persistent searches.

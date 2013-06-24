@@ -76,10 +76,10 @@ public class PlainSASLMechanismHandler
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The identity mapper that will be used to map ID strings to user entries.
+  /** The identity mapper that will be used to map ID strings to user entries.*/
   private IdentityMapper<?> identityMapper;
 
-  // The current configuration for this SASL mechanism handler.
+  /** The current configuration for this SASL mechanism handler. */
   private PlainSASLMechanismHandlerCfg currentConfig;
 
 
@@ -247,23 +247,12 @@ public class PlainSASLMechanismHandler
 
       // Acquire a read lock on the user entry.  If this fails, then so will the
       // authentication.
-      Lock readLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        readLock = LockManager.lockRead(userDN);
-        if (readLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock readLock = LockManager.lockRead(userDN);
       if (readLock == null)
       {
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-
-        Message message = INFO_SASLPLAIN_CANNOT_LOCK_ENTRY.get(String.valueOf(
-                userDN));
-        bindOperation.setAuthFailureReason(message);
+        bindOperation.setResultCode(ResultCode.BUSY);
+        bindOperation.setAuthFailureReason(INFO_SASLPLAIN_CANNOT_LOCK_ENTRY
+            .get(String.valueOf(userDN)));
         return;
       }
 

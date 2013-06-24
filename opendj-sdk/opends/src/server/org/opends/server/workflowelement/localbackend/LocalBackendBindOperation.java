@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-
-
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -38,19 +36,8 @@ import org.opends.messages.MessageDescriptor.Arg2;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.AuthorizationIdentityResponseControl;
-import org.opends.server.controls.PasswordExpiredControl;
-import org.opends.server.controls.PasswordExpiringControl;
-import org.opends.server.controls.PasswordPolicyErrorType;
-import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.BindOperationWrapper;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationBindOperation;
@@ -63,7 +50,6 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines an operation used to bind against the Directory Server,
@@ -468,19 +454,10 @@ public class LocalBackendBindOperation
 
     // Get the user entry based on the bind DN.  If it does not exist,
     // then fail.
-    Lock userLock = null;
-    for (int i=0; i < 3; i++)
-    {
-      userLock = LockManager.lockRead(bindDN);
-      if (userLock != null)
-      {
-        break;
-      }
-    }
-
+    final Lock userLock = LockManager.lockRead(bindDN);
     if (userLock == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(ResultCode.BUSY,
                                    ERR_BIND_OPERATION_CANNOT_LOCK_USER.get(
                                         String.valueOf(bindDN)));
     }

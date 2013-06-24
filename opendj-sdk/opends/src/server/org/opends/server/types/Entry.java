@@ -29,17 +29,7 @@ package org.opends.server.types;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
@@ -64,7 +54,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines a data structure for a Directory Server entry.
@@ -2555,16 +2544,7 @@ public class Entry
         if (parentDN != null)
         {
           // Get the parent entry and check its structural class.
-          Lock lock = null;
-          for (int i=0; i < 3; i++)
-          {
-            lock = LockManager.lockRead(parentDN);
-            if (lock != null)
-            {
-              break;
-            }
-          }
-
+          final Lock lock = LockManager.lockRead(parentDN);
           if (lock == null)
           {
             Message message =
@@ -2667,16 +2647,7 @@ public class Entry
         if (parentDN != null)
         {
           // Get the parent entry and check its structural class.
-          Lock lock = null;
-          for (int i=0; i < 3; i++)
-          {
-            lock = LockManager.lockRead(parentDN);
-            if (lock != null)
-            {
-              break;
-            }
-          }
-
+          final Lock lock = LockManager.lockRead(parentDN);
           if (lock == null)
           {
             Message message =

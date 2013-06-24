@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
-
 
 import java.util.LinkedList;
 import java.util.List;
@@ -40,31 +38,20 @@ import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.LDAPPostReadRequestControl;
-import org.opends.server.controls.LDAPPreReadRequestControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyDNOperationWrapper;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines an operation used to move an entry in a local backend
@@ -280,19 +267,10 @@ modifyDNProcessing:
 
 
       // Acquire write locks for the current and new DN.
-      Lock currentLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        currentLock = LockManager.lockWrite(entryDN);
-        if (currentLock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock currentLock = LockManager.lockWrite(entryDN);
       if (currentLock == null)
       {
-        setResultCode(DirectoryServer.getServerErrorResultCode());
+        setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
                                 String.valueOf(entryDN)));
         break modifyDNProcessing;
@@ -301,14 +279,7 @@ modifyDNProcessing:
       Lock newLock = null;
       try
       {
-        for (int i=0; i < 3; i++)
-        {
-          newLock = LockManager.lockWrite(newDN);
-          if (newLock != null)
-          {
-            break;
-          }
-        }
+        newLock = LockManager.lockWrite(newDN);
       }
       catch (Exception e)
       {
@@ -335,7 +306,7 @@ modifyDNProcessing:
       {
         LockManager.unlock(entryDN, currentLock);
 
-        setResultCode(DirectoryServer.getServerErrorResultCode());
+        setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
                                 String.valueOf(entryDN),
                                 String.valueOf(newDN)));

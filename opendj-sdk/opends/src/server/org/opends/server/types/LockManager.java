@@ -27,8 +27,6 @@
  */
 package org.opends.server.types;
 
-
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -38,8 +36,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-
-
 
 /**
  * This class defines a Directory Server component that can keep track
@@ -89,15 +85,15 @@ public final class LockManager
    * The default length of time in milliseconds to wait while
    * attempting to acquire a read or write lock.
    */
-  public static final long DEFAULT_TIMEOUT = 3000;
+  public static final long DEFAULT_TIMEOUT = 9000;
 
 
 
-  // The set of entry locks that the server knows about.
+  /** The set of entry locks that the server knows about. */
   private static
        ConcurrentHashMap<DN,ReentrantReadWriteLock> lockTable;
 
-  // Whether fair ordering should be used on the locks.
+  /** Whether fair ordering should be used on the locks. */
   private static boolean fair;
 
 

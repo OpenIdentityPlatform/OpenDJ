@@ -23,49 +23,44 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-import org.opends.messages.Message;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.
             PasswordModifyExtendedOperationHandlerCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.*;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.ErrorLogger;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.messages.CoreMessages.*;
-
-import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class implements the password modify extended operation defined in RFC
@@ -166,6 +161,7 @@ public class PasswordModifyExtendedOperation
    *                                   that is not related to the server
    *                                   configuration.
    */
+  @Override
   public void initializeExtendedOperationHandler(
        PasswordModifyExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
@@ -244,6 +240,7 @@ public class PasswordModifyExtendedOperation
    *
    * @param  operation  The extended operation to be processed.
    */
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     // Initialize the variables associated with components that may be included
@@ -353,25 +350,12 @@ public class PasswordModifyExtendedOperation
         // Retrieve a write lock on that user's entry.
         userDN = requestorEntry.getDN();
 
-        for (int i=0; i < 3; i++)
-        {
-          userLock = LockManager.lockWrite(userDN);
-
-          if (userLock != null)
-          {
-            break;
-          }
-        }
-
+        userLock = LockManager.lockWrite(userDN);
         if (userLock == null)
         {
-          operation.setResultCode(DirectoryServer.getServerErrorResultCode());
-
-          Message message =
-                  ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY.get(
-                          String.valueOf(userDN));
-          operation.appendErrorMessage(message);
-
+          operation.setResultCode(ResultCode.BUSY);
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY
+              .get(String.valueOf(userDN)));
           return;
         }
 
@@ -1024,31 +1008,15 @@ public class PasswordModifyExtendedOperation
         modList.add(new Modification(ModificationType.DELETE, deleteAttr));
 
 
-        // Add the new encoded values.
-        LinkedHashSet<AttributeValue> addValues =
-             new LinkedHashSet<AttributeValue>(encodedPasswords.size());
-        for (ByteString s : encodedPasswords)
-        {
-          addValues.add(AttributeValues.create(attrType, s));
-        }
-
         builder = new AttributeBuilder(attrType);
-        builder.addAll(addValues);
+        builder.addAll(toAttributeValues(attrType, encodedPasswords));
         Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.ADD, addAttr));
       }
       else
       {
-        LinkedHashSet<AttributeValue> replaceValues =
-             new LinkedHashSet<AttributeValue>(encodedPasswords.size());
-        for (ByteString s : encodedPasswords)
-        {
-          replaceValues.add(
-              AttributeValues.create(attrType, s));
-        }
-
         AttributeBuilder builder = new AttributeBuilder(attrType);
-        builder.addAll(replaceValues);
+        builder.addAll(toAttributeValues(attrType, encodedPasswords));
         Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.REPLACE, addAttr));
       }
@@ -1241,7 +1209,17 @@ public class PasswordModifyExtendedOperation
     }
   }
 
-
+  private Collection<AttributeValue> toAttributeValues(AttributeType attrType,
+      Collection<ByteString> values)
+  {
+    Set<AttributeValue> results =
+        new LinkedHashSet<AttributeValue>(values.size());
+    for (ByteString s : values)
+    {
+      results.add(AttributeValues.create(attrType, s));
+    }
+    return results;
+  }
 
   /**
    * Retrieves the entry for the specified user based on the provided DN.  If
@@ -1348,6 +1326,7 @@ public class PasswordModifyExtendedOperation
    * @return  <CODE>true</CODE> if the provided entry has an acceptable
    *          configuration for this component, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        PasswordModifyExtendedOperationHandlerCfg config,
        List<Message> unacceptableReasons)
@@ -1401,6 +1380,7 @@ public class PasswordModifyExtendedOperation
    *
    * @return  Information about the result of the configuration update.
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
        PasswordModifyExtendedOperationHandlerCfg config)
   {

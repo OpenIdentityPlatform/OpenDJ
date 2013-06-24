@@ -23,21 +23,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
-
 package org.opends.server.extensions;
 
-
-
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.SASL_DEFAULT_PROTOCOL;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_DIGEST_MD5;
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_GSSAPI;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -188,6 +181,7 @@ public class SASLContext implements CallbackHandler,
    * @throws UnsupportedCallbackException
    *           If a callback is not supported.
    */
+  @Override
   public void handle(final Callback[] callbacks)
       throws UnsupportedCallbackException
   {
@@ -227,6 +221,7 @@ public class SASLContext implements CallbackHandler,
    *
    * @return {@code true} if the authentication processing was successful.
    */
+  @Override
   public Boolean run()
   {
     final ClientConnection clientConn = bindOp.getClientConnection();
@@ -905,16 +900,7 @@ public class SASLContext implements CallbackHandler,
    */
   private void getAuthEntry(final DN userDN)
   {
-    Lock readLock = null;
-    for (int i = 0; i < 3; i++)
-    {
-      readLock = LockManager.lockRead(userDN);
-      if (readLock != null)
-      {
-        break;
-      }
-    }
-
+    final Lock readLock = LockManager.lockRead(userDN);
     if (readLock == null)
     {
       setCallbackMsg(INFO_SASL_CANNOT_LOCK_ENTRY.get(String.valueOf(userDN)));

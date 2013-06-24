@@ -70,26 +70,28 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
  * An abstract class that all Replication unit test should extend.
  */
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "replication" }, sequential = true)
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
-  // This is the generation id matching the memory test backend
-  // with its initial root entry o=test created.
-  // This matches the backend obtained calling:
-  // TestCaseUtils.initializeTestBackend(true).
-  // (using the default TestCaseUtils.TEST_ROOT_DN_STRING suffix)
+  /**
+   * This is the generation id matching the memory test backend with its initial
+   * root entry o=test created. This matches the backend obtained calling:
+   * TestCaseUtils.initializeTestBackend(true). (using the default
+   * TestCaseUtils.TEST_ROOT_DN_STRING suffix)
+   */
   protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5055L;
 
   /**
@@ -247,33 +249,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
                                        // to the replicationServer.
     return broker;
   }
-
-  /**
-   * Open an ECL replicationServer session to the local ReplicationServer
-  protected ReplicationBroker openECLReplicationSession(
-        int window_size, int port, int timeout, boolean emptyOldChanges,
-        Short serverId)
-  throws Exception, SocketException
-  {
-    ServerState state = new ServerState();
-
-    //if (emptyOldChanges)
-    //   new PersistentServerState(baseDn, serverId, new ServerState());
-
-    ReplicationBroker broker = new ReplicationBroker(null,
-        state, "cn=changelog", serverId, window_size,
-        -1, 100000, getReplSessionSecurity(), (byte)1);
-    ArrayList<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:" + port);
-    broker.start(servers);
-    if (timeout != 0)
-      broker.setSoTimeout(timeout);
-    checkConnection(30, broker, port); // give some time to the broker to connect
-                                       // to the replicationServer.
-    return broker;
-  }
-  */
-
 
   /**
    * Check connection of the provided ds to the
@@ -437,7 +412,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
     "ReplicationTestCase/Cleaning entries"));
 
-    DeleteOperationBasis op;
     // Delete entries
     try
     {
@@ -564,7 +538,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
       // Check that no entries have been found
       LinkedList<SearchResultEntry> entries = op.getSearchEntries();
-      assertTrue(entries != null);
+      assertNotNull(entries);
       StringBuilder sb = new StringBuilder();
       for (SearchResultEntry entry : entries)
       {
@@ -650,17 +624,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     do
     {
-      Entry newEntry;
-      Lock lock = null;
-      for (int j=0; j < 3; j++)
-      {
-        lock = LockManager.lockRead(dn);
-        if (lock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock lock = LockManager.lockRead(dn);
       if (lock == null)
       {
         throw new Exception("could not lock entry " + dn);
@@ -668,9 +632,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
       try
       {
-        newEntry = DirectoryServer.getEntry(dn);
-
-
+        final Entry newEntry = DirectoryServer.getEntry(dn);
         if (newEntry != null)
         {
           List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
@@ -683,7 +645,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
             found = tmpAttr.contains(AttributeValues.create(attrType, valueString));
           }
         }
-
       }
       finally
       {
@@ -715,16 +676,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       count--;
     }
 
-    Lock lock = null;
-    for (int i=0; i < 3; i++)
-    {
-      lock = LockManager.lockRead(dn);
-      if (lock != null)
-      {
-        break;
-      }
-    }
-
+    final Lock lock = LockManager.lockRead(dn);
     if (lock == null)
     {
       throw new Exception("could not lock entry " + dn);
@@ -773,7 +725,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       lastCount = currentCount;
     } catch (Exception ex) {
       ex.printStackTrace();
-      assertTrue(false);
+      fail();
     }
     return delta;
   }
@@ -848,10 +800,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
     } while (completionTime == null);
 
-    if (completionTime == null)
-    {
-      fail("The task has not completed after 30 seconds.");
-    }
+    assertNotNull(completionTime, "The task has not completed after 30 seconds.");
 
     // Check that the task state is as expected.
     AttributeType taskStateType =
@@ -1091,16 +1040,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       Thread.sleep(100);
 
-      Lock lock = null;
-      for (int i=0; i < 3; i++)
-      {
-        lock = LockManager.lockRead(dn);
-        if (lock != null)
-        {
-          break;
-        }
-      }
-
+      final Lock lock = LockManager.lockRead(dn);
       if (lock == null)
       {
         throw new Exception("could not lock entry " + dn);
