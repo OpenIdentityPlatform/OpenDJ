@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -2045,7 +2045,7 @@ public class AddOperationTestCase
            conn.processAdd(entry.getDN(), entry.getObjectClasses(),
                            entry.getUserAttributes(),
                            entry.getOperationalAttributes());
-      assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
+      assertEquals(addOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
     {

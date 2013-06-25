@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -858,7 +858,7 @@ public class DeleteOperationTestCase
 
       DeleteOperation deleteOperation =
            conn.processDelete(ByteString.valueOf("o=test"));
-      assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+      assertEquals(deleteOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
     {

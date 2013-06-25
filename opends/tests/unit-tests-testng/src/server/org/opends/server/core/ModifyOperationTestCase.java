@@ -4173,7 +4173,7 @@ public class ModifyOperationTestCase
 
       ModifyOperation modifyOperation =
            conn.processModify(ByteString.valueOf(baseDN), mods);
-      assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
     {
