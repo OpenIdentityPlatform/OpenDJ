@@ -28,6 +28,7 @@
 package org.opends.quicksetup.util;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.DynamicConstants.SHORT_NAME;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -669,9 +670,8 @@ public class Utils
   public static String getDefaultServerLocation()
   {
     String userDir = System.getProperty("user.home");
-    String firstLocation =
-        userDir + File.separator
-            + org.opends.server.util.DynamicConstants.SHORT_NAME;
+    String firstLocation = userDir + File.separator
+        + SHORT_NAME.toLowerCase(Locale.ENGLISH);
     String serverLocation = firstLocation;
     int i = 1;
     while (fileExists(serverLocation)
