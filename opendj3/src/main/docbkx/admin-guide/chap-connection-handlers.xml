@@ -449,11 +449,29 @@ Certificate reply was installed in keystore</screen>
 
   <procedure xml:id="new-self-signed-cert">
    <title>To Create &amp; Install a Self-Signed Certificate</title>
-   
-   <para>First you create and sign a server certificate that you place in
-   a Java Key Store. Then you set up the Key Manager Provider and Trust Manager
-   Provider to rely on your new server certificate in its key store.</para>
-   
+
+   <para>If you choose to configure LDAP Secure Access when setting up OpenDJ
+   directory server, the setup program generates a key pair in the Java Key
+   Store <filename>/path/to/opendj/config/keystore</filename>, and self-signs
+   the public key certificate, which has the alias <literal>server-cert</literal>.
+   The password for the key store and the private key is stored in clear text
+   in the file <filename>/path/to/opendj/config/keystore.pin</filename>.</para>
+
+   <para>If you want to secure communications, but did not chose to configure
+   LDAP Secure Access at setup time, this procedure can help. The following
+   steps explain how to create and install a key pair with a self-signed
+   certificate in preparation to configure LDAPS or HTTPS. First you create a
+   key pair in a new Java Key Store, and then self-sign the certificate. Next,
+   you set up the Key Manager Provider and Trust Manager Provider to access
+   the new server certificate in the new key store.</para>
+
+   <para>If instead you want to <emphasis>replace the existing server key pair
+   with self-signed certificate</emphasis>, then first use <command>keytool
+   -delete -alias server-cert</command> to delete the existing keys before you
+   generate a new key pair with the same alias. You can also either reuse the
+   existing password in <filename>keystore.pin</filename>, or use a new password
+   as shown in the steps below.</para>
+
    <step>
     <para>Generate the server certificate using the Java
     <command>keytool</command> command.</para>
@@ -465,6 +483,7 @@ Certificate reply was installed in keystore</screen>
  -keystore /path/to/opendj/config/keystore
  -storepass changeit
  -keypass changeit</screen>
+
     <para>In this example, OpenDJ is running on a system with fully qualified
     host name <literal>opendj.example.com</literal>. The Java Key Store (JKS)
     is created in the <filename>config</filename> directory where OpenDJ is
@@ -476,6 +495,9 @@ Certificate reply was installed in keystore</screen>
      OpenDJ requires that you use the same password to protect both the
      key store and also the private key.</para>
     </note>
+
+    <para>Keep track of the password provided to the <option>-storepass</option>
+    and <option>-keypass</option> options.</para>
    </step>
    <step>
     <para>Self-sign the server certificate.</para>
@@ -486,10 +508,19 @@ Certificate reply was installed in keystore</screen>
  -storepass changeit</screen>
    </step>
    <step>
-    <para>Configure the File Based Key Manager Provider for JKS to use the
-    file name and key store PIN that you set up with the
-    <command>keytool</command> command.</para>
-    <screen>$ dsconfig
+    <para>Configure the File Based Key Manager Provider for JKS to access the
+    Java Key Store with key store/private key password.</para>
+
+    <para>In this example, the alias is <literal>server-cert</literal> and the
+    password is <literal>changeit</literal>.</para>
+
+    <para>If you are replacing a key pair with a self-signed certificate,
+    reusing the <literal>server-cert</literal> alias and password stored in
+    <filename>keystore.pin</filename>, then you can skip this step.</para>
+
+    <screen>$ echo changeit > /path/to/opendj/config/keystore.pin
+$ chmod 600 /path/to/opendj/config/keystore.pin
+$ dsconfig
  set-key-manager-provider-prop
  --hostname opendj.example.com
  --port 4444
@@ -497,14 +528,17 @@ Certificate reply was installed in keystore</screen>
  --bindPassword password
  --provider-name JKS
  --set enabled:true
- --set key-store-pin:changeit
- --remove key-store-pin-file:config/keystore.pin
+ --set key-store-file:config/keystore
+ --set key-store-pin-file:config/keystore.pin
  --trustAll
  --no-prompt</screen>
    </step>
    <step>
     <para>Configure the File Based Trust Manager Provider for JKS to use the
     key store and PIN as well.</para>
+
+    <para>If you skipped the previous step, you can also skip this step.</para>
+
     <screen>$ dsconfig
  set-trust-manager-provider-prop
  --hostname opendj.example.com
@@ -514,11 +548,13 @@ Certificate reply was installed in keystore</screen>
  --provider-name JKS
  --set enabled:true
  --set trust-store-file:config/keystore
- --set trust-store-pin:changeit
+ --set trust-store-pin-file:config/keystore.pin
  --trustAll
  --no-prompt</screen>
+
     <para>At this point, OpenDJ directory server can use your new self-signed
-    certificate, for example for StartTLS and LDAPS connection handlers.</para>
+    certificate, for example for StartTLS and LDAPS or HTTPS connection
+    handlers.</para>
    </step>
   </procedure>
  </section>
