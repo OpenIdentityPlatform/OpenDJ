@@ -304,23 +304,25 @@
           }
         </call>
       <else>
-        <call function="'runCommand'">
-          { 'command'     : STAFCmd,
-            'arguments'   : STAFCmdParams,
-            'location'    : mylocation,
-            'name'        : 'authrate',
-            'expectedRC'  : expectedRC,
-            'knownIssue'  : knownIssue
-          }
-        </call>
+        <sequence>
+          <call function="'runCommand'">
+            { 'command'     : STAFCmd,
+              'arguments'   : STAFCmdParams,
+              'location'    : mylocation,
+              'name'        : 'authrate',
+              'expectedRC'  : expectedRC,
+              'knownIssue'  : knownIssue
+            }
+          </call>
+
+          <script>
+            for line in STAXResult[0][1].split('\n'):
+              print line
+          </script>
+        </sequence>
       </else>
       </if>
       
-      <script>
-        for line in STAXResult[0][1].split('\n'):
-          print line
-      </script>
-
       <return>
         STAXResult
       </return>
@@ -458,23 +460,25 @@
           }
         </call>
       <else>
-        <call function="'runCommand'">
-          { 'command'     : STAFCmd,
-            'arguments'   : STAFCmdParams,
-            'location'    : mylocation,
-            'name'        : 'searchrate',
-            'expectedRC'  : expectedRC,
-            'knownIssue'  : knownIssue
-          }
-        </call>
+        <sequence>
+          <call function="'runCommand'">
+            { 'command'     : STAFCmd,
+              'arguments'   : STAFCmdParams,
+              'location'    : mylocation,
+              'name'        : 'searchrate',
+              'expectedRC'  : expectedRC,
+              'knownIssue'  : knownIssue
+            }
+          </call>
+
+          <script>
+            for line in STAXResult[0][1].split('\n'):
+              print line
+          </script>
+        </sequence>
       </else>
       </if>
       
-      <script>
-        for line in STAXResult[0][1].split('\n'):
-          print line
-      </script>
-
       <return>
         STAXResult
       </return>
@@ -630,22 +634,24 @@
           }
         </call>
       <else>
-        <call function="'runCommand'">
-          { 'command'     : STAFCmd,
-            'arguments'   : STAFCmdParams,
-            'location'    : mylocation,
-            'name'        : 'modrate',
-            'expectedRC'  : expectedRC,
-            'knownIssue'  : knownIssue
-          }
-        </call>
+        <sequence>
+          <call function="'runCommand'">
+            { 'command'     : STAFCmd,
+              'arguments'   : STAFCmdParams,
+              'location'    : mylocation,
+              'name'        : 'modrate',
+              'expectedRC'  : expectedRC,
+              'knownIssue'  : knownIssue
+            }
+          </call>
+        
+          <script>
+            for line in STAXResult[0][1].split('\n'):
+              print line
+          </script>
+        </sequence>
       </else>
       </if>
-      
-      <script>
-        for line in STAXResult[0][1].split('\n'):
-          print line
-      </script>
 
       <return>
         STAXResult
@@ -784,22 +790,24 @@
           }
         </call>
       <else>
-        <call function="'runCommand'">
-          { 'command'     : STAFCmd,
-            'arguments'   : STAFCmdParams,
-            'location'    : mylocation,
-            'name'        : 'addrate',
-            'expectedRC'  : expectedRC,
-            'knownIssue'  : knownIssue
-          }
-        </call>
+        <sequence>
+          <call function="'runCommand'">
+            { 'command'     : STAFCmd,
+              'arguments'   : STAFCmdParams,
+              'location'    : mylocation,
+              'name'        : 'addrate',
+              'expectedRC'  : expectedRC,
+              'knownIssue'  : knownIssue
+            }
+          </call>
+        
+          <script>
+            for line in STAXResult[0][1].split('\n'):
+              print line
+          </script>
+        </sequence>
       </else>
       </if>
-      
-      <script>
-        for line in STAXResult[0][1].split('\n'):
-          print line
-      </script>
 
       <return>
         STAXResult
@@ -938,22 +946,24 @@
           }
         </call>
       <else>
-        <call function="'runCommand'">
-          { 'command'     : STAFCmd,
-            'arguments'   : STAFCmdParams,
-            'location'    : mylocation,
-            'name'        : 'delrate',
-            'expectedRC'  : expectedRC,
-            'knownIssue'  : knownIssue
-          }
-        </call>
+        <sequence>
+          <call function="'runCommand'">
+            { 'command'     : STAFCmd,
+              'arguments'   : STAFCmdParams,
+              'location'    : mylocation,
+              'name'        : 'delrate',
+              'expectedRC'  : expectedRC,
+              'knownIssue'  : knownIssue
+            }
+          </call>
+        
+          <script>
+            for line in STAXResult[0][1].split('\n'):
+              print line
+          </script>
+        </sequence>
       </else>
       </if>
-      
-      <script>
-        for line in STAXResult[0][1].split('\n'):
-          print line
-      </script>
 
       <return>
         STAXResult

@@ -121,8 +121,7 @@
               <!-- Test Suite Cleanup -->
               <message>'Finally: Global Cleanup.'</message>
               <try>
-                <!--<call function="'common_cleanup'" />-->
-                <message>'gfgd'</message>
+                <call function="'common_cleanup'" />
               <catch exception="'STAFException'">
                 <sequence>
                   <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
