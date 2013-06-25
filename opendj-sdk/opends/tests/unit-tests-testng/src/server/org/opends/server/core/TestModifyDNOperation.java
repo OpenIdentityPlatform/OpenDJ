@@ -1420,7 +1420,7 @@ public class TestModifyDNOperation extends OperationTestCase
         ModifyDNResponseProtocolOp modifyResponse =
              message.getModifyDNResponseProtocolOp();
 
-        assertEquals(modifyResponse.getResultCode(), ResultCode.BUSY);
+        assertEquals(modifyResponse.getResultCode(), LDAPResultCode.BUSY);
 
 //        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
