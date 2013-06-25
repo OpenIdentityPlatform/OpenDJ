@@ -797,6 +797,8 @@ public final class UpgradeTasks
       // The option is not present ? Stops the process.
       if (!context.isInteractiveMode() && !context.isForceUpgradeMode())
       {
+        context
+            .notify(Message.raw(" "), FormattedNotificationCallback.BREAKLINE);
         context.notify(ERR_UPGRADE_USER_INTERACTION_REQUIRED.get(
             OPTION_LONG_NO_PROMPT, OPTION_LONG_FORCE_UPGRADE),
             FormattedNotificationCallback.NOTICE_CALLBACK);

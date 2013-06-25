@@ -32,12 +32,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.filterExitCode;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
-import static org.opends.server.tools.upgrade.
-FormattedNotificationCallback.NOTICE_CALLBACK;
-import static org.opends.server.tools.upgrade.
-FormattedNotificationCallback.SUBTITLE_CALLBACK;
-import static org.opends.server.tools.upgrade.
-FormattedNotificationCallback.TITLE_CALLBACK;
+import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
 
@@ -426,6 +421,12 @@ public final class UpgradeCli extends ConsoleApplication implements
           break;
         case NOTICE_CALLBACK:
           println(Style.NOTICE, Message.raw(fnc.getMessage()), 1);
+          break;
+        case ERROR_CALLBACK:
+          println(Style.ERROR, Message.raw(fnc.getMessage()), 1);
+          break;
+        case BREAKLINE:
+          println(Style.BREAKLINE, Message.raw(fnc.getMessage()), 1);
           break;
         default:
           LOG.log(SEVERE, "Unsupported message type: "

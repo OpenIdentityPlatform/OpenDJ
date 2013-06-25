@@ -631,18 +631,26 @@ public final class Upgrade
       if (LicenseFile.exists())
       {
         context.notify(Message.raw("\n" + LicenseFile.getText()));
-
-        // If the user asks for no-prompt. We just display the license text.
-        // User doesn't asks for no-prompt. We just display the license text
-        // and force to accept it.
         context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
-
         if (!context.isAcceptLicenseMode())
         {
+          final int answer;
 
-          final int answer =
-              context.confirmYN(INFO_LICENSE_ACCEPT.get(),
-                  ConfirmationCallback.NO);
+          // The force cannot answer yes to the license's question,
+          // which is not a task even if it requires a user interaction OR
+          // -an accept license mode to continue the process.
+          if (context.isForceUpgradeMode())
+          {
+            answer = ConfirmationCallback.NO;
+            context.notify(Message.raw(INFO_LICENSE_ACCEPT.get() + " "
+                + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
+          }
+          else
+          {
+            answer =
+                context.confirmYN(INFO_LICENSE_ACCEPT.get(),
+                    ConfirmationCallback.NO);
+          }
 
           if (answer == ConfirmationCallback.NO)
           {
@@ -655,8 +663,9 @@ public final class Upgrade
         }
         else
         {
-          context.notify(INFO_LICENSE_ACCEPT.get());
-          context.notify(INFO_PROMPT_YES_COMPLETE_ANSWER.get());
+          // We automatically accept the license with this option.
+          context.notify(Message.raw(INFO_LICENSE_ACCEPT.get() + " "
+              + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
           LicenseFile.setApproval(true);
         }
       }
