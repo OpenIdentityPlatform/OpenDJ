@@ -11,7 +11,7 @@ PKG_NAME=opendj
 MAJOR_VERSION=2
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=5
+MINOR_VERSION=6
 
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
@@ -21,16 +21,16 @@ DOC_REFERENCE_HOME=http://opendj.forgerock.org/
 
 # The product documentation set reference
 # https://wikis.forgerock.org/confluence/display/OPENDJ/Home
-DOC_REFERENCE_WIKI=http://opendj.forgerock.org/docs.html
+DOC_REFERENCE_WIKI=http://docs.forgerock.org/en/opendj/2.6.0/
 
 # The setup document reference site
-DOC_REFERENCE_SETUP=http://opendj.forgerock.org/doc/install-guide/index.html
+DOC_REFERENCE_SETUP=http://docs.forgerock.org/en/opendj/2.6.0/install-guide/
 
 # The Quick reference guide documentation set reference
-DOC_QUICK_REFERENCE_GUIDE=http://opendj.forgerock.org/doc/admin-guide/index.html
+DOC_QUICK_REFERENCE_GUIDE=http://docs.forgerock.org/en/opendj/2.6.0/admin-guide/
 
 # The Administration Guide reference
-ADMINISTRATION_GUIDE_URL=http://opendj.forgerock.org/doc/admin-guide/index.html
+ADMINISTRATION_GUIDE_URL=http://docs.forgerock.org/en/opendj/2.6.0/admin-guide/
 
 # The version qualifier string for the Directory Server.  It should be blank
 # for the first official release with a new major, minor, and point version
