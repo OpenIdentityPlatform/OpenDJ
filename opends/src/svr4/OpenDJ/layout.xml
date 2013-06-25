@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2010-2011 ForgeRock AS.
+ !      Portions Copyright 2010-2013 ForgeRock AS.
  ! -->
 
 <project name="OpenDJ SVR4 layout" basedir=".">
@@ -100,90 +100,20 @@
 	<delete file="${svr4.layout.pkg.dir}/instance.loc" />
 	<!-- Remove uninstall file -->
 	<delete file="${svr4.layout.pkg.dir}/uninstall" />
-	<!-- Remove ZIP README / install files -->
-	<delete file="${svr4.layout.pkg.dir}/README" />
-	<delete file="${svr4.layout.pkg.dir}/install.txt" />
-	<delete file="${svr4.layout.pkg.dir}/install.html" />
-	<!-- Add SVR4 README / install files -->
-	<copy file="${svr4.src.dir}/README"
-        tofile="${svr4.layout.pkg.dir}/README" />
-	<copy file="${svr4.src.dir}/install.txt"
-        tofile="${svr4.layout.pkg.dir}/install.txt" />
-	<copy file="${svr4.src.dir}/install.html"
-        tofile="${svr4.layout.pkg.dir}/install.html" />
-        <!-- Add svc-opendj.sh wrapper -->
-        <copy file="${svr4.src.dir}/_svc-opendj.sh"
-            tofile="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" />
-        <chmod file="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" perm="755" />
-        <!-- Add the SMF Manifest for OpenDJ in a resources directory -->
-        <mkdir dir="${svr4.layout.pkg.dir}/resources"/>
-        <copy file="${svr4.src.dir}/opendj-manifest.xml"
-            tofile="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml" />
-        <chmod file="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml"
-            perm="644" />
-	<!-- Add configure script -->
-	<copy file="${resource.dir}/configure"
-        tofile="${svr4.layout.pkg.dir}/configure" />
-	<chmod file="${svr4.layout.pkg.dir}/configure" perm="755" />
-        <!-- Add unconfigure script -->
-        <copy file="${resource.dir}/unconfigure"
-          tofile="${svr4.layout.pkg.dir}/unconfigure" />
-        <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="755" />
-        <!-- Add man pages -->
-        <copy todir="${svr4.layout.pkg.dir}/man">
-          <fileset dir="${resource.dir}/man"/>
-        </copy>
-  	<!-- Replace zip upgrade script by svr4 upgrade script -->
-	<delete file="${svr4.layout.pkg.dir}/upgrade" />
-	<copy file="${resource.dir}/upgrade_svr4"
-        tofile="${svr4.layout.pkg.dir}/upgrade" />
-	<chmod file="${svr4.layout.pkg.dir}/upgrade" perm="755" />
-	<!-- Move instance files in ${svr4.layout.pkg.dir}/tmpl_instance  -->
-	<mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance"/>
-	<chmod dir="${svr4.layout.pkg.dir}/tmpl_instance" perm="755"/>
-        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib"/>
-        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib" perm="755"/>
-        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions"/>
-        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions"
-            perm="755"/>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/bak">
-	  <fileset dir="${svr4.layout.pkg.dir}/bak"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/changelogDb">
-	  <fileset dir="${svr4.layout.pkg.dir}/changelogDb"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/classes">
-	  <fileset dir="${svr4.layout.pkg.dir}/classes"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/config">
-	  <fileset dir="${svr4.layout.pkg.dir}/config"/>
-	</move>
-        <mkdir dir="${svr4.layout.pkg.dir}/config"/>
-        <chmod dir="${svr4.layout.pkg.dir}/config" perm="755"/>
-	<move todir="${svr4.layout.pkg.dir}/config/schema">
-	  <fileset dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
-	</move>
-        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
-        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"
-            perm="755"/>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/db">
-	  <fileset dir="${svr4.layout.pkg.dir}/db"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/import-tmp">
-	  <fileset dir="${svr4.layout.pkg.dir}/import-tmp"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/ldif">
-	  <fileset dir="${svr4.layout.pkg.dir}/ldif"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/locks">
-	  <fileset dir="${svr4.layout.pkg.dir}/locks"/>
-	</move>
-	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/logs">
-	  <fileset dir="${svr4.layout.pkg.dir}/logs"/>
-	</move>
-        <!-- Create buildinfo file -->
-	<echo message="${svr4.version}.${REVISION_NUMBER}"
-        file="${svr4.layout.pkg.dir}/tmpl_instance/config/buildinfo" />
+    <!-- Add svc-opendj.sh wrapper -->
+    <copy file="${svr4.src.dir}/_svc-opendj.sh"
+        tofile="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" />
+    <chmod file="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" perm="755" />
+    <!-- Add the SMF Manifest for OpenDJ in a resources directory -->
+    <mkdir dir="${svr4.layout.pkg.dir}/resources"/>
+    <copy file="${svr4.src.dir}/opendj-manifest.xml"
+        tofile="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml" />
+    <chmod file="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml"
+        perm="644" />
+    <!-- Add man pages -->
+    <copy todir="${svr4.layout.pkg.dir}/man">
+      <fileset dir="${resource.dir}/man"/>
+    </copy>
   </target>
 
 </project>

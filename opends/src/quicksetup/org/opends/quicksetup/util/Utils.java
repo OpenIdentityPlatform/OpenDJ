@@ -77,6 +77,7 @@ import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 
 
 /**
@@ -1151,12 +1152,13 @@ public class Utils
   public static String getInstancePathFromInstallPath(String installPath)
   {
     String instancePathFileName = Installation.INSTANCE_LOCATION_PATH;
-    File configureScriptPath = new File(installPath + File.separator +
-      Installation.UNIX_CONFIGURE_FILE_NAME);
+    File _svcScriptPathName = new File(installPath + File.separator +
+      Installation.LIBRARIES_PATH_RELATIVE + File.separator +
+      "_svc-opendj.sh");
 
-    // look for /etc/opt/opends/instance.loc
+    // look for /etc/opt/opendj/instance.loc
     File f = new File(instancePathFileName);
-    if (!configureScriptPath.exists() || !f.exists()) {
+    if (!_svcScriptPathName.exists() || !f.exists()) {
       // look for <installPath>/instance.loc
       instancePathFileName = installPath + File.separator +
               Installation.INSTANCE_LOCATION_PATH_RELATIVE;
@@ -1199,10 +1201,7 @@ public class Utils
     }
     finally
     {
-      try
-      {
-        reader.close();
-      } catch (Exception e) { /* do nothing */}
+      StaticUtils.close(reader);
     }
   }
 
