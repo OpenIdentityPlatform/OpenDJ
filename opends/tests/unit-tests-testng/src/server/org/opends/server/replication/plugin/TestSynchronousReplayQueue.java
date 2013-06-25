@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -77,8 +78,8 @@ public class TestSynchronousReplayQueue implements BlockingQueue<UpdateToReplay>
   public boolean offer(UpdateToReplay e, long timeout, TimeUnit unit)
       throws InterruptedException
   {
-    // TODO Auto-generated method stub
-    return false;
+    list.add(e);
+    return true;
   }
 
   public UpdateToReplay poll(long timeout, TimeUnit unit)
