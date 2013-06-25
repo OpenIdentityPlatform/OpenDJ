@@ -703,7 +703,7 @@ public class CompareOperationTestCase extends OperationTestCase
         CompareResponseProtocolOp compareResponse =
              message.getCompareResponseProtocolOp();
 
-        assertEquals(compareResponse.getResultCode(), ResultCode.BUSY);
+        assertEquals(compareResponse.getResultCode(), LDAPResultCode.BUSY);
 
 //        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
