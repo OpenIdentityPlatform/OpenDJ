@@ -11,7 +11,7 @@ PKG_NAME=opendj
 MAJOR_VERSION=2
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=5
+MINOR_VERSION=7
 
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
