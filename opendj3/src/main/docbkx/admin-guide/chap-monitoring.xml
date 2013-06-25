@@ -28,7 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Monitoring, Logging, &amp; Alerts</title>
  
  <para>This chapter describes the monitoring capabilities that OpenDJ
@@ -37,7 +37,7 @@
  <indexterm><primary>Monitoring</primary></indexterm>
  
  <para>OpenDJ Control Panel provides basic monitoring capabilities under
- Monitoring &gt; Connection Handler, Monitoring &gt; Connection Handler, and
+ Monitoring &gt; General Information, Monitoring &gt; Connection Handler, and
  Monitoring &gt; Manage Tasks. This chapter covers the other options for
  monitoring OpenDJ.</para>
  
