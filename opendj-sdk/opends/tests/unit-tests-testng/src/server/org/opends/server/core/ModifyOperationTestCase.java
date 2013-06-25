@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
@@ -299,20 +300,19 @@ public class ModifyOperationTestCase
     return objArray;
   }
 
-
-
-
   @DataProvider(name = "baseDNs")
   public Object[][] getBaseDNs()
   {
     return new Object[][] {
-         { "dc=example,dc=com"},
-// FIXME Waiting on issue 1080.
-//         { "o=test"},
+         { "o=test"}
     };
   }
 
-
+  @BeforeMethod
+  public void clearTestBackend() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+  }
 
 
   /**
@@ -533,7 +533,6 @@ public class ModifyOperationTestCase
   public void testGetAndAddModifications()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType(
@@ -625,8 +624,6 @@ public class ModifyOperationTestCase
   public void testFailNoSuchParent(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -656,8 +653,6 @@ public class ModifyOperationTestCase
   public void testFailNoSuchEntry(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -687,8 +682,6 @@ public class ModifyOperationTestCase
   public void testFailNoModifications(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -712,7 +705,6 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttribute()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description",
@@ -750,7 +742,6 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttributeValue()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
 
@@ -800,13 +791,11 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttributeWithOptions(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry e = DirectoryServer.getEntry(DN.decode(baseDN));
 
     int numValues = 0;
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("dc", true));
+         e.getAttribute(DirectoryServer.getAttributeType("o", true));
     for (Attribute a : attrList)
     {
       numValues += a.size();
@@ -818,7 +807,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("test"));
-    LDAPAttribute attr = new LDAPAttribute("dc;lang-en-us", values);
+    LDAPAttribute attr = new LDAPAttribute("o;lang-en-us", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
@@ -830,7 +819,7 @@ public class ModifyOperationTestCase
 
     e = DirectoryServer.getEntry(DN.decode(baseDN));
     numValues = 0;
-    attrList = e.getAttribute(DirectoryServer.getAttributeType("dc", true));
+    attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
     for (Attribute a : attrList)
     {
       numValues += a.size();
@@ -850,8 +839,6 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -901,8 +888,6 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedOperationalAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -953,8 +938,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceSingleValuedWithMultipleValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1006,8 +989,6 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1058,8 +1039,6 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1109,8 +1088,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithDuplicates(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1161,8 +1138,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithSyntaxViolation(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1213,8 +1188,6 @@ public class ModifyOperationTestCase
   public void testFailAddSyntaxViolation(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1264,8 +1237,6 @@ public class ModifyOperationTestCase
   public void testFailAddDisallowedAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1317,8 +1288,6 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1373,8 +1342,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceRDNAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1424,8 +1391,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1472,8 +1437,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1523,8 +1486,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceOneOfMultipleRDNAttributes(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
@@ -1574,8 +1535,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveOneOfMultipleRDNValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
@@ -1622,8 +1581,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveCompleteAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1670,8 +1627,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneOfManyValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1723,8 +1678,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1775,8 +1728,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveAllOfManyValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1829,8 +1780,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1877,8 +1826,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttributeValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1928,8 +1875,6 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -1980,8 +1925,6 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithSame(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2052,8 +1995,6 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAndAddSameValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2126,8 +2067,6 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAttributeWithOption(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2200,8 +2139,6 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNothing(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2249,8 +2186,6 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNothing(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2297,8 +2232,6 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2348,8 +2281,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyExistingAndAddNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2404,8 +2335,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2461,8 +2390,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddMultipleNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2518,8 +2445,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2565,8 +2490,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2616,8 +2539,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveAllObjectClasses(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2664,8 +2585,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceObjectClassesWithNothing(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2712,8 +2631,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveStructuralObjectclass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People," + baseDN,
          "objectClass: top",
@@ -2756,8 +2673,6 @@ public class ModifyOperationTestCase
   public void testFailAddSecondStructuralObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People," + baseDN,
          "objectClass: top",
@@ -2800,8 +2715,6 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByOne(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2869,8 +2782,6 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByTen(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -2938,8 +2849,6 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByNegativeOne(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3007,8 +2916,6 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonNumeric(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3057,8 +2964,6 @@ public class ModifyOperationTestCase
   public void testFailIncrementValueNonNumeric(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3108,8 +3013,6 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementMultiValued(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3160,8 +3063,6 @@ public class ModifyOperationTestCase
   public void testFailIncrementNoIncrementValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3209,8 +3110,6 @@ public class ModifyOperationTestCase
   public void testFailIncrementMultipleIncrementValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3261,8 +3160,6 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonExisting(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3311,8 +3208,6 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveUnneededAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3368,8 +3263,6 @@ public class ModifyOperationTestCase
   public void testSuccessAddAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3433,8 +3326,6 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3485,8 +3376,6 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistingObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3537,8 +3426,6 @@ public class ModifyOperationTestCase
   public void testFailReplaceNoUserModification(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3614,8 +3501,6 @@ public class ModifyOperationTestCase
   public void testFailServerCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3670,8 +3555,6 @@ public class ModifyOperationTestCase
   public void testSucceedServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3726,8 +3609,6 @@ public class ModifyOperationTestCase
   public void testFailServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3810,8 +3691,6 @@ public class ModifyOperationTestCase
   public void testFailBackendCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3867,8 +3746,6 @@ public class ModifyOperationTestCase
   public void testSucceedBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -3924,8 +3801,6 @@ public class ModifyOperationTestCase
   public void testFailBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -4009,7 +3884,6 @@ public class ModifyOperationTestCase
   public void testSuccessNotifyChangeListeners()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
@@ -4047,8 +3921,6 @@ public class ModifyOperationTestCase
   public void testFailDoNotNotifyChangeListeners(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
     DirectoryServer.registerChangeNotificationListener(changeListener);
@@ -4084,8 +3956,6 @@ public class ModifyOperationTestCase
   public void testCancelBeforeStartup(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -4118,8 +3988,6 @@ public class ModifyOperationTestCase
   public void testCancelAfterOperation(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -4155,8 +4023,6 @@ public class ModifyOperationTestCase
   public void testCannotLockEntry(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Lock entryLock = LockManager.lockRead(DN.decode(baseDN));
 
     try
@@ -4192,8 +4058,6 @@ public class ModifyOperationTestCase
   public void testDisconnectInPreParseModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
@@ -4250,7 +4114,6 @@ public class ModifyOperationTestCase
   public void testDisconnectInPreOperationModify()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -4309,8 +4172,6 @@ public class ModifyOperationTestCase
   public void testDisconnectInPostOperationModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
@@ -4396,8 +4257,6 @@ responseLoop:
   public void testDisconnectInPostResponseModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
@@ -4505,8 +4364,6 @@ responseLoop:
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,
          "changetype: modify",
@@ -4565,8 +4422,6 @@ responseLoop:
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,
          "changetype: modify",
@@ -4597,7 +4452,6 @@ responseLoop:
   public void testShortCircuitInPreParse()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -4635,8 +4489,6 @@ responseLoop:
   public void testSuccessPermissiveModifyControlAddDuplicateValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -4688,8 +4540,6 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -4741,8 +4591,6 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -4793,8 +4641,6 @@ responseLoop:
   public void testModifyDelAddPasswordAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
      Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=testPassword01.user," + baseDN,
          "objectClass: top",
@@ -4850,8 +4696,6 @@ responseLoop:
   public void testModifyDelOneAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
      Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=testPassword02.user," + baseDN,
          "objectClass: top",
@@ -4908,8 +4752,6 @@ responseLoop:
   public void testModifyDelEncryptedAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
      Entry entry = TestCaseUtils.makeEntry(
          "dn: uid=testPassword03.user," + baseDN,
          "objectClass: top",
@@ -4984,8 +4826,7 @@ responseLoop:
       throws Exception
   {
     // @formatter:off
-    TestCaseUtils.initializeTestBackend(true);
-    Entry e = TestCaseUtils.makeEntry(
+        Entry e = TestCaseUtils.makeEntry(
         "dn: cn=Test User,o=test",
         "objectClass: top",
         "objectClass: person",
@@ -5027,8 +4868,7 @@ responseLoop:
       throws Exception
   {
     // @formatter:off
-    TestCaseUtils.initializeTestBackend(true);
-    Entry e = TestCaseUtils.makeEntry(
+        Entry e = TestCaseUtils.makeEntry(
         "dn: cn=Test User,o=test",
         "objectClass: top",
         "objectClass: person",
@@ -5068,8 +4908,7 @@ responseLoop:
       throws Exception
   {
     // @formatter:off
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
+        TestCaseUtils.addEntry(
         "dn: cn=Test User,o=test",
         "objectClass: top",
         "objectClass: person",
@@ -5107,8 +4946,7 @@ responseLoop:
       throws Exception
   {
     // @formatter:off
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
+        TestCaseUtils.addEntry(
         "dn: cn=Test User,o=test",
         "objectClass: top",
         "objectClass: person",
@@ -5145,8 +4983,6 @@ responseLoop:
   public void testAddCertificateWithoutBinaryOption(String baseDN)
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
-
     TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
@@ -5212,16 +5048,14 @@ responseLoop:
    * Tests to ensure that the compressed schema is refreshed after an object
    * class is changed (OPENDJ-169).
    *
-   * @param baseDN
-   *          The base DN to use.
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test(dataProvider = "baseDNs")
-  public void testCompressedSchemaRefresh(String baseDN) throws Exception
+  @Test
+  public void testCompressedSchemaRefresh() throws Exception
   {
+    String baseDN = "dc=example,dc=com";
     TestCaseUtils.clearJEBackend(true, "userRoot", baseDN);
-
     Entry entry = TestCaseUtils.makeEntry("dn: cn=Test User," + baseDN,
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "sn: User", "cn: Test User");
