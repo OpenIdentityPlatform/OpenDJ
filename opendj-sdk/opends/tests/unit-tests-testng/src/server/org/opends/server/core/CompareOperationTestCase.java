@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.opends.server.core;
@@ -703,8 +703,7 @@ public class CompareOperationTestCase extends OperationTestCase
         CompareResponseProtocolOp compareResponse =
              message.getCompareResponseProtocolOp();
 
-        assertEquals(compareResponse.getResultCode(),
-                     DirectoryServer.getServerErrorResultCode().getIntValue());
+        assertEquals(compareResponse.getResultCode(), ResultCode.BUSY);
 
 //        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
