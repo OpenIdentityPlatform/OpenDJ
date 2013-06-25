@@ -33,167 +33,166 @@ import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 /**
- * A very partial implementation of a Blocking queue that should
- * be used for test purpose only.
- *
- * Only the offer and take methods are implemented.
- *
+ * A very partial implementation of a Blocking queue that should be used for
+ * test purpose only.
+ * <p>
+ * Not all the methods are implemented.
  */
+@SuppressWarnings("javadoc")
 public class TestSynchronousReplayQueue implements BlockingQueue<UpdateToReplay>
 {
-  LinkedList<UpdateToReplay> list = new LinkedList<UpdateToReplay>();
+  private LinkedList<UpdateToReplay> list = new LinkedList<UpdateToReplay>();
 
+  @Override
   public boolean add(UpdateToReplay e)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.add(e);
   }
 
+  @Override
   public boolean contains(Object o)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.contains(o);
   }
 
+  @Override
   public int drainTo(Collection<? super UpdateToReplay> c)
   {
-    // TODO Auto-generated method stub
     return 0;
   }
 
+  @Override
   public int drainTo(Collection<? super UpdateToReplay> c, int maxElements)
   {
-    // TODO Auto-generated method stub
     return 0;
   }
 
+  @Override
   public boolean offer(UpdateToReplay e)
   {
-    list.add(e);
-    return true;
+    return list.add(e);
   }
 
+  @Override
   public boolean offer(UpdateToReplay e, long timeout, TimeUnit unit)
       throws InterruptedException
   {
-    list.add(e);
-    return true;
+    return list.add(e);
   }
 
+  @Override
   public UpdateToReplay poll(long timeout, TimeUnit unit)
       throws InterruptedException
   {
-    // TODO Auto-generated method stub
     return null;
   }
 
+  @Override
   public void put(UpdateToReplay e) throws InterruptedException
   {
-    // TODO Auto-generated method stub
-
   }
 
+  @Override
   public int remainingCapacity()
   {
-    // TODO Auto-generated method stub
     return 0;
   }
 
+  @Override
   public boolean remove(Object o)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.remove(o);
   }
 
+  @Override
   public UpdateToReplay take() throws InterruptedException
   {
     return list.removeFirst();
   }
 
+  @Override
   public UpdateToReplay element()
   {
-    // TODO Auto-generated method stub
     return null;
   }
 
+  @Override
   public UpdateToReplay peek()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.peek();
   }
 
+  @Override
   public UpdateToReplay poll()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.poll();
   }
 
+  @Override
   public UpdateToReplay remove()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.remove();
   }
 
+  @Override
   public boolean addAll(Collection<? extends UpdateToReplay> c)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.addAll(c);
   }
 
+  @Override
   public void clear()
   {
-    // TODO Auto-generated method stub
-
+    this.list.clear();
   }
 
+  @Override
   public boolean containsAll(Collection<?> c)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.containsAll(c);
   }
 
+  @Override
   public boolean isEmpty()
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.isEmpty();
   }
 
+  @Override
   public Iterator<UpdateToReplay> iterator()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.iterator();
   }
 
+  @Override
   public boolean removeAll(Collection<?> c)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.removeAll(c);
   }
 
+  @Override
   public boolean retainAll(Collection<?> c)
   {
-    // TODO Auto-generated method stub
-    return false;
+    return this.list.retainAll(c);
   }
 
+  @Override
   public int size()
   {
-    // TODO Auto-generated method stub
-    return 0;
+    return this.list.size();
   }
 
+  @Override
   public Object[] toArray()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.toArray();
   }
 
+  @Override
   public <T> T[] toArray(T[] a)
   {
-    // TODO Auto-generated method stub
-    return null;
+    return this.list.toArray(a);
   }
 
 }
