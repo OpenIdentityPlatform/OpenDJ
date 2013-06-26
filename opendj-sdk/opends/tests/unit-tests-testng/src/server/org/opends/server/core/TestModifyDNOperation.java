@@ -178,7 +178,6 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
     assertTrue(modifyDNOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyDNOperation.getResponseLogElements());
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
@@ -201,7 +200,6 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
     assertTrue(modifyDNOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyDNOperation.getResponseLogElements());
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 2);
 //    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
@@ -225,7 +223,6 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
     assertTrue(modifyDNOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyDNOperation.getResponseLogElements());
     assertTrue(modifyDNOperation.getErrorMessage().length() > 0);
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
@@ -250,7 +247,6 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
     assertTrue(modifyDNOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyDNOperation.getResponseLogElements());
     assertTrue(modifyDNOperation.getErrorMessage().length() > 0);
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);

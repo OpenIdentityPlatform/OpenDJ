@@ -23,31 +23,26 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.MessageBuilder;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import org.opends.server.types.operation.PreParseModifyDNOperation;
-import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-
-import org.opends.server.types.*;
-import org.opends.server.workflowelement.localbackend.*;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.CoreMessages.*;
-
+import org.opends.server.types.*;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PreParseModifyDNOperation;
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * This class defines an operation that may be used to alter the DN of an entry
@@ -58,49 +53,56 @@ public class ModifyDNOperationBasis
        implements ModifyDNOperation,
                   PreParseModifyDNOperation,
                   PostResponseModifyDNOperation
-                  {
+{
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // Indicates whether to delete the old RDN value from the entry.
+  /** Indicates whether to delete the old RDN value from the entry. */
   private boolean deleteOldRDN;
 
-  // The raw, unprocessed current DN of the entry as included in the request
-  // from the client.
+  /**
+   * The raw, unprocessed current DN of the entry as included in the request
+   * from the client.
+   */
   private ByteString rawEntryDN;
 
-  // The raw, unprocessed newRDN as included in the request from the client.
+  /** The raw, unprocessed newRDN as included in the request from the client. */
   private ByteString rawNewRDN;
 
-  // The raw, unprocessed newSuperior as included in the request from the
-  // client.
+  /**
+   * The raw, unprocessed newSuperior as included in the request from the
+   * client.
+   */
   private ByteString rawNewSuperior;
 
-  // The current DN of the entry.
+  /** The current DN of the entry. */
   private DN entryDN;
 
-  // The new parent for the entry.
+  /** The new parent for the entry. */
   private DN newSuperior;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The set of response controls for this modify DN operation.
+  /** The set of response controls for this modify DN operation. */
   private List<Control> responseControls;
 
-  // The set of modifications applied to attributes in the entry in the course
-  // of processing the modify DN.
+  /**
+   * The set of modifications applied to attributes in the entry in the course
+   * of processing the modify DN.
+   */
   private List<Modification> modifications;
 
-  // The change number that has been assigned to this operation.
+  /** The change number that has been assigned to this operation. */
   private long changeNumber;
 
-  // The new RDN for the entry.
+  /** The new RDN for the entry. */
   private RDN newRDN;
 
-  // The new entry DN
+  /** The new entry DN. */
   private DN newDN = null;
 
   /**
@@ -199,6 +201,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
@@ -209,6 +212,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
     this.rawEntryDN = rawEntryDN;
@@ -221,6 +225,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getEntryDN()
   {
     try
@@ -245,6 +250,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawNewRDN()
   {
     return rawNewRDN;
@@ -253,6 +259,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawNewRDN(ByteString rawNewRDN)
   {
     this.rawNewRDN = rawNewRDN;
@@ -264,6 +271,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final RDN getNewRDN()
   {
     try
@@ -290,6 +298,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final boolean deleteOldRDN()
   {
     return deleteOldRDN;
@@ -298,6 +307,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
     this.deleteOldRDN = deleteOldRDN;
@@ -306,6 +316,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawNewSuperior()
   {
     return rawNewSuperior;
@@ -314,6 +325,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
     this.rawNewSuperior = rawNewSuperior;
@@ -325,6 +337,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getNewSuperior()
   {
     if (rawNewSuperior == null)
@@ -358,6 +371,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<Modification> getModifications()
   {
     return modifications;
@@ -367,6 +381,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addModification(Modification modification)
   {
     if (modifications == null)
@@ -383,6 +398,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Entry getOriginalEntry()
   {
     return null;
@@ -392,6 +408,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Entry getUpdatedEntry()
   {
     return null;
@@ -400,6 +417,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber()
   {
     return changeNumber;
@@ -409,6 +427,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setChangeNumber(long changeNumber)
   {
     this.changeNumber = changeNumber;
@@ -431,104 +450,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String newSuperiorStr;
-    if (rawNewSuperior == null)
-    {
-      newSuperiorStr = null;
-    }
-    else
-    {
-      newSuperiorStr = rawNewSuperior.toString();
-    }
-
-    return new String[][]
-                        {
-        new String[] { LOG_ELEMENT_ENTRY_DN, String.valueOf(rawEntryDN) },
-        new String[] { LOG_ELEMENT_NEW_RDN, String.valueOf(newRDN) },
-        new String[] { LOG_ELEMENT_DELETE_OLD_RDN,
-            String.valueOf(deleteOldRDN) },
-        new String[] { LOG_ELEMENT_NEW_SUPERIOR, newSuperiorStr }
-                        };
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-      String.valueOf(getProcessingTime());
-
-    return new String[][]
-                        {
-        new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-        new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-        new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-        new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-        new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-                        };
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -765,6 +687,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN dn)
   {
     proxiedAuthorizationDN = dn;
@@ -774,6 +697,7 @@ public class ModifyDNOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getNewDN()
   {
     if (newDN == null)

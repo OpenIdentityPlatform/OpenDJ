@@ -36,7 +36,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.*;
 
-
 /**
  * This abstract class is a generic operation wrapper intended to be subclassed
  * by a specific operation wrapper.
@@ -195,15 +194,6 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public String[][] getCommonLogElements()
-  {
-    return operation.getCommonLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public long getConnectionID()
   {
     return operation.getConnectionID();
@@ -332,27 +322,9 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public String[][] getRequestLogElements()
-  {
-    return operation.getRequestLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public List<Control> getResponseControls()
   {
     return operation.getResponseControls();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String[][] getResponseLogElements()
-  {
-    return operation.getResponseLogElements();
   }
 
   /**
@@ -535,8 +507,6 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.setSynchronizationOperation(isSynchronizationOperation);
   }
 
-
-
   /**
    * {@inheritDoc}
    */
@@ -545,8 +515,6 @@ public class OperationWrapper<W extends Operation> implements Operation
   {
     return getClientConnection().hashCode() * (int) getOperationID();
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -570,8 +538,6 @@ public class OperationWrapper<W extends Operation> implements Operation
 
     return false;
   }
-
-
 
   /**
    * {@inheritDoc}

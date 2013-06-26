@@ -23,19 +23,17 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.MessageBuilder;
 
-import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.AccessLogger.logCompareRequest;
-import static org.opends.server.loggers.AccessLogger.logCompareResponse;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -47,9 +45,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
-import org.opends.server.workflowelement.localbackend.
-       LocalBackendCompareOperation;
-
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * This class defines an operation that may be used to determine whether a
@@ -59,35 +55,35 @@ import org.opends.server.workflowelement.localbackend.
 public class CompareOperationBasis
              extends AbstractOperation
              implements PreParseCompareOperation, CompareOperation,
-                        Runnable, PostResponseCompareOperation
+                        PostResponseCompareOperation
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The attribute type for this compare operation.
+  /** The attribute type for this compare operation. */
   private AttributeType attributeType;
 
-  // The assertion value for the compare operation.
+  /** The assertion value for the compare operation. */
   private ByteString assertionValue;
 
-  // The set of attribute options
+  /** The set of attribute options. */
   private Set<String> attributeOptions;
 
-  // The raw, unprocessed entry DN as included in the client request.
+  /** The raw, unprocessed entry DN as included in the client request. */
   private ByteString rawEntryDN;
 
-  // The DN of the entry for the compare operation.
+  /** The DN of the entry for the compare operation. */
   private DN entryDN;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The set of response controls for this compare operation.
+  /** The set of response controls for this compare operation. */
   private List<Control> responseControls;
 
-  // The attribute type for the compare operation.
+  /** The attribute type for the compare operation. */
   private String rawAttributeType;
 
 
@@ -169,6 +165,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
@@ -179,6 +176,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
     this.rawEntryDN = rawEntryDN;
@@ -191,6 +189,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getEntryDN()
   {
     if (entryDN == null) {
@@ -217,6 +216,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final String getRawAttributeType()
   {
     return rawAttributeType;
@@ -227,6 +227,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawAttributeType(String rawAttributeType)
   {
     this.rawAttributeType = rawAttributeType;
@@ -266,6 +267,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final AttributeType getAttributeType()
   {
     if (attributeType == null) {
@@ -279,6 +281,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttributeType(AttributeType attributeType)
   {
     this.attributeType = attributeType;
@@ -289,6 +292,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getAttributeOptions()
   {
     if (attributeOptions == null) {
@@ -302,6 +306,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setAttributeOptions(Set<String> attributeOptions)
   {
     this.attributeOptions = attributeOptions;
@@ -310,6 +315,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getAssertionValue()
   {
     return assertionValue;
@@ -320,6 +326,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setAssertionValue(ByteString assertionValue)
   {
     this.assertionValue = assertionValue;
@@ -335,95 +342,7 @@ public class CompareOperationBasis
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.COMPARE;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_ENTRY_DN, String.valueOf(rawEntryDN) },
-      new String[] { LOG_ELEMENT_COMPARE_ATTR, rawAttributeType }
-    };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
   }
 
 
@@ -436,6 +355,7 @@ public class CompareOperationBasis
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -446,6 +366,7 @@ public class CompareOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
@@ -493,6 +414,7 @@ public class CompareOperationBasis
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -630,15 +552,13 @@ public class CompareOperationBasis
     {
       // Invoke the post response plugins that have been registered by
       // the workflow elements
-      List localOperations =
+      List<LocalBackendCompareOperation> localOperations =
         (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
 
       if (localOperations != null)
       {
-        for (Object localOp : localOperations)
+        for (LocalBackendCompareOperation localOperation : localOperations)
         {
-          LocalBackendCompareOperation localOperation =
-            (LocalBackendCompareOperation)localOp;
           pluginConfigManager.invokePostResponseComparePlugins(localOperation);
         }
       }
@@ -690,6 +610,7 @@ public class CompareOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public Entry getEntryToCompare()
   {
     return null;

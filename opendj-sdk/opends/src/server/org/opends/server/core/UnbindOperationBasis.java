@@ -23,8 +23,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 
 import java.util.List;
 
@@ -35,8 +39,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.messages.CoreMessages.*;
 /**
  * This class defines an operation that may be used to close the connection
  * between the client and the Directory Server.
@@ -83,42 +85,8 @@ public class UnbindOperationBasis
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.UNBIND;
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    // There are no special elements that should be logged for an unbind
-    // request.
-    return new String[0][];
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    // There is no unbind response, nor are there any special elements that
-    // should be logged when an unbind occurs.
-    return new String[0][];
-  }
-
 
 
   /**
@@ -161,6 +129,7 @@ public class UnbindOperationBasis
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     // Get the plugin config manager that will be used for invoking plugins.

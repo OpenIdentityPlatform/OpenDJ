@@ -23,23 +23,22 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
-
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
-
-import org.testng.annotations.Test;
 
 import org.opends.messages.Message;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
-
-import static org.testng.Assert.*;
-
-
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.Control;
+import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for unbind operations
@@ -79,7 +78,6 @@ public class UnbindOperationTestCase
     assertTrue(unbindOperation.getProcessingStartTime() > 0);
     assertTrue(unbindOperation.getProcessingStopTime() > 0);
     assertTrue(unbindOperation.getProcessingTime() >= 0);
-    assertNotNull(unbindOperation.getResponseLogElements());
   }
 
 

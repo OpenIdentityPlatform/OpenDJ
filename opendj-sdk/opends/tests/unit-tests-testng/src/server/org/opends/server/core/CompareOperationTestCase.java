@@ -28,25 +28,27 @@
 
 package org.opends.server.core;
 
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.*;
+import static org.testng.Assert.*;
+
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 import org.opends.server.TestCaseUtils;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.plugins.InvocationCounterPlugin;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.net.Socket;
-
+@SuppressWarnings("javadoc")
 public class CompareOperationTestCase extends OperationTestCase
 {
   private Entry entry;
@@ -149,7 +151,6 @@ public class CompareOperationTestCase extends OperationTestCase
     assertTrue(compareOperation.getProcessingStartTime() > 0);
     assertTrue(compareOperation.getProcessingStopTime() > 0);
     assertTrue(compareOperation.getProcessingTime() >= 0);
-    assertNotNull(compareOperation.getResponseLogElements());
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
@@ -169,7 +170,6 @@ public class CompareOperationTestCase extends OperationTestCase
     assertTrue(compareOperation.getProcessingStartTime() > 0);
     assertTrue(compareOperation.getProcessingStopTime() > 0);
     assertTrue(compareOperation.getProcessingTime() >= 0);
-    assertNotNull(compareOperation.getResponseLogElements());
     assertTrue(compareOperation.getErrorMessage().length() > 0);
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
@@ -190,7 +190,6 @@ public class CompareOperationTestCase extends OperationTestCase
     assertTrue(compareOperation.getProcessingStartTime() > 0);
     assertTrue(compareOperation.getProcessingStopTime() > 0);
     assertTrue(compareOperation.getProcessingTime() >= 0);
-    assertNotNull(compareOperation.getResponseLogElements());
     assertTrue(compareOperation.getErrorMessage().length() > 0);
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);

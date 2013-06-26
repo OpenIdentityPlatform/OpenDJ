@@ -27,7 +27,6 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.*;
@@ -247,37 +246,6 @@ public abstract class AbstractOperation
   {
     clientConnection.disconnect(disconnectReason, sendNotification,
             message);
-  }
-
-
-
-  /**
-   * Retrieves a set of standard elements that should be logged in all
-   * requests and responses for all types of operations.  Each element
-   * in the array will itself be a two-element array in which the
-   * first element is the name of the field and the second is a string
-   * representation of the value, or {@code null} if there is no value
-   * for that field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          requests and responses for all types of operations.
-   */
-  @Override
-  public final String[][] getCommonLogElements()
-  {
-    // Note that no debugging will be done in this method because
-    // it is a likely candidate for being called by the logging
-    // subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_CONNECTION_ID,
-                     String.valueOf(getConnectionID()) },
-      new String[] { LOG_ELEMENT_OPERATION_ID,
-          String.valueOf(operationID) },
-      new String[] { LOG_ELEMENT_MESSAGE_ID,
-          String.valueOf(messageID) }
-    };
   }
 
 

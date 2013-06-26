@@ -23,23 +23,15 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
-import org.opends.messages.MessageBuilder;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_MATCHED_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
-import static org.opends.server.loggers.AccessLogger.logModifyRequest;
-import static org.opends.server.loggers.AccessLogger.logModifyResponse;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
@@ -49,12 +41,11 @@ import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.workflowelement.localbackend.*;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-
 
 /**
  * This class defines an operation that may be used to modify an entry in the
@@ -64,33 +55,35 @@ public class ModifyOperationBasis
        extends AbstractOperation implements ModifyOperation,
        PreParseModifyOperation,
        PostResponseModifyOperation
-       {
+{
 
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The raw, unprocessed entry DN as included by the client request.
+  /** The raw, unprocessed entry DN as included by the client request. */
   private ByteString rawEntryDN;
 
-  // The DN of the entry for the modify operation.
+  /** The DN of the entry for the modify operation. */
   private DN entryDN;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The set of response controls for this modify operation.
+  /** The set of response controls for this modify operation. */
   private List<Control> responseControls;
 
-  // The raw, unprocessed set of modifications as included in the client
-  // request.
+  /**
+   * The raw, unprocessed set of modifications as included in the client
+   * request.
+   */
   private List<RawModification> rawModifications;
 
-  // The set of modifications for this modify operation.
+  /** The set of modifications for this modify operation. */
   private List<Modification> modifications;
 
-  // The change number that has been assigned to this operation.
+  /** The change number that has been assigned to this operation. */
   private long changeNumber;
 
   /**
@@ -166,6 +159,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
@@ -174,6 +168,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
     this.rawEntryDN = rawEntryDN;
@@ -184,6 +179,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getEntryDN()
   {
     if (entryDN == null){
@@ -206,6 +202,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<RawModification> getRawModifications()
   {
     return rawModifications;
@@ -214,6 +211,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addRawModification(RawModification rawModification)
   {
     rawModifications.add(rawModification);
@@ -224,6 +222,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawModifications(List<RawModification> rawModifications)
   {
     this.rawModifications = rawModifications;
@@ -234,6 +233,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<Modification> getModifications()
   {
     if (modifications == null)
@@ -289,6 +289,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addModification(Modification modification)
   throws DirectoryException
   {
@@ -298,6 +299,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -309,86 +311,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-                        {
-        new String[] { LOG_ELEMENT_ENTRY_DN, String.valueOf(rawEntryDN) }
-                        };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-      String.valueOf(getProcessingTime());
-
-    return new String[][]
-                        {
-        new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-        new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-        new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-        new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-        new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-                        };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -397,6 +320,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
@@ -405,6 +329,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
@@ -413,6 +338,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
@@ -421,6 +347,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("ModifyOperation(connID=");
@@ -435,6 +362,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber(){
     return changeNumber;
   }
@@ -442,6 +370,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setChangeNumber(long changeNumber)
   {
     this.changeNumber = changeNumber;
@@ -450,6 +379,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
@@ -458,6 +388,7 @@ public class ModifyOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -627,8 +558,8 @@ public class ModifyOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public Entry getCurrentEntry() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -637,6 +568,7 @@ public class ModifyOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public List<AttributeValue> getCurrentPasswords()
   {
     return null;
@@ -647,6 +579,7 @@ public class ModifyOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public Entry getModifiedEntry()
   {
     return null;
@@ -657,6 +590,7 @@ public class ModifyOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public List<AttributeValue> getNewPasswords()
   {
     return null;

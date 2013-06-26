@@ -26,28 +26,16 @@
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 
-
-import static org.opends.server.config.ConfigConstants.DN_CONFIG_ROOT;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_AUTH_TYPE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_BIND_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_MATCHED_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_SASL_MECHANISM;
-import static org.opends.server.loggers.AccessLogger.logBindRequest;
-import static org.opends.server.loggers.AccessLogger.logBindResponse;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
@@ -55,8 +43,7 @@ import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
-import org.opends.server.workflowelement.localbackend.*;
-
+import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
 
 /**
  * This class defines an operation that may be used to authenticate a user to
@@ -77,45 +64,49 @@ public class BindOperationBasis
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The credentials used for SASL authentication.
+  /** The credentials used for SASL authentication. */
   private ByteString saslCredentials;
 
-  // The server SASL credentials provided to the client in the response.
+  /** The server SASL credentials provided to the client in the response. */
   private ByteString serverSASLCredentials;
 
-  // The authentication info for this bind operation.
+  /** The authentication info for this bind operation. */
   private AuthenticationInfo authInfo = null;
 
-  // The authentication type used for this bind operation.
+  /** The authentication type used for this bind operation. */
   private AuthenticationType authType;
 
-  // The raw, unprocessed bind DN as contained in the client request.
+  /** The raw, unprocessed bind DN as contained in the client request. */
   private ByteString rawBindDN;
 
-  // The password used for simple authentication.
+  /** The password used for simple authentication. */
   private ByteString simplePassword;
 
-  // The bind DN used for this bind operation.
+  /** The bind DN used for this bind operation. */
   private DN bindDN;
 
-  // The DN of the user entry that is attempting to authenticate.
+  /** The DN of the user entry that is attempting to authenticate. */
   private DN userEntryDN;
 
-  // The DN of the user as whom a SASL authentication was attempted (regardless
-  // of whether the authentication was successful) for the purpose of updating
-  // password policy state information.
+  /**
+   * The DN of the user as whom a SASL authentication was attempted (regardless
+   * of whether the authentication was successful) for the purpose of updating
+   * password policy state information.
+   */
   private Entry saslAuthUserEntry;
 
-  // The set of response controls for this bind operation.
+  /** The set of response controls for this bind operation. */
   private List<Control> responseControls;
 
-  // A message explaining the reason for the authentication failure.
+  /** A message explaining the reason for the authentication failure. */
   private Message authFailureReason;
 
-  // The SASL mechanism used for SASL authentication.
+  /** The SASL mechanism used for SASL authentication. */
   private String saslMechanism;
 
-  // A string representation of the protocol version for this bind operation.
+  /**
+   * A string representation of the protocol version for this bind operation.
+   */
   private String protocolVersion;
 
   /**
@@ -561,101 +552,6 @@ public class BindOperationBasis
     // candidate for being called by the logging subsystem.
 
     return OperationType.BIND;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    if (authType == AuthenticationType.SASL)
-    {
-      return new String[][]
-      {
-        new String[] { LOG_ELEMENT_BIND_DN, String.valueOf(rawBindDN) },
-        new String[] { LOG_ELEMENT_AUTH_TYPE, authType.toString() },
-        new String[] { LOG_ELEMENT_SASL_MECHANISM, saslMechanism }
-      };
-    }
-    else
-    {
-      return new String[][]
-      {
-        new String[] { LOG_ELEMENT_BIND_DN, String.valueOf(rawBindDN) },
-        new String[] { LOG_ELEMENT_AUTH_TYPE, authType.toString() }
-      };
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
   }
 
   /**

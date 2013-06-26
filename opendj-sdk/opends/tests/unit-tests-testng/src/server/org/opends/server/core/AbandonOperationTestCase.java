@@ -23,54 +23,31 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
 
 
-import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.tools.LDAPReader;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
-import org.opends.server.protocols.ldap.AddRequestProtocolOp;
-import org.opends.server.protocols.ldap.AddResponseProtocolOp;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
-import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
-import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
-import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
-import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
-import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
-import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.testng.annotations.Test;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 /**
@@ -101,6 +78,7 @@ public class AbandonOperationTestCase
   /**
    * For some reason, the @BeforeClass method in the super class is not called.
    */
+  @Override
   @BeforeClass()
   public void startServer() throws Exception {
     super.startServer();
@@ -174,7 +152,6 @@ public class AbandonOperationTestCase
     assertTrue(abandonOperation.getProcessingStartTime() > 0);
     assertTrue(abandonOperation.getProcessingStopTime() > 0);
     assertTrue(abandonOperation.getProcessingTime() >= 0);
-    assertNotNull(abandonOperation.getResponseLogElements());
   }
 
 
@@ -225,10 +202,7 @@ public class AbandonOperationTestCase
 
     Thread.sleep(3000);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
 
     // NOTE:  We can't check to see if pre-parse plugins were called yet
     //        because there's no plugin ordering.  It's possible that the
