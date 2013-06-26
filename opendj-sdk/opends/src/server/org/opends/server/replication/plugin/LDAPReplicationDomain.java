@@ -3026,8 +3026,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       * when we are adding an entry whose parent entry has already been deleted.
       *
       */
-     if (findAndRenameChild(entryUUID, op.getEntryDN(), op))
+     if (findAndRenameChild(op.getEntryDN(), op))
+     {
        numUnresolvedNamingConflicts.incrementAndGet();
+     }
 
      return false;
    }
@@ -3268,12 +3270,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * so that they stay below the baseDn of this replicationDomain and
    * use the conflicting name and attribute.
    *
-   * @param entryUUID   The unique ID of the entry whose child must be renamed.
    * @param entryDN    The DN of the entry whose child must be renamed.
    * @param conflictOp The Operation that generated the conflict.
    */
-  private boolean findAndRenameChild(
-      String entryUUID, DN entryDN, Operation conflictOp)
+  private boolean findAndRenameChild(DN entryDN, Operation conflictOp)
   {
     boolean conflict = false;
 
@@ -4500,7 +4500,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     ExternalChangelogDomainCfg eclDomCfg = null;
     // create the ecl config if it does not exist
-    // There may ot be any config entry related to this domain in some
+    // There may not be any config entry related to this domain in some
     // unit test cases
     try
     {
@@ -4668,7 +4668,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * after the ChangeNumber given as a parameter and publish them
    * using the given session.
    *
-   * @param startingChangeNumber  The ChangeNumber whe we need to start the
+   * @param startingChangeNumber  The ChangeNumber where we need to start the
    *                              search
    * @param session               The session to use to publish the changes
    *
@@ -5377,8 +5377,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       int fractionalMode;
 
-      // Determine if fractional-exclude or fractional-include property is used
-      // : only one of them is allowed
+      // Determine if fractional-exclude or fractional-include property is used:
+      // only one of them is allowed
       Iterator<String> iterator;
 
       // Deduce the wished fractional mode
