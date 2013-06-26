@@ -43,6 +43,9 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * Represents information about the license file.
+ *
+ * NOTE: the license file location must be kept in sync with build.xml and
+ * org.opends.server.tools.upgrade.LicenseFile.
  */
 public class LicenseFile
 {
@@ -158,7 +161,7 @@ public class LicenseFile
   /**
    * Checks if the license file exists.
    *
-   * @return <CODE>true</CODE> a license file {@value #LICENSE_FILE_NAME} exists
+   * @return <CODE>true</CODE> if the license file exists
    *         in the Legal directory in the top level installation directory
    *         <CODE>false</CODE> otherwise.
    */
