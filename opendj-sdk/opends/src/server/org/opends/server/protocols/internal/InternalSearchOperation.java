@@ -27,27 +27,13 @@
  */
 package org.opends.server.protocols.internal;
 
-
-
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperationBasis;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
-
-
+import org.opends.server.types.*;
 
 /**
  * This class defines a subclass of the core search operation that is
@@ -71,7 +57,7 @@ public final class InternalSearchOperation
   private LinkedList<SearchResultEntry> entryList;
 
   /** The set of search references returned for this search. */
-  private LinkedList<SearchResultReference> referenceList;
+  private List<SearchResultReference> referenceList;
 
 
 
@@ -179,7 +165,7 @@ public final class InternalSearchOperation
               List<Control> requestControls, DN baseDN,
               SearchScope scope, DereferencePolicy derefPolicy,
               int sizeLimit, int timeLimit, boolean typesOnly,
-              SearchFilter filter, LinkedHashSet<String> attributes,
+              SearchFilter filter, Set<String> attributes,
               InternalSearchListener searchListener)
   {
     super(internalConnection, operationID, messageID, requestControls,
@@ -262,7 +248,7 @@ public final class InternalSearchOperation
    *          search, or <CODE>null</CODE> if a custom internal search
    *          listener is to be used.
    */
-  public LinkedList<SearchResultReference> getSearchReferences()
+  public List<SearchResultReference> getSearchReferences()
   {
     return referenceList;
   }
