@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -37,9 +37,7 @@ import java.awt.Component;
 
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
-import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.Installation;
 
 /**
  * This panel is used to show a welcome message.
@@ -75,28 +73,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    Message message;
-    if (Utils.isWebStart())
-    {
-      String cmd = Utils.isWindows()? Installation.WINDOWS_SETUP_FILE_NAME:
-          Installation.UNIX_SETUP_FILE_NAME;
-      message = Utils.getCustomizedObject(
-          "INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS",
-          INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
-              DynamicConstants.SHORT_NAME,
-              DynamicConstants.SHORT_NAME,
-              UIFactory.applyFontToHtml(cmd,
-                      UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
-              DynamicConstants.SHORT_NAME,
-              DynamicConstants.COMPACT_VERSION_STRING,
-              DynamicConstants.BUILD_ID,
-              DynamicConstants.SHORT_NAME,
-              DynamicConstants.SHORT_NAME),
-          Message.class);
-    }
-    else
-    {
-      message = Utils.getCustomizedObject(
+    return Utils.getCustomizedObject(
           "INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS",
           INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
               DynamicConstants.SHORT_NAME,
@@ -104,8 +81,6 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
               DynamicConstants.DOC_REFERENCE_WIKI,
               DynamicConstants.SHORT_NAME),
           Message.class);
-    }
-    return message;
   }
 
   /**
